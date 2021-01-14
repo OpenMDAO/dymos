@@ -76,7 +76,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p1.add_parameter('mu_r', val=0.03, opt=False, units=None)
 
         p1.add_timeseries_output('*')
-        
+
         # Second Phase - V1 to Vr
         # Operating with one engine
         # Vr is taken to be 1.2 * the stall speed (v_stall)
@@ -141,7 +141,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p3.add_boundary_constraint('v', loc='final', equals=0, ref=100, linear=True)
 
         # Minimize range at the end of the phase
-        p3.add_objective('r', loc='final', ref0=2000.0, ref=3000.0)
+        p3.add_objective('r', loc='final', ref=1.0) #  ref0=2000.0, ref=3000.0)
 
 
         # Fourth Phase - Rotate for single engine takeoff
@@ -185,7 +185,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         # liftoff until v2 (1.2 * v_stall) at 35 ft
         #
 
-        p5 = dm.Phase(ode_class=TakeoffODE, transcription=dm.Radau(num_segments=15))
+        p5 = dm.Phase(ode_class=TakeoffODE, transcription=dm.Radau(num_segments=20))
 
         traj.add_phase('climb', p5)
 
@@ -226,7 +226,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.model.linear_solver.options['maxiter'] = 4
         # p.model.linear_solver.options['iprint'] = 2
         p.model.linear_solver.precon = om.DirectSolver()
-        
+
         #
         # Link the phases
         #
@@ -255,9 +255,9 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         p.set_val('traj.brake_release_to_v1.parameters:alpha', 0, units='deg')
         p.set_val('traj.brake_release_to_v1.parameters:h', 0.0)
-        
+
         #
-        
+
         p.set_val('traj.v1_to_vr.t_initial', 35)
         p.set_val('traj.v1_to_vr.t_duration', 35)
 
@@ -267,9 +267,9 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.set_val('traj.v1_to_vr.parameters:alpha', 0.0, units='deg')
 
         p.set_val('traj.v1_to_vr.parameters:h', 0.0)
-        
+
         #
-        
+
         p.set_val('traj.rto.t_initial', 35)
         p.set_val('traj.rto.t_duration', 1)
 
@@ -317,7 +317,9 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         #
         # from openmdao.utils.sc
 
-        dm.run_problem(p, run_driver=True, simulate=True, make_plots=True) #, restart='dymos_simulation.db')
+        dm.run_problem(p, run_driver=True, simulate=False, make_plots=False) #, restart='dymos_simulation.db')
+
+        p.driver.scaling_report()
 
         print(p.get_val('traj.climb.states:r'))
         #
