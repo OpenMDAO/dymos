@@ -34,7 +34,13 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-5
         p.driver.opt_settings['Major iterations limit'] = 500
         p.driver.opt_settings['Minor iterations limit'] = 100000
-        p.driver.declare_coloring()
+
+
+        # p.driver.options['optimizer'] = 'IPOPT'
+        # p.driver.opt_settings['print_level'] = 5
+        # p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+
+        p.driver.declare_coloring(tol=1.0E-12)
 
         #
         # Instantiate the trajectory and phase
@@ -49,7 +55,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         # We don't know what V1 is a priori, we're going to use this model to determine it.
         #
 
-        p1 = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=10))
+        p1 = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=3))
 
         traj.add_phase('brake_release_to_v1', p1)
 
@@ -77,7 +83,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         #
 
         p2 = dm.Phase(ode_class=GroundRollODE,
-                         transcription=dm.Radau(num_segments=10))
+                         transcription=dm.Radau(num_segments=3))
 
         traj.add_phase('v1_to_vr', p2)
 
@@ -109,7 +115,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         # V1 to Zero speed with no propulsion and braking.
         #
 
-        p3 = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=10))
+        p3 = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=3))
 
         traj.add_phase('rto', p3)
 
@@ -135,14 +141,14 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p3.add_boundary_constraint('v', loc='final', equals=0, ref=100, linear=True)
 
         # Minimize range at the end of the phase
-        p3.add_objective('r', loc='final', ref=1.0)
+        p3.add_objective('r', loc='final', ref0=2000.0, ref=3000.0)
 
 
         # Fourth Phase - Rotate for single engine takeoff
         # v_rotate to runway normal force = 0
         #
 
-        p4 = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=10))
+        p4 = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=3))
 
         traj.add_phase('rotate', p4)
 
@@ -179,7 +185,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         # liftoff until v2 (1.2 * v_stall) at 35 ft
         #
 
-        p5 = dm.Phase(ode_class=TakeoffODE, transcription=dm.Radau(num_segments=10))
+        p5 = dm.Phase(ode_class=TakeoffODE, transcription=dm.Radau(num_segments=20))
 
         traj.add_phase('climb', p5)
 
@@ -211,11 +217,15 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p5.add_boundary_constraint('gam', loc='final', equals=5, ref=5, units='deg')
         p5.add_path_constraint('gam', lower=0, upper=5, ref=5, units='deg')
 
-        p5.add_boundary_constraint('v_over_v_stall', loc='final', equals=1.2, ref=1.2)
+        p5.add_boundary_constraint('v_over_v_stall', loc='final', lower=1.2, ref=1.2)
 
         # p5.add_objective('time', loc='final', ref=100.0)
 
-        p.model.linear_solver = om.DirectSolver()
+        # p.model.linear_solver = om.DirectSolver()
+        p.model.linear_solver = om.PETScKrylov()
+        p.model.linear_solver.options['maxiter'] = 4
+        # p.model.linear_solver.options['iprint'] = 2
+        p.model.linear_solver.precon = om.DirectSolver()
         
         #
         # Link the phases
@@ -300,8 +310,16 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         #
         # Solve for the optimal trajectory
         #
+        # p.run_model()
+        # p.check_partials(compact_print=True)
+        #
+        # p.run_model()
+        #
+        # from openmdao.utils.sc
+
         dm.run_problem(p, run_driver=True, simulate=True, make_plots=True) #, restart='dymos_simulation.db')
 
+        print(p.get_val('traj.climb.states:r'))
         #
         # Get the explicitly simulated solution and plot the results
         #

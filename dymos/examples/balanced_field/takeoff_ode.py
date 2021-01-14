@@ -18,7 +18,8 @@ class TakeoffODE(om.Group):
 
         self.add_subsystem(name='atmos',
                            subsys=USatm1976Comp(num_nodes=nn),
-                           promotes_inputs=['h'])
+                           promotes_inputs=['h'],
+                           promotes_outputs=['rho'])
 
         self.add_subsystem(name='k_comp',
                            subsys=KComp(num_nodes=nn),
