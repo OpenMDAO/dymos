@@ -1932,7 +1932,7 @@ class Phase(om.Group):
 
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.
-            if om_version < (3, 4, 1):
+            if om_version < (3, 4, 1) and phs.parameter_options[name]['dynamic']:
                 val = phs.get_val(f'parameters:{name}')[0, ...]
             else:
                 val = phs.get_val(f'parameters:{name}')
