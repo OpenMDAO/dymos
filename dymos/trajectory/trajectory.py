@@ -598,6 +598,64 @@ class Trajectory(om.Group):
                                                     sign_b=options['sign_b'])
                     self._linkages[phase_pair].pop(var_pair)
 
+    def _is_valid_linkage(self, phase_name_a, phase_name_b, loc_a, loc_b, var_a, var_b):
+        """
+        Validates linkage constraints.
+
+        Ensures that the posed linkage constraint can be satisfied by checking that the optimizer
+        has the freedom to change the linked variable value on either side of the linkage.
+
+        This check errs on the side of permitting linkages if their validity cannot be confirmed.
+
+        Parameters
+        ----------
+        phase_name_a : str
+            The phase name on the first side of the linkage.
+        phase_name_b : str
+            The phase name on the second side of the linkage.
+        loc_a : str
+            The "location" of the first side of the linkage, either "initial" or "final".
+        loc_b : str
+            The "location" of the second side of the linkage, either "initial" or "final".
+        var_a : str
+            The variable name of the first side of the linkage.
+        var_b : str
+            The variable name of the second side of the linkage.
+
+        Returns
+        -------
+        bool
+            True if the linkage constraint is valid.
+        str
+            A message explaining why the linkage is not valid.  Empty for valid linkages.
+        """
+        phase_a = self._get_subsystem(f'phases.{phase_name_a}')
+        phase_b = self._get_subsystem(f'phases.{phase_name_b}')
+
+        var_cls_a = phase_a.classify_var(var_a)
+        var_cls_b = phase_b.classify_var(var_b)
+
+        if var_cls_a == 'time':
+            var_a_fixed = phase_a.is_time_fixed(loc_a)
+        elif var_cls_a == 'state':
+            var_a_fixed = phase_a.is_state_fixed(var_a, loc_a)
+        else:
+            var_a_fixed = False
+
+        if var_cls_b == 'time':
+            var_b_fixed = phase_b.is_time_fixed(loc_b)
+        elif var_cls_a == 'state':
+            var_b_fixed = phase_b.is_state_fixed(var_b, loc_b)
+        else:
+            var_b_fixed = False
+
+        if var_a_fixed and var_b_fixed:
+            return False, f'Cannot link {loc_a} value of "{var_a}" in {phase_name_a} to {loc_b} ' \
+                          f'value of "{var_b}" in {phase_name_b}.  Values on both sides of the linkage ' \
+                          'are fixed.'
+        else:
+            return True, ''
+
     def _configure_linkages(self):
         connected_linkage_inputs = []
 
@@ -644,6 +702,12 @@ class Trajectory(om.Group):
                                      src_indices=om.slicer[-1, ...])
                     print(f'{indent * 2}{var_a:<{padding}s}[{loc_a}]  ->  {var_b:<{padding}s}[{loc_b}]')
                 else:
+                    is_valid, msg = self._is_valid_linkage(phase_name_a, phase_name_b,
+                                                           loc_a, loc_b, var_a, var_b)
+
+                    if not is_valid:
+                        raise ValueError(f'Invalid linkage in Trajectory {self.pathname}: {msg}')
+
                     linkage_comp.add_linkage_configure(options)
 
                     if options._input_a not in connected_linkage_inputs:

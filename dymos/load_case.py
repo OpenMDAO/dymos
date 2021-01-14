@@ -1,56 +1,6 @@
-import numpy as np
 import openmdao.api as om
 from openmdao.recorders.case import Case
 from .phase.phase import Phase
-from .utils.lgl import lgl
-
-
-def _split_var_path(path):
-    """
-    Split the given OpenMDAO variable path into a system path and a variable name.
-
-    Parameters
-    ----------
-    path : str
-        The variable path to be split
-
-    Returns
-    -------
-    sys_path : str
-        The path to the system containing the given variable.
-    var_name : str
-        The name of the variable without the system path prepended to it.
-    """
-    *sys_path, var_name = path.split('.')
-    sys_path = '.'.join(sys_path)
-    return sys_path, var_name
-
-
-def _get_parent_phase(problem, path):
-    """
-    Given a path in a problem instance, if the path represents a variable or system
-    in a Dymos Phase, return that Phase object, otherwise return None.
-
-    Parameters
-    ----------
-    problem : OpenMDAO Problem instance
-        The problem instance to be searched for a Phase object.
-    path : str
-        The path whose parent Phase is sought.
-
-    Returns
-    -------
-    Phase or None
-        The Phase object containing the given Path, or None if the Phase does not belong to a Phase.
-
-    """
-    sys_path, var_name = _split_var_path(path)
-    comps = sys_path.split('.')
-    path = comps[0]
-    for i in range(1, len(comps)):
-        if isinstance(problem.model._get_subsystem(path), Phase):
-            return problem.model._get_subsystem(path)
-    return None
 
 
 def find_phases(sys):

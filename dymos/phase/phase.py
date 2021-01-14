@@ -2022,3 +2022,72 @@ class Phase(om.Group):
             self.refine_options['max_order'] = max_order
         if smoothness_factor is not _unspecified:
             self.refine_options['smoothness_factor'] = smoothness_factor
+
+    def is_time_fixed(self, loc):
+        """
+        Test whether the initial or final time in the phase is guaranteed to be fixed.
+
+        There are situations in which this can return False even if the final time is fixed
+        in the problem.  If the initial time or duration are inputs, the phase knows nothing
+        about their behavior upstream.
+
+        Parameters
+        ----------
+        loc : str
+            The location of time to be tested: either 'initial' or 'final'.
+
+        Returns
+        -------
+        bool
+            True if both the initial time and duration are not inputs and are fixed.
+
+        """
+        fix_initial = self.time_options['fix_initial']
+        fix_duration = self.time_options['fix_duration']
+        input_initial = self.time_options['input_initial']
+        input_duration = self.time_options['input_duration']
+        initial_bounds = self.time_options['initial_bounds']
+        duration_bounds = self.time_options['duration_bounds']
+
+        if loc == 'initial':
+            if input_initial:
+                res = False
+            else:
+                res = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0.0)
+        elif loc == 'final':
+            if input_initial or input_duration:
+                res = False
+            else:
+                initial_fixed = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0)
+                duration_fixed = fix_duration or (duration_bounds != (None, None) and np.diff(duration_bounds)[0] == 0)
+                res = initial_fixed and duration_fixed
+        else:
+            raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
+                             f'"final" but got {loc}')
+        return res
+
+    def is_state_fixed(self, name, loc):
+        """
+        Test if the state of the given name is guaranteed to be fixed at the initial or final time.
+
+        Parameters
+        ----------
+        name : str
+            The name of the state to be tested.
+        loc : str
+            The location of time to be tested: either 'initial' or 'final'.
+
+        Returns
+        -------
+        bool
+            True if the state of the given name is guaranteed to be fixed at the given location.
+
+        """
+        if loc == 'initial':
+            res = self.state_options[name]['fix_initial']
+        elif loc == 'final':
+            res = self.state_options[name]['fix_final']
+        else:
+            raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
+                             f'"final" but got {loc}')
+        return res
