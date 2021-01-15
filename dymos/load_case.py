@@ -110,6 +110,27 @@ def load_case(problem, previous_solution):
                 raise Warning(f'Unable to find a value for {traj_name}.parameters:{param_name} in the restart file.')
             problem.set_val(f'{traj.pathname}.parameters:{param_name}', prev_val[0, ...], units=prev_units)
 
+    for traj_abs_path, traj in traj_paths.items():
+        traj_name = traj_abs_path.split('.')[-1]
+        for parameter_name, options in traj.parameter_options.items():
+            prev_output_matches = [s for s in prev_outputs if s.endswith(f'{traj_name}.parameters:{parameter_name}')]
+            prev_input_matches = [s for s in prev_inputs if s.endswith(f'{traj_name}.parameters:{parameter_name}')]
+            if prev_output_matches:
+                # In previous outputs
+                prev_param_path = prev_output_matches[0]
+                prev_param_val = prev_outputs[prev_param_path]['value']
+                prev_param_units = prev_outputs[prev_param_path]['units']
+            elif prev_input_matches:
+                # In previous outputs
+                prev_param_path = prev_input_matches[0]
+                prev_param_val = prev_inputs[prev_param_path]['value']
+                prev_param_units = prev_inputs[prev_param_path]['units']
+            else:
+                raise Warning(f'Unable to find a value for {traj_name}.parameters:{parameter_name} in the restart file.')
+            problem.set_val(f'{traj.pathname}.parameters:{parameter_name}',
+                            prev_param_val[0, ...],
+                            units=prev_param_units)
+
     for phase_abs_path, phase in phase_paths.items():
         phase_name = phase_abs_path.split('.')[-1]
 
@@ -163,14 +184,23 @@ def load_case(problem, previous_solution):
             problem.set_val(pc_path, prev_pc_val, units=prev_pc_units)
 
         # Set the timeseries parameter outputs from the previous solution as the parameter value
-        for param_name, options in phase.parameter_options.items():
-            prev_match = [s for s in prev_vars if s.endswith(f'{phase_name}.parameters:{param_name}')]
-            if prev_match:
+        for parameter_name, options in phase.parameter_options.items():
+            prev_output_matches = [s for s in prev_outputs if
+                                   s.endswith(f'{phase_name}.parameters:{parameter_name}')]
+            prev_input_matches = [s for s in prev_inputs if
+                                  s.endswith(f'{phase_name}.parameters:{parameter_name}')]
+            if prev_output_matches:
                 # In previous outputs
-                prev_data = prev_vars[prev_match[0]]
-                prev_param_val = prev_data['value']
-                prev_param_units = prev_data['units']
-                param_path = [s for s in phase_vars if s.endswith(f'{phase_name}.parameters:{param_name}')][0]
+                prev_param_path = prev_output_matches[0]
+                prev_param_val = prev_outputs[prev_param_path]['value']
+                prev_param_units = prev_outputs[prev_param_path]['units']
+            elif prev_input_matches:
+                # In previous outputs
+                prev_param_path = prev_input_matches[0]
+                prev_param_val = prev_inputs[prev_param_path]['value']
+                prev_param_units = prev_inputs[prev_param_path]['units']
             else:
                 continue
-            problem.set_val(param_path, prev_param_val[0, ...], units=prev_param_units)
+            problem.set_val(f'{phase.pathname}.parameters:{parameter_name}',
+                            prev_param_val[0, ...],
+                            units=prev_param_units)
