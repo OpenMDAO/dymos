@@ -1,6 +1,7 @@
 import openmdao.api as om
 from openmdao.recorders.case import Case
 from .phase.phase import Phase
+from .trajectory import Trajectory
 
 
 def find_phases(sys):
@@ -27,6 +28,32 @@ def find_phases(sys):
         for sub in sys.system_iter(recurse=False):
             phase_paths.update(find_phases(sub))
     return phase_paths
+
+
+def find_trajectories(sys):
+    """
+    Finds all instances of Dymos Trajectories within the given system, and returns them as a dictionary.
+    They are keyed by promoted name if use_prom_path=True, otherwise they are keyed by their
+    absolute name.
+
+    Parameters
+    ----------
+    sys : om.Group
+        The OpenMDAO Group to be searched for Dymos Phases.
+
+    Returns
+    -------
+    dict
+        A dictionary mapping the absolute path of each Trajectory object in the given group to each
+        Phase object.
+    """
+    traj_paths = {}
+    if isinstance(sys, Trajectory):
+        traj_paths[sys.pathname] = sys
+    elif isinstance(sys, om.Group):
+        for sub in sys.system_iter(recurse=False):
+            traj_paths.update(find_trajectories(sub))
+    return traj_paths
 
 
 def load_case(problem, previous_solution):
@@ -57,15 +84,43 @@ def load_case(problem, previous_solution):
     if not phase_paths:
         return
 
+    prev_inputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in previous_solution['inputs']}
     prev_outputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in previous_solution['outputs']}
 
     problem.final_setup()  # make sure list_inputs and list_outputs can work
+
+    traj_io = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
+               'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
+
+    traj_inputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in traj_io['inputs']}
+    traj_outputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in traj_io['outputs']}
 
     phase_io = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
                 'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
 
     phase_inputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in phase_io['inputs']}
     phase_outputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in phase_io['outputs']}
+
+    for traj_abs_path, traj in traj_paths.items():
+        traj_name = traj_abs_path.split('.')[-1]
+        for parameter_name, options in traj.parameter_options.items():
+            prev_output_matches = [s for s in prev_outputs if s.endswith(f'{traj_name}.parameters:{parameter_name}')]
+            prev_input_matches = [s for s in prev_inputs if s.endswith(f'{traj_name}.parameters:{parameter_name}')]
+            if prev_output_matches:
+                # In previous outputs
+                prev_param_path = prev_output_matches[0]
+                prev_param_val = prev_outputs[prev_param_path]['value']
+                prev_param_units = prev_outputs[prev_param_path]['units']
+            elif prev_input_matches:
+                # In previous outputs
+                prev_param_path = prev_input_matches[0]
+                prev_param_val = prev_inputs[prev_param_path]['value']
+                prev_param_units = prev_inputs[prev_param_path]['units']
+            else:
+                raise Warning(f'Unable to find a value for {traj_name}.parameters:{parameter_name} in the restart file.')
+            problem.set_val(f'{traj.pathname}.parameters:{parameter_name}',
+                            prev_param_val[0, ...],
+                            units=prev_param_units)
 
     for phase_abs_path, phase in phase_paths.items():
         phase_name = phase_abs_path.split('.')[-1]
@@ -122,13 +177,22 @@ def load_case(problem, previous_solution):
 
         # Set the timeseries parameter outputs from the previous solution as the parameter value
         for parameter_name, options in phase.parameter_options.items():
-            print(phase.pathname)
-            print(parameter_name)
-            print(sorted(list(phase_inputs.keys())))
-            parameter_path = [s for s in phase_inputs if s.endswith(f'{phase_name}.parameters:{parameter_name}')][0]
-            prev_parameter_path = [s for s in prev_outputs if
-                                   s.endswith(f'{phase_name}.timeseries.parameters:{parameter_name}')][0]
-            prev_parameter_val = prev_outputs[prev_parameter_path]['value'][0, ...]
-            prev_parameter_units = prev_outputs[prev_parameter_path]['units']
-
-            problem.set_val(parameter_path, prev_parameter_val, units=prev_parameter_units)
+            prev_output_matches = [s for s in prev_outputs if
+                                   s.endswith(f'{phase_name}.parameters:{parameter_name}')]
+            prev_input_matches = [s for s in prev_inputs if
+                                  s.endswith(f'{phase_name}.parameters:{parameter_name}')]
+            if prev_output_matches:
+                # In previous outputs
+                prev_param_path = prev_output_matches[0]
+                prev_param_val = prev_outputs[prev_param_path]['value']
+                prev_param_units = prev_outputs[prev_param_path]['units']
+            elif prev_input_matches:
+                # In previous outputs
+                prev_param_path = prev_input_matches[0]
+                prev_param_val = prev_inputs[prev_param_path]['value']
+                prev_param_units = prev_inputs[prev_param_path]['units']
+            else:
+                continue
+            problem.set_val(f'{phase.pathname}.parameters:{parameter_name}',
+                            prev_param_val[0, ...],
+                            units=prev_param_units)

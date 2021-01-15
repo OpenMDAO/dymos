@@ -16,8 +16,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
               connected=False):
 
     t = {'gauss-lobatto': dm.GaussLobatto(num_segments=5, order=transcription_order, compressed=compressed),
-         'radau': dm.Radau(num_segments=20, order=transcription_order, compressed=compressed),
-         'runge-kutta': dm.RungeKutta(num_segments=5, compressed=compressed)}
+         'radau': dm.Radau(num_segments=20, order=transcription_order, compressed=compressed)}
 
     traj = dm.Trajectory()
 
@@ -220,6 +219,8 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
                   nodes='state_input'))
         p.set_val('traj.coast.states:accel', value=coast.interpolate(ys=[0, 0],
                   nodes='state_input'))
+
+        p.set_val('traj.coast.parameters:u1', value=0.0, units='deg')
 
     if burn2 in p.model.traj.phases._subsystems_myproc:
         if connected:
