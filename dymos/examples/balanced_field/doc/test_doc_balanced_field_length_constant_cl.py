@@ -108,10 +108,7 @@ p2.add_parameter('alpha', val=0.0, opt=False, units='deg')
 
 p2.add_timeseries_output('*')
 
-# p2.add_boundary_constraint('v_over_v_stall', loc='final', equals=1.2)
-
-# Minimize time at the end of the phase
-# p2.add_objective('time', loc='final', ref=1.0)
+p2.add_boundary_constraint('v_over_v_stall', loc='final', equals=1.2)
 
 # Third Phase - Rejected Takeoff
 # V1 to Zero speed with no propulsion and braking.
@@ -129,7 +126,7 @@ p3.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1
 p3.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0,
              rate_source='r_dot')
 
-p3.add_state('v', fix_initial=False, lower=0.0, ref=100.0, defect_ref=100.0,
+p3.add_state('v', fix_initial=False, lower=0.0, ref=100.0, defect_ref=1000.0,
              rate_source='v_dot')
 
 p3.add_parameter('h', val=0.0, opt=False, units='m')
@@ -187,7 +184,7 @@ p4.add_boundary_constraint('F_r', loc='final', equals=0, ref=100000)
 # liftoff until v2 (1.2 * v_stall) at 35 ft
 #
 
-p5 = dm.Phase(ode_class=TakeoffODE, transcription=dm.Radau(num_segments=15))
+p5 = dm.Phase(ode_class=TakeoffODE, transcription=dm.Radau(num_segments=5))
 
 traj.add_phase('climb', p5)
 
@@ -211,15 +208,16 @@ p5.add_state('gam', fix_initial=True, lower=0.0, ref=0.05, defect_ref=0.05,
 p5.add_parameter('T', val=27000, opt=False, units='lbf')
 p5.add_parameter('m', val=174200, opt=False, units='lbm')
 
-p5.add_control('alpha', opt=True, units='deg', lower=-10, upper=15, ref=10, rate_continuity=True, rate_continuity_scaler=1)
+# Constant alpha but let the optimizer choose it to be continuous with the end of rotate
+p5.add_parameter('alpha', val=9.0, opt=True, units='deg')
 
 p5.add_timeseries_output('*')
 
 p5.add_boundary_constraint('h', loc='final', equals=35, ref=35, units='ft')
-p5.add_boundary_constraint('gam', loc='final', equals=5, ref=5, units='deg')
-p5.add_path_constraint('gam', lower=0, upper=5, ref=5, units='deg')
+# p5.add_boundary_constraint('gam', loc='final', equals=5, ref=5, units='deg')
+# p5.add_path_constraint('gam', lower=0, upper=5, ref=5, units='deg')
 
-p5.add_boundary_constraint('v_over_v_stall', loc='final', lower=1.2, ref=1.2)
+# p5.add_boundary_constraint('v_over_v_stall', loc='final', lower=1.1, upper=2.0, ref=1.2)
 
 # p5.add_objective('time', loc='final', ref=100.0)
 
@@ -305,7 +303,7 @@ p.set_val('traj.climb.states:v', p5.interpolate(ys=[160, 170.0], nodes='state_in
 p.set_val('traj.climb.states:h', p5.interpolate(ys=[0, 35.0], nodes='state_input'), units='ft')
 p.set_val('traj.climb.states:gam', p5.interpolate(ys=[0, 5.0], nodes='state_input'), units='deg')
 
-p.set_val('traj.climb.controls:alpha', 5.0, units='deg')
+p.set_val('traj.climb.parameters:alpha', 9.0, units='deg')
 
 p.set_val('traj.climb.parameters:T', 27000.0, units='lbf')
 
@@ -319,10 +317,11 @@ p.set_val('traj.climb.parameters:T', 27000.0, units='lbf')
 #
 # from openmdao.utils.sc
 
-dm.run_problem(p, run_driver=True, simulate=False, make_plots=False) #, restart='dymos_simulation.db')
+dm.run_problem(p, run_driver=True, simulate=True, make_plots=True) #, restart='dymos_simulation.db')
 
-print(p.get_val('traj.climb.timeseries.states:r'))
-print(p.get_val('traj.climb.timeseries.v_over_v_stall'))
+print(p.get_val('traj.climb.timeseries.states:r')[-1])
+print(p.get_val('traj.climb.timeseries.v_over_v_stall')[-1])
+print(p.get_val('traj.climb.timeseries.parameters:alpha')[-1])
 
 # p.driver.scaling_report()
 #
