@@ -112,6 +112,9 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     plot_dir : str
         Path to directory for plot files.
     """
+    if restart is not None:
+        case = om.CaseReader(restart).get_case('final')
+
     if solution_record_file not in [rec._filepath for rec in iter(problem._rec_mgr)]:
         recorder = om.SqliteRecorder(solution_record_file)
         problem.add_recorder(recorder)
@@ -119,7 +122,6 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     problem.final_setup()  # make sure command line option hook has a chance to run
 
     if restart is not None:
-        case = om.CaseReader(restart).get_case('final')
         load_case(problem, case)
 
     if run_driver:

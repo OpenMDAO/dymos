@@ -51,6 +51,7 @@ def load_case(problem, previous_solution):
         previous_solution = {'inputs': case.list_inputs(out_stream=None, units=True, prom_name=True),
                              'outputs': case.list_outputs(out_stream=None, units=True, prom_name=True)}
 
+    traj_paths = find_trajectories(problem.model)
     phase_paths = find_phases(problem.model)
 
     if not phase_paths:
@@ -70,22 +71,19 @@ def load_case(problem, previous_solution):
         phase_name = phase_abs_path.split('.')[-1]
 
         # Get the initial time and duration from the previous result and set them into the new phase.
-        t_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.timeseries.time_phase')][0]
-
-        t_initial = prev_outputs[t_path]['value'][0]
-        t_initial_units = prev_outputs[t_path]['units']
-
-        t_duration = prev_outputs[t_path]['value'][-1] - prev_outputs[t_path]['value'][0]
-        t_duration_units = t_initial_units
-
         prev_time_path = [s for s in prev_outputs if s.endswith(f'{phase_name}.timeseries.time')][0]
-        prev_time = prev_outputs[prev_time_path]['value']
+
+        prev_time_val = prev_outputs[prev_time_path]['value']
+        prev_time_units = prev_outputs[prev_time_path]['units']
+
+        t_initial = prev_time_val[0]
+        t_duration = prev_time_val[-1] - prev_time_val[0]
 
         # initial time and duration may not be present if a simulation was loaded
         ti_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.t_initial')][0]
         td_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.t_duration')][0]
-        problem.set_val(ti_path, t_initial, units=t_initial_units)
-        problem.set_val(td_path, t_duration, units=t_duration_units)
+        problem.set_val(ti_path, t_initial, units=prev_time_units)
+        problem.set_val(td_path, t_duration, units=prev_time_units)
 
         # Interpolate the timeseries state outputs from the previous solution onto the new grid.
         for state_name, options in phase.state_options.items():
@@ -94,7 +92,7 @@ def load_case(problem, previous_solution):
             prev_state_val = prev_outputs[prev_state_path]['value']
             prev_state_units = prev_outputs[prev_state_path]['units']
             problem.set_val(state_path,
-                            phase.interpolate(xs=prev_time, ys=prev_state_val,
+                            phase.interpolate(xs=prev_time_val, ys=prev_state_val,
                                               nodes='state_input', kind='slinear'),
                             units=prev_state_units)
 
@@ -106,7 +104,7 @@ def load_case(problem, previous_solution):
             prev_control_val = prev_outputs[prev_control_path]['value']
             prev_control_units = prev_outputs[prev_control_path]['units']
             problem.set_val(control_path,
-                            phase.interpolate(xs=prev_time, ys=prev_control_val,
+                            phase.interpolate(xs=prev_time_val, ys=prev_control_val,
                                               nodes='control_input', kind='slinear'),
                             units=prev_control_units)
 
@@ -124,6 +122,9 @@ def load_case(problem, previous_solution):
 
         # Set the timeseries parameter outputs from the previous solution as the parameter value
         for parameter_name, options in phase.parameter_options.items():
+            print(phase.pathname)
+            print(parameter_name)
+            print(sorted(list(phase_inputs.keys())))
             parameter_path = [s for s in phase_inputs if s.endswith(f'{phase_name}.parameters:{parameter_name}')][0]
             prev_parameter_path = [s for s in prev_outputs if
                                    s.endswith(f'{phase_name}.timeseries.parameters:{parameter_name}')][0]

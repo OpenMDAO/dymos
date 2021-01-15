@@ -27,20 +27,22 @@ from dymos.examples.balanced_field.takeoff_ode import TakeoffODE
 p = om.Problem(model=om.Group())
 
 p.driver = om.pyOptSparseDriver()
-p.driver.options['optimizer'] = 'SNOPT'
-p.driver.opt_settings['iSumm'] = 6
-# p.driver.opt_settings['Verify level'] = 3
-p.driver.opt_settings['Major step limit'] = 0.1
-p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-5
-p.driver.opt_settings['Major optimality tolerance'] = 1.0E-5
-p.driver.opt_settings['Major iterations limit'] = 500
-p.driver.opt_settings['Minor iterations limit'] = 100000
-p.driver.opt_settings['Linesearch tolerance'] = 0.5
+# p.driver.options['optimizer'] = 'SNOPT'
+# p.driver.opt_settings['iSumm'] = 6
+# # p.driver.opt_settings['Verify level'] = 3
+# # p.driver.opt_settings['Major step limit'] = 0.1
+# p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-5
+# p.driver.opt_settings['Major optimality tolerance'] = 1.0E-5
+# p.driver.opt_settings['Major iterations limit'] = 500
+# p.driver.opt_settings['Minor iterations limit'] = 100000
+# p.driver.opt_settings['Linesearch tolerance'] = 0.5
 
 
 # p.driver.options['optimizer'] = 'IPOPT'
 # p.driver.opt_settings['print_level'] = 5
 # p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+
+p.driver.options['optimizer'] = 'SLSQP'
 
 p.driver.declare_coloring()
 
@@ -317,7 +319,7 @@ p.set_val('traj.climb.parameters:T', 27000.0, units='lbf')
 #
 # from openmdao.utils.sc
 
-dm.run_problem(p, run_driver=True, simulate=True, make_plots=True) #, restart='dymos_simulation.db')
+dm.run_problem(p, run_driver=True, simulate=True, make_plots=True, restart='dymos_solution.db') #, restart='dymos_simulation.db')
 
 print(p.get_val('traj.climb.timeseries.states:r')[-1])
 print(p.get_val('traj.climb.timeseries.v_over_v_stall')[-1])
