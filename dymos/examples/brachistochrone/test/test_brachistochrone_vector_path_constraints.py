@@ -154,7 +154,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_path_constraint('pos_dot', shape=(2,), units='m/s', indices=[1],
+        phase.add_path_constraint('pos_dot', indices=[1],
                                   lower=-4, upper=4)
 
         phase.add_timeseries_output('pos_dot')
@@ -268,8 +268,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_path_constraint('pos_dot', shape=(2,), units='m/s',
-                                  lower=-4, upper=12)
+        phase.add_path_constraint('pos_dot', lower=-4, upper=12)
 
         phase.add_timeseries_output('pos_dot')
 
@@ -498,7 +497,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.add_boundary_constraint('theta_rate', loc='final', equals=0.0)
         phase.add_boundary_constraint('theta_rate2', loc='final', equals=0.0)
-        phase.add_path_constraint('pos_dot', shape=(2,), units='m/s', indices=[1],
+        phase.add_path_constraint('pos_dot', indices=[1],
                                   lower=-4, upper=4)
 
         phase.add_timeseries_output('pos_dot')
@@ -612,8 +611,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_path_constraint('pos_dot', shape=(2,), units='m/s',
-                                  lower=-4, upper=12)
+        phase.add_path_constraint('pos_dot', lower=-4, upper=12)
 
         phase.add_timeseries_output('pos_dot')
 
@@ -840,7 +838,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.add_boundary_constraint('pos', loc='final', equals=[10, 5])
 
-        phase.add_path_constraint('pos_dot', shape=(2,), units='m/s', indices=[1],
+        phase.add_path_constraint('pos_dot', indices=[1],
                                   lower=-4, upper=4)
 
         phase.add_timeseries_output('pos_dot')
@@ -956,8 +954,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.add_boundary_constraint('pos', loc='final', equals=[10, 5])
 
-        phase.add_path_constraint('pos_dot', shape=(2,), units='m/s',
-                                  lower=-4, upper=12)
+        phase.add_path_constraint('pos_dot', lower=-4, upper=12)
 
         phase.add_timeseries_output('pos_dot')
 

@@ -51,7 +51,7 @@ class TestReentry(unittest.TestCase):
                            lower=-89 * np.pi / 180, upper=1 * np.pi / 180, targets=['beta'])
 
         if constrained:
-            phase0.add_path_constraint('q', lower=0, upper=70, units='Btu/ft**2/s', ref=70)
+            phase0.add_path_constraint('q', lower=0, upper=70, ref=70)
 
         phase0.add_objective('theta', loc='final', ref=-0.01)
 
