@@ -10,6 +10,7 @@ _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 from openmdao.utils.testing_utils import use_tempdirs
+from dymos.utils.testing_utils import assert_cases_equal
 
 
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=False,
@@ -153,9 +154,9 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
     p = om.Problem(model=om.Group())
 
-    p.driver = om.pyOptSparseDriver()
-    p.driver.options['optimizer'] = optimizer
-    p.driver.declare_coloring()
+    if optimizer:
+        p.driver = om.pyOptSparseDriver()
+        p.driver.options['optimizer'] = optimizer
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = 100
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
@@ -169,6 +170,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         p.driver.opt_settings['linear_solver'] = 'mumps'
         p.driver.opt_settings['mu_strategy'] = 'adaptive'
         # p.driver.opt_settings['derivative_test'] = 'first-order'
+    p.driver.declare_coloring()
 
     traj = make_traj(transcription=transcription, transcription_order=transcription_order,
                      compressed=compressed, connected=connected)
@@ -271,32 +273,57 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 class TestExampleTwoBurnOrbitRaiseRestart(unittest.TestCase):
 
     @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
-    def test_restart_from_solution(self):
+    def test_restart_from_solution_gl(self):
         optimizer = 'IPOPT'
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer=optimizer,
                                          show_output=False)
 
+        case1 = om.CaseReader('dymos_solution.db').get_case('final')
+        sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
+
         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
             assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
                               tolerance=2.0E-3)
 
+        # Run again without an actual optimzier
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer=optimizer,
+                                         compressed=False, optimizer=None,
                                          show_output=False, restart='dymos_solution.db')
 
+        case2 = om.CaseReader('dymos_solution.db').get_case('final')
+        sim_case2 = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        # Verify that the second case has the same inputs and outputs
+        assert_cases_equal(case1, case2)
+        assert_cases_equal(sim_case1, sim_case2)
+
     @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
-    def test_restart_from_simulation(self):
+    def test_restart_from_solution_radau(self):
         optimizer = 'IPOPT'
 
-        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer=optimizer,
-                                         show_output=False)
+        p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
+                                         compressed=False, optimizer=optimizer, show_output=False)
+
+        case1 = om.CaseReader('dymos_solution.db').get_case('final')
+        sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
 
         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
             assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
                               tolerance=2.0E-3)
+
+        # Run again without an actual optimzier
+        two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
+                                     compressed=False, optimizer=None, show_output=False,
+                                     restart='dymos_solution.db')
+
+        case2 = om.CaseReader('dymos_solution.db').get_case('final')
+        sim_case2 = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        # Verify that the second case has the same inputs and outputs
+        assert_cases_equal(case1, case2, tol=1.0E-10)
+        assert_cases_equal(sim_case1, sim_case2, tol=1.0E-10)
 
 
 # This test is separate because connected phases aren't directly parallelizable.
@@ -314,6 +341,48 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
             assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
                               tolerance=4.0E-3)
+
+        case1 = om.CaseReader('dymos_solution.db').get_case('final')
+        sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        # Run again without an actual optimzier
+        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                         compressed=False, optimizer=None,
+                                         show_output=False, restart='dymos_solution.db',
+                                         connected=True)
+
+        case2 = om.CaseReader('dymos_solution.db').get_case('final')
+        sim_case2 = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        # Verify that the second case has the same inputs and outputs
+        assert_cases_equal(case1, case2)
+        assert_cases_equal(sim_case1, sim_case2)
+
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    def test_restart_from_solution_radau_to_connected(self):
+        optimizer = 'IPOPT'
+
+        p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
+                                         compressed=False, optimizer=optimizer, show_output=False)
+
+        case1 = om.CaseReader('dymos_solution.db').get_case('final')
+        sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
+            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+                              tolerance=2.0E-3)
+
+        # Run again without an actual optimzier
+        two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
+                                     compressed=False, optimizer=None, show_output=False,
+                                     restart='dymos_solution.db', connected=True)
+
+        case2 = om.CaseReader('dymos_solution.db').get_case('final')
+        sim_case2 = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        # Verify that the second case has the same inputs and outputs
+        assert_cases_equal(case1, case2, tol=1.0E-10, require_same_vars=False)
+        assert_cases_equal(sim_case1, sim_case2, tol=1.0E-10)
 
 
 if __name__ == '__main__':  # pragma: no cover
