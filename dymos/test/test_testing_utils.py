@@ -170,6 +170,7 @@ class TestAssertCasesEqual(unittest.TestCase):
 
         self.assertEqual(str(e.exception), expected)
 
+
 @use_tempdirs
 class TestAssertTimeseriesNearEqual(unittest.TestCase):
 
