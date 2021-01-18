@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.testing import assert_array_almost_equal
 from scipy.interpolate import interp1d
 import openmdao.utils.assert_utils as _om_assert_utils
 
@@ -52,23 +51,24 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
     if require_same_vars:
         case1_minus_case2 = set(case1_vars.keys()) - set(case2_vars.keys())
         case2_minus_case1 = set(case2_vars.keys()) - set(case1_vars.keys())
-        diff_err_msg = ''
+        if case1_minus_case2 or case2_minus_case1:
+            diff_err_msg = '\nrequire_same_vars=True but cases contain different variables.'
         if case1_minus_case2:
-            diff_err_msg += f'\nVariables in case1 but not in case2: {case1_minus_case2}'
+            diff_err_msg += f'\nVariables in case1 but not in case2: {sorted(case1_minus_case2)}'
         if case2_minus_case1:
-            diff_err_msg += f'\nVariables in case2 but not in case1: {case2_minus_case1}'
+            diff_err_msg += f'\nVariables in case2 but not in case1: {sorted(case2_minus_case1)}'
 
     shape_errors = set()
     val_errors = set()
     shape_err_msg = '\nThe following variables have different shapes/sizes:'
-    val_err_msg = '\nThe following variables contain different values:'
+    val_err_msg = '\nThe following variables contain different values:\nvar: error'
 
-    for var in set(case1_vars.keys()).intersection(case2_vars.keys()):
+    for var in sorted(set(case1_vars.keys()).intersection(case2_vars.keys())):
         a = case1_vars[var]['value']
         b = case2_vars[var]['value']
         if a.shape != b.shape:
             shape_errors.add(var)
-            shape_err_msg += f'\n{var}'
+            shape_err_msg += f'\n{var} has shape {a.shape} in case1 but shape {b.shape} in case2'
             continue
         err = np.abs(a - b)
         if np.any(err > tol):
@@ -118,13 +118,16 @@ def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6, num_points=20
     shape2 = x2.shape[1:]
 
     if shape1 != shape2:
-        raise ValueError('The shape variable in the two timeseries is not equal')
+        raise ValueError('The shape of the variable in the two timeseries is not equal '
+                         f'x1 is {shape1}  x2 is {shape2}')
 
     if abs(t1[0] - t2[0]) > 1.0E-12:
-        raise ValueError('The initial time of the two timeseries is not the same.')
+        raise ValueError('The initial time of the two timeseries is not the same. '
+                         f't1[0]={t1[0]}  t2[0]={t2[0]}  difference: {t2[0] - t1[0]}')
 
     if abs(t1[-1] - t2[-1]) > 1.0E-12:
-        raise ValueError('The final time of the two timeseries is not the same.')
+        raise ValueError('The final time of the two timeseries is not the same. '
+                         f't1[0]={t1[-1]}  t2[0]={t2[-1]}  difference: {t2[-1] - t1[-1]}')
 
     size = np.prod(shape1)
 
