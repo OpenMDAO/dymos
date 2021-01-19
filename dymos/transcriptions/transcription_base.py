@@ -208,11 +208,13 @@ class TranscriptionBase(object):
             rate_src_shape = phase.parameter_options[rate_src]['shape']
         elif rate_src_type == 'control_rate':
             control_name = rate_src[:-5]
-            rate_src_units = phase.control_options[control_name]['units']
-            rate_src_shape = phase.control_options[control_name]['shape']
+            control = phase.control_options[control_name]
+            rate_src_units = get_rate_units(control['units'], time_units, deriv=1)
+            rate_src_shape = control['shape']
         elif rate_src_type == 'control_rate2':
             control_name = rate_src[:-6]
-            rate_src_units = phase.control_options[control_name]['units']
+            control = phase.control_options[control_name]
+            rate_src_units = get_rate_units(control['units'], time_units, deriv=2)
             rate_src_shape = phase.control_options[control_name]['shape']
         elif rate_src_type == 'polynomial_control_rate':
             control_name = rate_src[:-5]
@@ -235,7 +237,7 @@ class TranscriptionBase(object):
             options['shape'] = rate_src_shape
 
         if need_units:
-            options['units'] = rate_src_units if rate_src_units is None else f'{rate_src_units}*{time_units}'
+            options['units'] = time_units if rate_src_units is None else f'{rate_src_units}*{time_units}'
 
         return
 

@@ -139,12 +139,22 @@ def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6, num_points=20
     a2 = np.reshape(x2, newshape=(nn2, size))
     t2_unique, idxs2 = np.unique(t2.ravel(), return_index=True)
 
-    interp1 = interp1d(x=t1_unique, y=a1[idxs1, ...], kind='slinear', axis=0)
-    interp2 = interp1d(x=t2_unique, y=a2[idxs2, ...], kind='slinear', axis=0)
+    if nn1 > nn2:
+        # The first timeseries is more dense
+        t_unique = t1_unique
+        x_to_interp = a1[idxs1, ...]
+        t_check = t2.ravel()
+        x_check = x2
+    else:
+        # The second timeseries is more dense
+        t_unique = t2_unique
+        x_to_interp = a2[idxs2, ...]
+        t_check = t1.ravel()
+        x_check = x1
 
-    t_interp = np.linspace(t1[0], t1[-1], num_points)
+    interp = interp1d(x=t_unique, y=x_to_interp, kind='slinear', axis=0)
+    num_points = np.prod(t_check.shape)
 
-    y1 = np.reshape(interp1(t_interp), newshape=(num_points,) + shape1)
-    y2 = np.reshape(interp2(t_interp), newshape=(num_points,) + shape2)
+    y_interp = np.reshape(interp(t_check), newshape=(num_points,) + shape1)
 
-    _om_assert_utils.assert_near_equal(y1, y2, tolerance=tolerance)
+    _om_assert_utils.assert_near_equal(y_interp, x_check, tolerance=tolerance)
