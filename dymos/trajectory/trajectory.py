@@ -1051,9 +1051,10 @@ class Trajectory(om.Group):
                 targets = self.parameter_options[name]['targets']
                 if targets and phase_name in targets:
                     targets_phase = targets[phase_name]
-                    if isinstance(targets_phase, str):
-                        targets_phase = [targets_phase]
-                    skip_params = skip_params.union(targets_phase)
+                    if targets_phase is not None:
+                        if isinstance(targets_phase, str):
+                            targets_phase = [targets_phase]
+                        skip_params = skip_params.union(targets_phase)
 
             phs.initialize_values_from_phase(sim_prob, self._phases[phase_name],
                                              phase_path=traj_name,
