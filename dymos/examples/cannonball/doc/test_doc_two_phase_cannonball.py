@@ -53,8 +53,8 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         ascent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
 
         # Limit the muzzle energy
-        ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
-                                       upper=400000, lower=0, ref=100000, shape=(1,))
+        ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial',
+                                       upper=400000, lower=0, ref=100000)
 
         # Second Phase (descent)
         transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)

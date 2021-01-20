@@ -16,6 +16,20 @@ class PathConstraintComp(om.ExplicitComponent):
                                                              'at which the path constraint is to '
                                                              'be evaluated')
 
+    def setup(self):
+        """
+        Define the independent variables as output variables.
+        """
+
+        for (name, kwargs) in self._path_constraints:
+            self._add_path_constraint_configure(name=name, shape=kwargs['shape'],
+                                                units=kwargs['units'], desc=kwargs['desc'],
+                                                indices=kwargs['indices'], lower=kwargs['lower'],
+                                                upper=kwargs['upper'], equals=kwargs['equals'],
+                                                scaler=kwargs['scaler'], adder=kwargs['adder'],
+                                                ref0=kwargs['ref0'], ref=kwargs['ref'],
+                                                linear=kwargs['linear'])
+
     def _add_path_constraint_configure(self, name, shape=None, units=None,
                                        desc='', indices=None, lower=None, upper=None, equals=None,
                                        scaler=None, adder=None, ref=None, ref0=None, linear=False):
@@ -90,20 +104,6 @@ class PathConstraintComp(om.ExplicitComponent):
 
         self.declare_partials(of=output_name, wrt=input_name, rows=all_rows,
                               cols=np.arange(all_size), val=1.0)
-
-    def setup(self):
-        """
-        Define the independent variables as output variables.
-        """
-
-        for (name, kwargs) in self._path_constraints:
-            self._add_path_constraint_configure(name=name, shape=kwargs['shape'],
-                                                units=kwargs['units'], desc=kwargs['desc'],
-                                                indices=kwargs['indices'], lower=kwargs['lower'],
-                                                upper=kwargs['upper'], equals=kwargs['equals'],
-                                                scaler=kwargs['scaler'], adder=kwargs['adder'],
-                                                ref0=kwargs['ref0'], ref=kwargs['ref'],
-                                                linear=kwargs['linear'])
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         for (input_name, output_name, _) in self._vars:

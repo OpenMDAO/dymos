@@ -4,7 +4,6 @@ import unittest
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
-from openmdao.utils.general_utils import set_pyoptsparse_opt
 from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs
 
@@ -85,7 +84,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         phase.add_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
         phase.add_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
 
-        phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0, shape=(1,))
+        phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0)
 
         p.model.connect('assumptions.S', 'traj.phase0.parameters:S')
         p.model.connect('assumptions.mass_empty', 'traj.phase0.parameters:mass_empty')

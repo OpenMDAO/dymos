@@ -3,7 +3,6 @@ from collections.abc import Sequence
 import numpy as np
 
 import openmdao.api as om
-from openmdao.core.constants import _UNDEFINED
 
 from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp
 from ..phase.options import StateOptionsDictionary
@@ -209,20 +208,24 @@ class TranscriptionBase(object):
             rate_src_shape = phase.parameter_options[rate_src]['shape']
         elif rate_src_type == 'control_rate':
             control_name = rate_src[:-5]
-            rate_src_units = phase.control_options[control_name]['units']
-            rate_src_shape = phase.control_options[control_name]['shape']
+            control = phase.control_options[control_name]
+            rate_src_units = get_rate_units(control['units'], time_units, deriv=1)
+            rate_src_shape = control['shape']
         elif rate_src_type == 'control_rate2':
             control_name = rate_src[:-6]
-            rate_src_units = phase.control_options[control_name]['units']
-            rate_src_shape = phase.control_options[control_name]['shape']
+            control = phase.control_options[control_name]
+            rate_src_units = get_rate_units(control['units'], time_units, deriv=2)
+            rate_src_shape = control['shape']
         elif rate_src_type == 'polynomial_control_rate':
             control_name = rate_src[:-5]
-            rate_src_units = phase.polynomial_control_options[control_name]['units']
-            rate_src_shape = phase.polynomial_control_options[control_name]['shape']
+            control = phase.polynomial_control_options[control_name]
+            rate_src_units = get_rate_units(control['units'], time_units, deriv=1)
+            rate_src_shape = control['shape']
         elif rate_src_type == 'polynomial_control_rate2':
             control_name = rate_src[:-6]
-            rate_src_units = phase.polynomial_control_options[control_name]['units']
-            rate_src_shape = phase.polynomial_control_options[control_name]['shape']
+            control = phase.polynomial_control_options[control_name]
+            rate_src_units = get_rate_units(control['units'], time_units, deriv=2)
+            rate_src_shape = control['shape']
         elif rate_src_type == 'ode':
             rate_src_shape, rate_src_units = get_source_metadata(ode,
                                                                  src=rate_src,
@@ -236,7 +239,7 @@ class TranscriptionBase(object):
             options['shape'] = rate_src_shape
 
         if need_units:
-            options['units'] = rate_src_units if rate_src_units is None else f'{rate_src_units}*{time_units}'
+            options['units'] = time_units if rate_src_units is None else f'{rate_src_units}*{time_units}'
 
         return
 
@@ -451,21 +454,11 @@ class TranscriptionBase(object):
         for var, options in bc_dict.items():
             con_name = options['constraint_name']
 
-            # Constraint options are a copy of options with constraint_name key removed.
-            con_options = options.copy()
-            con_options.pop('constraint_name')
-
-            src, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase)
-
-            con_units = options.get('units', None)
-
-            shape = options['shape'] if shape is None else shape
-            if shape is None:
-                shape = (1,)
+            _, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase)
 
             if options['indices'] is not None:
-                # Indices are provided, make sure lower/upper/equals are compatible.
-                con_shape = (len(options['indices']),)
+                # Sliced shape.
+                con_shape = (len(options['indices']), )
                 # Indices provided, make sure lower/upper/equals have shape of the indices.
                 if options['lower'] and not np.isscalar(options['lower']) and \
                         np.asarray(options['lower']).shape != con_shape:
@@ -485,7 +478,7 @@ class TranscriptionBase(object):
                                      'compatible the provided indices. Provide them as a '
                                      'flat array with the same size as indices.'.format(var))
 
-            elif 'lower' in options or 'upper' in options or 'equals' in options:
+            else:
                 # Indices not provided, make sure lower/upper/equals have shape of source.
                 if 'lower' in options and options['lower'] is not None and \
                         not np.isscalar(options['lower']) and np.asarray(options['lower']).shape != shape:
@@ -507,18 +500,18 @@ class TranscriptionBase(object):
                                      'compatible with its shape, and no indices were '
                                      'provided. Expected a shape of {1} but given shape '
                                      'is {2}'.format(var, shape, np.asarray(options['equals']).shape))
-                con_shape = (np.prod(shape),)
 
-            size = np.prod(shape)
-            con_options['shape'] = shape if shape is not None else con_shape
+            # Constraint options are a copy of options with constraint_name key removed.
+            con_options = options.copy()
+            con_options.pop('constraint_name')
+
+            # By now, all possible constraint target shapes should have been introspected.
+            con_options['shape'] = options['shape'] = shape
+
+            # If user overrides the introspected unit, then change the unit on the add_constraint call.
+            con_units = options['units']
             con_options['units'] = units if con_units is None else con_units
             con_options['linear'] = linear
-
-            # Build the correct src_indices regardless of shape
-            if loc == 'initial':
-                src_idxs = np.arange(size, dtype=int).reshape(shape)
-            else:
-                src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
 
             bc_comp._add_constraint(con_name, **con_options)
 
@@ -529,10 +522,6 @@ class TranscriptionBase(object):
             con_name = options['constraint_name']
 
             src, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase)
-
-            shape = options['shape'] if shape is None else shape
-            if shape is None:
-                shape = (1,)
 
             size = np.prod(shape)
 
@@ -550,7 +539,7 @@ class TranscriptionBase(object):
 
             else:
                 phase.connect(src,
-                              '{0}_boundary_constraints.{0}_value_in:{1}'.format(loc, con_name),
+                              f'{loc}_boundary_constraints.{loc}_value_in:{con_name}',
                               src_indices=src_idxs,
                               flat_src_indices=True)
 
@@ -661,12 +650,20 @@ class TranscriptionBase(object):
                     if con_units is None else con_units
 
             else:
-                # Failed to find variable, assume it is in the ODE
+                # Failed to find variable, assume it is in the ODE. This requires introspection.
+                ode = phase._get_subsystem(self._rhs_source)
+
+                shape, units = get_source_metadata(ode, src=var,
+                                                   user_units=options['units'],
+                                                   user_shape=options['shape'])
+
                 constraint_kwargs['linear'] = False
-                constraint_kwargs['shape'] = options.get('shape', None)
-                if constraint_kwargs['shape'] is None:
-                    options['shape'] = (1,)
-                    constraint_kwargs['shape'] = (1,)
+                constraint_kwargs['shape'] = shape
+                constraint_kwargs['units'] = units
+
+            # Propagate the introspected shape back into the options dict.
+            # Some transcriptions use this later.
+            options['shape'] = constraint_kwargs['shape']
 
             constraint_kwargs.pop('constraint_name', None)
             phase._get_subsystem('path_constraints')._add_path_constraint_configure(con_name, **constraint_kwargs)
@@ -742,48 +739,14 @@ class TranscriptionBase(object):
                                   'get_parameter_connections.'.format(self.__class__.__name__))
 
     def check_config(self, phase, logger):
+        """
+        Print warnings associated with the Phase if check is enabled during setup.
 
-        for var, options in phase._path_constraints.items():
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
-
-            if var_type == 'ode':
-                # Failed to find variable, assume it is in the ODE
-                if options['shape'] is None:
-                    logger.warning('Unable to infer shape of path constraint \'{0}\' in '
-                                   'phase \'{1}\'. Scalar assumed.  If this ODE output is '
-                                   'is not scalar, connection errors will '
-                                   'result.'.format(var, phase.name))
-
-        for var, options in phase._initial_boundary_constraints.items():
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
-
-            if var_type == 'ode':
-                # Failed to find variable, assume it is in the ODE
-                if options['shape'] is None:
-                    logger.warning('Unable to infer shape of boundary constraint \'{0}\' in '
-                                   'phase \'{1}\'. Scalar assumed.  If this ODE output is '
-                                   'is not scalar, connection errors will '
-                                   'result.'.format(var, phase.name))
-
-        for var, options in phase._final_boundary_constraints.items():
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
-
-            if var_type == 'ode':
-                # Failed to find variable, assume it is in the ODE
-                if options['shape'] is None:
-                    logger.warning('Unable to infer shape of boundary constraint \'{0}\' in '
-                                   'phase \'{1}\'. Scalar assumed.  If this ODE output is '
-                                   'is not scalar, connection errors will '
-                                   'result.'.format(var, phase.name))
+        Parameters
+        ----------
+        logger
+            The logger object to which warnings and errors will be sent.
+        """
+        # Note: currently nothing to do, but some inherited future transcription might need some
+        # post-configure error checking.
+        pass

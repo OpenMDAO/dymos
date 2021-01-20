@@ -67,15 +67,15 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase.add_parameter('Isp', val=1600.0, units='s', opt=False, targets=['Isp'])
     phase.add_parameter('throttle', val=1.0, opt=False, targets=['throttle'])
 
-    phase.add_boundary_constraint('h', loc='final', equals=20000, scaler=1.0E-3, units='m')
+    phase.add_boundary_constraint('h', loc='final', equals=20000, scaler=1.0E-3)
     phase.add_boundary_constraint('aero.mach', loc='final', equals=1.0)
-    phase.add_boundary_constraint('gam', loc='final', equals=0.0, units='rad')
+    phase.add_boundary_constraint('gam', loc='final', equals=0.0)
 
     phase.add_path_constraint(name='h', lower=100.0, upper=20000, ref=20000)
     phase.add_path_constraint(name='aero.mach', lower=0.1, upper=1.8)
 
     # Unnecessary but included to test capability
-    phase.add_path_constraint(name='alpha', units='deg', lower=-8, upper=8)
+    phase.add_path_constraint(name='alpha', lower=-8, upper=8)
     phase.add_path_constraint(name='time', lower=0, upper=400)
     phase.add_path_constraint(name='time_phase', lower=0, upper=400)
 

@@ -851,59 +851,51 @@ class RungeKutta(TranscriptionBase):
             linear = True
             constraint_path = 'time_phase'
         elif var_type == 'state':
-            state_shape = phase.state_options[var]['shape']
-            state_units = phase.state_options[var]['units']
-            shape = state_shape
-            units = state_units
+            shape = phase.state_options[var]['shape']
+            units = phase.state_options[var]['units']
             linear = True if loc == 'initial' and phase.state_options[var]['fix_initial'] or \
                 loc == 'final' and phase.state_options[var]['fix_final'] else False
             constraint_path = 'states:{0}'.format(var)
         elif var_type in ('indep_control', 'input_control'):
-            control_shape = phase.control_options[var]['shape']
-            control_units = phase.control_options[var]['units']
-            shape = control_shape
-            units = control_units
+            shape = phase.control_options[var]['shape']
+            units = phase.control_options[var]['units']
             linear = False
             constraint_path = 'control_values:{0}'.format(var)
         elif var_type in ('indep_polynomial_control', 'input_polynomial_control'):
-            control_shape = phase.polynomial_control_options[var]['shape']
-            control_units = phase.polynomial_control_options[var]['units']
-            shape = control_shape
-            units = control_units
+            shape = phase.polynomial_control_options[var]['shape']
+            units = phase.polynomial_control_options[var]['units']
             linear = False
             constraint_path = 'polynomial_control_values:{0}'.format(var)
         elif var_type == 'parameter':
-            control_shape = phase.parameter_options[var]['shape']
-            control_units = phase.parameter_options[var]['units']
-            shape = control_shape
-            units = control_units
+            shape = phase.parameter_options[var]['shape']
+            units = phase.parameter_options[var]['units']
             linear = True
             constraint_path = 'parameters:{0}'.format(var)
         elif var_type in ('control_rate', 'control_rate2'):
             control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
-            control_shape = phase.control_options[control_var]['shape']
+            shape = phase.control_options[control_var]['shape']
             control_units = phase.control_options[control_var]['units']
             d = 1 if var_type == 'control_rate' else 2
             control_rate_units = get_rate_units(control_units, time_units, deriv=d)
-            shape = control_shape
             units = control_rate_units
             linear = False
             constraint_path = 'control_rates:{0}'.format(var)
         elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
             control_var = var[:-5] if var_type == 'polynomial_control_rate' else var[:-6]
-            control_shape = phase.polynomial_control_options[control_var]['shape']
+            shape = phase.polynomial_control_options[control_var]['shape']
             control_units = phase.polynomial_control_options[control_var]['units']
             d = 1 if var_type == 'polynomial_control_rate' else 2
             control_rate_units = get_rate_units(control_units, time_units, deriv=d)
-            shape = control_shape
             units = control_rate_units
             linear = False
             constraint_path = 'polynomial_control_rates:{0}'.format(var)
         else:
-            # Failed to find variable, assume it is in the RHS
+            # Failed to find variable, assume it is in the ODE. This requires introspection.
             constraint_path = 'ode.{0}'.format(var)
-            shape = None
-            units = None
+            ode = phase._get_subsystem(self._rhs_source)
+            shape, units = get_source_metadata(ode, src=var,
+                                               user_shape=None,
+                                               user_units=None)
             linear = False
 
         return constraint_path, shape, units, linear

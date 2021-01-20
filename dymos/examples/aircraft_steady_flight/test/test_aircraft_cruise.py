@@ -73,7 +73,7 @@ class TestAircraftCruise(unittest.TestCase):
         phase.add_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
         phase.add_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
 
-        phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0, shape=(1,))
+        phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
 
         phase.add_timeseries_output('tas_comp.TAS')
 
@@ -171,7 +171,7 @@ class TestAircraftCruise(unittest.TestCase):
         phase.add_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
         phase.add_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
 
-        phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0, shape=(1,))
+        phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
 
         phase.add_timeseries_output('tas_comp.TAS')
 
