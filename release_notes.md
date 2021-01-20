@@ -5,6 +5,10 @@ January 20, 2021
 
 This release of Dymos brings a few improvements and bug fixes.
 
+We've implemented introspection for boundary and path constraints such that units and shapes of the constrained quantities can be determined during the setup process and no longer are required to be specified.
+The use of solve_segments to have a solver converge the dynamics and thus provide a shooting method at the optimizer has been improved.  Option solve_segments can now take on values 'forward' or 'backward' to provide forward or backward shooting.
+Linkage constraints will now result in an error if the quantity on each side of the linkage is governed by the optimizer (is a design variable) but is fixed in value (not allowed to be varied).
+
 ## Backwards Incompatible API Changes & Deprecations
 
 * The command line interface is deprecated due to inconsistent behavior. [#505](https://github.com/OpenMDAO/dymos/pull/505)
@@ -26,7 +30,7 @@ This release of Dymos brings a few improvements and bug fixes.
 
 ## Miscellaneous
 
-
+None
 
 ****************************************************************
 # Release Notes for Dymos 0.17.0
