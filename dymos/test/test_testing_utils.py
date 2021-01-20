@@ -16,9 +16,8 @@ class TestAssertCasesEqual(unittest.TestCase):
         for file in ('p1.db', 'p2.db'):
             try:
                 os.remove(file)
-                print('removed', file)
             except:
-                print(f'no file named {file}')
+                pass
 
     def test_different_variables(self):
 
