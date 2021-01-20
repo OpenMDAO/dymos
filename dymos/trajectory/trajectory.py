@@ -643,7 +643,7 @@ class Trajectory(om.Group):
 
         if var_cls_b == 'time':
             var_b_fixed = phase_b.is_time_fixed(loc_b)
-        elif var_cls_a == 'state':
+        elif var_cls_b == 'state':
             var_b_fixed = phase_b.is_state_fixed(var_b, loc_b)
         else:
             var_b_fixed = False
