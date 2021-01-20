@@ -1,7 +1,7 @@
 ********************************
 # Release Notes for Dymos 0.18.0
 
-January 20, 2021
+January 21, 2021
 
 This release of Dymos brings a few improvements and bug fixes.
 
@@ -27,6 +27,7 @@ Linkage constraints will now result in an error if the quantity on each side of 
 * Fixed a bug where trajectory.simulate() would crash if trajectory were not named the common 'traj' name. [#500](https://github.com/OpenMDAO/dymos/pull/500)
 * Fixed a bug that prevented restart from working with multiphase trajectories, and now include static parameters in the solution file. [#510](https://github.com/OpenMDAO/dymos/pull/510)
 * Fixed a bug associated with polynomial control rate sources, and added coverage of more cases. [#513](https://github.com/OpenMDAO/dymos/pull/513)
+* Fixed exception when simulating a trajectory with a parameter for which None was declared as the target for one of its phases. [#515](https://github.com/OpenMDAO/dymos/pull/515)
 
 ## Miscellaneous
 
