@@ -398,6 +398,7 @@ class TestIntegrateControl(unittest.TestCase):
         self._test_integrate_control_rate2(dm.Radau)
 
 
+@use_tempdirs
 class TestIntegratePolynomialControl(unittest.TestCase):
 
     def _test_integrate_polynomial_control(self, transcription):
@@ -777,6 +778,7 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         self._test_integrate_polynomial_control_rate2(dm.Radau)
 
 
+@use_tempdirs
 class TestIntegrateTimeParamAndState(unittest.TestCase):
 
     def _test_transcription(self, transcription=dm.GaussLobatto):
