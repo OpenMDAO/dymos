@@ -155,14 +155,12 @@ def load_case(problem, previous_solution):
 
         # Set the output polynomial control outputs from the previous solution as the value
         for pc_name, options in phase.polynomial_control_options.items():
-            polynomial_control_path = [s for s in phase_vars if
-                                       s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
-            prev_polynomial_control_path = [s for s in prev_vars if
-                                            s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
-            prev_polynomial_control_val = prev_vars[prev_polynomial_control_path]['value']
-            prev_polynomial_control_units = prev_vars[prev_polynomial_control_path]['units']
-            problem.set_val(polynomial_control_path, prev_polynomial_control_val,
-                            units=prev_polynomial_control_units)
+            pc_path = [s for s in phase_vars if
+                       s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
+            prev_pc_path = [s for s in prev_vars if s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
+            prev_pc_val = prev_vars[prev_pc_path]['value']
+            prev_pc_units = prev_vars[prev_pc_path]['units']
+            problem.set_val(pc_path, prev_pc_val, units=prev_pc_units)
 
         # Set the timeseries parameter outputs from the previous solution as the parameter value
         for param_name, options in phase.parameter_options.items():

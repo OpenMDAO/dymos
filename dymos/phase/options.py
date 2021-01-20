@@ -278,9 +278,6 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
         self.declare(name='include_timeseries', types=bool, default=True,
                      desc='True if the static parameters should be included in output timeseries, else False')
 
-        self.declare(name='traj_param', types=str, default=None, allow_none=True,
-                     desc='If created as a trajectory parameter, the path of the owning trajectory, otherwise None')
-
 
 class TrajParameterOptionsDictionary(ParameterOptionsDictionary):
     """
