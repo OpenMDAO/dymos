@@ -218,12 +218,14 @@ class TranscriptionBase(object):
             rate_src_shape = phase.control_options[control_name]['shape']
         elif rate_src_type == 'polynomial_control_rate':
             control_name = rate_src[:-5]
-            rate_src_units = phase.polynomial_control_options[control_name]['units']
-            rate_src_shape = phase.polynomial_control_options[control_name]['shape']
+            control = phase.polynomial_control_options[control_name]
+            rate_src_units = get_rate_units(control['units'], time_units, deriv=1)
+            rate_src_shape = control['shape']
         elif rate_src_type == 'polynomial_control_rate2':
             control_name = rate_src[:-6]
-            rate_src_units = phase.polynomial_control_options[control_name]['units']
-            rate_src_shape = phase.polynomial_control_options[control_name]['shape']
+            control = phase.polynomial_control_options[control_name]
+            rate_src_units = get_rate_units(control['units'], time_units, deriv=2)
+            rate_src_shape = control['shape']
         elif rate_src_type == 'ode':
             rate_src_shape, rate_src_units = get_source_metadata(ode,
                                                                  src=rate_src,

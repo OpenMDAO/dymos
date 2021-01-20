@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 import openmdao.utils.assert_utils as _om_assert_utils
+from openmdao.utils.general_utils import warn_deprecation
 
 
 def assert_check_partials(data, atol=1.0E-6, rtol=1.0E-6):
@@ -87,7 +88,7 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
         raise AssertionError(err_msg)
 
 
-def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6, num_points=20):
+def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6, num_points=None):
     """
     Assert that two timeseries of data are approximately equal.
     This is done by fitting a 1D interpolant to each index of each timeseries, and then comparing
@@ -114,6 +115,9 @@ def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6, num_points=20
         When one or more elements of the interpolated timeseries are not within the
         desired tolerance.
     """
+    if num_points is not None:
+        warn_deprecation('Argument num_points is deprecated and will be removed in dymos 1.0.0')
+
     shape1 = x1.shape[1:]
     shape2 = x2.shape[1:]
 
