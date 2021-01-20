@@ -905,24 +905,24 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
         int_int_one_sim = p.get_val('traj.phase0.timeseries.states:int_int_one')
 
         # Integral of one should match time and time_phase in this case.
-        assert_near_equal(int_one_sol, time_sol)
-        assert_near_equal(int_one_sol, time_phase_sol)
+        assert_near_equal(int_one_sol, time_sol, tolerance=1.0E-12)
+        assert_near_equal(int_one_sol, time_phase_sol, tolerance=1.0E-12)
 
-        assert_near_equal(int_one_sim, time_sim)
-        assert_near_equal(int_one_sim, time_phase_sim)
+        assert_near_equal(int_one_sim, time_sim, tolerance=1.0E-12)
+        assert_near_equal(int_one_sim, time_phase_sim, tolerance=1.0E-12)
 
         # Integral of time and time_phase should be t**2/2
-        assert_near_equal(time_sol, time_phase_sol)
-        assert_near_equal(int_time_sol, time_sol**2/2)
-        assert_near_equal(int_time_phase_sol, time_phase_sol**2/2)
+        assert_near_equal(time_sol, time_phase_sol, tolerance=1.0E-12)
+        assert_near_equal(int_time_sol, time_sol**2/2, tolerance=1.0E-12)
+        assert_near_equal(int_time_phase_sol, time_phase_sol**2/2, tolerance=1.0E-12)
 
-        assert_near_equal(time_sim, time_phase_sim)
-        assert_near_equal(int_time_sim, time_sim**2/2)
-        assert_near_equal(int_time_phase_sim, time_phase_sim**2/2)
+        assert_near_equal(time_sim, time_phase_sim, tolerance=1.0E-12)
+        assert_near_equal(int_time_sim, time_sim**2/2, tolerance=1.0E-12)
+        assert_near_equal(int_time_phase_sim, time_phase_sim**2/2, tolerance=1.0E-12)
 
         # Double integral of one should be the same as the integral of time
-        assert_near_equal(int_int_one_sol, int_time_sol)
-        assert_near_equal(int_int_one_sim, int_time_sim)
+        assert_near_equal(int_int_one_sol, int_time_sol, tolerance=1.0E-12)
+        assert_near_equal(int_int_one_sim, int_time_sim, tolerance=1.0E-12)
 
         assert_timeseries_near_equal(time_sol, int_int_one_sol, time_sim, int_int_one_sim)
 
