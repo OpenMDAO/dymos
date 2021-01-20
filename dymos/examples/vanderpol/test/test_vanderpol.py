@@ -1,11 +1,15 @@
 import unittest
 from numpy.testing import assert_almost_equal
 import numpy as np
+
+from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.mpi import MPI
+from openmdao.utils.general_utils import set_pyoptsparse_opt
+_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+
 import dymos as dm
 from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
 from dymos.examples.vanderpol.vanderpol_dymos_plots import vanderpol_dymos_plots
-from openmdao.utils.testing_utils import use_tempdirs
-from openmdao.utils.mpi import MPI
 
 SHOW_PLOTS = False
 
@@ -55,7 +59,7 @@ class TestVanderpolExampleMPI(unittest.TestCase):
 
     N_PROCS = 4
 
-    @unittest.skipUnless(MPI, 'this test is only run under MPI')
+    @unittest.skipUnless(MPI and optimizer is 'IPOPT', 'this test requires MPI and IPOPT')
     def test_vanderpol_optimal_mpi(self):
         """to test with MPI:
            OPENMDAO_REQUIRE_MPI=1 mpirun -n 4 python
