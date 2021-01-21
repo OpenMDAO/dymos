@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import openmdao.api as om
 
@@ -518,6 +520,16 @@ class GaussLobatto(PseudospectralBase):
 
                     # Ignore any variables that we've already added (states, times, controls, etc)
                     if var_type != 'ode':
+                        continue
+
+                    # If the full shape does not start with num_nodes, skip this variable.
+                    ode_outputs = {opts['prom_name']: opts for (k, opts) in
+                                   phase.rhs_disc.get_io_metadata(iotypes=('output',), get_remote=True).items()}
+                    ode_shape = ode_outputs[v]['shape']
+                    if ode_shape[0] != self.grid_data.subset_num_nodes['state_disc']:
+                        warnings.warn(f'Cannot add ODE output {v} to the timeseries output. It is '
+                                      f'sized such that its first dimension != num_nodes. '
+                                      f'The shape is {ode_shape}.')
                         continue
 
                     try:
