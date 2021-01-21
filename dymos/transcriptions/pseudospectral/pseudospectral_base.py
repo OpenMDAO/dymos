@@ -7,7 +7,7 @@ from openmdao.utils.general_utils import warn_deprecation
 from ..transcription_base import TranscriptionBase
 from ..common import TimeComp, PseudospectralTimeseriesOutputComp
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp
-from ...utils.misc import CoerceDesvar, get_rate_units
+from ...utils.misc import CoerceDesvar, get_rate_units, get_source_metadata
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 
@@ -167,7 +167,7 @@ class PseudospectralBase(TranscriptionBase):
                         lb[-1] = options['final_bounds'][0]
                         ub[-1] = options['final_bounds'][-1]
 
-                    phase.add_design_var(name='states:{0}'.format(name),
+                    phase.add_design_var(name=f'states:{name}',
                                          lower=lb,
                                          upper=ub,
                                          scaler=coerce_desvar_option('scaler'),
@@ -402,10 +402,8 @@ class PseudospectralBase(TranscriptionBase):
             linear = True
             constraint_path = 'time_phase'
         elif var_type == 'state':
-            state_shape = phase.state_options[var]['shape']
-            state_units = phase.state_options[var]['units']
-            shape = state_shape
-            units = state_units
+            shape = phase.state_options[var]['shape']
+            units = phase.state_options[var]['units']
             solve_segments = phase.state_options[var]['solve_segments']
             connected_initial = phase.state_options[var]['connected_initial']
             if not solve_segments and not connected_initial:
@@ -418,70 +416,53 @@ class PseudospectralBase(TranscriptionBase):
                 linear = False
             constraint_path = f'states:{var}'
         elif var_type in 'indep_control':
-            control_shape = phase.control_options[var]['shape']
-            control_units = phase.control_options[var]['units']
-            shape = control_shape
-            units = control_units
+            shape = phase.control_options[var]['shape']
+            units = phase.control_options[var]['units']
             linear = True
             constraint_path = 'control_values:{0}'.format(var)
         elif var_type == 'input_control':
-            control_shape = phase.control_options[var]['shape']
-            control_units = phase.control_options[var]['units']
-            shape = control_shape
-            units = control_units
+            shape = phase.control_options[var]['shape']
+            units = phase.control_options[var]['units']
             linear = False
             constraint_path = 'control_values:{0}'.format(var)
         elif var_type in 'indep_polynomial_control':
-            control_shape = phase.polynomial_control_options[var]['shape']
-            control_units = phase.polynomial_control_options[var]['units']
-            shape = control_shape
-            units = control_units
+            shape = phase.polynomial_control_options[var]['shape']
+            units = phase.polynomial_control_options[var]['units']
             linear = True
             constraint_path = 'polynomial_control_values:{0}'.format(var)
         elif var_type == 'input_polynomial_control':
-            control_shape = phase.polynomial_control_options[var]['shape']
-            control_units = phase.polynomial_control_options[var]['units']
-            shape = control_shape
-            units = control_units
+            shape = phase.polynomial_control_options[var]['shape']
+            units = phase.polynomial_control_options[var]['units']
             linear = False
             constraint_path = 'polynomial_control_values:{0}'.format(var)
         elif var_type == 'parameter':
-            control_shape = phase.parameter_options[var]['shape']
-            control_units = phase.parameter_options[var]['units']
-            shape = control_shape
-            units = control_units
+            shape = phase.parameter_options[var]['shape']
+            units = phase.parameter_options[var]['units']
             linear = True
             constraint_path = 'parameters:{0}'.format(var)
         elif var_type in ('control_rate', 'control_rate2'):
             control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
-            control_shape = phase.control_options[control_var]['shape']
+            shape = phase.control_options[control_var]['shape']
             control_units = phase.control_options[control_var]['units']
             d = 2 if var_type == 'control_rate2' else 1
             control_rate_units = get_rate_units(control_units, time_units, deriv=d)
-            shape = control_shape
             units = control_rate_units
             linear = False
             constraint_path = 'control_rates:{0}'.format(var)
         elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
             control_var = var[:-5]
-            control_shape = phase.polynomial_control_options[control_var]['shape']
+            shape = phase.polynomial_control_options[control_var]['shape']
             control_units = phase.polynomial_control_options[control_var]['units']
             d = 2 if var_type == 'polynomial_control_rate2' else 1
             control_rate_units = get_rate_units(control_units, time_units, deriv=d)
-            shape = control_shape
             units = control_rate_units
             linear = False
-            constraint_path = 'polynomial_control_rates:{0}'.format(var)
+            constraint_path = f'polynomial_control_rates:{var}'
         else:
-            # Failed to find variable, assume it is in the RHS
-            if self.grid_data.transcription == 'gauss-lobatto':
-                constraint_path = 'rhs_disc.{0}'.format(var)
-            elif self.grid_data.transcription == 'radau-ps':
-                constraint_path = 'rhs_all.{0}'.format(var)
-            else:
-                raise ValueError('Invalid transcription')
-            shape = None
-            units = None
+            # Failed to find variable, assume it is in the ODE. This requires introspection.
+            constraint_path = f'{self._rhs_source}.{var}'
+            ode = phase._get_subsystem(self._rhs_source)
+            shape, units = get_source_metadata(ode, var, user_units=None, user_shape=None)
             linear = False
 
         return constraint_path, shape, units, linear

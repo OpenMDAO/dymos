@@ -50,9 +50,9 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
     fix_final = True
     if use_boundary_constraints:
         fix_final = False
-        phase.add_boundary_constraint('mass_fuel', loc='final', units='lbm',
+        phase.add_boundary_constraint('mass_fuel', loc='final',
                                       equals=1e-3, linear=False)
-        phase.add_boundary_constraint('alt', loc='final', units='kft', equals=10.0, linear=False)
+        phase.add_boundary_constraint('alt', loc='final', equals=10.0, linear=False)
 
     phase.add_state('range', units='NM',
                     rate_source='range_rate_comp.dXdt:range',
@@ -82,7 +82,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
     phase.add_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
     phase.add_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
 
-    phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0, shape=(1,))
+    phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0)
 
     p.model.connect('assumptions.S', 'phase0.parameters:S')
     p.model.connect('assumptions.mass_empty', 'phase0.parameters:mass_empty')

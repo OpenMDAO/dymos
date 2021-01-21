@@ -58,8 +58,8 @@ class TestReentryForDocs(unittest.TestCase):
 
         # The original implementation by Betts includes a heating rate path constraint.
         # This will work with the SNOPT optimizer but SLSQP has difficulty converging the solution.
-        # phase0.add_path_constraint('q', lower=0, upper=70, units='Btu/ft**2/s', ref=70)
-        phase0.add_timeseries_output('q', shape=(1,), units='Btu/ft**2/s')
+        # phase0.add_path_constraint('q', lower=0, upper=70, ref=70)
+        phase0.add_timeseries_output('q', shape=(1,))
 
         phase0.add_objective('theta', loc='final', ref=-0.01)
 

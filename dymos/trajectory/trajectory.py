@@ -20,7 +20,6 @@ from .options import LinkageOptionsDictionary
 from .phase_linkage_comp import PhaseLinkageComp
 from ..phase.options import TrajParameterOptionsDictionary
 from ..utils.misc import get_rate_units, get_source_metadata, _unspecified
-from ..utils.indexing import get_src_indices_by_row
 
 
 class Trajectory(om.Group):
@@ -394,7 +393,7 @@ class Trajectory(om.Group):
                 elif isinstance(targets[phase_name], str) and \
                         targets[phase_name] in phs.parameter_options:
                     # Connect to an input parameter with a different name in this phase
-                    tgt = '{0}.parameters:{1}'.format(phase_name, targets[phase_name])
+                    tgt = f'{phase_name}.parameters:{targets[phase_name]}'
                     tgt_shapes[phs.name] = phs.parameter_options[targets[phase_name]]['shape']
                     tgt_units[phs.name] = phs.parameter_options[targets[phase_name]]['units']
                 elif isinstance(targets[phase_name], Sequence) and \
@@ -644,7 +643,7 @@ class Trajectory(om.Group):
 
         if var_cls_b == 'time':
             var_b_fixed = phase_b.is_time_fixed(loc_b)
-        elif var_cls_a == 'state':
+        elif var_cls_b == 'state':
             var_b_fixed = phase_b.is_state_fixed(var_b, loc_b)
         else:
             var_b_fixed = False
@@ -1052,9 +1051,10 @@ class Trajectory(om.Group):
                 targets = self.parameter_options[name]['targets']
                 if targets and phase_name in targets:
                     targets_phase = targets[phase_name]
-                    if isinstance(targets_phase, str):
-                        targets_phase = [targets_phase]
-                    skip_params = skip_params.union(targets_phase)
+                    if targets_phase is not None:
+                        if isinstance(targets_phase, str):
+                            targets_phase = [targets_phase]
+                        skip_params = skip_params.union(targets_phase)
 
             phs.initialize_values_from_phase(sim_prob, self._phases[phase_name],
                                              phase_path=traj_name,

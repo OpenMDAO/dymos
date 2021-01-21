@@ -61,8 +61,8 @@ class TestConnectControlToParameter(unittest.TestCase):
         ascent.add_control('CD', targets=['aero.CD'], opt=False, val=0.05)
 
         # Limit the muzzle energy
-        ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
-                                       upper=400000, lower=0, ref=100000, shape=(1,))
+        ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial',
+                                       upper=400000, lower=0, ref=100000)
 
         # Second Phase (descent)
         transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
