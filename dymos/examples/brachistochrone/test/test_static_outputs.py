@@ -172,3 +172,110 @@ class TestStaticODEOutput(unittest.TestCase):
 
     def test_static_ode_output_radau(self):
         self._test_static_ode_output(dm.Radau)
+
+    def test_static_ode_output_runge_kutta(self):
+
+        #
+        # Define the OpenMDAO problem
+        #
+        p = om.Problem(model=om.Group())
+
+        #
+        # Define a Trajectory object
+        #
+        traj = dm.Trajectory()
+
+        p.model.add_subsystem('traj', subsys=traj)
+
+        #
+        # Define a Dymos Phase object with GaussLobatto Transcription
+        #
+        phase = dm.Phase(ode_class=BrachODEStaticOutput,
+                         transcription=dm.RungeKutta(num_segments=10))
+
+        traj.add_phase(name='phase0', phase=phase)
+
+        #
+        # Set the time options
+        # Time has no targets in our ODE.
+        # We fix the initial time so that the it is not a design variable in the optimization.
+        # The duration of the phase is allowed to be optimized, but is bounded on [0.5, 10].
+        #
+        phase.set_time_options(fix_initial=True, duration_bounds=(1.0, 10.0), units='s')
+
+        #
+        # Set the time options
+        # Initial values of positions and velocity are all fixed.
+        # The final value of position are fixed, but the final velocity is a free variable.
+        # The equations of motion are not functions of position, so 'x' and 'y' have no targets.
+        # The rate source points to the output in the ODE which provides the time derivative of the
+        # given state.
+        phase.add_state('x', fix_initial=True)
+        phase.add_state('y', fix_initial=True)
+        phase.add_state('v', fix_initial=True)
+
+        # Define theta as a control.
+        phase.add_control(name='theta', units='rad', lower=0.01, upper=np.pi-0.01, shape=(1,))
+
+        phase.add_timeseries_output('*')
+
+        phase.add_boundary_constraint('x', loc='final', equals=10)
+        phase.add_boundary_constraint('y', loc='final', equals=5)
+
+        # Minimize final time.
+        phase.add_objective('time', loc='final')
+
+        # Set the driver.
+        p.driver = om.ScipyOptimizeDriver()
+
+        # Allow OpenMDAO to automatically determine our sparsity pattern.
+        # Doing so can significant speed up the execution of Dymos.
+        p.driver.declare_coloring()
+
+        # Setup the problem
+        with warnings.catch_warnings(record=True) as ctx:
+            warnings.simplefilter('always')
+            p.setup(check=True)
+            expected_warning = "Cannot add ODE output foo to the timeseries output. It is sized " \
+                               "such that its first dimension != num_nodes. The shape is (2, 2)."
+            self.assertIn(expected_warning, [str(w.message) for w in ctx])
+
+        # Now that the OpenMDAO problem is setup, we can set the values of the states.
+
+        p.set_val('traj.phase0.t_initial', 0.0, units='s')
+        p.set_val('traj.phase0.t_duration', 5.0, units='s')
+
+        p.set_val('traj.phase0.states:x',
+                  phase.interpolate(ys=[0, 10], nodes='state_input'),
+                  units='m')
+
+        p.set_val('traj.phase0.states:y',
+                  phase.interpolate(ys=[10, 5], nodes='state_input'),
+                  units='m')
+
+        p.set_val('traj.phase0.states:v',
+                  phase.interpolate(ys=[0, 5], nodes='state_input'),
+                  units='m/s')
+
+        p.set_val('traj.phase0.controls:theta',
+                  phase.interpolate(ys=[0.01, 90], nodes='control_input'),
+                  units='deg')
+
+        # Run the driver to solve the problem
+        with warnings.catch_warnings(record=True) as ctx:
+            warnings.simplefilter('always')
+            dm.run_problem(p, simulate=True, make_plots=False)
+            expected_warning = "Cannot add ODE output foo to the timeseries output. It is sized " \
+                               "such that its first dimension != num_nodes. The shape is (2, 2)."
+            self.assertIn(expected_warning, [str(w.message) for w in ctx])
+
+        sol = om.CaseReader('dymos_solution.db').get_case('final')
+        sim = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        with self.assertRaises(expected_exception=KeyError) as e:
+            sol.get_val('traj.phase0.timeseries.foo')
+        self.assertEqual(str(e.exception), "'Variable name \"traj.phase0.timeseries.foo\" not found.'")
+
+        with self.assertRaises(expected_exception=KeyError) as e:
+            sim.get_val('traj.phase0.timeseries.foo')
+        self.assertEqual(str(e.exception), "'Variable name \"traj.phase0.timeseries.foo\" not found.'")
