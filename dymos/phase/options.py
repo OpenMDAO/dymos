@@ -207,6 +207,16 @@ class PolynomialControlOptionsDictionary(om.OptionsDictionary):
 
 
 def check_valid_shape(name, value):
+    """
+    Raise an exception if the value specified for a shape is invalid.
+
+    Parameters
+    ----------
+    name : str
+        Name of the option.
+    value : object
+        Shape to check, should be a Iterable, Number, list, or tuple.
+    """
     if name == 'shape':
         if value is not _unspecified and not isinstance(value, (Iterable, Number, list, tuple)):
             raise ValueError(f"Option '{name}' with value {value} is not valid.")
@@ -433,7 +443,7 @@ class StateOptionsDictionary(om.OptionsDictionary):
 
 class TimeOptionsDictionary(om.OptionsDictionary):
     """
-    An OptionsDictionary for time options
+    An OptionsDictionary for time options.
     """
 
     def __init__(self, read_only=False):

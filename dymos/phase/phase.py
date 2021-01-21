@@ -41,15 +41,14 @@ class Phase(om.Group):
 
     Parameters
     ----------
-    from_phase: Phase or None
+    from_phase : <Phase> or None
         A phase instance from which the initialized phase should copy its data.
-    transcription: TranscriptionBase
+    transcription : <TranscriptionBase>
         The transcription to be utilized within the Phase.
     ode_class
         An OpenMDAO system class serving as the ODE for the phase.
-    ode_init_kwargs: dict
+    ode_init_kwargs : dict
         Keyword arguments used to initialize ode_class.
-
     """
 
     def __init__(self, from_phase=None, **kwargs):
@@ -1666,8 +1665,8 @@ class Phase(om.Group):
         """
         Check that time options are valid and issue warnings if invalid options are provided.
 
-        Warnings
-        --------
+        Warns
+        -----
         RuntimeWarning
             RuntimeWarning is issued in the case of one or more invalid time options.
         """
@@ -1712,8 +1711,8 @@ class Phase(om.Group):
         """
         Check that control options are valid and issue warnings if invalid options are provided.
 
-        Warnings
-        --------
+        Warns
+        -----
         RuntimeWarning
             RuntimeWarning is issued in the case of one or more invalid time options.
         """
@@ -1738,8 +1737,8 @@ class Phase(om.Group):
         Check that parameter options are valid and issue warnings if invalid
         options are provided.
 
-        Warnings
-        --------
+        Warns
+        -----
         RuntimeWarning
             RuntimeWarning is issued in the case of one or more invalid time options.
         """

@@ -9,6 +9,8 @@ from ..transcriptions.grid_data import GridData
 
 class GridRefinementODESystem(om.Group):
     """
+    Defines a group that performs grid refinement on an ODE.
+
     The Grid Refinement algorithms in Dymos use the following approach for computing
     errors in the transcription:
 
@@ -23,10 +25,11 @@ class GridRefinementODESystem(om.Group):
     4. The error is computed by comparing x_hat to x_prime.
 
     This system is used to evaluate the ODE at all nodes within the higher-order segmentation.
-
     """
     def initialize(self):
-
+        """
+        Declare options for this Group.
+        """
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
 
         self.options.declare('time', types=TimeOptionsDictionary,
@@ -53,6 +56,9 @@ class GridRefinementODESystem(om.Group):
                              desc='Keyword arguments provided when initializing the ODE System')
 
     def setup(self):
+        """
+        Add the ODE subsystem.
+        """
         grid_data = self.options['grid_data']
         num_nodes = grid_data.num_nodes
         ode_class = self.options['ode_class']
@@ -65,6 +71,9 @@ class GridRefinementODESystem(om.Group):
                                                                 **ode_init_kwargs))
 
     def configure(self):
+        """
+        Promote variables from the ODE.
+        """
         grid_data = self.options['grid_data']
         num_nodes = grid_data.num_nodes
 

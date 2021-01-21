@@ -1,3 +1,7 @@
+"""
+United States standard atmosphere 1976 tables, data
+obtained from http://www.digitaldutch.com/atmoscalc/index.htm
+"""
 from collections import namedtuple
 
 import numpy as np
@@ -5,8 +9,6 @@ from scipy.interpolate import Akima1DInterpolator as Akima
 
 import openmdao.api as om
 
-"""United States standard atmosphere 1976 tables, data
-obtained from http://www.digitaldutch.com/atmoscalc/index.htm"""
 
 USatm1976Data = namedtuple('USatm1976Data', ['alt', 'temp', 'pres', 'rho', 'a', 'viscosity'])
 
@@ -133,8 +135,15 @@ drho_dh_interp_deriv = rho_interp_deriv.derivative(1)
 
 
 class USatm1976Comp(om.ExplicitComponent):
+    """
+    Component model for the United States standard atmosphere 1976 tables.
 
+    Data for the model was obtained from http://www.digitaldutch.com/atmoscalc/index.htm.
+    """
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare('num_nodes', types=int,
                              desc='Number of nodes to be evaluated in the RHS')
 
@@ -143,6 +152,9 @@ class USatm1976Comp(om.ExplicitComponent):
         self._K = gamma * gas_c
 
     def setup(self):
+        """
+        Add component inputs and outputs.
+        """
         nn = self.options['num_nodes']
         self.add_input('h', val=1.*np.ones(nn), units='ft')
 
@@ -158,6 +170,16 @@ class USatm1976Comp(om.ExplicitComponent):
                               rows=arange, cols=arange)
 
     def compute(self, inputs, outputs):
+        """
+        Interpolate atmospheric properties for a given altitude.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         outputs['temp'] = T_interp(inputs['h'], extrapolate=True)
         outputs['pres'] = P_interp(inputs['h'], extrapolate=True)
         outputs['rho'] = rho_interp(inputs['h'], extrapolate=True)
@@ -166,6 +188,16 @@ class USatm1976Comp(om.ExplicitComponent):
         outputs['sos'] = np.sqrt(self._K*outputs['temp'])
 
     def compute_partials(self, inputs, partials):
+        """
+        Compute sub-jacobian parts. The model is assumed to be in an unscaled state.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        partials : Jacobian
+            Subjac components written to partials[output_name, input_name].
+        """
         H = inputs['h']
         partials['temp', 'h'] = T_interp_deriv(H, extrapolate=True)
         partials['pres', 'h'] = P_interp_deriv(H, extrapolate=True)

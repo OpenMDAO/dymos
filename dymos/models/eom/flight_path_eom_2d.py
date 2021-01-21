@@ -5,6 +5,8 @@ import openmdao.api as om
 
 class FlightPathEOM2D(om.ExplicitComponent):
     """
+    Component containing the ODE for 2D flight.
+
     Computes the position and velocity equations of motion using a 2D flight path
     parameterization of states per equations 4.42 - 4.46 of _[1].
 
@@ -13,9 +15,15 @@ class FlightPathEOM2D(om.ExplicitComponent):
     .. [1] Bryson, Arthur Earl. Dynamic optimization. Vol. 1. Prentice Hall, p.172, 1999.
     """
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare('num_nodes', types=int)
 
     def setup(self):
+        """
+        Add inputs and outputs to this component.
+        """
         nn = self.options['num_nodes']
 
         self.add_input(name='m',
@@ -95,6 +103,16 @@ class FlightPathEOM2D(om.ExplicitComponent):
         self.declare_partials('r_dot', 'v', rows=ar, cols=ar)
 
     def compute(self, inputs, outputs):
+        """
+        Compute ODE outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         g = 9.80665
         m = inputs['m']
         v = inputs['v']
@@ -121,6 +139,16 @@ class FlightPathEOM2D(om.ExplicitComponent):
         outputs['r_dot'] = v * cgam
 
     def compute_partials(self, inputs, partials):
+        """
+        Compute sub-jacobian parts. The model is assumed to be in an unscaled state.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        partials : Jacobian
+            Subjac components written to partials[output_name, input_name].
+        """
         g = 9.80665
         m = inputs['m']
         v = inputs['v']
@@ -156,6 +184,7 @@ class FlightPathEOM2D(om.ExplicitComponent):
 
         partials['r_dot', 'gam'] = -v * sgam
         partials['r_dot', 'v'] = cgam
+
 
 if __name__ == "__main__":
 
