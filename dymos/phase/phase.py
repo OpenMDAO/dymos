@@ -230,7 +230,7 @@ class Phase(om.Group):
         ref0 : float or ndarray or None (None)
             The zero-reference value of the state at the nodes of the phase.
         ref : float or ndarray or None (None)
-            The unit-reference value of the state at the nodes of the phase
+            The unit-reference value of the state at the nodes of the phase.
         defect_scaler : float or ndarray
             The scaler of the state defect at the collocation nodes of the phase.
         defect_ref : float or ndarray
@@ -2047,11 +2047,14 @@ class Phase(om.Group):
         tol : float
             The error tolerance used by all grid-refinement algorithms.
         min_order : int
-            The minimum allowable transcription order for segments in the phase (hp and ph refinement methods)
+            The minimum allowable transcription order for segments in the phase.
+            Used in hp and ph refinement methods.
         max_order : int
-            The maximum allowable transcription order for segments in the phase (hp and ph refinement methods)
-        smoothness_factor: float
-            The maximum allowable ratio of state second derivatives. If exceeded the segment must be split. (hp refinement method)
+            The maximum allowable transcription order for segments in the phase.
+            Used in hp and ph refinement methods.
+        smoothness_factor : float
+            The maximum allowable ratio of state second derivatives. If exceeded the segment must be split.
+            Used in hp refinement method.
         """
         if refine is not _unspecified:
             self.refine_options['refine'] = refine
