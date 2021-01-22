@@ -1274,24 +1274,24 @@ class Phase(om.Group):
         self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=None, shape=None,
-                              timeseries='timeseries', _unit_dict={}):
+                              timeseries='timeseries'):
         r"""
         Add a variable to the timeseries outputs of the phase.
 
         Parameters
         ----------
-        name : string, or list of strings
+        name : str, or list of str
             The name(s) of the variable to be used as a timeseries output.  Must be one of
             'time', 'time_phase', one of the states, controls, control rates, or parameters,
             in the phase, or the path to an output variable in the ODE.
-        output_name : string or None
+        output_name : str or None or dict
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
             override the constraint name if splitting the path causes name collisions.
         units : str or None
-            The units in which the boundary constraint is to be applied.  If None, use the
-            units associated with the constrained output.  If provided, must be compatible with
-            the variables units.
+            The units to express the timeseries output.  If None, use the
+            units associated with the target.  If provided, must be compatible with
+            the target units.
             If a list of names is provided, units can be a matching list or dictionary.
         shape : tuple
             The shape of the timeseries output variable.  This must be provided (if not scalar)
@@ -1301,15 +1301,55 @@ class Phase(om.Group):
         """
         if type(name) is list:
             for i, n in enumerate(name):
-                u = units  # default
                 if type(units) is dict:  # accept dict for units when using array of name
-                    u = units.get(n, None)
+                    unit = units.get(n, None)
                 elif type(units) is list:  # allow matching list for units
-                    u = units[i]
+                    unit = units[i]
+                else:
+                    unit = units
 
-                self.add_timeseries_output(n, output_name, u, shape, timeseries, units if type(units) is dict else {})
-            return
+                self._add_timeseries_output(n, output_name=output_name,
+                                            units=unit,
+                                            shape=shape,
+                                            timeseries=timeseries)
 
+                # Handle specific units for wildcard names.
+                if '*' in n:
+                    self._timeseries[timeseries]['outputs'][n]['wildcard_units'] = units
+
+        else:
+            self._add_timeseries_output(name, output_name=output_name,
+                                        units=units,
+                                        shape=shape,
+                                        timeseries=timeseries)
+
+    def _add_timeseries_output(self, name, output_name=None, units=None, shape=None,
+                              timeseries='timeseries'):
+        r"""
+        Add a single variable to the timeseries outputs of the phase.
+
+        This is called by add_time_series output for each timeseries that is added.
+
+        Parameters
+        ----------
+        name : str
+            The name of the variable to be used as a timeseries output.  Must be one of
+            'time', 'time_phase', one of the states, controls, control rates, or parameters,
+            in the phase, or the path to an output variable in the ODE.
+        output_name : str or None
+            The name of the variable as listed in the phase timeseries outputs.  By
+            default this is the last element in `name` when split by dots.  The user may
+            override the constraint name if splitting the path causes name collisions.
+        units : str or None
+            The units to express the timeseries output.  If None, use the
+            units associated with the target.  If provided, must be compatible with
+            the target units.
+        shape : tuple
+            The shape of the timeseries output variable.  This must be provided (if not scalar)
+            since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
+        timeseries : str or None
+            The name of the timeseries to which the output is being added.
+        """
         if output_name is None:
             output_name = name.split('.')[-1]
 
@@ -1319,16 +1359,10 @@ class Phase(om.Group):
         if name not in self._timeseries[timeseries]['outputs']:
             self._timeseries[timeseries]['outputs'][name] = {}
             self._timeseries[timeseries]['outputs'][name]['output_name'] = output_name
-            self._timeseries[timeseries]['outputs'][name]['timeseries_units'] = {}
+            self._timeseries[timeseries]['outputs'][name]['wildcard_units'] = {}
 
         self._timeseries[timeseries]['outputs'][name]['units'] = units
         self._timeseries[timeseries]['outputs'][name]['shape'] = shape
-        for k, v in _unit_dict.items():
-            existing = self._timeseries[timeseries]['outputs'][name]['timeseries_units']
-            if k in existing and existing[k] != v:
-                raise ValueError('Unit mismatch in add_timeseries_output unit dictionary')
-            else:
-                existing[k] = v  # save for ODE wildcard matching
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""
