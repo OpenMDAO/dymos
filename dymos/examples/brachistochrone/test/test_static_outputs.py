@@ -124,7 +124,7 @@ class TestStaticODEOutput(unittest.TestCase):
             warnings.simplefilter('always')
             p.setup(check=True)
             expected_warning = "Cannot add ODE output foo to the timeseries output. It is sized " \
-                               "such that its first dimension != num_nodes. The shape is (2, 2)."
+                               "such that its first dimension != num_nodes."
             self.assertIn(expected_warning, [str(w.message) for w in ctx])
 
         # Now that the OpenMDAO problem is setup, we can set the values of the states.
@@ -153,7 +153,7 @@ class TestStaticODEOutput(unittest.TestCase):
             warnings.simplefilter('always')
             dm.run_problem(p, simulate=True, make_plots=False)
             expected_warning = "Cannot add ODE output foo to the timeseries output. It is sized " \
-                               "such that its first dimension != num_nodes. The shape is (2, 2)."
+                               "such that its first dimension != num_nodes."
             self.assertIn(expected_warning, [str(w.message) for w in ctx])
 
         sol = om.CaseReader('dymos_solution.db').get_case('final')
@@ -237,7 +237,7 @@ class TestStaticODEOutput(unittest.TestCase):
             warnings.simplefilter('always')
             p.setup(check=True)
             expected_warning = "Cannot add ODE output foo to the timeseries output. It is sized " \
-                               "such that its first dimension != num_nodes. The shape is (2, 2)."
+                               "such that its first dimension != num_nodes."
             self.assertIn(expected_warning, [str(w.message) for w in ctx])
 
         # Now that the OpenMDAO problem is setup, we can set the values of the states.
@@ -266,7 +266,7 @@ class TestStaticODEOutput(unittest.TestCase):
             warnings.simplefilter('always')
             dm.run_problem(p, simulate=True, make_plots=False)
             expected_warning = "Cannot add ODE output foo to the timeseries output. It is sized " \
-                               "such that its first dimension != num_nodes. The shape is (2, 2)."
+                               "such that its first dimension != num_nodes."
             self.assertIn(expected_warning, [str(w.message) for w in ctx])
 
         sol = om.CaseReader('dymos_solution.db').get_case('final')
