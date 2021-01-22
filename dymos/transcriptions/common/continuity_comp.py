@@ -15,7 +15,9 @@ class ContinuityCompBase(om.ExplicitComponent):
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
-
+        """
+        Declare component options.
+        """
         self.options.declare('grid_data', types=GridData,
                              desc='Container object for grid info')
 
@@ -207,6 +209,8 @@ class ContinuityCompBase(om.ExplicitComponent):
 
     def configure_io(self):
         """
+        Configure the input/outputs.
+
         I/O creation is delayed until configure so that we can determine the shape and units for
         the states.
         """
@@ -252,11 +256,30 @@ class ContinuityCompBase(om.ExplicitComponent):
             outputs[output_name] = (start_vals - end_vals) * dt_dptau ** 2
 
     def compute(self, inputs, outputs):
+        """
+        Compute continuity outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         self._compute_state_continuity(inputs, outputs)
         self._compute_control_continuity(inputs, outputs)
 
     def compute_partials(self, inputs, partials):
+        """
+        Compute sub-jacobian parts. The model is assumed to be in an unscaled state.
 
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        partials : Jacobian
+            Subjac components written to partials[output_name, input_name].
+        """
         control_options = self.options['control_options']
         dt_dptau = 0.5 * inputs['t_duration']
 

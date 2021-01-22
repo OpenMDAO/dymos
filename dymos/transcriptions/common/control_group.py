@@ -13,6 +13,8 @@ from ...options import options as dymos_options
 
 class ControlInterpComp(om.ExplicitComponent):
     """
+    Class definition for the ControlInterpComp.
+
     Compute the approximated control values and rates given the values of a control at all nodes,
     given values at the control discretization nodes.
 
@@ -41,6 +43,9 @@ class ControlInterpComp(om.ExplicitComponent):
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare(
             'control_options', types=dict,
             desc='Dictionary of options for the dynamic controls')
@@ -131,8 +136,7 @@ class ControlInterpComp(om.ExplicitComponent):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine shape and units for the states.
         """
         num_nodes = self.options['grid_data'].num_nodes
         time_units = self.options['time_units']
@@ -172,6 +176,16 @@ class ControlInterpComp(om.ExplicitComponent):
         self.set_check_partial_options('*', method='cs')
 
     def compute(self, inputs, outputs):
+        """
+        Compute interpolated control values and rates.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         control_options = self.options['control_options']
         num_nodes = self.options['grid_data'].num_nodes
         num_control_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
@@ -198,6 +212,16 @@ class ControlInterpComp(om.ExplicitComponent):
             outputs[self._output_rate2_names[name]] = rate2
 
     def compute_partials(self, inputs, partials):
+        """
+        Compute sub-jacobian parts. The model is assumed to be in an unscaled state.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        partials : Jacobian
+            Subjac components written to partials[output_name, input_name].
+        """
         control_options = self.options['control_options']
         num_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
 
@@ -227,8 +251,13 @@ class ControlInterpComp(om.ExplicitComponent):
 
 
 class ControlGroup(om.Group):
-
+    """
+    Class definition for the ControlGroup.
+    """
     def initialize(self):
+        """
+        Declare group options.
+        """
         self.options.declare('control_options', types=dict,
                              desc='Dictionary of options for the dynamic controls')
         self.options.declare('time_units', default=None, allow_none=True, types=str,
@@ -236,6 +265,9 @@ class ControlGroup(om.Group):
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
 
     def setup(self):
+        """
+        Define the structure of the control group.
+        """
         gd = self.options['grid_data']
         control_options = self.options['control_options']
         time_units = self.options['time_units']
@@ -257,8 +289,7 @@ class ControlGroup(om.Group):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine shape and units for the states.
         """
         control_options = self.options['control_options']
         gd = self.options['grid_data']

@@ -26,7 +26,8 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
 
     Returns
     -------
-    subsets : A dictionary with the following keys:
+    dict
+        A dictionary with the following keys:
         'disc' gives the indices of the state discretization nodes (deprecated)
         'state_disc' gives the indices of the state discretization nodes
         'state_input' gives the indices of the state input nodes
@@ -34,7 +35,7 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
         'control_input' gives the indices of the control input nodes
         'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
         'col' gives the indices of the collocation nodes
-        'all' gives all node indices
+        'all' gives all node indices.
 
     Notes
     -----
@@ -63,8 +64,7 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
 
 def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     """
-    Returns the subset dictionary corresponding to the Radau Pseudospectral
-    transcription.
+    Returns the subset dictionary corresponding to the Radau Pseudospectral transcription.
 
     Parameters
     ----------
@@ -77,7 +77,8 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
 
     Returns
     -------
-    subsets : A dictionary with the following keys:
+    dict
+        A dictionary with the following keys:
         'disc' gives the indices of the state discretization nodes (deprecated)
         'state_disc' gives the indices of the state discretization nodes
         'state_input' gives the indices of the state input nodes
@@ -85,7 +86,7 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
         'control_input' gives the indices of the control input nodes
         'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
         'col' gives the indices of the collocation nodes
-        'all' gives all node indices
+        'all' gives all node indices.
 
     Notes
     -----
@@ -116,7 +117,7 @@ def rk_subsets_and_nodes(method, seg_idx, compressed=False):
     Parameters
     ----------
     method : str
-        One of the available RK methods in dymos.utils.rk_methods
+        One of the available RK methods in dymos.utils.rk_methods.
     seg_idx : int
         The index of this segment within its phase.
     compressed : bool
@@ -124,22 +125,21 @@ def rk_subsets_and_nodes(method, seg_idx, compressed=False):
 
     Returns
     -------
-    subsets : dict of {str: np.ndarray}
+    dict of {str: np.ndarray}
         'state_disc' gives the indices of the state discretization nodes
         'state_input' gives the indices of the state input nodes
         'control_disc' gives the indices of the control discretization nodes
         'control_input' gives the indices of the control input nodes
         'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
         'step' gives the indices of the nodes at step boundaries
-        'all' gives all node indices
-    nodes : np.ndarray
-        The location of all nodes on the interval -1, 1.
+        'all' gives all node indices.
+    ndarray
+        The location of all nodes on the interval [-1, 1].
 
     Notes
     -----
     (subsets, nodes)
     Subset 'state_input' is the same as subset 'state_disc'.
-
     """
     # transform c onto [-1, 1]
     nodes = 2.0 * np.asarray(rk_methods[method]['c']) - 1.0
@@ -172,26 +172,25 @@ def explicit_subsets_and_nodes(n, seg_idx, compressed=False, shooting='single'):
     compressed : bool
         True if the subset requested is for a phase with compressed transcription.
     shooting : str
-        One of the shooting method types for explicit phases ('single', 'hybrid', or 'multiple')
+        One of the shooting method types for explicit phases ('single', 'hybrid', or 'multiple').
 
     Returns
     -------
-    subsets : dict of {str: np.ndarray}
+    dict of {str: np.ndarray}
         'state_disc' gives the indices of the state discretization nodes
         'state_input' gives the indices of the state input nodes
         'control_disc' gives the indices of the control discretization nodes
         'control_input' gives the indices of the control input nodes
         'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
         'step' gives the indices of the nodes at step boundaries
-        'all' gives all node indices
-    nodes : np.ndarray
-        The location of all nodes on the interval -1, 1.
+        'all' gives all node indices.
+    ndarray
+        The location of all nodes on the interval [-1, 1].
 
     Notes
     -----
     (subsets, nodes)
     Subset 'state_input' is the same as subset 'state_disc'.
-
     """
     subsets = {
         'disc': np.arange(0, n, 2, dtype=int),
@@ -227,7 +226,6 @@ def make_subset_map(from_subset_idxs, to_subset_idxs):
     numpy.array of int
         An index map which, when applied to values in the from_subset, will provide values
         in the to_subset.
-
     """
     offset = 0
     subset_map = []
@@ -248,7 +246,6 @@ class GridData(object):
     In turn, these three defining properties determine various other properties,
     such as indexing arrays used to extract the discretization or collocation
     nodes from a list of all nodes within the phase.
-
     """
 
     def __init__(self, num_segments, transcription, transcription_order=None,
@@ -317,7 +314,6 @@ class GridData(object):
         input_maps: dict of int ndarray[:]
             Dict keyed by the map name that provides a mapping for src_indices to
             and from "compressed" form.
-
         """
         if segment_ends is None:
             segment_ends = np.linspace(-1, 1, num_segments + 1)
@@ -474,9 +470,9 @@ class GridData(object):
         Returns
         -------
         ndarray[num_eval_set, num_given_set]
-            Matrix that yields the values at the new nodes.
+            Matrix containing the values at the new nodes.
         ndarray[num_eval_set, num_given_set]
-            Matrix that yields the time derivatives at the new nodes.
+            Matrix containing the time derivatives at the new nodes.
 
         Notes
         -----
@@ -491,7 +487,6 @@ class GridData(object):
         .. math::
 
             \\dot{x}_{eval} = \\left[ D \\right] x_{given} \\frac{d \\tau}{dt}
-
         """
         L_blocks = []
         D_blocks = []

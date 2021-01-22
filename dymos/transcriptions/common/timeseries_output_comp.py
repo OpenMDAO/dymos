@@ -1,6 +1,7 @@
 import numpy as np
-import openmdao.api as om
 from scipy.linalg import block_diag
+
+import openmdao.api as om
 
 from ...transcriptions.grid_data import GridData
 from ...utils.lagrange import lagrange_matrices
@@ -9,6 +10,8 @@ from ...options import options as dymos_options
 
 class TimeseriesOutputCompBase(om.ExplicitComponent):
     """
+    Class definition of the TimeseriesOutputCompBase.
+
     TimeseriesOutputComp collects variable values from the phase and provides them in chronological
     order as outputs.  Some phase types don't internally have access to a contiguous array of all
     values of a given variable in the phase.  For instance, the GaussLobatto pseudospectral has
@@ -21,7 +24,9 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
-
+        """
+        Declare component options.
+        """
         self._timeseries_outputs = []
 
         self._vars = []
@@ -43,7 +48,9 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
 
 
 class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
-
+    """
+    Class definition of the PseudospectralTimeseriesOutputComp.
+    """
     def __init__(self, **kwargs):
         super(PseudospectralTimeseriesOutputComp, self).__init__(**kwargs)
 
@@ -154,7 +161,17 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
                               wrt=input_name,
                               rows=rs, cols=cs, val=val_jac[rs, cs])
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Compute component outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         for (input_name, output_name, _) in self._vars:
             outputs[output_name] = np.tensordot(self.interpolation_matrix, inputs[input_name],
                                                 axes=(1, 0))

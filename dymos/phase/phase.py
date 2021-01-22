@@ -1443,8 +1443,9 @@ class Phase(om.Group):
                          time_phase_targets=_unspecified, t_initial_targets=_unspecified,
                          t_duration_targets=_unspecified):
         """
-        Sets options for time in the phase.  Only those options which are specified in the
-        arguments will be updated.
+        Sets options for time in the phase.
+
+        Only those options which are specified in the arguments will be updated.
 
         Parameters
         ----------
@@ -1471,7 +1472,7 @@ class Phase(om.Group):
         initial_adder : float
             Adder for the initial value of time.
         initial_ref0 : float
-            Zero-reference for the initial value of time
+            Zero-reference for the initial value of time.
         initial_ref : float
             Unit-reference for the initial value of time.
         duration_val : float
@@ -2010,7 +2011,6 @@ class Phase(om.Group):
             An OpenMDAO Problem in which the simulation is implemented.  This Problem interface
             can be interrogated to obtain timeseries outputs in the same manner as other Phases
             to obtain results at the requested times.
-
         """
 
         sim_prob = om.Problem(model=om.Group())
