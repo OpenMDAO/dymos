@@ -45,7 +45,7 @@ class Phase(om.Group):
         A phase instance from which the initialized phase should copy its data.
     transcription : <TranscriptionBase>
         The transcription to be utilized within the Phase.
-    ode_class
+    ode_class : classs of type System
         An OpenMDAO system class serving as the ODE for the phase.
     ode_init_kwargs : dict
         Keyword arguments used to initialize ode_class.
@@ -95,6 +95,9 @@ class Phase(om.Group):
         super(Phase, self).__init__(**_kwargs)
 
     def initialize(self):
+        """
+        Declare instantiation options for the phase.
+        """
         self.options.declare('ode_class', default=None,
                              desc='System defining the ODE')
         self.options.declare('ode_init_kwargs', types=dict, default={},
@@ -153,7 +156,7 @@ class Phase(om.Group):
         ref0 : float or ndarray or None (None)
             The zero-reference value of the state at the nodes of the phase.
         ref : float or ndarray or None (None)
-            The unit-reference value of the state at the nodes of the phase
+            The unit-reference value of the state at the nodes of the phase.
         defect_scaler : float or ndarray
             The scaler of the state defect at the collocation nodes of the phase.
         defect_ref : float or ndarray
@@ -419,7 +422,6 @@ class Phase(om.Group):
         Notes
         -----
         rate and rate2 continuity are not enforced for input controls.
-
         """
         if name not in self.control_options:
             self.check_parameter(name)
@@ -517,7 +519,6 @@ class Phase(om.Group):
         Notes
         -----
         rate and rate2 continuity are not enforced for input controls.
-
         """
         if units is not _unspecified:
             self.control_options[name]['units'] = units
@@ -616,11 +617,11 @@ class Phase(om.Group):
         order : int
             The order of the interpolating polynomial used to represent the control valeu in
             phase tau space.
+        desc : str
+            A description of the polynomial control.
         val : float or ndarray
             Default value of the control at all nodes.  If val scalar and the control
             is dynamic it will be broadcast.
-        desc : str
-            A description of the polynomial control.
         units : str or None or 0
             Units in which the control variable is defined.  If 0, use the units declared
             for the parameter in the ODE.
@@ -645,7 +646,7 @@ class Phase(om.Group):
         ref0 : float or ndarray
             The zero-reference value of the control at the nodes of the phase.
         ref : float or ndarray
-            The unit-reference value of the control at the nodes of the phase
+            The unit-reference value of the control at the nodes of the phase.
         targets : Sequence of str or None
             Targets in the ODE to which this polynomial control is connected.
         rate_targets : None or str
@@ -1081,7 +1082,7 @@ class Phase(om.Group):
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
         desc : str
-            A description of the input parameter
+            A description of the input parameter.
         shape : Sequence of str or None
             The shape of the input parameter.
         dynamic : bool
@@ -1139,12 +1140,12 @@ class Phase(om.Group):
 
         Parameters
         ----------
-        name : string
+        name : str
             Name of the variable to constrain.  If name is not a state, control, or 'time',
             then this is assumed to be the path of the variable to be constrained in the ODE.
-        loc : string
-            The location of the boundary constraint ('initial' or 'final')
-        constraint_name : string or None
+        loc : str
+            The location of the boundary constraint ('initial' or 'final').
+        constraint_name : str or None
             The name of the variable as provided to the boundary constraint comp.  By
             default this is the last element in `name` when split by dots.  The user may
             override the constraint name if splitting the path causes name collisions.
@@ -1161,21 +1162,21 @@ class Phase(om.Group):
             flattening.  For instance, when constraining element [0, 1] of a variable of shape
             [2, 2], indices would be [3].
         lower : float or ndarray, optional
-            Lower boundary for the variable
+            Lower boundary for the variable.
         upper : float or ndarray, optional
-            Upper boundary for the variable
+            Upper boundary for the variable.
         equals : float or ndarray, optional
-            Equality constraint value for the variable
+            Equality constraint value for the variable.
+        scaler : float or ndarray, optional
+            Value to multiply the model value to get the scaled value. Scaler
+            is second in precedence.
+        adder : float or ndarray, optional
+            Value to add to the model value to get the scaled value. Adder
+            is first in precedence.
         ref : float or ndarray, optional
             Value of response variable that scales to 1.0 in the driver.
         ref0 : float or ndarray, optional
             Value of response variable that scales to 0.0 in the driver.
-        adder : float or ndarray, optional
-            Value to add to the model value to get the scaled value. Adder
-            is first in precedence.
-        scaler : float or ndarray, optional
-            value to multiply the model value to get the scaled value. Scaler
-            is second in precedence.
         linear : bool
             Set to True if constraint is linear. Default is False.
         """
@@ -1214,9 +1215,9 @@ class Phase(om.Group):
 
         Parameters
         ----------
-        name : string
+        name : str
             Name of the response variable in the system.
-        constraint_name : string or None
+        constraint_name : str or None
             The name of the variable as provided to the boundary constraint comp.  By
             default this is the last element in `name` when split by dots.  The user may
             override the constraint name if splitting the path causes name collisions.
@@ -1233,24 +1234,23 @@ class Phase(om.Group):
             flattening.  For instance, when constraining element [0, 1] of a variable of shape
             [2, 2], indices would be [3].
         lower : float or ndarray, optional
-            Lower boundary for the variable
+            Lower boundary for the variable.
         upper : float or ndarray, optional
-            Upper boundary for the variable
+            Upper boundary for the variable.
         equals : float or ndarray, optional
-            Equality constraint value for the variable
+            Equality constraint value for the variable.
+        scaler : float or ndarray, optional
+            Value to multiply the model value to get the scaled value. Scaler
+            is second in precedence.
+        adder : float or ndarray, optional
+            Value to add to the model value to get the scaled value. Adder
+            is first in precedence.
         ref : float or ndarray, optional
             Value of response variable that scales to 1.0 in the driver.
         ref0 : float or ndarray, optional
             Value of response variable that scales to 0.0 in the driver.
-        adder : float or ndarray, optional
-            Value to add to the model value to get the scaled value. Adder
-            is first in precedence.
-        scaler : float or ndarray, optional
-            value to multiply the model value to get the scaled value. Scaler
-            is second in precedence.
         linear : bool
             Set to True if constraint is linear. Default is False.
-
         """
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
@@ -1279,11 +1279,11 @@ class Phase(om.Group):
 
         Parameters
         ----------
-        name : string, or list of strings
+        name : str, or list of str
             The name(s) of the variable to be used as a timeseries output.  Must be one of
             'time', 'time_phase', one of the states, controls, control rates, or parameters,
             in the phase, or the path to an output variable in the ODE.
-        output_name : string or None
+        output_name : str or None
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
             override the constraint name if splitting the path causes name collisions.
@@ -1352,9 +1352,10 @@ class Phase(om.Group):
                       adder=None, scaler=None, parallel_deriv_color=None,
                       vectorize_derivs=False):
         """
-        Allows the user to add an objective in the phase.  If name is not a state,
-        control, control rate, or 'time', then this is assumed to be the path of the variable
-        to be constrained in the RHS.
+        Add an objective in the phase.
+
+        If name is not a state, control, control rate, or 'time', then this is assumed to be the
+        path of the variable to be constrained in the RHS.
 
         Parameters
         ----------
@@ -1368,7 +1369,7 @@ class Phase(om.Group):
             If variable is an array at each point in time, this indicates which index is to be
             used as the objective, assuming C-ordered flattening.
         shape : int, optional
-            The shape of the objective variable, at a point in time
+            The shape of the objective variable, at a point in time.
         ref : float or ndarray, optional
             Value of response variable that scales to 1.0 in the driver.
         ref0 : float or ndarray, optional
@@ -1377,9 +1378,9 @@ class Phase(om.Group):
             Value to add to the model value to get the scaled value. Adder
             is first in precedence.
         scaler : float or ndarray, optional
-            value to multiply the model value to get the scaled value. Scaler
+            Value to multiply the model value to get the scaled value. Scaler
             is second in precedence.
-        parallel_deriv_color : string
+        parallel_deriv_color : str
             If specified, this design var will be grouped for parallel derivative
             calculations with other variables sharing the same parallel_deriv_color.
         vectorize_derivs : bool
@@ -1557,7 +1558,6 @@ class Phase(om.Group):
             'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
             'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
             or 'ode'.
-
         """
         if var == 'time':
             return 'time'
@@ -1608,6 +1608,9 @@ class Phase(om.Group):
             raise ValueError('ode_class must be derived from openmdao.core.System.')
 
     def setup(self):
+        """
+        Build the model hierarchy for a Dymos phase.
+        """
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']
@@ -1634,6 +1637,9 @@ class Phase(om.Group):
         transcription.setup_solvers(self)
 
     def configure(self):
+        """
+        Finalize connections after sizes are known.
+        """
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']
@@ -1759,7 +1765,7 @@ class Phase(om.Group):
 
         Parameters
         ----------
-        logger
+        logger : object
             The logger object to which warnings and errors will be sent.
         """
         self.options['transcription'].check_config(self, logger)
