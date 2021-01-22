@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 
 import openmdao.api as om
@@ -738,6 +740,11 @@ class RungeKutta(TranscriptionBase):
 
                     # Ignore any variables that we've already added (states, times, controls, etc)
                     if var_type != 'ode':
+                        continue
+
+                    if self.is_static_ode_output(v, phase):
+                        warnings.warn(f'Cannot add ODE output {v} to the timeseries output. It is '
+                                      f'sized such that its first dimension != num_nodes.')
                         continue
 
                     try:
