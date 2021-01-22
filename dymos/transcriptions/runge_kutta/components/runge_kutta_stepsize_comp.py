@@ -7,6 +7,8 @@ from ....options import options as dymos_options
 
 class RungeKuttaStepsizeComp(om.ExplicitComponent):
     """
+    Class definition for the RungeKuttaStepsizeComp.
+
     Given the duration of the phase and the segment relative lengths, compute the duration of
     each segment (the step size) for each segment (step).
     """
@@ -15,6 +17,9 @@ class RungeKuttaStepsizeComp(om.ExplicitComponent):
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare('num_segments', types=int,
                              desc='The number of segments (timesteps) in the phase')
 
@@ -26,8 +31,7 @@ class RungeKuttaStepsizeComp(om.ExplicitComponent):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine variable shape and units.
         """
         self._var_names = {}
 
@@ -45,5 +49,15 @@ class RungeKuttaStepsizeComp(om.ExplicitComponent):
                               cols=np.zeros(num_seg, dtype=int),
                               val=self._norm_seg_rel_lengths)
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Compute component outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         outputs['h'] = inputs['t_duration'] * self._norm_seg_rel_lengths

@@ -43,6 +43,12 @@ class TranscriptionBase(object):
     def _declare_options(self):
         pass
 
+    def initialize(self):
+        """
+        Declare transcription options.
+        """
+        pass
+
     def init_grid(self):
         """
         Setup the GridData object for the Transcription.
@@ -167,7 +173,7 @@ class TranscriptionBase(object):
             The name of the state variable of interest.
         options : OptionsDictionary
             The options dictionary for the state variable of interest.
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase associated with the transcription.
         """
         time_units = phase.time_options['units']
@@ -405,7 +411,7 @@ class TranscriptionBase(object):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         state_options = phase.state_options
@@ -451,7 +457,7 @@ class TranscriptionBase(object):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         raise NotImplementedError('Transcription {0} does not implement method '
@@ -463,7 +469,7 @@ class TranscriptionBase(object):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         raise NotImplementedError('Transcription {0} does not implement method '
@@ -475,7 +481,7 @@ class TranscriptionBase(object):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         raise NotImplementedError('Transcription {0} does not implement method '
@@ -825,19 +831,6 @@ class TranscriptionBase(object):
         """
         raise NotImplementedError('Transcription {0} does not implement method '
                                   'get_parameter_connections.'.format(self.__class__.__name__))
-
-    def check_config(self, logger):
-        """
-        Print warnings associated with the Phase if check is enabled during setup.
-
-        Parameters
-        ----------
-        logger : object
-            The logger object to which warnings and errors will be sent.
-        """
-        # Note: currently nothing to do, but some inherited future transcription might need some
-        # post-configure error checking.
-        pass
 
     def is_static_ode_output(self, var, phase):
         """

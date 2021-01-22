@@ -69,7 +69,7 @@ class PseudospectralBase(TranscriptionBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
@@ -99,11 +99,11 @@ class PseudospectralBase(TranscriptionBase):
 
     def configure_states(self, phase):
         """
-        Setup state connections post-introspection.
+        Configure state connections post-introspection.
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
@@ -223,7 +223,7 @@ class PseudospectralBase(TranscriptionBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
@@ -242,7 +242,7 @@ class PseudospectralBase(TranscriptionBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
@@ -263,6 +263,11 @@ class PseudospectralBase(TranscriptionBase):
     def setup_defects(self, phase):
         """
         Setup the Collocation and Continuity components as necessary.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
 
@@ -370,7 +375,7 @@ class PseudospectralBase(TranscriptionBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
@@ -422,7 +427,7 @@ class PseudospectralBase(TranscriptionBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         pass
@@ -433,7 +438,7 @@ class PseudospectralBase(TranscriptionBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         if self.any_solved_segs or self.any_connected_opt_segs:
@@ -450,7 +455,7 @@ class PseudospectralBase(TranscriptionBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         gd = self.grid_data
@@ -475,8 +480,8 @@ class PseudospectralBase(TranscriptionBase):
         var : str
             Name of the state.
         loc : str
-            One of ['intitial', 'final'].
-        phase : dymos.phase
+            The location of the boundary constraint ['intitial', 'final'].
+        phase : dymos.Phase
             Phase object containing the rate source.
 
         Returns

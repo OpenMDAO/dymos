@@ -35,7 +35,7 @@ class TimeComp(om.ExplicitComponent):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so we can determine shape and units for the states.
+        I/O creation is delayed until configure so we can determine variable shape and units.
         """
         time_units = self.options['units']
         num_nodes = self.options['num_nodes']

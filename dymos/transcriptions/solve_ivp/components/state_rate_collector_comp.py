@@ -6,11 +6,16 @@ import openmdao.api as om
 
 class StateRateCollectorComp(om.ExplicitComponent):
     """
+    Class definition for StateRateCollectorComp.
+
     Collects the state rates and outputs them in the units specified in the state options.
     For explicit integration this is necessary when the output providing the state rate has
     different units than those defined in the state_options/time_options.
     """
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare(
             'state_options', types=dict,
             desc='Dictionary of options for the ODE state variables.')
@@ -25,6 +30,9 @@ class StateRateCollectorComp(om.ExplicitComponent):
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def setup(self):
+        """
+        Create inputs/outputs on this component.
+        """
         state_options = self.options['state_options']
         time_units = self.options['time_units']
 
@@ -40,6 +48,16 @@ class StateRateCollectorComp(om.ExplicitComponent):
             self.add_output(self._output_names[name], shape=shape, units=rate_units)
 
     def compute(self, inputs, outputs):
+        """
+        Compute component outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         state_options = self.options['state_options']
 
         for name, options in state_options.items():

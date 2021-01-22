@@ -87,7 +87,7 @@ class DocstringLintTestCase(unittest.TestCase):
                         mod = importlib.import_module(module_name)
                     except ImportError as err:
                         # e.g. PETSc is not installed
-                        failures[module_name] = ['Error when loading module.']
+                        failures[module_name] = [('EEE', 'Error when loading module.')]
                         continue
 
                     # Loop over classes

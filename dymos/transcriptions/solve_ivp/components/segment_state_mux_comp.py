@@ -4,8 +4,13 @@ import openmdao.api as om
 
 
 class SegmentStateMuxComp(om.ExplicitComponent):
-
+    """
+    Class definition for SegmentStateMuxComp.
+    """
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare('grid_data', desc='the grid data of the corresponding phase.')
         self.options.declare('state_options', types=dict)
 
@@ -53,7 +58,17 @@ class SegmentStateMuxComp(om.ExplicitComponent):
                             val=np.ones((num_nodes,) + options['shape']),
                             units=options['units'])
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Compute component outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         for name in self._vars:
             input_names = self._vars[name]['inputs']
             output_name = self._vars[name]['output']

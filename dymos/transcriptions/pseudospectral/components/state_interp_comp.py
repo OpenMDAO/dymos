@@ -7,7 +7,8 @@ from ....options import options as dymos_options
 
 
 class StateInterpComp(om.ExplicitComponent):
-    r""" Provide interpolated state values and/or rates for pseudospectral transcriptions.
+    r"""
+    Provide interpolated state values and/or rates for pseudospectral transcriptions.
 
     When the transcription is *gauss-lobatto* it accepts the state values and derivatives
     at discretization nodes and computes the interpolated state values and derivatives
@@ -21,14 +22,15 @@ class StateInterpComp(om.ExplicitComponent):
     interpolation scheme.
 
     .. math:: \dot{x}_c = \frac{d\tau_s}{dt} \left[ A_d \right] x_d
-
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
-
+        """
+        Declare component options.
+        """
         self.options.declare(
             'transcription', values=['gauss-lobatto', 'radau-ps'],
             desc='Transcription technique of the optimal control problem.')
@@ -47,8 +49,7 @@ class StateInterpComp(om.ExplicitComponent):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine shape and units.
         """
         time_units = self.options['time_units']
 
@@ -278,6 +279,16 @@ class StateInterpComp(om.ExplicitComponent):
             partials[xdotc_name, xd_name] = dxdotc_dxd.data
 
     def compute(self, inputs, outputs):
+        """
+        Interpolate state values.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         transcription = self.options['transcription']
 
         if transcription == 'gauss-lobatto':
@@ -288,6 +299,16 @@ class StateInterpComp(om.ExplicitComponent):
             raise ValueError('Invalid transcription: {0}'.format(transcription))
 
     def compute_partials(self, inputs, partials):
+        """
+        Compute sub-jacobian parts. The model is assumed to be in an unscaled state.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        partials : Jacobian
+            Subjac components written to partials[output_name, input_name].
+        """
         transcription = self.options['transcription']
         if transcription == 'gauss-lobatto':
             self._compute_partials_gauss_lobatto(inputs, partials)

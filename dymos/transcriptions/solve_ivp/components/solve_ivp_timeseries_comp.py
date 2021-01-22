@@ -2,8 +2,13 @@ from dymos.transcriptions.common.timeseries_output_comp import TimeseriesOutputC
 
 
 class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
-
+    """
+    Class definition for SolveIVPTimeseriesOutputComp.
+    """
     def initialize(self):
+        """
+        Declare component options.
+        """
         super(SolveIVPTimeseriesOutputComp, self).initialize()
 
         self.options.declare('output_nodes_per_seg', default=None, types=(int,), allow_none=True,
@@ -60,6 +65,16 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
 
         self._vars.append((input_name, output_name, shape))
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Compute component outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         for (input_name, output_name, _) in self._vars:
             outputs[output_name] = inputs[input_name]

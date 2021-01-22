@@ -1794,17 +1794,6 @@ class Phase(om.Group):
                                   'phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
                                   RuntimeWarning)
 
-    def check_config(self, logger):
-        """
-        Print warnings associated with the Phase if check is enabled during setup.
-
-        Parameters
-        ----------
-        logger : object
-            The logger object to which warnings and errors will be sent.
-        """
-        self.options['transcription'].check_config(self, logger)
-
     def interpolate(self, xs=None, ys=None, nodes='all', kind='linear', axis=0):
         """
         Return an array of values on interpolated to the given node subset of the phase.

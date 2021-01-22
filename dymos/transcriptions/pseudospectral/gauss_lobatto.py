@@ -187,7 +187,7 @@ class GaussLobatto(PseudospectralBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
@@ -214,7 +214,7 @@ class GaussLobatto(PseudospectralBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         super(GaussLobatto, self).configure_ode(phase)
@@ -280,7 +280,7 @@ class GaussLobatto(PseudospectralBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
@@ -312,7 +312,7 @@ class GaussLobatto(PseudospectralBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         super(GaussLobatto, self).setup_defects(phase)
@@ -333,7 +333,7 @@ class GaussLobatto(PseudospectralBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         super(GaussLobatto, self).configure_defects(phase)
@@ -456,7 +456,7 @@ class GaussLobatto(PseudospectralBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         for timeseries_name, timeseries_options in phase._timeseries.items():
@@ -644,7 +644,7 @@ class GaussLobatto(PseudospectralBase):
             Name of the state.
         nodes : str
             One of ['col', 'state_disc'].
-        phase : dymos.phase
+        phase : dymos.Phase
             Phase object containing the rate source.
 
         Returns
@@ -732,7 +732,7 @@ class GaussLobatto(PseudospectralBase):
         ----------
         name : str
             The name of the parameter whose connection info is desired.
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase to which this transcription instance applies.
 
         Returns

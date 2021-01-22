@@ -7,8 +7,7 @@ import openmdao.api as om
 
 class ODEIntegrationInterface(object):
     """
-    Given a system class, create a callable object with the same signature as that required
-    by scipy.integrate.ode.
+    Given a system class, create a callable object with the signature required by scipy.integrate.ode.
 
     Internally, this is accomplished by constructing an OpenMDAO problem using the ODE with
     a single node.  The interface populates the values of the time, states, and controls,
@@ -94,7 +93,7 @@ class ODEIntegrationInterface(object):
 
         Returns
         -------
-        dXdt: np.array
+        dXdt : np.array
             The 1D state-rate vector.
 
         """
@@ -107,7 +106,8 @@ class ODEIntegrationInterface(object):
         return self._state_rate_vec
 
     def set_interpolant(self, name, interp):
-        """ Set the control and/or polynomial control interpolants in the underlying system.
+        """
+        Set the control and/or polynomial control interpolants in the underlying system.
 
         Parameters
         ----------
@@ -119,7 +119,8 @@ class ODEIntegrationInterface(object):
         self.prob.model.set_interpolant(name, interp)
 
     def setup_interpolant(self, name, x0, xf, f_j):
-        """ Setup the values to be interpolated in an existing interpolant.
+        """
+        Setup the values to be interpolated in an existing interpolant.
 
         Parameters
         ----------
@@ -154,7 +155,6 @@ class ODEIntegrationInterface(object):
         -------
         xdot : np.array
             The 1D vector of state time-derivatives.
-
         """
         self.prob['time'] = t
         self.prob['time_phase'] = t - self.prob['t_initial']

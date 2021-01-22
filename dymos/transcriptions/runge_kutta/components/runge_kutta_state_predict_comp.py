@@ -8,12 +8,18 @@ from ....options import options as dymos_options
 
 
 class RungeKuttaStatePredictComp(om.ExplicitComponent):
+    """
+    Class definition for the RungeKuttaStatePredictComp.
+    """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare('num_segments', types=int,
                              desc='The number of segments (timesteps) in the phase')
 
@@ -25,8 +31,7 @@ class RungeKuttaStatePredictComp(om.ExplicitComponent):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine variable shape and units.
         """
         self._var_names = {}
         num_seg = self.options['num_segments']
@@ -71,7 +76,17 @@ class RungeKuttaStatePredictComp(om.ExplicitComponent):
                                   wrt=self._var_names[name]['k'],
                                   rows=r, cols=c, val=p[r, c])
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Compute component outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         #
         # Note:  To accommodate states of dimension 2 or more, k is flattened to
         # (num_segments * num_stage, size) prior to the matrix vector product,

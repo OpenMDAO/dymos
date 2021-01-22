@@ -11,6 +11,9 @@ class ODEIntControlInterpolationComp(om.ExplicitComponent):
     derivative of the control at time `t`, respectively.
     """
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare('time_units', default='s', allow_none=True, types=str,
                              desc='Units of time')
         self.options.declare('control_options', types=dict, allow_none=True, default=None,
@@ -25,6 +28,9 @@ class ODEIntControlInterpolationComp(om.ExplicitComponent):
                              desc='Dictionary of interpolants for the polynomial controls')
 
     def setup(self):
+        """
+        Create inputs/outputs for this component.
+        """
         time_units = self.options['time_units']
 
         self.add_input('time', val=1.0, units=time_units)
@@ -58,7 +64,17 @@ class ODEIntControlInterpolationComp(om.ExplicitComponent):
             self.add_output('polynomial_control_rates:{0}_rate2'.format(control_name), shape=shape,
                             units=rate2_units)
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Compute component outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         time = inputs['time']
 
         for name in self.options['control_options']:

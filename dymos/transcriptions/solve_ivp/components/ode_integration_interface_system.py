@@ -8,8 +8,14 @@ import openmdao.api as om
 
 
 class ODEIntegrationInterfaceSystem(om.Group):
+    """
+    Class definition for ODEIntegrationInterfaceSystem.
+    """
 
     def initialize(self):
+        """
+        Declare group options.
+        """
         self.options.declare('time_options', types=TimeOptionsDictionary,
                              desc='Time options for the phase')
 
@@ -34,6 +40,9 @@ class ODEIntegrationInterfaceSystem(om.Group):
                              desc='Keyword arguments provided when initializing the ODE System')
 
     def setup(self):
+        """
+        Create the group hierarchy.
+        """
         ivc = om.IndepVarComp()
         time_options = self.options['time_options']
         time_units = time_options['units']
@@ -72,6 +81,9 @@ class ODEIntegrationInterfaceSystem(om.Group):
                                                   time_units=time_options['units']))
 
     def configure(self):
+        """
+        Issue connecctions after introspection.
+        """
         ivc = self._get_subsystem('ivc')
         ode = self._get_subsystem('ode')
 
@@ -182,7 +194,8 @@ class ODEIntegrationInterfaceSystem(om.Group):
         return rate_path
 
     def set_interpolant(self, name, interp):
-        """ Set the control and/or polynomial control interpolants in the underlying system.
+        """
+        Set the control and/or polynomial control interpolants in the underlying system.
 
         Parameters
         ----------
@@ -199,7 +212,8 @@ class ODEIntegrationInterfaceSystem(om.Group):
             raise KeyError(f'Unable to set control interpolant of unknown control: {name}')
 
     def setup_interpolant(self, name, x0, xf, f_j):
-        """ Setup the values to be interpolated in an existing interpolant.
+        """
+        Setup the values to be interpolated in an existing interpolant.
 
         Parameters
         ----------

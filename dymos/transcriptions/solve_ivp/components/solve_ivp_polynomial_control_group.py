@@ -11,8 +11,10 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
     """
     Component which interpolates controls as a single polynomial across the entire phase.
     """
-
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of time')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
@@ -27,8 +29,7 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine variable shape and units.
         """
         output_nodes_per_seg = self.options['output_nodes_per_seg']
         gd = self.options['grid_data']
@@ -145,8 +146,17 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
                                   wrt=self._input_names[name],
                                   rows=self.rate2_jac_rows[name], cols=self.rate2_jac_cols[name])
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Compute component outputs.
 
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         dt_dptau = 0.5 * inputs['t_duration']
 
         for name, options in self.options['polynomial_control_options'].items():
@@ -163,6 +173,16 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
             outputs[self._output_rate2_names[name]] = (b / dt_dptau ** 2).T
 
     def compute_partials(self, inputs, partials):
+        """
+        Compute sub-jacobian parts. The model is assumed to be in an unscaled state.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        partials : Jacobian
+            Subjac components written to partials[output_name, input_name].
+        """
         nn = self.options['grid_data'].num_nodes
 
         for name, options in self.options['polynomial_control_options'].items():
@@ -198,8 +218,14 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
 
 
 class SolveIVPPolynomialControlGroup(om.Group):
+    """
+    Group containing the SolveIVPLGLPolynomialControlComp.
+    """
 
     def initialize(self):
+        """
+        Declare group options.
+        """
         self.options.declare('polynomial_control_options', types=dict,
                              desc='Dictionary of options for the polynomial controls')
         self.options.declare('time_units', default=None, allow_none=True, types=str,
@@ -211,7 +237,9 @@ class SolveIVPPolynomialControlGroup(om.Group):
                                   'equally distributed points in time within each segment.')
 
     def setup(self):
-
+        """
+        Build the group hierarchy.
+        """
         ivc = om.IndepVarComp()
 
         opts = self.options
@@ -240,8 +268,7 @@ class SolveIVPPolynomialControlGroup(om.Group):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine variable shape and units.
         """
         ivc = self.control_inputs
         self.control_comp.configure_io()

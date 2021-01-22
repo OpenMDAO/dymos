@@ -16,12 +16,17 @@ from ....phase.options import TimeOptionsDictionary
 
 class SegmentSimulationComp(om.ExplicitComponent):
     """
+    Class definition for SegmentSimulationComp.
+
     SegmentSimulationComp is a component which, given values for time, states, and controls
     within a given segment, explicitly simulates the segment using scipy.integrate.solve_ivp.
 
     The resulting states are captured at all nodes within the segment.
     """
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare('index', desc='the index of this segment in the parent phase.')
 
         self.options.declare('grid_data', desc='the grid data of the corresponding phase.')
@@ -74,8 +79,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine variable shape and units.
         """
         idx = self.options['index']
         gd = self.options['grid_data']
@@ -161,7 +165,17 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         self.declare_partials(of='*', wrt='*', method='fd')
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Compute component outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         idx = self.options['index']
         gd = self.options['grid_data']
         iface_prob = self.options['ode_integration_interface'].prob

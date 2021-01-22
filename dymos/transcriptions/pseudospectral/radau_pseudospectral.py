@@ -125,7 +125,7 @@ class Radau(PseudospectralBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         super(Radau, self).setup_ode(phase)
@@ -144,7 +144,7 @@ class Radau(PseudospectralBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         super(Radau, self).configure_ode(phase)
@@ -166,7 +166,7 @@ class Radau(PseudospectralBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         super(Radau, self).setup_defects(phase)
@@ -186,7 +186,7 @@ class Radau(PseudospectralBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         super(Radau, self).configure_defects(phase)
@@ -306,7 +306,7 @@ class Radau(PseudospectralBase):
 
         Parameters
         ----------
-        phase : dymos.phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         gd = self.grid_data
@@ -517,7 +517,7 @@ class Radau(PseudospectralBase):
             Name of the state.
         nodes : str
             One of ['col', 'all'].
-        phase : dymos.phase
+        phase : dymos.Phase
             Phase object containing the rate source.
 
         Returns
@@ -609,6 +609,13 @@ class Radau(PseudospectralBase):
     def get_parameter_connections(self, name, phase):
         """
         Returns info about a parameter's target connections in the phase.
+
+        Parameters
+        ----------
+        name : str
+            Parameter name.
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
 
         Returns
         -------

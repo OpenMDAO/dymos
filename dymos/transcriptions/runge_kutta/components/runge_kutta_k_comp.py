@@ -7,12 +7,17 @@ from ....options import options as dymos_options
 
 
 class RungeKuttaKComp(om.ExplicitComponent):
-
+    """
+    Class definition for the RungeKuttaKComp.
+    """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare('num_segments', types=int,
                              desc='The number of segments (timesteps) in the phase')
 
@@ -27,8 +32,7 @@ class RungeKuttaKComp(om.ExplicitComponent):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine variable shape and units.
         """
         self._var_names = {}
 
@@ -67,13 +71,33 @@ class RungeKuttaKComp(om.ExplicitComponent):
                                   wrt='h',
                                   rows=r, cols=c)
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Compute component outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         h = inputs['h']
         for name, options in self.options['state_options'].items():
             f = inputs[self._var_names[name]['f']]
             outputs[self._var_names[name]['k']] = f * h[:, np.newaxis, np.newaxis]
 
     def compute_partials(self, inputs, partials):
+        """
+        Compute sub-jacobian parts. The model is assumed to be in an unscaled state.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        partials : Jacobian
+            Subjac components written to partials[output_name, input_name].
+        """
         num_stages = rk_methods[self.options['method']]['num_stages']
         h = inputs['h']
         for name, options in self.options['state_options'].items():

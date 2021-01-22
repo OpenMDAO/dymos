@@ -6,7 +6,10 @@ from ....options import options as dymos_options
 
 
 class GaussLobattoInterleaveComp(om.ExplicitComponent):
-    r""" Provides a contiguous output at all nodes for inputs which are only known at
+    r"""
+    Class definition for the GaussLobattoInterleaveComp.
+
+    Provides a contiguous output at all nodes for inputs which are only known at
     state discretiation or collocation nodes.
     """
     def __init__(self, **kwargs):
@@ -14,15 +17,18 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
-
+        """
+        Declare component options.
+        """
         self._varnames = {}
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
 
     def add_var(self, name, shape, units):
         """
-        Add a variable to be interleaved.  In general these need to be variables whose values are
-        stored separately for state discretization or collocation nodes (such as states
-        or ODE outputs).
+        Add a variable to be interleaved.
+
+        In general these need to be variables whose values are stored separately for state
+        discretization or collocation nodes (such as states or ODE outputs).
 
         Parameters
         ----------
@@ -36,7 +42,7 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
 
         Returns
         -------
-        success : bool
+        bool
             True if the variable was added to the interleave comp, False if not due to it already
             being there.
         """
@@ -90,7 +96,17 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
 
         return True
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Compute outputs for all nodes.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         disc_idxs = self.options['grid_data'].subset_node_indices['disc']
         col_idxs = self.options['grid_data'].subset_node_indices['col']
 
