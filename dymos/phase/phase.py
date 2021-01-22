@@ -1328,7 +1328,7 @@ class Phase(om.Group):
         r"""
         Add a single variable to the timeseries outputs of the phase.
 
-        This is called by add_time_series output for each timeseries that is added.
+        This is called by add_timeseries output for each variable that is added.
 
         Parameters
         ----------
