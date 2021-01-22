@@ -750,3 +750,34 @@ class TranscriptionBase(object):
         # Note: currently nothing to do, but some inherited future transcription might need some
         # post-configure error checking.
         pass
+
+    def is_static_ode_output(self, var, phase):
+        """
+        Test whether the given output is a static output of the ODE.
+
+        A variable is considered static if it's first dimension is different than the
+        number of nodes in the ODE.
+
+        Parameters
+        ----------
+        var : str
+            The ode-relative path of the variable of interest.
+        phase : dymos.Phase
+            The phase to which this transcription applies.
+
+        Returns
+        -------
+        bool
+            True if the given variable is a static output, otherwise False if it is dynamic.
+
+        Raises
+        ------
+        KeyError
+            KeyError is raised if the given variable isn't present in the ode outputs.
+
+        """
+        ode = phase._get_subsystem(self._rhs_source)
+        ode_outputs = {opts['prom_name']: opts for (k, opts) in
+                       ode.get_io_metadata(iotypes=('output',), get_remote=True).items()}
+        ode_shape = ode_outputs[var]['shape']
+        return ode_shape[0] != ode.options['num_nodes']

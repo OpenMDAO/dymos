@@ -5,13 +5,11 @@ By default, these timeseries outputs include Dymos phase variables (times, state
 Often, there will be some other intermediate or auxiliary output calculations in the ODE that we want to track over time.
 These can be added to the timeseries outputs using the `add_timeseries_output` method on Phase.
 
+Multiple timeseries outputs can be added at one time by matching a glob pattern.
+For instance, to add all outputs of the ODE to the timeseries, one can use '*' as the
 
-See the [Phase API docs](../api/phase_api.md) for more information.
+
+See the [Timeseries documentation](../features/phases/timeseries.md) for more information.
 
 
 The [commercial aircraft example](../examples/commercial_aircraft/commercial_aircraft.md) uses the `add_timeseries_output` method to add the lift and drag coefficients to the timeseries outputs.
-
-
-!!! info
-    Currently the user is required to specify the units and shape of the outputs being added in the `add_timeseries_output` method.
-    Future versions of OpenMDAO will allow us to infer this information automatically at setup time.
