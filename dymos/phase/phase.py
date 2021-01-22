@@ -628,7 +628,7 @@ class Phase(om.Group):
         opt : bool
             If True (default) the value(s) of this control will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the values of this control will exist as input controls:{name}
+            If False, the values of this control will exist as input controls:{name}.
         fix_initial : bool
             If True, the given initial value of the polynomial control is not a design variable and
             will not be changed during the optimization.
@@ -686,18 +686,18 @@ class Phase(om.Group):
         order : int
             The order of the interpolating polynomial used to represent the control value in
             phase tau space.
+        desc : str
+            A description of the polynomial control.
         val : float or ndarray
             Default value of the control at all nodes.  If val scalar and the control
             is dynamic it will be broadcast.
-        desc : str
-            A description of the polynomial control.
         units : str or None or 0
             Units in which the control variable is defined.  If 0, use the units declared
             for the parameter in the ODE.
         opt : bool
             If True (default) the value(s) of this control will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the values of this control will exist as input controls:{name}
+            If False, the values of this control will exist as input controls:{name}.
         fix_initial : bool
             If True, the given initial value of the polynomial control is not a design variable and
             will not be changed during the optimization.
@@ -715,7 +715,7 @@ class Phase(om.Group):
         ref0 : float or ndarray
             The zero-reference value of the control at the nodes of the phase.
         ref : float or ndarray
-            The unit-reference value of the control at the nodes of the phase
+            The unit-reference value of the control at the nodes of the phase.
         targets : Sequence of str or None
             Targets in the ODE to which this polynomial control is connected.
         rate_targets : None or str
@@ -1116,7 +1116,7 @@ class Phase(om.Group):
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
         desc : str
-            A description of the input parameter
+            A description of the input parameter.
         shape : Sequence of str or None
             The shape of the input parameter.
         dynamic : bool
@@ -1273,7 +1273,7 @@ class Phase(om.Group):
         self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=None, shape=None,
-                              timeseries='timeseries', _unit_dict={}):
+                              timeseries='timeseries'):
         r"""
         Add a variable to the timeseries outputs of the phase.
 
@@ -1283,14 +1283,14 @@ class Phase(om.Group):
             The name(s) of the variable to be used as a timeseries output.  Must be one of
             'time', 'time_phase', one of the states, controls, control rates, or parameters,
             in the phase, or the path to an output variable in the ODE.
-        output_name : str or None
+        output_name : str or None or list or dict
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
             override the constraint name if splitting the path causes name collisions.
         units : str or None
-            The units in which the boundary constraint is to be applied.  If None, use the
-            units associated with the constrained output.  If provided, must be compatible with
-            the variables units.
+            The units to express the timeseries output.  If None, use the
+            units associated with the target.  If provided, must be compatible with
+            the target units.
             If a list of names is provided, units can be a matching list or dictionary.
         shape : tuple
             The shape of the timeseries output variable.  This must be provided (if not scalar)
@@ -1299,16 +1299,56 @@ class Phase(om.Group):
             The name of the timeseries to which the output is being added.
         """
         if type(name) is list:
-            for i, n in enumerate(name):
-                u = units  # default
+            for i, name_i in enumerate(name):
                 if type(units) is dict:  # accept dict for units when using array of name
-                    u = units.get(n, None)
+                    unit = units.get(name_i, None)
                 elif type(units) is list:  # allow matching list for units
-                    u = units[i]
+                    unit = units[i]
+                else:
+                    unit = units
 
-                self.add_timeseries_output(n, output_name, u, shape, timeseries, units if type(units) is dict else {})
-            return
+                self._add_timeseries_output(name_i, output_name=output_name,
+                                            units=unit,
+                                            shape=shape,
+                                            timeseries=timeseries)
 
+                # Handle specific units for wildcard names.
+                if '*' in name_i:
+                    self._timeseries[timeseries]['outputs'][name_i]['wildcard_units'] = units
+
+        else:
+            self._add_timeseries_output(name, output_name=output_name,
+                                        units=units,
+                                        shape=shape,
+                                        timeseries=timeseries)
+
+    def _add_timeseries_output(self, name, output_name=None, units=None, shape=None,
+                               timeseries='timeseries'):
+        r"""
+        Add a single variable to the timeseries outputs of the phase.
+
+        This is called by add_timeseries_output for each variable that is added.
+
+        Parameters
+        ----------
+        name : str
+            The name of the variable to be used as a timeseries output.  Must be one of
+            'time', 'time_phase', one of the states, controls, control rates, or parameters,
+            in the phase, or the path to an output variable in the ODE.
+        output_name : str or None
+            The name of the variable as listed in the phase timeseries outputs.  By
+            default this is the last element in `name` when split by dots.  The user may
+            override the constraint name if splitting the path causes name collisions.
+        units : str or None
+            The units to express the timeseries output.  If None, use the
+            units associated with the target.  If provided, must be compatible with
+            the target units.
+        shape : tuple
+            The shape of the timeseries output variable.  This must be provided (if not scalar)
+            since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
+        timeseries : str or None
+            The name of the timeseries to which the output is being added.
+        """
         if output_name is None:
             output_name = name.split('.')[-1]
 
@@ -1318,16 +1358,10 @@ class Phase(om.Group):
         if name not in self._timeseries[timeseries]['outputs']:
             self._timeseries[timeseries]['outputs'][name] = {}
             self._timeseries[timeseries]['outputs'][name]['output_name'] = output_name
-            self._timeseries[timeseries]['outputs'][name]['timeseries_units'] = {}
+            self._timeseries[timeseries]['outputs'][name]['wildcard_units'] = {}
 
         self._timeseries[timeseries]['outputs'][name]['units'] = units
         self._timeseries[timeseries]['outputs'][name]['shape'] = shape
-        for k, v in _unit_dict.items():
-            existing = self._timeseries[timeseries]['outputs'][name]['timeseries_units']
-            if k in existing and existing[k] != v:
-                raise ValueError('Unit mismatch in add_timeseries_output unit dictionary')
-            else:
-                existing[k] = v  # save for ODE wildcard matching
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""
@@ -1834,7 +1868,9 @@ class Phase(om.Group):
 
     def get_simulation_phase(self, times_per_seg=None, method='RK45', atol=1.0E-9, rtol=1.0E-9):
         """
-        Return a SolveIVPPhase initialized based on data from this Phase instance and
+        Return a SolveIVPPhase instance.
+
+        This instance is initialized based on data from this Phase instance and
         the given simulation times.
 
         Parameters
@@ -1880,7 +1916,7 @@ class Phase(om.Group):
             The Phase instance from which the values in this phase are being initialized.
         phase_path : str
             The pathname of the system in prob that contains the phases.
-        skip_params : None or set.
+        skip_params : None or set
             Parameter names that will be skipped because they have already been initialized at the
             trajetory level.
         """
@@ -2045,7 +2081,6 @@ class Phase(om.Group):
         -------
         bool
             True if both the initial time and duration are not inputs and are fixed.
-
         """
         fix_initial = self.time_options['fix_initial']
         fix_duration = self.time_options['fix_duration']
@@ -2086,7 +2121,6 @@ class Phase(om.Group):
         -------
         bool
             True if the state of the given name is guaranteed to be fixed at the given location.
-
         """
         if loc == 'initial':
             res = self.state_options[name]['fix_initial']
