@@ -780,4 +780,4 @@ class TranscriptionBase(object):
         ode_outputs = {opts['prom_name']: opts for (k, opts) in
                        ode.get_io_metadata(iotypes=('output',), get_remote=True).items()}
         ode_shape = ode_outputs[var]['shape']
-        return ode_shape[0] != ode.options['num_nodes'], ode_shape
+        return ode_shape[0] != ode.options['num_nodes']
