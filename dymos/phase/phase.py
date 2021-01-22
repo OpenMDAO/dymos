@@ -1324,7 +1324,7 @@ class Phase(om.Group):
                                         timeseries=timeseries)
 
     def _add_timeseries_output(self, name, output_name=None, units=None, shape=None,
-                              timeseries='timeseries'):
+                               timeseries='timeseries'):
         r"""
         Add a single variable to the timeseries outputs of the phase.
 
