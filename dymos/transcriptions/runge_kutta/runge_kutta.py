@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 
 import openmdao.api as om
@@ -713,7 +715,7 @@ class RungeKutta(TranscriptionBase):
             for var, options in timeseries_options['outputs'].items():
                 output_name = options['output_name']
                 units = options.get('units', None)
-                timeseries_units = options.get('timeseries_units', None)
+                wildcard_units = options.get('wildcard_units', None)
 
                 if '*' in var:  # match outputs from the ODE
                     ode_outputs = {opts['prom_name']: opts for (k, opts) in
@@ -726,9 +728,9 @@ class RungeKutta(TranscriptionBase):
                     if '*' in var:
                         output_name = v.split('.')[-1]
                         units = ode_outputs[v]['units']
-                        # check for timeseries_units override of ODE units
-                        if v in timeseries_units:
-                            units = timeseries_units[v]
+                        # check for wildcard_units override of ODE units
+                        if v in wildcard_units:
+                            units = wildcard_units[v]
 
                     # Determine the path to the variable which we will be constraining
                     # This is more complicated for path constraints since, for instance,
@@ -738,6 +740,11 @@ class RungeKutta(TranscriptionBase):
 
                     # Ignore any variables that we've already added (states, times, controls, etc)
                     if var_type != 'ode':
+                        continue
+
+                    if self.is_static_ode_output(v, phase):
+                        warnings.warn(f'Cannot add ODE output {v} to the timeseries output. It is '
+                                      f'sized such that its first dimension != num_nodes.')
                         continue
 
                     try:
