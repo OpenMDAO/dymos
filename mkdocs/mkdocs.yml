@@ -60,6 +60,7 @@ nav:
             - 'examples/min_time_climb/min_time_climb.md'
             - 'examples/multi_phase_cannonball/multi_phase_cannonball.md'
             - 'examples/multibranch_trajectory/multibranch_trajectory.md'
+            - 'examples/racecar/racecar.md'
             - 'examples/reentry/reentry.md'
             - 'examples/ssto_earth/ssto_earth.md'
             - 'examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent.md'
