@@ -246,75 +246,72 @@ class GridData(object):
     In turn, these three defining properties determine various other properties,
     such as indexing arrays used to extract the discretization or collocation
     nodes from a list of all nodes within the phase.
+
+    Parameters
+    ----------
+    num_segments : int
+        The number of segments in the phase.
+    transcription : str
+        Case-insensitive transcription scheme (e.g., ('gauss-lobatto', 'radau-ps', 'explicit')).
+    transcription_order : int or int ndarray[:] or str
+        The order of the state transcription in each segment, as a scalar or a vector.  For
+        Runge-Kutta phases, this is the RK method used.
+    segment_ends : Iterable[num_segments + 1] or None
+        The segments nodes on some arbitrary interval.
+        This will be normalized to the interval [-1, 1].
+    compressed : bool
+        If the transcription is compressed, then states and controls at shared
+        nodes of adjacent segments are only specified once, and then broadcast
+        to the appropriate indices.
+    num_steps_per_segment : int or None
+        The number of steps to take in each segment, for explicitly integrated phases.
+
+    Attributes
+    ----------
+    transcription : str
+        The transcription to which this GridData instance applies.  One of
+        'gauss-lobatto' or 'radau-ps'.
+    num_segments : int
+        The number of segments in the phase
+    segment_ends : ndarray or None
+        The segment boundaries in non-dimensional phase time (phase tau space).
+        If given as a Iterable, it must be of length (num_segments+1) and it
+        must be monotonically increasing.
+        If None, then the segments are equally spaced.
+    num_steps_per_segment : int
+        The number of steps to take in each segment of the phase, for explicit phases.
+    num_nodes : int
+        The total number of nodes in the phase
+    node_stau : ndarray
+        The locations of each node in non-dimensional segment time (segment tau space).
+    node_ptau : ndarray
+        The locations of each node in non-dimensional phase time (phase tau space).
+    node_dptau_dstau : ndarray
+        The ratio of phase tau to segment tau at each node.
+    segment_indices : int ndarray[:,2]
+        Array where each row contains the start and end indices into the nodes.
+    subset_node_indices : dict of int ndarray[:]
+        Dict keyed by subset name where each entry are the indices of the nodes
+        belonging to that given subset.
+    subset_segment_indices: dict of int ndarray[num_seg,:]
+        Dict keyed by subset name where each entry are the indices of the nodes
+        belonging to the given subset, indexed into subset_node_indices!
+    subset_num_nodes: dict of int
+        A dict keyed by subset name that provides the total number of
+        nodes in the phase which belong to the given subset.
+    subset_num_nodes_per_segment: dict of list
+        A dict keyed by subset name that provides a list of ints giving the number of
+        nodes which belong to the given subset in each segment.
+    compressed: bool
+        True if the transcription is compressed (connecting nodes of adjacent segments
+        are not duplicated in the inputs).
+    input_maps: dict of int ndarray[:]
+        Dict keyed by the map name that provides a mapping for src_indices to
+        and from "compressed" form.
     """
 
     def __init__(self, num_segments, transcription, transcription_order=None,
                  segment_ends=None, compressed=False, num_steps_per_segment=1):
-        """
-        Initialize and compute all attributes.
-
-        Parameters
-        ----------
-        num_segments : int
-            The number of segments in the phase.
-        transcription : str
-            Case-insensitive transcription scheme (e.g., ('gauss-lobatto', 'radau-ps', 'explicit')).
-        transcription_order : int or int ndarray[:] or str
-            The order of the state transcription in each segment, as a scalar or a vector.  For
-            Runge-Kutta phases, this is the RK method used
-        segment_ends : Iterable[num_segments + 1] or None
-            The segments nodes on some arbitrary interval.
-            This will be normalized to the interval [-1, 1].
-        compressed : bool
-            If the transcription is compressed, then states and controls at shared
-            nodes of adjacent segments are only specified once, and then broadcast
-            to the appropriate indices.
-        num_steps_per_segment : int or None
-            The number of steps to take in each segment, for explicitly integrated phases.
-
-        Attributes
-        ----------
-        transcription : str
-            The transcription to which this GridData instance applies.  One of
-            'gauss-lobatto' or 'radau-ps'.
-        num_segments : int
-            The number of segments in the phase
-        segment_ends : ndarray or None
-            The segment boundaries in non-dimensional phase time (phase tau space).
-            If given as a Iterable, it must be of length (num_segments+1) and it
-            must be monotonically increasing.
-            If None, then the segments are equally spaced.
-        num_steps_per_segment : int
-            The number of steps to take in each segment of the phase, for explicit phases.
-        num_nodes : int
-            The total number of nodes in the phase
-        node_stau : ndarray
-            The locations of each node in non-dimensional segment time (segment tau space).
-        node_ptau : ndarray
-            The locations of each node in non-dimensional phase time (phase tau space).
-        node_dptau_dstau : ndarray
-            The ratio of phase tau to segment tau at each node.
-        segment_indices : int ndarray[:,2]
-            Array where each row contains the start and end indices into the nodes.
-        subset_node_indices : dict of int ndarray[:]
-            Dict keyed by subset name where each entry are the indices of the nodes
-            belonging to that given subset.
-        subset_segment_indices: dict of int ndarray[num_seg,:]
-            Dict keyed by subset name where each entry are the indices of the nodes
-            belonging to the given subset, indexed into subset_node_indices!
-        subset_num_nodes: dict of int
-            A dict keyed by subset name that provides the total number of
-            nodes in the phase which belong to the given subset.
-        subset_num_nodes_per_segment: dict of list
-            A dict keyed by subset name that provides a list of ints giving the number of
-            nodes which belong to the given subset in each segment.
-        compressed: bool
-            True if the transcription is compressed (connecting nodes of adjacent segments
-            are not duplicated in the inputs).
-        input_maps: dict of int ndarray[:]
-            Dict keyed by the map name that provides a mapping for src_indices to
-            and from "compressed" form.
-        """
         if segment_ends is None:
             segment_ends = np.linspace(-1, 1, num_segments + 1)
         else:

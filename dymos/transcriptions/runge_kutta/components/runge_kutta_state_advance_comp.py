@@ -14,6 +14,11 @@ class RungeKuttaStateAdvanceComp(om.ExplicitComponent):
     Given the initial value of each state at the start of each segment and the weight factors k
     for each state in each segment, compute the final value of each state at the end of each
     segment.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

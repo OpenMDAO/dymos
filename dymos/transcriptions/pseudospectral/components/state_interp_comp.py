@@ -22,6 +22,11 @@ class StateInterpComp(om.ExplicitComponent):
     interpolation scheme.
 
     .. math:: \dot{x}_c = \frac{d\tau_s}{dt} \left[ A_d \right] x_d
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

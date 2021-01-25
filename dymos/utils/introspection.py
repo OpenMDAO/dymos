@@ -4,12 +4,14 @@ from dymos.utils.misc import _unspecified
 def get_targets(ode, name, user_targets):
     """
     Return the targets of a state variable in a given ODE system.
+
     If the targets of the state is _unspecified, and the state name is a top level input name
     in the ODE, then the state values are automatically connected to that top-level input.
     If _unspecified and not a top-level input of the ODE, no connection is made.
     If targets is explicitly None, then no connection is made.
     Otherwise, if the user specified some other string or sequence of strings as targets, then
     those are returned.
+
     Parameters
     ----------
     ode : om.System
@@ -19,10 +21,12 @@ def get_targets(ode, name, user_targets):
         The name of the state variable whose targets are desired.
     user_targets : str or None or Sequence or _unspecified
         Targets for the variable as given by the user.
+
     Returns
     -------
     list
         The target inputs of the state variable in the ODE, as a list.
+
     Notes
     -----
     This method requires that the ODE has run its setup and configure methods.  Thus,
@@ -52,12 +56,14 @@ def get_state_target_metadata(ode, name, targets=_unspecified, user_units=_unspe
                               user_shape=_unspecified):
     """
     Return the targets of a state variable in a given ODE system.
+
     If the targets of the state is _unspecified, and the state name is a top level input name
     in the ODE, then the state values are automatically connected to that top-level input.
     If _unspecified and not a top-level input of the ODE, no connection is made.
     If targets is explicitly None, then no connection is made.
     Otherwise, if the user specified some other string or sequence of strings as targets, then
     those are returned.
+
     Parameters
     ----------
     ode : om.System
@@ -66,7 +72,7 @@ def get_state_target_metadata(ode, name, targets=_unspecified, user_units=_unspe
     name : str
         The name of the state variable whose targets are desired.
     targets : Sequence
-        Targets for the variable (assumes get_targets has already been run)
+        Targets for the variable (assumes get_targets has already been run).
     user_units : str or None or Sequence or _unspecified
         Units for the variable as given by the user.
     user_shape : str or None or Sequence or _unspecified
@@ -74,10 +80,11 @@ def get_state_target_metadata(ode, name, targets=_unspecified, user_units=_unspe
 
     Returns
     -------
-    shape : tuple
+    tuple
         The shape of the variable.  If not specified, shape is taken from the ODE targets.
-    units : str
+    str
         The units of the variable.  If not specified, units are taken from the ODE targets.
+
     Notes
     -----
     This method requires that the ODE has run its setup and configure methods.  Thus,

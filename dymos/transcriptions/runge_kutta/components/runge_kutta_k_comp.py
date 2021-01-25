@@ -9,6 +9,11 @@ from ....options import options as dymos_options
 class RungeKuttaKComp(om.ExplicitComponent):
     """
     Class definition for the RungeKuttaKComp.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

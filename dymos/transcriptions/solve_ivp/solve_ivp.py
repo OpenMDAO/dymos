@@ -24,6 +24,13 @@ class SolveIVP(TranscriptionBase):
 
     SolveIVP transcription does not currently support optimization since it does not propagate
     analytic derivatives through the ODE.
+
+    Parameters
+    ----------
+    grid_data : GridData
+        Grid data for this phases.
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, grid_data=None, **kwargs):
         super(SolveIVP, self).__init__(**kwargs)

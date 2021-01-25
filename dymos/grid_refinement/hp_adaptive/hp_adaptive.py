@@ -68,21 +68,13 @@ class HPAdaptive:
     Patterson, M. A., Hager, W. W., and Rao. A. V., “Adaptive mesh refinement method for optimal control using
     non-smoothness detection and mesh size reduction”, Journal of the Franklin Institute 352 (2015) 4081–4106
 
-    Attributes
+    Parameters
     ----------
-    phases : float
-        User this.
+    phases : Phase
+        The Phase object representing the solved phase.
     """
 
     def __init__(self, phases):
-        """
-        Initialize and compute attributes.
-
-        Parameters
-        ----------
-        phases : Phase
-            The Phase object representing the solved phase.
-        """
         self.phases = phases
         self.error = {}
         self.iteration_number = 0

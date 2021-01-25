@@ -18,6 +18,11 @@ class ControlInterpComp(om.ExplicitComponent):
     Compute the approximated control values and rates given the values of a control at all nodes,
     given values at the control discretization nodes.
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+
     Notes
     -----
     .. math::
@@ -253,6 +258,11 @@ class ControlInterpComp(om.ExplicitComponent):
 class ControlGroup(om.Group):
     """
     Class definition for the ControlGroup.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
         """

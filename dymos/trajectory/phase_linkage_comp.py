@@ -16,6 +16,11 @@ class PhaseLinkageComp(om.ExplicitComponent):
 
     Conceptually, each linkage can be thought of as a set of compatibility constraints involving
     one or more variables.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

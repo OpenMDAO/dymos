@@ -17,6 +17,11 @@ class GaussLobatto(PseudospectralBase):
     """
     High-order Gauss Lobatto Transcription.
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+
     References
     ----------
     Herman, Albert L, and Bruce A Conway. "Direct Optimization Using Collocation Based on

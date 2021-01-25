@@ -4,6 +4,11 @@ from dymos.transcriptions.common.timeseries_output_comp import TimeseriesOutputC
 class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
     """
     Class definition for SolveIVPTimeseriesOutputComp.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
         """

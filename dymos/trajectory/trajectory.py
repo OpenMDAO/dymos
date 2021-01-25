@@ -28,6 +28,11 @@ class Trajectory(om.Group):
 
     A Trajectory object serves as a container for one or more Phases, as well as the linkage
     conditions between phases.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super(Trajectory, self).__init__(**kwargs)

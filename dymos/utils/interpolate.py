@@ -3,29 +3,33 @@ import numpy as np
 
 class LagrangeBarycentricInterpolant(object):
     """
-    LagrangeBarycentricInterpolant interpolates values and first derivatives
-    of set of data using barycentric interpolation of a Lagrange Polynomial.
+    Class definition for LagrangeBarycentricInterpolant.
+
+    Interpolates values and first derivatives of set of data using barycentric interpolation of a
+    Lagrange Polynomial.
 
     Parameters
     ----------
     nodes : sequence
         The nodes of the polynomial from -1 to 1 on which the values to
         be interpolated are given.
+    shape : tuple
+        Shape of the values to be interpolated.
 
     Attributes
     ----------
     num_nodes : int
         The number of nodes in the interpolated polynomial.
     tau_i : np.array
-        The location of the nodes of the polynomial in tau space [-1 1]
+        The location of the nodes of the polynomial in tau space [-1 1].
     x_0 : float
-        The x-value corresponding to the left-side of the interval (tau = -1)
+        The x-value corresponding to the left-side of the interval (tau = -1).
     x_f : float
-        The x-value corresponding to the right-side of the interval (tau = +1)
+        The x-value corresponding to the right-side of the interval (tau = +1).
     f_j : np.array
         The values to be interpolated
     w_b : np.array
-        The barycentric weights for the points in the interpolated polynomial
+        The barycentric weights for the points in the interpolated polynomial.
     wbfj : np.array
         An array of the precomputed product of the interpolated values and
         the corresponding barycentric weights.
@@ -54,7 +58,6 @@ class LagrangeBarycentricInterpolant(object):
     ----------
     .. [1] Berrut, Jean-Paul, and Lloyd N. Trefethen.
        "Barycentric lagrange interpolation." Siam Review 46.3 (2004): 501-517.
-
     """
 
     def __init__(self, nodes, shape):
@@ -102,8 +105,8 @@ class LagrangeBarycentricInterpolant(object):
         self._is_setup = False
 
     def x_to_tau(self, x):
-        """ Converts the independent variable x to its corresponding
-        value of $\tau$.
+        """
+        Converts the independent variable x to its corresponding value of $\tau$.
 
         Given bounds on the independent variable x0 and xf which
         correspond to $\tau$ of -1 and 1, respectively, the returned value
@@ -112,33 +115,38 @@ class LagrangeBarycentricInterpolant(object):
         For instance, if x0 = 0 and xf = 100, x = 50 will have an equivalent
         $\tau$ of 0 (halfway on [-1 1]).
 
-        :param x: The independent variable to be converted to $\tau$.
-        :return: The equivalent value of $\tau$ given x.
+        Parameters
+        ----------
+        x : float or ndarray
+            The independent variable to be converted to $\tau$.
 
+        Returns
+        -------
+        float or ndarray
+            The equivalent value of $\tau$ given x.
         """
         return -1.0 + (x - self.x0) / self.dx_dtau
 
     def setup(self, x0, xf, f_j):
-        """Prepare the interpolant for use by setting the
-        values to be interpolated.
+        """
+        Prepare the interpolant for use by setting the values to be interpolated.
 
         Parameters
         ----------
         x0 : float
-            The lower bound of the independent variable,
-            corresponding to $\tau = -1$
+            The lower bound of the independent variable.
+            corresponding to $\tau = -1$ .
         xf : float
-            The upper bound of the independent variable,
-            corresponding to $\tau = -1$
+            The upper bound of the independent variable.
+            corresponding to $\tau = -1$ .
         f_j : np.array
-            The values to be interpolated at the LGL nodes on [-1 1]
+            The values to be interpolated at the LGL nodes on [-1 1].
 
         Raises
         ------
         ValueError
             If the length of f_j is not the number of nodes in the interpolated
             polynomial.
-
         """
         if len(f_j) != self.num_nodes:
             raise ValueError("f_j must have {0} values".format(self.num_nodes))
@@ -152,7 +160,8 @@ class LagrangeBarycentricInterpolant(object):
         self._is_setup = True
 
     def eval(self, x):
-        """ Interpolate the LGL polynomial at x.
+        """
+        Interpolate the LGL polynomial at x.
 
         Parameters
         ----------
@@ -164,7 +173,6 @@ class LagrangeBarycentricInterpolant(object):
         -------
         float
             The interpolated value of the LGL polynomial at x.
-
         """
         if not self._is_setup:
             raise RuntimeError('LagrangeBarycentricInterpolant has not been setup')
@@ -184,19 +192,21 @@ class LagrangeBarycentricInterpolant(object):
         return result
 
     def eval_deriv(self, x, der=1):
-        """ Interpolate the derivative of the polynomial at x.
+        """
+        Interpolate the derivative of the polynomial at x.
 
         Parameters
         ----------
         x : float
             The independent variable value at which the derivative
             is requested.
+        der : int
+            Derivative order requested. Default is 1 for first derivatives.
 
         Returns
         -------
         float
             The first derivative of the polynomial at x.
-
         """
         if not self._is_setup:
             raise RuntimeError('LagrangeBarycentricInterpolant has not been setup')

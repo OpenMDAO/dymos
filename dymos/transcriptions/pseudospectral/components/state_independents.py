@@ -14,6 +14,11 @@ class StateIndependentsComp(om.ImplicitComponent):
 
     A simple component that replaces the state indepvarcomps whenver the solver needs to solve for
     the state or whenever the initial state is connected to an external source.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

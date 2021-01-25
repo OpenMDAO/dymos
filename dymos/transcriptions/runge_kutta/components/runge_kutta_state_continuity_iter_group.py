@@ -16,8 +16,12 @@ class RungeKuttaStateContinuityIterGroup(om.Group):
     the times at the ODE evaluations, and the stepsize across each segment it will iterate
     to find the Runge-Kutta weights 'k' and the initial values of the states in all but the first
     segments to provide state continuity across the phase.
-    """
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+    """
     def initialize(self):
         """
         Declare component options.

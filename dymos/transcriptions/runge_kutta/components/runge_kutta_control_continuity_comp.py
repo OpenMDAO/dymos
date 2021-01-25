@@ -4,6 +4,11 @@ from ...common.continuity_comp import ContinuityCompBase
 class RungeKuttaControlContinuityComp(ContinuityCompBase):
     """
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def _configure_state_continuity(self):
         pass

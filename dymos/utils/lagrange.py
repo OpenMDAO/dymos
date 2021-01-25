@@ -3,10 +3,12 @@ import numpy as np
 
 def lagrange_matrices(x_disc, x_interp):
     """
-    Compute the lagrange matrices which, given 'cardinal' nodes at which
+    Compute the lagrange matrices.
+
+    The lagrange matrics are given 'cardinal' nodes at which
     values are specified and 'interior' nodes at which values will be desired,
     returns interpolation and differentiation matrices which provide polynomial
-    values and derivatives
+    values and derivatives.
 
     Parameters
     ----------
@@ -18,16 +20,15 @@ def lagrange_matrices(x_disc, x_interp):
 
     Returns
     -------
-    Li : np.array
+    np.array
         A num_i x num_c matrix which, when post-multiplied by values specified
-        at the cardinal nodes, yields the intepolated values at the interior
+        at the cardinal nodes, returns the intepolated values at the interior
         nodes.
 
-    Di : np.array
+    np.array
         A num_i x num_c matrix which, when post-multiplied by values specified
-        at the cardinal nodes, yields the intepolated derivatives at the interior
+        at the cardinal nodes, returns the intepolated derivatives at the interior
         nodes.
-
     """
     nd = len(x_disc)
     ni = len(x_interp)

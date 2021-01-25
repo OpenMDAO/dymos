@@ -9,6 +9,11 @@ class ODEIntControlInterpolationComp(om.ExplicitComponent):
     For each control handled by ODEIntControlInterpolationComp, the user must provide an object
     with methods `eval(t)` and `eval_deriv(t)` which return the interpolated value and
     derivative of the control at time `t`, respectively.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
         """

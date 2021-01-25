@@ -14,6 +14,11 @@ class ControlEndpointDefectComp(om.ExplicitComponent):
     value is zero.
 
     .. math:: {u}_{f} = \left[ L_{LGR} \right] vec{u}_{col}
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

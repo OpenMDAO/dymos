@@ -13,6 +13,11 @@ from ..utils.misc import get_rate_units, _unspecified, get_target_metadata, get_
 class TranscriptionBase(object):
     """
     Base class for all dymos transcriptions.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
 

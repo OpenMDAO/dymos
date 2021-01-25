@@ -10,8 +10,12 @@ import openmdao.api as om
 class ODEIntegrationInterfaceSystem(om.Group):
     """
     Class definition for ODEIntegrationInterfaceSystem.
-    """
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+    """
     def initialize(self):
         """
         Declare group options.

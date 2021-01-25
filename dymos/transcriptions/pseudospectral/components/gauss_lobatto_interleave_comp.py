@@ -11,6 +11,11 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
 
     Provides a contiguous output at all nodes for inputs which are only known at
     state discretiation or collocation nodes.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -10,6 +10,11 @@ class FlightPathEOM2D(om.ExplicitComponent):
     Computes the position and velocity equations of motion using a 2D flight path
     parameterization of states per equations 4.42 - 4.46 of _[1].
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+
     References
     ----------
     .. [1] Bryson, Arthur Earl. Dynamic optimization. Vol. 1. Prentice Hall, p.172, 1999.

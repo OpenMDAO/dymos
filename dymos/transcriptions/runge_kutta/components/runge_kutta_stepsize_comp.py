@@ -11,6 +11,11 @@ class RungeKuttaStepsizeComp(om.ExplicitComponent):
 
     Given the duration of the phase and the segment relative lengths, compute the duration of
     each segment (the step size) for each segment (step).
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

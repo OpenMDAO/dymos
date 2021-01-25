@@ -13,6 +13,11 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
     Implicitly solve the RungeKutta state continuity by forcing final state values to
     equal initial state values plus the state integral over each segment.
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+
     Attributes
     ----------
     _var_names : dict

@@ -10,6 +10,11 @@ from ....utils.misc import get_rate_units
 class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
     """
     Component which interpolates controls as a single polynomial across the entire phase.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
         """
@@ -220,8 +225,12 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
 class SolveIVPPolynomialControlGroup(om.Group):
     """
     Group containing the SolveIVPLGLPolynomialControlComp.
-    """
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+    """
     def initialize(self):
         """
         Declare group options.

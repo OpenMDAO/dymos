@@ -14,6 +14,11 @@ from ...options import options as dymos_options
 class LGLPolynomialControlComp(om.ExplicitComponent):
     """
     Component which interpolates controls as a single polynomial across the entire phase.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
         """
@@ -207,6 +212,11 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
 class PolynomialControlGroup(om.Group):
     """
     Group that contains and manages the LGLPolynomialControlComp.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
         """

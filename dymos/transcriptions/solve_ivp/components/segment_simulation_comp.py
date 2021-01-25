@@ -22,6 +22,11 @@ class SegmentSimulationComp(om.ExplicitComponent):
     within a given segment, explicitly simulates the segment using scipy.integrate.solve_ivp.
 
     The resulting states are captured at all nodes within the segment.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
         """

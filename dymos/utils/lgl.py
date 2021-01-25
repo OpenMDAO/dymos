@@ -6,8 +6,7 @@ _lgl_cache = {}
 
 def _lgl(n, tol=np.finfo(float).eps):
     """
-    Returns the Legendre-Gauss-Lobatto nodes and weights for a
-    Jacobi Polynomial with n abscissae.
+    Returns the Legendre-Gauss-Lobatto nodes and weights for a Jacobi Polynomial with n abscissae.
 
     The nodes are on the range [-1, 1].
 
@@ -52,7 +51,6 @@ def _lgl(n, tol=np.finfo(float).eps):
 
     w : numpy.array
         An array of the corresponding LGL weights at the nodes in x.
-
     """
     n = n - 1
     n1 = n + 1
@@ -88,9 +86,20 @@ def _lgl(n, tol=np.finfo(float).eps):
 
 
 def lgl(n):
-    """ Retrieve the lgl nodes and weights for n nodes.
+    """
+    Retrieve the lgl nodes and weights for n nodes.
 
     Results are cached to avoid repeated calculation of nodes and weights for a given n.
+
+    Parameters
+    ----------
+    n : int
+        Node number.
+
+    Returns
+    -------
+    float
+        Tuple with lgl nodes and weights.
     """
     if n not in _lgl_cache:
         _lgl_cache[n] = _lgl(n)

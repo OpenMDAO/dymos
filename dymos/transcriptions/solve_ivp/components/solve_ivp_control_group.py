@@ -15,6 +15,11 @@ class SolveIVPControlInterpComp(om.ExplicitComponent):
     Compute the approximated control values and rates given the values of a control at output nodes
     and the approximated values at output nodes, given values at the control input nodes.
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+
     Notes
     -----
     .. math::
@@ -35,7 +40,6 @@ class SolveIVPControlInterpComp(om.ExplicitComponent):
     and :math:`\\frac{d\\tau_s}{dt}` is the ratio of segment duration in segment tau space
     [-1 1] to segment duration in time.
     """
-
     def initialize(self):
         """
         Declare component options.
@@ -204,6 +208,11 @@ class SolveIVPControlInterpComp(om.ExplicitComponent):
 class SolveIVPControlGroup(om.Group):
     """
     Group containing the SolveIVPControlInterpComp.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
         """

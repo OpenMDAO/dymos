@@ -15,6 +15,11 @@ from ...utils.indexing import get_src_indices_by_row
 class PseudospectralBase(TranscriptionBase):
     """
     Base class for the pseudospectral transcriptions.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
         """

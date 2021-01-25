@@ -8,6 +8,11 @@ from dymos.utils.lagrange import lagrange_matrices
 class RungeKuttaTimeseriesOutputComp(TimeseriesOutputCompBase):
     """
     Class definition for the RungeKuttaTimeseriesOutputComp.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def setup(self):
         """

@@ -11,6 +11,11 @@ class StateRateCollectorComp(om.ExplicitComponent):
     Collects the state rates and outputs them in the units specified in the state options.
     For explicit integration this is necessary when the output providing the state rate has
     different units than those defined in the state_options/time_options.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
         """

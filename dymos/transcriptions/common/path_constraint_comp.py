@@ -7,6 +7,11 @@ from ...options import options as dymos_options
 class PathConstraintComp(om.ExplicitComponent):
     """
     Component that computes path constraint values.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

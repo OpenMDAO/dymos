@@ -14,6 +14,11 @@ class RungeKuttaKIterGroup(om.Group):
     This Group contains the state prediction component, the ODE, and the k-calculation component.
     Given the initial values of the states, the times at the ODE evaluations, and the stepsize
     across each segment it will iterate to find the Runge-Kutta weights 'k'.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
         """

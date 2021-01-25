@@ -25,6 +25,11 @@ class GridRefinementODESystem(om.Group):
     4. The error is computed by comparing x_hat to x_prime.
 
     This system is used to evaluate the ODE at all nodes within the higher-order segmentation.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
         """

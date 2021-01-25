@@ -19,6 +19,11 @@ class tee:
     ```
 
     Will print foo to both stdout and the stream f.
+
+    Parameters
+    ----------
+    *files : list
+        List of file streams.
     """
     def __init__(self, *files):
         self._files = files

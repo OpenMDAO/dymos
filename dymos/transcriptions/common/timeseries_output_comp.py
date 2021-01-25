@@ -18,6 +18,11 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
     separate arrays of variable values at discretization and collocation nodes.  These values
     need to be interleaved to provide a time series.  Pseudospectral techniques provide timeseries
     data at 'all' nodes, while ExplicitPhase provides values at the step boundaries.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -50,6 +55,11 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
 class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
     """
     Class definition of the PseudospectralTimeseriesOutputComp.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super(PseudospectralTimeseriesOutputComp, self).__init__(**kwargs)

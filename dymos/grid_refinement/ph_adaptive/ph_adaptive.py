@@ -34,17 +34,14 @@ class PHAdaptive:
     p-then-h refinement algorithm.
     Patterson, M. A., Hager, W. W., and Rao. A. V., “A ph Mesh Refinement Method for Optimal Control”,
     Optimal Control Applications and Methods, Vol. 36, No. 4, July - August 2015, pp. 398 - 421. DOI: 10.1002/oca2114
+
+    Parameters
+    ----------
+    phases : Phase
+        The Phase object representing the solved phase.
     """
 
     def __init__(self, phases):
-        """
-        Initialize and compute attributes.
-
-        Parameters
-        ----------
-        phases : Phase
-            The Phase object representing the solved phase.
-        """
         self.phases = phases
         self.error = {}
 

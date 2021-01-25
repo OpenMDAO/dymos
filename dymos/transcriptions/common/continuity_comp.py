@@ -9,6 +9,11 @@ from ...options import options as dymos_options
 class ContinuityCompBase(om.ExplicitComponent):
     """
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -306,6 +311,11 @@ class ContinuityCompBase(om.ExplicitComponent):
 class GaussLobattoContinuityComp(ContinuityCompBase):
     """
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def _configure_state_continuity(self):
         state_options = self.options['state_options']
@@ -365,6 +375,11 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
 class RadauPSContinuityComp(ContinuityCompBase):
     """
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def _configure_state_continuity(self):
         state_options = self.options['state_options']

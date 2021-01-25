@@ -43,12 +43,8 @@ class Phase(om.Group):
     ----------
     from_phase : <Phase> or None
         A phase instance from which the initialized phase should copy its data.
-    transcription : <TranscriptionBase>
-        The transcription to be utilized within the Phase.
-    ode_class : classs of type System
-        An OpenMDAO system class serving as the ODE for the phase.
-    ode_init_kwargs : dict
-        Keyword arguments used to initialize ode_class.
+    **kwargs : dict
+        Dictionary of optional phase arguments.
     """
 
     def __init__(self, from_phase=None, **kwargs):

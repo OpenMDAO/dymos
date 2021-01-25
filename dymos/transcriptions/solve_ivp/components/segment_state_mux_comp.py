@@ -6,6 +6,11 @@ import openmdao.api as om
 class SegmentStateMuxComp(om.ExplicitComponent):
     """
     Class definition for SegmentStateMuxComp.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
         """

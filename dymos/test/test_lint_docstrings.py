@@ -27,22 +27,7 @@ exclude = [
 ]
 
 # Error Codes to Ignore
-ignore_class = [
-    'ES01',    # No extended summary found
-    'EX01',    # No examples section found
-    'PR01',    # Init parameters not documented in class docstring
-    'SA01',    # See Also section not found
-    'SS05',    # Summary must start with infinitive verb, not third person (e.g. use "Generate" instead of "Generates")')
-]
-
-ignore_method = [
-    'ES01',    # No extended summary found
-    'EX01',    # No examples section found
-    'SA01',    # See Also section not found
-    'SS05',    # Summary must start with infinitive verb, not third person (e.g. use "Generate" instead of "Generates")')
-]
-
-ignore_function = [
+ignore = [
     'ES01',    # No extended summary found
     'EX01',    # No examples section found
     'SA01',    # See Also section not found
@@ -85,16 +70,16 @@ class DocstringLintTestCase(unittest.TestCase):
 
                     try:
                         mod = importlib.import_module(module_name)
-                    except ImportError as err:
+                    except ImportError:
                         # e.g. PETSc is not installed
-                        failures[module_name] = [('EEE', 'Error when loading module.')]
+                        failures[module_name] = [('EEE', f'Error when loading module {module_name}.')]
                         continue
 
-                    # Loop over classes
                     classes = [x for x in dir(mod)
                                if not x.startswith('_') and inspect.isclass(getattr(mod, x)) and
                                getattr(mod, x).__module__ == module_name]
 
+                    # Loop over classes.
                     for class_name in classes:
                         full_class_path = f'{module_name}.{class_name}'
                         try:
@@ -103,7 +88,7 @@ class DocstringLintTestCase(unittest.TestCase):
                             continue
 
                         for error_tuple in result['errors']:
-                            if error_tuple[0] not in ignore_class:
+                            if error_tuple[0] not in ignore:
                                 if full_class_path not in failures:
                                     failures[full_class_path] = []
                                 msg = f"{error_tuple[0]}: {error_tuple[1]}"
@@ -111,12 +96,14 @@ class DocstringLintTestCase(unittest.TestCase):
 
                         clss = getattr(mod, class_name)
 
-                        # Loop over methods
                         methods = [x for x in dir(clss)
-                                   if (inspect.ismethod(getattr(clss, x)) or inspect.isfunction(getattr(clss, x))) and
+                                   if (inspect.ismethod(getattr(clss, x)) or
+                                       inspect.isfunction(getattr(clss, x))) and
                                    x in clss.__dict__]
 
+                        # Loop over class methods.
                         for method_name in methods:
+
                             if not method_name.startswith('_'):
                                 full_method_path = f'{module_name}.{class_name}.{method_name}'
                                 try:
@@ -125,13 +112,12 @@ class DocstringLintTestCase(unittest.TestCase):
                                     continue
 
                                 for error_tuple in result['errors']:
-                                    if error_tuple[0] not in ignore_method:
+                                    if error_tuple[0] not in ignore:
                                         if full_method_path not in failures:
                                             failures[full_method_path] = []
                                         msg = f"{error_tuple[0]}: {error_tuple[1]}"
                                         failures[full_method_path].append(msg)
 
-                    # Loop over functions
                     tree = ast.parse(inspect.getsource(mod))
 
                     if hasattr(tree, 'body'):
@@ -139,6 +125,7 @@ class DocstringLintTestCase(unittest.TestCase):
                     else:
                         funcs = []
 
+                    # Loop over standalone functions.
                     for func_name in funcs:
                         if not func_name.startswith('_'):
                             full_function_path = f'{module_name}.{func_name}'
@@ -148,7 +135,7 @@ class DocstringLintTestCase(unittest.TestCase):
                                 continue
 
                             for error_tuple in result['errors']:
-                                if error_tuple[0] not in ignore_function:
+                                if error_tuple[0] not in ignore:
                                     if full_function_path not in failures:
                                         failures[full_function_path] = []
                                     msg = f"{error_tuple[0]}: {error_tuple[1]}"

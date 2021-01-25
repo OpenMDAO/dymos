@@ -24,6 +24,8 @@ class ODEIntegrationInterface(object):
         The state options for the phase being simulated.
     control_options : dict of {str: ControlOptionsDictionary}
         The control options for the phase being simulated.
+    polynomial_control_options : dict of {str: PolynomialControlOptionsDictionary}
+        The polynomial control options for the phase being simulated.
     parameter_options : dict of {str: ParameterOptionsDictionary}
         The parameter options for the phase being simulated.
     ode_init_kwargs : dict

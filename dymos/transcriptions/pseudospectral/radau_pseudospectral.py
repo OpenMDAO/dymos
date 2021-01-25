@@ -16,6 +16,11 @@ class Radau(PseudospectralBase):
     """
     Radau Pseudospectral Method Transcription.
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+
     References
     ----------
     Garg, Divya et al. "Direct Trajectory Optimization and Costate Estimation of General Optimal
