@@ -22,15 +22,15 @@ def _get_phases_node_in_problem_metadata(node, path=""):
     Parameters
     ----------
     node : list
-        Node in Problem metadata hierarchy
+        Node in Problem metadata hierarchy.
     path : str
         The dotted string path name to the node in the Problem hierarchy. Used
-        recursively to build up the path to a node
+        recursively to build up the path to a node.
 
     Returns
     -------
-    node, node_path : tuple of a list and a string
-        Returns the node and path name to the node, if found. Otherwise, returns (None, None)
+    tuple of a list and a string
+        Returns the node and path name to the node, if found. Otherwise, returns (None, None).
     """
     for item in node:
         if item['name'] == 'phases':
@@ -271,18 +271,20 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
 
 def timeseries_plots(solution_recorder_filename, simulation_record_file=None, plot_dir="plots"):
     """
+    Create plots of the timeseries.
+
     Given timeseries data from case recorder files, make separate plots of each variable
     and store the plot files in the directory indicated by the variable plot_dir
 
     Parameters
     ----------
     solution_recorder_filename : str
-        The path to the case recorder file containing solution data
+        The path to the case recorder file containing solution data.
     simulation_record_file : str or None (default:None)
         The path to the case recorder file containing simulation data. If not None,
-        this implies that the data from it should be plotted
+        this implies that the data from it should be plotted.
     plot_dir : str
-        The path to the directory to which the plot files will be written
+        The path to the directory to which the plot files will be written.
     """
 
     # get ready to generate plot files

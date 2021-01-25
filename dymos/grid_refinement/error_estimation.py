@@ -2,36 +2,33 @@
 Generic utilities for use by the grid refinement schemes.
 """
 import numpy as np
+from scipy.linalg import block_diag
+
 import openmdao.api as om
 
-from ..phase.phase import Phase
+from ..transcriptions import GaussLobatto, Radau
 from ..utils.lagrange import lagrange_matrices
 from ..utils.misc import get_rate_units
 from ..utils.introspection import get_targets
-
-from scipy.linalg import block_diag
-
-from ..transcriptions import GaussLobatto, Radau
 
 from .grid_refinement_ode_system import GridRefinementODESystem
 
 
 def interpolation_lagrange_matrix(old_grid, new_grid):
     """
-    Evaluate lagrange matrix to interpolate state and control values from the solved grid onto the new grid
+    Evaluate lagrange matrix to interpolate state and control values from the solved grid onto the new grid.
 
     Parameters
     ----------
-    old_grid: GridData
-        The GridData object representing the grid on which the problem has been solved
-    new_grid: GridData
-        The GridData object representing the new, higher-order grid
+    old_grid : <GridData>
+        GridData object representing the grid on which the problem has been solved.
+    new_grid : <GridData>
+        GridData object representing the new, higher-order grid.
 
     Returns
     -------
-    L: np.ndarray
-        The lagrange interpolation matrix
-
+    ndarray
+        The lagrange interpolation matrix.
     """
     L_blocks = []
     D_blocks = []
@@ -62,14 +59,13 @@ def integration_matrix(grid):
 
     Parameters
     ----------
-    grid: GridData
-        The GridData object representing the grid on which the integration matrix is to be evaluated
+    grid : <GridData>
+        GridData object containing the grid where the integration matrix will be evaluated.
 
     Returns
     -------
-    I: np.ndarray
-        The integration matrix used to propagate initial states over segments
-
+    ndarray
+        The integration matrix used to propagate initial states over segments.
     """
     I_blocks = []
 
@@ -105,15 +101,14 @@ def eval_ode_on_grid(phase, transcription):
 
     Returns
     -------
-    x : dict of (str: np.ndarray)
+    dict of (str: ndarray)
         A dictionary of the state values from the phase interpolated to the new transcription.
-    u : dict of (str: np.ndarray)
+    dict of (str: ndarray)
         A dictionary of the control values from the phase interpolated to the new transcription.
-    p : dict of (str: np.ndarray)
+    dict of (str: ndarray)
         A dictionary of the polynomial control values from the phase interpolated to the new transcription.
-    f : dict of (str: np.ndarray)
+    dict of (str: ndarray)
         A dictionary of the state rates computed in the phase's ODE at the new transcription points.
-
     """
     x = {}
     u = {}
@@ -299,10 +294,9 @@ def compute_state_quadratures(x_hat, f_hat, t_duration, transcription):
 
     Returns
     -------
-    x_prime : dict
+    dict
         A dictionary keyed by state name containing the estimated state values at each node,
         computed using a quadrature.
-
     """
     x_prime = {}
     gd = transcription.grid_data
@@ -335,13 +329,17 @@ def compute_state_quadratures(x_hat, f_hat, t_duration, transcription):
 
 def check_error(phases):
     """
-    Compute the error in every solved segment
+    Compute the error in every solved segment of the given phases.
+
+    Parameters
+    ----------
+    phases : dict
+        Dict of phase paths and phases.
 
     Returns
     -------
-    need_refinement: dict
-        Indicator for which segments of the given phase require grid refinement
-
+    dict
+        Indicator for which segments of each phase require grid refinement.
     """
     refine_results = {}
 

@@ -42,8 +42,7 @@ _unspecified = _ReprClass("unspecified")
 
 def get_rate_units(units, time_units, deriv=1):
     """
-    Return a string for rate units given units for the variable
-    and time units.
+    Return a string for rate units given units for the variable and time units.
 
     Parameters
     ----------
@@ -59,7 +58,6 @@ def get_rate_units(units, time_units, deriv=1):
     -------
     str
         Corresponding rate units for the given variable.
-
     """
     if deriv not in (1, 2):
         raise ValueError('deriv argument must be 1 or 2.')
@@ -81,12 +79,14 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
                         user_shape=_unspecified, control_rate=False, dynamic=True):
     """
     Return the targets of a state variable in a given ODE system.
+
     If the targets of the state is _unspecified, and the state name is a top level input name
     in the ODE, then the state values are automatically connected to that top-level input.
     If _unspecified and not a top-level input of the ODE, no connection is made.
     If targets is explicitly None, then no connection is made.
     Otherwise, if the user specified some other string or sequence of strings as targets, then
     those are returned.
+
     Parameters
     ----------
     ode : om.System
@@ -112,6 +112,7 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
         The shape of the variable.  If not specified, shape is taken from the ODE targets.
     units : str
         The units of the variable.  If not specified, units are taken from the ODE targets.
+
     Notes
     -----
     This method requires that the ODE has run its setup and configure methods.  Thus,
@@ -179,12 +180,14 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
 def get_source_metadata(ode, src, user_units, user_shape):
     """
     Return the targets of a state variable in a given ODE system.
+
     If the targets of the state is _unspecified, and the state name is a top level input name
     in the ODE, then the state values are automatically connected to that top-level input.
     If _unspecified and not a top-level input of the ODE, no connection is made.
     If targets is explicitly None, then no connection is made.
     Otherwise, if the user specified some other string or sequence of strings as targets, then
     those are returned.
+
     Parameters
     ----------
     ode : om.System
@@ -196,12 +199,14 @@ def get_source_metadata(ode, src, user_units, user_shape):
         Units for the variable as given by the user.
     user_shape : str or None or Sequence or _unspecified
         Shape for the variable as given by the user.
+
     Returns
     -------
     shape : tuple
         The shape of the variable.  If not specified, shape is taken from the ODE targets.
     units : str
         The units of the variable.  If not specified, units are taken from the ODE targets.
+
     Notes
     -----
     This method requires that the ODE has run its setup and configure methods.  Thus,
@@ -230,8 +235,16 @@ def get_source_metadata(ode, src, user_units, user_shape):
 
 class CoerceDesvar(object):
     """
-    Check the desvar options for the appropriate shape and resize
-    accordingly with options.
+    Check the desvar options for the appropriate shape and resize accordingly with options.
+
+    Parameters
+    ----------
+    num_input_nodes : int
+        Number of input nodes.
+    desvar_indices : ndarray
+        Flattened indices of the variable.
+    options : dict
+        Variable options dictionary, should contain "shape".
     """
     def __init__(self, num_input_nodes, desvar_indices, options):
         self.num_input_nodes = num_input_nodes
@@ -240,8 +253,7 @@ class CoerceDesvar(object):
 
     def __call__(self, option):
         """
-        Test that the given opption has a shape that is compliant with the number of input
-        nodes for the design variable.
+        Test that an option's shape is compliant with the number of input nodes for the design variable.
 
         Parameters
         ----------
@@ -250,7 +262,8 @@ class CoerceDesvar(object):
 
         Returns
         -------
-        The value of the desvar option
+        object
+            The value of the desvar option.
 
         Raises
         ------
@@ -283,10 +296,18 @@ def CompWrapperConfig(comp_class):
     ----------
     comp_class : Component class
        Class that we would like to wrap.
+
+    Returns
+    -------
+    WrappedClass
+        Wrapped version of comp_class.
     """
     class WrappedClass(comp_class):
 
         def setup(self):
+            """
+            Appends a call to configure_io after setup.
+            """
             super(WrappedClass, self).setup()
             self.configure_io()
 
@@ -303,15 +324,26 @@ def GroupWrapperConfig(comp_class):
 
     Parameters
     ----------
-    comp_class : Component class
+    comp_class : Group class
        Class that we would like to wrap.
+
+    Returns
+    -------
+    WrappedClass
+        Wrapped version of comp_class.
     """
     class WrappedClass(comp_class):
 
         def setup(self):
+            """
+            Setup as normal.
+            """
             super(WrappedClass, self).setup()
 
         def configure(self):
+            """
+            Call configure_io during configure.
+            """
             self.configure_io()
 
     return WrappedClass

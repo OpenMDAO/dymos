@@ -11,7 +11,14 @@ from ..utils.misc import get_rate_units, _unspecified, get_target_metadata, get_
 
 
 class TranscriptionBase(object):
+    """
+    Base class for all dymos transcriptions.
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+    """
     def __init__(self, **kwargs):
 
         self.grid_data = None
@@ -42,19 +49,26 @@ class TranscriptionBase(object):
         pass
 
     def initialize(self):
+        """
+        Declare transcription options.
+        """
         pass
 
     def init_grid(self):
         """
-        Setup the GridData object for the Transcription
+        Setup the GridData object for the Transcription.
         """
-
         raise NotImplementedError('Transcription {0} does not implement method'
                                   'init_grid.'.format(self.__class__.__name__))
 
     def setup_time(self, phase):
         """
         Setup up the time component and time extents for the phase.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         time_options = phase.time_options
 
@@ -66,6 +80,14 @@ class TranscriptionBase(object):
                                 promotes_outputs=['*'])
 
     def configure_time(self, phase):
+        """
+        Configure the inputs/outputs on the time component.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         time_options = phase.time_options
 
         # Determine the time unit.
@@ -120,8 +142,12 @@ class TranscriptionBase(object):
 
     def setup_controls(self, phase):
         """
-        Adds an IndepVarComp if necessary and issues appropriate connections based
-        on transcription.
+        Setup the control group.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         phase._check_control_options()
 
@@ -137,6 +163,7 @@ class TranscriptionBase(object):
         """
         Modifies state options in-place, automatically determining 'targets', 'units', and 'shape'
         if necessary.
+
         The precedence rules for the state shape and units are as follows:
         1. If the user has specified units and shape in the state options, use those.
         2a. If the user has not specified shape, and targets exist, then pull the shape from the targets.
@@ -144,16 +171,14 @@ class TranscriptionBase(object):
         2c. If shape cannot be inferred, assume (1,)
         3a. If the user has not specified units, first try to pull units from a target
         3b. If there are no targets, pull units from the rate source and multiply by time units.
-        For units, specifically, option 3b can lead to ugly behavior.  If the state rate has units
-        of 'm/s', then the state units will be inferred as 'm/s*s'.  While mathematically correct,
-        OpenMDAO does not currently simplify unit strings.
+
         Parameters
         ----------
         state_name : str
             The name of the state variable of interest.
-        state_options: OptionsDictionary
+        options : OptionsDictionary
             The options dictionary for the state variable of interest.
-        phase
+        phase : dymos.Phase
             The phase associated with the transcription.
         """
         time_units = phase.time_options['units']
@@ -244,6 +269,14 @@ class TranscriptionBase(object):
         return
 
     def configure_controls(self, phase):
+        """
+        Configure the inputs/outputs for the controls.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         ode = phase._get_subsystem(self._rhs_source)
 
         # Interrogate shapes and units.
@@ -268,6 +301,11 @@ class TranscriptionBase(object):
     def setup_polynomial_controls(self, phase):
         """
         Adds the polynomial control group to the model if any polynomial controls are present.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         if phase.polynomial_control_options:
             sys = PolynomialControlGroup(grid_data=self.grid_data,
@@ -277,6 +315,14 @@ class TranscriptionBase(object):
                                 promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure_polynomial_controls(self, phase):
+        """
+        Configure the inputs/outputs for the polynomial controls.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         ode = phase._get_subsystem(self._rhs_source)
 
         # Interrogate shapes and units.
@@ -297,6 +343,11 @@ class TranscriptionBase(object):
     def setup_parameters(self, phase):
         """
         Sets input defaults for parameters and optionally adds design variables.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         phase._check_parameter_options()
 
@@ -317,6 +368,14 @@ class TranscriptionBase(object):
                                          ref=options['ref'])
 
     def configure_parameters(self, phase):
+        """
+        Configure parameter promotion.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         if phase.parameter_options:
             ode = phase._get_subsystem(self._rhs_source)
 
@@ -357,7 +416,7 @@ class TranscriptionBase(object):
 
         Parameters
         ----------
-        phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
         state_options = phase.state_options
@@ -398,19 +457,45 @@ class TranscriptionBase(object):
                 raise ValueError(f"State '{name}' is missing a rate_source.")
 
     def setup_states(self, phase):
+        """
+        Setup the states for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         raise NotImplementedError('Transcription {0} does not implement method '
                                   'setup_states.'.format(self.__class__.__name__))
 
     def setup_ode(self, phase):
+        """
+        Setup the ode for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         raise NotImplementedError('Transcription {0} does not implement method '
                                   'setup_ode.'.format(self.__class__.__name__))
 
     def setup_timeseries_outputs(self, phase):
+        """
+        Setup the timeseries for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         raise NotImplementedError('Transcription {0} does not implement method '
                                   'setup_timeseries_outputs.'.format(self.__class__.__name__))
 
     def setup_boundary_constraints(self, loc, phase):
         """
+        Setup the boundary constraints.
+
         Adds BoundaryConstraintComp for initial and/or final boundary constraints if necessary
         and issues appropriate connections.
 
@@ -418,9 +503,8 @@ class TranscriptionBase(object):
         ----------
         loc : str
             The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
-        phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
-
         """
         if loc not in ('initial', 'final'):
             raise ValueError('loc must be one of \'initial\' or \'final\'.')
@@ -434,6 +518,8 @@ class TranscriptionBase(object):
 
     def configure_boundary_constraints(self, loc, phase):
         """
+        Configures the boundary constraints.
+
         Adds BoundaryConstraintComp for initial and/or final boundary constraints if necessary
         and issues appropriate connections.
 
@@ -441,9 +527,8 @@ class TranscriptionBase(object):
         ----------
         loc : str
             The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
-        phase
+        phase : dymos.Phase
             The phase object to which this transcription instance applies.
-
         """
         bc_dict = phase._initial_boundary_constraints \
             if loc == 'initial' else phase._final_boundary_constraints
@@ -546,6 +631,11 @@ class TranscriptionBase(object):
     def setup_path_constraints(self, phase):
         """
         Add a path constraint component if necessary.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         gd = self.grid_data
 
@@ -556,6 +646,11 @@ class TranscriptionBase(object):
     def configure_path_constraints(self, phase):
         """
         Handle the common operations for configuration of the path constraints.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         time_units = phase.time_options['units']
 
@@ -670,7 +765,12 @@ class TranscriptionBase(object):
 
     def configure_objective(self, phase):
         """
-        Find the path of the objective(s) and add the objective using the standard OpenMDAO method.
+        Find the path of the objective(s) and add them.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         for name, options in phase._objectives.items():
             index = options['index']
@@ -719,37 +819,23 @@ class TranscriptionBase(object):
 
     def get_parameter_connections(self, name, phase):
         """
-        Returns a list containing tuples of each path and related indices to which the
-        given parameter name is to be connected.
+        Returns info about a parameter's target connections in the phase.
 
         Parameters
         ----------
         name : str
             The name of the parameter for which connection information is desired.
-        phase
+        phase : dymos.Phase
             The phase object to which this transcription applies.
 
         Returns
         -------
-        connection_info : list of (paths, indices)
+        list of (paths, indices)
             A list containing a tuple of target paths and corresponding src_indices to which the
             given design variable is to be connected.
         """
         raise NotImplementedError('Transcription {0} does not implement method '
                                   'get_parameter_connections.'.format(self.__class__.__name__))
-
-    def check_config(self, phase, logger):
-        """
-        Print warnings associated with the Phase if check is enabled during setup.
-
-        Parameters
-        ----------
-        logger
-            The logger object to which warnings and errors will be sent.
-        """
-        # Note: currently nothing to do, but some inherited future transcription might need some
-        # post-configure error checking.
-        pass
 
     def is_static_ode_output(self, var, phase):
         """
@@ -774,7 +860,6 @@ class TranscriptionBase(object):
         ------
         KeyError
             KeyError is raised if the given variable isn't present in the ode outputs.
-
         """
         ode = phase._get_subsystem(self._rhs_source)
         ode_outputs = {opts['prom_name']: opts for (k, opts) in

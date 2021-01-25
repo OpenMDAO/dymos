@@ -1,24 +1,35 @@
 import numpy as np
+
 import openmdao.api as om
 from openmdao.utils.general_utils import warn_deprecation
-from .options import LinkageOptionsDictionary
+
 from ..options import options as dymos_options
 
 
 class PhaseLinkageComp(om.ExplicitComponent):
     """
+    Component that provides a constraint between end values in two connected phases.
+
     Provides a 'linkage' capability between two phases to provide
     continuity in states, time, and other variables between two
     phases.
 
     Conceptually, each linkage can be thought of as a set of compatibility constraints involving
     one or more variables.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare('linkages', default=[])
         self._io_names = {}
 
@@ -38,12 +49,10 @@ class PhaseLinkageComp(om.ExplicitComponent):
         (sign_a = 1, sign_b = -1) will result in the two variables having the same value at the
         given locations.
 
-
         Parameters
         ----------
-        linkage_options : LinkageOptionsDictionary
+        lnk : LinkageOptionsDictionary
             The linkage options dictionary defining the given linkage constraint.
-
         """
         if lnk['connected']:
             return
@@ -105,7 +114,16 @@ class PhaseLinkageComp(om.ExplicitComponent):
         self.declare_partials(of=output, wrt=input_b, rows=rs, cols=cs_b, val=lnk['sign_b'])
 
     def compute(self, inputs, outputs):
+        """
+        Compute the linkage constraint values.
 
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         for lnk in self.options['linkages']:
             input_a = lnk._input_a
             input_b = lnk._input_b

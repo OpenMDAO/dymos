@@ -14,7 +14,12 @@ from ..grid_data import GridData
 
 class Radau(PseudospectralBase):
     """
-    Radau Pseudospectral Method Transcription
+    Radau Pseudospectral Method Transcription.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
 
     References
     ----------
@@ -27,16 +32,24 @@ class Radau(PseudospectralBase):
         self._rhs_source = 'rhs_all'
 
     def init_grid(self):
+        """
+        Setup the GridData object for the Transcription.
+        """
         self.grid_data = GridData(num_segments=self.options['num_segments'],
                                   transcription='radau-ps',
                                   transcription_order=self.options['order'],
                                   segment_ends=self.options['segment_ends'],
                                   compressed=self.options['compressed'])
 
-    def setup_time(self, phase):
-        super(Radau, self).setup_time(phase)
-
     def configure_time(self, phase):
+        """
+        Configure the inputs/outputs on the time component.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(Radau, self).configure_time(phase)
         options = phase.time_options
 
@@ -52,6 +65,14 @@ class Radau(PseudospectralBase):
                 phase.connect(name, [f'rhs_all.{t}' for t in targets], src_indices=src_idxs)
 
     def configure_controls(self, phase):
+        """
+        Configure the inputs/outputs for the controls.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(Radau, self).configure_controls(phase)
 
         if phase.control_options:
@@ -75,6 +96,14 @@ class Radau(PseudospectralBase):
                                   [f'rhs_all.{t}' for t in targets])
 
     def configure_polynomial_controls(self, phase):
+        """
+        Configure the inputs/outputs for the polynomial controls.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(Radau, self).configure_polynomial_controls(phase)
 
         for name, options in phase.polynomial_control_options.items():
@@ -96,6 +125,14 @@ class Radau(PseudospectralBase):
                               [f'rhs_all.{t}' for t in targets])
 
     def setup_ode(self, phase):
+        """
+        Setup the ode for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(Radau, self).setup_ode(phase)
 
         ODEClass = phase.options['ode_class']
@@ -107,6 +144,14 @@ class Radau(PseudospectralBase):
                                             **kwargs))
 
     def configure_ode(self, phase):
+        """
+        Create connections to the introspected states.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(Radau, self).configure_ode(phase)
 
         grid_data = self.grid_data
@@ -121,6 +166,14 @@ class Radau(PseudospectralBase):
                               src_indices=om.slicer[map_input_indices_to_disc, ...])
 
     def setup_defects(self, phase):
+        """
+        Create the continuity_comp to house the defects.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(Radau, self).setup_defects(phase)
 
         grid_data = self.grid_data
@@ -133,6 +186,14 @@ class Radau(PseudospectralBase):
                                 promotes_inputs=['t_duration'])
 
     def configure_defects(self, phase):
+        """
+        Configure the continuity_comp and connect the collocation constraints.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(Radau, self).configure_defects(phase)
 
         grid_data = self.grid_data
@@ -161,6 +222,14 @@ class Radau(PseudospectralBase):
                               src_indices=src_idxs)
 
     def configure_path_constraints(self, phase):
+        """
+        Handle the common operations for configuration of the path constraints.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(Radau, self).configure_path_constraints(phase)
 
         gd = self.grid_data
@@ -237,6 +306,14 @@ class Radau(PseudospectralBase):
                           src_indices=src_idxs, flat_src_indices=flat_src_idxs)
 
     def configure_timeseries_outputs(self, phase):
+        """
+        Create connections from time series to all post-introspection sources.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         gd = self.grid_data
         time_units = phase.time_options['units']
 
@@ -436,6 +513,25 @@ class Radau(PseudospectralBase):
                                                                          output_name))
 
     def get_rate_source_path(self, state_name, nodes, phase):
+        """
+        Return the rate source location and indices for a given state name.
+
+        Parameters
+        ----------
+        state_name : str
+            Name of the state.
+        nodes : str
+            One of ['col', 'all'].
+        phase : dymos.Phase
+            Phase object containing the rate source.
+
+        Returns
+        -------
+        str
+            Path to the rate source.
+        ndarray
+            Array of source indices.
+        """
         gd = self.grid_data
         try:
             var = phase.state_options[state_name]['rate_source']
@@ -517,12 +613,18 @@ class Radau(PseudospectralBase):
 
     def get_parameter_connections(self, name, phase):
         """
-        Returns a list containing tuples of each path and related indices to which the
-        given design variable name is to be connected.
+        Returns info about a parameter's target connections in the phase.
+
+        Parameters
+        ----------
+        name : str
+            Parameter name.
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
 
         Returns
         -------
-        connection_info : list of (paths, indices)
+        list of (paths, indices)
             A list containing a tuple of target paths and corresponding src_indices to which the
             given design variable is to be connected.
         """

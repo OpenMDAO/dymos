@@ -10,8 +10,15 @@ from ....utils.lagrange import lagrange_matrices
 
 class SolveIVPControlInterpComp(om.ExplicitComponent):
     """
+    Class definition for SolveIVPControlInterpComp.
+
     Compute the approximated control values and rates given the values of a control at output nodes
     and the approximated values at output nodes, given values at the control input nodes.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
 
     Notes
     -----
@@ -33,8 +40,10 @@ class SolveIVPControlInterpComp(om.ExplicitComponent):
     and :math:`\\frac{d\\tau_s}{dt}` is the ratio of segment duration in segment tau space
     [-1 1] to segment duration in time.
     """
-
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare('control_options', types=dict,
                              desc='Dictionary of options for the dynamic controls')
         self.options.declare('time_units', default=None, allow_none=True, types=str,
@@ -90,8 +99,7 @@ class SolveIVPControlInterpComp(om.ExplicitComponent):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine variable shape and units.
         """
         output_nodes_per_seg = self.options['output_nodes_per_seg']
         time_units = self.options['time_units']
@@ -171,6 +179,16 @@ class SolveIVPControlInterpComp(om.ExplicitComponent):
         self.set_check_partial_options('*', method='cs')
 
     def compute(self, inputs, outputs):
+        """
+        Compute component outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         control_options = self.options['control_options']
 
         for name, options in control_options.items():
@@ -188,8 +206,18 @@ class SolveIVPControlInterpComp(om.ExplicitComponent):
 
 
 class SolveIVPControlGroup(om.Group):
+    """
+    Group containing the SolveIVPControlInterpComp.
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+    """
     def initialize(self):
+        """
+        Declare group options.
+        """
         self.options.declare('control_options', types=dict,
                              desc='Dictionary of options for the dynamic controls')
         self.options.declare('time_units', default=None, allow_none=True, types=str,
@@ -201,6 +229,9 @@ class SolveIVPControlGroup(om.Group):
                                   'equally distributed points in time within each segment.')
 
     def setup(self):
+        """
+        Build the group hierarchy.
+        """
         gd = self.options['grid_data']
         control_options = self.options['control_options']
         time_units = self.options['time_units']
@@ -224,8 +255,7 @@ class SolveIVPControlGroup(om.Group):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine variable shape and units.
         """
         gd = self.options['grid_data']
         control_options = self.options['control_options']

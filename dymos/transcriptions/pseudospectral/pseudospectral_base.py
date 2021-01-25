@@ -15,8 +15,16 @@ from ...utils.indexing import get_src_indices_by_row
 class PseudospectralBase(TranscriptionBase):
     """
     Base class for the pseudospectral transcriptions.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
+        """
+        Declare transcription options.
+        """
         self.options.declare(name='solve_segments', default=False,
                              values=(True, False, 'forward', 'backward'),
                              desc='Applies \'solve_segments\' behavior to _all_ states in the Phase. '
@@ -30,6 +38,14 @@ class PseudospectralBase(TranscriptionBase):
                                   'converge the state time history.')
 
     def setup_time(self, phase):
+        """
+        Setup the time component.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         time_units = phase.time_options['units']
         grid_data = self.grid_data
 
@@ -41,12 +57,25 @@ class PseudospectralBase(TranscriptionBase):
         phase.add_subsystem('time', time_comp, promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure_time(self, phase):
+        """
+        Configure the inputs/outputs on the time component.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(PseudospectralBase, self).configure_time(phase)
         phase.time.configure_io()
 
     def setup_states(self, phase):
         """
-        Add an IndepVarComp for the states and setup the states as design variables.
+        Setup the states for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
 
@@ -74,6 +103,14 @@ class PseudospectralBase(TranscriptionBase):
                             promotes_outputs=['*'])
 
     def configure_states(self, phase):
+        """
+        Configure state connections post-introspection.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         grid_data = self.grid_data
         num_state_input_nodes = grid_data.subset_num_nodes['state_input']
         indep = phase.indep_states
@@ -186,6 +223,14 @@ class PseudospectralBase(TranscriptionBase):
                                   'indep_states.defects:{0}'.format(name))
 
     def setup_ode(self, phase):
+        """
+        Setup the ode for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         grid_data = self.grid_data
         transcription = grid_data.transcription
         time_units = phase.time_options['units']
@@ -197,6 +242,14 @@ class PseudospectralBase(TranscriptionBase):
                                                    transcription=transcription))
 
     def configure_ode(self, phase):
+        """
+        Create connections to the introspected states.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         grid_data = self.grid_data
         map_input_indices_to_disc = grid_data.input_maps['state_input_to_disc']
 
@@ -215,6 +268,11 @@ class PseudospectralBase(TranscriptionBase):
     def setup_defects(self, phase):
         """
         Setup the Collocation and Continuity components as necessary.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
 
@@ -317,6 +375,14 @@ class PseudospectralBase(TranscriptionBase):
             self.state_idx_map[state_name]['indep'] = np.arange(len(state_input_idxs), dtype=int)
 
     def configure_defects(self, phase):
+        """
+        Configure the continuity_comp and connect the collocation constraints.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         grid_data = self.grid_data
         num_seg = grid_data.num_segments
 
@@ -361,9 +427,25 @@ class PseudospectralBase(TranscriptionBase):
                               src_indices=src_idxs, flat_src_indices=True)
 
     def setup_solvers(self, phase):
+        """
+        Setup the solvers.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         pass
 
     def configure_solvers(self, phase):
+        """
+        Configure the solvers.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         if self.any_solved_segs or self.any_connected_opt_segs:
             newton = phase.nonlinear_solver = om.NewtonSolver()
             newton.options['solve_subsystems'] = True
@@ -373,6 +455,14 @@ class PseudospectralBase(TranscriptionBase):
             phase.linear_solver = om.DirectSolver()
 
     def setup_timeseries_outputs(self, phase):
+        """
+        Setup the timeseries for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         gd = self.grid_data
 
         for name, options in phase._timeseries.items():
@@ -387,7 +477,29 @@ class PseudospectralBase(TranscriptionBase):
             phase.add_subsystem(name, subsys=timeseries_comp)
 
     def _get_boundary_constraint_src(self, var, loc, phase):
-        # Determine the path to the variable which we will be constraining
+        """
+        Return the path to the variable that will be  constrained.
+
+        Parameters
+        ----------
+        var : str
+            Name of the state.
+        loc : str
+            The location of the boundary constraint ['intitial', 'final'].
+        phase : dymos.Phase
+            Phase object containing the rate source.
+
+        Returns
+        -------
+        str
+            Path to the source.
+        shape
+            Source shape.
+        str
+            Source units.
+        bool
+            True if the constraint is linear.
+        """
         time_units = phase.time_options['units']
         var_type = phase.classify_var(var)
 

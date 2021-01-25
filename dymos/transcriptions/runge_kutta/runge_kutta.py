@@ -24,6 +24,11 @@ class RungeKutta(TranscriptionBase):
 
     RungeKutta transcription in Dymos uses the RungeKutta-based shooting method which propagates
     the states from the phase initial time to the phase final time.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super(RungeKutta, self).__init__(**kwargs)
@@ -36,7 +41,9 @@ class RungeKutta(TranscriptionBase):
         warn_deprecation(msg)
 
     def initialize(self):
-
+        """
+        Declare transcription options.
+        """
         self.options.declare('method', default='RK4', values=('RK4',),
                              desc='The integrator used within the explicit phase.')
 
@@ -51,6 +58,9 @@ class RungeKutta(TranscriptionBase):
                                   'Runge-Kutta propagation across each step.')
 
     def init_grid(self):
+        """
+        Setup the GridData object for the Transcription.
+        """
         self.grid_data = GridData(num_segments=self.options['num_segments'],
                                   transcription='runge-kutta',
                                   transcription_order=self.options['method'],
@@ -63,12 +73,8 @@ class RungeKutta(TranscriptionBase):
 
         Parameters
         ----------
-        phase
+        phase : dymos.Phase
             The phase to which this transcription instance applies.
-
-        Returns
-        -------
-
         """
         phase.nonlinear_solver = om.NewtonSolver()
         phase.nonlinear_solver.options['iprint'] = -1
@@ -77,9 +83,25 @@ class RungeKutta(TranscriptionBase):
         phase.nonlinear_solver.linesearch = om.BoundsEnforceLS()
 
     def configure_solvers(self, phase):
+        """
+        Configure the solvers.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         pass
 
     def setup_time(self, phase):
+        """
+        Setup the time component.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         time_units = phase.time_options['units']
         num_seg = self.options['num_segments']
         rk_data = rk_methods[self.options['method']]
@@ -103,6 +125,14 @@ class RungeKutta(TranscriptionBase):
                             promotes_outputs=['h'])
 
     def configure_time(self, phase):
+        """
+        Configure the inputs/outputs on the time component.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(RungeKutta, self).configure_time(phase)
 
         phase.time.configure_io()
@@ -126,6 +156,14 @@ class RungeKutta(TranscriptionBase):
                               src_indices=end_src_idxs)
 
     def setup_ode(self, phase):
+        """
+        Setup the ode for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         phase.add_subsystem('rk_solve_group',
                             RungeKuttaStateContinuityIterGroup(
                                 num_segments=self.options['num_segments'],
@@ -146,6 +184,14 @@ class RungeKutta(TranscriptionBase):
                                                        **phase.options['ode_init_kwargs']))
 
     def configure_ode(self, phase):
+        """
+        Create connections to the introspected states.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         phase.rk_solve_group.configure_io()
 
         num_connected = len([s for s in phase.state_options
@@ -228,9 +274,25 @@ class RungeKutta(TranscriptionBase):
         return rate_path, src_idxs
 
     def setup_states(self, phase):
+        """
+        Setup the states for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         pass
 
     def configure_states(self, phase):
+        """
+        Configure state connections post-introspection.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         num_seg = self.options['num_segments']
         num_state_input_nodes = num_seg + 1
 
@@ -316,9 +378,25 @@ class RungeKutta(TranscriptionBase):
                           flat_src_indices=True)
 
     def setup_controls(self, phase):
+        """
+        Setup the control group.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(RungeKutta, self).setup_controls(phase)
 
     def configure_controls(self, phase):
+        """
+        Configure the inputs/outputs for the controls.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(RungeKutta, self).configure_controls(phase)
 
         grid_data = self.grid_data
@@ -371,9 +449,25 @@ class RungeKutta(TranscriptionBase):
                               src_indices=all_src_idxs, flat_src_indices=True)
 
     def setup_polynomial_controls(self, phase):
+        """
+        Adds the polynomial control group to the model if any polynomial controls are present.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(RungeKutta, self).setup_polynomial_controls(phase)
 
     def configure_polynomial_controls(self, phase):
+        """
+        Configure the inputs/outputs for the polynomial controls.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(RungeKutta, self).configure_polynomial_controls(phase)
         grid_data = self.grid_data
 
@@ -421,10 +515,12 @@ class RungeKutta(TranscriptionBase):
 
     def setup_defects(self, phase):
         """
-        Setup the Continuity component as necessary.
-        """
-        """
         Setup the Collocation and Continuity components as necessary.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
         num_seg = grid_data.num_segments
@@ -441,6 +537,14 @@ class RungeKutta(TranscriptionBase):
                                 promotes_inputs=['t_duration'])
 
     def configure_defects(self, phase):
+        """
+        Configure the continuity_comp and connect the collocation constraints.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         grid_data = self.grid_data
         num_seg = grid_data.num_segments
 
@@ -467,10 +571,16 @@ class RungeKutta(TranscriptionBase):
 
     def setup_path_constraints(self, phase):
         """
-        Add a path constraint component if necessary and issue appropriate connections as
-        part of the setup stack.  This overrides the default transcription path constraints at
+        Add a path constraint component if necessary and issue appropriate connections.
+
+        This overrides the default transcription path constraints at
         all nodes and only applies them at the segment end points, the only points in an RK segment
         where all of the variables are valid.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         gd = self.grid_data
 
@@ -479,6 +589,14 @@ class RungeKutta(TranscriptionBase):
             phase.add_subsystem('path_constraints', subsys=path_comp)
 
     def configure_path_constraints(self, phase):
+        """
+        Handle the common operations for configuration of the path constraints.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(RungeKutta, self).configure_path_constraints(phase)
 
         gd = self.grid_data
@@ -564,6 +682,14 @@ class RungeKutta(TranscriptionBase):
                           src_indices=src_idxs, flat_src_indices=flat_src_idxs)
 
     def setup_timeseries_outputs(self, phase):
+        """
+        Setup the timeseries for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         gd = self.grid_data
 
         for name, options in phase._timeseries.items():
@@ -579,6 +705,14 @@ class RungeKutta(TranscriptionBase):
             phase.add_subsystem(name, subsys=timeseries_comp)
 
     def configure_timeseries_outputs(self, phase):
+        """
+        Create connections from time series to all post-introspection sources.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         gd = self.grid_data
         num_seg = gd.num_segments
         time_units = phase.time_options['units']
@@ -770,19 +904,18 @@ class RungeKutta(TranscriptionBase):
 
     def get_parameter_connections(self, name, phase):
         """
-        Returns a list containing tuples of each path and related indices to which the
-        given design variable name is to be connected.
+        Returns info about a parameter's target connections in the phase.
 
         Parameters
         ----------
         name : str
             The name of the parameter for which connection info is desired.
-        phase : Phase
+        phase : dymos.Phase
             The Phase instance with which this transcription is associated.
 
         Returns
         -------
-        connection_info : list of (paths, indices)
+        list of (paths, indices)
             A list containing a tuple of target paths and corresponding src_indices to which the
             given design variable is to be connected.
         """
@@ -834,14 +967,20 @@ class RungeKutta(TranscriptionBase):
         var : str
             The name of the variable whose source information is desired.
         loc : str
-            The location of the boundary constraint ('initial' or 'final')
+            The location of the boundary constraint ['intitial', 'final'].
         phase : Phase
             The Phase instance with which this transcription is associated.
 
         Returns
         -------
-        constraint_path, shape, units, linear
-
+        str
+            Path to the source.
+        shape
+            Source shape.
+        str
+            Source units.
+        bool
+            True if the constraint is linear.
         """
         # Determine the path to the variable which we will be constraining
         time_units = phase.time_options['units']

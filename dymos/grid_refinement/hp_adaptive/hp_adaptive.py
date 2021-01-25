@@ -1,38 +1,28 @@
-from ...transcriptions.grid_data import GridData
-from ...transcriptions.common import TimeComp
-from ...phase.phase import Phase
-from ...utils.lagrange import lagrange_matrices
+import copy
+
+import numpy as np
+
 from ...utils.lgr import lgr
 from ...utils.lgl import lgl
 from ...utils.interpolate import LagrangeBarycentricInterpolant
 from ..error_estimation import interpolation_lagrange_matrix, eval_ode_on_grid
 
-from scipy.linalg import block_diag
-
-import numpy as np
-import copy
-
-import openmdao.api as om
-import dymos as dm
-
 
 def split_segments(old_seg_ends, B):
     """
-    Funcion to compute the new segment ends for the refined grid by splitting the necessary segments
+    Compute the new segment ends for the refined grid by splitting the necessary segments.
 
     Parameters
     ----------
-    old_seg_ends: np.array
-        segment ends of grid on which the problem was solved
-
-    B: np.array of ints
-        Number of segments to be split into
+    old_seg_ends : ndarray
+        Segment ends of grid on which the problem was solved.
+    B : ndrray of int
+        Number of segments to be split into.
 
     Returns
     -------
-    new_segment_ends: np.array
-        Segment ends of refined grid
-
+    ndarray
+        Segment ends of refined grid.
     """
     new_segment_ends = []
     for q in range(0, B.size):
@@ -45,22 +35,20 @@ def split_segments(old_seg_ends, B):
 
 def merge_segments(old_seg_ends, seg_merge):
     """
-        Funcion to compute the new segment ends for the refined grid by merging the unnecessary segments
+    Compute the new segment ends for the refined grid by merging the unnecessary segments.
 
-        Parameters
-        ----------
-        old_seg_ends: np.array
-            segment ends of grid on which the problem was solved
+    Parameters
+    ----------
+    old_seg_ends : ndarray
+        Segment ends of grid on which the problem was solved.
+    seg_merge : ndarray of bool
+        True for segments that are to be merged.
 
-        seg_merge: np.array of booleans
-            Wether a segment is to be merged or not
-
-        Returns
-        -------
-        new_seg_ends: np.array
-            Segment ends of refined grid
-
-        """
+    Returns
+    -------
+    ndarray
+        Segment ends of refined grid.
+    """
     new_seg_ends = [old_seg_ends[0]]
     for q in range(1, seg_merge.size):
         if seg_merge[q]:
@@ -73,25 +61,20 @@ def merge_segments(old_seg_ends, seg_merge):
 
 class HPAdaptive:
     """
-    Grid refinement object for the hp grid refinement algorithm
+    Grid refinement object for the hp grid refinement algorithm.
 
     The error on a solved phase is evaluated. If error exceeds chosen tolerance, the grid is refined following the
     p-then-h refinement algorithm.
     Patterson, M. A., Hager, W. W., and Rao. A. V., “Adaptive mesh refinement method for optimal control using
     non-smoothness detection and mesh size reduction”, Journal of the Franklin Institute 352 (2015) 4081–4106
 
+    Parameters
+    ----------
+    phases : Phase
+        The Phase object representing the solved phase.
     """
 
     def __init__(self, phases):
-        """
-        Initialize and compute attributes
-
-        Parameters
-        ----------
-        phases: Phase
-            The Phase object representing the solved phase
-
-        """
         self.phases = phases
         self.error = {}
         self.iteration_number = 0
@@ -102,23 +85,24 @@ class HPAdaptive:
 
     def refine_first_iter(self, refine_results):
         """
-            Compute the order, number of nodes, and segment ends required for the new grid
-            and assigns them to the transcription of each phase. Method of refinement is
-            different for the first iteration and is done separately
+        Refine the grid during the first iteration.
 
-            Parameters
-            ----------
-            refine_results : dict
-                A dictionary where each key is the path to a phase in the problem, and the
-                associated value are various properties of that phase needed by the refinement
-                algorithm.  refine_results is returned by check_error.  This method modifies it
-                in place, adding the new_num_segments, new_order, and new_segment_ends.
+        Compute the order, number of nodes, and segment ends required for the new grid
+        and assigns them to the transcription of each phase. Method of refinement is
+        different for the first iteration and is done separately
 
-            Returns
-            -------
-            refined : dict
-                A dictionary of phase paths : phases which were refined.
+        Parameters
+        ----------
+        refine_results : dict
+            A dictionary where each key is the path to a phase in the problem, and the
+            associated value are various properties of that phase needed by the refinement
+            algorithm.  refine_results is returned by check_error.  This method modifies it
+            in place, adding the new_num_segments, new_order, and new_segment_ends.
 
+        Returns
+        -------
+        dict
+            A dictionary of phase paths : phases which were refined.
         """
 
         for phase_path, phase_refinement_results in refine_results.items():
@@ -289,25 +273,26 @@ class HPAdaptive:
 
     def refine(self, refine_results, iter_number):
         """
-                    Compute the order, number of nodes, and segment ends required for the new grid
-                    and assigns them to the transcription of each phase. Method of refinement is
-                    different for the first iteration and is done separately
+        Refine the grid during subsequent iterations.
 
-                    Parameters
-                    ----------
-                    iter_number: int
-                        An integer value representing the iteration of the grid refinement
-                    refine_results : dict
-                        A dictionary where each key is the path to a phase in the problem, and the
-                        associated value are various properties of that phase needed by the refinement
-                        algorithm.  refine_results is returned by check_error.  This method modifies it
-                        in place, adding the new_num_segments, new_order, and new_segment_ends.
+        Compute the order, number of nodes, and segment ends required for the new grid
+        and assigns them to the transcription of each phase. Method of refinement is
+        different for the first iteration and is done separately.
 
-                    Returns
-                    -------
-                    refined : dict
-                        A dictionary of phase paths : phases which were refined.
+        Parameters
+        ----------
+        refine_results : dict
+            A dictionary where each key is the path to a phase in the problem, and the
+            associated value are various properties of that phase needed by the refinement
+            algorithm.  refine_results is returned by check_error.  This method modifies it
+            in place, adding the new_num_segments, new_order, and new_segment_ends.
+        iter_number : int
+            Current iteration of the grid refinement.
 
+        Returns
+        -------
+        dict
+            A dictionary of phase paths : phases which were refined.
         """
         if iter_number == 0:
             self.refine_first_iter(refine_results)

@@ -7,11 +7,22 @@ from ...options import options as dymos_options
 
 
 class BoundaryConstraintComp(om.ExplicitComponent):
+    """
+    Class definition for the BoundaryConstraintComp.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+    """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare('loc', values=('initial', 'final'),
                              desc='the location in the phase of this boundary constraint '
                                   '(either \'initial\' or \'final\'')
@@ -56,8 +67,17 @@ class BoundaryConstraintComp(om.ExplicitComponent):
                                   rows=rs,
                                   cols=cs)
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Compute boundary constraint outputs.
 
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         for name, options in self._vars.items():
             outputs[options['output_name']] = inputs[options['input_name']]
 
