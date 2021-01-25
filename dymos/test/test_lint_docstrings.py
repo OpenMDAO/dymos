@@ -45,7 +45,7 @@ for root, dirs, files in os.walk(top, topdown=True):
         directories.append(os.path.join(root, item))
 
 
-@unittest.skipUnless(NumpyDocString, "requires 'numpydoc', install openmdao[test]")
+@unittest.skipUnless(NumpyDocString, "requires 'numpydoc' >= 1.1")
 class DocstringLintTestCase(unittest.TestCase):
 
     def test_docstrings(self):
