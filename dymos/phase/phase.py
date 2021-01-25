@@ -1295,37 +1295,22 @@ class Phase(om.Group):
             The name of the timeseries to which the output is being added.
         """
         if type(name) is list:
-<<<<<<< HEAD
             for i, name_i in enumerate(name):
                 if type(units) is dict:  # accept dict for units when using array of name
                     unit = units.get(name_i, None)
-=======
-            for i, n in enumerate(name):
-                if type(units) is dict:  # accept dict for units when using array of name
-                    unit = units.get(n, None)
->>>>>>> 2804c0962f17797bd1e31170f471b87839039604
                 elif type(units) is list:  # allow matching list for units
                     unit = units[i]
                 else:
                     unit = units
 
-<<<<<<< HEAD
                 self._add_timeseries_output(name_i, output_name=output_name,
-=======
-                self._add_timeseries_output(n, output_name=output_name,
->>>>>>> 2804c0962f17797bd1e31170f471b87839039604
                                             units=unit,
                                             shape=shape,
                                             timeseries=timeseries)
 
                 # Handle specific units for wildcard names.
-<<<<<<< HEAD
                 if '*' in name_i:
                     self._timeseries[timeseries]['outputs'][name_i]['wildcard_units'] = units
-=======
-                if '*' in n:
-                    self._timeseries[timeseries]['outputs'][n]['wildcard_units'] = units
->>>>>>> 2804c0962f17797bd1e31170f471b87839039604
 
         else:
             self._add_timeseries_output(name, output_name=output_name,
