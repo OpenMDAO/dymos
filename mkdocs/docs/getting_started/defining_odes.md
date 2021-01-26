@@ -174,3 +174,83 @@ Declaring inputs as vectors means that they have the potential to be used either
 For some quantities, such as gravitational acceleration in the Brachistochrone example, we can assume that the value will never need to be dynamic.
 To accommodate this, parameters can be declared static with the argument `dynamic=False`.
 This prevents Dymos from "fanning out" the static value to the *n* nodes in the ODE system.
+
+##  Providing the ODE to the Phase
+
+Phases in Dymos are instantiated with both the `ode_class` and the `transcription` to be used.
+Internally, Dymos needs to instantiate the ODE multiple times.
+This instantiation takes the form:
+
+```python
+ode_instance = ode_class(num_nodes=<int>, **ode_init_kwargs)
+```
+
+This allows an OpenMDAO ExecComp to be used as an ODE via a lambda.
+For instance, the brachistochrone ODE can be written as:
+
+```python
+ode = lambda num_nodes: om.ExecComp(['vdot = g * cos(theta)',
+                                     'xdot = v * sin(theta)',
+                                     'ydot = -v * cos(theta)'],
+                                    g={'value': 9.80665, 'units': 'm/s**2'},
+                                    v={'shape': (num_nodes,), 'units': 'm/s'},
+                                    theta={'shape': (num_nodes,), 'units': 'rad'},
+                                    vdot={'shape': (num_nodes,), 'units': 'm/s**2'},
+                                    xdot={'shape': (num_nodes,), 'units': 'm/s'},
+                                    ydot={'shape': (num_nodes,), 'units': 'm/s'},
+                                    has_diag_partials=True)
+
+phase = dm.Phase(ode_class=ode, transcription=t)
+```
+
+Note the use of `has_diag_partials=True` to provide more efficient graph coloring for the derivatives.
+
+In theory, this also means you can implement Python's `__call__` method for an ODE.
+The following code will return a copy of the brachistochrone ODE with the appropriate number of nodes.
+Note that the implementation below does not deal with any options provided via the `ode_init_kwargs`.
+
+ ```python
+ class CallableBrachistochroneODE(om.ExplicitComponent):
+
+    def initialize(self):
+        self.options.declare('num_nodes', types=int)
+
+    def __call__(self, num_nodes, **kwargs):
+        from copy import deepcopy
+        ret = deepcopy(self)
+        ret.options['num_nodes'] = num_nodes
+        return ret
+
+    def setup(self):
+        nn = self.options['num_nodes']
+
+        # Inputs
+        self.add_input('v', val=np.zeros(nn), desc='velocity', units='m/s')
+
+        self.add_input('g', val=9.80665, desc='grav. acceleration', units='m/s/s')
+
+        self.add_input('theta', val=np.ones(nn), desc='angle of wire', units='rad')
+
+        self.add_output('xdot', val=np.zeros(nn), desc='velocity component in x', units='m/s',
+                        tags=['state_rate_source:x', 'state_units:m'])
+
+        self.add_output('ydot', val=np.zeros(nn), desc='velocity component in y', units='m/s',
+                        tags=['state_rate_source:y', 'state_units:m'])
+
+        self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2',
+                        tags=['state_rate_source:v', 'state_units:m/s'])
+
+        self.declare_partials(of='*', wrt='*', method='cs')
+        self.declare_coloring(wrt='*', tol=1.0E-12)
+ ```
+
+ An instance of the above ODE can then be provided to the phase upon instantiation.
+
+```python
+ode = CallableBrachistochroneODE(num_nodes=1)
+phase = dm.Phase(ode_class=ode, transcription=t)
+```
+
+This can potentially lead to unintended behavior if multiple copeis of the ODE are intended to share data.
+See [the Python docs](https://docs.python.org/3/library/copy.html) for some of the limitations of deepcopy.
+
