@@ -195,9 +195,15 @@ ode = lambda num_nodes: om.ExecComp(['vdot = g * cos(theta)',
                                     g={'value': 9.80665, 'units': 'm/s**2'},
                                     v={'shape': (num_nodes,), 'units': 'm/s'},
                                     theta={'shape': (num_nodes,), 'units': 'rad'},
-                                    vdot={'shape': (num_nodes,), 'units': 'm/s**2'},
-                                    xdot={'shape': (num_nodes,), 'units': 'm/s'},
-                                    ydot={'shape': (num_nodes,), 'units': 'm/s'},
+                                    vdot={'shape': (num_nodes,),
+                                          'units': 'm/s**2',
+                                          'tags': ['state_rate_source:v']},
+                                    xdot={'shape': (num_nodes,),
+                                          'units': 'm/s',
+                                          'tags': ['state_rate_source:v']},
+                                    ydot={'shape': (num_nodes,),
+                                          'units': 'm/s',
+                                          'tags': ['state_rate_source:v']},
                                     has_diag_partials=True)
 
 phase = dm.Phase(ode_class=ode, transcription=t)
