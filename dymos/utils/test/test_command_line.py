@@ -16,11 +16,6 @@ class TestCommandLine(unittest.TestCase):
         self.base_args = ['dymos_testing', os.path.join(self.test_dir,
                                                         'brachistochrone_for_command_line.py')]
 
-        print('Removing the stale test databases before running.')
-        for filename in ['dymos_solution.db', 'old_dymos_solution.db', 'grid_refinement.out']:
-            if os.path.exists(filename):
-                os.remove(filename)
-
     def _assert_correct_solution(self):
         # Fail if the recorded driver solution file does not exist (driver did not execute)
         self.assertTrue(os.path.exists('dymos_solution.db'))
