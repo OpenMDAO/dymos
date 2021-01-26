@@ -11,12 +11,6 @@ import dymos as dm
 @use_tempdirs
 class TestBrachExecCompODE(unittest.TestCase):
 
-    def tearDown(self):
-        if os.path.exists('dymos_solution.db'):
-            os.remove('dymos_solution.db')
-        if os.path.exists('dymos_simulation.db'):
-            os.remove('dymos_simulation.db')
-
     def _make_problem(self, transcription='gauss-lobatto', num_segments=8, transcription_order=3,
                       compressed=True, optimizer='SLSQP', run_driver=True, force_alloc_complex=False,
                       solve_segments=False):
@@ -188,7 +182,6 @@ class TestInvalidCallableODEClass(unittest.TestCase):
         self.assertEqual(expected, str(e.exception))
 
 
-@use_tempdirs
 class CallableBrachistochroneODE(om.ExplicitComponent):
 
     def initialize(self):
@@ -238,12 +231,6 @@ class TestBrachCallableODE(unittest.TestCase):
 
     def setUp(self):
         self.ode = CallableBrachistochroneODE(num_nodes=1)
-
-    def tearDown(self):
-        if os.path.exists('dymos_solution.db'):
-            os.remove('dymos_solution.db')
-        if os.path.exists('dymos_simulation.db'):
-            os.remove('dymos_simulation.db')
 
     def _make_problem(self, transcription='gauss-lobatto', num_segments=8, transcription_order=3,
                       compressed=True, optimizer='SLSQP', run_driver=True,
@@ -350,7 +337,3 @@ class TestBrachCallableODE(unittest.TestCase):
         self._make_problem(transcription='gauss-lobatto', compressed=False)
         self._make_problem(transcription='radau-ps', compressed=False)
         self.run_asserts()
-
-
-if __name__ == '__main__':
-    unittest.main()
