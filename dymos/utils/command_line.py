@@ -40,6 +40,16 @@ def _simple_exec(script_name, user_args):
 def dymos_cmd(argv=None):
     """
     The Dymos command line script.
+
+    Parameters
+    ----------
+    argv : list
+        User-declared arguments.
+
+    Returns
+    -------
+    dict
+        Dictionary of globals.
     """
     msg = """
     The Dymos command-line interface is deprecated and will be removed in dymos 1.0.0.

@@ -19,11 +19,9 @@ def get_src_indices_by_row(row_idxs, shape, flat=True):
 
     Returns
     -------
-    src_indices : array_like
+    array_like
         If flat, a numpy array of shape `(row_idxs,) + shape` where each element is the index
         of the source of that element in the source array, in C-order.
-
-
     """
     if not flat:
         raise NotImplementedError('Currently get_src_indices_by_row only returns '

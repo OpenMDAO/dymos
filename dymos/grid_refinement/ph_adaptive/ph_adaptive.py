@@ -1,25 +1,21 @@
-from ...phase.phase import Phase
-
 import numpy as np
 
 
 def split_segments(old_seg_ends, B):
     """
-    Funcion to compute the new segment ends for the refined grid by splitting the necessary segments
+    Compute the new segment ends for the refined grid by splitting the necessary segments.
 
     Parameters
     ----------
-    old_seg_ends: np.array
-        segment ends of grid on which the problem was solved
-
-    B: np.array of ints
-        Number of segments to be split into
+    old_seg_ends : ndarray
+        Segment ends of grid on which the problem was solved.
+    B : ndarray of ints
+        Number of segments to be split into.
 
     Returns
     -------
-    new_segment_ends: np.array
-        Segment ends of refined grid
-
+    ndarray
+        Segment ends of refined grid.
     """
     new_segment_ends = []
     for q in range(0, B.size):
@@ -32,49 +28,44 @@ def split_segments(old_seg_ends, B):
 
 class PHAdaptive:
     """
-    Grid refinement object for the p-then-h grid refinement algorithm
+    Grid refinement object for the p-then-h grid refinement algorithm.
 
     The error on a solved phase is evaluated. If error exceeds chosen tolerance, the grid is refined following the
     p-then-h refinement algorithm.
     Patterson, M. A., Hager, W. W., and Rao. A. V., “A ph Mesh Refinement Method for Optimal Control”,
     Optimal Control Applications and Methods, Vol. 36, No. 4, July - August 2015, pp. 398 - 421. DOI: 10.1002/oca2114
 
+    Parameters
+    ----------
+    phases : Phase
+        The Phase object representing the solved phase.
     """
 
     def __init__(self, phases):
-        """
-        Initialize and compute attributes
-
-        Parameters
-        ----------
-        phases: Phase
-            The Phase object representing the solved phase
-
-        """
         self.phases = phases
         self.error = {}
 
     def refine(self, refine_results, iter_number):
         """
+        Refine the grid.
+
         Compute the order, number of nodes, and segment ends required for the new grid
         and assigns them to the transcription of each phase.
 
         Parameters
         ----------
-        iter_number: int
-            An integer value representing the iteration of the grid refinement
-
         refine_results : dict
             A dictionary where each key is the path to a phase in the problem, and the
             associated value are various properties of that phase needed by the refinement
             algorithm.  refine_results is returned by check_error.  This method modifies it
             in place, adding the new_num_segments, new_order, and new_segment_ends.
+        iter_number : int
+            Iteration number of the grid refinement.
 
         Returns
         -------
-        refined : dict
+        dict
             A dictionary of phase paths : phases which were refined.
-
         """
         for phase_path, phase_refinement_results in refine_results.items():
             phase = self.phases[phase_path]

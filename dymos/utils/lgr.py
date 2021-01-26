@@ -17,10 +17,9 @@ def lgr(n, include_endpoint=False, tol=1.0E-15):
 
     Returns
     -------
-    x : numpy.array
+    numpy.array
         An array of the LGR nodes for a polynomial of the given order.
-
-    w : numpy.array
+    numpy.array
         An array of the corresponding LGR weights at the nodes in x.
 
     Notes
@@ -29,7 +28,6 @@ def lgr(n, include_endpoint=False, tol=1.0E-15):
 
         .. math::
             (P_N(x)+P_{N+1}(x))/(x+1).
-
 
     References
     ----------
