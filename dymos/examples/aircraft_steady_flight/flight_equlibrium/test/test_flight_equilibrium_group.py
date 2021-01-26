@@ -44,9 +44,9 @@ class TestFlightEquilibriumGroup(unittest.TestCase):
                        desc='dynamic pressure')
 
         self.p.model.add_subsystem('flight_equilibrium',
-                                  subsys=SteadyFlightEquilibriumGroup(num_nodes=self.n),
-                                  promotes_inputs=['aero.*'],
-                                  promotes_outputs=['aero.*'])
+                                   subsys=SteadyFlightEquilibriumGroup(num_nodes=self.n),
+                                   promotes_inputs=['aero.*'],
+                                   promotes_outputs=['aero.*'])
 
         self.p.model.connect('gam', 'flight_equilibrium.gam')
         self.p.model.connect('S', ('aero.S', 'flight_equilibrium.S'))
