@@ -47,10 +47,10 @@ class TestBrachExecCompODE(unittest.TestCase):
                                                   'tags': ['state_rate_source:v']},
                                             xdot={'shape': (num_nodes,),
                                                   'units': 'm/s',
-                                                  'tags': ['state_rate_source:v']},
+                                                  'tags': ['state_rate_source:x']},
                                             ydot={'shape': (num_nodes,),
                                                   'units': 'm/s',
-                                                  'tags': ['state_rate_source:v']},
+                                                  'tags': ['state_rate_source:y']},
                                             has_diag_partials=True)
 
         traj = dm.Trajectory()
@@ -234,7 +234,7 @@ class CallableBrachistochroneODE(om.ExplicitComponent):
 
 
 @use_tempdirs
-class TestBrachExecCompODE(unittest.TestCase):
+class TestBrachCallableODE(unittest.TestCase):
 
     def setUp(self):
         self.ode = CallableBrachistochroneODE(num_nodes=1)
@@ -350,3 +350,7 @@ class TestBrachExecCompODE(unittest.TestCase):
         self._make_problem(transcription='gauss-lobatto', compressed=False)
         self._make_problem(transcription='radau-ps', compressed=False)
         self.run_asserts()
+
+
+if __name__ == '__main__':
+    unittest.main()
