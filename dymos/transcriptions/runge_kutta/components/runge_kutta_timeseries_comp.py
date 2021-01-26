@@ -6,7 +6,14 @@ from dymos.utils.lagrange import lagrange_matrices
 
 
 class RungeKuttaTimeseriesOutputComp(TimeseriesOutputCompBase):
+    """
+    Class definition for the RungeKuttaTimeseriesOutputComp.
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+    """
     def setup(self):
         """
         Define the independent variables as output variables.
@@ -99,7 +106,17 @@ class RungeKuttaTimeseriesOutputComp(TimeseriesOutputCompBase):
                               wrt=input_name,
                               rows=rs, cols=cs, val=val_jac[rs, cs])
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Compute component outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         for (input_name, output_name, _) in self._vars:
             outputs[output_name] = np.tensordot(self.interpolation_matrix, inputs[input_name],
                                                 axes=(1, 0))

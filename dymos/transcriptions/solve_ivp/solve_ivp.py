@@ -1,4 +1,5 @@
 from fnmatch import filter
+import warnings
 
 import numpy as np
 
@@ -23,6 +24,13 @@ class SolveIVP(TranscriptionBase):
 
     SolveIVP transcription does not currently support optimization since it does not propagate
     analytic derivatives through the ODE.
+
+    Parameters
+    ----------
+    grid_data : GridData
+        Grid data for this phases.
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, grid_data=None, **kwargs):
         super(SolveIVP, self).__init__(**kwargs)
@@ -30,6 +38,9 @@ class SolveIVP(TranscriptionBase):
         self._rhs_source = 'ode'
 
     def initialize(self):
+        """
+        Declare transcription options.
+        """
         super(SolveIVP, self).initialize()
 
         self.options.declare('method', default='RK45', values=('RK45', 'RK23', 'BDF'),
@@ -48,9 +59,20 @@ class SolveIVP(TranscriptionBase):
                                   'equally distributed points in time within each segment.')
 
     def init_grid(self):
+        """
+        Setup the GridData object for the Transcription.
+        """
         pass
 
     def setup_time(self, phase):
+        """
+        Setup the time component.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         time_options = phase.time_options
         time_units = time_options['units']
         num_seg = self.grid_data.num_segments
@@ -87,6 +109,14 @@ class SolveIVP(TranscriptionBase):
         phase.add_subsystem('time', time_comp, promotes=['*'])
 
     def configure_time(self, phase):
+        """
+        Configure the inputs/outputs on the time component.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(SolveIVP, self).configure_time(phase)
         num_seg = self.grid_data.num_segments
         grid_data = self.grid_data
@@ -120,12 +150,25 @@ class SolveIVP(TranscriptionBase):
 
     def setup_states(self, phase):
         """
-        Add an IndepVarComp for the states and setup the states as design variables.
+        Setup the states for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         phase.add_subsystem('indep_states', om.IndepVarComp(),
                             promotes_outputs=['*'])
 
     def configure_states(self, phase):
+        """
+        Configure state connections post-introspection.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         num_seg = self.grid_data.num_segments
 
         for state_name, options in phase.state_options.items():
@@ -166,6 +209,14 @@ class SolveIVP(TranscriptionBase):
                               f'state_mux_comp.segment_{i}_states:{state_name}')
 
     def setup_ode(self, phase):
+        """
+        Setup the ode for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         gd = self.grid_data
         num_seg = gd.num_segments
 
@@ -207,6 +258,14 @@ class SolveIVP(TranscriptionBase):
                                                               **phase.options['ode_init_kwargs']))
 
     def configure_ode(self, phase):
+        """
+        Create connections to the introspected states.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         gd = self.grid_data
         num_seg = gd.num_segments
 
@@ -215,6 +274,14 @@ class SolveIVP(TranscriptionBase):
             seg_comp.configure_io()
 
     def setup_controls(self, phase):
+        """
+        Setup the control group.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         output_nodes_per_seg = self.options['output_nodes_per_seg']
 
         phase._check_control_options()
@@ -231,6 +298,14 @@ class SolveIVP(TranscriptionBase):
                                           'control_rates:*'])
 
     def configure_controls(self, phase):
+        """
+        Configure the inputs/outputs for the controls.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         ode = phase._get_subsystem(self._rhs_source)
 
         # Interrogate shapes and units.
@@ -277,6 +352,14 @@ class SolveIVP(TranscriptionBase):
                               [f'ode.{t}' for t in targets])
 
     def setup_polynomial_controls(self, phase):
+        """
+        Adds the polynomial control group to the model if any polynomial controls are present.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         if phase.polynomial_control_options:
             sys = SolveIVPPolynomialControlGroup(grid_data=self.grid_data,
                                                  polynomial_control_options=phase.polynomial_control_options,
@@ -286,6 +369,14 @@ class SolveIVP(TranscriptionBase):
                                 promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure_polynomial_controls(self, phase):
+        """
+        Configure the inputs/outputs for the polynomial controls.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         # In transcription_base, we get the control units/shape from the target, and then call
         # configure on the control_group.
         super(SolveIVP, self).configure_polynomial_controls(phase)
@@ -314,6 +405,14 @@ class SolveIVP(TranscriptionBase):
                               [f'ode.{t}' for t in targets])
 
     def configure_parameters(self, phase):
+        """
+        Configure parameter promotion.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super(SolveIVP, self).configure_parameters(phase)
 
         gd = self.grid_data
@@ -338,35 +437,116 @@ class SolveIVP(TranscriptionBase):
 
     def setup_defects(self, phase):
         """
-        SolveIVP poses no defects.
+        Not used in SolveIVP.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         pass
 
     def configure_defects(self, phase):
+        """
+        Not used in SolveIVP.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         pass
 
     def configure_objective(self, phase):
+        """
+        Not used in SolveIVP.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         pass
 
     def setup_path_constraints(self, phase):
+        """
+        Not used in SolveIVP.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         pass
 
     def configure_path_constraints(self, phase):
+        """
+        Not used in SolveIVP.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         pass
 
     def setup_boundary_constraints(self, loc, phase):
+        """
+        Not used in SolveIVP.
+
+        Parameters
+        ----------
+        loc : str
+            The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         pass
 
     def configure_boundary_constraints(self, loc, phase):
+        """
+        Not used in SolveIVP.
+
+        Parameters
+        ----------
+        loc : str
+            The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         pass
 
     def setup_solvers(self, phase):
+        """
+        Not used in SolveIVP.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         pass
 
     def configure_solvers(self, phase):
+        """
+        Not used in SolveIVP.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         pass
 
     def setup_timeseries_outputs(self, phase):
+        """
+        Setup the timeseries for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         gd = self.grid_data
 
         timeseries_comp = \
@@ -376,6 +556,14 @@ class SolveIVP(TranscriptionBase):
         phase.add_subsystem('timeseries', subsys=timeseries_comp)
 
     def configure_timeseries_outputs(self, phase):
+        """
+        Create connections from time series to all post-introspection sources.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         gd = self.grid_data
         num_seg = gd.num_segments
         output_nodes_per_seg = self.options['output_nodes_per_seg']
@@ -505,7 +693,7 @@ class SolveIVP(TranscriptionBase):
         for var, options in phase._timeseries['timeseries']['outputs'].items():
             output_name = options['output_name']
             units = options.get('units', None)
-            timeseries_units = options.get('timeseries_units', None)
+            wildcard_units = options.get('wildcard_units', None)
 
             if '*' in var:  # match outputs from the ODE
                 ode_outputs = {opts['prom_name']: opts for (k, opts) in
@@ -518,9 +706,9 @@ class SolveIVP(TranscriptionBase):
                 if '*' in var:
                     output_name = v.split('.')[-1]
                     units = ode_outputs[v]['units']
-                    # check for timeseries_units override of ODE units
-                    if v in timeseries_units:
-                        units = timeseries_units[v]
+                    # check for wildcard_units override of ODE units
+                    if v in wildcard_units:
+                        units = wildcard_units[v]
 
                 # Determine the path to the variable which we will be constraining
                 # This is more complicated for path constraints since, for instance,
@@ -530,6 +718,13 @@ class SolveIVP(TranscriptionBase):
 
                 # Ignore any variables that we've already added (states, times, controls, etc)
                 if var_type != 'ode':
+                    continue
+
+                # Skip the timeseries output if it does not appear to be shaped as a dynamic variable
+                # If the full shape does not start with num_nodes, skip this variable.
+                if self.is_static_ode_output(v, phase):
+                    warnings.warn(f'Cannot add ODE output {v} to the timeseries output. It is '
+                                  f'sized such that its first dimension != num_nodes.')
                     continue
 
                 shape, units = get_source_metadata(phase.ode, src=v, user_shape=options['shape'],
@@ -549,19 +744,18 @@ class SolveIVP(TranscriptionBase):
 
     def get_parameter_connections(self, name, phase):
         """
-        Returns a list containing tuples of each path and related indices to which the
-        given parameter name is to be connected.
+        Returns info about a parameter's target connections in the phase.
 
         Parameters
         ----------
         name : str
             The name of the parameter for which connection information is desired.
-        phase
+        phase : dymos.Phase
             The phase object to which this transcription applies.
 
         Returns
         -------
-        connection_info : list of (paths, indices)
+        list of (paths, indices)
             A list containing a tuple of target paths and corresponding src_indices to which the
             given design variable is to be connected.
         """
@@ -597,6 +791,21 @@ class SolveIVP(TranscriptionBase):
         pass
 
     def get_rate_source_path(self, state_var, phase):
+        """
+        Return the rate source location for a given state name.
+
+        Parameters
+        ----------
+        state_var : str
+            Name of the state.
+        phase : dymos.Phase
+            Phase object containing the rate source.
+
+        Returns
+        -------
+        str
+            Path to the rate source.
+        """
         var = phase.state_options[state_var]['rate_source']
 
         if var == 'time':

@@ -8,8 +8,15 @@ from ....options import options as dymos_options
 
 class RungeKuttaStateContinuityComp(ImplicitComponent):
     """
+    Class definition for the RungeKuttaStateContinuityComp.
+
     Implicitly solve the RungeKutta state continuity by forcing final state values to
     equal initial state values plus the state integral over each segment.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
 
     Attributes
     ----------
@@ -21,7 +28,9 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
-
+        """
+        Declare component options.
+        """
         self.options.declare('state_options', types=dict,
                              desc='Dictionary of state names/options for the phase.')
 
@@ -30,8 +39,7 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine variable shape and units.
         """
         num_seg = self.options['num_segments']
         state_options = self.options['state_options']
@@ -102,16 +110,18 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
 
     def apply_nonlinear(self, inputs, outputs, residuals):
         """
-        Calculate the residual for each state value.
+        Compute residuals given inputs and outputs.
+
+        The model is assumed to be in an unscaled state.
 
         Parameters
         ----------
         inputs : Vector
-            unscaled, dimensional input variables read via inputs[key]
+            Unscaled, dimensional input variables read via inputs[key].
         outputs : Vector
-            unscaled, dimensional output variables read via outputs[key]
+            Unscaled, dimensional output variables read via outputs[key].
         residuals : Vector
-            unscaled, dimensional residuals written to via residuals[key]
+            Unscaled, dimensional residuals written to via residuals[key].
         """
         state_options = self.options['state_options']
 

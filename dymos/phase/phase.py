@@ -41,15 +41,10 @@ class Phase(om.Group):
 
     Parameters
     ----------
-    from_phase: Phase or None
+    from_phase : <Phase> or None
         A phase instance from which the initialized phase should copy its data.
-    transcription: TranscriptionBase
-        The transcription to be utilized within the Phase.
-    ode_class
-        An OpenMDAO system class serving as the ODE for the phase.
-    ode_init_kwargs: dict
-        Keyword arguments used to initialize ode_class.
-
+    **kwargs : dict
+        Dictionary of optional phase arguments.
     """
 
     def __init__(self, from_phase=None, **kwargs):
@@ -96,6 +91,9 @@ class Phase(om.Group):
         super(Phase, self).__init__(**_kwargs)
 
     def initialize(self):
+        """
+        Declare instantiation options for the phase.
+        """
         self.options.declare('ode_class', default=None,
                              desc='System defining the ODE')
         self.options.declare('ode_init_kwargs', types=dict, default={},
@@ -154,7 +152,7 @@ class Phase(om.Group):
         ref0 : float or ndarray or None (None)
             The zero-reference value of the state at the nodes of the phase.
         ref : float or ndarray or None (None)
-            The unit-reference value of the state at the nodes of the phase
+            The unit-reference value of the state at the nodes of the phase.
         defect_scaler : float or ndarray
             The scaler of the state defect at the collocation nodes of the phase.
         defect_ref : float or ndarray
@@ -228,7 +226,7 @@ class Phase(om.Group):
         ref0 : float or ndarray or None (None)
             The zero-reference value of the state at the nodes of the phase.
         ref : float or ndarray or None (None)
-            The unit-reference value of the state at the nodes of the phase
+            The unit-reference value of the state at the nodes of the phase.
         defect_scaler : float or ndarray
             The scaler of the state defect at the collocation nodes of the phase.
         defect_ref : float or ndarray
@@ -420,7 +418,6 @@ class Phase(om.Group):
         Notes
         -----
         rate and rate2 continuity are not enforced for input controls.
-
         """
         if name not in self.control_options:
             self.check_parameter(name)
@@ -518,7 +515,6 @@ class Phase(om.Group):
         Notes
         -----
         rate and rate2 continuity are not enforced for input controls.
-
         """
         if units is not _unspecified:
             self.control_options[name]['units'] = units
@@ -617,18 +613,18 @@ class Phase(om.Group):
         order : int
             The order of the interpolating polynomial used to represent the control valeu in
             phase tau space.
+        desc : str
+            A description of the polynomial control.
         val : float or ndarray
             Default value of the control at all nodes.  If val scalar and the control
             is dynamic it will be broadcast.
-        desc : str
-            A description of the polynomial control.
         units : str or None or 0
             Units in which the control variable is defined.  If 0, use the units declared
             for the parameter in the ODE.
         opt : bool
             If True (default) the value(s) of this control will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the values of this control will exist as input controls:{name}
+            If False, the values of this control will exist as input controls:{name}.
         fix_initial : bool
             If True, the given initial value of the polynomial control is not a design variable and
             will not be changed during the optimization.
@@ -646,7 +642,7 @@ class Phase(om.Group):
         ref0 : float or ndarray
             The zero-reference value of the control at the nodes of the phase.
         ref : float or ndarray
-            The unit-reference value of the control at the nodes of the phase
+            The unit-reference value of the control at the nodes of the phase.
         targets : Sequence of str or None
             Targets in the ODE to which this polynomial control is connected.
         rate_targets : None or str
@@ -686,18 +682,18 @@ class Phase(om.Group):
         order : int
             The order of the interpolating polynomial used to represent the control value in
             phase tau space.
+        desc : str
+            A description of the polynomial control.
         val : float or ndarray
             Default value of the control at all nodes.  If val scalar and the control
             is dynamic it will be broadcast.
-        desc : str
-            A description of the polynomial control.
         units : str or None or 0
             Units in which the control variable is defined.  If 0, use the units declared
             for the parameter in the ODE.
         opt : bool
             If True (default) the value(s) of this control will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the values of this control will exist as input controls:{name}
+            If False, the values of this control will exist as input controls:{name}.
         fix_initial : bool
             If True, the given initial value of the polynomial control is not a design variable and
             will not be changed during the optimization.
@@ -715,7 +711,7 @@ class Phase(om.Group):
         ref0 : float or ndarray
             The zero-reference value of the control at the nodes of the phase.
         ref : float or ndarray
-            The unit-reference value of the control at the nodes of the phase
+            The unit-reference value of the control at the nodes of the phase.
         targets : Sequence of str or None
             Targets in the ODE to which this polynomial control is connected.
         rate_targets : None or str
@@ -1082,7 +1078,7 @@ class Phase(om.Group):
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
         desc : str
-            A description of the input parameter
+            A description of the input parameter.
         shape : Sequence of str or None
             The shape of the input parameter.
         dynamic : bool
@@ -1116,7 +1112,7 @@ class Phase(om.Group):
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
         desc : str
-            A description of the input parameter
+            A description of the input parameter.
         shape : Sequence of str or None
             The shape of the input parameter.
         dynamic : bool
@@ -1140,12 +1136,12 @@ class Phase(om.Group):
 
         Parameters
         ----------
-        name : string
+        name : str
             Name of the variable to constrain.  If name is not a state, control, or 'time',
             then this is assumed to be the path of the variable to be constrained in the ODE.
-        loc : string
-            The location of the boundary constraint ('initial' or 'final')
-        constraint_name : string or None
+        loc : str
+            The location of the boundary constraint ('initial' or 'final').
+        constraint_name : str or None
             The name of the variable as provided to the boundary constraint comp.  By
             default this is the last element in `name` when split by dots.  The user may
             override the constraint name if splitting the path causes name collisions.
@@ -1162,21 +1158,21 @@ class Phase(om.Group):
             flattening.  For instance, when constraining element [0, 1] of a variable of shape
             [2, 2], indices would be [3].
         lower : float or ndarray, optional
-            Lower boundary for the variable
+            Lower boundary for the variable.
         upper : float or ndarray, optional
-            Upper boundary for the variable
+            Upper boundary for the variable.
         equals : float or ndarray, optional
-            Equality constraint value for the variable
+            Equality constraint value for the variable.
+        scaler : float or ndarray, optional
+            Value to multiply the model value to get the scaled value. Scaler
+            is second in precedence.
+        adder : float or ndarray, optional
+            Value to add to the model value to get the scaled value. Adder
+            is first in precedence.
         ref : float or ndarray, optional
             Value of response variable that scales to 1.0 in the driver.
         ref0 : float or ndarray, optional
             Value of response variable that scales to 0.0 in the driver.
-        adder : float or ndarray, optional
-            Value to add to the model value to get the scaled value. Adder
-            is first in precedence.
-        scaler : float or ndarray, optional
-            value to multiply the model value to get the scaled value. Scaler
-            is second in precedence.
         linear : bool
             Set to True if constraint is linear. Default is False.
         """
@@ -1215,9 +1211,9 @@ class Phase(om.Group):
 
         Parameters
         ----------
-        name : string
+        name : str
             Name of the response variable in the system.
-        constraint_name : string or None
+        constraint_name : str or None
             The name of the variable as provided to the boundary constraint comp.  By
             default this is the last element in `name` when split by dots.  The user may
             override the constraint name if splitting the path causes name collisions.
@@ -1234,24 +1230,23 @@ class Phase(om.Group):
             flattening.  For instance, when constraining element [0, 1] of a variable of shape
             [2, 2], indices would be [3].
         lower : float or ndarray, optional
-            Lower boundary for the variable
+            Lower boundary for the variable.
         upper : float or ndarray, optional
-            Upper boundary for the variable
+            Upper boundary for the variable.
         equals : float or ndarray, optional
-            Equality constraint value for the variable
+            Equality constraint value for the variable.
+        scaler : float or ndarray, optional
+            Value to multiply the model value to get the scaled value. Scaler
+            is second in precedence.
+        adder : float or ndarray, optional
+            Value to add to the model value to get the scaled value. Adder
+            is first in precedence.
         ref : float or ndarray, optional
             Value of response variable that scales to 1.0 in the driver.
         ref0 : float or ndarray, optional
             Value of response variable that scales to 0.0 in the driver.
-        adder : float or ndarray, optional
-            Value to add to the model value to get the scaled value. Adder
-            is first in precedence.
-        scaler : float or ndarray, optional
-            value to multiply the model value to get the scaled value. Scaler
-            is second in precedence.
         linear : bool
             Set to True if constraint is linear. Default is False.
-
         """
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
@@ -1274,24 +1269,24 @@ class Phase(om.Group):
         self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=None, shape=None,
-                              timeseries='timeseries', _unit_dict={}):
+                              timeseries='timeseries'):
         r"""
         Add a variable to the timeseries outputs of the phase.
 
         Parameters
         ----------
-        name : string, or list of strings
+        name : str, or list of str
             The name(s) of the variable to be used as a timeseries output.  Must be one of
             'time', 'time_phase', one of the states, controls, control rates, or parameters,
             in the phase, or the path to an output variable in the ODE.
-        output_name : string or None
+        output_name : str or None or list or dict
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
             override the constraint name if splitting the path causes name collisions.
         units : str or None
-            The units in which the boundary constraint is to be applied.  If None, use the
-            units associated with the constrained output.  If provided, must be compatible with
-            the variables units.
+            The units to express the timeseries output.  If None, use the
+            units associated with the target.  If provided, must be compatible with
+            the target units.
             If a list of names is provided, units can be a matching list or dictionary.
         shape : tuple
             The shape of the timeseries output variable.  This must be provided (if not scalar)
@@ -1300,16 +1295,56 @@ class Phase(om.Group):
             The name of the timeseries to which the output is being added.
         """
         if type(name) is list:
-            for i, n in enumerate(name):
-                u = units  # default
+            for i, name_i in enumerate(name):
                 if type(units) is dict:  # accept dict for units when using array of name
-                    u = units.get(n, None)
+                    unit = units.get(name_i, None)
                 elif type(units) is list:  # allow matching list for units
-                    u = units[i]
+                    unit = units[i]
+                else:
+                    unit = units
 
-                self.add_timeseries_output(n, output_name, u, shape, timeseries, units if type(units) is dict else {})
-            return
+                self._add_timeseries_output(name_i, output_name=output_name,
+                                            units=unit,
+                                            shape=shape,
+                                            timeseries=timeseries)
 
+                # Handle specific units for wildcard names.
+                if '*' in name_i:
+                    self._timeseries[timeseries]['outputs'][name_i]['wildcard_units'] = units
+
+        else:
+            self._add_timeseries_output(name, output_name=output_name,
+                                        units=units,
+                                        shape=shape,
+                                        timeseries=timeseries)
+
+    def _add_timeseries_output(self, name, output_name=None, units=None, shape=None,
+                               timeseries='timeseries'):
+        r"""
+        Add a single variable to the timeseries outputs of the phase.
+
+        This is called by add_timeseries_output for each variable that is added.
+
+        Parameters
+        ----------
+        name : str
+            The name of the variable to be used as a timeseries output.  Must be one of
+            'time', 'time_phase', one of the states, controls, control rates, or parameters,
+            in the phase, or the path to an output variable in the ODE.
+        output_name : str or None
+            The name of the variable as listed in the phase timeseries outputs.  By
+            default this is the last element in `name` when split by dots.  The user may
+            override the constraint name if splitting the path causes name collisions.
+        units : str or None
+            The units to express the timeseries output.  If None, use the
+            units associated with the target.  If provided, must be compatible with
+            the target units.
+        shape : tuple
+            The shape of the timeseries output variable.  This must be provided (if not scalar)
+            since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
+        timeseries : str or None
+            The name of the timeseries to which the output is being added.
+        """
         if output_name is None:
             output_name = name.split('.')[-1]
 
@@ -1319,16 +1354,10 @@ class Phase(om.Group):
         if name not in self._timeseries[timeseries]['outputs']:
             self._timeseries[timeseries]['outputs'][name] = {}
             self._timeseries[timeseries]['outputs'][name]['output_name'] = output_name
-            self._timeseries[timeseries]['outputs'][name]['timeseries_units'] = {}
+            self._timeseries[timeseries]['outputs'][name]['wildcard_units'] = {}
 
         self._timeseries[timeseries]['outputs'][name]['units'] = units
         self._timeseries[timeseries]['outputs'][name]['shape'] = shape
-        for k, v in _unit_dict.items():
-            existing = self._timeseries[timeseries]['outputs'][name]['timeseries_units']
-            if k in existing and existing[k] != v:
-                raise ValueError('Unit mismatch in add_timeseries_output unit dictionary')
-            else:
-                existing[k] = v  # save for ODE wildcard matching
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""
@@ -1353,9 +1382,10 @@ class Phase(om.Group):
                       adder=None, scaler=None, parallel_deriv_color=None,
                       vectorize_derivs=False):
         """
-        Allows the user to add an objective in the phase.  If name is not a state,
-        control, control rate, or 'time', then this is assumed to be the path of the variable
-        to be constrained in the RHS.
+        Add an objective in the phase.
+
+        If name is not a state, control, control rate, or 'time', then this is assumed to be the
+        path of the variable to be constrained in the RHS.
 
         Parameters
         ----------
@@ -1369,7 +1399,7 @@ class Phase(om.Group):
             If variable is an array at each point in time, this indicates which index is to be
             used as the objective, assuming C-ordered flattening.
         shape : int, optional
-            The shape of the objective variable, at a point in time
+            The shape of the objective variable, at a point in time.
         ref : float or ndarray, optional
             Value of response variable that scales to 1.0 in the driver.
         ref0 : float or ndarray, optional
@@ -1378,9 +1408,9 @@ class Phase(om.Group):
             Value to add to the model value to get the scaled value. Adder
             is first in precedence.
         scaler : float or ndarray, optional
-            value to multiply the model value to get the scaled value. Scaler
+            Value to multiply the model value to get the scaled value. Scaler
             is second in precedence.
-        parallel_deriv_color : string
+        parallel_deriv_color : str
             If specified, this design var will be grouped for parallel derivative
             calculations with other variables sharing the same parallel_deriv_color.
         vectorize_derivs : bool
@@ -1409,8 +1439,9 @@ class Phase(om.Group):
                          time_phase_targets=_unspecified, t_initial_targets=_unspecified,
                          t_duration_targets=_unspecified):
         """
-        Sets options for time in the phase.  Only those options which are specified in the
-        arguments will be updated.
+        Sets options for time in the phase.
+
+        Only those options which are specified in the arguments will be updated.
 
         Parameters
         ----------
@@ -1437,7 +1468,7 @@ class Phase(om.Group):
         initial_adder : float
             Adder for the initial value of time.
         initial_ref0 : float
-            Zero-reference for the initial value of time
+            Zero-reference for the initial value of time.
         initial_ref : float
             Unit-reference for the initial value of time.
         duration_val : float
@@ -1558,7 +1589,6 @@ class Phase(om.Group):
             'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
             'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
             or 'ode'.
-
         """
         if var == 'time':
             return 'time'
@@ -1609,6 +1639,9 @@ class Phase(om.Group):
             raise ValueError('ode_class must be derived from openmdao.core.System.')
 
     def setup(self):
+        """
+        Build the model hierarchy for a Dymos phase.
+        """
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']
@@ -1635,6 +1668,9 @@ class Phase(om.Group):
         transcription.setup_solvers(self)
 
     def configure(self):
+        """
+        Finalize connections after sizes are known.
+        """
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']
@@ -1666,8 +1702,8 @@ class Phase(om.Group):
         """
         Check that time options are valid and issue warnings if invalid options are provided.
 
-        Warnings
-        --------
+        Warns
+        -----
         RuntimeWarning
             RuntimeWarning is issued in the case of one or more invalid time options.
         """
@@ -1712,8 +1748,8 @@ class Phase(om.Group):
         """
         Check that control options are valid and issue warnings if invalid options are provided.
 
-        Warnings
-        --------
+        Warns
+        -----
         RuntimeWarning
             RuntimeWarning is issued in the case of one or more invalid time options.
         """
@@ -1738,8 +1774,8 @@ class Phase(om.Group):
         Check that parameter options are valid and issue warnings if invalid
         options are provided.
 
-        Warnings
-        --------
+        Warns
+        -----
         RuntimeWarning
             RuntimeWarning is issued in the case of one or more invalid time options.
         """
@@ -1753,17 +1789,6 @@ class Phase(om.Group):
                     warnings.warn('Invalid options for non-optimal parameter \'{0}\' in '
                                   'phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
                                   RuntimeWarning)
-
-    def check_config(self, logger):
-        """
-        Print warnings associated with the Phase if check is enabled during setup.
-
-        Parameters
-        ----------
-        logger
-            The logger object to which warnings and errors will be sent.
-        """
-        self.options['transcription'].check_config(self, logger)
 
     def interpolate(self, xs=None, ys=None, nodes='all', kind='linear', axis=0):
         """
@@ -1829,7 +1854,9 @@ class Phase(om.Group):
 
     def get_simulation_phase(self, times_per_seg=None, method='RK45', atol=1.0E-9, rtol=1.0E-9):
         """
-        Return a SolveIVPPhase initialized based on data from this Phase instance and
+        Return a SolveIVPPhase instance.
+
+        This instance is initialized based on data from this Phase instance and
         the given simulation times.
 
         Parameters
@@ -1875,7 +1902,7 @@ class Phase(om.Group):
             The Phase instance from which the values in this phase are being initialized.
         phase_path : str
             The pathname of the system in prob that contains the phases.
-        skip_params : None or set.
+        skip_params : None or set
             Parameter names that will be skipped because they have already been initialized at the
             trajetory level.
         """
@@ -1969,7 +1996,6 @@ class Phase(om.Group):
             An OpenMDAO Problem in which the simulation is implemented.  This Problem interface
             can be interrogated to obtain timeseries outputs in the same manner as other Phases
             to obtain results at the requested times.
-
         """
 
         sim_prob = om.Problem(model=om.Group())
@@ -2006,11 +2032,14 @@ class Phase(om.Group):
         tol : float
             The error tolerance used by all grid-refinement algorithms.
         min_order : int
-            The minimum allowable transcription order for segments in the phase (hp and ph refinement methods)
+            The minimum allowable transcription order for segments in the phase.
+            Used in hp and ph refinement methods.
         max_order : int
-            The maximum allowable transcription order for segments in the phase (hp and ph refinement methods)
-        smoothness_factor: float
-            The maximum allowable ratio of state second derivatives. If exceeded the segment must be split. (hp refinement method)
+            The maximum allowable transcription order for segments in the phase.
+            Used in hp and ph refinement methods.
+        smoothness_factor : float
+            The maximum allowable ratio of state second derivatives. If exceeded the segment must be split.
+            Used in hp refinement method.
         """
         if refine is not _unspecified:
             self.refine_options['refine'] = refine
@@ -2040,7 +2069,6 @@ class Phase(om.Group):
         -------
         bool
             True if both the initial time and duration are not inputs and are fixed.
-
         """
         fix_initial = self.time_options['fix_initial']
         fix_duration = self.time_options['fix_duration']
@@ -2081,7 +2109,6 @@ class Phase(om.Group):
         -------
         bool
             True if the state of the given name is guaranteed to be fixed at the given location.
-
         """
         if loc == 'initial':
             res = self.state_options[name]['fix_initial']

@@ -24,8 +24,15 @@ from ..utils.misc import get_rate_units, get_source_metadata, _unspecified
 
 class Trajectory(om.Group):
     """
+    Class definition for a Trajectory group.
+
     A Trajectory object serves as a container for one or more Phases, as well as the linkage
     conditions between phases.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super(Trajectory, self).__init__(**kwargs)
@@ -54,10 +61,12 @@ class Trajectory(om.Group):
             The name of the phase being added.
         phase : dymos Phase object
             The Phase object to be added.
+        **kwargs : dict
+            Additional arguments when adding the phase to the trajectory.
 
         Returns
         -------
-        phase : PhaseBase
+        PhaseBase
             The Phase object added to the trajectory.
         """
         self._phases[name] = phase
@@ -76,10 +85,16 @@ class Trajectory(om.Group):
         ----------
         name : str
             Name of the parameter.
+        units : str or None or 0
+            Units in which the parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
         val : float or ndarray
             Default value of the parameter at all nodes.
         desc : str
             A description of the parameter.
+        opt : bool
+            If True the value(s) of this parameter will be design variables in
+            the optimization problem. The default is False.
         targets : dict or None
             If None, then the parameter will be connected to the controllable parameter
             in the ODE of each phase.  For each phase where no such controllable parameter exists,
@@ -90,12 +105,6 @@ class Trajectory(om.Group):
             By default, the parameter will be connect to the parameter/targets of the given
             name in each phase.  This argument can be used to override that behavior on a phase
             by phase basis.
-        units : str or None or 0
-            Units in which the parameter is defined.  If 0, use the units declared
-            for the parameter in the ODE.
-        opt : bool
-            If True the value(s) of this parameter will be design variables in
-            the optimization problem. The default is False.
         lower : float or ndarray
             The lower bound of the parameter value.
         upper : float or ndarray
@@ -178,6 +187,9 @@ class Trajectory(om.Group):
         ----------
         name : str
             Name of the input parameter.
+        units : str or None or 0
+            Units in which the input parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
         val : float or ndarray
             Default value of the input parameter at all nodes.
         desc : str
@@ -185,9 +197,10 @@ class Trajectory(om.Group):
         targets : dict or None
             A dictionary mapping the name of each phase in the trajectory to a sequence of ODE
             targets for this parameter in each phase.
-        units : str or None or 0
-            Units in which the input parameter is defined.  If 0, use the units declared
-            for the parameter in the ODE.
+        custom_targets : dict or None
+            By default, the parameter will be connect to the parameter/targets of the given
+            name in each phase.  This argument can be used to override that behavior on a phase
+            by phase basis.
         shape : Sequence of int
             The shape of the input parameter.
         dynamic : bool
@@ -213,10 +226,16 @@ class Trajectory(om.Group):
         ----------
         name : str
             Name of the design parameter.
+        units : str or None or 0
+            Units in which the design parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
         val : float or ndarray
             Default value of the design parameter at all nodes.
         desc : str
             A description of the design parameter.
+        opt : bool
+            If True (default) the value(s) of this parameter will be design variables in
+            the optimization problem.
         targets : dict or None
             If None, then the design parameter will be connected to the controllable parameter
             in the ODE of each phase.  For each phase where no such controllable parameter exists,
@@ -227,12 +246,6 @@ class Trajectory(om.Group):
             By default, the input parameter will be connect to the parameter/targets of the given
             name in each phase.  This argument can be used to override that behavior on a phase
             by phase basis.
-        units : str or None or 0
-            Units in which the design parameter is defined.  If 0, use the units declared
-            for the parameter in the ODE.
-        opt : bool
-            If True (default) the value(s) of this parameter will be design variables in
-            the optimization problem.
         lower : float or ndarray
             The lower bound of the design parameter value.
         upper : float or ndarray
@@ -807,13 +820,13 @@ class Trajectory(om.Group):
             The linked variable from the second phase in the linkage constraint.
         loc_a : str
             The location of the variable in the first phase of the linkage constraint (one of
-            'initial' or 'final'.)
+            'initial' or 'final').
         loc_b : str
             The location of the variable in the second phase of the linkage constraint (one of
-            'initial' or 'final'.)
-        sign_a
+            'initial' or 'final').
+        sign_a : float
             The sign applied to the variable from the first phase in the linkage constraint.
-        sign_b
+        sign_b : float
             The sign applied to the variable from the second phase in the linkage constraint.
         units : str or None or _unspecified
             Units of the linkage.  If _unspecified, dymos will use the units from the variable

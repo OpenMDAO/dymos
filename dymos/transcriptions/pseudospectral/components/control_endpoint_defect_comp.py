@@ -5,7 +5,8 @@ from ....options import options as dymos_options
 
 
 class ControlEndpointDefectComp(om.ExplicitComponent):
-    r""" Compute/enforce the control endpoint defect when using the Radau Pseudospectral method.
+    r"""
+    Compute/enforce the control endpoint defect when using the Radau Pseudospectral method.
 
     For each dynamic control, take the control values at all nodes.  Use a Radau interpolation
     matrix to compute the terminal value of the control, and compute the difference between this
@@ -14,13 +15,19 @@ class ControlEndpointDefectComp(om.ExplicitComponent):
 
     .. math:: {u}_{f} = \left[ L_{LGR} \right] vec{u}_{col}
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
-
+        """
+        Declare component options.
+        """
         self.options.declare(
             'grid_data', types=GridData,
             desc='Container object for grid info')
@@ -30,6 +37,9 @@ class ControlEndpointDefectComp(om.ExplicitComponent):
             desc='Dictionary of control names/options for the phase')
 
     def setup(self):
+        """
+        Add inputs/outputs for this component.
+        """
         gd = self.options['grid_data']
         num_nodes = gd.subset_num_nodes['all']
 
@@ -89,6 +99,16 @@ class ControlEndpointDefectComp(om.ExplicitComponent):
                                   rows=row_idxs, cols=col_idxs, val=dout_din)
 
     def compute(self, inputs, outputs):
+        """
+        Compute control endpoint defects.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         gd = self.options['grid_data']
 
         for name in self._input_str:

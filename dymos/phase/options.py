@@ -9,8 +9,12 @@ from ..utils.misc import _unspecified
 class ControlOptionsDictionary(om.OptionsDictionary):
     """
     An OptionsDictionary specific to controls.
-    """
 
+    Parameters
+    ----------
+    read_only : bool
+        If True, setting (via __setitem__ or update) is not permitted.
+    """
     def __init__(self, read_only=False):
         super(ControlOptionsDictionary, self).__init__(read_only)
 
@@ -118,8 +122,12 @@ class ControlOptionsDictionary(om.OptionsDictionary):
 class PolynomialControlOptionsDictionary(om.OptionsDictionary):
     """
     An OptionsDictionary specific to controls.
-    """
 
+    Parameters
+    ----------
+    read_only : bool
+        If True, setting (via __setitem__ or update) is not permitted.
+    """
     def __init__(self, read_only=False):
         super(PolynomialControlOptionsDictionary, self).__init__(read_only)
 
@@ -207,6 +215,16 @@ class PolynomialControlOptionsDictionary(om.OptionsDictionary):
 
 
 def check_valid_shape(name, value):
+    """
+    Raise an exception if the value specified for a shape is invalid.
+
+    Parameters
+    ----------
+    name : str
+        Name of the option.
+    value : object
+        Shape to check, should be a Iterable, Number, list, or tuple.
+    """
     if name == 'shape':
         if value is not _unspecified and not isinstance(value, (Iterable, Number, list, tuple)):
             raise ValueError(f"Option '{name}' with value {value} is not valid.")
@@ -215,6 +233,11 @@ def check_valid_shape(name, value):
 class ParameterOptionsDictionary(om.OptionsDictionary):
     """
     An OptionsDictionary specific to parameters.
+
+    Parameters
+    ----------
+    read_only : bool
+        If True, setting (via __setitem__ or update) is not permitted.
     """
     def __init__(self, read_only=False):
         super(ParameterOptionsDictionary, self).__init__(read_only)
@@ -282,8 +305,12 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
 class TrajParameterOptionsDictionary(ParameterOptionsDictionary):
     """
     An OptionsDictionary specific to trajectory design parameters.
-    """
 
+    Parameters
+    ----------
+    read_only : bool
+        If True, setting (via __setitem__ or update) is not permitted.
+    """
     def __init__(self, read_only=False):
         super(TrajParameterOptionsDictionary, self).__init__(read_only)
 
@@ -307,8 +334,12 @@ class TrajParameterOptionsDictionary(ParameterOptionsDictionary):
 class StateOptionsDictionary(om.OptionsDictionary):
     """
     An OptionsDictionary specific to states.
-    """
 
+    Parameters
+    ----------
+    read_only : bool
+        If True, setting (via __setitem__ or update) is not permitted.
+    """
     def __init__(self, read_only=False):
         super(StateOptionsDictionary, self).__init__(read_only)
 
@@ -433,9 +464,13 @@ class StateOptionsDictionary(om.OptionsDictionary):
 
 class TimeOptionsDictionary(om.OptionsDictionary):
     """
-    An OptionsDictionary for time options
-    """
+    An OptionsDictionary for time options.
 
+    Parameters
+    ----------
+    read_only : bool
+        If True, setting (via __setitem__ or update) is not permitted.
+    """
     def __init__(self, read_only=False):
         super(TimeOptionsDictionary, self).__init__(read_only)
 
@@ -515,8 +550,12 @@ class TimeOptionsDictionary(om.OptionsDictionary):
 class GridRefinementOptionsDictionary(om.OptionsDictionary):
     """
     An OptionsDictionary for grid refinement options in a Phase.
-    """
 
+    Parameters
+    ----------
+    read_only : bool
+        If True, setting (via __setitem__ or update) is not permitted.
+    """
     def __init__(self, read_only=False):
         super(GridRefinementOptionsDictionary, self).__init__(read_only)
 

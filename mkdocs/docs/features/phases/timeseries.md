@@ -26,9 +26,17 @@ By default, the timeseries output will include the following variables for every
 |``<phase path>.timeseries.polynomial_control_rates:<p>_rate2``|Second time derivative of polynomial control named u |
 |``<phase path>.timeseries.parameters:<d>``                    |Value of parameter named d                           |
 
+## Adding additional timeseries outputs
+
 In addition to these default values, any output of the ODE can be added to the timeseries output
 using the ``add_timeseries_output`` method on Phase.  These outputs are available as
-``<phase path>.timeseries.<output name>``.
+``<phase path>.timeseries.<output name>``.  A glob pattern can be used with ``add_timeseries_output``
+to add multiple outputs to the timeseries simultaneously.  For instance, just passing '*' as the variable
+name will add all dynamic outputs of the ODE to the timeseries.
+
+Dymos will ignore any ODE oututs that are not sized such that the first dimension is the same as the
+number of nodes in the ODE.  That is, if the output variable doesn't appear to be dynamic, it will not
+be included in the timeseries outputs.
 
 {{ api_doc('dymos.Phase.add_timeseries_output') }}
 

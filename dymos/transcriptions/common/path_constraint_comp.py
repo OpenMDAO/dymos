@@ -5,11 +5,22 @@ from ...options import options as dymos_options
 
 
 class PathConstraintComp(om.ExplicitComponent):
+    """
+    Component that computes path constraint values.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+    """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
+        """
+        Declare component options.
+        """
         self._path_constraints = []
         self._vars = []
         self.options.declare('num_nodes', types=(int,), desc='The number of nodes in the phase '
@@ -20,7 +31,6 @@ class PathConstraintComp(om.ExplicitComponent):
         """
         Define the independent variables as output variables.
         """
-
         for (name, kwargs) in self._path_constraints:
             self._add_path_constraint_configure(name=name, shape=kwargs['shape'],
                                                 units=kwargs['units'], desc=kwargs['desc'],
@@ -105,6 +115,16 @@ class PathConstraintComp(om.ExplicitComponent):
         self.declare_partials(of=output_name, wrt=input_name, rows=all_rows,
                               cols=np.arange(all_size), val=1.0)
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Compute path constraint outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         for (input_name, output_name, _) in self._vars:
             outputs[output_name] = inputs[input_name]

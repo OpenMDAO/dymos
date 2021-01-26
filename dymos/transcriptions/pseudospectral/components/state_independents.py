@@ -10,15 +10,24 @@ from ....options import options as dymos_options
 
 class StateIndependentsComp(om.ImplicitComponent):
     """
+    Class definition for the StateIndependentsComp.
+
     A simple component that replaces the state indepvarcomps whenver the solver needs to solve for
     the state or whenever the initial state is connected to an external source.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
-
+        """
+        Declare component options.
+        """
         self.options.declare(
             'grid_data', types=GridData,
             desc='Container object for grid info')
@@ -29,8 +38,7 @@ class StateIndependentsComp(om.ImplicitComponent):
 
     def configure_io(self, state_idx_map=None):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine shape and units.
 
         Parameters
         ----------
@@ -131,16 +139,18 @@ class StateIndependentsComp(om.ImplicitComponent):
 
     def apply_nonlinear(self, inputs, outputs, residuals):
         """
-        Calculate the residual for each balance.
+        Compute residuals given inputs and outputs.
+
+        The model is assumed to be in an unscaled state.
 
         Parameters
         ----------
         inputs : Vector
-            unscaled, dimensional input variables read via inputs[key]
+            Unscaled, dimensional input variables read via inputs[key].
         outputs : Vector
-            unscaled, dimensional output variables read via outputs[key]
+            Unscaled, dimensional output variables read via outputs[key].
         residuals : Vector
-            unscaled, dimensional residuals written to via residuals[key]
+            Unscaled, dimensional residuals written to via residuals[key].
         """
         state_options = self.options['state_options']
 
@@ -172,6 +182,18 @@ class StateIndependentsComp(om.ImplicitComponent):
                     outputs[state_var_name][0, ...]
 
     def solve_nonlinear(self, inputs, outputs):
+        """
+        Compute outputs given inputs.
+
+        The model is assumed to be in an unscaled state.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        outputs : Vector
+            Unscaled, dimensional output variables read via outputs[key].
+        """
         state_options = self.options['state_options']
 
         for state_name, options in state_options.items():
