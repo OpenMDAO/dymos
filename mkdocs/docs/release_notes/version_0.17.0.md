@@ -13,7 +13,7 @@ The following code demonstrates how to tag state rate sources and provide their 
                old_label='dymos < 0.17.0',
                new_label='dymos >= 0.17.0') }}
 
-This allows the user to avoid repetitively specification of the rate sources every time a specific ODE is used.
+This allows the user to avoid repetitive specification of the rate sources every time a specific ODE is used.
 
 {{ upgrade_doc('dymos.test.test_upgrade_guide.TestUpgrade_0_17_0.test_tags',
                feature='declare_rate_source',
