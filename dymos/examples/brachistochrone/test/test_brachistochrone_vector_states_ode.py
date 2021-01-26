@@ -3,19 +3,20 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from dymos.utils.testing_utils import assert_check_partials
+from openmdao.utils.testing_utils import use_tempdirs
 
+from dymos.utils.testing_utils import assert_check_partials
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import \
     BrachistochroneVectorStatesODE
 
 
+@use_tempdirs
 class TestBrachistochroneVectorStatesODE(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
+    def test_partials(self):
         nn = 5
 
-        p = cls.p = om.Problem(model=om.Group())
+        p = om.Problem(model=om.Group())
 
         ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
         ivc.add_output('v', val=np.ones((nn,)), units='m/s')
@@ -32,10 +33,6 @@ class TestBrachistochroneVectorStatesODE(unittest.TestCase):
 
         p.run_model()
 
-    def test_results(self):
-        pass
-
-    def test_partials(self):
         np.set_printoptions(linewidth=1024, edgeitems=1000)
-        cpd = self.p.check_partials(method='cs')
+        cpd = p.check_partials(method='cs')
         assert_check_partials(cpd)

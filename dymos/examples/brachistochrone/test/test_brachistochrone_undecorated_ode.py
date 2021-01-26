@@ -1,8 +1,12 @@
 import unittest
+
 import numpy as np
+
 import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
 
 
+@use_tempdirs
 class BrachistochroneODE(om.ExplicitComponent):
 
     def initialize(self):
@@ -74,6 +78,7 @@ class BrachistochroneODE(om.ExplicitComponent):
         jacobian['check', 'theta'] = -v * cos_theta / sin_theta**2
 
 
+@use_tempdirs
 class TestBrachistochroneUndecoratedODE(unittest.TestCase):
 
     def test_brachistochrone_undecorated_ode_gl(self):
@@ -221,6 +226,7 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
         assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
 
+@use_tempdirs
 class TestBrachistochroneBasePhaseClass(unittest.TestCase):
 
     def test_brachistochrone_base_phase_class_gl(self):

@@ -1,6 +1,9 @@
 import unittest
 
+from openmdao.utils.testing_utils import use_tempdirs
 
+
+@use_tempdirs
 class TestBrachistochronePathConstraints(unittest.TestCase):
 
     def test_control_rate_path_constraint_gl(self):

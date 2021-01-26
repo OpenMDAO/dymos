@@ -1,17 +1,17 @@
 import unittest
-
 import itertools
 
 import numpy as np
 
 import openmdao.api as om
-import dymos as dm
 from openmdao.utils.assert_utils import assert_near_equal
-from dymos.utils.testing_utils import assert_check_partials
+from openmdao.utils.testing_utils import use_tempdirs
 
+import dymos as dm
 from dymos.transcriptions.grid_data import GridData
 from dymos.transcriptions.common import GaussLobattoContinuityComp, RadauPSContinuityComp
 from dymos.phase.options import StateOptionsDictionary, ControlOptionsDictionary
+from dymos.utils.testing_utils import assert_check_partials
 
 # Modify class so we can run it standalone.
 from dymos.utils.misc import CompWrapperConfig
@@ -23,6 +23,7 @@ params_list = itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                                 )
 
 
+@use_tempdirs
 class TestContinuityComp(unittest.TestCase):
 
     def test_continuity_comp(self):

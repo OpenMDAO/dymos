@@ -4,16 +4,18 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
-from dymos.utils.testing_utils import assert_check_partials
+from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.transcriptions.runge_kutta.components.runge_kutta_k_iter_group import RungeKuttaKIterGroup
 from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE
+from dymos.utils.testing_utils import assert_check_partials
 
 # Modify class so we can run it standalone.
 from dymos.utils.misc import GroupWrapperConfig
 RungeKuttaKIterGroup = GroupWrapperConfig(RungeKuttaKIterGroup)
 
 
+@use_tempdirs
 class TestRungeKuttaKIterGroup(unittest.TestCase):
 
     def test_rk4_scalar_no_iteration(self):

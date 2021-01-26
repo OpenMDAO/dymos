@@ -1,6 +1,9 @@
 import unittest
-import openmdao.api as om
+
 import numpy as np
+
+import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
 
 
 class BrachistochroneRateTargetODE(om.ExplicitComponent):
@@ -104,6 +107,7 @@ class BrachistochroneRateTargetODE(om.ExplicitComponent):
         partials['check', 'theta_rate'] = -v * cos_theta / sin_theta ** 2
 
 
+@use_tempdirs
 class TestBrachistochroneControlRateTargets(unittest.TestCase):
 
     def test_brachistochrone_control_rate_targets_gauss_lobatto(self):
@@ -391,6 +395,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
         plt.show()
 
 
+@use_tempdirs
 class TestBrachistochroneExplicitControlRateTargets(unittest.TestCase):
 
     def test_brachistochrone_control_rate_targets_gauss_lobatto(self):
@@ -678,6 +683,7 @@ class TestBrachistochroneExplicitControlRateTargets(unittest.TestCase):
         plt.show()
 
 
+@use_tempdirs
 class TestBrachistochronePolynomialControlRateTargets(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_rate_targets_gauss_lobatto(self):
@@ -965,6 +971,7 @@ class TestBrachistochronePolynomialControlRateTargets(unittest.TestCase):
         plt.show()
 
 
+@use_tempdirs
 class TestBrachistochronePolynomialControlExplicitRateTargets(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_rate_targets_gauss_lobatto(self):
@@ -1252,6 +1259,7 @@ class TestBrachistochronePolynomialControlExplicitRateTargets(unittest.TestCase)
         plt.show()
 
 
+@use_tempdirs
 class TestBrachistochronePolynomialControlExplicitRate2Targets(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_rate_targets_gauss_lobatto(self):

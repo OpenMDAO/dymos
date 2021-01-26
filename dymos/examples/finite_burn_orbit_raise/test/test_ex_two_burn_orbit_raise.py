@@ -5,6 +5,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import set_pyoptsparse_opt
+from openmdao.utils.mpi import MPI
 _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
 import dymos as dm
@@ -299,8 +300,22 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
                               tolerance=4.0E-3)
 
 
-class TestExampleTwoBurnOrbitRaiseMPI(TestExampleTwoBurnOrbitRaise):
+@unittest.skipUnless(MPI, "MPI is required.")
+@use_tempdirs
+class TestExampleTwoBurnOrbitRaiseMPI(unittest.TestCase):
     N_PROCS = 3
+
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    def test_ex_two_burn_orbit_raise(self):
+        optimizer = 'IPOPT'
+
+        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                         compressed=False, optimizer=optimizer,
+                                         show_output=False)
+
+        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
+            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+                              tolerance=2.0E-3)
 
 
 if __name__ == '__main__':  # pragma: no cover

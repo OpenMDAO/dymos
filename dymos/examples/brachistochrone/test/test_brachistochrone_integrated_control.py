@@ -5,6 +5,8 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
+
 import dymos as dm
 
 
@@ -79,6 +81,7 @@ class BrachistochroneODE(om.ExplicitComponent):
         jacobian['check', 'theta'] = -v * cos_theta / sin_theta**2
 
 
+@use_tempdirs
 class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
     @classmethod

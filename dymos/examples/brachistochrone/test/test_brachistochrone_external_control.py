@@ -1,6 +1,9 @@
 import unittest
 
+from openmdao.utils.testing_utils import use_tempdirs
 
+
+@use_tempdirs
 class TestBrachistochroneExternalControl(unittest.TestCase):
 
     def test_brachistochrone_external_control(self):
