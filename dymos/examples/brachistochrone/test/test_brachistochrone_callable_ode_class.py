@@ -214,11 +214,24 @@ class CallableBrachistochroneODE(om.ExplicitComponent):
                         tags=['state_rate_source:v', 'state_units:m/s'])
 
         self.declare_partials(of='*', wrt='*', method='cs')
-        self.declare_coloring(wrt='*', tol=1.0E-12)
+
+    def compute(self, inputs, outputs):
+        theta = inputs['theta']
+        cos_theta = np.cos(theta)
+        sin_theta = np.sin(theta)
+        g = inputs['g']
+        v = inputs['v']
+
+        outputs['vdot'] = g * cos_theta
+        outputs['xdot'] = v * sin_theta
+        outputs['ydot'] = -v * cos_theta
 
 
 @use_tempdirs
 class TestBrachExecCompODE(unittest.TestCase):
+
+    def setUp(self):
+        self.ode = CallableBrachistochroneODE(num_nodes=1)
 
     def tearDown(self):
         if os.path.exists('dymos_solution.db'):
@@ -246,10 +259,8 @@ class TestBrachExecCompODE(unittest.TestCase):
                          order=transcription_order,
                          compressed=compressed)
 
-        ode = CallableBrachistochroneODE(num_nodes=1)
-
         traj = dm.Trajectory()
-        phase = dm.Phase(ode_class=ode, transcription=t)
+        phase = dm.Phase(ode_class=self.ode, transcription=t)
         p.model.add_subsystem('traj0', traj)
         traj.add_phase('phase0', phase)
 
@@ -329,6 +340,7 @@ class TestBrachExecCompODE(unittest.TestCase):
         self._make_problem(transcription='radau-ps', compressed=False)
         self.run_asserts()
 
-    def test_ex_brachistochrone_gl_uncompressed(self):
+    def test_in_series(self):
         self._make_problem(transcription='gauss-lobatto', compressed=False)
+        self._make_problem(transcription='radau-ps', compressed=False)
         self.run_asserts()
