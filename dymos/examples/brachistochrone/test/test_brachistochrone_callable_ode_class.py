@@ -26,7 +26,7 @@ class TestBrachExecCompODE(unittest.TestCase):
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = optimizer
         p.driver.declare_coloring(tol=1.0E-12)
-    
+
         if transcription == 'gauss-lobatto':
             t = dm.GaussLobatto(num_segments=num_segments,
                                 order=transcription_order,
@@ -42,9 +42,15 @@ class TestBrachExecCompODE(unittest.TestCase):
                                             g={'value': 9.80665, 'units': 'm/s**2'},
                                             v={'shape': (num_nodes,), 'units': 'm/s'},
                                             theta={'shape': (num_nodes,), 'units': 'rad'},
-                                            vdot={'shape': (num_nodes,), 'units': 'm/s**2'},
-                                            xdot={'shape': (num_nodes,), 'units': 'm/s'},
-                                            ydot={'shape': (num_nodes,), 'units': 'm/s'},
+                                            vdot={'shape': (num_nodes,),
+                                                  'units': 'm/s**2',
+                                                  'tags': ['state_rate_source:v']},
+                                            xdot={'shape': (num_nodes,),
+                                                  'units': 'm/s',
+                                                  'tags': ['state_rate_source:v']},
+                                            ydot={'shape': (num_nodes,),
+                                                  'units': 'm/s',
+                                                  'tags': ['state_rate_source:v']},
                                             has_diag_partials=True)
 
         traj = dm.Trajectory()
@@ -54,12 +60,12 @@ class TestBrachExecCompODE(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('x', fix_initial=True, fix_final=False, solve_segments=solve_segments, rate_source='xdot')
-        phase.add_state('y', fix_initial=True, fix_final=False, solve_segments=solve_segments, rate_source='ydot')
+        phase.add_state('x', fix_initial=True, fix_final=False, solve_segments=solve_segments)
+        phase.add_state('y', fix_initial=True, fix_final=False, solve_segments=solve_segments)
 
         # Note that by omitting the targets here Dymos will automatically attempt to connect
         # to a top-level input named 'v' in the ODE, and connect to nothing if it's not found.
-        phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=solve_segments, rate_source='vdot')
+        phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=solve_segments)
 
         phase.add_control('theta',
                           continuity=True, rate_continuity=True,
