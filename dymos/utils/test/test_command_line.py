@@ -168,7 +168,7 @@ class TestCommandLine(unittest.TestCase):
             self.assertTrue(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
 
     def test_ex_brachistochrone_make_plots_set_plot_dir(self):
-        print('test_ex_brachistochrone_make_plots')
+        print('test_ex_brachistochrone_make_plots_set_plot_dir')
         plot_dir = 'plot_dir'
         with patch.object(sys, 'argv', self.base_args + ['--make_plots'] +
                           [f'--plot_dir={plot_dir}']):
