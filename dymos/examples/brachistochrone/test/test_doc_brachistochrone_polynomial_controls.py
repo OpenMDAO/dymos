@@ -1,6 +1,9 @@
 import unittest
 
+from openmdao.utils.testing_utils import use_tempdirs
 
+
+@use_tempdirs
 class TestBrachistochronePolynomialControl(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
@@ -264,6 +267,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         plt.show()
 
 
+@use_tempdirs
 class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
@@ -533,6 +537,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         plt.show()
 
 
+@use_tempdirs
 class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
@@ -797,6 +802,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         plt.show()
 
 
+@use_tempdirs
 class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
@@ -1067,6 +1073,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         plt.show()
 
 
+@use_tempdirs
 class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
@@ -1335,6 +1342,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         plt.show()
 
 
+@use_tempdirs
 class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):

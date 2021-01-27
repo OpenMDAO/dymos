@@ -1,7 +1,10 @@
 import unittest
 import warnings
 
+from openmdao.utils.testing_utils import use_tempdirs
 
+
+@use_tempdirs
 class TestBrachistochroneRK4Example(unittest.TestCase):
 
     def test_brachistochrone_forward_shooting(self):

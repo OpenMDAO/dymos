@@ -2,11 +2,12 @@ import unittest
 import warnings
 
 import openmdao.api as om
+from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-from openmdao.utils.assert_utils import assert_near_equal
 
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
@@ -31,6 +32,7 @@ class _D(om.ExplicitComponent):
     ode_options = None
 
 
+@use_tempdirs
 class TestPhaseBase(unittest.TestCase):
 
     def test_invalid_ode_wrong_class(self):

@@ -1,18 +1,20 @@
 import unittest
 
 import numpy as np
+
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
+
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-
-from openmdao.utils.general_utils import set_pyoptsparse_opt
-
 from dymos.grid_refinement.error_estimation import eval_ode_on_grid, compute_state_quadratures
 
+from openmdao.utils.general_utils import set_pyoptsparse_opt
 OPT, OPTIMIZER = set_pyoptsparse_opt('SLSQP', fallback=True)
 
 
+@use_tempdirs
 class TestBrachistochroneExample(unittest.TestCase):
 
     def _run_brachistochrone(self, transcription_class=dm.Radau, control_type='control', g=9.80665):

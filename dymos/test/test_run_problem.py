@@ -20,11 +20,6 @@ _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 @use_tempdirs
 class TestRunProblem(unittest.TestCase):
 
-    def tearDown(self):
-        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
-            if os.path.exists(filename):
-                os.remove(filename)
-
     @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_run_HS_problem_radau(self):
         p = om.Problem(model=om.Group())
@@ -391,11 +386,6 @@ class TestRunProblemPlotting(unittest.TestCase):
         p.set_val('traj.phase0.parameters:g', 9.80665)
 
         self.p = p
-
-    def tearDown(self):
-        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
-            if os.path.exists(filename):
-                os.remove(filename)
 
     def test_run_brachistochrone_problem_make_plots(self):
         dm.run_problem(self.p, make_plots=True)

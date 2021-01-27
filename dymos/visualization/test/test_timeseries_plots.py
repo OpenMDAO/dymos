@@ -19,6 +19,7 @@ _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
 @use_tempdirs
 class TestTimeSeriesPlotsBasics(unittest.TestCase):
+
     def setUp(self):
         optimizer = 'SLSQP'
         num_segments = 8
@@ -77,11 +78,6 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         p.setup()
 
         self.p = p
-
-    def tearDown(self):
-        for filename in ['test_time_series_plots.db']:
-            if os.path.exists(filename):
-                os.remove(filename)
 
     def test_brachistochrone_timeseries_plots(self):
         dm.run_problem(self.p, make_plots=False)

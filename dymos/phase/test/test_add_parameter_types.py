@@ -1,5 +1,8 @@
 import unittest
+
 import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
+
 import dymos as dm
 
 
@@ -62,6 +65,7 @@ def add_parameter_test(testShape=None):
     p.run_driver()
 
 
+@use_tempdirs
 class TestParameterTypes(unittest.TestCase):
     def test_tuple(self):
         add_parameter_test((3, ))

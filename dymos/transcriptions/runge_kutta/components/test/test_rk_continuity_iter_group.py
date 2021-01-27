@@ -4,12 +4,14 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.transcriptions.runge_kutta.components import RungeKuttaStateContinuityIterGroup
 from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE
 
 
+@use_tempdirs
 class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
 
     def setUp(self):

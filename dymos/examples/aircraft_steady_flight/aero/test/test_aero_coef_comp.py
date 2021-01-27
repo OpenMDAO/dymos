@@ -5,10 +5,12 @@ from numpy import array
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.examples.aircraft_steady_flight.aero.aero_coef_comp import AeroCoefComp
 
 
+@use_tempdirs
 class TestAeroCoefComp(unittest.TestCase):
 
     def test_aero_coefs(self):

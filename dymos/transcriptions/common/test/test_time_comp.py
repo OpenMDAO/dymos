@@ -4,11 +4,12 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.transcriptions.grid_data import GridData
 from dymos.transcriptions.common import TimeComp
 
-from dymos.utils.misc import CompWrapperConfig, GroupWrapperConfig
+from dymos.utils.misc import CompWrapperConfig
 TimeComp = CompWrapperConfig(TimeComp)
 
 _segends = np.array([0.0, 3.0, 10.0, 20])
@@ -22,6 +23,7 @@ _lgr_nodes = {3: np.array([-1.0, (1 - np.sqrt(6)) / 5.0, (1 + np.sqrt(6)) / 5.0,
               5: np.array([-1.0, -0.72048, -0.167181, 0.446314, 0.885792, 1.0])}
 
 
+@use_tempdirs
 class TestTimeComp(unittest.TestCase):
 
     def test_results_gauss_lobatto(self):
