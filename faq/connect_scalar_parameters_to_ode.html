@@ -1,0 +1,1561 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.2.6">
+    
+    
+      
+        <title>How do I connect a scalar input to the ODE? - Dymos</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.cb6bc1d0.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.39b8e14a.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#546d78">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="blue">
+      
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-do-i-connect-a-scalar-input-to-the-ode" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+  
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="../index.html" title="Dymos" class="md-header-nav__button md-logo" aria-label="Dymos">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      <div class="md-header-nav__ellipsis">
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
+            Dymos
+          </span>
+        </div>
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
+            
+              How do I connect a scalar input to the ODE?
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="Dymos" class="md-nav__button md-logo" aria-label="Dymos">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Dymos
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation.html" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" >
+      
+      <label class="md-nav__link" for="nav-3">
+        Getting Started
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+        <label class="md-nav__title" for="nav-3">
+          <span class="md-nav__icon md-icon"></span>
+          Getting Started
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/collocation.html" class="md-nav__link">
+        What is collocation?
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/optimal_control.html" class="md-nav__link">
+        Optimal Control
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/defining_odes.html" class="md-nav__link">
+        Defining ODEs
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/intro_to_dymos/intro_ivp.html" class="md-nav__link">
+        Modeling Dynamic Systems with Dymos
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/intro_to_dymos/intro_segments.html" class="md-nav__link">
+        Segments of Phases
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" >
+      
+      <label class="md-nav__link" for="nav-4">
+        Examples and Tutorials
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Examples and Tutorials" data-md-level="1">
+        <label class="md-nav__title" for="nav-4">
+          <span class="md-nav__icon md-icon"></span>
+          Examples and Tutorials
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/examples.html" class="md-nav__link">
+        Dymos by Example
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4-2" type="checkbox" id="nav-4-2" >
+      
+      <label class="md-nav__link" for="nav-4-2">
+        Example Problems
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Example Problems" data-md-level="2">
+        <label class="md-nav__title" for="nav-4-2">
+          <span class="md-nav__icon md-icon"></span>
+          Example Problems
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/brachistochrone/brachistochrone.html" class="md-nav__link">
+        The Brachistochrone
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/vanderpol/vanderpol.html" class="md-nav__link">
+        The Van der Pol Oscillator
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/commercial_aircraft/commercial_aircraft.html" class="md-nav__link">
+        Commercial Aircraft Range Maximization by Differential Inclusion
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/double_integrator/double_integrator.html" class="md-nav__link">
+        Double Integrator
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/hypersensitive/hypersensitive.html" class="md-nav__link">
+        Hyper-Sensitive Problem
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/finite_burn_orbit_raise/finite_burn_orbit_raise.html" class="md-nav__link">
+        Two-Burn Orbit Raise
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/length_constrained_brachistochrone/length_constrained_brachistochrone.html" class="md-nav__link">
+        The Length-Constrained Brachistochrone
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/min_time_climb/min_time_climb.html" class="md-nav__link">
+        Supersonic Interceptor Minimum Time Climb
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/multi_phase_cannonball/multi_phase_cannonball.html" class="md-nav__link">
+        Multi-Phase Cannonball
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/multibranch_trajectory/multibranch_trajectory.html" class="md-nav__link">
+        Multibranch Trajectory
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/reentry/reentry.html" class="md-nav__link">
+        Single-Phase Space Shuttle Reentry
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/ssto_earth/ssto_earth.html" class="md-nav__link">
+        SSTO Earth Launch
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent.html" class="md-nav__link">
+        SSTO Lunar Ascent with Linear Tangent Guidance
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.html" class="md-nav__link">
+        SSTO Lunar Ascent with Polynomial Controls
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/water_rocket/water_rocket.html" class="md-nav__link">
+        Water Rocket
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5" >
+      
+      <label class="md-nav__link" for="nav-5">
+        Feature Reference
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Feature Reference" data-md-level="1">
+        <label class="md-nav__title" for="nav-5">
+          <span class="md-nav__icon md-icon"></span>
+          Feature Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5-1" type="checkbox" id="nav-5-1" >
+      
+      <label class="md-nav__link" for="nav-5-1">
+        Phases
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Phases" data-md-level="2">
+        <label class="md-nav__title" for="nav-5-1">
+          <span class="md-nav__icon md-icon"></span>
+          Phases
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/phases/phases.html" class="md-nav__link">
+        Phases of a Trajectory
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/phases/segments.html" class="md-nav__link">
+        Segments
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/phases/variables.html" class="md-nav__link">
+        Variables
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/phases/constraints.html" class="md-nav__link">
+        Constraints
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/phases/objective.html" class="md-nav__link">
+        Objective
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/phases/timeseries.html" class="md-nav__link">
+        Timeseries Outputs
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5-2" type="checkbox" id="nav-5-2" >
+      
+      <label class="md-nav__link" for="nav-5-2">
+        Trajectories
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Trajectories" data-md-level="2">
+        <label class="md-nav__title" for="nav-5-2">
+          <span class="md-nav__icon md-icon"></span>
+          Trajectories
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/trajectories/trajectories.html" class="md-nav__link">
+        Organizing Phases into Trajectories
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/exploiting_sparsity.html" class="md-nav__link">
+        Exploiting Sparsity for Faster Derivative Calculation
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/plotting.html" class="md-nav__link">
+        Plotting Timeseries
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6" checked>
+      
+      <label class="md-nav__link" for="nav-6">
+        Frequently Asked Questions
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Frequently Asked Questions" data-md-level="1">
+        <label class="md-nav__title" for="nav-6">
+          <span class="md-nav__icon md-icon"></span>
+          Frequently Asked Questions
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="add_ode_output_to_timeseries.html" class="md-nav__link">
+        How do I add an ODE output to the timeseries outputs?
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          How do I connect a scalar input to the ODE?
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="connect_scalar_parameters_to_ode.html" class="md-nav__link md-nav__link--active">
+        How do I connect a scalar input to the ODE?
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-brachistochrone-with-a-static-input" class="md-nav__link">
+    The Brachistochrone with a static input.
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="upstream_analysis.html" class="md-nav__link">
+        How do connect the outputs of an upstream analysis as inputs to Dymos?
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="downstream_analysis.html" class="md-nav__link">
+        How do connect the outputs of Dymos to a downstream analysis?
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="tandem_phases.html" class="md-nav__link">
+        How do I run two phases parallel-in-time?
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="use_partial_coloring.html" class="md-nav__link">
+        How can I more efficiently use finite-differenced components in the ODE?
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="debugging.html" class="md-nav__link">
+        How can I debug models when things go wrong?
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7" >
+      
+      <label class="md-nav__link" for="nav-7">
+        Dymos API Reference
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Dymos API Reference" data-md-level="1">
+        <label class="md-nav__title" for="nav-7">
+          <span class="md-nav__icon md-icon"></span>
+          Dymos API Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/run_problem.html" class="md-nav__link">
+        The Dymos run_problem function
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/phase_api.html" class="md-nav__link">
+        The Phase API
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/trajectory_api.html" class="md-nav__link">
+        The Trajectory API
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8" >
+      
+      <label class="md-nav__link" for="nav-8">
+        Command Line Interface
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Command Line Interface" data-md-level="1">
+        <label class="md-nav__title" for="nav-8">
+          <span class="md-nav__icon md-icon"></span>
+          Command Line Interface
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../command_line/command_line.html" class="md-nav__link">
+        Dymos Command Line Interface
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9" >
+      
+      <label class="md-nav__link" for="nav-9">
+        Whats New
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Whats New" data-md-level="1">
+        <label class="md-nav__title" for="nav-9">
+          <span class="md-nav__icon md-icon"></span>
+          Whats New
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release_notes/version_0.16.0.html" class="md-nav__link">
+        dymos 0.16.0
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release_notes/version_0.17.0.html" class="md-nav__link">
+        dymos 0.17.0
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10" >
+      
+      <label class="md-nav__link" for="nav-10">
+        Contributing
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Contributing" data-md-level="1">
+        <label class="md-nav__title" for="nav-10">
+          <span class="md-nav__icon md-icon"></span>
+          Contributing
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/contributing.html" class="md-nav__link">
+        Contributing to Dymos
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-brachistochrone-with-a-static-input" class="md-nav__link">
+    The Brachistochrone with a static input.
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                <h1 id="how-do-i-connect-a-scalar-input-to-the-ode">How do I connect a scalar input to the ODE?<a class="headerlink" href="#how-do-i-connect-a-scalar-input-to-the-ode" title="Permanent link">&para;</a></h1>
+<p>By default, we recommend that users treat all ODE input variables as if they are <em>potentially</em> dynamic.
+This allows the user to use the input as either a dynamic control, or as a static design or input parameter.
+By default, parameters will "fan" the value out to all nodes.
+This allows the partials to be defined in a consistent fashion (generally a diagonal matrix for a scalar input and output) regardless of whether the input is static or dynamic.</p>
+<p><strong>But</strong> there are some cases in which the user may know that a variable will never have the potential to change throughout the trajectory.
+In these cases, we can reduce a bit of the data transfer OpenMDAO needs to perform by defining the input as a scalar in the ODE, rather than sizing it based on the number of nodes.</p>
+<h2 id="the-brachistochrone-with-a-static-input">The Brachistochrone with a static input.<a class="headerlink" href="#the-brachistochrone-with-a-static-input" title="Permanent link">&para;</a></h2>
+<p>The local gravity <code>g</code> in the brachistochrone problem makes a good candidate for a static input parameter.
+The brachistochrone generally won't be in an environment where the local acceleration of gravity is varying by any significant amount.</p>
+<p>In the slightly modified brachistochrone example below, we add a new option to the BrachistochroneODE <code>static_gravity</code> that allows us to decide whether gravity is a vectorized input or a scalar input to the ODE.</p>
+<div class="tabbed-set" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">brachistochrone_ode.py</label><div class="tabbed-content"></div>
+</div>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">openmdao.api</span> <span class="k">as</span> <span class="nn">om</span>
+
+
+<span class="k">class</span> <span class="nc">BrachistochroneODE</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">ExplicitComponent</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;static_gravity&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="p">(</span><span class="nb">bool</span><span class="p">,),</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                             <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;If True, treat gravity as a static (scalar) input, rather than &#39;</span>
+                                  <span class="s1">&#39;having different values at each node.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">]</span>
+        <span class="n">g_default_val</span> <span class="o">=</span> <span class="mf">9.80665</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;static_gravity&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="mf">9.80665</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nn</span><span class="p">)</span>
+
+        <span class="c1"># Inputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;velocity&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">g_default_val</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;grav. acceleration&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s/s&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;angle of wire&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;xdot&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;velocity component in x&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">,</span>
+                        <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;state_rate_source:x&#39;</span><span class="p">,</span> <span class="s1">&#39;state_units:m&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;ydot&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;velocity component in y&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">,</span>
+                        <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;state_rate_source:y&#39;</span><span class="p">,</span> <span class="s1">&#39;state_units:m&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;vdot&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;acceleration magnitude&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s**2&#39;</span><span class="p">,</span>
+                        <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;state_rate_source:v&#39;</span><span class="p">,</span> <span class="s1">&#39;state_units:m/s&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;check&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;check solution: v/sin(theta) = constant&#39;</span><span class="p">,</span>
+                        <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Setup partials</span>
+        <span class="n">arange</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;vdot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">arange</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">arange</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;xdot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">arange</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">arange</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;xdot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">arange</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">arange</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;ydot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">arange</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">arange</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;ydot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">arange</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">arange</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;check&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">arange</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">arange</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;check&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">arange</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">arange</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;static_gravity&#39;</span><span class="p">]:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;vdot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">arange</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;vdot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">arange</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">arange</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span>
+        <span class="n">cos_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">sin_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">]</span>
+
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;vdot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span> <span class="o">*</span> <span class="n">cos_theta</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;xdot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">sin_theta</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;ydot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">v</span> <span class="o">*</span> <span class="n">cos_theta</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;check&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span> <span class="o">/</span> <span class="n">sin_theta</span>
+
+    <span class="k">def</span> <span class="nf">compute_partials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">partials</span><span class="p">):</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span>
+        <span class="n">cos_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">sin_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">]</span>
+
+        <span class="n">partials</span><span class="p">[</span><span class="s1">&#39;vdot&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cos_theta</span>
+        <span class="n">partials</span><span class="p">[</span><span class="s1">&#39;vdot&#39;</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">g</span> <span class="o">*</span> <span class="n">sin_theta</span>
+
+        <span class="n">partials</span><span class="p">[</span><span class="s1">&#39;xdot&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sin_theta</span>
+        <span class="n">partials</span><span class="p">[</span><span class="s1">&#39;xdot&#39;</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">cos_theta</span>
+
+        <span class="n">partials</span><span class="p">[</span><span class="s1">&#39;ydot&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">cos_theta</span>
+        <span class="n">partials</span><span class="p">[</span><span class="s1">&#39;ydot&#39;</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">sin_theta</span>
+
+        <span class="n">partials</span><span class="p">[</span><span class="s1">&#39;check&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">sin_theta</span>
+        <span class="n">partials</span><span class="p">[</span><span class="s1">&#39;check&#39;</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">v</span> <span class="o">*</span> <span class="n">cos_theta</span> <span class="o">/</span> <span class="n">sin_theta</span> <span class="o">**</span> <span class="mi">2</span>
+</code></pre></div>
+</td></tr></table>
+<p>In the corresponding run script, we pass <code>{'static_gravity': True}</code> as one of the <code>ode_init_kwargs</code> to the Phase, and declare <span><span class="MathJax_Preview">g</span><script type="math/tex">g</script></span> as a static design variable using the <code>dynamic=False</code> argument.</p>
+<div class="tabbed-set" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><label for="__tabbed_2_1">script</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">openmdao.api</span> <span class="k">as</span> <span class="nn">om</span>
+<span class="kn">from</span> <span class="nn">openmdao.utils.assert_utils</span> <span class="kn">import</span> <span class="n">assert_near_equal</span>
+<span class="kn">import</span> <span class="nn">dymos</span> <span class="k">as</span> <span class="nn">dm</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">dymos.examples.brachistochrone.brachistochrone_ode</span> <span class="kn">import</span> <span class="n">BrachistochroneODE</span>
+
+<span class="c1">#</span>
+<span class="c1"># Initialize the Problem and the optimization driver</span>
+<span class="c1">#</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">())</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">ScipyOptimizeDriver</span><span class="p">()</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">declare_coloring</span><span class="p">()</span>
+
+<span class="c1">#</span>
+<span class="c1"># Create a trajectory and add a phase to it</span>
+<span class="c1">#</span>
+<span class="n">traj</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="s1">&#39;traj&#39;</span><span class="p">,</span> <span class="n">dm</span><span class="o">.</span><span class="n">Trajectory</span><span class="p">())</span>
+
+<span class="n">phase</span> <span class="o">=</span> <span class="n">traj</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="s1">&#39;phase0&#39;</span><span class="p">,</span>
+                       <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">BrachistochroneODE</span><span class="p">,</span>
+                                <span class="n">ode_init_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;static_gravity&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+                                <span class="n">transcription</span><span class="o">=</span><span class="n">dm</span><span class="o">.</span><span class="n">GaussLobatto</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">10</span><span class="p">)))</span>
+
+<span class="c1">#</span>
+<span class="c1"># Set the variables</span>
+<span class="c1">#</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_time_options</span><span class="p">(</span><span class="n">initial_bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">duration_bounds</span><span class="o">=</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;xdot&#39;</span><span class="p">,</span>
+                <span class="n">targets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
+                <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">solve_segments</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;ydot&#39;</span><span class="p">,</span>
+                <span class="n">targets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
+                <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">solve_segments</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;vdot&#39;</span><span class="p">,</span>
+                <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">],</span>
+                <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">,</span>
+                <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">solve_segments</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_control</span><span class="p">(</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">],</span>
+                  <span class="n">continuity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rate_continuity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                  <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">179.9</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">],</span> <span class="n">dynamic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1">#</span>
+<span class="c1"># Minimize time at the end of the phase</span>
+<span class="c1">#</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_objective</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">scaler</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="c1">#</span>
+<span class="c1"># Setup the Problem</span>
+<span class="c1">#</span>
+<span class="n">p</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+
+<span class="c1">#</span>
+<span class="c1"># Set the initial values</span>
+<span class="c1"># The initial time is fixed, and we set that fixed value here.</span>
+<span class="c1"># The optimizer is allowed to modify t_duration, but an initial guess is provided here.</span>
+<span class="c1">#</span>
+<span class="n">p</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.t_initial&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+<span class="n">p</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.t_duration&#39;</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+
+<span class="c1"># Guesses for states are provided at all state_input nodes.</span>
+<span class="c1"># We use the phase.interpolate method to linearly interpolate values onto the state input nodes.</span>
+<span class="c1"># Since fix_initial=True for all states and fix_final=True for x and y, the initial or final</span>
+<span class="c1"># values of the interpolation provided here will not be changed by the optimizer.</span>
+<span class="n">p</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.states:x&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="n">nodes</span><span class="o">=</span><span class="s1">&#39;state_input&#39;</span><span class="p">))</span>
+<span class="n">p</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.states:y&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="n">nodes</span><span class="o">=</span><span class="s1">&#39;state_input&#39;</span><span class="p">))</span>
+<span class="n">p</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.states:v&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">9.9</span><span class="p">],</span> <span class="n">nodes</span><span class="o">=</span><span class="s1">&#39;state_input&#39;</span><span class="p">))</span>
+
+<span class="c1"># Guesses for controls are provided at all control_input node.</span>
+<span class="c1"># Here phase.interpolate is used to linearly interpolate values onto the control input nodes.</span>
+<span class="n">p</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.controls:theta&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mf">100.5</span><span class="p">],</span> <span class="n">nodes</span><span class="o">=</span><span class="s1">&#39;control_input&#39;</span><span class="p">))</span>
+
+<span class="c1"># Set the value for gravitational acceleration.</span>
+<span class="n">p</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.parameters:g&#39;</span><span class="p">,</span> <span class="mf">9.80665</span><span class="p">)</span>
+
+<span class="c1">#</span>
+<span class="c1"># Solve for the optimal trajectory</span>
+<span class="c1">#</span>
+<span class="n">dm</span><span class="o">.</span><span class="n">run_problem</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">simulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Test the results</span>
+
+
+<span class="c1"># Generate the explicitly simulated trajectory</span>
+<span class="n">exp_out</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="s1">&#39;dymos_simulation.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+
+<span class="c1"># Extract the timeseries from the implicit solution and the explicit simulation</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.states:x&#39;</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.states:y&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">)</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.controls:theta&#39;</span><span class="p">)</span>
+
+<span class="n">x_exp</span> <span class="o">=</span> <span class="n">exp_out</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.states:x&#39;</span><span class="p">)</span>
+<span class="n">y_exp</span> <span class="o">=</span> <span class="n">exp_out</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.states:y&#39;</span><span class="p">)</span>
+<span class="n">t_exp</span> <span class="o">=</span> <span class="n">exp_out</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">)</span>
+<span class="n">theta_exp</span> <span class="o">=</span> <span class="n">exp_out</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.controls:theta&#39;</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_exp</span><span class="p">,</span> <span class="n">y_exp</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;x (m)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;y (m)&#39;</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_exp</span><span class="p">,</span> <span class="n">theta_exp</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;time (s)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\theta$ (deg)&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+</div>
+<input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><label for="__tabbed_2_2">output</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>Full total jacobian was computed 3 times, taking 0.090898 seconds.
+Total jacobian shape: (40, 51) 
+
+
+Jacobian shape: (40, 51)  (13.19% nonzero)
+FWD solves: 8   REV solves: 0
+Total colors vs. total size: 8 vs 51  (84.3% improvement)
+
+Sparsity computed using tolerance: 1e-25
+Time to compute sparsity: 0.090898 sec.
+Time to compute coloring: 0.001504 sec.
+Optimization terminated successfully.    (Exit mode 0)
+            Current function value: 18.016167304638337
+            Iterations: 24
+            Function evaluations: 24
+            Gradient evaluations: 24
+Optimization Complete
+-----------------------------------
+
+Simulating trajectory traj
+Done simulating trajectory traj
+</code></pre></div>
+</div>
+<input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><label for="__tabbed_2_3">1</label><div class="tabbed-content">
+<p><img alt="" width="640" height="480" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAoAAAAHgCAYAAAA10dzkAAAAOXRFWHRTb2Z0d2FyZQBNYXRwbG90bGliIHZlcnNpb24zLjMuMywgaHR0cHM6Ly9tYXRwbG90bGliLm9yZy/Il7ecAAAACXBIWXMAAA9hAAAPYQGoP6dpAACLOElEQVR4nOzdd5xcdb3/8dc5M7O9t2xNr5teNwlRagKEaIiGGA1KVwGx/ERFkXtBQchVAa+FexUNCleBxIRQTUJEJKSSQNpCes9utvcyO3PO749NJpnMpu/uzO68n4/HPnbm1M98v7Ozn/me8/1+Ddu2bUREREQkbJjBDkBEREREOpcSQBEREZEwowRQREREJMwoARQREREJM0oARURERMKMEkARERGRMKMEUERERCTMKAEUERERCTNKAEVERETCjBJAERERkTCjBFBEREQkzCgBFBEREQkzSgBFREREwowSQBEREZEwowRQREREJMw4gx1AV1RZWYnH4+mw46enp1NaWtphx5cLo/oILaqP0KG6CC2qj9DS0fXhdDpJTk6++P3bMZaw4fF4aGlp6ZBjG4bhO4dt2x1yDjl/qo/QovoIHaqL0KL6CC1doT66TQJYWFjIq6++yr59+6isrOT+++9nwoQJvvW2bbNw4UJWrlxJXV0dAwYM4I477iAvLy+IUfuzLS/2ro+p37EZyzZhwBAM0xHssERERKSb6TYJYHNzM7179+bKK6/kl7/8ZcD6pUuX8sYbb3DPPfeQlZXF4sWLefTRR3n66aeJjo4OQsT+7E2rsf72e6iqoOLEwqQUzC9+FWPM5GCGJiIiIt1Mt+kEMnr0aObOnUtBQUHAOtu2efPNN5k1axYFBQX07NmTe++9l+bmZlatWhWEaE+Lb9NqrGeegKoK/xVVFVjPPIG9aXVwAhMREZFuqdskgGdTUlJCVVUVI0eO9C1zuVzk5+ezY8eOIEbWetnX+stvAHCbTo5Ep3MwpoffNtZffotteYMRnoiIiHRD3eYS8NlUVVUBkJiY6Lc8MTGRsrKyM+7X0tLi19nDMAzf5eITN3heKmvHdqivA+BQTA++N+5bpDZV8Ye1Pzu5UX0t9o7tmPkjz3AU6Sgn6rm96lsujeojdKguQovqI7R0hfoIiwTwhNMr4lw9c5YsWcKiRYt8z/v06cP8+fNJT09vt5iqViyh9vjjOE8DALWuWGzg1Gjjjuwl6err2u28cmEyMzODHYKcQvUROlQXoUX1EVpCuT7CIgFMSkoCWlsCTx0zp6amJqBV8FSzZs1ixowZvucnEsjS0tJ2GwfQW1fve5zaXI3D8uJ2uCiNTCKjucq3rq6unsaionY5p5w/wzDIzMykuLg4ZLvyhxPVR+hQXYQW1Udo6Yz6cDqdl9QgFRYJYEZGBklJSWzZsoU+ffoArWPzFBYWMm/evDPu53K5cLlcba5rtwodNAzeeAkAp22R13CM/XHZ7I3P9UsA7WOH9UcdRLZtq/xDiOojdKguQovqI7SEcn10mwSwqamJ4uJi3/OSkhL2799PXFwcaWlpTJ8+nSVLlpCVlUVmZiZLliwhMjKSKVOmBDFqMAYNw46OhcbWlsCBNQfZH5fNx4m9mVi27eSGG9dgedyYzoggRSoiIiLdRbdJAPfs2cMjjzzie/6Xv/wFgMsvv5x7772XmTNn4na7efbZZ6mvr6d///48+OCDQR8D0DAdMLoAVv8TgGFVe1iePZHNyQP8N7QteOctmDozCFGKiIhId9JtEsChQ4fy8ssvn3G9YRjMmTOHOXPmdGJU5ykyyvdwZMUuTNviYFwWJVHJZDRV+tbZpboHUERERC5dWIwDGOqM9Czf43hPA/lV+wBYnT78jNuJiIiIXCwlgKHgyuvBOFkVk0s3A/Bexmi/zeykZEREREQulRLAEGA6IzCmnby377KSLTgtD/vic9gbl31yw9//QtPCiYiIyCVTAhgizNm3wbQbgdbLwAXHewAvz57ot5314rOaFk5EREQuiRLAEGKOGO97fO3RtQC822MMdc5TeipXlsGuws4OTURERLoRJYAhxK6q8D0eWrWXXnVHaXZEsOy0VsBTtxMRERG5UEoAQ4iRlHLyMXDjoXcBeD13Cs2mq83tRERERC6UEsBQMiAfklN9Ty8r2UxGYwXVEfEnWwGT01q3ExEREblISgBDiGE6MOd+1ffcaVvMPrASgMU9r6TREQk5PbFXvo7lcQcrTBEREenilACGGHPsZFJ/9F++lsArjm0kq6GMmog4Xs39FGzbhP3yH7HvmYO1aEGQoxUREZGuSAlgCIq57Coc8/+Ief9jOIeNYd6+twBY2vNyKiISWjeyLexlS5QEioiIyAVTAhiiDNOB3W8QbNvEpNKtDKreT5Mjkuf7Xu+3nb18qS4Hi4iIyAVRAhjK3nkLbAsDuH33qwC8mzmWjxN7n9zGtlq3ExERETlPSgBDmF1a5Hs8oPYw1xxdB8D/DPwcLYajze1EREREzkUJYAgz0rP8nn9571skuOs4FJvJKz0vP+N2IiIiImejBDCUXXk9GCerKN7TwG27XwNgYa9rOBjTo3X9ldef6QgiIiIiAZQAhjDTGYExbabfsk+XfMi4skI8ppNfD56Dd+qNmM6IIEUoIiIiXZESwBBnzr4N49pZvpZAA/jazsXEtTSwJyGPRYNuwLa82Du2Yq17F3vHVmzLG9ygRUREJKQ5gx2AnJs5+zasG+fBO29hlxaRlp7F1/v15hdrSli4tYwRi3/FkCNbALABklMx596FMWZyUOMWERGR0KQWwC7CdEZgTp2J40tfx5w6k0/1TeHyhGYsDJ7Ku4FaZ/TJjSvLsZ55AnvT6uAFLCIiIiErrBLAxsZGnnvuOe655x7mzZvHj3/8Y3bv3h3ssC6KbXn56vu/I6uhjLKoZH476KbW1r9TWC8+q8vBIiIiEiCsEsD/+Z//YcuWLXzjG9/gl7/8JSNGjOCnP/0pFRUVwQ7twu0qJLq8iP9X+H84LQ/r04exNO/T/ttUlsGuwuDEJyIiIiErbBJAt9vNunXruPnmm8nPzyczM5M5c+aQkZHB8uXLgx3eBbOrWpPWfnVHfLOEvND3erYl9W1zOxEREZETwqYTiNfrxbIsXC6X3/KIiAg++eSTNvdpaWmhpaXF99wwDKKjo32PO8KJ457r+EZSqu+S77VH17IjoRfvZo7lF/k3818b/5uM5irfdh0Vazg43/qQzqH6CB2qi9Ci+ggtXaE+wiYBjI6OZuDAgfz9738nJyeHpKQkVq1axe7du8nMzGxznyVLlrBo0SLf8z59+jB//nzS09M7PN4zxXSCnZFB0XMZeMtKMICv71zMwdhM9sXnMH/YLfzsw98Rk5JC1qevxnA4znosObdz1Yd0LtVH6FBdhBbVR2gJ5fowbNs+ve9At1VcXMwzzzzDxx9/jGma9OnTh6ysLPbt28dTTz0VsP2ZWgBLS0vxeDwdEqNhGGRmZlJcXMy5qsbauBrrmcd9z0sjk/je2G9SExHHpJItfO/TeTjHaSiYS3Eh9SEdT/UROlQXoUX1EVo6oz6cTuclNUiFTQsgtGbijzzyCE1NTTQ2NpKcnMxTTz1FRkZGm9u7XK6AS8YndPQfmG3b5zyHMWYS5t0PYL34B6gsJ725iu9v/wsPj/waazJG8FdHKl/WB0G7OJ/6kM6j+ggdqovQovoILaFcH2GVAJ4QFRVFVFQUdXV1bN68mZtvvjnYIV00Y8xkzFEFsKsQu6qCYUkp3OPI5r/XHWPR9nKy4l1c0y8p2GGKiIhICAmrBPCjjz4CIDs7m+LiYp5//nmys7O54oorghrXpTJMBwwazolbTa8Giuo8LNxezu/WFZMS7WRMdlwwQxQREZEQElYJYENDA3/7298oLy8nLi6OgoICvvjFL+J0dr9i+NLINI7Vt/Dv/TXMf+8Ij17Tk36JDt90ckZ6Flx5PaYzItihioiISCfrfpnPWUyePJnJk8OjU4RpGHxzYhbVTR42Fzfwk3/s5mfrf0V2QwlwfM7ghQuwps3EnH1bUGMVERGRzhU2A0GHI5fD4IFP59DXqKMGFw+PuIOyyMSTG9gW9rIlWIsWBC9IERER6XRKALu5KMPLj99/iuyGUsqiknlk5F1Uu2L9trGXL8XyuIMUoYiIiHQ2JYDd3TtvkeSu5T83/4G0pkqOxGTwyMi7qHVGn9zGtuCdt4IXo4iIiHQqJYDdnF1aBEB6cxUPb/4DSe5a9sdl85ORd1HvjArYTkRERLo/JYDdnJGe5Xuc3VjGwx/9ngR3HXvic/nJiDuod0QFbCciIiLdmxLA7u7K68E4Wc09G47xn5v/QFxLPbsSevGTkXdS74xp3U5ERETCghLAbs50RmBMm+m3rE99EY9s/j3xLfXsSujJw5+6n3qvI0gRioiISGdTAhgGzNm3YVw7y68lsE9dEY9s/gMJtLDHjuOhlQepavIEMUoRERHpLGE1EHQ4M2ffhnXjPL+ZQPpceT2P1dk8tPIg+yqb+dGKg/zk6jzSYlzBDldEREQ6kFoAw4jpjMCcOhPHl76OOXUmpjOCnkmR/GxqL9JinBypcfPD5QcoqtWYgCIiIt2ZEkAhJyGCJ6b1IjveRUm9hweWH2BvRRMAtuXF3rEVa9272Du2YlveIEcrIiIil0qXgAWA9FgXj0/txX/+8xD7q1ovB/8ou4qhrz0DleXA8fmDk1Mx596FMSY85lQWERHpjtQCKD5J0U5+NrUnwzKiafRYPLI/htXObP+NKsuxnnkCe9Pq4AQpIiIil0wJoPiJjXDwH1dkM7FqBx7TyS/z5/Fa7qdaW/9OYb34rC4Hi4iIdFFKACVAxN5P+O5Hf+K6I6uxDZMF/T/Ds/1n4sU4uVFlGewqDF6QIiIictGUAEoAu6oCBzZ37XqFW3a/DsBbuZcxf9gtNJkuv+1ERESk61ECKAGMpJTW38DMw//m/u3PE+Ft4YO0fB4cfQ9lkYl+24mIiEjXogRQAg3Ih+RU39PJpVt5ZPP/kuiuZV98Dt8f+0125Axv3U5ERES6HCWAEsAwHZhz7/JbNqjmIPM3/ppedUepiojnPwbezLsH6oIUoYiIiFyKsEkAvV4vL774Ivfeey/z5s3jG9/4BosWLcKyrGCHFpKMMZMx737AryUwo7mKn+17iQlxblpsg6dWF/GnjcfwWqf3ERYREZFQFjYDQS9dupQVK1Zw7733kpuby969e/nd735HTEwM06dPD3Z4IckYMxlzVAHsKsSuqsBISiF2QD4/NEz+b3MZi7aXs/STSvZVNvO9KdkkRIXN20lERKRLC5v/2Dt37mTcuHGMGTMGgIyMDFatWsWePXuCHFloM0wHDBp+6gAwGMCXR6XTNyWS/15TxJZjDXz3H/t54NO59EuJClaoIiIicp6ClgCWlJSwadMmduzYQUVFBW63m4SEBHJychg2bBgjRozA6Wy/8AYPHsyKFSs4evQo2dnZ7N+/nx07dnDLLbe02znCzWU9E8hLiORn/z5MUW0LP1h2gK+O78HUfokYhnHuA4iIiEhQdHoCuH37dl555RW2bt2KbdukpKSQkJBAREQEJSUlFBYW8sYbb5CQkMA111zDZz7zGWJiYi75vDNnzqShoYHvfOc7mKaJZVnMnTuXKVOmnHGflpYWWlpafM8NwyA6Otr3uCOcOG5XSaB6JUfxy+v68NTqo2w4Usdv1xXzSWkjX5+QSaSz699i2tXqo7tTfYQO1UVoUX2Elq5QH4Zt2512B//Pf/5zNm3axKhRo/j0pz/N0KFDSUhI8NvGsiwOHDjA+vXree+992hubua+++5jxIgRl3Tu999/nxdeeIGbb76ZvLw89u/fz3PPPcdXvvIVrrjiijb3efnll1m0aJHveZ8+fZg/f/4lxdFdWbbNX9Yf4Jn39mLZ0D8tlidmDqdXSgyW203dmwvxFB3GmZVL3PSbMCMigh2yiIhI2OrUBPA3v/kNN910Ez169Div7S3L4t///jfAGZO083X33Xczc+ZMrrvuOt+yv//977z33ns8/fTTbe5zphbA0tJSPB7PJcVzJoZhkJmZSXFxMZ1YNe1ma3E9P191hKomL9FOk6+yk8tXPgv2Kb2tDRNj2o04broteIGep65eH92N6iN0qC5Ci+ojtHRGfTidTtLT0y9+/3aM5Zy+8Y1vXND2pmlecuJ3QnNzM6bpf0nSNM2zVozL5cLlcrW5rqP/wGzb7pJ/xMN6xPDU9D788v2jbDvWwK/oz5ZBs7lz1ytEe92tG9kW9rLFeLExZ4d+Eghdtz66K9VH6FBdhBbVR2gJ5fro+jdpnaexY8eyePFiNm3aRElJCevXr+f1119n/PjxwQ6t20mJdvLwp3swd/8KTNvincxxfH/sN9kXm+W3nb18KZbHHaQoRUREwlfQh4E5dOgQpaWlfpdaTygoKGi389x+++289NJLPPvss1RXV5OSksLUqVOZPXt2u51DTnK8+w/m7F/B0Mo9PJU/lyMxGfxg7H3M2/sPPnP4PUzs1svC77wFU2cGO1wREZGwErQEsLi4mCeffJIDBw6ccZuXXnqp3c4XHR3Nrbfeyq233tpux5Qzs0uLABhavZcnP3ia3w66iQ1pQ/lz/xl8mDqI+z5+iVR3jW87ERER6TxBSwB///vfU1VVxS233EJubm67jvknwWekZ3HiroeElgYe2PZnVmQVsKD/Z9iSPIDvjP9/fH3n37ksPeusxxEREZH2F7Ssa/fu3Xzta1/jsssuC1YI0pGuvB4WLvD1/jWAaUXrGFa1h6eGfJE9CXn8YuiXWR8Vx1ebvcRHOoIbr4iISBgJWieQhISEdhngWUKT6YzAmBZ4b192YxmPf/hbZh9YiYnNvw/Wcd8b+/jgSF0QohQREQlPQUsAp02bxsqVK4N1eukE5uzbMK6dBYb/28wJzBsYwxPX9iYnIYLKRg8//ddhfr22iIYWb3CCFRERCSOdOhD06f7yl7+wfft2Ro8eTVxcXMD6GTNmBCGqcztTr+X2YBgGWVlZFBUVhezYQRfK8rjhnbewS4sw0rPgyusxna0zgTR7LF7YXMprn1RiA6kxTu6ZkMm4nMD3QzB0x/roylQfoUN1EVpUH6GlM+rD5XJ1nYGgT7Vr1y7effdd6urq2L9/f5vbhGoCKBfGdEaccaiXSKfJHWN7MDE3nv9eW0RxXQs//ddhruidwB3jepCgewNFRETaXdASwD/96U/Ex8dz9913k5OTo17AYW5ojxj++4Y+/N/mUl7bUcm/9tfwYXE9XxvXg8k940N6Qm0REZGuJmhZ16FDh/j2t7/NuHHjghWChJhIp8ntY3twWa8Efr22iEPVbv5r1VHG58TxtfE9SI89OS2fbXlhVyF2VQVGUgoMyMcw1VooIiJyPoKWAKalpek+BWnToLRonrq+Ny9vK2dxYTkbjtSx9Vg9XxqRzoxByZgfrcF68Q9QWQ7QOt5gcirm3LswxkwOauwiIiJdQdB6Ad9444289tpruN2aC1YCuRwm80am89T0PgxJj6bJY/OnTSXcv2Q7u55/3pf8+VSWYz3zBPam1cEJWEREpAsJWgvg3r17qaio4L777mPo0KEBvYANw+C2224LUnQSKnomRvKzqT15e081z20qYW+Tkx+MvY9rj67hi/uWE+dp9NveevFZzFEFuhwsIiJyFkFLAJctW+Z7/P7777e5jRJAATANg2n9kxjXdIg/Lt/Oqh6jeCvnMt5PH8kte97gimMb8XURqSyDXYUwaHgwQxYREQlpQUsAX3rppWCdWrqopPoK/t/Hf+WaovX8YcBMjsT24NdDvsDbWRO4a9cSetcXA7R2DAlyrCIiIqEsaPcAilwoIykFgBFVu3nyg6f58p43iPS6+TipD/eP+zZ/GDCTWmeMbzsRERFpW6cmgE1NTZ26n3QzA/IhORUAl+1l1qF3+fX6nzOpZAuWYfJWzmXcO/EHvGln47XUw1xERORMOjUB/MY3vsHrr79OQ0PDeW2/e/du5s+fz+uvv97BkUlXYJgOzLl3+S1La67me4Uv8MhH/0uvuiLqnNH8fmMp33lzP1uK64MUqYiISGjr1HsAv/zlL/Piiy/y0ksvMXbsWIYOHUqfPn1ITEzE5XJRV1fHsWPH2LVrFxs2bODw4cNMmjSJq666qjPDlBBmjJmMefcDfuMAAgw3qnlyXCQr4nvwf5tLOVDdzEMrD1GQG8ctozPISYgIYtQiIiKhpVMTwMsvv5xJkybxr3/9ixUrVrBmzZo2t4uIiKCgoIB7772Xvn37dmaI0gUYYyZjjipocyaQ64EpvRL425ZS3tpVxbrDdXxwpI7rBiYzd1gqCVGaclBERKTT/xtGREQwbdo0pk2bRkVFBTt27KCyshK32018fDw5OTn0799fcwPLWRmmAwYNb7O3b3ykg6+Oz+T6gcn8+cMSNhyp540dlfxrbzU3DUtlxqBkXA71fxIRkfAV1CwrJSWFSZMmBTME6cbyEiP58RV5bC6uZ8GmEvZVNvPch6W8ubOSeSPT+XTvBExDA8aIiEj4CZtmtnvvvZfS0tKA5dOmTePOO+8MQkTSWUZmxvLL63rzr33VvLC5jJJ6D0+tLmJJYQVfGZXOmOxYDCWCIiISRsImAXz88cexLMv3/ODBgzz66KNqgQwTDtPg6n5JTOmVwGs7Klm8vZz9Vc385F+HGZYRzVdGZzAoLdq3veVxwztvQWkxNf0HYo2dguFwBfEViIiItJ+wSQATEhL8nr/yyiv06NGD/Pz8IEUkwRDpNJk9NJVp/ZP4+/Zy3thRybaSRr6/7AAFuXHMG5lO3tt/xV6+FOzWLwzV77wBz/4KY9pMzNmanlBERLq+sEkAT+XxeHjvvfe44YYbznrpr6WlhZaWFt9zwzCIjo72Pe4IJ46rS5IdKzHKye1je/CZwSn8dXMp7+yrZt3hOtYfrmXKsSi+EJVCdmPZyR1sC3vZEiwMHDcpCQwW/X2EDtVFaFF9hJauUB+GbdthN2XC6tWr+e///m9+97vfkZJy5mnDXn75ZRYtWuR73qdPH+bPn98ZIUon21tWz+9X7WHlrtakz7S9XFm8kZv2v01Gc9XJDU2TnL+vwozQuIIiItJ1BS0B3Lt3b9DG+HvsscdwOBw88MADZ93uTC2ApaWleDyeDonNMAwyMzMpLi4mDHPzoPIuX8qeN9/kxd7T+CCt9dYAp+Xh6qINfO7gO6QfTwSNOXfimDYziJGGL/19hA7VRWhRfYSWzqgPp9NJenr6xe/fjrFckB/+8If079+f6667jkmTJnXauH+lpaVs2bKF+++//5zbulwuXK62b/zv6D8w27b1R9zJ7NKj9K07yo+2PceOhJ78rc+1bEkewLKcSazMGs9VxR/wuQP/JKP0qOomyPT3ETpUF6FF9RFaQrk+gjYa7j333INt2/zmN7/h7rvv5sUXX6S8vPzcO16id955h8TERMaMGdPh55KuxUjP8j0eVHOQhzf/gZ9++AzDK3fhMZ0sz57INwq+zzORozhW5w5ipCIiIpcm6PcA7t69m3/84x+sWbMGy7IYO3Ys119/PUOHDm33c1mWxTe+8Q0uu+wy5s2bd9HHKS0t9bs03J4MwyArK4uioqKQ/dbQXVkeN/Y9c3y9f09VmNibl3tPZUvyAAAcBlzRJ5HPD03VPMOdSH8foUN1EVpUH6GlM+rD5XJd0iXgoM+H1b9/f77xjW/wzDPPcNNNN7F3715+8pOf8N3vfpcVK1bgdrdfS8vWrVspKyvjyiuvbLdjSvdhOiMwznBvX371fh7e/Acec21jZGYMXhtW7q3mG6/v5eerjrCvsqmToxUREbl4ITMMjNPpJDIy0ncvYHNzM88++yyLFy/mO9/5DgMHDrzkc4wcOZKXX375ko8j3Zc5+zYs8BsHEADDxJg2k2GzZzMM+KS0kUXby9hwpJ5VB2pZdaCW8Tmx3DQszW9AaRERkVAU9EvABw4cYNmyZaxatQqPx8PEiROZPn06/fv358CBA/z+97/H7Xbz85//PJhh+tEl4O7v1JlAEvoPpPYMM4Hsq2xi0fZy3j9Qy4naGtYjhs8NSdEUcx1Afx+hQ3URWlQfoaUrXAIOWgvg6tWrWbZsGZ988gkJCQnMmDGDadOmkZSU5NumV69efPGLX+Sxxx4LVpgSpkxnBEydiWEYJGRlUX+GP+I+yVF8b0oOXxrhZnFhOe/srWbbsQa2HWugV2IkN+an8KleCbgcSgRFRCR0BC0B/NWvfkXv3r25++67mTJlyhmHgUlPT+dTn/pUJ0cncmFyEiK4b2IWc4en8fqOSv6xq4oD1c38ak0RL2wuZebgFKb2TyTG5Qh2qCIiIsG7BPzJJ58wePDgYJz6kukScPi42Pqoc3v5x64qXvukgqomLwCxLpOp/ZOYMSiZ9NjAy8m25YVdhdhVFRhJKTAgH8NUwngq/X2EDtVFaFF9hBZdAj6Lrpr8iZyPuAgHs4em8tnByfxrXw2vfFzBkRo3r3xcwaufVDApL56ZQ1J8HUbsTauxXvwDVLaOhWkDJKdizr0LY8zk4L0QERHplkKmF7BIdxThMJnWP4lr+iWy8Ug9r35SwZZjDbx/sJb3D9YyKC2Kz0SWUfDX/8Jx+viDleVYzzyBefcDSgJFRKRdKQEU6QSmYTA+N47xuXHsq2zi1U8q+ff+GnaUNbGDONIKfsC1R9dyTdF6Elvq/fa1XnwWc1SBLgeLiEi7CfpA0CLhpk9yFN+alMWzN/bjC1leEtx1lEUl8399r+erk37ErwfPYU9czskdKstgV2HwAhYRkW5HLYAiQZIc7WRubBmz1v6K99NH8GbOZexJyOOdzHG8kzmOgdUHmH7kfSaVbiWiqgINJCMiIu1FCaBIEBlJKURYHq48tokrjm1iV3web+Zexur0EexM7MXOxF78yV3HNXXRXFvrJjNe8w6LiMilUwIoEkwD8iE5FSrLMYCBtYcY+PGL3LLndVZkFbA8eyIVkYksLobFr+5ldFYs1w1IYnxOHA5TbYIiInJxdA+gSBAZpgNz7l0By5Pddcw5sJL/Xfs4D+TUMiorFoAPi+p5/N9HuOuVPby4pYzS+o4Zj1JERLo3tQCKBJkxZjLm3Q/4jQMIQHIarrl3MmnMeCYBRbVulu+u4u091ZQ3evjb1jJe3FrGmOxYpvZLYlxOnKacExGR86IEUCQEGGMmY44qOOtMIFnxEdwyOoMvjUhjzaE6lu2qZFtJIxuP1rPxaD2JUQ6u6pPINf0TyU2IDOKrERGRUKcEUCREGKYDBg0/Z29fl8Pk070T+HTvBI7WuHl7TxX/3FtNZZOXJR9XsOTjCvLTo7m6XyKTe8Zr/mEREQmgBFCkC8tOiOArozP40sh0Nh6pY8WeajYeraOwtJHC0kZ+v+EYk/LiuapfIsN7xGAaukQsIiJKAEW6BadpUJAXT0FePOUNLbyzt4Z/7qvmSI2bf+2v4V/7a0iLcXJFn0Su6ptITkLgcDKWxw3vvIVdWoSRngVXXo/p1LAzIiLdkRJAkW4mNcbF7GGpfH5oCjvLm/jn3mreO1BDWYOHRdvLWbS9nEFpUVzeO5EpveJJjHJiLVqAvXwpHJ+P2AZYuABr2kzM2bcF9fWIiEj7UwIo0k0ZhsGgtGgGpUVzx9gM1h+u4597q/mwqL51DuKyJp7deIzRRiWf3raP8YaDqOMJIAC2hb1sCRYoCRQR6WbCKgGsqKjghRde4KOPPsLtdpOVlcXdd99N3759gx2aSIeKcJhM6ZXAlF4JVDR6WHWghn/tq2FPRRMb7WQ25n+JKG8zBaXb+FTJh4ys3I3jRGvg8qVYN87T5WARkW4kbBLAuro6HnroIYYOHcqPfvQjEhISOHbsGDExMcEOTaRTpUQ7+ezgFD47OIWDb73Fvzft4d89RnMsOpV3M8fybuZYEtx1TCzbxmUlm8mv2ovznbdg6sxghy4iIu0kbBLApUuXkpqayj333ONblpGREcSIRIIvp/IAX9y/nLn7l7MzoSf/7jGa99NHUhMRx/LsiSzPnkiSu5ZJJTV8uqSBwenR6kksItINhE0C+MEHHzBy5EiefPJJCgsLSUlJYdq0aVxzzTXBDk0kaIz0LGzAAAbVHGRQzUFu3/0aW5P68X7GSNalDaMqIp63iOetFQdJjXYyuVc8k/PilQyKiHRhYZMAlpSUsGLFCm644QZmzZrF7t27WbBgAS6Xi8svv7zNfVpaWmhpOTnXqmEYREdH+x53hBPH7ajjy4Xp7vVhXDUde+ECX+9fAIdtMapyF6Mqd/HVnUvYkjKQ1Z+5j3VHGihv9PDaJ5W89kklyVEOJvaMZ3JeAsN6xOAwO76Munt9dCWqi9Ci+ggtXaE+DNu27WAH0Rm++MUv0q9fPx599FHfsj/96U/s2bOHxx57rM19Xn75ZRYtWuR73qdPH+bPn9/hsYp0pso//oq6xc+fcX3c575M8h3fotnjZe2+ClbuLOG9PeXUNXt82yRGu7i8fxpXDUxnfM8UIpxmZ4QuIiIXKWxaAJOTk8nNzfVblpuby7p16864z6xZs5gxY4bv+YlMvrS0FI/Hc6bdLolhGGRmZlJcXEyY5OYhLSzqY/ocjPp67OWv+LUEYpgY026kafocioqKABgYBwPHpHDnyGS2FNez+mANaw/XUd3Ywqtbi3h1axExLpOx2XFMyI1jXE4csRHtNxVdWNRHF6G6CC2qj9DSGfXhdDpJT0+/+P3bMZaQNmjQII4ePeq37OjRo2ctPJfLhcvlanNdR/+B2batP+IQ0t3rw5x9K9aNX2pzJpC2XrfThDHZsYzJjuVuy2Z7SQOrD9ay9lAtlU1e3jtQw3sHanAYMLxHDBNy45mQG0d6bNt/Txequ9dHV6K6CC2qj9ASyvURNgngDTfcwEMPPcTixYuZPHkyu3fvZuXKlXz1q18NdmgiIcF0RlzUUC8O02BEZiwjMmP56vge7CpvYu2hWtYfruNwjZuPihv4qLiB339wjH4pkUzIjWdcdhx9UyLP2onEtrywqxC7qgIjKQUG5GM4wuYjS0SkQ4XNPYAAGzdu5K9//SvFxcVkZGRwww03XFQv4NLSUr/OIe3JMAyysrIoKioK2W8N4UT1cWmO1LhZd7g1GfyktJFTSzA5ysHYnDjGZccxMiuGGNfJS8X2ptVYL/4BKstP2SEVc+5XyZnxedVHCNDfRmhRfYSWzqgPl8ulS8Dna+zYsYwdOzbYYYiEjZyECD6Xn8rn8lOpavLwwZE6Nhyp46OiBiqbvLy9p5q391TjNGFoRgzjcuIYW7WTHn98goC2wcpyrGcepyE5GfoOCcbLERHpNsIqARSR4EmKcnJNvySu6ZdEi9die0kjHxyp44OjdRTVtrC5uIHNxQ38kSR6FPyAURU7GF2xk+FVe4j2NvuOU/X7X8LP/hcM9TQWEblYSgBFpNO5HCajsmIZlRXLnfTgSI27tXVwVzEfV1sci05lWc5kluVMxml5GFx9gFGVOxhdsYPeZUU4dhZiDBoW7JchItJlKQEUkaDLSYggJyGFz9RspeHN37AtqS8fpgziw5RBHItOZVtyP7Yl9+OFvtNJaq5h5A4Po1zVjMiMIS2mfXoWi4iEEyWAIhIyjKQUor3NjC//mPHlHwNQFJ3KhymD+Ch5IFuT+1MVmcC7tfDumtaxCXMTIhiRGcPIzFiG9Yghrh3HHRQR6a6UAIpI6BiQD8mpfr1/sxrLyTqymulHVtNiONjZczSbZ3ydzcUN7Klo4nCNm8M1bt7cWYVpQP+UKEZkxjK8RwxD0qOJ1KwkIiIBlACKSMgwTAfm3LuwnnmizfUu28un581hZN8e2LZNXbOXrSUNbC6qZ3NxA0dr3ewsb2JneROLtpfjNGFgajTDesQwvEcMg9KUEIqIgBJAEQkxxpjJmHc/0MY4gGmYc+8i5rKrqD4+NV1cpINJefFMyosHoLS+hc3F9Ww91sDWYw2UN3goLG2ksLSRl7eV4zQNBqVFMaxHDEMzWhPCKCWEIhKGlACKSMgxxkzGHFUQMBOIeY6ZQNJjXb6hZmzbpriuhW3Hk8GtxxqoaPSwvaSR7SWNQDkOA/qmRDE0I4b89GiGZMSQEHnuewgtj7vNafNERLoKJYAiEpIM0wGDhgcOCH2++xsGWfERZMVHMLV/a0JYVNvCtpLWZLCwpIGyBg+7ypvYVd7EK619TshLjCA/PYb8jGiGpEeTEevCOGXKOmvRAuzlS8G2AFpnN1m4AGvaTMzZt13SaxYR6SxKAEUkLBiGQXZCBNkJEUzrnwRASV0LhaUNFJY0sr2kgcM1bg5Vt/4s210FtE5ZNyg9msFp0Qza9k/6rHyNiOPJn49tYS9bggVKAkWkS1ACKCJhKyPORUZcIlf0SQSgpun4PYMlDRSWNrKvsonKJi9rD9Wx9lAdMBznlCH0rT3CoJoDDKo5wICaQ6Q1V2EA9vKlWDfO0+VgEQl5SgBFRI5LiHIyMS+eicc7lTR7LPZWNPFxWSOfbN/LJ3VQHRHPzsRe7EzsxWvH90tqrmFA7SEG1Bxi4LJ3GTD1Ko1HKCIhTQmgiMgZRDpNhmTEMCQjBu9HC7FXv8mxqBR2JPbik4Re7EroyYHYLKoiE9gQOZQNaUOhCli4i9yECAakRjEgNZr+qVH0TorUEDQiEjKUAIqInAcjPQuAzKYKMpsquPzYhwA0m072xeWwK6Enu+Lz2JWVzzErwjdA9Tv7agAwDchLjKRfShT9U6LolxJFn2QlhSISHEoARUTOx5XXw8IFvt6/J0RaHgbXHGBwzQEwTIxvvkytx2RXeRM7yxvZXd7Enoomqpq8HKhq5kBVM//cWw0cTwoTIumXGkmf5NaEsE9SFHHnMRTNudiWN2AYHcPUZWkRaaUEUETkPJjOCKxpM7GXLTnjNsa0mZjOCBKdMC4njnE5cQDYtk1Fo4fdFU2+hNCXFFY3c6C6GajxHScj1knvEwlhchR9kyMDhqM5G3vTar+BtG2A5FTMuXdhjJl8sUUgIt2IEkARkfNkzr4NC/zGAQRaW/7OMg6gYRikxrhIjXFRkNvaweTUpHBvRRP7KpvZV9lMSX0LJfUeSurrWH+4zneMGJdJr6RIeiZG0ivp5E/8aa2F9qbVbU+lV1mO9cwTmHc/oCRQRJQAiohcCHP2bVg3zrvkmUDaSgoB6txe9lc2s6/yRFLYxMHqZhpaLD4ubeTj0ka/46REO+mZFEnvpEjyElzkLn2NXEck0d7mNs9rvfgs5qgCXQ4WCXNKAEVELpDpjICpMzvk2HERDob1iGFYjxjfshavzZGa1vsHD1a7OVDVxIEqNyX1LVQ0eqho9PBRUX3rxgNvgYGQ2lRFbkMJuQ3HyK0vOf64hMTKMthVCIOGd0j8ItI1KAEUEQlxLodB7+QoeidH+S1vaPFysMrNwepm9lc1c+DgMQ5XN1MVEU95VBLlUUlsThnot098Sz2522xyKovIjm+dGSUnPoLMeBcRDvVIFrlUtuXF3vUx9Ts2Y9kmDBgSki3uYZMAvvzyyyxatMhvWWJiIn/4wx+CFJGIyKWJcTkYnB7N4PRoAOz4Eqxf/JRaZzSHYzI4HNuDwzEZHInJ4HBMBiXRKdS6Yvm4CT7eU+13LANIj3UdTwhbf2fGtSaGPWJduDo4ObQ87ku+rC4SbKd2wKo4sTBEO2CFTQIIkJeXx0MPPeR7bpr6tisi3ciAfEhOJb6ynCE1BxhSc8BvdZPp4kjmQI7e8n2K67wcqXVztMbN0Vo3DS3W8Q4oLXxU5H9YA0iNcZIZH0FmnKv1Jz6CYcTibPYQ5zLPu4dyW6xFC/w61tgACxdgnaVjjUio6WodsMIqATRNk6SkpGCHISLSIQzTgTn3rrb/CQFRVgsDZn6GgX2T/Zbbtk11k39CeKTGzbG6Forr3DR5bMoaPJQ1eNh27JQdVx1tPa7TID3WRcbxn/TjPxmxLjLiXCRFOTDPkCBaixa0PbSObWEvW4IFSgIl5NmWt7Xl7yxCrQNWWCWAxcXFfO1rX8PpdDJgwAC++MUv0qNHjzNu39LSQktLi++5YRhER0f7HneEE8ftqOPLhVF9hBbVx7kZYy+Du3+I9eLvfeMAApCchjn3LsyxgS0QhmGQHGOSHONiWI9Yv3W2bVPd7KW41k1xXcvJ33VuShu8lB5PEA9VuzlU7W4zJqdpkBbjJC3GRWqMk7TY1t8pkQYpqz8gNSKORHc9Zmvbn//5ly/FnnVzyF0Oti0v9s5CqK6AxBSMgcEdaLs7/22EWlmf4PZaVDS0dsIq272Xsth8KlISqIhIpCIygcqIBH614Rc4TwwZVVkGuz7GGBwaHbAM27YD/+K6oQ8//JDm5mays7Opqqpi8eLFHDlyhCeffJL4+Pg29zn9vsE+ffowf/78zgpZROSi2V4vzds/xFtRhiMljcihozEc7f9Ps9njpbimmeKaJo5WN1Jc00RRTdPx502U1jVjncd/GYflJdldQ0pzDUnuWpLdNSS760h215B9xVX0vGYaqbERpMZE4AxyZ5WG9/9J1e9/gbesxLfMkZZB0lfvJ+ayq4IY2blZbjd1by7EU3QYZ1YucdNvwowIreT6VJ1d1pZtU9PYQnmDm/J6NxX1rb/L691UHF9WVtdMab2b6saWcx7v92seI6355P22Kd97lNgrrmv3uC9G2CSAp2tqauK+++5j5syZzJgxo81tztQCWFpaisfj6ZC4DMMgMzOT4uJiwrRqQorqI7SoPkLH+daFx7Ipb2hpvYRc30J5g4fyxtbfZQePUNZsURWRgGWcf1KXEOkgMcpBYqSThCj/x0lRTt/6hEgncREOXI72axWzNq7GeubxM6437/5hm62sHe186sO7cAH28lfaGMT8Rhw3hd5l9vYoa49lU+f2UtPkpabZQ3WTl5pmL9VNHmqaTzxuXVfT7KWq0YP3Aj5aIhwGKdFOUnCTsmczKe5qUppbv8ikuqvpV3uYCOtkvmDe/zPMdmoBdDqdpKenX/z+7RJFFxQVFUXPnj0pKio64zYulwuXy9Xmuo7+52Pbtv7BhRDVR2hRfYSOc9WFw8B3byDHeyufYK34APvlP+I1TCoj4imPTKQqIp7KiHgqIxJ8j6sy+1DpiqeqqfWf84l/3Ido+5Lz6aKcJvERJnGRDuIjHCd/H18WF+Eg1mUSE+EgxmX6fmIjHEQ6DN9l1db7vH5/1nNZL/4BRk0I2iXKM9XH2e+1XIwXO6TutTxR1l4MmpyRNDiiaHBG0eCIpMEZTaMzkvrl62mI6E+duzXJa/2xqHN7qW1ufdzksc59sjbER5gkRjlJjnaSHOUkMdpB8vHnSVEOUqKdpMa4iIto7QBlW16sB/7L/7aL0yWnwYAhIfPZFbYJYEtLC0eOHGHIkCHBDkVEJDxdeT0sXIDDtkhrrva7VOZjmBj3vtw6F7NtU9vspbLR42u5qfZr1TnZslPd7KWu2YsNNHlaE4HShgu/cmMaHE8IHcRYbqJ6zyEqz02U102Ut5lIr5to72nP135MZG5PIhwmEQ7jlN8GLodBpMMkwmngMk2cZsfft2d53K29rM/CXr4U68Z5F3SvpW3beO3WVja3x8Jt2bg9Nm6vhdtrH/+xaPbatBx/3OSxaGqxfXXS6LFoPv64ydO6vLHForGxmYah36LRGXX2IDafJeE6RXyEScLx1uETP4mnPT/RgpwU5bjgYY/O1QELwJx7Z0jcu3hC2CSAf/nLXxg3bhxpaWlUV1fz97//ncbGRi6//PJghyYiEpZMZwTWtJltt0wdZ0yb6UtKTMMgMcpJYtT5/evyWjYNLae2CJ1sGap1tyaItW4v9W4v9W6LhhaLhhbv8d8Wlg2WzfFWJQswILHPuU+8D9h39LxihNZWUqdp4HQYOA3D99hhGLhMA4fZ+tpN49Tfgcuio0tpbmo6rSuNjV16DIZ+5eQSw8DCwDJMLOP4b0ysv2/HSkw+/rptLLu1DD2WTYtl+x6f/Dnvl3gRDDgl+XNaHmI8TcR6moj2NhHjaSLG20Rcn37E52QTd7xlN+5Ey26Eg/hIB7HHW3cdZsd3jjHGTMa8+wHfOIA+yWmtyV8IDQEDYZQAVlRU8Ktf/YqamhoSEhIYMGAAjz322CVdPxcRkUtjzr4NC/zGAQSO35t2aeMAOkyD+MjWRCCr7b5+Z2TbNk0em4YWL/UtFg1ui4Z9e2hc8lcaHRE0OyJockTS5Ig4/nPycXOffFqiYmk+3urV4rX9HrtPu8nMa4P3+DaXpv4My+MgLf/cu3uA8qaLPrvTxK+188Rjl8Mk8njrZ5TTbP1xmUQ5DKJcJtFOk8gTy52t20Qf3UvUc08R42kk1tOEy/a2eU7zuscwBp15NI/OZoyZjDmqAHZ9TJJhUaWZQILv29/+drBDEBGRNpizb8O6cV5IzQRiGAbRLoNol0nq8WV26hCsRUVQdvb7vMz7Zp31H75lt14SbfHaeOzW1jTv8VY2j/fkZdUTP17reGvc8VY5+/jvU1vqbCA+IZHq6mo47R4zu/BD2PCe3zLTtjGxWn/bFgY2jslX4Rg1AccpLYtO89QfTj52+K9rbalsv1Y2OyMfK8qGyjMltRy/p+48EttOZpgOjMHDic3KoqaoKGTu+Ttd2CSAIiISukxnBEydGewwzqq97vMyDYNIp0FkO/4HNgyDrKwsioqMgITD6n0Z9uu/8m9hDTiAiXHdf4bMeItd8Z66rkZzoYmIiJynE/d5kZzqvyI5LeSm+jrBdEZgTDt7cn3qvZahoiuWdVeiFkAREZELcPI+r0LsqgqMpBQYEBqzU5xJR95r2ZG6Yll3FUoARURELpBhOmDQcLrSxGuheK/l+eiKZd0VKAEUEREJE13hXkvpHEoAL4LT2fHF1hnnkPOn+ggtqo/QoboILaqP0NKR9XGpxw7buYBFREREwpV6AYeYxsZGfvCDH9DY2BjsUATVR6hRfYQO1UVoUX2Elq5QH0oAQ4xt2+zbty9kB44MN6qP0KL6CB2qi9Ci+ggtXaE+lACKiIiIhBklgCIiIiJhRglgiHG5XMyePRuXyxXsUATVR6hRfYQO1UVoUX2Elq5QH+oFLCIiIhJm1AIoIiIiEmaUAIqIiIiEGSWAIiIiImFGCaCIiIhImNGkgSFk2bJlvPrqq1RVVZGbm8utt97KkCFDgh1W2FmyZAnr16/nyJEjREREMHDgQG6++Ways7ODHZrQWj9/+9vfmD59OrfeemuwwwlLFRUVvPDCC3z00Ue43W6ysrK4++676du3b7BDCzter5eFCxfy3nvvUVVVRXJyMldccQWf+9znME218XS0wsJCXn31Vfbt20dlZSX3338/EyZM8K23bZuFCxeycuVK6urqGDBgAHfccQd5eXlBjLqV3h0hYvXq1Tz33HN87nOfY/78+QwZMoSf/exnlJWVBTu0sFNYWMi1117LY489xo9//GMsy+LRRx+lqakp2KGFvd27d/P222/Tq1evYIcSturq6njooYdwOp386Ec/4sknn+QrX/kKMTExwQ4tLC1dupQVK1Zwxx138NRTT3HzzTfz6quv8o9//CPYoYWF5uZmevfuze23397m+qVLl/LGG29w++238/jjj5OUlMSjjz4aElPEKQEMEa+//jpXXXUVV199ta/1Ly0tjeXLlwc7tLDz4IMPcsUVV5CXl0fv3r255557KCsrY+/evcEOLaw1NTXx61//mq997WvExsYGO5ywtXTpUlJTU7nnnnvo378/GRkZDB8+nMzMzGCHFpZ27tzJuHHjGDNmDBkZGUycOJERI0awZ8+eYIcWFkaPHs3cuXMpKCgIWGfbNm+++SazZs2ioKCAnj17cu+999Lc3MyqVauCEK0/JYAhwOPxsHfvXkaOHOm3fMSIEezYsSNIUckJDQ0NAMTFxQU5kvD27LPPMnr0aEaMGBHsUMLaBx98QN++fXnyySe58847+f73v8/bb78d7LDC1uDBg9m2bRtHjx4FYP/+/ezYsYPRo0cHOTIpKSmhqqrK73+7y+UiPz8/JP636x7AEFBTU4NlWSQmJvotT0xMpKqqKjhBCdD6De7Pf/4zgwcPpmfPnsEOJ2y9//777Nu3j8cffzzYoYS9kpISVqxYwQ033MCsWbPYvXs3CxYswOVycfnllwc7vLAzc+ZMGhoa+M53voNpmliWxdy5c5kyZUqwQwt7J/5/t/W/PRRu71ICGEIMwzivZdJ5/vjHP3Lw4EF+8pOfBDuUsFVWVsZzzz3Hgw8+SERERLDDCXuWZdGvXz++9KUvAdCnTx8OHTrE8uXLlQAGwerVq3nvvff45je/SV5eHvv37+e5557zdQaR4Dv9/3ioTMCmBDAEJCQkYJpmQGtfdXV1wDcH6Tx/+tOf2LhxI4888gipqanBDids7d27l+rqah544AHfMsuy+Pjjj/nHP/7BX//6V/V27ETJycnk5ub6LcvNzWXdunVBiii8vfDCC8ycOZPLLrsMgJ49e1JaWsorr7yiBDDIkpKSAHy9s0+oqakJif/tSgBDgNPppG/fvmzZssWv+/iWLVsYP358ECMLT7Zt86c//Yn169fz8MMPk5GREeyQwtrw4cP5xS9+4bfsmWeeITs7m5kzZyr562SDBg3y3W92wtGjR0lPTw9SROGtubk54G/ANM2QaWUKZxkZGSQlJbFlyxb69OkDtN7zX1hYyLx584IcnRLAkDFjxgx+/etf07dvXwYOHMjbb79NWVkZU6dODXZoYeePf/wjq1at4vvf/z7R0dG+ltmYmBhdggyC6OjogPsvIyMjiY+P132ZQXDDDTfw0EMPsXjxYiZPnszu3btZuXIlX/3qV4MdWlgaO3YsixcvJi0tjdzcXPbv38/rr7/OlVdeGezQwkJTUxPFxcW+5yUlJezfv5+4uDjS0tKYPn06S5YsISsri8zMTJYsWUJkZGRI3KNp2PqaEDJODARdWVlJXl4et9xyC/n5+cEOK+zMmTOnzeX33HOPLqmEiIcffpjevXtrIOgg2bhxI3/9618pLi4mIyODG264gWuuuSbYYYWlxsZGXnrpJdavX091dTUpKSlcdtllzJ49G6dTbTwdbfv27TzyyCMByy+//HLuvfde30DQb7/9NvX19fTv35877rgjJL68KgEUERERCTO6eUZEREQkzCgBFBEREQkzSgBFREREwowSQBEREZEwowRQREREJMwoARQREREJM0oARURERMKMEkARERGRMKMEUESkg7377rvccccdNDY2ttsxf/3rX/Nf//Vf7XY8EQkvSgBFRDpQc3Mzf/vb35g5cybR0dHtdtybbrqJDz/8kG3btrXbMUUkfCgBFBHpQO+++y61tbVcffXV7XrczMxMRo4cySuvvNKuxxWR8KCZokVEzsDtdvPjH/+YxsZG5s+fT0xMDABVVVV873vfIycnh//4j//ANM/8XXr58uWMHTuW2NhYv+Vz5szh2muvpW/fvrzyyiuUlZWRl5fH7bffzoABA3jttddYtmwZNTU19O/fn6997WtkZmb6HePTn/40v/rVryguLg5YJyJyNmoBFBE5g4iICL7zne9QU1PD7373OwAsy+K///u/AfjWt7511uSvvLycgwcPMmzYsDbXb9q0iX/+85/MmzePb33rWzQ2NvLEE0/wl7/8hU8++YQ77riDr33taxw+fJhf/vKX2Lbtt//QoUOxbZsPP/ywnV6xiIQLtQCKiJxFVlYWX/va13j66ad58803qaurY/v27Tz44IMkJyefdd8dO3YA0KdPnzbXt7S08OCDDxIVFQWAYRj8/Oc/Z/v27cyfPx/DMACoqanhueee49ChQ/Ts2dO3f2JiIikpKezYsYPrr7++PV6uiIQJJYAiIucwefJkCgsLef7557Esi1mzZjFixIhz7ldZWQm0JmptGTp0qC/5A8jJyQFg1KhRvuTv1OWlpaV+CeCJY1dUVFzYCxKRsKdLwCIi5+HKK6/E6/XicDiYPn36ee3jdrsBcLlcba6Pi4vze+50Os+6vKWlJeAYLpfLdx4RkfOlBFBE5Byampr4zW9+Q1ZWFhEREfzP//zPee0XHx8PQF1dXYfFVldX5zuPiMj5UgIoInIOf/jDHygrK+P+++/n61//Oh988AGvv/76Ofc7cen22LFjHRKX1+ulvLyc3NzcDjm+iHRfSgBFRM5i5cqVvPfee9xxxx3k5eUxceJErrvuOv7v//6P3bt3n3XfAQMGEBERwc6dOzsktgMHDtDc3MzQoUM75Pgi0n0pARQROYODBw+yYMECLr/8cq644grf8i9/+cv06tWLp556ivr6+jPu73Q6mThxIh988EGHxLdhwwbi4+MZOXJkhxxfRLovwz59YCkREWk3e/bs4Yc//CGPPfYYAwYMaLfjWpbFfffdx5QpU/jiF7/YbscVkfCgFkARkQ7Ur18/Jk2axN///vd2Pe6///1vmpqa+OxnP9uuxxWR8KAEUESkg33lK1+hX79+NDY2ttsxbdvmm9/8ZsAUcyIi50OXgEVERETCjFoARURERMKMEkARERGRMKMEUERERCTMKAEUERERCTNKAEVERETCjBJAERERkTCjBFBEREQkzCgBFBEREQkzSgBFREREwowSQBEREZEwowRQREREJMwoARQREREJM0oARURERMKMEkARERGRMKMEUERERCTMOIMdQFdUWVmJx+PpsOOnp6dTWlraYcfvilQmgVQmbVO5BFKZBFKZBFKZtC1Uy8XpdJKcnHzx+7djLGHD4/HQ0tLSIcc2DMN3Dtu2O+Qc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"/></p>
+</div>
+</div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="add_ode_output_to_timeseries.html" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                How do I add an ODE output to the timeseries outputs?
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="upstream_analysis.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                How do connect the outputs of an upstream analysis as inputs to Dymos?
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.53cc9318.min.js"></script>
+      <script src="../assets/javascripts/bundle.e9c9f54f.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: [],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.9c0e82ba.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+      
+    
+  </body>
+</html>
