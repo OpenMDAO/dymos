@@ -19,7 +19,9 @@ from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.examples.balanced_field.ground_roll_ode import GroundRollODE
+from dymos.examples.balanced_field.ground_roll_ode_comp import GroundRollODEComp
 from dymos.examples.balanced_field.takeoff_ode import TakeoffODE
+from dymos.examples.balanced_field.takeoff_climb_ode_comp import TakeoffClimbODEComp
 
 #
 # Instantiate the problem and configure the optimization driver
@@ -27,20 +29,20 @@ from dymos.examples.balanced_field.takeoff_ode import TakeoffODE
 p = om.Problem(model=om.Group())
 
 p.driver = om.pyOptSparseDriver()
-p.driver.options['optimizer'] = 'SNOPT'
-p.driver.opt_settings['iSumm'] = 6
-# p.driver.opt_settings['Verify level'] = 3
-p.driver.opt_settings['Major step limit'] = 0.1
-p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-5
-p.driver.opt_settings['Major optimality tolerance'] = 1.0E-5
-p.driver.opt_settings['Major iterations limit'] = 500
-p.driver.opt_settings['Minor iterations limit'] = 100000
-p.driver.opt_settings['Linesearch tolerance'] = 0.5
+# p.driver.options['optimizer'] = 'SNOPT'
+# p.driver.opt_settings['iSumm'] = 6
+# # p.driver.opt_settings['Verify level'] = 3
+# # p.driver.opt_settings['Major step limit'] = 0.1
+# p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-5
+# p.driver.opt_settings['Major optimality tolerance'] = 1.0E-5
+# p.driver.opt_settings['Major iterations limit'] = 500
+# p.driver.opt_settings['Minor iterations limit'] = 100000
+# # p.driver.opt_settings['Linesearch tolerance'] = 0.5
 
 
-# p.driver.options['optimizer'] = 'IPOPT'
-# p.driver.opt_settings['print_level'] = 5
-# p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+p.driver.options['optimizer'] = 'IPOPT'
+p.driver.opt_settings['print_level'] = 5
+p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
 
 p.driver.declare_coloring()
 
@@ -57,7 +59,7 @@ p.model.add_subsystem('traj', traj)
 # We don't know what V1 is a priori, we're going to use this model to determine it.
 #
 
-p1 = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=3))
+p1 = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
 
 traj.add_phase('brake_release_to_v1', p1)
 
@@ -69,13 +71,13 @@ p1.set_time_options(fix_initial=True, duration_bounds=(1, 1000), duration_ref=10
 p1.add_state('r', fix_initial=True, lower=0, ref=1000.0, defect_ref=1000.0,
              rate_source='r_dot')
 
-p1.add_state('v', fix_initial=True, lower=0.0, ref=100.0, defect_ref=100.0, rate_source='v_dot')
+p1.add_state('v', fix_initial=True, lower=0.0001, ref=100.0, defect_ref=100.0, rate_source='v_dot')
 
-p1.add_parameter('h', opt=False, units='m')
-p1.add_parameter('T', val=27000 * 2, opt=False, units='lbf')
+p1.add_parameter('h', opt=False, units='m', dynamic=False)
+p1.add_parameter('T', val=27000 * 2, opt=False, units='lbf', dynamic=False)
 p1.add_parameter('m', val=174200, opt=False, units='lbm')
 p1.add_parameter('alpha', val=0.0, opt=False, units='deg')
-p1.add_parameter('mu_r', val=0.03, opt=False, units=None)
+p1.add_parameter('mu_r', val=0.03, opt=False, units=None, dynamic=False)
 
 p1.add_timeseries_output('*')
 
@@ -84,7 +86,7 @@ p1.add_timeseries_output('*')
 # Vr is taken to be 1.2 * the stall speed (v_stall)
 #
 
-p2 = dm.Phase(ode_class=GroundRollODE,
+p2 = dm.Phase(ode_class=GroundRollODEComp,
                  transcription=dm.Radau(num_segments=3))
 
 traj.add_phase('v1_to_vr', p2)
@@ -97,13 +99,13 @@ p2.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1
 p2.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0,
              rate_source='r_dot')
 
-p2.add_state('v', fix_initial=False, lower=0.0, ref=100.0, defect_ref=100.0,
+p2.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0,
              rate_source='v_dot')
 
-p2.add_parameter('h', val=0.0, opt=False, units='m')
-p2.add_parameter('T', val=27000, opt=False, units='lbf')
+p2.add_parameter('h', val=0.0, opt=False, units='m', dynamic=False)
+p2.add_parameter('T', val=27000, opt=False, units='lbf', dynamic=False)
 p2.add_parameter('m', val=174200, opt=False, units='lbm')
-p2.add_parameter('mu_r', val=0.03, opt=False, units=None)
+p2.add_parameter('mu_r', val=0.03, opt=False, units=None, dynamic=False)
 p2.add_parameter('alpha', val=0.0, opt=False, units='deg')
 
 p2.add_timeseries_output('*')
@@ -117,7 +119,7 @@ p2.add_timeseries_output('*')
 # V1 to Zero speed with no propulsion and braking.
 #
 
-p3 = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=3))
+p3 = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
 
 traj.add_phase('rto', p3)
 
@@ -129,21 +131,21 @@ p3.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1
 p3.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0,
              rate_source='r_dot')
 
-p3.add_state('v', fix_initial=False, lower=0.0, ref=100.0, defect_ref=100.0,
+p3.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0,
              rate_source='v_dot')
 
-p3.add_parameter('h', val=0.0, opt=False, units='m')
-p3.add_parameter('T', val=0.0, opt=False, units='N')
+p3.add_parameter('h', val=0.0, opt=False, units='m', dynamic=False)
+p3.add_parameter('T', val=0.0, opt=False, units='N', dynamic=False)
 p3.add_parameter('m', val=174200, opt=False, units='lbm')
-p3.add_parameter('mu_r', val=0.3, opt=False, units=None)
+p3.add_parameter('mu_r', val=0.3, opt=False, units=None, dynamic=False)
 p3.add_parameter('alpha', val=0.0, opt=False, units='deg')
 
 p3.add_timeseries_output('*')
 
-p3.add_boundary_constraint('v', loc='final', equals=0, ref=100, linear=True)
+p3.add_boundary_constraint('v', loc='final', upper=0.001, ref=100, linear=True)
 
 # Minimize range at the end of the phase
-p3.add_objective('r', loc='final', ref=1.0) #  ref0=2000.0, ref=3000.0)
+p3.add_objective('r', loc='final', ref=1000.0) #  ref0=2000.0, ref=3000.0)
 
 
 # Fourth Phase - Rotate for single engine takeoff
@@ -162,7 +164,7 @@ p4.set_time_options(fix_initial=False, duration_bounds=(0.1, 100), duration_ref=
 p4.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0,
              rate_source='r_dot')
 
-p4.add_state('v', fix_initial=False, lower=0.0, ref=100.0, defect_ref=100.0,
+p4.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0,
              rate_source='v_dot')
 
 p4.add_parameter('h', val=0.0, opt=False, units='m')
@@ -187,7 +189,7 @@ p4.add_boundary_constraint('F_r', loc='final', equals=0, ref=100000)
 # liftoff until v2 (1.2 * v_stall) at 35 ft
 #
 
-p5 = dm.Phase(ode_class=TakeoffODE, transcription=dm.Radau(num_segments=15))
+p5 = dm.Phase(ode_class=TakeoffODE, transcription=dm.Radau(num_segments=10))
 
 traj.add_phase('climb', p5)
 
@@ -202,13 +204,13 @@ p5.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0,
 p5.add_state('h', fix_initial=True, lower=0.0, ref=1.0, defect_ref=1.0,
              rate_source='h_dot')
 
-p5.add_state('v', fix_initial=False, lower=0.01, ref=100.0, defect_ref=100.0,
+p5.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0,
              rate_source='v_dot')
 
 p5.add_state('gam', fix_initial=True, lower=0.0, ref=0.05, defect_ref=0.05,
              rate_source='gam_dot')
 
-p5.add_parameter('T', val=27000, opt=False, units='lbf')
+p5.add_parameter('T', val=27000, opt=False, units='lbf', dynamic=True)
 p5.add_parameter('m', val=174200, opt=False, units='lbm')
 
 p5.add_control('alpha', opt=True, units='deg', lower=-10, upper=15, ref=10, rate_continuity=True, rate_continuity_scaler=1)
@@ -234,10 +236,10 @@ p.model.linear_solver.precon = om.DirectSolver()
 #
 
 # Standard "end of first phase to beginning of second phase" linkages
-traj.link_phases(['brake_release_to_v1', 'v1_to_vr'], vars=['time', 'r', 'v', 'alpha'])
+traj.link_phases(['brake_release_to_v1', 'v1_to_vr'], vars=['time', 'r', 'v'])
 traj.link_phases(['v1_to_vr', 'rotate'], vars=['time', 'r', 'v', 'alpha'])
 traj.link_phases(['rotate', 'climb'], vars=['time', 'r', 'v', 'alpha'])
-traj.link_phases(['brake_release_to_v1', 'rto'], vars=['time', 'r', 'v', 'alpha'])
+traj.link_phases(['brake_release_to_v1', 'rto'], vars=['time', 'r', 'v'])
 
 # # Less common "final value of r must be the match at ends of two phases".
 traj.add_linkage_constraint(phase_a='rto', var_a='r', loc_a='final',
@@ -253,7 +255,7 @@ p.set_val('traj.brake_release_to_v1.t_initial', 0)
 p.set_val('traj.brake_release_to_v1.t_duration', 35)
 
 p.set_val('traj.brake_release_to_v1.states:r', p1.interpolate(ys=[0, 2500.0], nodes='state_input'))
-p.set_val('traj.brake_release_to_v1.states:v', p1.interpolate(ys=[0, 100.0], nodes='state_input'))
+p.set_val('traj.brake_release_to_v1.states:v', p1.interpolate(ys=[0.0001, 100.0], nodes='state_input'))
 
 p.set_val('traj.brake_release_to_v1.parameters:alpha', 0, units='deg')
 p.set_val('traj.brake_release_to_v1.parameters:h', 0.0)
@@ -276,7 +278,7 @@ p.set_val('traj.rto.t_initial', 35)
 p.set_val('traj.rto.t_duration', 1)
 
 p.set_val('traj.rto.states:r', p3.interpolate(ys=[2500, 5000.0], nodes='state_input'))
-p.set_val('traj.rto.states:v', p3.interpolate(ys=[110, 0.0], nodes='state_input'))
+p.set_val('traj.rto.states:v', p3.interpolate(ys=[110, 0.0001], nodes='state_input'))
 
 p.set_val('traj.rto.parameters:alpha', 0.0, units='deg')
 p.set_val('traj.rto.parameters:h', 0.0)
@@ -306,7 +308,6 @@ p.set_val('traj.climb.states:h', p5.interpolate(ys=[0, 35.0], nodes='state_input
 p.set_val('traj.climb.states:gam', p5.interpolate(ys=[0, 5.0], nodes='state_input'), units='deg')
 
 p.set_val('traj.climb.controls:alpha', 5.0, units='deg')
-
 p.set_val('traj.climb.parameters:T', 27000.0, units='lbf')
 
 #
@@ -319,7 +320,7 @@ p.set_val('traj.climb.parameters:T', 27000.0, units='lbf')
 #
 # from openmdao.utils.sc
 
-dm.run_problem(p, run_driver=True, simulate=False, make_plots=False) #, restart='dymos_simulation.db')
+dm.run_problem(p, run_driver=True, simulate=False, make_plots=True) #, restart='dymos_simulation.db')
 
 print(p.get_val('traj.climb.timeseries.states:r'))
 print(p.get_val('traj.climb.timeseries.v_over_v_stall'))
