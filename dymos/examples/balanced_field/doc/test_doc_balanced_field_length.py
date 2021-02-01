@@ -55,7 +55,7 @@ p.driver.declare_coloring()
 # We don't know what V1 is a priori, we're going to use this model to determine it.
 #
 
-br_to_v1 = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
+br_to_v1 = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=3))
 
 #
 # Set the options on the optimization variables
@@ -67,7 +67,7 @@ br_to_v1.add_state('r', fix_initial=True, lower=0, ref=1000.0, defect_ref=1000.0
 
 br_to_v1.add_state('v', fix_initial=True, lower=0.0001, ref=100.0, defect_ref=100.0, rate_source='v_dot')
 
-br_to_v1.add_parameter('h', opt=False, units='m', dynamic=False)
+br_to_v1.add_parameter('h', opt=False, units='m', dynamic=True)
 br_to_v1.add_parameter('T', val=27000 * 2, opt=False, units='lbf', dynamic=False)
 br_to_v1.add_parameter('m', val=174200, opt=False, units='lbm')
 br_to_v1.add_parameter('alpha', val=0.0, opt=False, units='deg')
@@ -80,8 +80,7 @@ br_to_v1.add_timeseries_output('*')
 # Vr is taken to be 1.2 * the stall speed (v_stall)
 #
 
-v1_to_vr = dm.Phase(ode_class=GroundRollODEComp,
-                 transcription=dm.Radau(num_segments=3))
+v1_to_vr = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=3))
 
 #
 # Set the options on the optimization variables
@@ -94,7 +93,7 @@ v1_to_vr.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.
 v1_to_vr.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0,
              rate_source='v_dot')
 
-v1_to_vr.add_parameter('h', val=0.0, opt=False, units='m', dynamic=False)
+v1_to_vr.add_parameter('h', val=0.0, opt=False, units='m', dynamic=True)
 v1_to_vr.add_parameter('T', val=27000, opt=False, units='lbf', dynamic=False)
 v1_to_vr.add_parameter('m', val=174200, opt=False, units='lbm')
 v1_to_vr.add_parameter('mu_r', val=0.03, opt=False, units=None, dynamic=False)
@@ -102,7 +101,7 @@ v1_to_vr.add_parameter('alpha', val=0.0, opt=False, units='deg')
 v1_to_vr.add_timeseries_output('*')
 
 
-rto = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
+rto = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=3))
 
 
 #
@@ -116,7 +115,7 @@ rto.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0,
 rto.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0,
              rate_source='v_dot')
 
-rto.add_parameter('h', val=0.0, opt=False, units='m', dynamic=False)
+rto.add_parameter('h', val=0.0, opt=False, units='m', dynamic=True)
 rto.add_parameter('T', val=0.0, opt=False, units='N', dynamic=False)
 rto.add_parameter('m', val=174200, opt=False, units='lbm')
 rto.add_parameter('mu_r', val=0.3, opt=False, units=None, dynamic=False)
