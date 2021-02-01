@@ -43,12 +43,12 @@ class GroundRollODE(om.Group):
         self.add_subsystem(name='dynamics',
                            subsys=GroundRollEOM2D(num_nodes=nn),
                            promotes_inputs=['m', 'L', 'D', 'T', 'v', 'alpha', 'mu_r'],
-                           promotes_outputs=['F_r', 'W', 'v_dot', 'r_dot'])
+                           promotes_outputs=['F_r', 'v_dot', 'r_dot'])
 
         self.add_subsystem(name='stall_speed_comp',
                            subsys=StallSpeedComp(num_nodes=nn),
-                           promotes_inputs=['v', 'W', 'rho', 'CL_max', 'S'],
-                           promotes_outputs=['v_stall', 'v_over_v_stall'])
+                           promotes_inputs=['v', 'm', 'rho', 'CL_max', 'S'],
+                           promotes_outputs=['v_stall', 'v_over_v_stall', 'W'])
 
         self.set_input_defaults('CL_max', val=2.0)
         self.set_input_defaults('alpha_max', val=10.0, units='deg')

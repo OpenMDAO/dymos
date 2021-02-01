@@ -73,10 +73,10 @@ class GroundRollEOM2D(om.ExplicitComponent):
                         desc='runway normal force',
                         units='N')
 
-        self.add_output(name='W',
-                        val=np.ones(nn),
-                        desc='aircraft weight',
-                        units='N')
+        # self.add_output(name='W',
+        #                 val=np.ones(nn),
+        #                 desc='aircraft weight',
+        #                 units='N')
 
         ar = np.arange(nn)
 
@@ -121,7 +121,7 @@ class GroundRollEOM2D(om.ExplicitComponent):
 
         outputs['r_dot'] = v
 
-        outputs['W'] = m * g
+        # outputs['W'] = m * g
 
     # def compute_partials(self, inputs, partials):
     #     g = 9.80665
