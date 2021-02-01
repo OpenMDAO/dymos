@@ -20,6 +20,7 @@ class AeroForcesComp(om.ExplicitComponent):
         self.add_input('span', val=35.7, desc='Wingspan', units='m')
         self.add_input('h', val=np.ones(nn), desc='altitude', units='m')
         self.add_input('h_w', val=1.0, desc='height of the wing above the CG', units='m')
+        self.add_input('m', val=np.ones(nn), desc='aircraft mass', units='kg')
 
         self.add_input('alpha', val=np.ones(nn), desc='angle of attack', units='deg')
         self.add_input('CL0', val=0.5, desc='zero-alpha lift coefficient', units=None)
@@ -36,6 +37,10 @@ class AeroForcesComp(om.ExplicitComponent):
         self.add_output('L', val=np.ones(nn), desc='lift', units='N')
         self.add_output('D', val=np.ones(nn), desc='drag', units='N')
 
+        self.add_output('W', val=np.ones(nn), desc='aircraft weight', units='N')
+        self.add_output('v_stall', val=np.ones(nn), desc='stall speed', units='m/s')
+        self.add_output('v_over_v_stall', val=np.ones(nn), desc='stall speed ratio', units=None)
+
         ar = np.arange(nn)
 
         self.declare_coloring(wrt='*', method='cs')
@@ -43,6 +48,7 @@ class AeroForcesComp(om.ExplicitComponent):
         self.declare_partials(of='*', wrt='*', method='cs')
 
     def compute(self, inputs, outputs):
+        g = 9.80665
         rho = inputs['rho']
         v = inputs['v']
         S = inputs['S']
@@ -59,6 +65,11 @@ class AeroForcesComp(om.ExplicitComponent):
         alpha = inputs['alpha']
         alpha_max = inputs['alpha_max']
         CL_max = inputs['CL_max']
+        m = inputs['m']
+
+        W = outputs['W'] = m * g
+        outputs['v_stall'] = np.sqrt(2 * W / rho / S / CL_max)
+        outputs['v_over_v_stall'] = v / outputs['v_stall']
 
         CL = outputs['CL'] = CL0 + (alpha / alpha_max) * (CL_max - CL0)
 

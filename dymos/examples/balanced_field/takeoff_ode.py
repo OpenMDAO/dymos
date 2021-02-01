@@ -35,8 +35,8 @@ class TakeoffODE(om.Group):
 
         self.add_subsystem(name='aero_force_comp',
                            subsys=AeroForcesComp(num_nodes=nn),
-                           promotes_inputs=['alpha', 'alpha_max', 'CL0', 'CL_max', 'AR', 'span', 'e', 'h', 'h_w', 'rho', 'v', 'S', 'CD0'],
-                           promotes_outputs=['q', 'L', 'D', 'K', 'CL'])
+                           promotes_inputs=['alpha', 'alpha_max', 'CL0', 'CL_max', 'AR', 'span', 'e', 'h', 'h_w', 'rho', 'v', 'S', 'CD0', 'm'],
+                           promotes_outputs=['q', 'L', 'D', 'K', 'CL', 'v_stall', 'v_over_v_stall', 'W'])
 
         # Note: Typically a propulsion subsystem would go here, and provide thrust and mass
         # flow rate of the aircraft (for integrating mass).
@@ -56,10 +56,10 @@ class TakeoffODE(om.Group):
         #                    promotes_inputs=['m'],
         #                    promotes_outputs=['W'])
 
-        self.add_subsystem(name='stall_speed_comp',
-                           subsys=StallSpeedComp(num_nodes=nn),
-                           promotes_inputs=['v', 'm', 'rho', 'CL_max', 'S'],
-                           promotes_outputs=['v_stall', 'v_over_v_stall', 'W'])
+        # self.add_subsystem(name='stall_speed_comp',
+        #                    subsys=StallSpeedComp(num_nodes=nn),
+        #                    promotes_inputs=['v', 'm', 'rho', 'CL_max', 'S'],
+        #                    promotes_outputs=['v_stall', 'v_over_v_stall', 'W'])
 
         self.set_input_defaults('CL_max', val=2.0)
         self.set_input_defaults('alpha_max', val=10.0, units='deg')
