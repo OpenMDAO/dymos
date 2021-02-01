@@ -26,7 +26,7 @@ class TakeoffClimbODEComp(om.ExplicitComponent):
         self.add_input('CD0', val=0.03, desc='zero-lift drag coefficient', units=None)
         self.add_input('CL0', val=0.5, desc='zero-alpha lift coefficient', units=None)
         self.add_input('CL_max', val=2.0, desc='maximum lift coefficient for linear fit', units=None)
-        self.add_input('alpha_max', val=10, desc='angle of attack at CL_max', units='deg')
+        self.add_input('alpha_max', val=np.radians(10), desc='angle of attack at CL_max', units='rad')
         self.add_input('h_w', val=1.0, desc='height of the wing above the CG', units='m')
         self.add_input('AR', val=9.45, desc='wing aspect ratio', units=None)
         self.add_input('e', val=0.801, desc='Oswald span efficiency factor', units=None)

@@ -166,7 +166,7 @@ rotate.add_timeseries_output('*')
 # liftoff until v2 (1.2 * v_stall) at 35 ft
 #
 
-climb = dm.Phase(ode_class=TakeoffODE, transcription=dm.Radau(num_segments=10))
+climb = dm.Phase(ode_class=TakeoffClimbODEComp, transcription=dm.Radau(num_segments=10))
 
 #
 # Set the options on the optimization variables
@@ -178,7 +178,7 @@ climb.add_state('h', fix_initial=True, lower=0.0, ref=1.0, defect_ref=1.0)
 climb.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0)
 climb.add_state('gam', fix_initial=True, lower=0.0, ref=0.05, defect_ref=0.05)
 
-climb.add_parameter('T', val=27000, opt=False, units='lbf', dynamic=True)
+climb.add_parameter('T', val=27000, opt=False, units='lbf', dynamic=False)
 climb.add_parameter('m', val=174200, opt=False, units='lbm')
 
 climb.add_control('alpha', opt=True, units='deg', lower=-10, upper=15, ref=10, rate_continuity=True, rate_continuity_scaler=1)
