@@ -18,9 +18,7 @@ import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
-from dymos.examples.balanced_field.ground_roll_ode import GroundRollODE
 from dymos.examples.balanced_field.ground_roll_ode_comp import GroundRollODEComp
-from dymos.examples.balanced_field.takeoff_ode import TakeoffODE
 from dymos.examples.balanced_field.takeoff_climb_ode_comp import TakeoffClimbODEComp
 
 #
