@@ -288,8 +288,7 @@ p.set_val('traj.climb.states:gam', climb.interpolate(ys=[0, 5.0], nodes='state_i
 p.set_val('traj.climb.controls:alpha', 5.0, units='deg')
 # p.set_val('traj.climb.parameters:T', 27000.0, units='lbf')
 
-
-dm.run_problem(p, run_driver=True, simulate=True, make_plots=True) #, restart='dymos_simulation.db')
+dm.run_problem(p, run_driver=True, simulate=True, make_plots=True, restart='dymos_simulation.db')
 
 
 if __name__ == '__main__':  # pragma: no cover

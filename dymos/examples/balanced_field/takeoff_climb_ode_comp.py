@@ -22,6 +22,7 @@ class TakeoffClimbODEComp(om.ExplicitComponent):
         nn = self.options['num_nodes']
 
         # Scalar (constant) inputs
+        self.add_input('rho', val=1.225, desc='atmospheric density at runway', units='kg/m**3')
         self.add_input('S', val=124.7, desc='aerodynamic reference area', units='m**2')
         self.add_input('CD0', val=0.03, desc='zero-lift drag coefficient', units=None)
         self.add_input('CL0', val=0.5, desc='zero-alpha lift coefficient', units=None)
@@ -58,12 +59,10 @@ class TakeoffClimbODEComp(om.ExplicitComponent):
         self.declare_coloring(wrt='*', method='cs', show_sparsity=True)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
-        g = 9.80665  # m/s**2  - gravitational acceleration
-
-        # Atmospheric model (constant since the aircraft is always close to the ground
-        rho = 1.225  # kg/m**3 - atmospheric density
+        g = 9.80665  # m/s**2  - gravitational acceleration]
 
         # Compute factor k to include ground effect on lift
+        rho = inputs['rho']
         v = inputs['v']
         S = inputs['S']
         CD0 = inputs['CD0']
