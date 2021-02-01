@@ -1,4 +1,6 @@
 import numpy as np
+
+
 def linewidth_from_data_units(linewidth, axis, reference='y'):
     """
     Convert a linewidth in data units to linewidth in points.

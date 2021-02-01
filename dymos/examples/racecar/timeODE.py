@@ -1,6 +1,7 @@
 import openmdao.api as om
 import numpy as np
 
+
 class TimeODE(om.ExplicitComponent):
 
     def initialize(self):
@@ -9,19 +10,23 @@ class TimeODE(om.ExplicitComponent):
     def setup(self):
         nn = self.options['num_nodes']
 
-        #states
+        # states
         self.add_input('sdot', val=np.zeros(nn), desc='distance along track', units='m/s')
-        self.add_input('ndot', val=np.zeros(nn), desc='distance perpendicular to centerline', units='m/s')
-        self.add_input('alphadot', val=np.zeros(nn), desc='angle relative to centerline', units='rad/s')
+        self.add_input('ndot', val=np.zeros(nn), desc='distance perpendicular to centerline',
+                       units='m/s')
+        self.add_input('alphadot', val=np.zeros(nn), desc='angle relative to centerline',
+                       units='rad/s')
         self.add_input('Vdot', val=np.zeros(nn), desc='speed', units='m/s**2')
         self.add_input('lambdadot', val=np.zeros(nn), desc='body slip angle', units='rad/s')
         self.add_input('omegadot', val=np.zeros(nn), desc='yaw rate', units='rad/s**2')
         self.add_input('axdot', val=np.zeros(nn), desc='longitudinal jerk', units='m/s**3')
         self.add_input('aydot', val=np.zeros(nn), desc='lateral jerk', units='m/s**3')
 
-        #outputs
-        self.add_output('dn_ds', val=np.zeros(nn), desc='distance perpendicular to centerline', units='m/m')
-        self.add_output('dalpha_ds', val=np.zeros(nn), desc='angle relative to centerline', units='rad/m')
+        # outputs
+        self.add_output('dn_ds', val=np.zeros(nn), desc='distance perpendicular to centerline',
+                        units='m/m')
+        self.add_output('dalpha_ds', val=np.zeros(nn), desc='angle relative to centerline',
+                        units='rad/m')
         self.add_output('dV_ds', val=np.zeros(nn), desc='speed', units='1/s')
         self.add_output('dlambda_ds', val=np.zeros(nn), desc='body slip angle', units='rad/m')
         self.add_output('domega_ds', val=np.zeros(nn), desc='yaw rate', units='rad/(s*m)')
@@ -31,7 +36,7 @@ class TimeODE(om.ExplicitComponent):
         # Setup partials
         arange = np.arange(self.options['num_nodes'], dtype=int)
 
-        #partials
+        # partials
 
         self.declare_partials(of='dn_ds', wrt='ndot', rows=arange, cols=arange)
         self.declare_partials(of='dn_ds', wrt='sdot', rows=arange, cols=arange)
@@ -53,7 +58,6 @@ class TimeODE(om.ExplicitComponent):
 
         self.declare_partials(of='day_ds', wrt='aydot', rows=arange, cols=arange)
         self.declare_partials(of='day_ds', wrt='sdot', rows=arange, cols=arange)
-
 
     def compute(self, inputs, outputs):
         omegadot = inputs['omegadot']
@@ -103,13 +107,3 @@ class TimeODE(om.ExplicitComponent):
 
         jacobian['day_ds', 'sdot'] = -aydot/sdot**2
         jacobian['day_ds', 'aydot'] = 1/sdot
-
-        
-
-
-
-
-
-
-
-
