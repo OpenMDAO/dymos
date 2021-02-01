@@ -24,7 +24,7 @@ class GroundRollEOM2D(om.ExplicitComponent):
         nn = self.options['num_nodes']
 
         self.add_input(name='m',
-                       val=79016 * np.ones(nn),  # MTOW of 174200 lb
+                       val=np.ones(nn),  # MTOW of 174200 lb
                        desc='aircraft mass',
                        units='kg')
 
@@ -118,8 +118,18 @@ class GroundRollEOM2D(om.ExplicitComponent):
 
         outputs['F_r'] = m * g - L * calpha - T * salpha
         outputs['v_dot'] = (T * calpha - D - outputs['F_r'] * mu_r) / m
-
         outputs['r_dot'] = v
+
+
+        # if not np.any(np.iscomplex(alpha)) and 'rotate' in self.pathname:
+        #     with np.printoptions(linewidth=1024, precision=16):
+        #         print(self.pathname)
+        #         # print(alpha)
+        #         print(m)
+        #         # print(T)
+        #         # print(L)
+        #         # print(g)
+        #         # print(outputs['F_r'])
 
         # outputs['W'] = m * g
 

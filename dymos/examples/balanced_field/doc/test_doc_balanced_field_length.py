@@ -312,7 +312,23 @@ p.set_val('traj.climb.parameters:T', 27000.0, units='lbf')
 
 dm.run_problem(p, run_driver=True, simulate=False, make_plots=True) #, restart='dymos_simulation.db')
 
-p.list_problem_vars(show_promoted_name=True, print_arrays=True)
+rotate.rhs_all.list_outputs(print_arrays=True, prom_name=True)
+
+
+# rotate.rhs_all.list_outputs(print_arrays=True, prom_name=True)
+
+# import numpy as np
+# with np.printoptions(linewidth=1024):
+#     for var in ['T', 'calpha', 'D', 'F_r', 'mu_r', 'm']:
+#         try:
+#             print(var)
+#             print(p.get_val(f'traj.rotate.rhs_all.{var}'))
+#             print(p.get_val(f'traj.rotate.rhs_all.aero_force_comp.{var}'))
+#         except:
+#             pass
+
+# print(p.get_val('traj.rotate.rhs_all.aero_forces_comp.F_r'))
+# print(p.get_val('traj.rotate.rhs_all.F_r'))
 
 # p.driver.scaling_report()
 #

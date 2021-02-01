@@ -22,10 +22,10 @@ class AeroForcesCompGroundroll(om.ExplicitComponent):
         self.add_input('h_w', val=1.0, desc='height of the wing above the CG', units='m')
         self.add_input('m', val=np.ones(nn), desc='aircraft mass', units='kg')
 
-        self.add_input('alpha', val=np.ones(nn), desc='angle of attack', units='deg')
+        self.add_input('alpha', val=np.ones(nn), desc='angle of attack', units='rad')
         self.add_input('CL0', val=0.5, desc='zero-alpha lift coefficient', units=None)
         self.add_input('CL_max', val=2.0, desc='maximum lift coefficient', units=None)
-        self.add_input('alpha_max', val=10, desc='angle of attack at CL_max', units='deg')
+        self.add_input('alpha_max', val=np.radians(10), desc='angle of attack at CL_max', units='rad')
 
         self.add_input(name='T', val=120101.98, desc='thrust', units='N')
 
@@ -69,7 +69,6 @@ class AeroForcesCompGroundroll(om.ExplicitComponent):
         span = inputs['span']
         AR = inputs['AR']
         e = inputs['e']
-        b = span / 2.0
 
         CL0 = inputs['CL0']
         alpha = inputs['alpha']
@@ -79,6 +78,11 @@ class AeroForcesCompGroundroll(om.ExplicitComponent):
 
         T = inputs['T']
         mu_r = inputs['mu_r']
+
+        calpha = np.cos(alpha)
+        salpha = np.sin(alpha)
+
+        b = span / 2.0
 
         W = outputs['W'] = m * g
         outputs['v_stall'] = np.sqrt(2 * W / rho / S / CL_max)
@@ -90,16 +94,23 @@ class AeroForcesCompGroundroll(om.ExplicitComponent):
         K = outputs['K'] = K_nom * 33 * ((h + h_w) / b)**1.5 / (1.0 + 33 * ((h + h_w) / b)**1.5)
 
         q = outputs['q'] = 0.5 * rho * v ** 2
-        L = outputs['L'] = q * S * CL
-        D = outputs['D'] = q * S * (CD0 + K * CL ** 2)
+        outputs['L'] = q * S * CL
+        outputs['D'] = q * S * (CD0 + K * CL ** 2)
 
-        calpha = np.cos(alpha)
-        salpha = np.sin(alpha)
-
-        F_r = outputs['F_r'] = m * g - L * calpha - T * salpha
-        outputs['v_dot'] = (T * calpha - D - F_r * mu_r) / m
-
+        outputs['F_r'] = m * g - outputs['L'] * calpha - T * salpha
+        outputs['v_dot'] = (T * calpha - outputs['D'] - outputs['F_r'] * mu_r) / m
         outputs['r_dot'] = v
+
+        # if not np.any(np.iscomplex(alpha)) and 'rotate' in self.pathname:
+        #     with np.printoptions(linewidth=1024, precision=16):
+        #         print(self.pathname)
+        #         # print(alpha)
+        #         print(m)
+        #         # print(T)
+        #         # print(outputs['L'])
+        #         # print(g)
+        #         # print(outputs['F_r'])
+
 
     # def compute_partials(self, inputs, partials):
     #     rho = inputs['rho']
