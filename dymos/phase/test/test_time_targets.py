@@ -1,12 +1,13 @@
 import unittest
 
+import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
-import numpy as np
 import dymos as dm
 
 
@@ -89,6 +90,7 @@ class _BrachistochroneTestODE(om.ExplicitComponent):
         jacobian['check', 'theta'] = -v * cos_theta / sin_theta**2
 
 
+@use_tempdirs
 class TestPhaseTimeTargets(unittest.TestCase):
 
     def _make_problem(self, transcription, num_seg, transcription_order=3):

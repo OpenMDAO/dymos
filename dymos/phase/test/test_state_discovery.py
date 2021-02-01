@@ -6,6 +6,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 
@@ -103,6 +104,7 @@ class ODEGroup(om.Group):
                            promotes=['*'])
 
 
+@use_tempdirs
 class TestStateDiscovery(unittest.TestCase):
 
     def test_discovery(self):

@@ -10,16 +10,25 @@ from ....options import options as dymos_options
 
 class CollocationComp(om.ExplicitComponent):
     """
+    Class definiton for the Collocationcomp.
+
     CollocationComp computes the generalized defect of a segment for implicit collocation.
     The defect is the interpolated state derivative at the collocation nodes minus
     the computed state derivative at the collocation nodes.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
-
+        """
+        Declare component options.
+        """
         self.options.declare(
             'grid_data', types=GridData,
             desc='Container object for grid info')
@@ -34,8 +43,7 @@ class CollocationComp(om.ExplicitComponent):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine shape and units.
         """
         gd = self.options['grid_data']
         num_col_nodes = gd.subset_num_nodes['col']
@@ -130,6 +138,16 @@ class CollocationComp(om.ExplicitComponent):
                                   rows=r, cols=c)
 
     def compute(self, inputs, outputs):
+        """
+        Compute collocation defects.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         state_options = self.options['state_options']
         dt_dstau = inputs['dt_dstau']
 
@@ -142,6 +160,16 @@ class CollocationComp(om.ExplicitComponent):
             outputs[var_names['defect']] = ((f_approx - f_computed).T * dt_dstau).T
 
     def compute_partials(self, inputs, partials):
+        """
+        Compute sub-jacobian parts. The model is assumed to be in an unscaled state.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        partials : Jacobian
+            Subjac components written to partials[output_name, input_name].
+        """
         dt_dstau = inputs['dt_dstau']
         for state_name, options in self.options['state_options'].items():
             size = np.prod(options['shape'])

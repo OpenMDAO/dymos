@@ -1,5 +1,10 @@
+import unittest
+
 import numpy as np
+
 import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
+
 import dymos as dm
 
 
@@ -44,64 +49,68 @@ class BrachistochroneVectorStatesODE(om.ExplicitComponent):
         outputs['check'] = v / sin_theta
 
 
-p = om.Problem(model=om.Group())
+@use_tempdirs
+class TestAddBoundaryConstraint(unittest.TestCase):
 
-p.driver = om.pyOptSparseDriver()
-p.driver.options['optimizer'] = 'SLSQP'
+    def test_simple_no_exception(self):
+        p = om.Problem(model=om.Group())
 
-p.driver.declare_coloring()
+        p.driver = om.pyOptSparseDriver()
+        p.driver.options['optimizer'] = 'SLSQP'
 
-transcription = dm.GaussLobatto(num_segments=3,
-                                order=3,
-                                compressed=True, solve_segments='forward')
-fix_final = True
+        p.driver.declare_coloring()
 
-traj = dm.Trajectory()
-phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
-                 transcription=transcription)
-traj.add_phase('phase0', phase)
+        transcription = dm.GaussLobatto(num_segments=3,
+                                        order=3,
+                                        compressed=True, solve_segments='forward')
+        fix_final = True
 
-p.model.add_subsystem('traj0', traj)
+        traj = dm.Trajectory()
+        phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
+                         transcription=transcription)
+        traj.add_phase('phase0', phase)
 
-phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='s')
+        p.model.add_subsystem('traj0', traj)
 
-# can't fix final position if you're solving the segments
-phase.add_state('pos',
-                rate_source='pos_dot', units='m',
-                fix_initial=True)
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='s')
 
-# test add_boundary_constraint with arrays:
-expected = np.array([10, 5])
-phase.add_boundary_constraint(name='pos', loc='final', lower=expected-1)
-phase.add_boundary_constraint(name='pos', loc='final', upper=expected+1)
-phase.add_boundary_constraint(name='pos', loc='final', equals=expected)
+        # can't fix final position if you're solving the segments
+        phase.add_state('pos',
+                        rate_source='pos_dot', units='m',
+                        fix_initial=True)
 
-phase.add_state('v',
-                rate_source='vdot', units='m/s',
-                fix_initial=True, fix_final=False)
+        # test add_boundary_constraint with arrays:
+        expected = np.array([10, 5])
+        phase.add_boundary_constraint(name='pos', loc='final', lower=expected-1)
+        phase.add_boundary_constraint(name='pos', loc='final', upper=expected+1)
+        phase.add_boundary_constraint(name='pos', loc='final', equals=expected)
 
-phase.add_control('theta',
-                  continuity=True, rate_continuity=True,
-                  units='deg', lower=0.01, upper=179.9)
+        phase.add_state('v',
+                        rate_source='vdot', units='m/s',
+                        fix_initial=True, fix_final=False)
 
-phase.add_parameter('g', units='m/s**2', val=9.80665, opt=False)
+        phase.add_control('theta',
+                          continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
 
-# Minimize time at the end of the phase
-phase.add_objective('time', loc='final', scaler=10)
+        phase.add_parameter('g', units='m/s**2', val=9.80665, opt=False)
 
-p.model.linear_solver = om.DirectSolver()
-p.setup(check=True, force_alloc_complex=True)
-p.final_setup()
+        # Minimize time at the end of the phase
+        phase.add_objective('time', loc='final', scaler=10)
 
-p['traj0.phase0.t_initial'] = 0.0
-p['traj0.phase0.t_duration'] = 1.8016
+        p.model.linear_solver = om.DirectSolver()
+        p.setup(check=True, force_alloc_complex=True)
+        p.final_setup()
 
-pos0 = [0, 10]
-posf = [10, 5]
+        p['traj0.phase0.t_initial'] = 0.0
+        p['traj0.phase0.t_duration'] = 1.8016
 
-p['traj0.phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
-p['traj0.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-p['traj0.phase0.parameters:g'] = 9.80665
+        pos0 = [0, 10]
+        posf = [10, 5]
 
-p.run_driver()
+        p['traj0.phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
+        p['traj0.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['traj0.phase0.parameters:g'] = 9.80665
+
+        p.run_driver()

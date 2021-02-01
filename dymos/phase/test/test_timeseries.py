@@ -1,13 +1,16 @@
 import unittest
+
 from scipy.interpolate import interp1d
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
+@use_tempdirs
 class TestTimeseriesOutput(unittest.TestCase):
 
     def test_timeseries_gl(self, test_smaller_timeseries=False):

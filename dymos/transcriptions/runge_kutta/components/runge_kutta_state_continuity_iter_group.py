@@ -9,15 +9,23 @@ from ....utils.indexing import get_src_indices_by_row
 
 class RungeKuttaStateContinuityIterGroup(om.Group):
     """
+    Class definition for the RungeKuttaStateContinuityIterGroup.
+
     This Group contains the k-iteration subgroup, the state advance component, continuity defect
     component.  Given the initial value of each state at the beginning of the first segment,
     the times at the ODE evaluations, and the stepsize across each segment it will iterate
     to find the Runge-Kutta weights 'k' and the initial values of the states in all but the first
     segments to provide state continuity across the phase.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
-
     def initialize(self):
-
+        """
+        Declare component options.
+        """
         self.options.declare('num_segments', types=int,
                              desc='The number of segments (timesteps) in the phase')
 
@@ -47,6 +55,9 @@ class RungeKuttaStateContinuityIterGroup(om.Group):
                                   'Runge-Kutta propagation across each step.')
 
     def setup(self):
+        """
+        Build the group hierarchy.
+        """
         self.add_subsystem('k_iter_group',
                            RungeKuttaKIterGroup(num_segments=self.options['num_segments'],
                                                 method=self.options['method'],
@@ -73,8 +84,7 @@ class RungeKuttaStateContinuityIterGroup(om.Group):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine variable shape and units.
         """
         self.k_iter_group.configure_io()
         self.state_advance_comp.configure_io()

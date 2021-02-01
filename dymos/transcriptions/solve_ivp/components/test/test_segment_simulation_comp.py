@@ -2,6 +2,7 @@ import unittest
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.transcriptions.solve_ivp.components.segment_simulation_comp import SegmentSimulationComp
 from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE
@@ -13,6 +14,7 @@ from dymos.utils.misc import CompWrapperConfig
 SegmentSimulationComp = CompWrapperConfig(SegmentSimulationComp)
 
 
+@use_tempdirs
 class TestSegmentSimulationComp(unittest.TestCase):
 
     def test_simple_integration(self):

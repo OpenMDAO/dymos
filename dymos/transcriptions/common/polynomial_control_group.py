@@ -14,9 +14,16 @@ from ...options import options as dymos_options
 class LGLPolynomialControlComp(om.ExplicitComponent):
     """
     Component which interpolates controls as a single polynomial across the entire phase.
-    """
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+    """
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of time')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
@@ -29,8 +36,7 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine shape and units for the states.
         """
         self._input_names = {}
         self._output_val_names = {}
@@ -132,8 +138,17 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
                                   wrt=self._input_names[name],
                                   rows=self.rate2_jac_rows[name], cols=self.rate2_jac_cols[name])
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Interpolate control outputs.
 
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         dt_dptau = 0.5 * inputs['t_duration']
 
         for name, options in self.options['polynomial_control_options'].items():
@@ -150,6 +165,16 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
             outputs[self._output_rate2_names[name]] = (b / dt_dptau ** 2).T
 
     def compute_partials(self, inputs, partials):
+        """
+        Compute sub-jacobian parts. The model is assumed to be in an unscaled state.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        partials : Jacobian
+            Subjac components written to partials[output_name, input_name].
+        """
         nn = self.options['grid_data'].num_nodes
 
         for name, options in self.options['polynomial_control_options'].items():
@@ -185,8 +210,18 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
 
 
 class PolynomialControlGroup(om.Group):
+    """
+    Group that contains and manages the LGLPolynomialControlComp.
 
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+    """
     def initialize(self):
+        """
+        Declare group options.
+        """
         self.options.declare('polynomial_control_options', types=dict,
                              desc='Dictionary of options for the polynomial controls')
         self.options.declare('time_units', default=None, allow_none=True, types=str,
@@ -194,6 +229,9 @@ class PolynomialControlGroup(om.Group):
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
 
     def setup(self):
+        """
+        Define the structure of the polynomial control group.
+        """
         opts = self.options
 
         # Pull out the interpolated controls
@@ -219,8 +257,7 @@ class PolynomialControlGroup(om.Group):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine shape and units for the states.
         """
         self.interp_comp.configure_io()
 

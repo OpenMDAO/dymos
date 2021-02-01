@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
 
 
 class BrachistochroneODE(om.ExplicitComponent):
@@ -61,6 +62,7 @@ class BrachistochroneODE(om.ExplicitComponent):
         jacobian['ydot', 'theta'] = v * sin_theta
 
 
+@use_tempdirs
 class TestBrachistochroneQuickStart(unittest.TestCase):
 
     def test_brachistochrone_quick_start(self):

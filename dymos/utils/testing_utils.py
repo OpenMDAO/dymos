@@ -1,13 +1,35 @@
 import numpy as np
 from scipy.interpolate import interp1d
+
 import openmdao.utils.assert_utils as _om_assert_utils
 from openmdao.utils.general_utils import warn_deprecation
 
 
 def assert_check_partials(data, atol=1.0E-6, rtol=1.0E-6):
     """
+    Wrapper around OpenMDAO's assert_check_partials with a dymos-specific message.
+
     Calls OpenMDAO's assert_check_partials but verifies that the dictionary of assertion data is
     not empty due to dymos.options['include_check_partials'] being False.
+
+    Parameters
+    ----------
+    data : dict of dicts of dicts
+            First key:
+                is the component name;
+            Second key:
+                is the (output, input) tuple of strings;
+            Third key:
+                is one of ['rel error', 'abs error', 'magnitude', 'J_fd', 'J_fwd', 'J_rev'];
+
+            For 'rel error', 'abs error', 'magnitude' the value is: A tuple containing norms for
+                forward - fd, adjoint - fd, forward - adjoint.
+            For 'J_fd', 'J_fwd', 'J_rev' the value is: A numpy array representing the computed
+                Jacobian for the three different methods of computation.
+    atol : float
+        Absolute error. Default is 1e-6.
+    rtol : float
+        Relative error. Default is 1e-6.
     """
     assert len(data) >= 1, "No check partials data found.  Is " \
                            "dymos.options['include_check_partials'] set to True?"
@@ -91,6 +113,7 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
 def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6, num_points=None):
     """
     Assert that two timeseries of data are approximately equal.
+
     This is done by fitting a 1D interpolant to each index of each timeseries, and then comparing
     the values of the two interpolants at some equally spaced number of points.
 

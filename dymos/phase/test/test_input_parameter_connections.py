@@ -1,7 +1,10 @@
+import unittest
+
 import numpy as np
 
-import unittest
 import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
+
 import dymos as dm
 
 
@@ -43,6 +46,7 @@ class MyODE(om.Group):
                                          n_traj=n_traj))
 
 
+@use_tempdirs
 class TestStaticParameters(unittest.TestCase):
 
     def test_radau(self):

@@ -9,12 +9,21 @@ from .runge_kutta_k_comp import RungeKuttaKComp
 
 class RungeKuttaKIterGroup(om.Group):
     """
+    Class definition for the RungeKuttaKIterGroup.
+
     This Group contains the state prediction component, the ODE, and the k-calculation component.
     Given the initial values of the states, the times at the ODE evaluations, and the stepsize
     across each segment it will iterate to find the Runge-Kutta weights 'k'.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def initialize(self):
-
+        """
+        Declare component options.
+        """
         self.options.declare('num_segments', types=int,
                              desc='The number of segments (timesteps) in the phase')
 
@@ -44,6 +53,9 @@ class RungeKuttaKIterGroup(om.Group):
                                   'Runge-Kutta propagation across each step.')
 
     def setup(self):
+        """
+        Build the group hierarchy.
+        """
         num_seg = self.options['num_segments']
         rk_data = rk_methods[self.options['method']]
         num_nodes = num_seg * rk_data['num_stages']
@@ -65,8 +77,7 @@ class RungeKuttaKIterGroup(om.Group):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine variable shape and units.
         """
         self.state_predict_comp.configure_io()
         self.k_comp.configure_io()

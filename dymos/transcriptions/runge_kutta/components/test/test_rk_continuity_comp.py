@@ -4,6 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.transcriptions.runge_kutta.components.runge_kutta_state_continuity_comp import \
@@ -18,6 +19,7 @@ RungeKuttaStateContinuityComp = CompWrapperConfig(RungeKuttaStateContinuityComp)
 dm.options['include_check_partials'] = True
 
 
+@use_tempdirs
 class TestRungeKuttaContinuityComp(unittest.TestCase):
 
     def test_continuity_comp_scalar_no_iteration_fwd(self):

@@ -4,17 +4,19 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from dymos.utils.testing_utils import assert_check_partials
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.transcriptions.runge_kutta.components.runge_kutta_state_advance_comp import \
     RungeKuttaStateAdvanceComp
+from dymos.utils.testing_utils import assert_check_partials
 
 # Modify class so we can run it standalone.
 from dymos.utils.misc import CompWrapperConfig
 RungeKuttaStateAdvanceComp = CompWrapperConfig(RungeKuttaStateAdvanceComp)
 
 
+@use_tempdirs
 class TestRKStateAdvanceComp(unittest.TestCase):
 
     def setUp(self):

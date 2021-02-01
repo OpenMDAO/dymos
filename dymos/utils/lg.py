@@ -3,8 +3,7 @@ import numpy as np
 
 def lg(n, tol=1.0E-15):
     """
-    Returns the Legendre-Gauss nodes and weights for a
-    Jacobi Polynomial with n abscissae.
+    Returns the Legendre-Gauss nodes and weights for a Jacobi Polynomial with n abscissae.
 
     The nodes are on the range (-1, 1).
 
@@ -38,7 +37,7 @@ def lg(n, tol=1.0E-15):
     Parameters
     ----------
     n : int
-        The number of Legendre-Gauss nodes to be returned
+        The number of Legendre-Gauss nodes to be returned.
     tol : float
         The tolerance to which the location of the nodes should be converged.
 
@@ -49,7 +48,6 @@ def lg(n, tol=1.0E-15):
 
     w : numpy.array
         An array of the corresponding LG weights at the nodes in x.
-
     """
     n = n - 1
     n1 = n + 1

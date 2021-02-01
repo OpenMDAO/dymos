@@ -9,15 +9,25 @@ from ....options import options as dymos_options
 
 class RungeKuttaStateAdvanceComp(om.ExplicitComponent):
     """
+    Class definition for the RungeKuttaStateAdvanceComp.
+
     Given the initial value of each state at the start of each segment and the weight factors k
     for each state in each segment, compute the final value of each state at the end of each
     segment.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
+        """
+        Declare component options.
+        """
         self.options.declare('num_segments', types=int,
                              desc='The number of segments (time steps) in the phase')
 
@@ -29,8 +39,7 @@ class RungeKuttaStateAdvanceComp(om.ExplicitComponent):
 
     def configure_io(self):
         """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
+        I/O creation is delayed until configure so we can determine variable shape and units.
         """
         self._var_names = {}
 
@@ -83,7 +92,17 @@ class RungeKuttaStateAdvanceComp(om.ExplicitComponent):
                                   rows=r, cols=c,
                                   val=np.tile(rk_data['b'], size*num_segs))
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute(self, inputs, outputs):
+        """
+        Compute component outputs.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         for name, options in self.options['state_options'].items():
             x0 = inputs[self._var_names[name]['initial']]
             k = inputs[self._var_names[name]['k']]

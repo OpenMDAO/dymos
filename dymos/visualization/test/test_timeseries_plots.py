@@ -13,9 +13,13 @@ from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryOD
 from dymos.utils.lgl import lgl
 from dymos.visualization.timeseries_plots import timeseries_plots
 
+from openmdao.utils.general_utils import set_pyoptsparse_opt
+_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+
 
 @use_tempdirs
 class TestTimeSeriesPlotsBasics(unittest.TestCase):
+
     def setUp(self):
         optimizer = 'SLSQP'
         num_segments = 8
@@ -75,11 +79,6 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
 
         self.p = p
 
-    def tearDown(self):
-        for filename in ['test_time_series_plots.db']:
-            if os.path.exists(filename):
-                os.remove(filename)
-
     def test_brachistochrone_timeseries_plots(self):
         dm.run_problem(self.p, make_plots=False)
 
@@ -126,6 +125,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
 @use_tempdirs
 class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
 
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_trajectory_linked_phases_make_plot(self):
 
         self.traj = dm.Trajectory()
@@ -357,6 +357,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         self.assertTrue(os.path.exists('plots/states_state_of_charge.png'))
         self.assertTrue(os.path.exists('plots/state_rates_state_of_charge.png'))
 
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_trajectory_linked_phases_make_plot_missing_data(self):
         """
         Test that plots are still generated even if the phases don't share the exact same

@@ -4,13 +4,15 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
-from dymos.utils.testing_utils import assert_check_partials
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.trajectory.phase_linkage_comp import PhaseLinkageComp
 from dymos.trajectory.options import LinkageOptionsDictionary
+from dymos.utils.testing_utils import assert_check_partials
 
 
+@use_tempdirs
 class TestPhaseLinkageComp(unittest.TestCase):
 
     def setUp(self):
