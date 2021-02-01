@@ -30,7 +30,6 @@ class GroundRollODEComp(om.ExplicitComponent):
         self.add_input('v', val=np.ones(nn), desc='true airspeed', units='m/s')
         self.add_input('m', val=np.ones(nn), desc='aircraft mass', units='kg')
 
-
         self.add_output('CL', val=np.ones(nn), desc='lift coefficient', units=None)
         self.add_output('K', val=np.ones(nn), desc='drag-due-to-lift factor', units=None)
         self.add_output('q', val=np.ones(nn), desc='dynamic pressure', units='Pa')
