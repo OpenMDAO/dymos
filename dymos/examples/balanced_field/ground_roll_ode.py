@@ -1,7 +1,7 @@
 import numpy as np
 import openmdao.api as om
 from .k_comp import KComp
-from .aero_forces_comp import AeroForcesComp
+from .aero_forces_comp_groundroll import AeroForcesCompGroundroll
 from .lift_coef_comp import LiftCoefComp
 from .ground_roll_eom_2d import GroundRollEOM2D
 from .stall_speed_comp import StallSpeedComp
@@ -31,7 +31,7 @@ class GroundRollODE(om.Group):
         #                    promotes_outputs=['CL'])
 
         self.add_subsystem(name='aero_force_comp',
-                           subsys=AeroForcesComp(num_nodes=nn),
+                           subsys=AeroForcesCompGroundroll(num_nodes=nn),
                            promotes_inputs=['alpha', 'alpha_max', 'CL0', 'CL_max', 'AR', 'span', 'e', 'h', 'h_w', 'rho', 'v', 'S', 'CD0', 'm'],
                            promotes_outputs=['q', 'L', 'D', 'K', 'CL', 'v_stall', 'v_over_v_stall', 'W'])
 

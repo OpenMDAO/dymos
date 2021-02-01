@@ -2,7 +2,7 @@ import numpy as np
 import openmdao.api as om
 
 
-class AeroForcesComp(om.ExplicitComponent):
+class AeroForcesCompGroundroll(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -26,6 +26,16 @@ class AeroForcesComp(om.ExplicitComponent):
         self.add_input('CL0', val=0.5, desc='zero-alpha lift coefficient', units=None)
         self.add_input('CL_max', val=2.0, desc='maximum lift coefficient', units=None)
         self.add_input('alpha_max', val=10, desc='angle of attack at CL_max', units='deg')
+
+        self.add_input(name='T', val=120101.98, desc='thrust', units='N')
+
+        self.add_input(name='mu_r', val=0.05, desc='runway friction coefficient', units=None)
+
+        self.add_output(name='v_dot', val=np.ones(nn), desc='rate of change of velocity magnitude', units='m/s**2')
+
+        self.add_output(name='r_dot', val=np.ones(nn), desc='rate of change of range', units='m/s')
+
+        self.add_output(name='F_r', val=np.ones(nn), desc='runway normal force', units='N')
 
         self.add_output('CL', val=np.ones(nn), desc='lift coefficient', units=None)
 
@@ -67,6 +77,9 @@ class AeroForcesComp(om.ExplicitComponent):
         CL_max = inputs['CL_max']
         m = inputs['m']
 
+        T = inputs['T']
+        mu_r = inputs['mu_r']
+
         W = outputs['W'] = m * g
         outputs['v_stall'] = np.sqrt(2 * W / rho / S / CL_max)
         outputs['v_over_v_stall'] = v / outputs['v_stall']
@@ -76,9 +89,17 @@ class AeroForcesComp(om.ExplicitComponent):
         K_nom = 1.0 / (np.pi * AR * e)
         K = outputs['K'] = K_nom * 33 * ((h + h_w) / b)**1.5 / (1.0 + 33 * ((h + h_w) / b)**1.5)
 
-        outputs['q'] = q = 0.5 * rho * v ** 2
-        outputs['L'] = q * S * CL
-        outputs['D'] = q * S * (CD0 + K * CL ** 2)
+        q = outputs['q'] = 0.5 * rho * v ** 2
+        L = outputs['L'] = q * S * CL
+        D = outputs['D'] = q * S * (CD0 + K * CL ** 2)
+
+        calpha = np.cos(alpha)
+        salpha = np.sin(alpha)
+
+        F_r = outputs['F_r'] = m * g - L * calpha - T * salpha
+        outputs['v_dot'] = (T * calpha - D - F_r * mu_r) / m
+
+        outputs['r_dot'] = v
 
     # def compute_partials(self, inputs, partials):
     #     rho = inputs['rho']
