@@ -22,10 +22,10 @@ class AeroForcesComp(om.ExplicitComponent):
         self.add_input('h_w', val=1.0, desc='height of the wing above the CG', units='m')
         self.add_input('m', val=np.ones(nn), desc='aircraft mass', units='kg')
 
-        self.add_input('alpha', val=np.ones(nn), desc='angle of attack', units='deg')
+        self.add_input('alpha', val=np.ones(nn), desc='angle of attack', units='rad')
         self.add_input('CL0', val=0.5, desc='zero-alpha lift coefficient', units=None)
         self.add_input('CL_max', val=2.0, desc='maximum lift coefficient', units=None)
-        self.add_input('alpha_max', val=10, desc='angle of attack at CL_max', units='deg')
+        self.add_input('alpha_max', val=np.radians(10), desc='angle of attack at CL_max', units='rad')
 
         self.add_output('CL', val=np.ones(nn), desc='lift coefficient', units=None)
 

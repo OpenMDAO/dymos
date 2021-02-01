@@ -55,7 +55,7 @@ p.driver.declare_coloring()
 # We don't know what V1 is a priori, we're going to use this model to determine it.
 #
 
-br_to_v1 = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=3))
+br_to_v1 = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
 
 #
 # Set the options on the optimization variables
@@ -80,7 +80,7 @@ br_to_v1.add_timeseries_output('*')
 # Vr is taken to be 1.2 * the stall speed (v_stall)
 #
 
-v1_to_vr = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=3))
+v1_to_vr = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
 
 #
 # Set the options on the optimization variables
@@ -101,7 +101,7 @@ v1_to_vr.add_parameter('alpha', val=0.0, opt=False, units='deg')
 v1_to_vr.add_timeseries_output('*')
 
 
-rto = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=3))
+rto = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
 
 
 #
@@ -132,7 +132,7 @@ rto.add_objective('r', loc='final', ref=1000.0) #  ref0=2000.0, ref=3000.0)
 # v_rotate to runway normal force = 0
 #
 
-rotate = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=3))
+rotate = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
 
 #
 # Set the options on the optimization variables
@@ -311,7 +311,7 @@ p.set_val('traj.climb.parameters:T', 27000.0, units='lbf')
 # from openmdao.utils.sc
 
 dm.run_problem(p, run_driver=True, simulate=False, make_plots=True) #, restart='dymos_simulation.db')
-
+om.n2(p)
 rotate.rhs_all.list_outputs(print_arrays=True, prom_name=True)
 
 

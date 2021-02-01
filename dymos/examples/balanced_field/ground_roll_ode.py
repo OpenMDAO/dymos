@@ -32,18 +32,18 @@ class GroundRollODE(om.Group):
 
         self.add_subsystem(name='aero_force_comp',
                            subsys=AeroForcesCompGroundroll(num_nodes=nn),
-                           promotes_inputs=['alpha', 'alpha_max', 'CL0', 'CL_max', 'AR', 'span', 'e', 'h', 'h_w', 'rho', 'v', 'S', 'CD0', 'm', 'mu_r'],
-                           promotes_outputs=['q', 'L', 'D', 'K', 'CL', 'v_stall', 'v_over_v_stall', 'W', 'r_dot', 'F_r'])
+                           promotes_inputs=['T', 'alpha', 'alpha_max', 'CL0', 'CL_max', 'AR', 'span', 'e', 'h', 'h_w', 'rho', 'v', 'S', 'CD0', 'm', 'mu_r'],
+                           promotes_outputs=['q', 'L', 'D', 'K', 'CL', 'v_stall', 'v_over_v_stall', 'W', 'r_dot', 'F_r', 'v_dot'])
 
         # Note: Typically a propulsion subsystem would go here, and provide thrust and mass
         # flow rate of the aircraft (for integrating mass).
         # In this simple demonstration, we're assuming the thrust of the aircraft is constant
         # and that the aircraft mass doesn't change (fuel burn during takeoff is negligible).
 
-        self.add_subsystem(name='dynamics',
-                           subsys=GroundRollEOM2D(num_nodes=nn),
-                           promotes_inputs=['m', 'L', 'D', 'T', 'v', 'alpha', 'mu_r'],
-                           promotes_outputs=['v_dot'])
+        # self.add_subsystem(name='dynamics',
+        #                    subsys=GroundRollEOM2D(num_nodes=nn),
+        #                    promotes_inputs=['m', 'L', 'D', 'T', 'v', 'alpha', 'mu_r'],
+        #                    promotes_outputs=[])
 
         # self.add_subsystem(name='stall_speed_comp',
         #                    subsys=StallSpeedComp(num_nodes=nn),
