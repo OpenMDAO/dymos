@@ -13,7 +13,6 @@ class AeroForcesComp(om.ExplicitComponent):
         self.add_input('rho', val=1.225 * np.ones(nn), desc='atmospheric density', units='kg/m**3')
         self.add_input('v', val=np.ones(nn), desc='true airspeed', units='m/s')
         self.add_input('S', val=124.7, desc='aerodynamic reference area', units='m**2')
-        self.add_input('CL', val=np.ones(nn), desc='lift coefficient', units=None)
         self.add_input('CD0', val=0.03, desc='zero-lift drag coefficient', units=None)
 
         self.add_input('AR', val=9.45, desc='wing aspect ratio', units=None)
@@ -21,6 +20,13 @@ class AeroForcesComp(om.ExplicitComponent):
         self.add_input('span', val=35.7, desc='Wingspan', units='m')
         self.add_input('h', val=np.ones(nn), desc='altitude', units='m')
         self.add_input('h_w', val=1.0, desc='height of the wing above the CG', units='m')
+
+        self.add_input('alpha', val=np.ones(nn), desc='angle of attack', units='deg')
+        self.add_input('CL0', val=0.5, desc='zero-alpha lift coefficient', units=None)
+        self.add_input('CL_max', val=2.0, desc='maximum lift coefficient', units=None)
+        self.add_input('alpha_max', val=10, desc='angle of attack at CL_max', units='deg')
+
+        self.add_output('CL', val=np.ones(nn), desc='lift coefficient', units=None)
 
         self.declare_coloring(wrt='*', method='cs')
         self.declare_partials(of='K', wrt='*', method='cs')
@@ -40,7 +46,6 @@ class AeroForcesComp(om.ExplicitComponent):
         rho = inputs['rho']
         v = inputs['v']
         S = inputs['S']
-        CL = inputs['CL']
         CD0 = inputs['CD0']
 
         h = inputs['h']
@@ -49,6 +54,13 @@ class AeroForcesComp(om.ExplicitComponent):
         AR = inputs['AR']
         e = inputs['e']
         b = span / 2.0
+
+        CL0 = inputs['CL0']
+        alpha = inputs['alpha']
+        alpha_max = inputs['alpha_max']
+        CL_max = inputs['CL_max']
+
+        CL = outputs['CL'] = CL0 + (alpha / alpha_max) * (CL_max - CL0)
 
         K_nom = 1.0 / (np.pi * AR * e)
         K = outputs['K'] = K_nom * 33 * ((h + h_w) / b)**1.5 / (1.0 + 33 * ((h + h_w) / b)**1.5)
