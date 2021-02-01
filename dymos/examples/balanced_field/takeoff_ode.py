@@ -1,9 +1,11 @@
+import numpy as np
 import openmdao.api as om
 from ...models.atmosphere import USatm1976Comp
 from .k_comp import KComp
 from .aero_forces_comp import AeroForcesComp
 from .lift_coef_comp import LiftCoefComp
 from dymos.models.eom import FlightPathEOM2D
+from .flight_path_eom_2d_cs import FlightPathEOM2DCS
 from .stall_speed_comp import StallSpeedComp
 
 
@@ -16,15 +18,15 @@ class TakeoffODE(om.Group):
     def setup(self):
         nn = self.options['num_nodes']
 
-        self.add_subsystem(name='atmos',
-                           subsys=USatm1976Comp(num_nodes=nn),
-                           promotes_inputs=['h'],
-                           promotes_outputs=['rho'])
-
-        self.add_subsystem(name='k_comp',
-                           subsys=KComp(num_nodes=nn),
-                           promotes_inputs=['AR', 'span', 'e', 'h', 'h_w'],
-                           promotes_outputs=['K'])
+        # self.add_subsystem(name='atmos',
+        #                    subsys=USatm1976Comp(num_nodes=nn),
+        #                    promotes_inputs=['h'],
+        #                    promotes_outputs=['rho'])
+        #
+        # self.add_subsystem(name='k_comp',
+        #                    subsys=KComp(num_nodes=nn),
+        #                    promotes_inputs=['AR', 'span', 'e', 'h', 'h_w'],
+        #                    promotes_outputs=['K'])
 
         self.add_subsystem(name='lift_coef_comp',
                            subsys=LiftCoefComp(num_nodes=nn),
@@ -33,8 +35,8 @@ class TakeoffODE(om.Group):
 
         self.add_subsystem(name='aero_force_comp',
                            subsys=AeroForcesComp(num_nodes=nn),
-                           promotes_inputs=['rho', 'v', 'S', 'CL', 'CD0', 'K'],
-                           promotes_outputs=['q', 'L', 'D'])
+                           promotes_inputs=['AR', 'span', 'e', 'h', 'h_w', 'rho', 'v', 'S', 'CL', 'CD0'],
+                           promotes_outputs=['q', 'L', 'D', 'K'])
 
         # Note: Typically a propulsion subsystem would go here, and provide thrust and mass
         # flow rate of the aircraft (for integrating mass).
@@ -42,7 +44,7 @@ class TakeoffODE(om.Group):
         # and that the aircraft mass doesn't change (fuel burn during takeoff is negligible).
 
         self.add_subsystem(name='dynamics',
-                           subsys=FlightPathEOM2D(num_nodes=nn),
+                           subsys=FlightPathEOM2DCS(num_nodes=nn),
                            promotes_inputs=['m', 'v', 'gam', 'alpha', 'L', 'D', 'T'],
                            promotes_outputs=['h_dot', 'r_dot', 'v_dot', 'gam_dot'])
 
@@ -61,3 +63,4 @@ class TakeoffODE(om.Group):
 
         self.set_input_defaults('CL_max', val=2.0)
         self.set_input_defaults('alpha_max', val=10.0, units='deg')
+        self.set_input_defaults('rho', val=1.225 * np.ones(nn), units='kg/m**3')

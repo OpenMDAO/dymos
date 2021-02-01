@@ -19,7 +19,7 @@ class KComp(om.ExplicitComponent):
 
         ar = np.arange(nn)
 
-        self.declare_coloring(wrt='*', method='cs', tol=1.0E-12, show_sparsity=False, show_summary=False)
+        self.declare_coloring(wrt='*', method='cs')
         self.declare_partials(of='K', wrt='*', method='cs')
 
     def compute(self, inputs, outputs):

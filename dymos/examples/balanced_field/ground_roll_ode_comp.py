@@ -56,7 +56,7 @@ class GroundRollODEComp(om.ExplicitComponent):
         self.add_output('v_over_v_stall', shape=(nn,), desc='stall speed ratio', units=None)
 
         self.declare_partials(of='*', wrt='*', method='cs')
-        self.declare_coloring(wrt='*', show_sparsity=True)
+        self.declare_coloring(wrt='*', method='cs', show_sparsity=True)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         g = 9.80665  # m/s**2  - gravitational acceleration
@@ -123,4 +123,4 @@ if __name__ == "__main__":
     p.run_model()
 
     with np.printoptions(linewidth=1024):
-        p.check_partials(method='fd', compact_print=True)
+        p.check_partials(method='fd', compact_print=True, step=1.0E-7)

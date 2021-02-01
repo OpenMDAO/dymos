@@ -24,7 +24,7 @@ class LiftCoefComp(om.ExplicitComponent):
 
         self.add_output('CL', val=np.ones(nn), desc='lift coefficient', units=None)
 
-        self.declare_coloring(wrt='*', method='cs', tol=1.0E-12, show_sparsity=False, show_summary=False)
+        self.declare_coloring(wrt='*', method='cs')
         self.declare_partials('CL', '*', method='cs')
 
     def compute(self, inputs, outputs):

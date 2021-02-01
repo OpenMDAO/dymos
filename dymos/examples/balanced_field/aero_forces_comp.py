@@ -10,22 +10,31 @@ class AeroForcesComp(om.ExplicitComponent):
     def setup(self):
         nn = self.options['num_nodes']
 
-        self.add_input('rho', val=np.ones(nn), desc='atmospheric density', units='kg/m**3')
+        self.add_input('rho', val=1.225 * np.ones(nn), desc='atmospheric density', units='kg/m**3')
         self.add_input('v', val=np.ones(nn), desc='true airspeed', units='m/s')
         self.add_input('S', val=124.7, desc='aerodynamic reference area', units='m**2')
         self.add_input('CL', val=np.ones(nn), desc='lift coefficient', units=None)
         self.add_input('CD0', val=0.03, desc='zero-lift drag coefficient', units=None)
-        self.add_input('K', val=np.ones(nn), desc='drag-due-to-lift factor', units=None)
 
+        self.add_input('AR', val=9.45, desc='wing aspect ratio', units=None)
+        self.add_input('e', val=0.801, desc='Oswald span efficiency factor', units=None)
+        self.add_input('span', val=35.7, desc='Wingspan', units='m')
+        self.add_input('h', val=np.ones(nn), desc='altitude', units='m')
+        self.add_input('h_w', val=1.0, desc='height of the wing above the CG', units='m')
+
+        self.declare_coloring(wrt='*', method='cs')
+        self.declare_partials(of='K', wrt='*', method='cs')
+
+        self.add_output('K', val=np.ones(nn), desc='drag-due-to-lift factor', units=None)
         self.add_output('q', val=np.ones(nn), desc='dynamic pressure', units='Pa')
         self.add_output('L', val=np.ones(nn), desc='lift', units='N')
         self.add_output('D', val=np.ones(nn), desc='drag', units='N')
 
         ar = np.arange(nn)
 
-        self.declare_coloring(wrt='*', method='cs', tol=1.0E-12, show_summary=False, show_sparsity=False)
-        self.declare_partials(of='L', wrt=['rho', 'v', 'S', 'CL'], method='cs')
-        self.declare_partials(of='D', wrt=['rho', 'v', 'S', 'CL', 'CD0', 'K'], method='cs')
+        self.declare_coloring(wrt='*', method='cs')
+        # self.declare_partials(of='L', wrt=['rho', 'v', 'S', 'CL'], method='cs')
+        self.declare_partials(of='*', wrt='*', method='cs')
 
     def compute(self, inputs, outputs):
         rho = inputs['rho']
@@ -33,7 +42,16 @@ class AeroForcesComp(om.ExplicitComponent):
         S = inputs['S']
         CL = inputs['CL']
         CD0 = inputs['CD0']
-        K = inputs['K']
+
+        h = inputs['h']
+        h_w = inputs['h_w']
+        span = inputs['span']
+        AR = inputs['AR']
+        e = inputs['e']
+        b = span / 2.0
+
+        K_nom = 1.0 / (np.pi * AR * e)
+        K = outputs['K'] = K_nom * 33 * ((h + h_w) / b)**1.5 / (1.0 + 33 * ((h + h_w) / b)**1.5)
 
         outputs['q'] = q = 0.5 * rho * v ** 2
         outputs['L'] = q * S * CL
