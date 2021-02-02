@@ -5,7 +5,7 @@ import openmdao.api as om
 from ..grid_data import GridData
 from ...utils.lgl import lgl
 from ...utils.lagrange import lagrange_matrices
-from ...utils.misc import get_rate_units
+from ...utils.misc import get_rate_units, reshape_val
 from ...utils.constants import INF_BOUND
 
 from ...options import options as dymos_options
@@ -267,10 +267,8 @@ class PolynomialControlGroup(om.Group):
             num_input_nodes = options['order'] + 1
             shape = options['shape']
             if options['opt']:
-                if np.isscalar(options['val']):
-                    default_val = options['val'] * np.ones((num_input_nodes,) + shape)
-                else:
-                    default_val = np.reshape(options['val'], newshape=(num_input_nodes,) + shape)
+                default_val = reshape_val(options['val'], shape, num_input_nodes)
+
                 self.indep_polynomial_controls.add_output(f'polynomial_controls:{name}',
                                                           shape=(num_input_nodes,) + shape,
                                                           val=default_val,

@@ -347,17 +347,17 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         prob.setup(force_alloc_complex=True)
 
-        prob['traj.phase0.t_initial'] = 0
-        prob['traj.phase0.t_duration'] = 1.0*3600
+        prob.set_val('traj.phase0.t_initial', 0)
+        prob.set_val('traj.phase0.t_duration', 1.0*3600)
 
-        prob['traj.phase1.t_initial'] = 1.0*3600
-        prob['traj.phase1.t_duration'] = 1.0*3600
+        prob.set_val('traj.phase1.t_initial', 1.0*3600)
+        prob.set_val('traj.phase1.t_duration', 1.0*3600)
 
-        prob['traj.phase1_bfail.t_initial'] = 1.0*3600
-        prob['traj.phase1_bfail.t_duration'] = 1.0*3600
+        prob.set_val('traj.phase1_bfail.t_initial', 1.0*3600)
+        prob.set_val('traj.phase1_bfail.t_duration', 1.0*3600)
 
-        prob['traj.phase1_mfail.t_initial'] = 1.0*3600
-        prob['traj.phase1_mfail.t_duration'] = 1.0*3600
+        prob.set_val('traj.phase1_mfail.t_initial', 1.0*3600)
+        prob.set_val('traj.phase1_mfail.t_duration', 1.0*3600)
 
         prob.run_model()
 

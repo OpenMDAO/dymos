@@ -6,7 +6,7 @@ import scipy.sparse as sp
 import openmdao.api as om
 
 from ..grid_data import GridData
-from ...utils.misc import get_rate_units, CoerceDesvar
+from ...utils.misc import get_rate_units, CoerceDesvar, reshape_val
 from ...utils.constants import INF_BOUND
 from ...options import options as dymos_options
 
@@ -306,7 +306,8 @@ class ControlGroup(om.Group):
         self.control_interp_comp.configure_io()
 
         for name, options in control_options.items():
-            size = np.prod(options['shape'])
+            shape = options['shape']
+            size = np.prod(shape)
             if options['opt']:
                 num_input_nodes = gd.subset_num_nodes['control_input']
                 desvar_indices = list(range(size * num_input_nodes))
@@ -348,7 +349,9 @@ class ControlGroup(om.Group):
                                         ref=coerce_desvar_option('ref'),
                                         indices=desvar_indices)
 
+                default_val = reshape_val(options['val'], shape, num_input_nodes)
+
                 self.indep_controls.add_output(name=f'controls:{name}',
-                                               val=options['val'],
-                                               shape=(num_input_nodes, np.prod(options['shape'])),
+                                               val=default_val,
+                                               shape=(num_input_nodes,) + shape,
                                                units=options['units'])
