@@ -52,7 +52,9 @@ class PseudospectralBase(TranscriptionBase):
         super(PseudospectralBase, self).setup_time(phase)
 
         time_comp = TimeComp(num_nodes=grid_data.num_nodes, node_ptau=grid_data.node_ptau,
-                             node_dptau_dstau=grid_data.node_dptau_dstau, units=time_units)
+                             node_dptau_dstau=grid_data.node_dptau_dstau, units=time_units,
+                             initial_val=phase.time_options['initial_val'],
+                             duration_val=phase.time_options['duration_val'])
 
         phase.add_subsystem('time', time_comp, promotes_inputs=['*'], promotes_outputs=['*'])
 
@@ -128,8 +130,9 @@ class PseudospectralBase(TranscriptionBase):
             size = np.prod(options['shape'])
             # In certain cases, we put an output on the IVC.
             if isinstance(indep, om.IndepVarComp):
-                indep.add_output(name='states:{0}'.format(name),
+                indep.add_output(name=f'states:{name}',
                                  shape=(num_state_input_nodes, size),
+                                 val=options['val'],
                                  units=options['units'])
 
             if options['opt']:

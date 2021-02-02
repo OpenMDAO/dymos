@@ -348,7 +348,7 @@ class ControlGroup(om.Group):
                                         ref=coerce_desvar_option('ref'),
                                         indices=desvar_indices)
 
-                self.indep_controls.add_output(name='controls:{0}'.format(name),
+                self.indep_controls.add_output(name=f'controls:{name}',
                                                val=options['val'],
                                                shape=(num_input_nodes, np.prod(options['shape'])),
                                                units=options['units'])

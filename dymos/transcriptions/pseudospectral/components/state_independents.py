@@ -74,7 +74,8 @@ class StateIndependentsComp(om.ImplicitComponent):
             # only need the implicit variable if this state is solved.
             # Note: we don't add scaling and bounds here. This may be revisited.
             self.add_output(name=f'states:{state_name}',
-                            shape=(num_state_input_nodes, ) + shape,
+                            shape=(num_state_input_nodes,) + shape,
+                            val=options['val'],
                             units=units)
 
             # Input for continuity, which can come from an external source.

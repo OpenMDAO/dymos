@@ -127,8 +127,8 @@ class GroundRollODEComp(om.ExplicitComponent):
         self.add_input('CL_max', val=2.0, desc='maximum lift coefficient', units=None)
         self.add_input('alpha', val=np.ones(nn), desc='angle of attack', units='rad')
         self.add_input('alpha_max', val=np.radians(10), desc='angle of attack at CL_max', units='rad')
-        self.add_input(name='T', val=120101.98, desc='thrust', units='N')
-        self.add_input(name='mu_r', val=0.05, desc='runway friction coefficient', units=None)
+        self.add_input('T', val=120101.98, desc='thrust', units='N')
+        self.add_input('mu_r', val=0.05, desc='runway friction coefficient', units=None)
 
         self.add_input('v', val=np.ones(nn), desc='true airspeed', units='m/s')
         self.add_input('m', val=np.ones(nn), desc='aircraft mass', units='kg')

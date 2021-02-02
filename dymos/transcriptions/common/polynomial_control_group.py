@@ -267,8 +267,13 @@ class PolynomialControlGroup(om.Group):
             num_input_nodes = options['order'] + 1
             shape = options['shape']
             if options['opt']:
-                self.indep_polynomial_controls.add_output('polynomial_controls:{0}'.format(name),
-                                                          val=np.ones((num_input_nodes,) + shape),
+                if np.isscalar(options['val']):
+                    default_val = options['val'] * np.ones((num_input_nodes,) + shape)
+                else:
+                    default_val = np.reshape(options['val'], newshape=(num_input_nodes,) + shape)
+                self.indep_polynomial_controls.add_output(f'polynomial_controls:{name}',
+                                                          shape=(num_input_nodes,) + shape,
+                                                          val=default_val,
                                                           units=options['units'])
 
                 desvar_indices = list(range(num_input_nodes))
