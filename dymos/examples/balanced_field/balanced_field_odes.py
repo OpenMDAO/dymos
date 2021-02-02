@@ -142,8 +142,10 @@ class GroundRollODEComp(om.ExplicitComponent):
         self.add_output('v_stall', val=np.ones(nn), desc='stall speed', units='m/s')
         self.add_output('v_over_v_stall', val=np.ones(nn), desc='stall speed ratio', units=None)
 
-        self.add_output(name='v_dot', val=np.ones(nn), desc='rate of change of velocity magnitude', units='m/s**2', tags=['state_rate_source:v'])
-        self.add_output(name='r_dot', val=np.ones(nn), desc='rate of change of range', units='m/s', tags=['state_rate_source:r'])
+        self.add_output(name='v_dot', val=np.ones(nn), desc='rate of change of velocity magnitude',
+                        units='m/s**2', tags=['state_rate_source:v'])
+        self.add_output(name='r_dot', val=np.ones(nn), desc='rate of change of range', units='m/s',
+                        tags=['state_rate_source:r'])
         self.add_output(name='F_r', val=np.ones(nn), desc='runway normal force', units='N')
 
         self.declare_coloring(wrt='*', method='cs')
@@ -230,10 +232,14 @@ class TakeoffClimbODEComp(om.ExplicitComponent):
         self.add_output('D', shape=(nn,), desc='drag force', units='N')
         self.add_output('K', val=np.ones(nn), desc='drag-due-to-lift factor', units=None)
         self.add_output('F_r', shape=(nn,), desc='runway normal force', units='N')
-        self.add_output('v_dot', shape=(nn,), desc='rate of change of speed', units='m/s**2', tags=['state_rate_source:v'])
-        self.add_output('gam_dot', shape=(nn,), desc='rate of change of flight path angle', units='rad/s', tags=['state_rate_source:gam'])
-        self.add_output('h_dot', shape=(nn,), desc='rate of change of altitude', units='m/s', tags=['state_rate_source:h'])
-        self.add_output('r_dot', shape=(nn,), desc='rate of change of range', units='m/s', tags=['state_rate_source:r'])
+        self.add_output('v_dot', shape=(nn,), desc='rate of change of speed', units='m/s**2',
+                        tags=['state_rate_source:v'])
+        self.add_output('gam_dot', shape=(nn,), desc='rate of change of flight path angle',
+                        units='rad/s', tags=['state_rate_source:gam'])
+        self.add_output('h_dot', shape=(nn,), desc='rate of change of altitude', units='m/s',
+                        tags=['state_rate_source:h'])
+        self.add_output('r_dot', shape=(nn,), desc='rate of change of range', units='m/s',
+                        tags=['state_rate_source:r'])
         self.add_output('W', shape=(nn,), desc='aircraft weight', units='N')
         self.add_output('v_stall', shape=(nn,), desc='stall speed', units='m/s')
         self.add_output('v_over_v_stall', shape=(nn,), desc='stall speed ratio', units=None)

@@ -68,7 +68,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         climb.add_state('h', fix_initial=True, lower=0.0, ref=1.0, defect_ref=1.0)
         climb.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0)
         climb.add_state('gam', fix_initial=True, lower=0.0, ref=0.05, defect_ref=0.05)
-        climb.add_control('alpha', opt=True, units='deg', lower=-10, upper=15, ref=10, rate_continuity=True, rate_continuity_scaler=1)
+        climb.add_control('alpha', opt=True, units='deg', lower=-10, upper=15, ref=10)
         climb.add_timeseries_output('*')
 
         # Instantiate the trajectory and add phases
