@@ -1,11 +1,14 @@
 import unittest
+from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.doc_utils import save_for_docs
 
 
 class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
     @save_for_docs
+    @use_tempdirs
     def test_balanced_field_length_for_docs(self):
+        import matplotlib.pyplot as plt
         import openmdao.api as om
         from openmdao.utils.general_utils import set_pyoptsparse_opt
         import dymos as dm
@@ -20,6 +23,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         # Use IPOPT if available, with fallback to SLSQP
         p.driver.options['optimizer'] = optimizer
+        p.driver.options['print_results'] = False
         if optimizer == 'IPOPT':
             p.driver.opt_settings['print_level'] = 5
             p.driver.opt_settings['derivative_test'] = 'first-order'
@@ -93,7 +97,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
                            desc='thrust when engines are shut down for rejected takeoff',
                            targets={'rto': ['T']})
 
-        traj.add_parameter('mu_r_nominal', val=0.05, opt=False, units=None, dynamic=False,
+        traj.add_parameter('mu_r_nominal', val=0.03, opt=False, units=None, dynamic=False,
                            desc='nominal runway friction coefficient',
                            targets={'br_to_v1': ['mu_r'], 'v1_to_vr': ['mu_r'],  'rotate': ['mu_r']})
 
@@ -192,23 +196,65 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.set_val('traj.v1_to_vr.parameters:alpha', 0.0, units='deg')
 
         p.set_val('traj.rto.t_initial', 35)
-        p.set_val('traj.rto.t_duration', 1)
+        p.set_val('traj.rto.t_duration', 35)
         p.set_val('traj.rto.states:r', rto.interpolate(ys=[2500, 5000.0], nodes='state_input'))
         p.set_val('traj.rto.states:v', rto.interpolate(ys=[110, 0], nodes='state_input'))
         p.set_val('traj.rto.parameters:alpha', 0.0, units='deg')
 
-        p.set_val('traj.rotate.t_initial', 35)
+        p.set_val('traj.rotate.t_initial', 70)
         p.set_val('traj.rotate.t_duration', 5)
         p.set_val('traj.rotate.states:r', rotate.interpolate(ys=[1750, 1800.0], nodes='state_input'))
         p.set_val('traj.rotate.states:v', rotate.interpolate(ys=[80, 85.0], nodes='state_input'))
         p.set_val('traj.rotate.polynomial_controls:alpha', 0.0, units='deg')
 
-        p.set_val('traj.climb.t_initial', 30)
-        p.set_val('traj.climb.t_duration', 20)
+        p.set_val('traj.climb.t_initial', 75)
+        p.set_val('traj.climb.t_duration', 15)
         p.set_val('traj.climb.states:r', climb.interpolate(ys=[5000, 5500.0], nodes='state_input'), units='ft')
         p.set_val('traj.climb.states:v', climb.interpolate(ys=[160, 170.0], nodes='state_input'), units='kn')
         p.set_val('traj.climb.states:h', climb.interpolate(ys=[0, 35.0], nodes='state_input'), units='ft')
         p.set_val('traj.climb.states:gam', climb.interpolate(ys=[0, 5.0], nodes='state_input'), units='deg')
         p.set_val('traj.climb.controls:alpha', 5.0, units='deg')
 
-        dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)  # , restart='dymos_simulation.db')
+        dm.run_problem(p, run_driver=True, simulate=True)
+
+        sim_case = om.CaseReader('dymos_solution.db').get_case('final')
+
+        fig, axes = plt.subplots(2, 1, sharex=True, gridspec_kw={'top': 0.92})
+        for phase in ['br_to_v1', 'rto', 'v1_to_vr', 'rotate', 'climb']:
+            r = sim_case.get_val(f'traj.{phase}.timeseries.states:r', units='ft')
+            v = sim_case.get_val(f'traj.{phase}.timeseries.states:v', units='kn')
+            t = sim_case.get_val(f'traj.{phase}.timeseries.time', units='s')
+            axes[0].plot(t, r, '-', label=phase)
+            axes[1].plot(t, v, '-', label=phase)
+        fig.suptitle('Balanced Field Length')
+        axes[1].set_xlabel('time (s)')
+        axes[0].set_ylabel('range (ft)')
+        axes[1].set_ylabel('airspeed (kn)')
+        axes[0].grid(True)
+        axes[1].grid(True)
+
+        tv1 = sim_case.get_val('traj.br_to_v1.timeseries.time', units='s')[-1, 0]
+        v1 = sim_case.get_val('traj.br_to_v1.timeseries.states:v', units='kn')[-1, 0]
+
+        tf_rto = sim_case.get_val('traj.rto.timeseries.time', units='s')[-1, 0]
+        rf_rto = sim_case.get_val('traj.rto.timeseries.states:r', units='ft')[-1, 0]
+
+        axes[0].annotate(f'field length = {r[-1, 0]:5.1f} ft', xy=(t[-1, 0], r[-1, 0]),
+                         xycoords='data', xytext=(0.7, 0.5),
+                         textcoords='axes fraction', arrowprops=dict(arrowstyle='->'),
+                         horizontalalignment='center', verticalalignment='top')
+
+        axes[0].annotate(f'', xy=(tf_rto, rf_rto),
+                         xycoords='data', xytext=(0.7, 0.5),
+                         textcoords='axes fraction', arrowprops=dict(arrowstyle='->'),
+                         horizontalalignment='center', verticalalignment='top')
+
+        axes[1].annotate(f'$v1$ = {v1:5.1f} kts', xy=(tv1, v1), xycoords='data', xytext=(0.5, 0.5),
+                         textcoords='axes fraction', arrowprops=dict(arrowstyle='->'),
+                         horizontalalignment='center', verticalalignment='top')
+
+        plt.legend()
+        plt.show()
+
+
+
