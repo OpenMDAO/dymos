@@ -1,13 +1,5 @@
 import unittest
-
-import matplotlib
-import matplotlib.pyplot as plt
-plt.style.use('ggplot')
-
 from dymos.utils.doc_utils import save_for_docs
-
-from openmdao.utils.general_utils import set_pyoptsparse_opt
-_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
 
 class TestBalancedFieldLengthForDocs(unittest.TestCase):
@@ -15,25 +7,28 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
     @save_for_docs
     def test_balanced_field_length_for_docs(self):
         import openmdao.api as om
+        from openmdao.utils.general_utils import set_pyoptsparse_opt
         import dymos as dm
         from dymos.examples.balanced_field.balanced_field_odes import GroundRollODEComp, TakeoffClimbODEComp
 
-        dm.options['plots'] = 'matplotlib'
-
         p = om.Problem()
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'IPOPT'
-        p.driver.opt_settings['print_level'] = 5
-        p.driver.opt_settings['derivative_test'] = 'first-order'
+        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
+        p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
+
+        # Use IPOPT if available, with fallback to SLSQP
+        p.driver.options['optimizer'] = optimizer
+        if optimizer == 'IPOPT':
+            p.driver.opt_settings['print_level'] = 5
+            p.driver.opt_settings['derivative_test'] = 'first-order'
 
         # First Phase: Brake release to V1 - both engines operable
         br_to_v1 = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
         br_to_v1.set_time_options(fix_initial=True, duration_bounds=(1, 1000), duration_ref=10.0)
         br_to_v1.add_state('r', fix_initial=True, lower=0, ref=1000.0, defect_ref=1000.0)
-        br_to_v1.add_state('v', fix_initial=True, lower=0.0001, ref=100.0, defect_ref=100.0)
+        br_to_v1.add_state('v', fix_initial=True, lower=0, ref=100.0, defect_ref=100.0)
         br_to_v1.add_parameter('alpha', val=0.0, opt=False, units='deg')
         br_to_v1.add_timeseries_output('*')
 
@@ -41,7 +36,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         rto = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
         rto.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1.0)
         rto.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
-        rto.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0)
+        rto.add_state('v', fix_initial=False, lower=0, ref=100.0, defect_ref=100.0)
         rto.add_parameter('alpha', val=0.0, opt=False, units='deg')
         rto.add_timeseries_output('*')
 
@@ -49,7 +44,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         v1_to_vr = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
         v1_to_vr.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1.0)
         v1_to_vr.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
-        v1_to_vr.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0)
+        v1_to_vr.add_state('v', fix_initial=False, lower=0, ref=100.0, defect_ref=100.0)
         v1_to_vr.add_parameter('alpha', val=0.0, opt=False, units='deg')
         v1_to_vr.add_timeseries_output('*')
 
@@ -57,7 +52,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         rotate = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
         rotate.set_time_options(fix_initial=False, duration_bounds=(1.0, 5), duration_ref=1.0)
         rotate.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
-        rotate.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0)
+        rotate.add_state('v', fix_initial=False, lower=0, ref=100.0, defect_ref=100.0)
         rotate.add_polynomial_control('alpha', order=1, opt=True, units='deg', lower=0, upper=10, ref=10, val=[0, 10])
         rotate.add_timeseries_output('*')
 
@@ -65,9 +60,9 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         climb = dm.Phase(ode_class=TakeoffClimbODEComp, transcription=dm.Radau(num_segments=5))
         climb.set_time_options(fix_initial=False, duration_bounds=(1, 100), duration_ref=1.0)
         climb.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
-        climb.add_state('h', fix_initial=True, lower=0.0, ref=1.0, defect_ref=1.0)
-        climb.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0)
-        climb.add_state('gam', fix_initial=True, lower=0.0, ref=0.05, defect_ref=0.05)
+        climb.add_state('h', fix_initial=True, lower=0, ref=1.0, defect_ref=1.0)
+        climb.add_state('v', fix_initial=False, lower=0, ref=100.0, defect_ref=100.0)
+        climb.add_state('gam', fix_initial=True, lower=0, ref=0.05, defect_ref=0.05)
         climb.add_control('alpha', opt=True, units='deg', lower=-10, upper=15, ref=10)
         climb.add_timeseries_output('*')
 
@@ -98,8 +93,8 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
                            desc='thrust when engines are shut down for rejected takeoff',
                            targets={'rto': ['T']})
 
-        traj.add_parameter('mu_r_nominal', val=0.03, opt=False, units=None, dynamic=False,
-                           desc='nominal runway friction coeffcient',
+        traj.add_parameter('mu_r_nominal', val=0.05, opt=False, units=None, dynamic=False,
+                           desc='nominal runway friction coefficient',
                            targets={'br_to_v1': ['mu_r'], 'v1_to_vr': ['mu_r'],  'rotate': ['mu_r']})
 
         traj.add_parameter('mu_r_braking', val=0.3, opt=False, units=None, dynamic=False,
@@ -168,7 +163,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
                                     ref=1000)
 
         # Define the constraints and objective for the optimal control problem
-        rto.add_boundary_constraint('v', loc='final', upper=0.001, ref=100, linear=True)
+        rto.add_boundary_constraint('v', loc='final', equals=0., ref=100, linear=True)
 
         rotate.add_boundary_constraint('F_r', loc='final', equals=0, ref=100000)
 
@@ -187,7 +182,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.set_val('traj.br_to_v1.t_initial', 0)
         p.set_val('traj.br_to_v1.t_duration', 35)
         p.set_val('traj.br_to_v1.states:r', br_to_v1.interpolate(ys=[0, 2500.0], nodes='state_input'))
-        p.set_val('traj.br_to_v1.states:v', br_to_v1.interpolate(ys=[0.0001, 100.0], nodes='state_input'))
+        p.set_val('traj.br_to_v1.states:v', br_to_v1.interpolate(ys=[0, 100.0], nodes='state_input'))
         p.set_val('traj.br_to_v1.parameters:alpha', 0, units='deg')
 
         p.set_val('traj.v1_to_vr.t_initial', 35)
@@ -199,7 +194,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.set_val('traj.rto.t_initial', 35)
         p.set_val('traj.rto.t_duration', 1)
         p.set_val('traj.rto.states:r', rto.interpolate(ys=[2500, 5000.0], nodes='state_input'))
-        p.set_val('traj.rto.states:v', rto.interpolate(ys=[110, 0.0001], nodes='state_input'))
+        p.set_val('traj.rto.states:v', rto.interpolate(ys=[110, 0], nodes='state_input'))
         p.set_val('traj.rto.parameters:alpha', 0.0, units='deg')
 
         p.set_val('traj.rotate.t_initial', 35)

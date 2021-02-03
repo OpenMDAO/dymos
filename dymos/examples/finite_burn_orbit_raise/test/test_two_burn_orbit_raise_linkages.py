@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
 
 
-@unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+@unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
 @use_tempdirs
 class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
