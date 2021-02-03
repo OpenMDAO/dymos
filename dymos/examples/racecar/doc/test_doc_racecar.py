@@ -145,6 +145,7 @@ class TestRaceCarForDocs(unittest.TestCase):
         p.driver.opt_settings['nlp_scaling_method'] = 'none'
         p.driver.opt_settings['print_level'] = 5
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
+        p.driver.options['print_results'] = False
 
         # Allow OpenMDAO to automatically determine our sparsity pattern.
         # Doing so can significant speed up the execution of Dymos.
