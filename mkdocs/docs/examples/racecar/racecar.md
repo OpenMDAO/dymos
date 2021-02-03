@@ -36,14 +36,14 @@ file,
 
 modify the lines:
 
-``` {.sourceCode .python}
+```python
 from dymos.examples.racecar.tracks import ovaltrack
 track = ovaltrack
 ```
 
 For example, to use the Monaco track, 
 
-``` {.sourceCode .python}
+```python
 from dymos.examples.racecar.tracks import Monaco
 track = Monaco
 ```
@@ -81,7 +81,8 @@ In this race car example, the independent variable is the arc length along the t
 Integration is done from the start of the track to the end.
 The “typical” equations of motion are computed, so the rate of change of x wrt time (**$\frac{dx}{dt}$**).
 
-But then also computed is the rate in change of arc length wrt time (**$\frac{ds}{dt}$**).
+By dividing the rates of change w.r.t. time by (**$\frac{ds}{dt}$**), 
+the rates of change of the states w.r.t. track arclength traversed are computed.
 
 ## Definition of the problem
 

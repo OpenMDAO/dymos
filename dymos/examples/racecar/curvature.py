@@ -12,7 +12,6 @@ class Curvature(om.ExplicitComponent):
         track = ovaltrack  # remember to change here and in problemSolver.py
 
         points = get_track_points(track)
-        print(track.get_total_length())
         finespline, gates, gatesd, curv, slope = get_spline(points)
 
         self.curv = curv

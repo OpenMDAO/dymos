@@ -125,21 +125,7 @@ class TestRaceCarForDocs(unittest.TestCase):
         phase.add_objective('t', loc='final')
 
         # Add output timeseries
-        phase.add_timeseries_output('lambdadot', units='rad/s', shape=(1,))
-        phase.add_timeseries_output('Vdot', units='m/s**2', shape=(1,))
-        phase.add_timeseries_output('alphadot', units='rad/s', shape=(1,))
-        phase.add_timeseries_output('omegadot', units='rad/s**2', shape=(1,))
-        phase.add_timeseries_output('power', units='W', shape=(1,))
-        phase.add_timeseries_output('sdot', units='m/s', shape=(1,))
-        phase.add_timeseries_output('c_rr', units=None, shape=(1,))
-        phase.add_timeseries_output('c_fl', units=None, shape=(1,))
-        phase.add_timeseries_output('c_fr', units=None, shape=(1,))
-        phase.add_timeseries_output('c_rl', units=None, shape=(1,))
-        phase.add_timeseries_output('N_rr', units='N', shape=(1,))
-        phase.add_timeseries_output('N_fr', units='N', shape=(1,))
-        phase.add_timeseries_output('N_fl', units='N', shape=(1,))
-        phase.add_timeseries_output('N_rl', units='N', shape=(1,))
-        phase.add_timeseries_output('curv.kappa', units='1/m', shape=(1,))
+        phase.add_timeseries_output('*')
 
         # Link the states at the start and end of the phase in order to ensure a continous lap
         traj.link_phases(phases=['phase0', 'phase0'],
@@ -156,9 +142,9 @@ class TestRaceCarForDocs(unittest.TestCase):
         p.driver.opt_settings['compl_inf_tol'] = 1e-3
         p.driver.opt_settings['acceptable_iter'] = 0
         p.driver.opt_settings['tol'] = 1e-3
-        p.driver.opt_settings['hessian_approximation'] = 'exact'
         p.driver.opt_settings['nlp_scaling_method'] = 'none'
         p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
 
         # Allow OpenMDAO to automatically determine our sparsity pattern.
         # Doing so can significant speed up the execution of Dymos.
@@ -194,14 +180,11 @@ class TestRaceCarForDocs(unittest.TestCase):
                   phase.interpolate(ys=[0.1, 0.1], nodes='control_input'),
                   units=None)  # a small amount of thrust can speed up convergence
 
-        # p.run_driver()
-        # dm.run_problem(p, run_driver=False)
         dm.run_problem(p, run_driver=True)
         print('Optimization finished')
 
         # Get optimized time series
         n = p.get_val('traj.phase0.timeseries.states:n')
-        # t = p.get_val('traj.phase0.timeseries.states:t')
         s = p.get_val('traj.phase0.timeseries.time')
         V = p.get_val('traj.phase0.timeseries.states:V')
         thrust = p.get_val('traj.phase0.timeseries.controls:thrust')
