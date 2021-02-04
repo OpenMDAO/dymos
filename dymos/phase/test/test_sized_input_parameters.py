@@ -1,15 +1,17 @@
 import unittest
 
+import numpy as np
+
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.utils.lgl import lgl
 from dymos.models.eom import FlightPathEOM2D
 
-import numpy as np
 
-
+@use_tempdirs
 class TestParameterConnections(unittest.TestCase):
 
     def test_dynamic_parameter_connections_radau(self):

@@ -1,14 +1,15 @@
 import unittest
 
+import numpy as np
+
+import openmdao.api as om
+from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
+
+import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 SHOW_PLOTS = True
-
-import numpy as np
-import openmdao.api as om
-import dymos as dm
-
-from openmdao.utils.assert_utils import assert_near_equal
 
 
 class BrachistochroneArclengthODE(om.ExplicitComponent):
@@ -70,6 +71,7 @@ def make_brachistochrone_phase(transcription='gauss-lobatto', num_segments=8, tr
     return phase
 
 
+@use_tempdirs
 class TestTandemPhases(unittest.TestCase):
 
     def _run_transcription(self, transcription):

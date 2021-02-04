@@ -4,6 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.examples.aircraft_steady_flight.aero.mbi_aero_coef_comp import setup_surrogates_all, \
     MBIAeroCoeffComp
@@ -14,6 +15,7 @@ except ImportError:
     MBI = None
 
 
+@use_tempdirs
 class TestAeroCoefComp(unittest.TestCase):
 
     @unittest.skipIf(MBI is None, "MBI not available")

@@ -2,11 +2,11 @@ import warnings
 import unittest
 
 import numpy as np
-import openmdao.api as om
-import dymos as dm
 
-from openmdao.utils.assert_utils import assert_near_equal
+import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
+
+import dymos as dm
 
 
 class BrachODEStaticOutput(om.ExplicitComponent):

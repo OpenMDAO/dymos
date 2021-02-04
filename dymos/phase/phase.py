@@ -1,3 +1,4 @@
+from collections import Callable
 from collections.abc import Iterable, Sequence
 import inspect
 import warnings
@@ -1623,8 +1624,9 @@ class Phase(om.Group):
         """
         Check that the provided ODE class meets minimum requirements.
 
-        * The ode_class must be a class, not an instance.
-        * The ode_class must derive from openmdao.core.System
+        * The ode_class must be provided as a class or a callable.
+        * When given as a callable, ode_class must return an instance derived from openmdao.core.System.
+        * When given as a class, ode_class must derive from openmdao.core.System
 
         Raises
         ------
@@ -1634,9 +1636,16 @@ class Phase(om.Group):
         """
         ode_class = self.options['ode_class']
         if not inspect.isclass(ode_class):
-            raise ValueError('ode_class must be a class, not an instance.')
+            if not isinstance(ode_class, Callable):
+                raise ValueError('ode_class must be given as a callable object that returns an '
+                                 'object derived from openmdao.core.System, or as a class derived '
+                                 'from openmdao.core.System.')
+            test_instance = ode_class(num_nodes=1, **self.options['ode_init_kwargs'])
+            if not isinstance(test_instance, System):
+                raise ValueError(f'When provided as a callable, ode_class must return an instance '
+                                 f'of openmdao.core.System.  Got {type(test_instance)}')
         elif not issubclass(ode_class, System):
-            raise ValueError('ode_class must be derived from openmdao.core.System.')
+            raise ValueError('If given as a class, ode_class must be derived from openmdao.core.System.')
 
     def setup(self):
         """

@@ -1,39 +1,42 @@
 import unittest
 
 import numpy as np
+
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from dymos.utils.testing_utils import assert_check_partials
+from openmdao.utils.testing_utils import use_tempdirs
 
+from dymos.utils.testing_utils import assert_check_partials
 from dymos.examples.aircraft_steady_flight.propulsion.propulsion_group import PropulsionGroup
 
 
+@use_tempdirs
 class TestPropulsionComp(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
-        cls.n = 10
+    def setUp(self):
+        self.n = 10
 
-        cls.p = om.Problem(model=om.Group())
+        self.p = om.Problem(model=om.Group())
 
-        ivc = cls.p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
+        ivc = self.p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
-        ivc.add_output('alt', val=np.zeros(cls.n), units='m', desc='altitude above MSL')
+        ivc.add_output('alt', val=np.zeros(self.n), units='m', desc='altitude above MSL')
 
-        ivc.add_output('pres', val=101325.0*np.ones(cls.n), units='Pa', desc='atmospheric_pressure')
+        ivc.add_output('pres', val=101325.0*np.ones(self.n), units='Pa', desc='atmospheric_pressure')
 
-        ivc.add_output('CT', val=np.linspace(0, 1.0E4, cls.n), units=None,
+        ivc.add_output('CT', val=np.linspace(0, 1.0E4, self.n), units=None,
                        desc='coefficient of thrust')
 
-        cls.p.model.add_subsystem('propulsion', PropulsionGroup(num_nodes=cls.n))
+        self.p.model.add_subsystem('propulsion', PropulsionGroup(num_nodes=self.n))
 
-        cls.p.model.connect('alt', 'propulsion.alt')
-        cls.p.model.connect('pres', 'propulsion.pres')
-        cls.p.model.connect('CT', 'propulsion.CT')
+        self.p.model.connect('alt', 'propulsion.alt')
+        self.p.model.connect('pres', 'propulsion.pres')
+        self.p.model.connect('CT', 'propulsion.CT')
 
-        cls.p.setup(force_alloc_complex=True)
+        self.p.setup(force_alloc_complex=True)
 
-        cls.p.run_model()
+        self.p.run_model()
 
     def test_results(self):
 

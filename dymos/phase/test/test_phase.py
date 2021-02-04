@@ -2,11 +2,12 @@ import unittest
 import warnings
 
 import openmdao.api as om
+from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-from openmdao.utils.assert_utils import assert_near_equal
 
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
@@ -31,6 +32,7 @@ class _D(om.ExplicitComponent):
     ode_options = None
 
 
+@use_tempdirs
 class TestPhaseBase(unittest.TestCase):
 
     def test_invalid_ode_wrong_class(self):
@@ -64,7 +66,8 @@ class TestPhaseBase(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             p.setup(check=True)
 
-        self.assertEqual(str(e.exception), 'ode_class must be derived from openmdao.core.System.')
+        expected = 'If given as a class, ode_class must be derived from openmdao.core.System.'
+        self.assertEqual(expected, str(e.exception))
 
     def test_invalid_ode_instance(self):
 
@@ -97,7 +100,9 @@ class TestPhaseBase(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             p.setup(check=True)
 
-        self.assertEqual(str(e.exception), 'ode_class must be a class, not an instance.')
+        expected = 'ode_class must be given as a callable object that returns an object derived ' \
+                   'from openmdao.core.System, or as a class derived from openmdao.core.System.'
+        self.assertEqual(expected, str(e.exception))
 
     def test_add_existing_parameter_as_parameter(self):
 

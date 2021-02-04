@@ -112,12 +112,6 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
 @use_tempdirs
 class TestExSteadyAircraftFlight(unittest.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
-        for filename in ['total_coloring.pkl', 'test_ex_aircraft_steady_flight_rec.db', 'SLSQP.out']:
-            if os.path.exists(filename):
-                os.remove(filename)
-
     def test_ex_aircraft_steady_flight_opt(self):
         p = ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False)
         assert_near_equal(p.get_val('phase0.timeseries.states:range', units='NM')[-1],

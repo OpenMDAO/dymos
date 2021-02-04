@@ -1,10 +1,10 @@
 import unittest
 from numpy.testing import assert_almost_equal
 
-import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
+from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
 from openmdao.utils.testing_utils import use_tempdirs
 
-from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
+import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
 from dymos.utils.testing_utils import assert_check_partials
 
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
