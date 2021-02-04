@@ -155,6 +155,11 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
                            targets={f'{phase}': ['CL_max'] for phase in ['br_to_v1', 'v1_to_vr',
                                                                          'rto', 'rotate' 'climb']})
 
+        traj.add_parameter('alpha_max', val=10.0, opt=False, units='deg', dynamic=False,
+                           desc='angle of attack at maximum lift',
+                           targets={f'{phase}': ['alpha_max'] for phase in ['br_to_v1', 'v1_to_vr',
+                                                                         'rto', 'rotate' 'climb']})
+
         # Standard "end of first phase to beginning of second phase" linkages
         traj.link_phases(['br_to_v1', 'v1_to_vr'], vars=['time', 'r', 'v'])
         traj.link_phases(['v1_to_vr', 'rotate'], vars=['time', 'r', 'v', 'alpha'])
@@ -167,6 +172,8 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
                                     ref=1000)
 
         # Define the constraints and objective for the optimal control problem
+        v1_to_vr.add_boundary_constraint('v_over_v_stall', loc='final', lower=1.2, ref=100)
+
         rto.add_boundary_constraint('v', loc='final', equals=0., ref=100, linear=True)
 
         rotate.add_boundary_constraint('F_r', loc='final', equals=0, ref=100000)
@@ -174,7 +181,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         climb.add_boundary_constraint('h', loc='final', equals=35, ref=35, units='ft', linear=True)
         climb.add_boundary_constraint('gam', loc='final', equals=5, ref=5, units='deg', linear=True)
         climb.add_path_constraint('gam', lower=0, upper=5, ref=5, units='deg')
-        climb.add_boundary_constraint('v_over_v_stall', loc='final', lower=1.2, ref=1.2)
+        climb.add_boundary_constraint('v_over_v_stall', loc='final', lower=1.25, ref=1.25)
 
         rto.add_objective('r', loc='final', ref=1000.0)
 
@@ -229,7 +236,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         fig.suptitle('Balanced Field Length')
         axes[1].set_xlabel('time (s)')
         axes[0].set_ylabel('range (ft)')
-        axes[1].set_ylabel('airspeed (kn)')
+        axes[1].set_ylabel('airspeed (kts)')
         axes[0].grid(True)
         axes[1].grid(True)
 
