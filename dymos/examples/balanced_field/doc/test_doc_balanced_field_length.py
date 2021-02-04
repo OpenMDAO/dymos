@@ -158,7 +158,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         traj.add_parameter('alpha_max', val=10.0, opt=False, units='deg', dynamic=False,
                            desc='angle of attack at maximum lift',
                            targets={f'{phase}': ['alpha_max'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                         'rto', 'rotate' 'climb']})
+                                                                            'rto', 'rotate' 'climb']})
 
         # Standard "end of first phase to beginning of second phase" linkages
         traj.link_phases(['br_to_v1', 'v1_to_vr'], vars=['time', 'r', 'v'])
@@ -262,6 +262,3 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         plt.legend()
         plt.show()
-
-
-
