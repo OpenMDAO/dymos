@@ -92,15 +92,14 @@ class TestRaceCarForDocs(unittest.TestCase):
 
         # Performance Constraints
         pmax = 960000  # W
-        phase.add_path_constraint('power', shape=(1,), units='W', upper=pmax,
-                                  ref=100000)  # engine power limit
+        phase.add_path_constraint('power', upper=pmax, ref=100000)  # engine power limit
 
         # The following four constraints are the tire friction limits, with 'rr' designating the
         # rear right wheel etc. This limit is computed in tireConstraintODE.py
-        phase.add_path_constraint('c_rr', shape=(1,), units=None, upper=1)
-        phase.add_path_constraint('c_rl', shape=(1,), units=None, upper=1)
-        phase.add_path_constraint('c_fr', shape=(1,), units=None, upper=1)
-        phase.add_path_constraint('c_fl', shape=(1,), units=None, upper=1)
+        phase.add_path_constraint('c_rr', upper=1)
+        phase.add_path_constraint('c_rl', upper=1)
+        phase.add_path_constraint('c_fr', upper=1)
+        phase.add_path_constraint('c_fl', upper=1)
 
         # Some of the vehicle design parameters are available to set here. Other parameters can
         # be found in their respective ODE files.
