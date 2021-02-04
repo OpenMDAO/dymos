@@ -46,7 +46,7 @@ The evolution of the states over time is governed by an ordinary differential eq
 \begin{align*}
   \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d})
 \end{align*}
-Here, $\bar{x}$ is a vector of time-varying state variables whose behavior is affected by time ($t$), a vector of dynamic controls ($\bar{u)}$), and a vector of static design parameters ($\bar{d}$).
+Here, $\bar{x}$ is a vector of time-varying state variables whose behavior is affected by time ($t$), a vector of dynamic controls ($\bar{u}$), and a vector of static design parameters ($\bar{d}$).
 
 
 To optimize a dynamic system we also need to account for the objective function ($J$)
@@ -66,19 +66,19 @@ In addition, there are constraints that typically need to be enforced.
 
 
 In the mathematical sense what distinguishes optimal-control from co-design is the particulars of which design variables and constraints are actually considered by the optimization.
-Pure optimal control problems deal with a system of fixed design and seek to maximize performance by adjusting dynamic quantities ($t, \bar{x}, \bar{u}$) such as position, speed, fuel-burned, battery state of charge, etc. 
+Pure optimal control problems deal with a system of fixed design and seek to maximize performance by adjusting dynamic quantities ($t, \bar{x}, \bar{u}$) such as position, speed, fuel-burned, and battery state-of-charge.
 Co-design problems simultaneously vary the static design parameters of a system ($\bar{d}$) and its dynamic behavior ($t, \bar{x}, \bar{u}$) to reach maximum performance. 
 
 In practice, the mathematical distinction is too rigid and a more practical distinction is made based on the where the static and dynamic calculations are implemented and how complex each of them are. 
 For very simple physical design parameters (e.g. the radius of a cannon ball, spring constants, linkage lengths, etc) it is common to integrate the design calculations directly into the ODE.
-Even though the calculations are static in nature, they can easily be coded as part of the ODE and still fits well into the optimal-control paradigm. 
+Even though the calculations are static in nature, they can easily be coded as part of the ODE and still fit well into the optimal-control paradigm.
 The optimization structure thus looks like this: 
 
 ![Model structure for a traditional optimal control problem](flow_charts/opt_control.png){width=45%}
 
 However, not all problems are can be handled in with such a compact implementation. 
-For example if the physical design problem included shaping of an airfoil using expensive numerical solutions to partial differential equations (PDE) to predict drag, then you would not want to embed that PDE solver into the dynamic model. 
-Instead you could set up a coupled model with the PDE solver going first performing, and passing a table of data to be interpolated to the dynamic model. 
+For example if the physical design problem included shaping of an airfoil using expensive numerical solutions to partial differential equations (PDE) to predict drag, then one would not want to embed that PDE solver into the dynamic model.
+Instead the user could set up a coupled model with the PDE solver going first, and passing a table of data to be interpolated to the dynamic model.
 This effectively splits calculations up into static and a dynamic components. 
 This implementation structure is called co-design. 
 
@@ -110,9 +110,9 @@ The difference is that ODEs are explicit functions which are relatively easy to 
 Since the derivatives are needed to perform optimization, DAEs are more challenging to optimize. 
 
 One relatively common use case for DAEs is differential inclusions, in which the state time-history is posed as a dynamic control and the traditional control schedule needed to achieve that time-history is found using a nonlinear solver within the dynamic model [@Seywald1994].
-For some problems differential inclusion provides a more natural and numerical beneficial design space for the optimizer to traverse,
+For some problems differential inclusion provides a more natural and numerically beneficial design space for the optimizer to traverse,
 but the nonlinear solver poses numerical challenges for computing derivatives for the optimizer.
-A simple approach to this is to just finite-difference across the nonlinear solver, but this is has been shown to be expensive and numerically unstable[@gray2014derivatives]. 
+A simple approach to this is to just use finite-differences across the nonlinear solver, but this is has been shown to be expensive and numerically unstable[@gray2014derivatives].
 Another option, taken by some optimal control libraries, is to apply monolithic algorithmic differentiation[@griewank2003mathematical] across the nonlinear solver.
 While it does provide accurate derivatives, the monolithic approach is expensive and uses a lot of memory[@mader2008adjoint; @kenway2019effective]. 
 The most efficient approach is to use a pair of analytic derivative approaches called the direct and adjoint methods, which were unified into a single unified derivative equation (UDE) by Hwang and Martins[@hwang2018b].
@@ -136,27 +136,25 @@ For instance, an aircraft with vertical takeoff and landing capability may use d
 ODEs are implemented as standard OpenMDAO models which are passed to phases at instantiation time with some additional annotations to identify the states, state-rates, and control inputs.
 
 Every phase uses its own specific time discretization tailored to the dynamics in that chunk of the time-history. 
-If one part of a trajectory has fast dynamics and another has slow dynamics, the time history can be broken into two phases with separate time discretizations.
+If one part of a trajectory has fast dynamics and another has slow dynamics, the time-evolution can be broken into two phases with separate time discretizations.
 
-In the optimal-control community, there are a number of different techniques for discretizing the time integration, each one is called a transcription. 
-Some transcriptions are widely used, such as Euler or Runge-Kutta based transcriptions. 
-While these common ones are used in some cases, most optimal-control practitioners favor a more specialized class of transcriptions called direct collocation --- based on a class of pseudospectral methods. 
+In the optimal-control community, there are a number of different techniques for discretizing the continuous optimal control problem into a form that can be solved by a nonlinear optmization algorithm, each one is called a transcription.
 Dymos supports two different collocation transcriptions: high-order Gauss-Lobatto [@Herman1996] and Radau [@Garg2009].
-Both of these represent time-histories as piece-wise polynomials of at least 3rd order and are formulated in a way that makes it possible to efficiently compute the needed quantities to perform integration in a numerically rigorous fashion. 
+Both of these represent state and control trajectories as piece-wise polynomials of at least 3rd order and are formulated in a way that makes it possible to efficiently compute the needed quantities to perform integration in a numerically rigorous fashion.
 
-In addition to choosing a transcription, each phase can be configured to be solved in an explicit or implicit manner. 
-Some caution with terminology must be taken here because the term "implicit" is often used to describe time integration schemes (e.g. backwards Euler), 
-but that is not what is meant in an optimal-control context. 
-Here, an explicit phase is one where the full time history is computed starting from the initial value and propagating forward or from the final value and propagating backward. 
-From the optimizers perspective it will set values for the initial or final state ($\bar{x}$), the design parameters ($\bar{d}$) and the controls ($\bar{u}$) and can expect to be given a physically valid time history as the output.
+Dymos also allows the user to choose whether the optimization problem is solved using a explicit or implicit approach.
+Some caution with terminology must be taken here because the term "implicit" is often used to describe time integration schemes (e.g. backwards Euler),
+but that is not what is meant in an optimal-control context.
+Here, explicit propagation is one where the full state trajectory is computed starting from the initial value and propagating forward or from the final value and propagating backward.
+From the optimizers perspective it will set values for the initial or final state ($\bar{x}$), the design parameters ($\bar{d}$) and the controls ($\bar{u}$) and can expect to be given a physically valid time-evoluation of the states as the output.
 Wrapping an optimizer around an explicit phase gives what is traditionally called a "shooting method" in the optimal control world.
 In contrast, implicit phases don't provide valid time histories on their own. 
-Instead, they add the entire time-history of the state vector ($\bar{x}$) as an additional design variable to the optimizer and add an associated set of defect constraints that must be driven to 0 to enforce physics at some set of discrete points in time where the ODE is evaluated. 
-The net effect is that the full time history is only known once the optimization is fully converged. 
+Instead, they add a discretized time-evolution of the state vector ($\bar{x}$) as an additional design variable to the optimizer and add an associated set of defect constraints that must be driven to zero to enforce physics at some set of discrete points in time where the ODE is evaluated.
+The net effect is that the full state trajectory is only known once the optimization is fully converged.
 In the context of the multidisciplinary design optimization field, explicit phases are similar to the multidisciplinary design feasible (MDF) optimization architecture and implicit phases are similar to the simultaneous analysis and design (SAND) optimization architecture[@Martins2013]. 
 
 Both implicit and explicit phases are useful in different circumstances. 
-The explicit phases are more natural ways to formulate the problem to many because the match the way you would use time-integration without optimization.
+The explicit phases are more natural ways to formulate the problem to many because they match the way one would use time-integration without optimization.
 However when used with optimization they are also more computationally expensive, 
 sensitive to singularities in the ODE, 
 and potentially unable to converge to a valid solution. 
@@ -171,14 +169,14 @@ Examples of how to swap between them are given in the code sample below.
 
 # Choice of optimization algorithm 
 
-Dymos does not shipt with its own optimizer, but relies on the optimizers that are available in your OpenMDAO installation. 
+Dymos is not distributed with an optimizer, but relies on the optimizers that are available in the OpenMDAO installation.
 OpenMDAO ships with an interface to the optimizers in SciPy [@2020SciPy-NMeth], 
-and an additional wrapper for the pyoptsparse [@Wu_pyoptsparse_2020] library which has more powerful optimizer options such as SNOPT [@GilMS05] and IPOPT [@wachter2006].
+and an additional wrapper for the pyoptsparse library [@Wu_pyoptsparse_2020] which has more powerful optimizer options such as SNOPT [@GilMS05] and IPOPT [@wachter2006].
 OpenMDAO also allows users to integrate their own optimizer of choice, which Dymos can then seamlessly use with without any additional modifications.
 For simple problems, Scipy's SLSQP optimizer generally works fine.
 On more challenging optimal-control problems, higher quality optimizers are important for getting good performance.
 
-Though you could technically choose any optimization algorithm, Dymos is designed to work primarily with gradient based algorithms. 
+Though one could technically choose any optimization algorithm, Dymos is designed to work primarily with gradient based algorithms.
 In general, optimal-control and co-design problems will have both a very large number of design variables and a very large number of constraints. 
 Both of these issues make gradient based methods the strongly preferred choice. 
 Gradient free methods could potentially be used in certain narrow circumstances with problems built using purely explicit phases and set up intentionally to have a small set of design variables and constraints. 
@@ -342,8 +340,8 @@ The more traditional way to view the brachistochrone solution is to view the act
 
 This co-design example seeks to find the best size cannonball to maximize range considering aerodynamic drag subject to a limit on initial kinetic energy. 
 Given the same kinetic energy, a lighter ball will go faster and hence farther if aerodynamic drag is ignored. 
-When you factor in drag, heavier cannonballs will have more inertia to counteract drag. 
-There is a balance between these two effect, which the optimizer seeks to find. 
+Heavier cannonballs will have more inertia to counteract drag.
+There is a balance between these two effects, which the optimizer seeks to find.
 
 Here the static calculations are to find the mass and frontal area of the cannonball, given its radius. 
 Then the ODE takes the mass and area as inputs and via Dymos can compute the total range. 
