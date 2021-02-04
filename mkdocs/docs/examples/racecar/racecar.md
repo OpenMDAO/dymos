@@ -91,12 +91,61 @@ Here are some figures which help define the problem.
 This table describes the controls, states, and constraints. The symbols match up with the
 variable names in the code shown at the bottom of this page. 
 
-![Optimization Problem Formulation: states, controls, and vehicle parameters](optimization_problem_formulation.png)
+###### Table 1. Optimization problem formulation
+
+|                     |                               | Symbol    | Lower | Upper | Units      |
+|---------------------|-------------------------------|-----------|-------|-------|------------|
+| **Minimize**        | Time                          |         t |       |       |          s |
+| **With respect to** |                               |           |       |       |            |
+| **Controls**        | Front left thrust             | $T_{fl}$  |       |       |            |
+|                     | Front right thrust            | $T_{fr}$  |       |       |            |
+|                     | Rear left thrust              | $T_{rl}$  |       |       |            |
+|                     | Rear right thrust             | $T_{rr}$  |       |       |            |
+|                     | Rear wing flap angle          | $\gamma$  |     0 |    50 |        deg |
+|                     | Steering angle                |  $\delta$ |       |       |        rad |
+| **States**          | Speed                         |         V |       |       |  $ms^{-1}$ |
+|                     | Longitudinal acceleration     |     $a_x$ |       |       | $ms^{-2}$  |
+|                     | Lateral acceleration          |     $a_y$ |       |       | $ms^{-2}$  |
+|                     | Normal distance to centerline |         n |    -4 |     4 |          m |
+|                     | Angle relative to centerline  |  $\alpha$ |       |       |        rad |
+|                     | Slip angle                    | $\lambda$ |       |       |        rad |
+|                     | Yaw rate                      | $\Omega$  |       |       | $rad^{-1}$ |
+| **Subject to**      | Front left adherence          | $c_{fl}$  |     0 |     1 |            |
+|                     | Front right adherence         | $c_{fr}$  |     0 |     1 |            |
+|                     | Rear left adherence           | $c_{rl}$  |     0 |     1 |            |
+|                     | Rear right adherence          | $c_{rr}$  |     0 |     1 |            |
+|                     | Front left power              | $P_{fl}$  |       |    75 |         kW |
+|                     | Front right power             | $P_{fr}$  |       |    75 |         kW |
+|                     | Rear left power               | $P_{rl}$  |       |    75 |         kW |
+|                     | Rear right power              | $P_{rr}$  |       |    75 |         kW |
+|                     | Periodic state constraints    |           |       |       |            |
+|                     | System dynamics               |           |       |       |            |
+|                     | Track Layout                  |           |       |       |            |
 
 The next figure defines the vehicle parameters. Again, the symbols match up with the
 variable names in the code.
 
-![Vehicle Parameters](vehicle_parameters.png)
+###### Table 2. Vehicle parameters
+
+| Parameter      | Value                                | Units       | Description                                |
+|----------------|--------------------------------------|-------------|--------------------------------------------|
+| $M$            | 1184                                 | $kg$        | Vehicle mass                               |
+| $a$            | 1.404                                | $m$         | CoG to front axle distance                 |
+| $b$            | 1.356                                | $m$         | CoG to rear axle distance                  |
+| $t_w$          | 0.807                                | $m$         | Half track width                           |
+| $h$            | 0.4                                  | $m$         | CoG height                                 |
+| $I_z$          | 1775                                 | $kg\ m^{2}$  | Yaw inertia                                |
+| $\beta$        | 0.62                                 | -           | Brake balance                              |
+| $\chi$         | 0.5                                  | -           | Roll stiffness                             |
+| $\rho$         | 1.2                                  | $kg\ m^{-3}$ | Air density                                |
+| $\mu_{0}^{x}$  | 1.68                                 | -           | Longitudinal base friction coefficient     |
+| $\mu_{0}^{y}$  | 1.68                                 | -           | Lateral base friction coefficient          |
+| $K_{\mu}$      | -0.5                                 | -           | Tire load sensitivity                      |
+| $K_{\lambda}$  | 44                                   | -           | Tire lateral stiffness                     |
+| $\tau_{a_{x}}$ | 0.2                                  | $s$         | Longitudinal load transfer time constant   |
+| $\tau_{a_{y}}$ | 0.2                                  | $s$         | Lateral load transfer time constant        |
+| $S_{w}$        | 0.8                                  | $m^{2}$     | Wing planform area                         |
+| $CoP$          | 1.404                                | $m$         | Center of pressure to front axle distance  |
 
 There is also a figure which describes the states that govern the vehicle position 
 relative to the track.
