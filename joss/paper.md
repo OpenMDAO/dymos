@@ -231,10 +231,14 @@ class BrachistochroneEOM(om.ExplicitComponent):
 
         # Inputs
         self.add_input('v', val=np.zeros(nn), units='m/s', desc='velocity')
-        self.add_input('theta', val=np.zeros(nn), units='rad', desc='angle of wire')
-        self.add_output('xdot', val=np.zeros(nn), units='m/s', desc='x rate of change')
-        self.add_output('ydot', val=np.zeros(nn), units='m/s', desc='y rate of change')
-        self.add_output('vdot', val=np.zeros(nn), units='m/s**2', desc='v rate of change')
+        self.add_input('theta', val=np.zeros(nn), units='rad',
+                       desc='angle of wire')
+        self.add_output('xdot', val=np.zeros(nn), units='m/s',
+                        desc='x rate of change')
+        self.add_output('ydot', val=np.zeros(nn), units='m/s',
+                        desc='y rate of change')
+        self.add_output('vdot', val=np.zeros(nn), units='m/s**2',
+                        desc='v rate of change')
 
         # Ask OpenMDAO to compute the partial derivatives using complex-step
         # with a partial coloring algorithm for improved performance
