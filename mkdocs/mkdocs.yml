@@ -52,6 +52,7 @@ nav:
         - 'Example Problems':
             - 'examples/brachistochrone/brachistochrone.md'
             - 'examples/vanderpol/vanderpol.md'
+            - 'examples/balanced_field/balanced_field.md'
             - 'examples/commercial_aircraft/commercial_aircraft.md'
             - 'examples/double_integrator/double_integrator.md'
             - 'examples/hypersensitive/hypersensitive.md'

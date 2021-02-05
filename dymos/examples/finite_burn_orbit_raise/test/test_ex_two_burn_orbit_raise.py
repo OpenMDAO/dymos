@@ -270,7 +270,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_ex_two_burn_orbit_raise(self):
         optimizer = 'IPOPT'
 
@@ -287,7 +287,7 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_ex_two_burn_orbit_raise_connected(self):
         optimizer = 'IPOPT'
 

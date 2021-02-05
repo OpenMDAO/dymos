@@ -59,7 +59,7 @@ class TestVanderpolExampleMPI(unittest.TestCase):
 
     N_PROCS = 4
 
-    @unittest.skipUnless(MPI and optimizer is 'IPOPT', 'this test requires MPI and IPOPT')
+    @unittest.skipUnless(MPI and optimizer == 'IPOPT', 'this test requires MPI and IPOPT')
     def test_vanderpol_optimal_mpi(self):
         """to test with MPI:
            OPENMDAO_REQUIRE_MPI=1 mpirun -n 4 python

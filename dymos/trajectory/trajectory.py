@@ -417,8 +417,9 @@ class Trajectory(om.Group):
                     tgt_shapes[phs.name] = phs.parameter_options[name]['shape']
                     tgt_units[phs.name] = phs.parameter_options[name]['units']
                 else:
-                    raise ValueError(f'Unhandled parameter target in '
-                                     f'phase {phase_name}')
+                    raise ValueError(f'Unhandled target(s) ({targets[phase_name]}) for parameter {name} in '
+                                     f'phase {phase_name}.  If connecting to ODE inputs in the phase, '
+                                     f'format the targets as a sequence of strings.')
 
                 promoted_inputs.append(tgt)
                 self.promotes('phases', inputs=[(tgt, prom_name)])
@@ -1043,6 +1044,10 @@ class Trajectory(om.Group):
         if record_file is not None:
             rec = om.SqliteRecorder(record_file)
             sim_prob.add_recorder(rec)
+            # record_inputs is needed to capture potential input parameters that aren't connected
+            sim_prob.recording_options['record_inputs'] = True
+            # record_outputs is need to capture the timeseries outputs
+            sim_prob.recording_options['record_outputs'] = True
 
         sim_prob.setup()
 

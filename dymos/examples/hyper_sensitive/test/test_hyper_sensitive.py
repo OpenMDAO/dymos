@@ -89,7 +89,7 @@ class TestHyperSensitive(unittest.TestCase):
         with printoptions(linewidth=1024, edgeitems=100):
             cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_hyper_sensitive_radau(self):
         p = self.make_problem(transcription=Radau, optimizer='IPOPT')
         dm.run_problem(p, refine_iteration_limit=5)
@@ -107,7 +107,7 @@ class TestHyperSensitive(unittest.TestCase):
                           J,
                           tolerance=1e-6)
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_hyper_sensitive_gauss_lobatto(self):
         p = self.make_problem(transcription=GaussLobatto, optimizer='IPOPT')
         dm.run_problem(p, refine_iteration_limit=5)
@@ -126,7 +126,7 @@ class TestHyperSensitive(unittest.TestCase):
                           J,
                           tolerance=1e-4)
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_refinement_warning(self):
         p = self.make_problem(transcription=Radau, optimizer='IPOPT')
 
