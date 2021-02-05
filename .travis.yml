@@ -154,6 +154,7 @@ script:
 - dymos_path=$(python -c "import dymos as dm; import inspect; import pathlib; p=pathlib.PurePath(inspect.getfile(dm)).parent; print(p)" | tail -1);
 - export OMPI_MCA_rmaps_base_oversubscribe=1
 - testflo $dymos_path -n 1 --show_skipped --coverage --coverpkg dymos;
+- testflo -n 1 joss/test --pre_announce
 - testflo -b -n 1 benchmark --pre_announce
 # change to mkdocs path and build the documentation
 - cd mkdocs;
