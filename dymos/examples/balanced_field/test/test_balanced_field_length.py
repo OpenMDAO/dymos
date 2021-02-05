@@ -5,7 +5,7 @@ import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
-from dymos.examples.balanced_field.balanced_field_odes import GroundRollODEComp, TakeoffClimbODEComp
+from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
@@ -25,7 +25,8 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         p.driver.declare_coloring()
 
         # First Phase: Brake release to V1 - both engines operable
-        br_to_v1 = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
+        br_to_v1 = dm.Phase(ode_class=BalancedFieldODEComp, transcription=dm.Radau(num_segments=3),
+                            ode_init_kwargs={'mode': 'runway'})
         br_to_v1.set_time_options(fix_initial=True, duration_bounds=(1, 1000), duration_ref=10.0)
         br_to_v1.add_state('r', fix_initial=True, lower=0, ref=1000.0, defect_ref=1000.0)
         br_to_v1.add_state('v', fix_initial=True, lower=0.0001, ref=100.0, defect_ref=100.0)
@@ -33,7 +34,8 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         br_to_v1.add_timeseries_output('*')
 
         # Second Phase: Rejected takeoff at V1 - no engines operable
-        rto = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
+        rto = dm.Phase(ode_class=BalancedFieldODEComp, transcription=dm.Radau(num_segments=3),
+                       ode_init_kwargs={'mode': 'runway'})
         rto.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1.0)
         rto.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
         rto.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0)
@@ -41,7 +43,8 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         rto.add_timeseries_output('*')
 
         # Third Phase: V1 to Vr - single engine operable
-        v1_to_vr = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
+        v1_to_vr = dm.Phase(ode_class=BalancedFieldODEComp, transcription=dm.Radau(num_segments=3),
+                            ode_init_kwargs={'mode': 'runway'})
         v1_to_vr.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1.0)
         v1_to_vr.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
         v1_to_vr.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0)
@@ -49,7 +52,8 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         v1_to_vr.add_timeseries_output('*')
 
         # Fourth Phase: Rotate - single engine operable
-        rotate = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
+        rotate = dm.Phase(ode_class=BalancedFieldODEComp, transcription=dm.Radau(num_segments=3),
+                          ode_init_kwargs={'mode': 'runway'})
         rotate.set_time_options(fix_initial=False, duration_bounds=(1.0, 5), duration_ref=1.0)
         rotate.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
         rotate.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0)
@@ -57,7 +61,8 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         rotate.add_timeseries_output('*')
 
         # Fifth Phase: Climb to target speed and altitude at end of runway.
-        climb = dm.Phase(ode_class=TakeoffClimbODEComp, transcription=dm.Radau(num_segments=5))
+        climb = dm.Phase(ode_class=BalancedFieldODEComp, transcription=dm.Radau(num_segments=5),
+                         ode_init_kwargs={'mode': 'climb'})
         climb.set_time_options(fix_initial=False, duration_bounds=(1, 100), duration_ref=1.0)
         climb.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
         climb.add_state('h', fix_initial=True, lower=0.0, ref=1.0, defect_ref=1.0)
@@ -101,7 +106,7 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
                            desc='runway friction coefficient under braking',
                            targets={'rto': ['mu_r']})
 
-        traj.add_parameter('h_runway', val=0., opt=False, units='ft', dynamic=False,
+        traj.add_parameter('h_runway', val=0., opt=False, units='ft', dynamic=True,
                            desc='runway altitude',
                            targets={'br_to_v1': ['h'], 'v1_to_vr': ['h'], 'rto': ['h'],
                                     'rotate': ['h']})
@@ -267,7 +272,8 @@ class TestBalancedFieldLengthDefaultValues(unittest.TestCase):
         p = om.Problem()
 
         # First Phase: Brake release to V1 - both engines operable
-        br_to_v1 = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
+        br_to_v1 = dm.Phase(ode_class=BalancedFieldODEComp, transcription=dm.Radau(num_segments=3),
+                            ode_init_kwargs={'mode': 'runway'})
         br_to_v1.set_time_options(fix_initial=True, duration_bounds=(1, 1000), duration_ref=10.0,
                                   initial_val=0.0, duration_val=35.0)
         br_to_v1.add_state('r', fix_initial=True, lower=0, ref=1000.0, defect_ref=1000.0,
@@ -278,7 +284,8 @@ class TestBalancedFieldLengthDefaultValues(unittest.TestCase):
         br_to_v1.add_timeseries_output('*')
 
         # Second Phase: Rejected takeoff at V1 - no engines operable
-        rto = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
+        rto = dm.Phase(ode_class=BalancedFieldODEComp, transcription=dm.Radau(num_segments=3),
+                       ode_init_kwargs={'mode': 'runway'})
         rto.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1.0,
                              initial_val=35.0, duration_val=35.0)
         rto.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0,
@@ -289,7 +296,8 @@ class TestBalancedFieldLengthDefaultValues(unittest.TestCase):
         rto.add_timeseries_output('*')
 
         # Third Phase: V1 to Vr - single engine operable
-        v1_to_vr = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
+        v1_to_vr = dm.Phase(ode_class=BalancedFieldODEComp, transcription=dm.Radau(num_segments=3),
+                            ode_init_kwargs={'mode': 'runway'})
         v1_to_vr.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1.0,
                                   initial_val=35.0, duration_val=35.0)
         v1_to_vr.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0,
@@ -300,7 +308,8 @@ class TestBalancedFieldLengthDefaultValues(unittest.TestCase):
         v1_to_vr.add_timeseries_output('*')
 
         # Fourth Phase: Rotate - single engine operable
-        rotate = dm.Phase(ode_class=GroundRollODEComp, transcription=dm.Radau(num_segments=3))
+        rotate = dm.Phase(ode_class=BalancedFieldODEComp, transcription=dm.Radau(num_segments=3),
+                          ode_init_kwargs={'mode': 'runway'})
         rotate.set_time_options(fix_initial=False, duration_bounds=(1.0, 5), duration_ref=1.0,
                                 initial_val=70.0, duration_val=5.0)
         rotate.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0,
@@ -311,7 +320,8 @@ class TestBalancedFieldLengthDefaultValues(unittest.TestCase):
         rotate.add_timeseries_output('*')
 
         # Fifth Phase: Climb to target speed and altitude at end of runway.
-        climb = dm.Phase(ode_class=TakeoffClimbODEComp, transcription=dm.Radau(num_segments=5))
+        climb = dm.Phase(ode_class=BalancedFieldODEComp, transcription=dm.Radau(num_segments=5),
+                         ode_init_kwargs={'mode': 'climb'})
         climb.set_time_options(fix_initial=False, duration_bounds=(1, 100), duration_ref=1.0,
                                initial_val=75.0, duration_val=10.0)
         climb.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0,
@@ -360,7 +370,7 @@ class TestBalancedFieldLengthDefaultValues(unittest.TestCase):
                            desc='runway friction coefficient under braking',
                            targets={'rto': ['mu_r']})
 
-        traj.add_parameter('h_runway', val=0., opt=False, units='ft', dynamic=False,
+        traj.add_parameter('h_runway', val=0., opt=False, units='ft', dynamic=True,
                            desc='runway altitude',
                            targets={'br_to_v1': ['h'], 'v1_to_vr': ['h'], 'rto': ['h'],
                                     'rotate': ['h']})
