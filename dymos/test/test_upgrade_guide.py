@@ -30,7 +30,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         #
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
-        p.driver.declare_coloring()
+        p.driver.declare_coloring(tol=1.0E-12)
 
         from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
