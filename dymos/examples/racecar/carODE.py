@@ -156,9 +156,12 @@ class CarODE(om.ExplicitComponent):
         # drag equation
         drag = 0.5 * rho * CdA * V ** 2
 
-        outputs["sdot"] = (V * np.cos(alpha - lamb)) / (1 - n * kappa)
-        outputs["ndot"] = V * np.sin(alpha - lamb)
-        outputs["alphadot"] = omega - (kappa * V * np.cos(alpha - lamb)) / (1 - n * kappa)
+        sin_alpha_minus_lamb = np.sin(alpha - lamb)
+        cos_alpha_minus_lamb = np.cos(alpha - lamb)
+
+        outputs["sdot"] = (V * cos_alpha_minus_lamb) / (1 - n * kappa)
+        outputs["ndot"] = V * sin_alpha_minus_lamb
+        outputs["alphadot"] = omega - (kappa * V * cos_alpha_minus_lamb) / (1 - n * kappa)
         Vdot = S_all / M - delta * F_front / M - drag / M - omega * V * lamb
         outputs["Vdot"] = Vdot
         outputs["lambdadot"] = (
@@ -198,25 +201,27 @@ class CarODE(om.ExplicitComponent):
 
         ddrag_dv = 2 * CdA * V
 
-        jacobian["sdot", "V"] = np.cos(alpha - lamb) / (1 - n * kappa)
-        jacobian["sdot", "alpha"] = (V * np.sin(alpha - lamb)) / (kappa * n - 1)
-        jacobian["sdot", "lambda"] = -(V * np.sin(alpha - lamb)) / (kappa * n - 1)
-        jacobian["sdot", "n"] = (kappa * V * np.cos(alpha - lamb)) / (
+        sin_alpha_minus_lamb = np.sin(alpha - lamb)
+        cos_alpha_minus_lamb = np.cos(alpha - lamb)
+        jacobian["sdot", "V"] = cos_alpha_minus_lamb / (1 - n * kappa)
+        jacobian["sdot", "alpha"] = (V * sin_alpha_minus_lamb) / (kappa * n - 1)
+        jacobian["sdot", "lambda"] = -(V * sin_alpha_minus_lamb) / (kappa * n - 1)
+        jacobian["sdot", "n"] = (kappa * V * cos_alpha_minus_lamb) / (
             1 - kappa * n
         ) ** 2
-        jacobian["sdot", "kappa"] = n * V * np.cos(alpha - lamb) / (1 - kappa * n) ** 2
+        jacobian["sdot", "kappa"] = n * V * cos_alpha_minus_lamb / (1 - kappa * n) ** 2
 
-        jacobian["ndot", "V"] = np.sin(alpha - lamb)
-        jacobian["ndot", "alpha"] = V * np.cos(alpha - lamb)
-        jacobian["ndot", "lambda"] = -V * np.cos(alpha - lamb)
+        jacobian["ndot", "V"] = sin_alpha_minus_lamb
+        jacobian["ndot", "alpha"] = V * cos_alpha_minus_lamb
+        jacobian["ndot", "lambda"] = -V * cos_alpha_minus_lamb
 
         jacobian["alphadot", "omega"] = 1.0
-        jacobian["alphadot", "V"] = -(kappa * np.cos(alpha - lamb)) / (1 - n * kappa)
-        jacobian["alphadot", "alpha"] = (kappa * V * np.sin(alpha - lamb)) / (1 - kappa * n)
-        jacobian["alphadot", "lambda"] = (kappa * V * np.sin(alpha - lamb)) / (kappa * n - 1)
-        jacobian["alphadot", "n"] = -(kappa ** 2 * V * np.cos(alpha - lamb)) / (
+        jacobian["alphadot", "V"] = -(kappa * cos_alpha_minus_lamb) / (1 - n * kappa)
+        jacobian["alphadot", "alpha"] = (kappa * V * sin_alpha_minus_lamb) / (1 - kappa * n)
+        jacobian["alphadot", "lambda"] = (kappa * V * sin_alpha_minus_lamb) / (kappa * n - 1)
+        jacobian["alphadot", "n"] = -(kappa ** 2 * V * cos_alpha_minus_lamb) / (
                     (1 - kappa * n) ** 2)
-        jacobian["alphadot", "kappa"] = -(V * np.cos(alpha - lamb)) / ((1 - kappa * n) ** 2)
+        jacobian["alphadot", "kappa"] = -(V * cos_alpha_minus_lamb) / ((1 - kappa * n) ** 2)
 
         jacobian["Vdot", "S_rr"] = 1 / M
         jacobian["Vdot", "S_rl"] = 1 / M

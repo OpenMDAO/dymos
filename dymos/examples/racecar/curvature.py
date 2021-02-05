@@ -41,6 +41,3 @@ class Curvature(om.ExplicitComponent):
             kappa[i] = self.curv[index.astype(int)]
 
         outputs['kappa'] = kappa
-
-    def compute_partials(self, inputs, jacobian):
-        pass
