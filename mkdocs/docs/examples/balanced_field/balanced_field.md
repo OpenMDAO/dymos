@@ -226,9 +226,9 @@ Since there is significant commonality between the ODEs for the runway roll and 
 uses a single ODE class with an option `mode` that can be set to either `'runway'` or `'climb'`.
 Based on the value of `mode`, the component conditionally changes its inputs and outputs.
 
-### GroundRollODEComp
+### BalancedFieldODEComp
 
-=== "balanced_field_odes.py : GroundRollODEComp"
+=== "balanced_field_odes.py : BalancedFieldODEComp"
 {{ inline_source('dymos.examples.balanced_field.balanced_field_ode.BalancedFieldODEComp',
 include_def=True,
 include_docstring=True,
