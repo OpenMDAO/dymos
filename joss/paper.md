@@ -109,8 +109,8 @@ From the perspective of an optimal-control or co-design problem both ODE and DAE
 The difference is that ODEs are explicit functions which are relatively easy to differentiate, but DAEs are implicit functions which are much more difficult to differentiate. 
 Since the derivatives are needed to perform optimization, DAEs are more challenging to optimize. 
 
-One relatively common use case for DAEs is differential inclusions, in which the state time-history is posed as a dynamic control and the traditional control schedule needed to achieve that time-history is found using a nonlinear solver within the dynamic model [@Seywald1994].
-For some problems differential inclusion provides a more natural and numerically beneficial design space for the optimizer to traverse,
+One relatively common use case for DAEs is differential inclusions, in which the state trajectory is posed as a dynamic control and the traditional control schedule needed to achieve that trajectory is found using a nonlinear solver within the dynamic model [@Seywald1994].
+For some problems this method provides a more natural and numerically beneficial design space for the optimizer to traverse,
 but the nonlinear solver poses numerical challenges for computing derivatives for the optimizer.
 A simple approach to this is to just use finite-differences across the nonlinear solver, but this has been shown to be expensive and numerically unstable [@gray2014derivatives].
 Another option, taken by some optimal control libraries, is to apply monolithic algorithmic differentiation [@griewank2003mathematical] across the nonlinear solver.
@@ -135,7 +135,7 @@ Each phase in a trajectory can use its own separate ODE.
 For instance, an aircraft with vertical takeoff and landing capability may use different ODEs for vertical flight and horizontal flight.
 ODEs are implemented as standard OpenMDAO models which are passed to phases at instantiation time with some additional annotations to identify the states, state-rates, and control inputs.
 
-Every phase uses its own specific time discretization tailored to the dynamics in that portion of the time-history.
+Every phase uses its own specific time discretization tailored to the dynamics in that portion of the trajectory.
 If one part of a trajectory has fast dynamics and another has slow dynamics, the time-evolution can be broken into two phases with separate time discretizations.
 
 In the optimal-control community, there are a number of different techniques for discretizing the continuous optimal control problem into a form that can be solved by a nonlinear optimization algorithm, each one is called a transcription.
@@ -147,22 +147,22 @@ Some caution with terminology must be taken here because the term "implicit" is 
 but that is not what is meant in an optimal-control context.
 Here, explicit propagation is one where the full state trajectory is computed starting from the initial value and propagating forward or from the final value and propagating backward.
 From the optimizers perspective it will set values for the initial or final state ($\bar{x}$), the design parameters ($\bar{d}$), and the controls ($\bar{u}$) and can expect to be given a physically valid time-evolution of the states as the output.
-Wrapping an optimizer around an explicit phase gives what is traditionally called a "shooting method" in the optimal control world.
-In contrast, implicit phases don't provide valid time histories on their own. 
-Instead, they add a discretized time-evolution of the state vector ($\bar{x}$) as an additional design variable to the optimizer and add an associated set of defect constraints that must be driven to zero to enforce physics at some set of discrete points in time where the ODE is evaluated.
+Wrapping an optimizer around an explicit propagation gives what is traditionally called a "shooting method" in the optimal control world.
+In contrast, implicit propagation used within an optimization doesn't provide valid trajectories on its own.
+Instead, implicit methods add a discretized time-evolution of the state vector ($\bar{x}$) as an additional design variable to the optimizer and add an associated set of defect constraints that must be driven to zero to enforce physics at some set of discrete points in time where the ODE is evaluated.
 The net effect is that the full state trajectory is only known once the optimization is fully converged.
 In the context of the multidisciplinary design optimization field, explicit phases are similar to the multidisciplinary design feasible (MDF) optimization architecture and implicit phases are similar to the simultaneous analysis and design (SAND) optimization architecture [@Martins2013].
 
 Both implicit and explicit phases are useful in different circumstances. 
-The explicit phases are more natural ways to formulate the problem to many because they match the way one would use time-integration without optimization.
-However when used with optimization they are also more computationally expensive, 
+Explicit propagation can seem like a more natural way to formulate the problem to many because it matches the way one would use time-integration without optimization.
+However when used with optimization explicit propagation is more computationally expensive,
 sensitive to singularities in the ODE, 
 and potentially unable to converge to a valid solution. 
-Implicit phases tend to be less intuitive computationally, since they don't provide valid time histories without a converged optimization. 
-Their advantages are that they tend to be faster, more numerically stable, and more scalable --- though they are also highly sensitive to initial conditions and optimization scaling. 
+Implicit propagation tend to be less intuitive computationally, since it doesn't provide valid state histories without a converged optimization.
+The advantages of implicit propagation are that it tends to be faster, more numerically stable, and more scalable --- though also highly sensitive to initial conditions and optimization scaling.
 
-Dymos supports both explicit and implicit phases for both its transcriptions, 
-and even allows mixtures of implicit and explicit states within a phase. 
+Dymos supports both explicit and implicit propagation for both its transcriptions,
+and even allows mixtures of implicitly and explicitly propagated states within a phase.
 This flexibility is valuable because it allows users to tailor their optimization to suit their needs. 
 Switching transcriptions and changing from implicit to explicit requires very minor code changes - typically a single line in the run-script.
 Examples of how to swap between them are given in the code sample below. 
@@ -325,8 +325,8 @@ fig.savefig('brachistochone_yx.png', bbox_inches='tight')
 
 The built-in plotting utility in Dymos will plot all relevant quantities vs time.
 
-![Brachistochrone Solution: y state time history](brachistochrone_states_y.png){width=50%}
-![Brachistochrone Solution: x state time history](brachistochrone_states_x.png){width=50%}
+![Brachistochrone Solution: y state trajectory](brachistochrone_states_y.png){width=50%}
+![Brachistochrone Solution: x state trajectory](brachistochrone_states_x.png){width=50%}
 
 
 The more traditional way to view the brachistochrone solution is to view the actual shape of the wire (i.e. y vs x)
@@ -579,8 +579,8 @@ if __name__ == "__main__":
 ```
 \normalsize
 
-The built in plotting in Dymos will give time histories of all the time varying quantities. 
-For example, these are the time histories for the range and height: 
+The built in plotting in Dymos will give time evolutions of all the time varying quantities.
+For example, these are the trajectories for the range and height:
 
 ![Cannonball Solution: height vs time](cannonball_states_h.png){width=50%}
 ![Cannonball Solution: range vs time](cannonball_states_r.png){width=50%}
