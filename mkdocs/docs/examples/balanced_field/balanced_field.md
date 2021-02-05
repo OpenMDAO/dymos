@@ -228,7 +228,7 @@ Based on the value of `mode`, the component conditionally changes its inputs and
 
 ### BalancedFieldODEComp
 
-=== "balanced_field_odes.py : BalancedFieldODEComp"
+=== "balanced_field_ode.py : BalancedFieldODEComp"
 {{ inline_source('dymos.examples.balanced_field.balanced_field_ode.BalancedFieldODEComp',
 include_def=True,
 include_docstring=True,
