@@ -1,9 +1,6 @@
 import openmdao.api as om
 import numpy as np
 
-_g = {'earth': 9.80665,
-      'moon': 1.61544}
-
 
 class LaunchVehicleODE(om.ExplicitComponent):
 
