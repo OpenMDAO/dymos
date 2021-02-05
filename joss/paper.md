@@ -142,7 +142,7 @@ In the optimal-control community, there are a number of different techniques for
 Dymos supports two different collocation transcriptions: high-order Gauss-Lobatto [@Herman1996] and Radau [@Garg2009].
 Both of these represent state and control trajectories as piece-wise polynomials of at least 3rd order and are formulated in a way that makes it possible to efficiently compute the needed quantities to perform integration in a numerically rigorous fashion.
 
-Dymos also allows the user to choose whether the optimization problem is solved using a explicit or implicit approach.
+Dymos also allows the user to choose whether the optimization problem is solved using an explicit or implicit approach.
 Some caution with terminology must be taken here because the term "implicit" is often used to describe time integration schemes (e.g. backwards Euler),
 but that is not what is meant in an optimal-control context.
 Here, explicit propagation is one where the full state trajectory is computed starting from the initial value and propagating forward or from the final value and propagating backward.
