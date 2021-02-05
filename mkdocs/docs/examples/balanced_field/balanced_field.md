@@ -3,7 +3,7 @@
 !!! info "Things you'll learn through this example"
     - How to perform branching trajectories
     - How to constraint the difference between values at the end of two different phases
-    - Using complex-step differentiation on a monolthic ODE component
+    - Using complex-step differentiation on a monolithic ODE component
 
 The United States Federal Aviation Regulations Part 25 defines a
 balanced field length for the aircraft as the shortest field which can
@@ -11,7 +11,7 @@ accommodate a "balanced takeoff".  In a balanced takeoff the aircraft
 accelerates down the runway to some critical speed "V1".
 
 Before achieving V1, the aircraft must be capable of rejecting the takeoff
-and coming to a stop before the end of the runwy.
+and coming to a stop before the end of the runway.
 
 After V1, the aircraft must be capable of achieving an altitude of 35 ft
 above the end of the runway with a speed of V2 (the minimum safe takeoff
@@ -159,7 +159,7 @@ Phase linkage constraints are used to maintain continuity in $\alpha$ throughout
 
 ### Parameters
 
-The following parameters define properties of the aircraft and environment for the probelem.
+The following parameters define properties of the aircraft and environment for the problem.
 
 |Parameters  | Description               |Units        |Value                    |
 |------------|---------------------------|-------------|-------------------------|
@@ -222,46 +222,14 @@ All calculations within the ODE are complex-safe and thus we can use complex-ste
 [partial derivative coloring](http://openmdao.org/twodocs/versions/latest/features/experimental/simul_coloring_fd_cs.html),
 to automatically compute the derivatives using complex-step with reasonable speed.
 
-### Aerodynamics
-
-=== "balanced_field_odes.py : compute_aero"
-{{ inline_source('dymos.examples.balanced_field.balanced_field_odes.compute_aero',
-include_def=True,
-include_docstring=True,
-indent_level=0)
-}}
-
-### Stall Speed
-
-=== "balanced_field_odes.py : compute_stall_speed"
-{{ inline_source('dymos.examples.balanced_field.balanced_field_odes.compute_stall_speed',
-include_def=True,
-include_docstring=True,
-indent_level=0)
-}}
-
-### Ground Roll ODE
-
-=== "balanced_field_odes.py : GroundRollODEComp"
-{{ inline_source('dymos.examples.balanced_field.balanced_field_odes.GroundRollODEComp',
-include_def=True,
-include_docstring=True,
-indent_level=0)
-}}
+Since there is significant commonality between the ODEs for the runway roll and the climb, this implementation
+uses a single ODE class with an option `mode` that can be set to either `'runway'` or `'climb'`.
+Based on the value of `mode`, the component conditionally changes its inputs and outputs.
 
 ### GroundRollODEComp
 
 === "balanced_field_odes.py : GroundRollODEComp"
-{{ inline_source('dymos.examples.balanced_field.balanced_field_odes.GroundRollODEComp',
-include_def=True,
-include_docstring=True,
-indent_level=0)
-}}
-
-### TakeoffClimbODEComp
-
-=== "balanced_field_odes.py : TakeoffClimbODEComp"
-{{ inline_source('dymos.examples.balanced_field.balanced_field_odes.TakeoffClimbODEComp',
+{{ inline_source('dymos.examples.balanced_field.balanced_field_ode.BalancedFieldODEComp',
 include_def=True,
 include_docstring=True,
 indent_level=0)
