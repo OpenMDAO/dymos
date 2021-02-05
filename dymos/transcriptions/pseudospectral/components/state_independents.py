@@ -69,12 +69,18 @@ class StateIndependentsComp(om.ImplicitComponent):
             shape = options['shape']
             units = options['units']
             solved = options['solve_segments']
+            default_val = options['val']
+            if np.isscalar(default_val) or np.asarray(default_val).shape == 1:
+                default_val = float(default_val)
+            elif np.asarray(default_val).shape == shape:
+                default_val = np.repeat(default_val[np.newaxis, ...], num_state_input_nodes, axis=0)
             var_names = self.var_names[state_name]
 
             # only need the implicit variable if this state is solved.
             # Note: we don't add scaling and bounds here. This may be revisited.
             self.add_output(name=f'states:{state_name}',
-                            shape=(num_state_input_nodes, ) + shape,
+                            shape=(num_state_input_nodes,) + shape,
+                            val=default_val,
                             units=units)
 
             # Input for continuity, which can come from an external source.

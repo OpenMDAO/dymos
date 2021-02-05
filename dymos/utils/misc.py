@@ -233,6 +233,38 @@ def get_source_metadata(ode, src, user_units, user_shape):
     return shape, units
 
 
+def reshape_val(val, shape, num_input_nodes):
+    """
+    Return the given value reshaped to (num_input_nodes,) + shape.
+
+    If the value is scalar or a size-1 array, return that value multiplied by
+    np.ones((num_input_nodes,) + shape).  If the value's shape is shape, then
+    repeat those values along a new first dimension.  Otherwise, reshape it to
+    the correct shape and return that.
+
+    Parameters
+    ----------
+    val : float or array-like
+        The values to be conformed to the desired shape.
+    shape : tuple
+        The shape of the desired output at each node.
+    num_input_nodes : int
+        The number of nodes along which the value is repeated.
+
+    Returns
+    -------
+    np.array
+        The given value of the correct shape.
+    """
+    if np.isscalar(val) or np.prod(np.asarray(val).shape) == 1:
+        shaped_val = float(val) * np.ones((num_input_nodes,) + shape)
+    elif np.asarray(val).shape == shape:
+        shaped_val = np.repeat(val[np.newaxis, ...], num_input_nodes, axis=0)
+    else:
+        shaped_val = np.reshape(val, newshape=(num_input_nodes,) + shape)
+    return shaped_val
+
+
 class CoerceDesvar(object):
     """
     Check the desvar options for the appropriate shape and resize accordingly with options.

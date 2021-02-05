@@ -10,7 +10,7 @@ from near ground level, Mach 0.4 to an altitude of 20 km and Mach 1.0.
 The vehicle dynamics are given by
 
 \begin{align}
-  \frac{dv}{dt} &= \frac{T}{m} \cos \alpha - \frac{D}{M} - g \sin \gamma \\
+  \frac{dv}{dt} &= \frac{T}{m} \cos \alpha - \frac{D}{m} - g \sin \gamma \\
   \frac{d\gamma}{dt} &= \frac{T}{m v} \sin \alpha + \frac{L}{m v} - \frac{g \cos \gamma}{v} \\
   \frac{dh}{dt} &= v \sin \gamma \\
   \frac{dr}{dt} &= v \cos \gamma \\

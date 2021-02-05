@@ -264,7 +264,7 @@ def define_env(env):
                     plot_name = plot_names[index-1] if plot_names else f'{index}'
                 except:
                     plot_name = f'{index}'
-                print(f'=== "{plot_name}"\n', file=ss)
+                print(f'=== "plot {plot_name}"\n', file=ss)
                 print(f'    <img alt="{plot_alt_text}" width="{width}" height="{height}" src="data:image/png;base64,{data}"/>\n', file=ss)
 
         return ss.getvalue()

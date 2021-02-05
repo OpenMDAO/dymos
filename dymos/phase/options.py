@@ -374,7 +374,7 @@ class StateOptionsDictionary(om.OptionsDictionary):
                      desc='Bounds on the value of the state at the end of the phase. This '
                           'option is invalid if opt=False.')
 
-        self.declare(name='val', types=(Iterable, Number), default=0.0,
+        self.declare(name='val', types=(Iterable, Number), default=1.0,
                      desc='Default value of the state variable at the discretization nodes')
 
         self.declare(name='desc', types=str, default='',

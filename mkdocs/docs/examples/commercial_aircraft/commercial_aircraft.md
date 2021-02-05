@@ -144,15 +144,15 @@ preferable when using a differential inclusion approach to problems.
 
 ### Objective
 
-|Name   |Location (initial or final)  |Minimized or Maximized|
-|-------|-----------------------------|----------------------|
-|range  |final                        | Maximized            |
+|Name   | Description | Location | Minimized or Maximized |
+|-------|-------------|----------|------------------------|
+|r      | range       | final    | Maximized              |
 
 ### Nonlinear Path Constraints
 
-|Name  |Location (initial or final)  |Lower  |Upper|
+|Name  | Description                 |Lower  |Upper|
 |------|-----------------------------|-------|-----|
-|tau   |engine throttle parameter    |0.01   |1.0  |
+|tau   | engine throttle parameter   |0.01   |1.0  |
 
 ### Nonlinear Boundary Constraints
 

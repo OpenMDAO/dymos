@@ -38,6 +38,12 @@ class TimeComp(om.ExplicitComponent):
         self.options.declare('units', default=None, allow_none=True, types=str,
                              desc='Units of time (or the integration variable)')
 
+        self.options.declare('initial_val', default=0.0, types=(int, float),
+                             desc='default value of initial time')
+
+        self.options.declare('duration_val', default=1.0, types=(int, float),
+                             desc='default value of duration')
+
     def configure_io(self):
         """
         I/O creation is delayed until configure so we can determine variable shape and units.
@@ -45,8 +51,8 @@ class TimeComp(om.ExplicitComponent):
         time_units = self.options['units']
         num_nodes = self.options['num_nodes']
 
-        self.add_input('t_initial', val=0., units=time_units)
-        self.add_input('t_duration', val=1., units=time_units)
+        self.add_input('t_initial', val=self.options['initial_val'], units=time_units)
+        self.add_input('t_duration', val=self.options['duration_val'], units=time_units)
         self.add_output('time', units=time_units, val=np.ones(num_nodes))
         self.add_output('time_phase', units=time_units, val=np.ones(num_nodes))
         self.add_output('dt_dstau', units=time_units, val=np.ones(num_nodes))
