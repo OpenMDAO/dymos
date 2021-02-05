@@ -50,15 +50,15 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         #
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 500))
 
-        phase.add_state('x', fix_initial=True, ref=1.0E5, defect_ref=1.0,
+        phase.add_state('x', fix_initial=True, ref=1.0E5, defect_ref=10000.0,
                         rate_source='xdot')
-        phase.add_state('y', fix_initial=True, ref=1.0E5, defect_ref=1.0,
+        phase.add_state('y', fix_initial=True, ref=1.0E5, defect_ref=10000.0,
                         rate_source='ydot')
-        phase.add_state('vx', fix_initial=True, ref=1.0E3, defect_ref=1.0,
+        phase.add_state('vx', fix_initial=True, ref=1.0E3, defect_ref=1000.0,
                         rate_source='vxdot')
-        phase.add_state('vy', fix_initial=True, ref=1.0E3, defect_ref=1.0,
+        phase.add_state('vy', fix_initial=True, ref=1.0E3, defect_ref=1000.0,
                         rate_source='vydot')
-        phase.add_state('m', fix_initial=True, ref=1.0E3, defect_ref=1.0,
+        phase.add_state('m', fix_initial=True, ref=1.0E3, defect_ref=100.0,
                         rate_source='mdot')
 
         phase.add_control('theta', units='rad', lower=-1.57, upper=1.57)
