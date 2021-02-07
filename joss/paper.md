@@ -155,10 +155,10 @@ In the context of the multidisciplinary design optimization field, explicit phas
 
 Both implicit and explicit phases are useful in different circumstances. 
 Explicit propagation can seem like a more natural way to formulate the problem to many because it matches the way one would use time-integration without optimization.
-However when used with optimization explicit propagation is more computationally expensive,
+However, when used with optimization explicit propagation is more computationally expensive,
 sensitive to singularities in the ODE, 
 and potentially unable to converge to a valid solution. 
-Implicit propagation tend to be less intuitive computationally, since it doesn't provide valid state histories without a converged optimization.
+Implicit propagation tends to be less intuitive computationally, since it doesn't provide valid state histories without a converged optimization.
 The advantages of implicit propagation are that it tends to be faster, more numerically stable, and more scalable --- though also highly sensitive to initial conditions and optimization scaling.
 
 Dymos supports both explicit and implicit propagation for both its transcriptions,
