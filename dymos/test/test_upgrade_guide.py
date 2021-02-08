@@ -30,7 +30,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         #
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
-        p.driver.declare_coloring()
+        p.driver.declare_coloring(tol=1.0E-12)
 
         from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
@@ -40,7 +40,6 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         traj = dm.Trajectory()
 
         phase = dm.Phase(ode_class=LaunchVehicleODE,
-                         ode_init_kwargs={'central_body': 'earth'},
                          transcription=dm.GaussLobatto(num_segments=12, order=3, compressed=False))
 
         traj.add_phase('phase0', phase)
@@ -51,19 +50,19 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         #
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 500))
 
-        phase.add_state('x', fix_initial=True, ref=1.0E5, defect_ref=1.0,
-                        rate_source='eom.xdot', units='m')
-        phase.add_state('y', fix_initial=True, ref=1.0E5, defect_ref=1.0,
-                        rate_source='eom.ydot', targets=['atmos.y'], units='m')
-        phase.add_state('vx', fix_initial=True, ref=1.0E3, defect_ref=1.0,
-                        rate_source='eom.vxdot', targets=['eom.vx'], units='m/s')
-        phase.add_state('vy', fix_initial=True, ref=1.0E3, defect_ref=1.0,
-                        rate_source='eom.vydot', targets=['eom.vy'], units='m/s')
-        phase.add_state('m', fix_initial=True, ref=1.0E3, defect_ref=1.0,
-                        rate_source='eom.mdot', targets=['eom.m'], units='kg')
+        phase.add_state('x', fix_initial=True, ref=1.0E5, defect_ref=10000.0,
+                        rate_source='xdot')
+        phase.add_state('y', fix_initial=True, ref=1.0E5, defect_ref=10000.0,
+                        rate_source='ydot')
+        phase.add_state('vx', fix_initial=True, ref=1.0E3, defect_ref=1000.0,
+                        rate_source='vxdot')
+        phase.add_state('vy', fix_initial=True, ref=1.0E3, defect_ref=1000.0,
+                        rate_source='vydot')
+        phase.add_state('m', fix_initial=True, ref=1.0E3, defect_ref=100.0,
+                        rate_source='mdot')
 
-        phase.add_control('theta', units='rad', lower=-1.57, upper=1.57, targets=['eom.theta'])
-        phase.add_parameter('thrust', units='N', opt=False, val=2100000.0, targets=['eom.thrust'])
+        phase.add_control('theta', units='rad', lower=-1.57, upper=1.57)
+        phase.add_parameter('thrust', units='N', opt=False, val=2100000.0)
 
         #
         # Set the options for our constraints and objective
