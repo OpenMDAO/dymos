@@ -93,7 +93,6 @@ class LaunchVehicleODE(om.ExplicitComponent):
 
         # Setup partials
         # Complex-step derivatives
-        self.declare_partials(of='*', wrt='*', method='cs')
         self.declare_coloring(wrt='*', method='cs', show_sparsity=True)
 
     def compute(self, inputs, outputs):
