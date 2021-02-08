@@ -202,7 +202,6 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
                 jacobian['theta', 'b_ctrl'] = 1.0 / denom
                 jacobian['theta', 'time_phase'] = a / denom
 
-
         class LaunchVehicleLinearTangentODE(om.Group):
             """
             The LaunchVehicleLinearTangentODE for this case consists of a guidance component and
