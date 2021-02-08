@@ -144,34 +144,34 @@ class TireConstraintODE(om.ExplicitComponent):
         jacobian["c_rl", "F_rl"] = (2 * F_rl) / (N_rl ** 2 * (mu0_y + (N_rl * k_mu) / N0_rl) ** 2)
 
         jacobian["c_rr", "N_rr"] = (
-            -(2 * F_rr ** 2) / (N_rr ** 3 * (mu0_y + (k_mu * N_rr) / N0_rr) ** 2)
-            - (2 * S_rr ** 2) / (N_rr ** 3 * (mu0_x + (k_mu * N_rr) / N0_rr) ** 2)
-            - (2 * F_rr ** 2 * k_mu)
-            / (N_rr ** 2 * N0_rr * (mu0_y + (k_mu * N_rr) / N0_rr) ** 3)
-            - (2 * k_mu * S_rr ** 2)
-            / (N_rr ** 2 * N0_rr * (mu0_x + (k_mu * N_rr) / N0_rr) ** 3)
+            -(2 * F_rr ** 2) / (N_rr ** 3 * (mu0_y + (k_mu * N_rr) / N0_rr) ** 2) -
+            (2 * S_rr ** 2) / (N_rr ** 3 * (mu0_x + (k_mu * N_rr) / N0_rr) ** 2) -
+            (2 * F_rr ** 2 * k_mu) /
+            (N_rr ** 2 * N0_rr * (mu0_y + (k_mu * N_rr) / N0_rr) ** 3) -
+            (2 * k_mu * S_rr ** 2) /
+            (N_rr ** 2 * N0_rr * (mu0_x + (k_mu * N_rr) / N0_rr) ** 3)
         )
         jacobian["c_rl", "N_rl"] = (
-            -(2 * F_rl ** 2) / (N_rl ** 3 * (mu0_y + (k_mu * N_rl) / N0_rl) ** 2)
-            - (2 * S_rl ** 2) / (N_rl ** 3 * (mu0_x + (k_mu * N_rl) / N0_rl) ** 2)
-            - (2 * F_rl ** 2 * k_mu)
-            / (N_rl ** 2 * N0_rl * (mu0_y + (k_mu * N_rl) / N0_rl) ** 3)
-            - (2 * k_mu * S_rl ** 2)
-            / (N_rl ** 2 * N0_rl * (mu0_x + (k_mu * N_rl) / N0_rl) ** 3)
+            -(2 * F_rl ** 2) / (N_rl ** 3 * (mu0_y + (k_mu * N_rl) / N0_rl) ** 2) -
+            (2 * S_rl ** 2) / (N_rl ** 3 * (mu0_x + (k_mu * N_rl) / N0_rl) ** 2) -
+            (2 * F_rl ** 2 * k_mu) /
+            (N_rl ** 2 * N0_rl * (mu0_y + (k_mu * N_rl) / N0_rl) ** 3) -
+            (2 * k_mu * S_rl ** 2) /
+            (N_rl ** 2 * N0_rl * (mu0_x + (k_mu * N_rl) / N0_rl) ** 3)
         )
         jacobian["c_fr", "N_fr"] = (
-            -(2 * F_fr ** 2) / (N_fr ** 3 * (mu0_y + (k_mu * N_fr) / N0_fr) ** 2)
-            - (2 * S_fr ** 2) / (N_fr ** 3 * (mu0_x + (k_mu * N_fr) / N0_fr) ** 2)
-            - (2 * F_fr ** 2 * k_mu)
-            / (N_fr ** 2 * N0_fr * (mu0_y + (k_mu * N_fr) / N0_fr) ** 3)
-            - (2 * k_mu * S_fr ** 2)
-            / (N_fr ** 2 * N0_fr * (mu0_x + (k_mu * N_fr) / N0_fr) ** 3)
+            -(2 * F_fr ** 2) / (N_fr ** 3 * (mu0_y + (k_mu * N_fr) / N0_fr) ** 2) -
+            (2 * S_fr ** 2) / (N_fr ** 3 * (mu0_x + (k_mu * N_fr) / N0_fr) ** 2) -
+            (2 * F_fr ** 2 * k_mu) /
+            (N_fr ** 2 * N0_fr * (mu0_y + (k_mu * N_fr) / N0_fr) ** 3) -
+            (2 * k_mu * S_fr ** 2) /
+            (N_fr ** 2 * N0_fr * (mu0_x + (k_mu * N_fr) / N0_fr) ** 3)
         )
         jacobian["c_fl", "N_fl"] = (
-            -(2 * F_fl ** 2) / (N_fl ** 3 * (mu0_y + (k_mu * N_fl) / N0_fl) ** 2)
-            - (2 * S_fl ** 2) / (N_fl ** 3 * (mu0_x + (k_mu * N_fl) / N0_fl) ** 2)
-            - (2 * F_fl ** 2 * k_mu)
-            / (N_fl ** 2 * N0_fl * (mu0_y + (k_mu * N_fl) / N0_fl) ** 3)
-            - (2 * k_mu * S_fl ** 2)
-            / (N_fl ** 2 * N0_fl * (mu0_x + (k_mu * N_fl) / N0_fl) ** 3)
+            -(2 * F_fl ** 2) / (N_fl ** 3 * (mu0_y + (k_mu * N_fl) / N0_fl) ** 2) -
+            (2 * S_fl ** 2) / (N_fl ** 3 * (mu0_x + (k_mu * N_fl) / N0_fl) ** 2) -
+            (2 * F_fl ** 2 * k_mu) /
+            (N_fl ** 2 * N0_fl * (mu0_y + (k_mu * N_fl) / N0_fl) ** 3) -
+            (2 * k_mu * S_fl ** 2) /
+            (N_fl ** 2 * N0_fl * (mu0_x + (k_mu * N_fl) / N0_fl) ** 3)
         )

@@ -69,17 +69,19 @@ class NormalForceODE(om.ExplicitComponent):
         CoP = inputs['CoP']
         ClA = inputs['ClA']
 
-        downforce = 0.5*rho*ClA*V**2
+        downforce = 0.5 * rho * ClA * V ** 2
 
-        downforce_rear = downforce*(CoP/(a+b))
-        downforce_front = downforce*(1-(CoP/(a+b)))
- 
-        outputs['N_fl'] = (M*g/2)*(b/(a+b))+(M/4)*((-(ax*h)/(a+b))+(ay*chi*h/tw))+downforce_front/2
-        outputs['N_fr'] = (M*g/2)*(b/(a+b))+(M/4)*((-(ax*h)/(a+b))-(ay*chi*h/tw))+downforce_front/2
+        downforce_rear = downforce * (CoP / (a + b))
+        downforce_front = downforce * (1 - (CoP / (a + b)))
+
+        outputs['N_fl'] = (M * g / 2) * (b / (a + b)) + (M / 4) * (
+                          (-(ax * h) / (a + b)) + (ay * chi * h / tw)) + downforce_front / 2
+        outputs['N_fr'] = (M * g / 2) * (b / (a + b)) + (M / 4) * (
+                          (-(ax * h) / (a + b)) - (ay * chi * h / tw)) + downforce_front / 2
         outputs['N_rl'] = (M * g / 2) * (a / (a + b)) + (M / 4) * (
-                    ((ax * h) / (a + b)) + (ay * (1 - chi) * h / tw)) + downforce_rear / 2
+                          ((ax * h) / (a + b)) + (ay * (1 - chi) * h / tw)) + downforce_rear / 2
         outputs['N_rr'] = (M * g / 2) * (a / (a + b)) + (M / 4) * (
-                    ((ax * h) / (a + b)) - (ay * (1 - chi) * h / tw)) + downforce_rear / 2
+                          ((ax * h) / (a + b)) - (ay * (1 - chi) * h / tw)) + downforce_rear / 2
 
     def compute_partials(self, inputs, jacobian):
         M = inputs['M']
@@ -93,19 +95,19 @@ class NormalForceODE(om.ExplicitComponent):
         CoP = inputs['CoP']
         ClA = inputs['ClA']
 
-        jacobian['N_fl', 'ax'] = -(M*h)/(4*(a+b))
-        jacobian['N_fr', 'ax'] = -(M*h)/(4*(a+b))
-        jacobian['N_rl', 'ax'] = (M*h)/(4*(a+b))
-        jacobian['N_rr', 'ax'] = (M*h)/(4*(a+b))
+        jacobian['N_fl', 'ax'] = -(M * h) / (4 * (a + b))
+        jacobian['N_fr', 'ax'] = -(M * h) / (4 * (a + b))
+        jacobian['N_rl', 'ax'] = (M * h) / (4 * (a + b))
+        jacobian['N_rr', 'ax'] = (M * h) / (4 * (a + b))
 
-        jacobian['N_fl', 'ay'] = (M*chi*h)/(4*tw)
-        jacobian['N_rl', 'ay'] = (M*(1-chi)*h)/(4*tw)
-        jacobian['N_fr', 'ay'] = -(M*chi*h)/(4*tw)
-        jacobian['N_rr', 'ay'] = -(M*(1-chi)*h)/(4*tw)
+        jacobian['N_fl', 'ay'] = (M * chi * h) / (4 * tw)
+        jacobian['N_rl', 'ay'] = (M * (1 - chi) * h) / (4 * tw)
+        jacobian['N_fr', 'ay'] = -(M * chi * h) / (4 * tw)
+        jacobian['N_rr', 'ay'] = -(M * (1 - chi) * h) / (4 * tw)
 
-        ddownforce_dv = rho*ClA*V
+        ddownforce_dv = rho * ClA * V
 
-        jacobian['N_fl', 'V'] = ddownforce_dv*(1-(CoP/(a+b)))*0.5
-        jacobian['N_fr', 'V'] = ddownforce_dv*(1-(CoP/(a+b)))*0.5
-        jacobian['N_rl', 'V'] = ddownforce_dv*(CoP/(a+b))*0.5
-        jacobian['N_rr', 'V'] = ddownforce_dv*(CoP/(a+b))*0.5
+        jacobian['N_fl', 'V'] = ddownforce_dv * (1 - (CoP / (a + b))) * 0.5
+        jacobian['N_fr', 'V'] = ddownforce_dv * (1 - (CoP / (a + b))) * 0.5
+        jacobian['N_rl', 'V'] = ddownforce_dv * (CoP / (a + b)) * 0.5
+        jacobian['N_rr', 'V'] = ddownforce_dv * (CoP / (a + b)) * 0.5

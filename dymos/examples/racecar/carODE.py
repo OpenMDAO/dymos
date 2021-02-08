@@ -164,10 +164,10 @@ class CarODE(om.ExplicitComponent):
         outputs["alphadot"] = omega - (kappa * V * cos_alpha_minus_lamb) / (1 - n * kappa)
         Vdot = S_all / M - delta * F_front / M - drag / M - omega * V * lamb
         outputs["Vdot"] = Vdot
-        outputs["lambdadot"] = (
-                    omega - Vdot * lamb / V - delta * S_front / (M * V) - F_all / (M * V))
+        outputs["lambdadot"] = (omega - Vdot * lamb / V - delta * S_front /
+                                (M * V) - F_all / (M * V))
         outputs["omegadot"] = ((a * (F_fr + F_fl)) / Iz - (b * (F_rr + F_rl)) / Iz + (
-                    tw * (-S_rr + S_rl - S_fr + S_fl)) / Iz)
+                               tw * (-S_rr + S_rl - S_fr + S_fl)) / Iz)
         outputs["power"] = V * S_all
 
     def compute_partials(self, inputs, jacobian):
@@ -206,9 +206,7 @@ class CarODE(om.ExplicitComponent):
         jacobian["sdot", "V"] = cos_alpha_minus_lamb / (1 - n * kappa)
         jacobian["sdot", "alpha"] = (V * sin_alpha_minus_lamb) / (kappa * n - 1)
         jacobian["sdot", "lambda"] = -(V * sin_alpha_minus_lamb) / (kappa * n - 1)
-        jacobian["sdot", "n"] = (kappa * V * cos_alpha_minus_lamb) / (
-            1 - kappa * n
-        ) ** 2
+        jacobian["sdot", "n"] = (kappa * V * cos_alpha_minus_lamb) / (1 - kappa * n) ** 2
         jacobian["sdot", "kappa"] = n * V * cos_alpha_minus_lamb / (1 - kappa * n) ** 2
 
         jacobian["ndot", "V"] = sin_alpha_minus_lamb
@@ -220,7 +218,7 @@ class CarODE(om.ExplicitComponent):
         jacobian["alphadot", "alpha"] = (kappa * V * sin_alpha_minus_lamb) / (1 - kappa * n)
         jacobian["alphadot", "lambda"] = (kappa * V * sin_alpha_minus_lamb) / (kappa * n - 1)
         jacobian["alphadot", "n"] = -(kappa ** 2 * V * cos_alpha_minus_lamb) / (
-                    (1 - kappa * n) ** 2)
+                                     (1 - kappa * n) ** 2)
         jacobian["alphadot", "kappa"] = -(V * cos_alpha_minus_lamb) / ((1 - kappa * n) ** 2)
 
         jacobian["Vdot", "S_rr"] = 1 / M
@@ -247,7 +245,7 @@ class CarODE(om.ExplicitComponent):
 
         jacobian["lambdadot", "omega"] = 1 + lamb ** 2
         jacobian["lambdadot", "lambda"] = (2.0 * lamb * omega + (V * (0.5 * CdA * rho)) / M - (
-                    1.0 * (S_all - 1.0 * F_front * delta)) / (M * V))
+                                           1.0 * (S_all - 1.0 * F_front * delta)) / (M * V))
         jacobian["lambdadot", "delta"] = (lamb * (F_fr + F_fl) / (M * V)) - (S_fr + S_fl) / (M * V)
         jacobian["lambdadot", "F_fr"] = (lamb * delta / (M * V)) - 1 / (M * V)
         jacobian["lambdadot", "F_fl"] = (lamb * delta / (M * V)) - 1 / (M * V)
@@ -258,8 +256,9 @@ class CarODE(om.ExplicitComponent):
         jacobian["lambdadot", "S_rr"] = -lamb / (M * V)
         jacobian["lambdadot", "S_rl"] = -lamb / (M * V)
 
-        jacobian["lambdadot", "V"] = (0.5 * CdA * lamb * rho) / M + (
-                    F_all + S_front * delta + S_all * lamb - F_front * delta * lamb) / (M * V ** 2)
+        jacobian["lambdadot", "V"] = (0.5 * CdA * lamb * rho) / M +\
+                                     (F_all + S_front * delta + S_all * lamb -
+                                      F_front * delta * lamb) / (M * V ** 2)
         jacobian["power", "V"] = S_all
         jacobian["power", "S_fl"] = V
         jacobian["power", "S_fr"] = V
