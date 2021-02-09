@@ -76,7 +76,7 @@ _compute_ method of a component. The nonlinear solver can
 also raise this error if it fails to converge by setting the following
 options:
 
-``` {.sourceCode .python}
+```python
 self.nonlinear_solver.options['maxiter'] = 150
 self.nonlinear_solver.options['err_on_maxiter'] = True
 ```
@@ -90,7 +90,7 @@ Setting the _solve\_subystems_ option to True will force
 subsystems to be updated, making sure that all derivative information is
 up-to-date.
 
-``` {.sourceCode .python}
+```python
 self.nonlinear_solver.options['solve_subsystems'] = True
 self.nonlinear_solver.options['max_sub_solves'] = 10
 ```
