@@ -179,13 +179,13 @@ class BenchmarkRacecar(unittest.TestCase):
     """ Benchmarks for various permutations of the racecar problem."""
 
     def benchmark_gausslobatto_notimeseries(self):
-        _run_racecar_problem(dm.GaussLobatto, timeseres=False)
+        _run_racecar_problem(dm.GaussLobatto, timeseries=False)
 
     def benchmark_gausslobatto_timeseries(self):
         _run_racecar_problem(dm.GaussLobatto, timeseries=True)
 
     def benchmark_radau_notimeseries(self):
-        _run_racecar_problem(dm.Radau, timeseres=False)
+        _run_racecar_problem(dm.Radau, timeseries=False)
 
     def benchmark_radau_timeseries(self):
-        _run_racecar_problem(dm.Radau, timeseres=True)
+        _run_racecar_problem(dm.Radau, timeseries=True)
