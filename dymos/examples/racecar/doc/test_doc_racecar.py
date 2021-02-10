@@ -16,6 +16,7 @@ class TestRaceCarForDocs(unittest.TestCase):
     def test_racecar_for_docs(self):
         import numpy as np
         import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
 
         from dymos.examples.racecar.combinedODE import CombinedODE
@@ -182,6 +183,9 @@ class TestRaceCarForDocs(unittest.TestCase):
 
         dm.run_problem(p, run_driver=True)
         print('Optimization finished')
+
+        # Test this example in Dymos' continuous integration process
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:t')[-1], 22.2657, tolerance=0.01)
 
         # Get optimized time series
         n = p.get_val('traj.phase0.timeseries.states:n')
