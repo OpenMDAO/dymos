@@ -4,6 +4,7 @@ import unittest
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import set_pyoptsparse_opt
+from openmdao.utils.testing_utils import use_tempdirs
 import dymos as dm
 from dymos.examples.brachistochrone import BrachistochroneODE
 
@@ -72,6 +73,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     return p
 
 
+@use_tempdirs
 class BenchmarkBrachistochrone(unittest.TestCase):
     """ Benchmarks for various permutations of the brachistochrone problem."""
 
