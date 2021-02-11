@@ -1,4 +1,39 @@
 ********************************
+# Release Notes for Dymos 0.18.1
+
+February 16, 2021
+
+This release of Dymos adds several examples demonstrating various capabilities of the code.
+Per user request, the ODE of a system can now be provided via a callable function that
+takes `num_nodes` and any other potential initialization keywod arguments.
+This allows OpenMDAO's ExecComp to be used as an ODE if wrapped in a lambda, for instance.
+
+Some bugs were fixed as part of introducing these examples.  For instance, default values for
+states and times were not having effect - this is now fixed.  In addition, Trajectory parameters
+are now saved to the simulation database file.
+
+## Backwards Incompatible API Changes & Deprecations
+
+None
+
+## Enhancements
+
+* Added the racecar example from @pwmdebuck, demonstrating cycling constraints and integration about arclength instead of time. [#535](https://github.com/OpenMDAO/dymos/pull/535)
+* Simplified the SSTO example to use a single ODE component with complex-step. [#534](https://github.com/OpenMDAO/dymos/pull/534)
+* Added a balanced field length example. [#533](https://github.com/OpenMDAO/dymos/pull/533)
+* Added the ability to use a callable that returns a System as an ODE. [#528](https://github.com/OpenMDAO/dymos/pull/528)
+
+## Bug Fixes
+
+* Fixed a bug where timeseries outputs of non-dynamic ODE outputs would cause an exception. [#521](https://github.com/OpenMDAO/dymos/pull/521)
+
+## Miscellaneous
+
+* Placed some more tests under the use_tempdirs decorator to clean up output. [#530](https://github.com/OpenMDAO/dymos/pull/530)
+* Added a test that checks all docstrings vs the NumpyDoc standard. [#526](https://github.com/OpenMDAO/dymos/pull/526)
+* Clean up implementation of wildcard units when adding multiple timeseries at once. [#523](https://github.com/OpenMDAO/dymos/pull/523)
+
+********************************
 # Release Notes for Dymos 0.18.0
 
 January 21, 2021
