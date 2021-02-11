@@ -10,6 +10,69 @@ om_dev_version = openmdao.__version__.endswith('dev')
 om_version = tuple(int(s) for s in openmdao.__version__.split('-')[0].split('.'))
 
 
+class CannonballODEVectorParams(om.ExplicitComponent): 
+    """
+    Cannonball ODE assuming flat earth and accounting for air resistance
+    """
+
+    def initialize(self): 
+        self.options.declare('num_nodes', types=int)
+
+    def setup(self): 
+        nn = self.options['num_nodes']
+
+        # static parameters
+        self.add_input('m', units='kg', shape=nn)
+        self.add_input('S', units='m**2', shape=nn)
+        # 0.5 good assumption for a sphere
+        self.add_input('CD', 0.5, shape=nn) 
+
+        # time varying inputs 
+        self.add_input('h', units='m', shape=nn)
+        self.add_input('v', units='m/s', shape=nn)
+        self.add_input('gam', units='rad', shape=nn)
+
+        # state rates
+        self.add_output('v_dot', shape=nn, units='m/s**2')
+        self.add_output('gam_dot', shape=nn, units='rad/s')
+        self.add_output('h_dot', shape=nn, units='m/s')
+        self.add_output('r_dot', shape=nn, units='m/s')
+        self.add_output('ke', shape=nn, units='J')
+
+        # Ask OpenMDAO to compute the partial derivatives using complex-step 
+        # with a partial coloring algorithm for improved performance
+        self.declare_partials('*', '*', method='cs')
+        self.declare_coloring(wrt='*', method='cs')
+
+    def compute(self, inputs, outputs): 
+
+        gam = inputs['gam']
+        v = inputs['v']
+        h = inputs['h']
+        m = inputs['m']
+        S = inputs['S']
+        CD = inputs['CD']
+
+        GRAVITY = 9.80665 # m/s**2
+
+        # handle complex-step gracefully from the interpolant
+        if np.iscomplexobj(h): 
+            rho = rho_interp(inputs['h'])
+        else: 
+            rho = rho_interp(inputs['h']).real
+
+        q = 0.5*rho*inputs['v']**2
+        qS = q * S
+        D = qS * CD
+        cgam = np.cos(gam)
+        sgam = np.sin(gam)
+        outputs['v_dot'] = - D/m-GRAVITY*sgam
+        outputs['gam_dot'] = -(GRAVITY/v)*cgam
+        outputs['h_dot'] = v*sgam
+        outputs['r_dot'] = v*cgam
+        outputs['ke'] = 0.5*m*v**2
+
+
 @use_tempdirs
 class TestConnectControlToParameter(unittest.TestCase):
 
@@ -55,13 +118,13 @@ class TestConnectControlToParameter(unittest.TestCase):
         ascent.set_state_options('gam', fix_initial=False, fix_final=True)
         ascent.set_state_options('v', fix_initial=False, fix_final=False)
 
-        ascent.add_parameter('S', targets=['aero.S'], units='m**2')
-        ascent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+        ascent.add_parameter('S', targets=['S'], units='m**2')
+        ascent.add_parameter('mass', targets=['m'], units='kg')
 
-        ascent.add_control('CD', targets=['aero.CD'], opt=False, val=0.05)
+        ascent.add_control('CD', targets=['CD'], opt=False, val=0.05)
 
         # Limit the muzzle energy
-        ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial',
+        ascent.add_boundary_constraint('ke', loc='initial',
                                        upper=400000, lower=0, ref=100000)
 
         # Second Phase (descent)
@@ -74,27 +137,16 @@ class TestConnectControlToParameter(unittest.TestCase):
         # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
         descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
                                  duration_ref=100, units='s')
-        descent.add_state('r', )
+        descent.add_state('r')
         descent.add_state('h', fix_initial=False, fix_final=True)
         descent.add_state('gam', fix_initial=False, fix_final=False)
         descent.add_state('v', fix_initial=False, fix_final=False)
 
-        descent.add_parameter('S', targets=['aero.S'], units='m**2')
-        descent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
-        descent.add_parameter('CD', targets=['aero.CD'], val=0.01)
+        descent.add_parameter('S', targets=['S'], units='m**2')
+        descent.add_parameter('mass', targets=['m'], units='kg')
+        descent.add_parameter('CD', targets=['CD'], val=0.01)
 
         descent.add_objective('r', loc='final', scaler=-1.0)
-
-        # Add internally-managed design parameters to the trajectory.
-        traj.add_parameter('CL',
-                           targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
-                           val=0.0, units=None, opt=False)
-        traj.add_parameter('T',
-                           targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
-                           val=0.0, units='N', opt=False)
-        traj.add_parameter('alpha',
-                           targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
-                           val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
@@ -128,8 +180,6 @@ class TestConnectControlToParameter(unittest.TestCase):
         p.set_val('external_params.dens', 7.87, units='g/cm**3')
 
         p.set_val('traj.ascent.controls:CD', 0.5)
-        p.set_val('traj.parameters:CL', 0.0)
-        p.set_val('traj.parameters:T', 0.0)
 
         p.set_val('traj.ascent.t_initial', 0.0)
         p.set_val('traj.ascent.t_duration', 10.0)

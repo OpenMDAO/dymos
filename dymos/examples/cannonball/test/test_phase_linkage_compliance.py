@@ -47,11 +47,11 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         ascent.set_state_options('gam', fix_initial=False, fix_final=True)
         ascent.set_state_options('v', fix_initial=False, fix_final=False)
 
-        ascent.add_parameter('S', targets=['aero.S'], units='m**2')
-        ascent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+        ascent.add_parameter('S', targets=['S'], units='m**2')
+        ascent.add_parameter('mass', targets=['m'], units='kg')
 
         # Limit the muzzle energy
-        ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
+        ascent.add_boundary_constraint('ke', loc='initial', units='J',
                                        upper=400000, lower=0, ref=100000, shape=(1,))
 
         # Second Phase (descent)
@@ -69,24 +69,15 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         descent.add_state('gam', fix_initial=True, fix_final=False)
         descent.add_state('v', fix_initial=False, fix_final=False)
 
-        descent.add_parameter('S', targets=['aero.S'], units='m**2')
-        descent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+        descent.add_parameter('S', targets=['S'], units='m**2')
+        descent.add_parameter('mass', targets=['m'], units='kg')
 
         descent.add_objective('r', loc='final', scaler=-1.0)
 
         # Add internally-managed design parameters to the trajectory.
         traj.add_parameter('CD',
-                           targets={'ascent': ['aero.CD'], 'descent': ['aero.CD']},
+                           targets={'ascent': ['CD'], 'descent': ['CD']},
                            val=0.5, units=None, opt=False)
-        traj.add_parameter('CL',
-                           targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
-                           val=0.0, units=None, opt=False)
-        traj.add_parameter('T',
-                           targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
-                           val=0.0, units='N', opt=False)
-        traj.add_parameter('alpha',
-                           targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
-                           val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
@@ -102,7 +93,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         # and causes a duplicate row in the constraint jacobian.
         traj.link_phases(phases=['ascent', 'descent'], vars=['time', 'r', 'h', 'gam'], connected=False)
 
-        traj.add_linkage_constraint('ascent', 'descent', 'kinetic_energy.ke', 'kinetic_energy.ke',
+        traj.add_linkage_constraint('ascent', 'descent', 'ke', 'ke',
                                     ref=100000, connected=False)
 
         # Issue Connections
@@ -158,11 +149,11 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         ascent.set_state_options('gam', fix_initial=False, fix_final=True)
         ascent.set_state_options('v', fix_initial=False, fix_final=False)
 
-        ascent.add_parameter('S', targets=['aero.S'], units='m**2')
-        ascent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+        ascent.add_parameter('S', targets=['S'], units='m**2')
+        ascent.add_parameter('mass', targets=['m'], units='kg')
 
         # Limit the muzzle energy
-        ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
+        ascent.add_boundary_constraint('ke', loc='initial', units='J',
                                        upper=400000, lower=0, ref=100000, shape=(1,))
 
         # Second Phase (descent)
@@ -180,24 +171,15 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         descent.add_state('gam', fix_initial=False, fix_final=False)
         descent.add_state('v', fix_initial=False, fix_final=False)
 
-        descent.add_parameter('S', targets=['aero.S'], units='m**2')
-        descent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+        descent.add_parameter('S', targets=['S'], units='m**2')
+        descent.add_parameter('mass', targets=['m'], units='kg')
 
         descent.add_objective('r', loc='final', scaler=-1.0)
 
         # Add internally-managed design parameters to the trajectory.
         traj.add_parameter('CD',
-                           targets={'ascent': ['aero.CD'], 'descent': ['aero.CD']},
+                           targets={'ascent': ['CD'], 'descent': ['CD']},
                            val=0.5, units=None, opt=False)
-        traj.add_parameter('CL',
-                           targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
-                           val=0.0, units=None, opt=False)
-        traj.add_parameter('T',
-                           targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
-                           val=0.0, units='N', opt=False)
-        traj.add_parameter('alpha',
-                           targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
-                           val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
@@ -216,7 +198,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         traj.add_linkage_constraint(phase_a='ascent', phase_b='descent', var_a='h', var_b='h',
                                     loc_a='final', loc_b='final')
 
-        traj.add_linkage_constraint('ascent', 'descent', 'kinetic_energy.ke', 'kinetic_energy.ke',
+        traj.add_linkage_constraint('ascent', 'descent', 'ke', 'ke',
                                     ref=100000, connected=False)
 
         # Issue Connections
@@ -272,11 +254,11 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         ascent.set_state_options('gam', fix_initial=False, fix_final=True)
         ascent.set_state_options('v', fix_initial=False, fix_final=False)
 
-        ascent.add_parameter('S', targets=['aero.S'], units='m**2')
-        ascent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+        ascent.add_parameter('S', targets=['S'], units='m**2')
+        ascent.add_parameter('mass', targets=['m'], units='kg')
 
         # Limit the muzzle energy
-        ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
+        ascent.add_boundary_constraint('ke', loc='initial', units='J',
                                        upper=400000, lower=0, ref=100000, shape=(1,))
 
         # Second Phase (descent)
@@ -294,24 +276,15 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         descent.add_state('gam', fix_initial=False, fix_final=False)
         descent.add_state('v', fix_initial=False, fix_final=False)
 
-        descent.add_parameter('S', targets=['aero.S'], units='m**2')
-        descent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+        descent.add_parameter('S', targets=['S'], units='m**2')
+        descent.add_parameter('mass', targets=['m'], units='kg')
 
         descent.add_objective('r', loc='final', scaler=-1.0)
 
         # Add internally-managed design parameters to the trajectory.
         traj.add_parameter('CD',
-                           targets={'ascent': ['aero.CD'], 'descent': ['aero.CD']},
+                           targets={'ascent': ['CD'], 'descent': ['CD']},
                            val=0.5, units=None, opt=False)
-        traj.add_parameter('CL',
-                           targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
-                           val=0.0, units=None, opt=False)
-        traj.add_parameter('T',
-                           targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
-                           val=0.0, units='N', opt=False)
-        traj.add_parameter('alpha',
-                           targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
-                           val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
@@ -330,7 +303,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         traj.add_linkage_constraint(phase_a='ascent', phase_b='descent', var_a='h', var_b='h',
                                     loc_a='initial', loc_b='initial')
 
-        traj.add_linkage_constraint('ascent', 'descent', 'kinetic_energy.ke', 'kinetic_energy.ke',
+        traj.add_linkage_constraint('ascent', 'descent', 'ke', 'ke',
                                     ref=100000, connected=False)
 
         # Issue Connections
@@ -380,17 +353,17 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
-        ascent.set_time_options(fix_initial=True, fix_duration=True, duration_ref=100, units='s')
+        ascent.set_time_options(fix_initial=True, fix_duration=True, units='s')
         ascent.set_state_options('r', fix_initial=True, fix_final=False)
         ascent.set_state_options('h', fix_initial=True, fix_final=False)
         ascent.set_state_options('gam', fix_initial=False, fix_final=True)
         ascent.set_state_options('v', fix_initial=False, fix_final=False)
 
-        ascent.add_parameter('S', targets=['aero.S'], units='m**2')
-        ascent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+        ascent.add_parameter('S', targets=['S'], units='m**2')
+        ascent.add_parameter('mass', targets=['m'], units='kg')
 
         # Limit the muzzle energy
-        ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
+        ascent.add_boundary_constraint('ke', loc='initial', units='J',
                                        upper=400000, lower=0, ref=100000, shape=(1,))
 
         # Second Phase (descent)
@@ -401,31 +374,21 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
         # All initial states and time are free (they will be linked to the final states of ascent.
         # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
-        descent.set_time_options(fix_initial=True, fix_duration=True,
-                                 duration_ref=100, units='s')
+        descent.set_time_options(fix_initial=True, fix_duration=True, units='s')
         descent.add_state('r', )
         descent.add_state('h', fix_initial=False, fix_final=True)
         descent.add_state('gam', fix_initial=False, fix_final=False)
         descent.add_state('v', fix_initial=False, fix_final=False)
 
-        descent.add_parameter('S', targets=['aero.S'], units='m**2')
-        descent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+        descent.add_parameter('S', targets=['S'], units='m**2')
+        descent.add_parameter('mass', targets=['m'], units='kg')
 
         descent.add_objective('r', loc='final', scaler=-1.0)
 
         # Add internally-managed design parameters to the trajectory.
         traj.add_parameter('CD',
-                           targets={'ascent': ['aero.CD'], 'descent': ['aero.CD']},
+                           targets={'ascent': ['CD'], 'descent': ['CD']},
                            val=0.5, units=None, opt=False)
-        traj.add_parameter('CL',
-                           targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
-                           val=0.0, units=None, opt=False)
-        traj.add_parameter('T',
-                           targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
-                           val=0.0, units='N', opt=False)
-        traj.add_parameter('alpha',
-                           targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
-                           val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
@@ -441,7 +404,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         # and causes a duplicate row in the constraint jacobian.
         traj.link_phases(phases=['ascent', 'descent'], vars=['time', 'r', 'h', 'gam'], connected=False)
 
-        traj.add_linkage_constraint('ascent', 'descent', 'kinetic_energy.ke', 'kinetic_energy.ke',
+        traj.add_linkage_constraint('ascent', 'descent', 'ke', 'ke',
                                     ref=100000, connected=False)
 
         # Issue Connections
@@ -497,11 +460,11 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         ascent.set_state_options('gam', fix_initial=False, fix_final=True)
         ascent.set_state_options('v', fix_initial=False, fix_final=False)
 
-        ascent.add_parameter('S', targets=['aero.S'], units='m**2')
-        ascent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+        ascent.add_parameter('S', targets=['S'], units='m**2')
+        ascent.add_parameter('mass', targets=['m'], units='kg')
 
         # Limit the muzzle energy
-        ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
+        ascent.add_boundary_constraint('ke', loc='initial', units='J',
                                        upper=400000, lower=0, ref=100000, shape=(1,))
 
         # Second Phase (descent)
@@ -519,24 +482,15 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         descent.add_state('gam', fix_initial=False, fix_final=False)
         descent.add_state('v', fix_initial=False, fix_final=False)
 
-        descent.add_parameter('S', targets=['aero.S'], units='m**2')
-        descent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+        descent.add_parameter('S', targets=['S'], units='m**2')
+        descent.add_parameter('mass', targets=['m'], units='kg')
 
         descent.add_objective('r', loc='final', scaler=-1.0)
 
         # Add internally-managed design parameters to the trajectory.
         traj.add_parameter('CD',
-                           targets={'ascent': ['aero.CD'], 'descent': ['aero.CD']},
+                           targets={'ascent': ['CD'], 'descent': ['CD']},
                            val=0.5, units=None, opt=False)
-        traj.add_parameter('CL',
-                           targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
-                           val=0.0, units=None, opt=False)
-        traj.add_parameter('T',
-                           targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
-                           val=0.0, units='N', opt=False)
-        traj.add_parameter('alpha',
-                           targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
-                           val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
@@ -552,7 +506,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         # and causes a duplicate row in the constraint jacobian.
         traj.link_phases(phases=['ascent', 'descent'], vars=['time', 'r', 'h', 'gam'], connected=False)
 
-        traj.add_linkage_constraint('ascent', 'descent', 'kinetic_energy.ke', 'kinetic_energy.ke',
+        traj.add_linkage_constraint('ascent', 'descent', 'ke', 'ke',
                                     ref=100000, connected=False)
 
         # Issue Connections

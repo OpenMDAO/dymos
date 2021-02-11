@@ -225,3 +225,7 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+
+
+if __name__ == "__main__": 
+    unittest.main()

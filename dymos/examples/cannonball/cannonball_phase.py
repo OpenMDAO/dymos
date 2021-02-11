@@ -21,8 +21,7 @@ class CannonballPhase(dm.Phase):
 
         # Here we only set default units, rate_sources, and targets.
         # Other options are generally more problem-specific.
-        self.add_state('r', units='m', rate_source='eom.r_dot')
-        self.add_state('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'])
-        self.add_state('gam', units='rad', rate_source='eom.gam_dot', targets=['eom.gam'])
-        self.add_state('v', units='m/s', rate_source='eom.v_dot',
-                       targets=['dynamic_pressure.v', 'eom.v', 'kinetic_energy.v'])
+        self.add_state('r', units='m', rate_source='r_dot')
+        self.add_state('h', units='m', rate_source='h_dot')
+        self.add_state('gam', units='rad', rate_source='gam_dot')
+        self.add_state('v', units='m/s', rate_source='v_dot')
