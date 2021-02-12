@@ -134,8 +134,6 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         # Solve for the optimal trajectory
         p.run_driver()
 
-        p.model.list_outputs(units=True)
-
         # Test the results
         assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
