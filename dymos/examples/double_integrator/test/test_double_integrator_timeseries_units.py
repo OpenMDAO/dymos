@@ -96,7 +96,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         t_sol = sol_case.get_val('traj.phase0.timeseries.time')
         t_sim = sim_case.get_val('traj.phase0.timeseries.time')
 
-        for var in ['states:x', 'states:v', 'state_rates:x', 'state_rates:v']:
+        for var in ['states:x', 'states:v', 'state_rates:x']:
             sol = sol_case.get_val(f'traj.phase0.timeseries.{var}')
             sim = sim_case.get_val(f'traj.phase0.timeseries.{var}')
             assert_timeseries_near_equal(t_sol, sol, t_sim, sim, tolerance=1.0E-3)
