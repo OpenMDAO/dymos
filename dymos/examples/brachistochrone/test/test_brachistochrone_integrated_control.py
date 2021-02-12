@@ -134,6 +134,8 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         # Solve for the optimal trajectory
         p.run_driver()
 
+        p.model.list_outputs(units=True)
+
         # Test the results
         assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
@@ -212,8 +214,6 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         # Solve for the optimal trajectory
         dm.run_problem(p, simulate=True, make_plots=True)
 
-        p.model.list_outputs(units=True)
-
         sol_case = om.CaseReader('dymos_solution.db').get_case('final')
         sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
 
@@ -239,9 +239,6 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         v_interp = interp1d(time_sim[:, 0], v_sim[:, 0])
         theta_interp = interp1d(time_sim[:, 0], theta_sim[:, 0])
         theta_dot_interp = interp1d(time_sim[:, 0], theta_dot_sim[:, 0])
-
-        with np.printoptions(linewidth=1024):
-            print(np.hstack(np.degrees(theta_dot_sol, theta_dot_sim)))
 
         assert_near_equal(x_interp(time_sol), x_sol, tolerance=1.0E-4)
         assert_near_equal(y_interp(time_sol), y_sol, tolerance=1.0E-4)
