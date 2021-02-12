@@ -207,8 +207,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         p['traj.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
         p['traj.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
         p['traj.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['traj.phase0.states:theta'] = np.radians(phase.interpolate(ys=[0.05, 100.0],
-                                                                nodes='state_input'))
+        p['traj.phase0.states:theta'] = np.radians(phase.interpolate(ys=[0.05, 100.0], nodes='state_input'))
         p['traj.phase0.controls:theta_dot'] = phase.interpolate(ys=[50, 50], nodes='control_input')
 
         # Solve for the optimal trajectory

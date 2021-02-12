@@ -115,7 +115,11 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
 
         # There's a chance that the input for this output was pulled from another variable with
         # different units, so account for that with a conversion.
-        scale, offset = unit_conversion(input_units, units)
+        if None in {input_units, units}:
+            scale = 1.0
+            offset = 0
+        else:
+            scale, offset = unit_conversion(input_units, units)
         self._conversion_factors[self._varnames[name]['all']] = scale, offset
 
         self.declare_partials(of=self._varnames[name]['all'],
