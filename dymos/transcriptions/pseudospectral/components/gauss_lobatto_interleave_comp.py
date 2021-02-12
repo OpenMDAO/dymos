@@ -28,7 +28,12 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
         self._varnames = {}
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
 
-    def add_var(self, name, shape, units):
+        # Sources is used internally to map the source of a connection to the timeseries to
+        # the corresponding input variable.  This is used to ensure that we don't need to connect
+        # the same source to this timeseries multiple times.
+        self._sources = {'disc': {}, 'col': {}}
+
+    def add_var(self, name, shape, units, disc_src, col_src):
         """
         Add a variable to be interleaved.
 
@@ -44,6 +49,10 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
             The shape of the variable at each instance in time.
         units : str
             The units of the variable.
+        disc_src : str
+            The source path of the variable's inputs at the discretization nodes.
+        col_src : str
+            The source path of the variable's inputs at the collocation nodes.
 
         Returns
         -------
@@ -57,30 +66,39 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
         num_disc_nodes = self.options['grid_data'].subset_num_nodes['state_disc']
         num_col_nodes = self.options['grid_data'].subset_num_nodes['col']
         num_nodes = self.options['grid_data'].subset_num_nodes['all']
+        added_source = False
 
         size = np.prod(shape)
 
         self._varnames[name] = {}
-        self._varnames[name]['disc'] = 'disc_values:{0}'.format(name)
-        self._varnames[name]['col'] = 'col_values:{0}'.format(name)
-        self._varnames[name]['all'] = 'all_values:{0}'.format(name)
+        self._varnames[name]['disc'] = f'disc_values:{name}'
+        self._varnames[name]['col'] = f'col_values:{name}'
+        self._varnames[name]['all'] = f'all_values:{name}'
 
-        self.add_input(
-            name=self._varnames[name]['disc'],
-            shape=(num_disc_nodes,) + shape,
-            desc='Values of {0} at discretization nodes'.format(name),
-            units=units)
-
-        self.add_input(
-            name=self._varnames[name]['col'],
-            shape=(num_col_nodes,) + shape,
-            desc='Values of {0} at collocation nodes'.format(name),
-            units=units)
+        # Check to see if the given disc source has already been used
+        # We'll assume that the col source will be the same as well, no need to check both.
+        if disc_src in self._sources['disc']:
+            self._varnames[name]['disc'] = self._sources['disc'][disc_src]
+            self._varnames[name]['col'] = self._sources['col'][col_src]
+        else:
+            self.add_input(
+                name=self._varnames[name]['disc'],
+                shape=(num_disc_nodes,) + shape,
+                desc=f'Values of {name} at discretization nodes',
+                units=units)
+            self.add_input(
+                name=self._varnames[name]['col'],
+                shape=(num_col_nodes,) + shape,
+                desc=f'Values of {name} at collocation nodes',
+                units=units)
+            self._sources['disc'][disc_src] = self._varnames[name]['disc']
+            self._sources['col'][col_src] = self._varnames[name]['col']
+            added_source = True
 
         self.add_output(
             name=self._varnames[name]['all'],
             shape=(num_nodes,) + shape,
-            desc='Values of {0} at all nodes'.format(name),
+            desc=f'Values of {name} at all nodes',
             units=units)
 
         start_rows = self.options['grid_data'].subset_node_indices['state_disc'] * size
@@ -99,7 +117,7 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
                               wrt=self._varnames[name]['col'],
                               rows=r, cols=c, val=1.0)
 
-        return True
+        return added_source
 
     def compute(self, inputs, outputs):
         """

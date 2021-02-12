@@ -1,12 +1,7 @@
 import unittest
 
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-
 from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs
-
-plt.switch_backend('Agg')
 
 
 @use_tempdirs
@@ -17,6 +12,8 @@ class TestRaceCarForDocs(unittest.TestCase):
         import numpy as np
         import openmdao.api as om
         import dymos as dm
+        import matplotlib.pyplot as plt
+        import matplotlib as mpl
 
         from dymos.examples.racecar.combinedODE import CombinedODE
         from dymos.examples.racecar.spline import (get_spline, get_track_points, get_gate_normals,

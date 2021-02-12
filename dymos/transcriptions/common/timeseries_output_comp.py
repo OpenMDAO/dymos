@@ -67,6 +67,11 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         self.input_num_nodes = 0
         self.output_num_nodes = 0
 
+        # Sources is used internally to map the source of a connection to the timeseries to
+        # the corresponding input variable.  This is used to ensure that we don't need to connect
+        # the same source to this timeseries multiple times.
+        self._sources = {}
+
     def setup(self):
         """
         Define the independent variables as output variables.
@@ -121,7 +126,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             shape = kwargs['shape']
             self._add_output_configure(name, units, shape, desc)
 
-    def _add_output_configure(self, name, units, shape, desc=None):
+    def _add_output_configure(self, name, units, shape, desc='', src=None):
         """
         Add a single timeseries output.
 
@@ -139,14 +144,29 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             Default is None, which means it has no units.
         desc : str
             description of the timeseries output variable.
+        src : str
+            The src path of the variables input, used to prevent redundant inputs.
+
+        Returns
+        -------
+        bool
+            True if a new input was added for the output, or False if it reuses an existing input.
         """
         input_num_nodes = self.input_num_nodes
         output_num_nodes = self.output_num_nodes
+        added_source = False
 
-        input_name = 'input_values:{0}'.format(name)
-        self.add_input(input_name,
-                       shape=(input_num_nodes,) + shape,
-                       units=units, desc=desc)
+        if src in self._sources:
+            # If we're already pulling the source into this timeseries, use that as the
+            # input for this output.
+            input_name = self._sources[src]
+        else:
+            input_name = f'input_values:{name}'
+            self.add_input(input_name,
+                           shape=(input_num_nodes,) + shape,
+                           units=units, desc=desc)
+            self._sources[src] = input_name
+            added_source = True
 
         output_name = name
         self.add_output(output_name,
@@ -170,6 +190,8 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         self.declare_partials(of=output_name,
                               wrt=input_name,
                               rows=rs, cols=cs, val=val_jac[rs, cs])
+
+        return added_source
 
     def compute(self, inputs, outputs):
         """
