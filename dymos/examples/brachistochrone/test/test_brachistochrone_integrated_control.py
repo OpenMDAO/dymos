@@ -81,7 +81,7 @@ class BrachistochroneODE(om.ExplicitComponent):
         jacobian['check', 'theta'] = -v * cos_theta / sin_theta**2
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
     @classmethod
