@@ -58,7 +58,7 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         """
         num_nodes = self.num_nodes
 
-        input_name = 'all_values:{0}'.format(name)
+        input_name = f'all_values:{name}'
         self.add_input(input_name,
                        shape=(num_nodes,) + shape,
                        units=units, desc=desc)
@@ -68,7 +68,7 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
                         shape=(num_nodes,) + shape,
                         units=units, desc=desc)
 
-        self._vars.append((input_name, output_name, shape))
+        self._vars[name] = (input_name, output_name, shape)
 
     def compute(self, inputs, outputs):
         """
@@ -81,5 +81,5 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        for (input_name, output_name, _) in self._vars:
+        for (input_name, output_name, _) in self._vars.values():
             outputs[output_name] = inputs[input_name]

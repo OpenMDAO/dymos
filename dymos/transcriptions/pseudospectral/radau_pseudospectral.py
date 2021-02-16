@@ -516,7 +516,7 @@ class Radau(PseudospectralBase):
                         continue
 
                     # If the full shape does not start with num_nodes, skip this variable.
-                    if self.is_static_ode_output(v, phase):
+                    if self.is_static_ode_output(v, phase, gd.subset_num_nodes['all']):
                         warnings.warn(f'Cannot add ODE output {v} to the timeseries output. It is '
                                       f'sized such that its first dimension != num_nodes.')
                         continue
@@ -530,17 +530,11 @@ class Radau(PseudospectralBase):
                                          f' the phase {phase.pathname} nor is it a known output of '
                                          f' the ODE.')
 
-                    try:
-                        add_connecction = timeseries_comp._add_output_configure(output_name, units,
-                                                                                shape, desc='',
-                                                                                src=f'rhs_all.{v}')
-                    except ValueError as e:  # OK if it already exists
-                        if 'already exists' in str(e):
-                            continue
-                        else:
-                            raise e
+                    add_connection = timeseries_comp._add_output_configure(output_name, units,
+                                                                           shape, desc='',
+                                                                           src=f'rhs_all.{v}')
 
-                    if add_connecction:
+                    if add_connection:
                         phase.connect(src_name=f'rhs_all.{v}',
                                       tgt_name=f'{timeseries_name}.input_values:{output_name}')
 

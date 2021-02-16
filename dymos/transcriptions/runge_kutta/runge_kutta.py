@@ -876,7 +876,7 @@ class RungeKutta(TranscriptionBase):
                     if var_type != 'ode':
                         continue
 
-                    if self.is_static_ode_output(v, phase):
+                    if self.is_static_ode_output(v, phase, self.ode):
                         warnings.warn(f'Cannot add ODE output {v} to the timeseries output. It is '
                                       f'sized such that its first dimension != num_nodes.')
                         continue

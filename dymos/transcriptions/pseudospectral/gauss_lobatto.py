@@ -252,31 +252,12 @@ class GaussLobatto(PseudospectralBase):
                 phase.promotes('state_interp',
                                inputs=[(f'staterate_disc:{name}', f'parameters:{rate_src}')],
                                src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
-                # phase.promotes('interleave_comp',
-                #                inputs=[(f'disc_values:state_rates:{name}', f'parameters:{rate_src}')],
-                #                src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
-                # src_idxs = np.tile(np.arange(0, param_size, dtype=int), ncn)
-                # src_idxs = np.reshape(src_idxs, (ncn,) + shape)
-                # phase.promotes('interleave_comp',
-                #                inputs=[(f'col_values:state_rates:{name}', f'parameters:{rate_src}')],
-                #                src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
             else:
                 rate_path, disc_src_idxs = self.get_rate_source_path(name, nodes='state_disc',
                                                                      phase=phase)
                 phase.connect(rate_path,
                               'state_interp.staterate_disc:{0}'.format(name),
                               src_indices=disc_src_idxs)
-
-                # phase.connect(rate_path,
-                #               'interleave_comp.disc_values:state_rates:{0}'.format(name),
-                #               src_indices=disc_src_idxs)
-                #
-                # rate_path, col_src_idxs = self.get_rate_source_path(name, nodes='col', phase=phase)
-                #
-                # phase.connect(rate_path,
-                #               'interleave_comp.col_values:state_rates:{0}'.format(name),
-                #               src_indices=col_src_idxs)
-
         self.configure_interleave_comp(phase)
 
     def configure_interleave_comp(self, phase):
@@ -669,7 +650,7 @@ class GaussLobatto(PseudospectralBase):
                         continue
 
                     # If the full shape does not start with num_nodes, skip this variable.
-                    if self.is_static_ode_output(v, phase):
+                    if self.is_static_ode_output(v, phase, self.grid_data.subset_num_nodes['state_disc']):
                         warnings.warn(f'Cannot add ODE output {v} to the timeseries output. It is '
                                       f'sized such that its first dimension != num_nodes.')
                         continue
@@ -683,14 +664,9 @@ class GaussLobatto(PseudospectralBase):
                                          f' the phase {phase.pathname} nor is it a known output of '
                                          f' the ODE.')
 
-                    try:
-                        timeseries_comp._add_output_configure(output_name, units, shape,
-                                                              src=f'interleave_comp.all_values:{output_name}')
-                    except ValueError as e:  # OK if it already exists
-                        if 'already exists' in str(e):
-                            continue
-                        else:
-                            raise e
+                    timeseries_input_added = timeseries_comp._add_output_configure(output_name, units, shape,
+                                                                                   src=f'interleave_comp.'
+                                                                                       f'all_values:{output_name}')
 
                     interleave_comp = phase._get_subsystem('interleave_comp')
                     src_added = interleave_comp.add_var(output_name, shape, units,
@@ -702,8 +678,9 @@ class GaussLobatto(PseudospectralBase):
                         phase.connect(src_name=f'rhs_col.{v}',
                                       tgt_name=f'interleave_comp.col_values:{output_name}')
 
-                    phase.connect(src_name=f'interleave_comp.all_values:{output_name}',
-                                  tgt_name=f'{timeseries_name}.input_values:{output_name}')
+                    if timeseries_input_added:
+                        phase.connect(src_name=f'interleave_comp.all_values:{output_name}',
+                                      tgt_name=f'{timeseries_name}.input_values:{output_name}')
 
     def get_rate_source_path(self, state_name, nodes, phase):
         """

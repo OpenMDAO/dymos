@@ -35,7 +35,7 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
         """
         self._timeseries_outputs = []
 
-        self._vars = []
+        self._vars = {}
 
         self.options.declare('input_grid_data',
                              types=GridData,
@@ -162,6 +162,9 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         output_num_nodes = self.output_num_nodes
         added_source = False
 
+        if name in self._vars:
+            return False
+
         if src in self._sources:
             # If we're already pulling the source into this timeseries, use that as the
             # input for this output.
@@ -181,7 +184,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
                         shape=(output_num_nodes,) + shape,
                         units=units, desc=desc)
 
-        self._vars.append((input_name, output_name, shape))
+        self._vars[name] = (input_name, output_name, shape)
 
         size = np.prod(shape)
         val_jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
@@ -222,7 +225,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        for (input_name, output_name, _) in self._vars:
+        for (input_name, output_name, _) in self._vars.values():
             scale, offset = self._conversion_factors[output_name]
-            outputs[output_name] = scale * np.tensordot(self.interpolation_matrix, inputs[input_name],
-                                                        axes=(1, 0)) + offset
+            interp_vals = np.tensordot(self.interpolation_matrix, inputs[input_name], axes=(1, 0))
+            outputs[output_name] = scale * (interp_vals + offset)
