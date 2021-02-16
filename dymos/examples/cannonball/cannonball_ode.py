@@ -2,13 +2,13 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 import openmdao.api as om
-from dymos.models.atmosphere.atmos_1976 import _USatm1976Data
+from dymos.models.atmosphere.atmos_1976 import USatm1976Data
 
 
 english_to_metric_rho = om.unit_conversion('slug/ft**3', 'kg/m**3')[0]
 english_to_metric_h = om.unit_conversion('ft', 'm')[0]
-rho_interp = interp1d(np.array(_USatm1976Data.alt*english_to_metric_h, dtype=complex), 
-                      np.array(_USatm1976Data.rho*english_to_metric_rho, dtype=complex), kind='linear')
+rho_interp = interp1d(np.array(USatm1976Data.alt*english_to_metric_h, dtype=complex), 
+                      np.array(USatm1976Data.rho*english_to_metric_rho, dtype=complex), kind='linear')
 
 
 class CannonballODE(om.ExplicitComponent): 

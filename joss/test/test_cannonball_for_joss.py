@@ -15,7 +15,7 @@ class TestCannonballForJOSS(unittest.TestCase):
         import openmdao.api as om
 
         import dymos as dm
-        from dymos.models.atmosphere.atmos_1976 import _USatm1976Data as USatm1976Data
+        from dymos.models.atmosphere.atmos_1976 import USatm1976Data as USatm1976Data
 
         # CREATE an atmosphere interpolant
         english_to_metric_rho = om.unit_conversion('slug/ft**3', 'kg/m**3')[0]
