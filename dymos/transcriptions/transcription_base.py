@@ -851,7 +851,7 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase to which this transcription applies.
         num_nodes : int
-            The number of nodes in the ODE
+            The number of nodes in the ODE.
 
         Returns
         -------

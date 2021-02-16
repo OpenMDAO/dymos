@@ -88,7 +88,7 @@ class RungeKuttaTimeseriesOutputComp(TimeseriesOutputCompBase):
 
         self.add_output(name, shape=(output_num_nodes,) + shape, units=units, desc=desc)
 
-        self._vars.append((input_name, name, shape))
+        self._vars[name] = (input_name, name, shape)
 
         size = np.prod(shape)
         val_jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
@@ -117,6 +117,6 @@ class RungeKuttaTimeseriesOutputComp(TimeseriesOutputCompBase):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        for (input_name, output_name, _) in self._vars:
+        for (input_name, output_name, _) in self._vars.values():
             outputs[output_name] = np.tensordot(self.interpolation_matrix, inputs[input_name],
                                                 axes=(1, 0))
