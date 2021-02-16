@@ -15,7 +15,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
         import dymos as dm
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
-        from dymos.examples.cannonball.cannonball_phase import CannonballPhase
+        from dymos.examples.cannonball.cannonball_ode import CannonballODE
 
         p = om.Problem(model=om.Group())
 
@@ -23,29 +23,24 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 
-        external_params = p.model.add_subsystem('external_params', om.IndepVarComp())
-
-        external_params.add_output('radius', val=0.10, units='m')
-        external_params.add_output('dens', val=7.87, units='g/cm**3')
-
-        external_params.add_design_var('radius', lower=0.01, upper=0.10, ref0=0.01, ref=0.10)
-
-        p.model.add_subsystem('size_comp', CannonballSizeComp())
+        p.model.add_subsystem('size_comp', CannonballSizeComp(), promotes_inputs=['radius', 'dens'])
+        p.model.set_input_defaults('dens', val=7.87, units='g/cm**3')
+        p.model.add_design_var('radius', lower=0.01, upper=0.10, ref0=0.01, ref=0.10, units='m')
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
         transcription = dm.Radau(num_segments=5, order=3, compressed=True)
-        ascent = CannonballPhase(transcription=transcription)
+        ascent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         ascent = traj.add_phase('ascent', ascent)
 
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
         ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100), duration_ref=100, units='s')
-        ascent.set_state_options('r', fix_initial=True, fix_final=False)
-        ascent.set_state_options('h', fix_initial=True, fix_final=False)
-        ascent.set_state_options('gam', fix_initial=False, fix_final=True)
-        ascent.set_state_options('v', fix_initial=False, fix_final=False)
+        ascent.add_state('r', fix_initial=True, fix_final=False, units='m', rate_source='r_dot')
+        ascent.add_state('h', fix_initial=True, fix_final=False,  units='m', rate_source='h_dot')
+        ascent.add_state('gam', fix_initial=False, fix_final=True, units='rad', rate_source='gam_dot')
+        ascent.add_state('v', fix_initial=False, fix_final=False, units='m/s', rate_source='v_dot')
 
         ascent.add_parameter('S', targets=['S'], units='m**2')
         ascent.add_parameter('mass', targets=['m'], units='kg')
@@ -56,7 +51,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
         # Second Phase (descent)
         transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
-        descent = CannonballPhase(transcription=transcription)
+        descent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         traj.add_phase('descent', descent)
 
@@ -64,10 +59,10 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
         descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
                                  duration_ref=100, units='s')
-        descent.add_state('r', )
-        descent.add_state('h', fix_initial=False, fix_final=True)
-        descent.add_state('gam', fix_initial=True, fix_final=False)
-        descent.add_state('v', fix_initial=False, fix_final=False)
+        descent.add_state('r', units='m', rate_source='r_dot')
+        descent.add_state('h', fix_initial=False, fix_final=True,  units='m', rate_source='h_dot')
+        descent.add_state('gam', fix_initial=True, fix_final=False, units='rad', rate_source='gam_dot')
+        descent.add_state('v', fix_initial=False, fix_final=False, units='m/s', rate_source='v_dot')
 
         descent.add_parameter('S', targets=['S'], units='m**2')
         descent.add_parameter('mass', targets=['m'], units='kg')
@@ -117,7 +112,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
         import dymos as dm
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
-        from dymos.examples.cannonball.cannonball_phase import CannonballPhase
+        from dymos.examples.cannonball.cannonball_ode import CannonballODE
 
         p = om.Problem(model=om.Group())
 
@@ -125,29 +120,24 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 
-        external_params = p.model.add_subsystem('external_params', om.IndepVarComp())
-
-        external_params.add_output('radius', val=0.10, units='m')
-        external_params.add_output('dens', val=7.87, units='g/cm**3')
-
-        external_params.add_design_var('radius', lower=0.01, upper=0.10, ref0=0.01, ref=0.10)
-
-        p.model.add_subsystem('size_comp', CannonballSizeComp())
+        p.model.add_subsystem('size_comp', CannonballSizeComp(), promotes_inputs=['radius', 'dens'])
+        p.model.set_input_defaults('dens', val=7.87, units='g/cm**3')
+        p.model.add_design_var('radius', lower=0.01, upper=0.10, ref0=0.01, ref=0.10, units='m')
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
         transcription = dm.Radau(num_segments=5, order=3, compressed=True)
-        ascent = CannonballPhase(transcription=transcription)
+        ascent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         ascent = traj.add_phase('ascent', ascent)
 
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
         ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100), duration_ref=100, units='s')
-        ascent.set_state_options('r', fix_initial=True, fix_final=False)
-        ascent.set_state_options('h', fix_initial=True, fix_final=True)
-        ascent.set_state_options('gam', fix_initial=False, fix_final=True)
-        ascent.set_state_options('v', fix_initial=False, fix_final=False)
+        ascent.add_state('r', fix_initial=True, fix_final=False, units='m', rate_source='r_dot')
+        ascent.add_state('h', fix_initial=True, fix_final=True, units='m', rate_source='h_dot')
+        ascent.add_state('gam', fix_initial=False, fix_final=True, units='rad', rate_source='gam_dot')
+        ascent.add_state('v', fix_initial=False, fix_final=False, units='m/s', rate_source='v_dot')
 
         ascent.add_parameter('S', targets=['S'], units='m**2')
         ascent.add_parameter('mass', targets=['m'], units='kg')
@@ -158,7 +148,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
         # Second Phase (descent)
         transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
-        descent = CannonballPhase(transcription=transcription)
+        descent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         traj.add_phase('descent', descent)
 
@@ -166,10 +156,10 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
         descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
                                  duration_ref=100, units='s')
-        descent.add_state('r', )
-        descent.add_state('h', fix_initial=True, fix_final=True)
-        descent.add_state('gam', fix_initial=False, fix_final=False)
-        descent.add_state('v', fix_initial=False, fix_final=False)
+        descent.add_state('r', units='m', rate_source='r_dot')
+        descent.add_state('h', fix_initial=True, fix_final=True, units='m', rate_source='h_dot')
+        descent.add_state('gam', fix_initial=False, fix_final=False, units='rad', rate_source='gam_dot')
+        descent.add_state('v', fix_initial=False, fix_final=False, units='m/s', rate_source='v_dot')
 
         descent.add_parameter('S', targets=['S'], units='m**2')
         descent.add_parameter('mass', targets=['m'], units='kg')
@@ -222,7 +212,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
         import dymos as dm
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
-        from dymos.examples.cannonball.cannonball_phase import CannonballPhase
+        from dymos.examples.cannonball.cannonball_ode import CannonballODE
 
         p = om.Problem(model=om.Group())
 
@@ -230,29 +220,24 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 
-        external_params = p.model.add_subsystem('external_params', om.IndepVarComp())
-
-        external_params.add_output('radius', val=0.10, units='m')
-        external_params.add_output('dens', val=7.87, units='g/cm**3')
-
-        external_params.add_design_var('radius', lower=0.01, upper=0.10, ref0=0.01, ref=0.10)
-
-        p.model.add_subsystem('size_comp', CannonballSizeComp())
+        p.model.add_subsystem('size_comp', CannonballSizeComp(), promotes_inputs=['radius', 'dens'])
+        p.model.set_input_defaults('dens', val=7.87, units='g/cm**3')
+        p.model.add_design_var('radius', lower=0.01, upper=0.10, ref0=0.01, ref=0.10, units='m')
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
         transcription = dm.Radau(num_segments=5, order=3, compressed=True)
-        ascent = CannonballPhase(transcription=transcription)
+        ascent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         ascent = traj.add_phase('ascent', ascent)
 
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
         ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100), duration_ref=100, units='s')
-        ascent.set_state_options('r', fix_initial=True, fix_final=False)
-        ascent.set_state_options('h', fix_initial=True, fix_final=True)
-        ascent.set_state_options('gam', fix_initial=False, fix_final=True)
-        ascent.set_state_options('v', fix_initial=False, fix_final=False)
+        ascent.add_state('r', fix_initial=True, fix_final=False, units='m', rate_source='r_dot')
+        ascent.add_state('h', fix_initial=True, fix_final=True, units='m', rate_source='h_dot')
+        ascent.add_state('gam', fix_initial=False, fix_final=True, units='rad', rate_source='gam_dot')
+        ascent.add_state('v', fix_initial=False, fix_final=False, units='m/s', rate_source='v_dot')
 
         ascent.add_parameter('S', targets=['S'], units='m**2')
         ascent.add_parameter('mass', targets=['m'], units='kg')
@@ -263,7 +248,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
         # Second Phase (descent)
         transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
-        descent = CannonballPhase(transcription=transcription)
+        descent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         traj.add_phase('descent', descent)
 
@@ -271,10 +256,10 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
         descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
                                  duration_ref=100, units='s')
-        descent.add_state('r', )
-        descent.add_state('h', fix_initial=True, fix_final=True)
-        descent.add_state('gam', fix_initial=False, fix_final=False)
-        descent.add_state('v', fix_initial=False, fix_final=False)
+        descent.add_state('r', units='m', rate_source='r_dot' )
+        descent.add_state('h', fix_initial=True, fix_final=True, units='m', rate_source='h_dot')
+        descent.add_state('gam', fix_initial=False, fix_final=False, units='rad', rate_source='gam_dot')
+        descent.add_state('v', fix_initial=False, fix_final=False, units='m/s', rate_source='v_dot')
 
         descent.add_parameter('S', targets=['S'], units='m**2')
         descent.add_parameter('mass', targets=['m'], units='kg')
@@ -327,7 +312,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
         import dymos as dm
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
-        from dymos.examples.cannonball.cannonball_phase import CannonballPhase
+        from dymos.examples.cannonball.cannonball_ode import CannonballODE
 
         p = om.Problem(model=om.Group())
 
@@ -335,29 +320,24 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 
-        external_params = p.model.add_subsystem('external_params', om.IndepVarComp())
-
-        external_params.add_output('radius', val=0.10, units='m')
-        external_params.add_output('dens', val=7.87, units='g/cm**3')
-
-        external_params.add_design_var('radius', lower=0.01, upper=0.10, ref0=0.01, ref=0.10)
-
-        p.model.add_subsystem('size_comp', CannonballSizeComp())
+        p.model.add_subsystem('size_comp', CannonballSizeComp(), promotes_inputs=['radius', 'dens'])
+        p.model.set_input_defaults('dens', val=7.87, units='g/cm**3')
+        p.model.add_design_var('radius', lower=0.01, upper=0.10, ref0=0.01, ref=0.10, units='m')
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
         transcription = dm.Radau(num_segments=5, order=3, compressed=True)
-        ascent = CannonballPhase(transcription=transcription)
+        ascent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         ascent = traj.add_phase('ascent', ascent)
 
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
         ascent.set_time_options(fix_initial=True, fix_duration=True, units='s')
-        ascent.set_state_options('r', fix_initial=True, fix_final=False)
-        ascent.set_state_options('h', fix_initial=True, fix_final=False)
-        ascent.set_state_options('gam', fix_initial=False, fix_final=True)
-        ascent.set_state_options('v', fix_initial=False, fix_final=False)
+        ascent.add_state('r', fix_initial=True, fix_final=False, units='m', rate_source='r_dot')
+        ascent.add_state('h', fix_initial=True, fix_final=False, units='m', rate_source='h_dot')
+        ascent.add_state('gam', fix_initial=False, fix_final=True, units='rad', rate_source='gam_dot')
+        ascent.add_state('v', fix_initial=False, fix_final=False, units='m/s', rate_source='v_dot')
 
         ascent.add_parameter('S', targets=['S'], units='m**2')
         ascent.add_parameter('mass', targets=['m'], units='kg')
@@ -368,17 +348,17 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
         # Second Phase (descent)
         transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
-        descent = CannonballPhase(transcription=transcription)
+        descent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         traj.add_phase('descent', descent)
 
         # All initial states and time are free (they will be linked to the final states of ascent.
         # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
         descent.set_time_options(fix_initial=True, fix_duration=True, units='s')
-        descent.add_state('r', )
-        descent.add_state('h', fix_initial=False, fix_final=True)
-        descent.add_state('gam', fix_initial=False, fix_final=False)
-        descent.add_state('v', fix_initial=False, fix_final=False)
+        descent.add_state('r', units='m', rate_source='r_dot' )
+        descent.add_state('h', fix_initial=False, fix_final=True, units='m', rate_source='h_dot')
+        descent.add_state('gam', fix_initial=False, fix_final=False, units='rad', rate_source='gam_dot')
+        descent.add_state('v', fix_initial=False, fix_final=False, units='m/s', rate_source='v_dot')
 
         descent.add_parameter('S', targets=['S'], units='m**2')
         descent.add_parameter('mass', targets=['m'], units='kg')
@@ -428,7 +408,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
         import dymos as dm
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
-        from dymos.examples.cannonball.cannonball_phase import CannonballPhase
+        from dymos.examples.cannonball.cannonball_ode import CannonballODE
 
         p = om.Problem(model=om.Group())
 
@@ -436,29 +416,24 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 
-        external_params = p.model.add_subsystem('external_params', om.IndepVarComp())
-
-        external_params.add_output('radius', val=0.10, units='m')
-        external_params.add_output('dens', val=7.87, units='g/cm**3')
-
-        external_params.add_design_var('radius', lower=0.01, upper=0.10, ref0=0.01, ref=0.10)
-
-        p.model.add_subsystem('size_comp', CannonballSizeComp())
+        p.model.add_subsystem('size_comp', CannonballSizeComp(), promotes_inputs=['radius', 'dens'])
+        p.model.set_input_defaults('dens', val=7.87, units='g/cm**3')
+        p.model.add_design_var('radius', lower=0.01, upper=0.10, ref0=0.01, ref=0.10, units='m')
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
         transcription = dm.Radau(num_segments=5, order=3, compressed=True)
-        ascent = CannonballPhase(transcription=transcription)
+        ascent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         ascent = traj.add_phase('ascent', ascent)
 
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
         ascent.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 10), duration_ref=100, units='s')
-        ascent.set_state_options('r', fix_initial=True, fix_final=False)
-        ascent.set_state_options('h', fix_initial=True, fix_final=False)
-        ascent.set_state_options('gam', fix_initial=False, fix_final=True)
-        ascent.set_state_options('v', fix_initial=False, fix_final=False)
+        ascent.add_state('r', fix_initial=True, fix_final=False, units='m', rate_source='r_dot')
+        ascent.add_state('h', fix_initial=True, fix_final=False, units='m', rate_source='h_dot')
+        ascent.add_state('gam', fix_initial=False, fix_final=True, units='rad', rate_source='gam_dot')
+        ascent.add_state('v', fix_initial=False, fix_final=False, rate_source='v_dot')
 
         ascent.add_parameter('S', targets=['S'], units='m**2')
         ascent.add_parameter('mass', targets=['m'], units='kg')
@@ -469,7 +444,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
         # Second Phase (descent)
         transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
-        descent = CannonballPhase(transcription=transcription)
+        descent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         traj.add_phase('descent', descent)
 
@@ -477,10 +452,10 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
         descent.set_time_options(initial_bounds=(10, 10), duration_bounds=(10, 10),
                                  duration_ref=100, units='s')
-        descent.add_state('r', )
-        descent.add_state('h', fix_initial=False, fix_final=True)
-        descent.add_state('gam', fix_initial=False, fix_final=False)
-        descent.add_state('v', fix_initial=False, fix_final=False)
+        descent.add_state('r', units='m', rate_source='r_dot' )
+        descent.add_state('h', fix_initial=False, fix_final=True, units='m', rate_source='h_dot')
+        descent.add_state('gam', fix_initial=False, fix_final=False, units='rad', rate_source='gam_dot')
+        descent.add_state('v', fix_initial=False, fix_final=False, rate_source='v_dot')
 
         descent.add_parameter('S', targets=['S'], units='m**2')
         descent.add_parameter('mass', targets=['m'], units='kg')

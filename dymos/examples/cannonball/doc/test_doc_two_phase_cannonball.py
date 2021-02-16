@@ -17,7 +17,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         import dymos as dm
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
-        from dymos.examples.cannonball.cannonball_phase import CannonballPhase
+        from dymos.examples.cannonball.cannonball_ode import CannonballODE
 
         p = om.Problem(model=om.Group())
 
@@ -25,40 +25,35 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 
-        external_params = p.model.add_subsystem('external_params', om.IndepVarComp())
-
-        external_params.add_output('radius', val=0.10, units='m')
-        external_params.add_output('dens', val=7.87, units='g/cm**3')
-
-        external_params.add_design_var('radius', lower=0.01, upper=0.10, ref0=0.01, ref=0.10)
-
-        p.model.add_subsystem('size_comp', CannonballSizeComp())
+        p.model.add_subsystem('size_comp', CannonballSizeComp(), promotes_inputs=['radius', 'dens'])
+        p.model.set_input_defaults('dens', val=7.87, units='g/cm**3')
+        p.model.add_design_var('radius', lower=0.01, upper=0.10, ref0=0.01, ref=0.10, units='m')
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
         transcription = dm.Radau(num_segments=5, order=3, compressed=True)
-        ascent = CannonballPhase(transcription=transcription)
+        ascent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         ascent = traj.add_phase('ascent', ascent)
 
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
         ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100), duration_ref=100, units='s')
-        ascent.set_state_options('r', fix_initial=True, fix_final=False)
-        ascent.set_state_options('h', fix_initial=True, fix_final=False)
-        ascent.set_state_options('gam', fix_initial=False, fix_final=True)
-        ascent.set_state_options('v', fix_initial=False, fix_final=False)
+        ascent.set_state_options('r', fix_initial=True, fix_final=False, units='m', rate_source='r_dot')
+        ascent.set_state_options('h', fix_initial=True, fix_final=False, units='m', rate_source='h_dot')
+        ascent.set_state_options('gam', fix_initial=False, fix_final=True, units='rad', rate_source='gam_dot')
+        ascent.set_state_options('v', fix_initial=False, fix_final=False, units='m/s', rate_source='v_dot')
 
-        ascent.add_parameter('S', targets=['aero.S'], units='m**2')
-        ascent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+        ascent.add_parameter('S', units='m**2', dynamic=False)
+        ascent.add_parameter('m', units='kg', dynamic=False)
 
         # Limit the muzzle energy
-        ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial',
+        ascent.add_boundary_constraint('ke', loc='initial',
                                        upper=400000, lower=0, ref=100000)
 
         # Second Phase (descent)
         transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
-        descent = CannonballPhase(transcription=transcription)
+        descent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         traj.add_phase('descent', descent)
 
@@ -66,46 +61,34 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
         descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
                                  duration_ref=100, units='s')
-        descent.add_state('r', )
-        descent.add_state('h', fix_initial=False, fix_final=True)
-        descent.add_state('gam', fix_initial=False, fix_final=False)
-        descent.add_state('v', fix_initial=False, fix_final=False)
+        descent.add_state('r', units='m', rate_source='r_dot')
+        descent.add_state('h', fix_initial=False, fix_final=True, units='m', rate_source='h_dot')
+        descent.add_state('gam', fix_initial=False, fix_final=False, units='rad', rate_source='gam_dot')
+        descent.add_state('v', fix_initial=False, fix_final=False, units='m/s', rate_source='v_dot')
 
-        descent.add_parameter('S', targets=['aero.S'], units='m**2')
-        descent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+        descent.add_parameter('S', units='m**2', dynamic=False)
+        descent.add_parameter('m', units='kg', dynamic=False)
 
         descent.add_objective('r', loc='final', scaler=-1.0)
 
         # Add internally-managed design parameters to the trajectory.
         traj.add_parameter('CD',
-                           targets={'ascent': ['aero.CD'], 'descent': ['aero.CD']},
-                           val=0.5, units=None, opt=False)
-        traj.add_parameter('CL',
-                           targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
-                           val=0.0, units=None, opt=False)
-        traj.add_parameter('T',
-                           targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
-                           val=0.0, units='N', opt=False)
-        traj.add_parameter('alpha',
-                           targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
-                           val=0.0, units='deg', opt=False)
+                           targets={'ascent': ['CD'], 'descent': ['CD']},
+                           val=0.5, units=None, opt=False, dynamic=False)
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
         traj.add_parameter('m', units='kg', val=1.0,
-                           targets={'ascent': 'mass', 'descent': 'mass'})
+                           targets={'ascent': 'mass', 'descent': 'mass'}, dynamic=False)
 
         # In this case, by omitting targets, we're connecting these parameters to parameters
         # with the same name in each phase.
-        traj.add_parameter('S', units='m**2', val=0.005)
+        traj.add_parameter('S', units='m**2', val=0.005, dynamic=False)
 
         # Link Phases (link time and all state variables)
         traj.link_phases(phases=['ascent', 'descent'], vars=['*'])
 
         # Issue Connections
-        p.model.connect('external_params.radius', 'size_comp.radius')
-        p.model.connect('external_params.dens', 'size_comp.dens')
-
         p.model.connect('size_comp.mass', 'traj.parameters:m')
         p.model.connect('size_comp.S', 'traj.parameters:S')
 
@@ -116,12 +99,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.setup()
 
         # Set Initial Guesses
-        p.set_val('external_params.radius', 0.05, units='m')
-        p.set_val('external_params.dens', 7.87, units='g/cm**3')
+        p.set_val('radius', 0.05, units='m')
+        p.set_val('dens', 7.87, units='g/cm**3')
 
         p.set_val('traj.parameters:CD', 0.5)
-        p.set_val('traj.parameters:CL', 0.0)
-        p.set_val('traj.parameters:T', 0.0)
 
         p.set_val('traj.ascent.t_initial', 0.0)
         p.set_val('traj.ascent.t_duration', 10.0)
@@ -148,14 +129,14 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         exp_out = traj.simulate()
 
-        print('optimal radius: {0:6.4f} m '.format(p.get_val('external_params.radius',
-                                                             units='m')[0]))
-        print('cannonball mass: {0:6.4f} kg '.format(p.get_val('size_comp.mass',
-                                                               units='kg')[0]))
-        print('launch angle: {0:6.4f} '
-              'deg '.format(p.get_val('traj.ascent.timeseries.states:gam',  units='deg')[0, 0]))
-        print('maximum range: {0:6.4f} '
-              'm '.format(p.get_val('traj.descent.timeseries.states:r')[-1, 0]))
+        rad = p.get_val('radius',units='m')[0]
+        print(f'optimal radius: {rad} m ')
+        mass = p.get_val('size_comp.mass',units='kg')[0]
+        print(f'cannonball mass: {mass} kg ')
+        angle = p.get_val('traj.ascent.timeseries.states:gam',  units='deg')[0, 0]
+        print(f'launch angle: {angle} deg')
+        rnge = p.get_val('traj.descent.timeseries.states:r')[-1, 0]
+        print(f'maximum range: {range} m')
 
         fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
 
@@ -191,11 +172,11 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10, 6))
         states = ['r', 'h', 'v', 'gam']
         for i, state in enumerate(states):
-            x_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:{0}'.format(state)),
-                     'descent': p.get_val('traj.descent.timeseries.states:{0}'.format(state))}
+            x_imp = {'ascent': p.get_val(f'traj.ascent.timeseries.states:{state}'),
+                     'descent': p.get_val(f'traj.descent.timeseries.states:{state}')}
 
-            x_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:{0}'.format(state)),
-                     'descent': exp_out.get_val('traj.descent.timeseries.states:{0}'.format(state))}
+            x_exp = {'ascent': exp_out.get_val(f'traj.ascent.timeseries.states:{state}'),
+                     'descent': exp_out.get_val(f'traj.descent.timeseries.states:{state}')}
 
             axes[i].set_ylabel(state)
 
@@ -204,17 +185,15 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
             axes[i].plot(time_exp['ascent'], x_exp['ascent'], 'b--')
             axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
 
-        params = ['CL', 'CD', 'T', 'alpha', 'mass', 'S']
+        params = ['m', 'S']
         fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
         for i, param in enumerate(params):
             p_imp = {
-                'ascent': p.get_val('traj.ascent.timeseries.parameters:{0}'.format(param)),
-                'descent': p.get_val('traj.descent.timeseries.parameters:{0}'.format(param))}
+                'ascent': p.get_val(f'traj.ascent.timeseries.parameters:{param}'),
+                'descent': p.get_val(f'traj.descent.timeseries.parameters:{param}')}
 
-            p_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.'
-                                               'parameters:{0}'.format(param)),
-                     'descent': exp_out.get_val('traj.descent.timeseries.'
-                                                'parameters:{0}'.format(param))}
+            p_exp = {'ascent': exp_out.get_val(f'traj.ascent.timeseries.parameters:{param}'),
+                     'descent': exp_out.get_val(f'traj.descent.timeseries.parameters:{param}')}
 
             axes[i].set_ylabel(param)
 
