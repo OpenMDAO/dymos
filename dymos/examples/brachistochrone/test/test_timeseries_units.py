@@ -1,15 +1,12 @@
-
-import os
 import unittest
 
-import numpy as np
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestTimeseriesUnits(unittest.TestCase):
 
     def _make_problem(self, transcription='gauss-lobatto', num_segments=8, transcription_order=3,
