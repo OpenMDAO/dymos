@@ -15,25 +15,25 @@ om_dev_version = openmdao.__version__.endswith('dev')
 om_version = tuple(int(s) for s in openmdao.__version__.split('-')[0].split('.'))
 
 
-class CannonballODEVectorCD(om.ExplicitComponent): 
+class CannonballODEVectorCD(om.ExplicitComponent):
     """
     Cannonball ODE assuming flat earth and accounting for air resistance
     """
 
-    def initialize(self): 
+    def initialize(self):
         self.options.declare('num_nodes', types=int)
 
-    def setup(self): 
+    def setup(self):
         nn = self.options['num_nodes']
 
         # static parameters
         self.add_input('m', units='kg')
         self.add_input('S', units='m**2')
-        
-        # This will be used as both a control and a parameter 
-        self.add_input('CD', 0.5, shape=nn) 
 
-        # time varying inputs 
+        # This will be used as both a control and a parameter
+        self.add_input('CD', 0.5, shape=nn)
+
+        # time varying inputs
         self.add_input('h', units='m', shape=nn)
         self.add_input('v', units='m/s', shape=nn)
         self.add_input('gam', units='rad', shape=nn)
@@ -45,12 +45,12 @@ class CannonballODEVectorCD(om.ExplicitComponent):
         self.add_output('r_dot', shape=nn, units='m/s')
         self.add_output('ke', shape=nn, units='J')
 
-        # Ask OpenMDAO to compute the partial derivatives using complex-step 
+        # Ask OpenMDAO to compute the partial derivatives using complex-step
         # with a partial coloring algorithm for improved performance
         self.declare_partials('*', '*', method='cs')
         self.declare_coloring(wrt='*', method='cs')
 
-    def compute(self, inputs, outputs): 
+    def compute(self, inputs, outputs):
 
         gam = inputs['gam']
         v = inputs['v']
@@ -59,12 +59,12 @@ class CannonballODEVectorCD(om.ExplicitComponent):
         S = inputs['S']
         CD = inputs['CD']
 
-        GRAVITY = 9.80665 # m/s**2
+        GRAVITY = 9.80665  # m/s**2
 
         # handle complex-step gracefully from the interpolant
-        if np.iscomplexobj(h): 
+        if np.iscomplexobj(h):
             rho = rho_interp(inputs['h'])
-        else: 
+        else:
             rho = rho_interp(inputs['h']).real
 
         q = 0.5*rho*inputs['v']**2
@@ -117,7 +117,7 @@ class TestConnectControlToParameter(unittest.TestCase):
 
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
-       
+
         ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100), duration_ref=100, units='s')
         ascent.add_state('r', fix_initial=True, fix_final=False, rate_source='r_dot', units='m')
         ascent.add_state('h', fix_initial=True, fix_final=False, units='m', rate_source='h_dot')
@@ -135,7 +135,7 @@ class TestConnectControlToParameter(unittest.TestCase):
 
         # Second Phase (descent)
         transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
-        descent =  dm.Phase(ode_class=CannonballODEVectorCD, transcription=transcription)
+        descent = dm.Phase(ode_class=CannonballODEVectorCD, transcription=transcription)
 
         traj.add_phase('descent', descent)
 

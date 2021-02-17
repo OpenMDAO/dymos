@@ -41,7 +41,7 @@ From the free-body diagram above, the evolution of the state variables is given 
 
 \begin{align}
     \frac{d x}{d t} &= v \sin(\theta) \\
-    \frac{d y}{d t} &= v \cos(\theta) \\
+    \frac{d y}{d t} &= -v \cos(\theta) \\
     \frac{d v}{d t} &= g \cos(\theta)
 \end{align}
 

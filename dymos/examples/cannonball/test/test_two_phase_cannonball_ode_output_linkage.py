@@ -259,7 +259,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
         descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
                                  duration_ref=100, units='s')
-        descent.add_state('r', units='m', rate_source='r_dot' )
+        descent.add_state('r', units='m', rate_source='r_dot')
         descent.add_state('h', fix_initial=False, fix_final=True, units='m', rate_source='h_dot')
         descent.add_state('gam', fix_initial=False, fix_final=False, units='rad', rate_source='gam_dot')
         descent.add_state('v', fix_initial=False, fix_final=False, units='m/s', rate_source='v_dot')
