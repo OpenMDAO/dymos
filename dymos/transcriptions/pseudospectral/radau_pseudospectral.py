@@ -320,34 +320,34 @@ class Radau(PseudospectralBase):
         for timeseries_name in phase._timeseries:
             timeseries_comp = phase._get_subsystem(timeseries_name)
 
-            phase.connect(src_name='time', tgt_name=f'{timeseries_name}.input_values:time')
-            phase.connect(src_name='time_phase', tgt_name=f'{timeseries_name}.input_values:time_phase')
-
             timeseries_comp._add_output_configure('time',
                                                   shape=(1,),
                                                   units=time_units,
-                                                  desc='')
+                                                  desc='',
+                                                  src='time')
 
             timeseries_comp._add_output_configure('time_phase',
                                                   shape=(1,),
                                                   units=time_units,
-                                                  desc='')
+                                                  desc='',
+                                                  src='time_pahse')
+
+            phase.connect(src_name='time', tgt_name=f'{timeseries_name}.input_values:time')
+
+            phase.connect(src_name='time_phase', tgt_name=f'{timeseries_name}.input_values:time_phase')
 
             for state_name, options in phase.state_options.items():
-                timeseries_comp._add_output_configure(f'states:{state_name}',
-                                                      shape=options['shape'],
-                                                      units=options['units'],
-                                                      desc=options['desc'])
 
-                timeseries_comp._add_output_configure(f'state_rates:{state_name}',
-                                                      shape=options['shape'],
-                                                      units=get_rate_units(options['units'], time_units),
-                                                      desc=f'rate of state {state_name}')
-
-                src_rows = gd.input_maps['state_input_to_disc']
-                phase.connect(src_name=f'states:{state_name}',
-                              tgt_name=f'{timeseries_name}.input_values:states:{state_name}',
-                              src_indices=om.slicer[src_rows, ...])
+                added_src = timeseries_comp._add_output_configure(f'states:{state_name}',
+                                                                  shape=options['shape'],
+                                                                  units=options['units'],
+                                                                  desc=options['desc'],
+                                                                  src=f'states:{state_name}')
+                if added_src:
+                    src_rows = gd.input_maps['state_input_to_disc']
+                    phase.connect(src_name=f'states:{state_name}',
+                                  tgt_name=f'{timeseries_name}.input_values:states:{state_name}',
+                                  src_indices=om.slicer[src_rows, ...])
 
                 rate_src = options['rate_source']
                 if rate_src in phase.parameter_options:
@@ -358,49 +358,74 @@ class Radau(PseudospectralBase):
                     param_size = np.prod(shape)
                     src_idxs = np.tile(np.arange(0, param_size, dtype=int), nn)
                     src_idxs = np.reshape(src_idxs, (nn,) + shape)
-                    phase.promotes(f'{timeseries_name}',
-                                   inputs=[(f'input_values:state_rates:{state_name}',
-                                            f'parameters:{rate_src}')],
-                                   src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
+                    rate_src_path = f'parameters:{rate_src}'
+
+                    added_src = timeseries_comp._add_output_configure(f'state_rates:{state_name}',
+                                                                      shape=options['shape'],
+                                                                      units=get_rate_units(
+                                                                          options['units'],
+                                                                          time_units),
+                                                                      desc=f'rate of state {state_name}',
+                                                                      src=rate_src_path)
+
+                    if added_src:
+                        phase.promotes(f'{timeseries_name}',
+                                       inputs=[(f'input_values:state_rates:{state_name}',
+                                                f'parameters:{rate_src}')],
+                                       src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
+
                 else:
                     rate_src_path, src_idxs = self.get_rate_source_path(state_name, 'all', phase)
-                    phase.connect(src_name=rate_src_path,
-                                  tgt_name=f'{timeseries_name}.input_values:state_rates:{state_name}',
-                                  src_indices=src_idxs)
+
+                    added_src = timeseries_comp._add_output_configure(f'state_rates:{state_name}',
+                                                                      shape=options['shape'],
+                                                                      units=get_rate_units(
+                                                                          options['units'],
+                                                                          time_units),
+                                                                      desc=f'rate of state {state_name}',
+                                                                      src=rate_src_path)
+                    if added_src:
+                        phase.connect(src_name=rate_src_path,
+                                      tgt_name=f'{timeseries_name}.input_values:state_rates:{state_name}',
+                                      src_indices=src_idxs)
 
             for control_name, options in phase.control_options.items():
                 control_units = options['units']
                 src_rows = gd.subset_node_indices['all']
                 src_idxs = get_src_indices_by_row(src_rows, options['shape'])
 
-                timeseries_comp._add_output_configure(f'controls:{control_name}',
-                                                      shape=options['shape'],
-                                                      units=control_units,
-                                                      desc=options['desc'])
-
-                phase.connect(src_name=f'control_values:{control_name}',
-                              tgt_name=f'{timeseries_name}.input_values:controls:{control_name}',
-                              src_indices=src_idxs, flat_src_indices=True)
+                added_src = timeseries_comp._add_output_configure(f'controls:{control_name}',
+                                                                  shape=options['shape'],
+                                                                  units=control_units,
+                                                                  desc=options['desc'],
+                                                                  src=f'control_values:{control_name}')
+                if added_src:
+                    phase.connect(src_name=f'control_values:{control_name}',
+                                  tgt_name=f'{timeseries_name}.input_values:controls:{control_name}',
+                                  src_indices=src_idxs, flat_src_indices=True)
 
                 # Control rates
-                timeseries_comp._add_output_configure(f'control_rates:{control_name}_rate',
-                                                      shape=options['shape'],
-                                                      units=get_rate_units(control_units,
-                                                                           time_units, deriv=1),
-                                                      desc=f'first time-derivative of {control_name}')
-
-                phase.connect(src_name=f'control_rates:{control_name}_rate',
-                              tgt_name=f'{timeseries_name}.input_values:control_rates:{control_name}_rate')
+                added_src = timeseries_comp._add_output_configure(f'control_rates:{control_name}_rate',
+                                                                  shape=options['shape'],
+                                                                  units=get_rate_units(control_units,
+                                                                                       time_units, deriv=1),
+                                                                  desc=f'first time-derivative of {control_name}',
+                                                                  src=f'control_rates:{control_name}_rate')
+                if added_src:
+                    phase.connect(src_name=f'control_rates:{control_name}_rate',
+                                  tgt_name=f'{timeseries_name}.input_values:control_rates:{control_name}_rate')
 
                 # Control second derivatives
-                timeseries_comp._add_output_configure(f'control_rates:{control_name}_rate2',
-                                                      shape=options['shape'],
-                                                      units=get_rate_units(control_units,
-                                                                           time_units, deriv=2),
-                                                      desc=f'second time-derivative of {control_name}')
+                added_src = timeseries_comp._add_output_configure(f'control_rates:{control_name}_rate2',
+                                                                  shape=options['shape'],
+                                                                  units=get_rate_units(control_units,
+                                                                                       time_units, deriv=2),
+                                                                  desc=f'second time-derivative of {control_name}',
+                                                                  src=f'control_rates:{control_name}_rate2')
 
-                phase.connect(src_name=f'control_rates:{control_name}_rate2',
-                              tgt_name=f'{timeseries_name}.input_values:control_rates:{control_name}_rate2')
+                if added_src:
+                    phase.connect(src_name=f'control_rates:{control_name}_rate2',
+                                  tgt_name=f'{timeseries_name}.input_values:control_rates:{control_name}_rate2')
 
             for control_name, options in phase.polynomial_control_options.items():
                 src_rows = gd.subset_node_indices['all']
@@ -408,34 +433,38 @@ class Radau(PseudospectralBase):
                 control_units = options['units']
 
                 # Control values
-                timeseries_comp._add_output_configure(f'polynomial_controls:{control_name}',
-                                                      shape=options['shape'],
-                                                      units=control_units,
-                                                      desc=options['desc'])
+                added_src = timeseries_comp._add_output_configure(f'polynomial_controls:{control_name}',
+                                                                  shape=options['shape'],
+                                                                  units=control_units,
+                                                                  desc=options['desc'],
+                                                                  src=f'polynomial_control_values:{control_name}')
 
-                phase.connect(src_name=f'polynomial_control_values:{control_name}',
-                              tgt_name=f'{timeseries_name}.input_values:polynomial_controls:{control_name}',
-                              src_indices=src_idxs, flat_src_indices=True)
+                if added_src:
+                    phase.connect(src_name=f'polynomial_control_values:{control_name}',
+                                  tgt_name=f'{timeseries_name}.input_values:polynomial_controls:{control_name}',
+                                  src_indices=src_idxs, flat_src_indices=True)
 
                 # Control rates
-                timeseries_comp._add_output_configure(f'polynomial_control_rates:{control_name}_rate',
-                                                      shape=options['shape'],
-                                                      units=get_rate_units(control_units,
-                                                                           time_units, deriv=1),
-                                                      desc=f'first time-derivative of {control_name}')
-
-                phase.connect(src_name=f'polynomial_control_rates:{control_name}_rate',
-                              tgt_name=f'{timeseries_name}.input_values:polynomial_control_rates:{control_name}_rate')
+                added_src = timeseries_comp._add_output_configure(f'polynomial_control_rates:{control_name}_rate',
+                                                                  shape=options['shape'],
+                                                                  units=get_rate_units(control_units,
+                                                                                       time_units, deriv=1),
+                                                                  desc=f'first time-derivative of {control_name}',
+                                                                  src=f'polynomial_control_rates:{control_name}_rate')
+                if added_src:
+                    phase.connect(src_name=f'polynomial_control_rates:{control_name}_rate',
+                                  tgt_name=f'{timeseries_name}.input_values:polynomial_control_rates:{control_name}_rate')
 
                 # Control second derivatives
-                timeseries_comp._add_output_configure(f'polynomial_control_rates:{control_name}_rate2',
-                                                      shape=options['shape'],
-                                                      units=get_rate_units(control_units,
-                                                                           time_units, deriv=2),
-                                                      desc=f'second time-derivative of {control_name}')
-
-                phase.connect(src_name=f'polynomial_control_rates:{control_name}_rate2',
-                              tgt_name=f'{timeseries_name}.input_values:polynomial_control_rates:{control_name}_rate2')
+                added_src = timeseries_comp._add_output_configure(f'polynomial_control_rates:{control_name}_rate2',
+                                                                  shape=options['shape'],
+                                                                  units=get_rate_units(control_units,
+                                                                                       time_units, deriv=2),
+                                                                  desc=f'second time-derivative of {control_name}',
+                                                                  src=f'polynomial_control_rates:{control_name}_rate2')
+                if added_src:
+                    phase.connect(src_name=f'polynomial_control_rates:{control_name}_rate2',
+                                  tgt_name=f'{timeseries_name}.input_values:polynomial_control_rates:{control_name}_rate2')
 
             for param_name, options in phase.parameter_options.items():
                 if options['include_timeseries']:
@@ -444,16 +473,17 @@ class Radau(PseudospectralBase):
 
                     # Add output.
                     timeseries_comp = phase._get_subsystem(timeseries_name)
-                    timeseries_comp._add_output_configure(prom_name,
-                                                          desc='',
-                                                          shape=options['shape'],
-                                                          units=options['units'])
+                    added_src = timeseries_comp._add_output_configure(prom_name,
+                                                                      desc='',
+                                                                      shape=options['shape'],
+                                                                      units=options['units'],
+                                                                      src=prom_name)
+                    if added_src:
+                        src_idxs_raw = np.zeros(gd.subset_num_nodes['all'], dtype=int)
+                        src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
-                    src_idxs_raw = np.zeros(gd.subset_num_nodes['all'], dtype=int)
-                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-
-                    phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
-                                   src_indices=src_idxs, flat_src_indices=True)
+                        phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
+                                       src_indices=src_idxs, flat_src_indices=True)
 
             for var, options in phase._timeseries[timeseries_name]['outputs'].items():
                 output_name = options['output_name']
@@ -486,7 +516,7 @@ class Radau(PseudospectralBase):
                         continue
 
                     # If the full shape does not start with num_nodes, skip this variable.
-                    if self.is_static_ode_output(v, phase):
+                    if self.is_static_ode_output(v, phase, gd.subset_num_nodes['all']):
                         warnings.warn(f'Cannot add ODE output {v} to the timeseries output. It is '
                                       f'sized such that its first dimension != num_nodes.')
                         continue
@@ -500,17 +530,13 @@ class Radau(PseudospectralBase):
                                          f' the phase {phase.pathname} nor is it a known output of '
                                          f' the ODE.')
 
-                    try:
-                        timeseries_comp._add_output_configure(output_name, units, shape, desc='')
-                    except ValueError as e:  # OK if it already exists
-                        if 'already exists' in str(e):
-                            continue
-                        else:
-                            raise e
+                    add_connection = timeseries_comp._add_output_configure(output_name, units,
+                                                                           shape, desc='',
+                                                                           src=f'rhs_all.{v}')
 
-                    phase.connect(src_name='rhs_all.{0}'.format(v),
-                                  tgt_name='{0}.input_values:{1}'.format(timeseries_name,
-                                                                         output_name))
+                    if add_connection:
+                        phase.connect(src_name=f'rhs_all.{v}',
+                                      tgt_name=f'{timeseries_name}.input_values:{output_name}')
 
     def get_rate_source_path(self, state_name, nodes, phase):
         """

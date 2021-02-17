@@ -1,5 +1,6 @@
 import numpy as np
 import openmdao.api as om
+from openmdao.utils.units import unit_conversion
 
 from ...grid_data import GridData
 from ....options import options as dymos_options
@@ -28,7 +29,17 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
         self._varnames = {}
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
 
-    def add_var(self, name, shape, units):
+        # Sources is used internally to map the source of a connection to the timeseries to
+        # the corresponding input variable.  This is used to ensure that we don't need to connect
+        # the same source to this timeseries multiple times.
+        self._sources = {'disc': {}, 'col': {}}
+
+        # Used to track conversion factors for instances when one output that relies on an input
+        # from another variable has potentially different units
+        self._units = {}
+        self._conversion_factors = {}
+
+    def add_var(self, name, shape, units, disc_src, col_src):
         """
         Add a variable to be interleaved.
 
@@ -44,6 +55,10 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
             The shape of the variable at each instance in time.
         units : str
             The units of the variable.
+        disc_src : str
+            The source path of the variable's inputs at the discretization nodes.
+        col_src : str
+            The source path of the variable's inputs at the collocation nodes.
 
         Returns
         -------
@@ -57,39 +72,59 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
         num_disc_nodes = self.options['grid_data'].subset_num_nodes['state_disc']
         num_col_nodes = self.options['grid_data'].subset_num_nodes['col']
         num_nodes = self.options['grid_data'].subset_num_nodes['all']
+        added_source = False
 
         size = np.prod(shape)
 
         self._varnames[name] = {}
-        self._varnames[name]['disc'] = 'disc_values:{0}'.format(name)
-        self._varnames[name]['col'] = 'col_values:{0}'.format(name)
-        self._varnames[name]['all'] = 'all_values:{0}'.format(name)
+        self._varnames[name]['disc'] = f'disc_values:{name}'
+        self._varnames[name]['col'] = f'col_values:{name}'
+        self._varnames[name]['all'] = f'all_values:{name}'
 
-        self.add_input(
-            name=self._varnames[name]['disc'],
-            shape=(num_disc_nodes,) + shape,
-            desc='Values of {0} at discretization nodes'.format(name),
-            units=units)
-
-        self.add_input(
-            name=self._varnames[name]['col'],
-            shape=(num_col_nodes,) + shape,
-            desc='Values of {0} at collocation nodes'.format(name),
-            units=units)
+        # Check to see if the given disc source has already been used
+        # We'll assume that the col source will be the same as well, no need to check both.
+        if disc_src in self._sources['disc']:
+            self._varnames[name]['disc'] = self._sources['disc'][disc_src]
+            self._varnames[name]['col'] = self._sources['col'][col_src]
+            input_units = self._units[self._varnames[name]['disc']]
+        else:
+            self.add_input(
+                name=self._varnames[name]['disc'],
+                shape=(num_disc_nodes,) + shape,
+                desc=f'Values of {name} at discretization nodes',
+                units=units)
+            self.add_input(
+                name=self._varnames[name]['col'],
+                shape=(num_col_nodes,) + shape,
+                desc=f'Values of {name} at collocation nodes',
+                units=units)
+            self._sources['disc'][disc_src] = self._varnames[name]['disc']
+            self._sources['col'][col_src] = self._varnames[name]['col']
+            input_units = self._units[self._varnames[name]['disc']] = units
+            added_source = True
 
         self.add_output(
             name=self._varnames[name]['all'],
             shape=(num_nodes,) + shape,
-            desc='Values of {0} at all nodes'.format(name),
+            desc=f'Values of {name} at all nodes',
             units=units)
 
         start_rows = self.options['grid_data'].subset_node_indices['state_disc'] * size
         r = (start_rows[:, np.newaxis] + np.arange(size, dtype=int)).ravel()
         c = np.arange(size * num_disc_nodes, dtype=int)
 
+        # There's a chance that the input for this output was pulled from another variable with
+        # different units, so account for that with a conversion.
+        if None in {input_units, units}:
+            scale = 1.0
+            offset = 0
+        else:
+            scale, offset = unit_conversion(input_units, units)
+        self._conversion_factors[self._varnames[name]['all']] = scale, offset
+
         self.declare_partials(of=self._varnames[name]['all'],
                               wrt=self._varnames[name]['disc'],
-                              rows=r, cols=c, val=1.0)
+                              rows=r, cols=c, val=scale)
 
         start_rows = self.options['grid_data'].subset_node_indices['col'] * size
         r = (start_rows[:, np.newaxis] + np.arange(size, dtype=int)).ravel()
@@ -97,9 +132,9 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
 
         self.declare_partials(of=self._varnames[name]['all'],
                               wrt=self._varnames[name]['col'],
-                              rows=r, cols=c, val=1.0)
+                              rows=r, cols=c, val=scale)
 
-        return True
+        return added_source
 
     def compute(self, inputs, outputs):
         """
@@ -116,5 +151,8 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
         col_idxs = self.options['grid_data'].subset_node_indices['col']
 
         for name, varnames in self._varnames.items():
+            scale, offset = self._conversion_factors[self._varnames[name]['all']]
             outputs[varnames['all']][disc_idxs] = inputs[varnames['disc']]
             outputs[varnames['all']][col_idxs] = inputs[varnames['col']]
+            outputs[varnames['all']] *= scale
+            outputs[varnames['all']] += offset

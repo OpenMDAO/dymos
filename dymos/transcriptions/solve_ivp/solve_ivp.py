@@ -250,11 +250,11 @@ class SolveIVP(TranscriptionBase):
                                                 output_nodes_per_seg=self.options['output_nodes_per_seg']))
 
         if self.options['output_nodes_per_seg'] is None:
-            num_output_nodes = gd.subset_num_nodes['all']
+            self.num_output_nodes = gd.subset_num_nodes['all']
         else:
-            num_output_nodes = num_seg * self.options['output_nodes_per_seg']
+            self.num_output_nodes = num_seg * self.options['output_nodes_per_seg']
 
-        phase.add_subsystem('ode', phase.options['ode_class'](num_nodes=num_output_nodes,
+        phase.add_subsystem('ode', phase.options['ode_class'](num_nodes=self.num_output_nodes,
                                                               **phase.options['ode_init_kwargs']))
 
     def configure_ode(self, phase):
@@ -722,7 +722,7 @@ class SolveIVP(TranscriptionBase):
 
                 # Skip the timeseries output if it does not appear to be shaped as a dynamic variable
                 # If the full shape does not start with num_nodes, skip this variable.
-                if self.is_static_ode_output(v, phase):
+                if self.is_static_ode_output(v, phase, self.num_output_nodes):
                     warnings.warn(f'Cannot add ODE output {v} to the timeseries output. It is '
                                   f'sized such that its first dimension != num_nodes.')
                     continue

@@ -2,6 +2,7 @@ import numpy as np
 from scipy.linalg import block_diag
 
 import openmdao.api as om
+from openmdao.utils.units import unit_conversion
 
 from ...transcriptions.grid_data import GridData
 from ...utils.lagrange import lagrange_matrices
@@ -34,7 +35,7 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
         """
         self._timeseries_outputs = []
 
-        self._vars = []
+        self._vars = {}
 
         self.options.declare('input_grid_data',
                              types=GridData,
@@ -66,6 +67,16 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
 
         self.input_num_nodes = 0
         self.output_num_nodes = 0
+
+        # Sources is used internally to map the source of a connection to the timeseries to
+        # the corresponding input variable.  This is used to ensure that we don't need to connect
+        # the same source to this timeseries multiple times.
+        self._sources = {}
+
+        # Used to track conversion factors for instances when one output that relies on an input
+        # from another variable has potentially different units
+        self._units = {}
+        self._conversion_factors = {}
 
     def setup(self):
         """
@@ -121,7 +132,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             shape = kwargs['shape']
             self._add_output_configure(name, units, shape, desc)
 
-    def _add_output_configure(self, name, units, shape, desc=None):
+    def _add_output_configure(self, name, units, shape, desc='', src=None):
         """
         Add a single timeseries output.
 
@@ -139,21 +150,41 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             Default is None, which means it has no units.
         desc : str
             description of the timeseries output variable.
+        src : str
+            The src path of the variables input, used to prevent redundant inputs.
+
+        Returns
+        -------
+        bool
+            True if a new input was added for the output, or False if it reuses an existing input.
         """
         input_num_nodes = self.input_num_nodes
         output_num_nodes = self.output_num_nodes
+        added_source = False
 
-        input_name = 'input_values:{0}'.format(name)
-        self.add_input(input_name,
-                       shape=(input_num_nodes,) + shape,
-                       units=units, desc=desc)
+        if name in self._vars:
+            return False
+
+        if src in self._sources:
+            # If we're already pulling the source into this timeseries, use that as the
+            # input for this output.
+            input_name = self._sources[src]
+            input_units = self._units[input_name]
+        else:
+            input_name = f'input_values:{name}'
+            self.add_input(input_name,
+                           shape=(input_num_nodes,) + shape,
+                           units=units, desc=desc)
+            self._sources[src] = input_name
+            input_units = self._units[input_name] = units
+            added_source = True
 
         output_name = name
         self.add_output(output_name,
                         shape=(output_num_nodes,) + shape,
                         units=units, desc=desc)
 
-        self._vars.append((input_name, output_name, shape))
+        self._vars[name] = (input_name, output_name, shape)
 
         size = np.prod(shape)
         val_jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
@@ -167,9 +198,21 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         val_jac_rows, val_jac_cols = np.where(val_jac != 0)
 
         rs, cs = val_jac_rows, val_jac_cols
+
+        # There's a chance that the input for this output was pulled from another variable with
+        # different units, so account for that with a conversion.
+        if None in {input_units, units}:
+            scale = 1.0
+            offset = 0
+        else:
+            scale, offset = unit_conversion(input_units, units)
+        self._conversion_factors[output_name] = scale, offset
+
         self.declare_partials(of=output_name,
                               wrt=input_name,
-                              rows=rs, cols=cs, val=val_jac[rs, cs])
+                              rows=rs, cols=cs, val=scale * val_jac[rs, cs])
+
+        return added_source
 
     def compute(self, inputs, outputs):
         """
@@ -182,6 +225,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        for (input_name, output_name, _) in self._vars:
-            outputs[output_name] = np.tensordot(self.interpolation_matrix, inputs[input_name],
-                                                axes=(1, 0))
+        for (input_name, output_name, _) in self._vars.values():
+            scale, offset = self._conversion_factors[output_name]
+            interp_vals = np.tensordot(self.interpolation_matrix, inputs[input_name], axes=(1, 0))
+            outputs[output_name] = scale * (interp_vals + offset)
