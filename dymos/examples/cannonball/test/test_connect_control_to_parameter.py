@@ -4,8 +4,6 @@ import numpy as np
 
 import openmdao
 import openmdao.api as om
-import matplotlib.pyplot as plt
-plt.switch_backend('Agg')
 
 from openmdao.utils.testing_utils import use_tempdirs
 
@@ -79,7 +77,7 @@ class CannonballODEVectorCD(om.ExplicitComponent):
         outputs['ke'] = 0.5*m*v**2
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestConnectControlToParameter(unittest.TestCase):
 
     @unittest.skipIf(om_version < (3, 4, 1) or (om_version == (3, 4, 1) and om_dev_version),
