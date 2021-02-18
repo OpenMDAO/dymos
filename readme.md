@@ -81,94 +81,59 @@ import dymos as dm
 import matplotlib.pyplot as plt
 
 
-    class BrachistochroneEOM(om.ExplicitComponent):
-        def initialize(self):
-            self.options.declare('num_nodes', types=int)
+class BrachistochroneEOM(om.ExplicitComponent):
+    def initialize(self):
+        self.options.declare('num_nodes', types=int)
 
-        def setup(self):
-            nn = self.options['num_nodes']
+    def setup(self):
+        nn = self.options['num_nodes']
 
-            # Inputs
-            self.add_input('v',
-                           val=np.zeros(nn),
-                           desc='velocity',
-                           units='m/s')
+        # Inputs
+        self.add_input('v',
+                       shape=(nn,),
+                       desc='velocity',
+                       units='m/s')
 
-            self.add_input('g',
-                           val=9.80665*np.ones(nn),
-                           desc='gravitational acceleration',
-                           units='m/s/s')
+        self.add_input('theta',
+                       shape=(nn,),
+                       desc='angle of wire',
+                       units='rad')
 
-            self.add_input('theta',
-                           val=np.zeros(nn),
-                           desc='angle of wire',
-                           units='rad')
+        self.add_output('xdot',
+                        shape=(nn,),
+                        desc='velocity component in x',
+                        units='m/s')
 
-            self.add_output('xdot',
-                            val=np.zeros(nn),
-                            desc='velocity component in x',
-                            units='m/s')
+        self.add_output('ydot',
+                        shape=(nn,),
+                        desc='velocity component in y',
+                        units='m/s')
 
-            self.add_output('ydot',
-                            val=np.zeros(nn),
-                            desc='velocity component in y',
-                            units='m/s')
+        self.add_output('vdot',
+                        val=np.zeros(nn),
+                        desc='acceleration magnitude',
+                        units='m/s**2')
 
-            self.add_output('vdot',
-                            val=np.zeros(nn),
-                            desc='acceleration magnitude',
-                            units='m/s**2')
+        self.add_output('check',
+                        val=np.zeros(nn),
+                        desc='A check on the solution: v/sin(theta) = constant',
+                        units='m/s')
 
-            self.add_output('check',
-                            val=np.zeros(nn),
-                            desc='A check on the solution: v/sin(theta) = constant',
-                            units='m/s')
+        # Use OpenMDAO's ability to automatically determine a sparse "coloring" of the jacobian
+        # for this ODE component.
+        self.declare_coloring(wrt='*', method='cs')
 
-            # Setup partials
-            arange = np.arange(self.options['num_nodes'])
+    def compute(self, inputs, outputs):
+        theta = inputs['theta']
+        cos_theta = np.cos(theta)
+        sin_theta = np.sin(theta)
+        v = inputs['v']
 
-            self.declare_partials(of='vdot', wrt='g', rows=arange, cols=arange, val=1.0)
-            self.declare_partials(of='vdot', wrt='theta', rows=arange, cols=arange, val=1.0)
+        outputs['vdot'] = 9.80665 * cos_theta
+        outputs['xdot'] = v * sin_theta
+        outputs['ydot'] = -v * cos_theta
+        outputs['check'] = v / sin_theta
 
-            self.declare_partials(of='xdot', wrt='v', rows=arange, cols=arange, val=1.0)
-            self.declare_partials(of='xdot', wrt='theta', rows=arange, cols=arange, val=1.0)
-
-            self.declare_partials(of='ydot', wrt='v', rows=arange, cols=arange, val=1.0)
-            self.declare_partials(of='ydot', wrt='theta', rows=arange, cols=arange, val=1.0)
-
-            self.declare_partials(of='check', wrt='v', rows=arange, cols=arange, val=1.0)
-            self.declare_partials(of='check', wrt='theta', rows=arange, cols=arange, val=1.0)
-
-        def compute(self, inputs, outputs):
-            theta = inputs['theta']
-            cos_theta = np.cos(theta)
-            sin_theta = np.sin(theta)
-            g = inputs['g']
-            v = inputs['v']
-
-            outputs['vdot'] = g*cos_theta
-            outputs['xdot'] = v*sin_theta
-            outputs['ydot'] = -v*cos_theta
-            outputs['check'] = v/sin_theta
-
-        def compute_partials(self, inputs, jacobian):
-            theta = inputs['theta']
-            cos_theta = np.cos(theta)
-            sin_theta = np.sin(theta)
-            g = inputs['g']
-            v = inputs['v']
-
-            jacobian['vdot', 'g'] = cos_theta
-            jacobian['vdot', 'theta'] = -g*sin_theta
-
-            jacobian['xdot', 'v'] = sin_theta
-            jacobian['xdot', 'theta'] = v*cos_theta
-
-            jacobian['ydot', 'v'] = -cos_theta
-            jacobian['ydot', 'theta'] = v*sin_theta
-
-            jacobian['check', 'v'] = 1/sin_theta
-            jacobian['check', 'theta'] = -v*cos_theta/sin_theta**2
 
 # Define the OpenMDAO problem
 p = om.Problem(model=om.Group())
@@ -204,8 +169,9 @@ phase.add_objective('time', loc='final')
 # Set the driver.
 p.driver = om.ScipyOptimizeDriver()
 
-# Allow OpenMDAO to automatically determine our sparsity pattern.
-# Doing so can significant speed up the execution of dymos.
+# Allow OpenMDAO to automatically determine our sparsity pattern
+# for TOTAL derivatives. Doing so can significantly speed up the
+# execution of dymos.
 p.driver.declare_coloring()
 
 # Setup the problem
@@ -230,25 +196,26 @@ p.set_val('traj.phase0.states:v',
           units='m/s')
 
 p.set_val('traj.phase0.controls:theta',
-          phase.interpolate(ys=[90, 90], nodes='control_input'),
+          phase.interpolate(ys=[5, 45], nodes='control_input'),
           units='deg')
 
-# Run the driver to solve the problem
-p.run_driver()
+# Use Dymos' run_problem method to run the driver, simulate the results,
+# and record the results to 'dymos_solution.db' and 'dymos_simulation.db'.
+dm.run_problem(p, simulate=True)
 
-# Check the validity of our results by using
-# scipy.integrate.solve_ivp to integrate the solution.
-sim_out = traj.simulate()
+# Load the solution and simulation files.
+sol_case = om.CaseReader('dymos_solution.db').get_case('final')
+sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
 
 # Plot the results
 fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 4.5))
 
-axes[0].plot(p.get_val('traj.phase0.timeseries.states:x'),
-             p.get_val('traj.phase0.timeseries.states:y'),
+axes[0].plot(sol_case.get_val('traj.phase0.timeseries.states:x'),
+             sol_case.get_val('traj.phase0.timeseries.states:y'),
              'ro', label='solution')
 
-axes[0].plot(sim_out.get_val('traj.phase0.timeseries.states:x'),
-             sim_out.get_val('traj.phase0.timeseries.states:y'),
+axes[0].plot(sim_case.get_val('traj.phase0.timeseries.states:x'),
+             sim_case.get_val('traj.phase0.timeseries.states:y'),
              'b-', label='simulation')
 
 axes[0].set_xlabel('x (m)')
@@ -256,14 +223,14 @@ axes[0].set_ylabel('y (m/s)')
 axes[0].legend()
 axes[0].grid()
 
-axes[1].plot(p.get_val('traj.phase0.timeseries.time'),
-             p.get_val('traj.phase0.timeseries.controls:theta',
-                       units='deg'),
+axes[1].plot(sol_case.get_val('traj.phase0.timeseries.time'),
+             sol_case.get_val('traj.phase0.timeseries.controls:theta',
+                              units='deg'),
              'ro', label='solution')
 
-axes[1].plot(sim_out.get_val('traj.phase0.timeseries.time'),
-             sim_out.get_val('traj.phase0.timeseries.controls:theta',
-                             units='deg'),
+axes[1].plot(sim_case.get_val('traj.phase0.timeseries.time'),
+             sim_case.get_val('traj.phase0.timeseries.controls:theta',
+                              units='deg'),
              'b-', label='simulation')
 
 axes[1].set_xlabel('time (s)')
