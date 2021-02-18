@@ -23,18 +23,12 @@ class TestODE(om.ExplicitComponent):
         self.add_input('t', val=np.ones(self.options['num_nodes']), units='s')
         self.add_input('y', val=np.ones(self.options['num_nodes']), units='m')
         self.add_output('ydot', val=np.ones(self.options['num_nodes']), units='m/s')
-
-        ar = np.arange(self.options['num_nodes'])
-        self.declare_partials(of='ydot', wrt='t', rows=ar, cols=ar)
-        self.declare_partials(of='ydot', wrt='y', rows=ar, cols=ar, val=1.0)
+        self.declare_coloring(wrt='*', method='cs')
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         t = inputs['t']
         y = inputs['y']
         outputs['ydot'] = y - t ** 2 + 1
-
-    def compute_partials(self, inputs, partials):
-        partials['ydot', 't'] = -2 * inputs['t']
 
 
 @use_tempdirs

@@ -14,12 +14,7 @@ plt.switch_backend('Agg')
 class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
     def test_two_burn_orbit_raise_gl_radau_gl_changing_units_error(self):
-        import numpy as np
-
-        import matplotlib.pyplot as plt
-
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
         from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         import dymos as dm
