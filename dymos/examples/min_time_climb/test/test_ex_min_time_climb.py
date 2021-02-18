@@ -26,8 +26,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['Major step limit'] = 0.5
 
     t = {'gauss-lobatto': dm.GaussLobatto(num_segments=num_seg, order=transcription_order),
-         'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order),
-         'runge-kutta': dm.RungeKutta(num_segments=num_seg)}
+         'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order)}
 
     traj = dm.Trajectory()
 

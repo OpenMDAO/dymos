@@ -25,10 +25,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         t = dm.Radau(num_segments=num_segments,
                      order=transcription_order,
                      compressed=compressed)
-    elif transcription == 'runge-kutta':
-        t = dm.RungeKutta(num_segments=num_segments,
-                          order=transcription_order,
-                          compressed=compressed)
+
     traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
     traj.add_phase('phase0', phase)

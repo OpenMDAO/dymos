@@ -61,10 +61,6 @@ def make_brachistochrone_phase(transcription='gauss-lobatto', num_segments=8, tr
         t = dm.Radau(num_segments=num_segments,
                      order=transcription_order,
                      compressed=compressed)
-    elif transcription == 'runge-kutta':
-        t = dm.RungeKutta(num_segments=num_segments,
-                          order=transcription_order,
-                          compressed=compressed)
 
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
 
@@ -102,12 +98,6 @@ class TestTandemPhases(unittest.TestCase):
             tx1 = dm.Radau(num_segments=num_segments*2,
                            order=transcription_order*3,
                            compressed=compressed)
-
-        elif transcription == 'runge-kutta':
-            tx0 = dm.RungeKutta(num_segments=20,
-                                compressed=compressed)
-            tx1 = dm.RungeKutta(num_segments=20*4,
-                                compressed=compressed)
 
         phase0 = dm.Phase(ode_class=BrachistochroneODE, transcription=tx0)
 
@@ -183,9 +173,6 @@ class TestTandemPhases(unittest.TestCase):
 
     def test_tandem_phases_gl(self):
         self._run_transcription('gauss-lobatto')
-
-    def test_tandem_phases_rk(self):
-        self._run_transcription('runge-kutta')
 
 
 if __name__ == '__main__':  # pragma: no cover

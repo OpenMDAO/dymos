@@ -28,10 +28,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         t = dm.Radau(num_segments=num_segments,
                      order=transcription_order,
                      compressed=compressed)
-    elif transcription == 'runge-kutta':
-        t = dm.RungeKutta(num_segments=num_segments,
-                          order=transcription_order,
-                          compressed=compressed)
 
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
 
@@ -138,12 +134,4 @@ class BenchmarkBrachistochrone(unittest.TestCase):
                                      num_segments=30,
                                      transcription_order=3,
                                      compressed=False)
-        self.run_asserts(p)
-
-    def benchmark_gl_30_3_color_simul_compressed_rk4(self):
-        p = brachistochrone_min_time(transcription='runge-kutta',
-                                     optimizer='SNOPT',
-                                     num_segments=30,
-                                     transcription_order=3,
-                                     compressed=True)
         self.run_asserts(p)

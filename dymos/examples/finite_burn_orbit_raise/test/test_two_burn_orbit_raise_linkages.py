@@ -13,7 +13,7 @@ plt.switch_backend('Agg')
 @use_tempdirs
 class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
-    def test_two_burn_orbit_raise_gl_rk_gl_changing_units_error(self):
+    def test_two_burn_orbit_raise_gl_radau_gl_changing_units_error(self):
         import numpy as np
 
         import matplotlib.pyplot as plt
@@ -65,7 +65,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
         coast = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.RungeKutta(num_segments=20))
+                         transcription=dm.Radau(num_segments=10, order=3))
 
         traj.add_phase('coast', coast)
 
@@ -136,7 +136,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         self.assertEqual(expected_exception, str(e.exception))
 
-    def test_two_burn_orbit_raise_gl_rk_gl_constrained(self):
+    def test_two_burn_orbit_raise_gl_radau_gl_constrained(self):
         import numpy as np
 
         import matplotlib.pyplot as plt
@@ -188,7 +188,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
         coast = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.RungeKutta(num_segments=20))
+                         transcription=dm.Radau(num_segments=10, order=3))
 
         traj.add_phase('coast', coast)
 
@@ -437,7 +437,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
         coast = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.RungeKutta(num_segments=20))
+                         transcription=dm.Radau(num_segments=10, order=3, solve_segments='forward'))
 
         traj.add_phase('coast', coast)
 
@@ -688,7 +688,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
         coast = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.RungeKutta(num_segments=20))
+                         transcription=dm.Radau(num_segments=10, order=3))
 
         traj.add_phase('coast', coast)
 
@@ -867,7 +867,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
         coast = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.RungeKutta(num_segments=20))
+                         transcription=dm.Radau(num_segments=10, order=3))
 
         traj.add_phase('coast', coast)
 
@@ -1006,8 +1006,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
     def test_two_burn_orbit_raise_radau_wildcard_add_timeseries_output(self):
         import numpy as np
 
-        import matplotlib.pyplot as plt
-
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         from openmdao.utils.general_utils import set_pyoptsparse_opt
@@ -1054,7 +1052,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
         coast = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.RungeKutta(num_segments=20))
+                         transcription=dm.Radau(num_segments=10, order=3))
 
         traj.add_phase('coast', coast)
 

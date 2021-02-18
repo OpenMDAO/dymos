@@ -16,8 +16,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
               connected=False, param_mode='param_sequence'):
 
     t = {'gauss-lobatto': dm.GaussLobatto(num_segments=5, order=transcription_order, compressed=compressed),
-         'radau': dm.Radau(num_segments=20, order=transcription_order, compressed=compressed),
-         'runge-kutta': dm.RungeKutta(num_segments=5, compressed=compressed)}
+         'radau': dm.Radau(num_segments=20, order=transcription_order, compressed=compressed)}
 
     traj = dm.Trajectory()
 

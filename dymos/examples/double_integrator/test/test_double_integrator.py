@@ -223,46 +223,6 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         p.run_driver()
 
-    def test_double_integrator_rk4(self, compressed=True):
-
-        p = om.Problem(model=om.Group())
-        p.driver = om.pyOptSparseDriver()
-        p.driver.declare_coloring()
-
-        t = dm.RungeKutta(num_segments=30, order=3, compressed=compressed)
-
-        traj = p.model.add_subsystem('traj', dm.Trajectory())
-
-        phase = traj.add_phase('phase0', dm.Phase(ode_class=DoubleIntegratorODE, transcription=t))
-
-        phase.set_time_options(fix_initial=True, fix_duration=True, units='s')
-
-        phase.add_state('v', fix_initial=True, fix_final=False, rate_source='u', shape=(1, ), units='m/s')
-        phase.add_state('x', fix_initial=True, rate_source='v', units='m')
-
-        phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
-                          rate2_continuity=False, shape=(1, ), lower=-1.0, upper=1.0)
-
-        phase.add_boundary_constraint(name='v', loc='final', equals=0)
-
-        # Maximize distance travelled in one second.
-        phase.add_objective('x', loc='final', scaler=-1)
-
-        p.model.linear_solver = om.DirectSolver()
-
-        p.setup(check=True)
-
-        p['traj.phase0.t_initial'] = 0.0
-        p['traj.phase0.t_duration'] = 1.0
-
-        p['traj.phase0.states:x'] = phase.interpolate(ys=[0, 0.25], nodes='state_input')
-        p['traj.phase0.states:v'] = phase.interpolate(ys=[0, 0], nodes='state_input')
-        p['traj.phase0.controls:u'] = phase.interpolate(ys=[1, -1], nodes='control_input')
-
-        p.run_driver()
-
-        return p
-
 
 if __name__ == "__main__":
 
