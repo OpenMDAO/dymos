@@ -3,14 +3,15 @@ from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.doc_utils import save_for_docs
 
 
+@use_tempdirs
 class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
     @save_for_docs
-    @use_tempdirs
     def test_balanced_field_length_for_docs(self):
         import matplotlib.pyplot as plt
         import openmdao.api as om
         from openmdao.utils.general_utils import set_pyoptsparse_opt
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
 
@@ -230,6 +231,9 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.set_val('traj.climb.controls:alpha', 5.0, units='deg')
 
         dm.run_problem(p, run_driver=True, simulate=True)
+
+        # Test this example in Dymos' continuous integration
+        assert_near_equal(p.get_val('traj.rto.states:r')[-1], 2188.2, tolerance=0.01)
 
         sim_case = om.CaseReader('dymos_solution.db').get_case('final')
 

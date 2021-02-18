@@ -15,13 +15,12 @@ def flying_robot_direct_collocation(transcription='gauss-lobatto', compressed=Tr
     p = om.Problem(model=om.Group())
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = 'SLSQP'
-    # p.driver.opt_settings['iSumm'] = 6
     p.driver.declare_coloring()
 
     if transcription == 'gauss-lobatto':
-        t = dm.GaussLobatto(num_segments=10, order=5, compressed=compressed)
+        t = dm.GaussLobatto(num_segments=8, order=5, compressed=compressed)
     elif transcription == "radau-ps":
-        t = dm.Radau(num_segments=10, order=5, compressed=compressed)
+        t = dm.Radau(num_segments=8, order=5, compressed=compressed)
     else:
         raise ValueError('invalid transcription')
 

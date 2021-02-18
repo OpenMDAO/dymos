@@ -837,7 +837,7 @@ class TranscriptionBase(object):
         raise NotImplementedError('Transcription {0} does not implement method '
                                   'get_parameter_connections.'.format(self.__class__.__name__))
 
-    def is_static_ode_output(self, var, phase):
+    def is_static_ode_output(self, var, phase, num_nodes):
         """
         Test whether the given output is a static output of the ODE.
 
@@ -850,6 +850,8 @@ class TranscriptionBase(object):
             The ode-relative path of the variable of interest.
         phase : dymos.Phase
             The phase to which this transcription applies.
+        num_nodes : int
+            The number of nodes in the ODE.
 
         Returns
         -------
@@ -865,4 +867,4 @@ class TranscriptionBase(object):
         ode_outputs = {opts['prom_name']: opts for (k, opts) in
                        ode.get_io_metadata(iotypes=('output',), get_remote=True).items()}
         ode_shape = ode_outputs[var]['shape']
-        return ode_shape[0] != ode.options['num_nodes']
+        return ode_shape[0] != num_nodes

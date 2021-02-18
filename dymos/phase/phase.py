@@ -1,5 +1,4 @@
-from collections import Callable
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Sequence, Callable
 import inspect
 import warnings
 

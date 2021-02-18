@@ -1,12 +1,7 @@
 import unittest
 
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-
 from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs
-
-plt.switch_backend('Agg')
 
 
 @use_tempdirs
@@ -16,7 +11,10 @@ class TestRaceCarForDocs(unittest.TestCase):
     def test_racecar_for_docs(self):
         import numpy as np
         import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
+        import matplotlib.pyplot as plt
+        import matplotlib as mpl
 
         from dymos.examples.racecar.combinedODE import CombinedODE
         from dymos.examples.racecar.spline import (get_spline, get_track_points, get_gate_normals,
@@ -182,6 +180,9 @@ class TestRaceCarForDocs(unittest.TestCase):
 
         dm.run_problem(p, run_driver=True)
         print('Optimization finished')
+
+        # Test this example in Dymos' continuous integration process
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:t')[-1], 22.2657, tolerance=0.01)
 
         # Get optimized time series
         n = p.get_val('traj.phase0.timeseries.states:n')
