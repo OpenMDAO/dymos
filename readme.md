@@ -170,7 +170,7 @@ phase.add_objective('time', loc='final')
 p.driver = om.ScipyOptimizeDriver()
 
 # Allow OpenMDAO to automatically determine our sparsity pattern
-# for TOTAL derivatives. Doing so can significant speed up the
+# for TOTAL derivatives. Doing so can significantly speed up the
 # execution of dymos.
 p.driver.declare_coloring()
 

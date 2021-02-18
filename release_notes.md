@@ -9,7 +9,7 @@ takes `num_nodes` and any other potential initialization keywod arguments.
 This allows OpenMDAO's ExecComp to be used as an ODE if wrapped in a lambda, for instance.
 
 Some bugs were fixed as part of introducing these examples.  For instance, default values for
-states and times were not having effect - this is now fixed.  In addition, Trajectory parameters
+states and times were being ignored - this is now fixed.  In addition, Trajectory parameters
 are now saved to the simulation database file.
 
 This is expected to be the final release of Dymos before v1.0.0, when several existing
