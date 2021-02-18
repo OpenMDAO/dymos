@@ -56,7 +56,7 @@ The high level layout of this model is shown in below.
   <figcaption>N2 diagram for the water rocket model</figcaption>
 </figure>
 
-`atmos`, `kinetic_energy`, `dynamic_pressure`, `aero` and `eom` are the same models used in [multi-phase cannonball](../multi_phase_cannonball/multi_phase_cannonball.md).
+`atmos`, `dynamic_pressure`, `aero` and `eom` are the same models used in [multi-phase cannonball](../multi_phase_cannonball/multi_phase_cannonball.md).
 The remaining components are discussed below.
 
 !!! warning

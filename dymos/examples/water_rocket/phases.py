@@ -1,38 +1,33 @@
 import numpy as np
 
 import dymos as dm
-from dymos.examples.cannonball.size_comp import CannonballSizeComp
-from dymos.examples.cannonball.cannonball_phase import CannonballPhase
 from dymos.examples.water_rocket.water_propulsion_ode import WaterPropulsionODE
 
 
 def new_propelled_ascent_phase(transcription):
-    propelled_ascent = CannonballPhase(ode_class=WaterPropulsionODE,
-                                       transcription=transcription)
-
-    # Add states specific for the propelled ascent
-    propelled_ascent.add_state('p', units='bar', rate_source='water_engine.pdot',
-                               targets=['water_engine.p'])
-    propelled_ascent.add_state('V_w', units='L', ref=1.0, rate_source='water_engine.Vdot',
-                               targets=['water_engine.V_w', 'mass_adder.V_w'])
+    propelled_ascent = dm.Phase(ode_class=WaterPropulsionODE,
+                                transcription=transcription)
 
     # All initial states except flight path angle and water volume are fixed
     # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
     # Final water volume is fixed (we will set it to zero so that phase ends when bottle empties)
     propelled_ascent.set_time_options(
         fix_initial=True, duration_bounds=(0.001, 0.5), duration_ref=0.1, units='s')
-    propelled_ascent.set_state_options(
-        'r', fix_initial=True, fix_final=False, ref=1.0, defect_ref=1.0)
-    propelled_ascent.set_state_options(
-        'h', fix_initial=True, fix_final=False, ref=1.0, defect_ref=1.0)
-    propelled_ascent.set_state_options(
-        'gam', fix_initial=False, fix_final=False, lower=0, upper=85.0, ref=90, units='deg')
-    propelled_ascent.set_state_options(
-        'v', fix_initial=True, fix_final=False, ref=100, defect_ref=100)
-    propelled_ascent.set_state_options(
-        'V_w', fix_initial=False, fix_final=True, ref=10, defect_ref=10)
-    propelled_ascent.set_state_options(
-        'p', fix_initial=True, fix_final=False, lower=1.02)
+    propelled_ascent.add_state('r', units='m', rate_source='eom.r_dot',
+                               fix_initial=True, fix_final=False, ref=1.0, defect_ref=1.0)
+    propelled_ascent.add_state('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
+                               fix_initial=True, fix_final=False, ref=1.0, defect_ref=1.0)
+    propelled_ascent.add_state('gam', units='deg', rate_source='eom.gam_dot', targets=['eom.gam'],
+                               fix_initial=False, fix_final=False, lower=0, upper=85.0, ref=90)
+    propelled_ascent.add_state('v', units='m/s', rate_source='eom.v_dot', targets=['dynamic_pressure.v', 'eom.v'],
+                               fix_initial=True, fix_final=False, ref=100, defect_ref=100)
+
+    propelled_ascent.add_state('p', units='bar', rate_source='water_engine.pdot',
+                               targets=['water_engine.p'], fix_initial=True, fix_final=False,
+                               lower=1.02)
+    propelled_ascent.add_state('V_w', units='L', rate_source='water_engine.Vdot',
+                               targets=['water_engine.V_w', 'mass_adder.V_w'],
+                               fix_initial=False, fix_final=True, ref=10, defect_ref=10)
 
     propelled_ascent.add_parameter(
         'S', targets=['aero.S'], units='m**2')
@@ -47,44 +42,50 @@ def new_propelled_ascent_phase(transcription):
 
 
 def new_ballistic_ascent_phase(transcription):
-    ballistic_ascent = CannonballPhase(transcription=transcription)
+    ballistic_ascent = dm.Phase(ode_class=WaterPropulsionODE, transcription=transcription,
+                                ode_init_kwargs={'ballistic': True})
 
     # All initial states are free (they will be  linked to the final stages of propelled_ascent).
     # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
     ballistic_ascent.set_time_options(
         fix_initial=False, initial_bounds=(0.001, 1), duration_bounds=(0.001, 10),
         duration_ref=1, units='s')
-    ballistic_ascent.set_state_options(
-        'r', fix_initial=False, fix_final=False)
-    ballistic_ascent.set_state_options(
-        'h', fix_initial=False, fix_final=False)
-    ballistic_ascent.set_state_options(
-        'gam', fix_initial=False, fix_final=True, upper=89, units='deg')
-    ballistic_ascent.set_state_options(
-        'v', fix_initial=False, fix_final=False)
 
-    ballistic_ascent.add_parameter(
-        'S', targets=['aero.S'], units='m**2')
-    ballistic_ascent.add_parameter(
-        'm_empty', targets=['eom.m'], units='kg')
+    ballistic_ascent.add_state('r', units='m', rate_source='eom.r_dot', fix_initial=False,
+                               fix_final=False)
+    ballistic_ascent.add_state('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
+                               fix_initial=False, fix_final=False)
+    ballistic_ascent.add_state('gam', units='deg', rate_source='eom.gam_dot', targets=['eom.gam'],
+                               fix_initial=False, fix_final=True, upper=89)
+    ballistic_ascent.add_state('v', units='m/s', rate_source='eom.v_dot',
+                               targets=['dynamic_pressure.v', 'eom.v'], fix_initial=False,
+                               fix_final=False)
+
+    ballistic_ascent.add_parameter('S', targets=['aero.S'], units='m**2')
+    ballistic_ascent.add_parameter('m_empty', targets=['eom.m'], units='kg')
 
     return ballistic_ascent
 
 
 def new_descent_phase(transcription):
-    descent = CannonballPhase(transcription=transcription)
+    descent = dm.Phase(ode_class=WaterPropulsionODE, transcription=transcription,
+                       ode_init_kwargs={'ballistic': True})
 
     # All initial states and time are free (they will be linked to the final states of ballistic_ascent).
     # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
     descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
                              duration_ref=10, units='s')
-    descent.add_state('r', )
-    descent.add_state('h', fix_initial=False, fix_final=True)
-    descent.add_state('gam', fix_initial=False, fix_final=False, units='deg')
-    descent.add_state('v', fix_initial=False, fix_final=False)
+
+    descent.add_state('r', units='m', rate_source='eom.r_dot', fix_initial=False, fix_final=False)
+    descent.add_state('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
+                      fix_initial=False, fix_final=True)
+    descent.add_state('gam', units='deg', rate_source='eom.gam_dot', targets=['eom.gam'],
+                      fix_initial=False, fix_final=False)
+    descent.add_state('v', units='m/s', rate_source='eom.v_dot',
+                      targets=['dynamic_pressure.v', 'eom.v'], fix_initial=False, fix_final=False)
 
     descent.add_parameter('S', targets=['aero.S'], units='m**2')
-    descent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+    descent.add_parameter('mass', targets=['eom.m'], units='kg')
 
     return descent
 
