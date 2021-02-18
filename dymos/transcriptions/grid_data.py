@@ -109,57 +109,6 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     return subsets, lgr(n, include_endpoint=True)[0]
 
 
-def explicit_subsets_and_nodes(n, seg_idx, compressed=False, shooting='single'):
-    """
-    Returns the subset dictionary corresponding to the Runge-Kutta transcription.
-
-    Parameters
-    ----------
-    n : int
-        The total number of control discretization nodes in the Runge-Kutta segment.
-    seg_idx : int
-        The index of this segment within its phase.
-    compressed : bool
-        True if the subset requested is for a phase with compressed transcription.
-    shooting : str
-        One of the shooting method types for explicit phases ('single', 'hybrid', or 'multiple').
-
-    Returns
-    -------
-    dict of {str: np.ndarray}
-        'state_disc' gives the indices of the state discretization nodes
-        'state_input' gives the indices of the state input nodes
-        'control_disc' gives the indices of the control discretization nodes
-        'control_input' gives the indices of the control input nodes
-        'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
-        'step' gives the indices of the nodes at step boundaries
-        'all' gives all node indices.
-    ndarray
-        The location of all nodes on the interval [-1, 1].
-
-    Notes
-    -----
-    (subsets, nodes)
-    Subset 'state_input' is the same as subset 'state_disc'.
-    """
-    subsets = {
-        'disc': np.arange(0, n, 2, dtype=int),
-        'state_disc': np.zeros((1,), dtype=int) if seg_idx == 0 or shooting == 'multiple'
-        else np.empty((0,), dtype=int),
-        'state_input': np.zeros((1,), dtype=int) if seg_idx == 0 or shooting == 'multiple'
-        else np.empty((0,), dtype=int),
-        'control_disc': np.arange(n, dtype=int),
-        'control_input': np.arange(n, dtype=int) if not compressed or seg_idx == 0
-        else np.arange(1, n, dtype=int),
-        'segment_ends': np.array([0, n-1], dtype=int),
-        'col': np.arange(1, n, 2, dtype=int),
-        'all': np.arange(n, dtype=int),
-        'solution': np.arange(n, dtype=int),
-    }
-
-    return subsets, lgl(n)[0]
-
-
 def make_subset_map(from_subset_idxs, to_subset_idxs):
     """
     Creates a map from one subset to another using the indices of each subset within all nodes.
@@ -313,8 +262,6 @@ class GridData(object):
             get_subsets_and_nodes = gauss_lobatto_subsets_and_nodes
         elif self.transcription == 'radau-ps':
             get_subsets_and_nodes = radau_pseudospectral_subsets_and_nodes
-        elif self.transcription == 'explicit':
-            get_subsets_and_nodes = explicit_subsets_and_nodes
         else:
             raise ValueError('Unknown transcription: {0}'.format(transcription))
 

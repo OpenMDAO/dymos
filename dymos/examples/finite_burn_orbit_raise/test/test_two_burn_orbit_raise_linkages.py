@@ -913,7 +913,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # demonstrate adding multiple variables at once using wildcard in add_timeseries_output
         burn1.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Gauss Lobatto)
-        coast.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Runge Kutta)
+        coast.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Radau)
         burn2.add_timeseries_output('*')      # add all ODE outputs
 
         # Link Phases
@@ -1098,7 +1098,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # demonstrate adding multiple variables at once using wildcard in add_timeseries_output
         burn1.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Radau)
-        coast.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Runge Kutta)
+        coast.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Radau)
         burn2.add_timeseries_output('*')      # add all ODE outputs
 
         # Link Phases

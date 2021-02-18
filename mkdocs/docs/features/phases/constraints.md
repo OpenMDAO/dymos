@@ -62,9 +62,9 @@ needs to constrain an auxiliary output, this is the only option.  It may also be
 in certain circumstances.  Depending on scaling, the NLP may ensure that collocation defects are
 satisfied before forcing an infeasible boundary constraint to be satisfied, for instance.
 
-In conclusion, while using `fix_initial=True` for problems with fixed initial conditions is not a bad solution, the generality of `add_boundary_constraint`, especially for terminal constraints that risk being overconstrained, makes it a good first-choice in those situations.
-Also, explicitly integrated phases (using RungeKutta or `solve_segments=True`) fundamentally are solving an initial value problem.
-As such simple bounds on final state values are not possible in those situations, and `add_boundary_constraint` must be used instead.
+In conclusion, while using `fix_initial=True` for problems with fixed initial conditions is not a bad solution, the generality of `add_boundary_constraint`, especially for terminal constraints that risk being over-constrained, makes it a good first-choice in those situations.
+In forward-shooting phases (`solve_segments='forward'`) only the initial values of the states are design variables for the optimizer.
+As such, simple bounds on final state values are not possible in those situations, and `add_boundary_constraint` must be used instead.
 
 ##  Path Constraints
 
