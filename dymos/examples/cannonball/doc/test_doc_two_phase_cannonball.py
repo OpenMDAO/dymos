@@ -97,8 +97,8 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                 self.add_output('ke', shape=nn, units='J')
 
                 # Ask OpenMDAO to compute the partial derivatives using complex-step
-                # with a partial coloring algorithm for improved performance
-                self.declare_partials('*', '*', method='cs')
+                # with a partial coloring algorithm for improved performance, and use
+                # a graph coloring algorithm to automatically detect the sparsity pattern.
                 self.declare_coloring(wrt='*', method='cs')
 
                 alt_data = USatm1976Data.alt * om.unit_conversion('ft', 'm')[0]
