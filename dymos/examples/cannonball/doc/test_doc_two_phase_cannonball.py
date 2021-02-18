@@ -90,10 +90,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                 self.add_input('gam', units='rad', shape=nn)
 
                 # state rates
-                self.add_output('v_dot', shape=nn, units='m/s**2')
-                self.add_output('gam_dot', shape=nn, units='rad/s')
-                self.add_output('h_dot', shape=nn, units='m/s')
-                self.add_output('r_dot', shape=nn, units='m/s')
+                self.add_output('v_dot', shape=nn, units='m/s**2', tags=['state_rate_source:v'])
+                self.add_output('gam_dot', shape=nn, units='rad/s', tags=['state_rate_source:gam'])
+                self.add_output('h_dot', shape=nn, units='m/s', tags=['state_rate_source:h'])
+                self.add_output('r_dot', shape=nn, units='m/s', tags=['state_rate_source:r'])
                 self.add_output('ke', shape=nn, units='J')
 
                 # Ask OpenMDAO to compute the partial derivatives using complex-step
@@ -160,17 +160,17 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero
-        # so that the phase ends at apogee)
+        # so that the phase ends at apogee).
+        # The output of the ODE which provides the rate source for each state
+        # is obtained from the tags used on those outputs in the ODE.
+        # The units of the states are automatically inferred by multiplying the units
+        # of those rates by the time units.
         ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100),
                                 duration_ref=100, units='s')
-        ascent.set_state_options('r', fix_initial=True, fix_final=False,
-                                 units='m', rate_source='r_dot')
-        ascent.set_state_options('h', fix_initial=True, fix_final=False,
-                                 units='m', rate_source='h_dot')
-        ascent.set_state_options('gam', fix_initial=False, fix_final=True,
-                                 units='rad', rate_source='gam_dot')
-        ascent.set_state_options('v', fix_initial=False, fix_final=False,
-                                 units='m/s', rate_source='v_dot')
+        ascent.set_state_options('r', fix_initial=True, fix_final=False)
+        ascent.set_state_options('h', fix_initial=True, fix_final=False)
+        ascent.set_state_options('gam', fix_initial=False, fix_final=True)
+        ascent.set_state_options('v', fix_initial=False, fix_final=False)
 
         ascent.add_parameter('S', units='m**2', dynamic=False)
         ascent.add_parameter('m', units='kg', dynamic=False)
@@ -191,13 +191,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         #    it to zero so that the phase ends at ground impact)
         descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
                                  duration_ref=100, units='s')
-        descent.add_state('r', units='m', rate_source='r_dot')
-        descent.add_state('h', fix_initial=False, fix_final=True,
-                          units='m', rate_source='h_dot')
-        descent.add_state('gam', fix_initial=False, fix_final=False,
-                          units='rad', rate_source='gam_dot')
-        descent.add_state('v', fix_initial=False, fix_final=False,
-                          units='m/s', rate_source='v_dot')
+        descent.add_state('r')
+        descent.add_state('h', fix_initial=False, fix_final=True)
+        descent.add_state('gam', fix_initial=False, fix_final=False)
+        descent.add_state('v', fix_initial=False, fix_final=False)
 
         descent.add_parameter('S', units='m**2', dynamic=False)
         descent.add_parameter('m', units='kg', dynamic=False)

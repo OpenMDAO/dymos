@@ -41,8 +41,8 @@ class CannonballODE(om.ExplicitComponent):
         self.add_output('ke', shape=nn, units='J')
 
         # Ask OpenMDAO to compute the partial derivatives using complex-step
-        # with a partial coloring algorithm for improved performance
-        self.declare_partials('*', '*', method='cs')
+        # with a partial coloring algorithm for improved performance, and use
+        # coloring to determine the sparsity pattern.
         self.declare_coloring(wrt='*', method='cs')
 
     def compute(self, inputs, outputs):

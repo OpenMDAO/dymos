@@ -82,7 +82,7 @@ that provides the maximum range cannonball.
 
 ## Building and running the problem
 
-The following code instantiates our defines the components for the physical 
+The following code defines the components for the physical
 cannonball calculations and ODE problem, sets up trajectory using two phases,
 and links them accordingly. The initial flight path angle is free, since
 45 degrees is not necessarily optimal once air resistance is taken into
