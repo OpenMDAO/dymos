@@ -3,12 +3,10 @@
 Different optimal control transcriptions work in different ways.
 The Radau Pseudospectral transcription keeps a contiguous vector of state values at all nodes.
 The Gauss Lobatto transcription keeps two separate continuous vectors; one at the discretization nodes and the other at the collocation nodes.
-The RungeKutta transcription has a contiguous vector of values but only those values at segment endpoints are valid.
 Retrieving a timeseries values of output values is thus transcription dependent.
 
 In order to make obtaining the timeseries output of a phase easier, each phase provides a timeseries component which collects and outputs the appropriate timeseries data.
 For the pseudospectral transcriptions, timeseries outputs are provided at all nodes.
-For the RungeKutta transcription, timeseries outputs are provided at the segment endpoints.
 By default, the timeseries output will include the following variables for every problem.
 
 ### Paths to timeseries outputs in Dymos

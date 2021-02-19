@@ -23,10 +23,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     if dynamic_simul_derivs:
         p.driver.declare_coloring()
 
-    if transcription == 'runge-kutta':
-        transcription = dm.RungeKutta(num_segments=num_segments, compressed=compressed)
-        fix_final = False
-    elif transcription == 'gauss-lobatto':
+    if transcription == 'gauss-lobatto':
         transcription = dm.GaussLobatto(num_segments=num_segments,
                                         order=transcription_order,
                                         compressed=compressed)

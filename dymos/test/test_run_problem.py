@@ -290,7 +290,6 @@ class TestRunProblem(unittest.TestCase):
 
     def test_modify_problem(self):
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
-        from dymos.examples.vanderpol.vanderpol_dymos_plots import vanderpol_dymos_plots
         from dymos.run_problem import run_problem
         from scipy.interpolate import interp1d
         from numpy.testing import assert_almost_equal
@@ -313,36 +312,31 @@ class TestRunProblem(unittest.TestCase):
         # # Run the model
         run_problem(q, restart='vanderpol_simulation.sql')
 
-        #  The solution should look like the explicit time history for the states and controls.
-        DO_PLOTS = False
-        if DO_PLOTS:
-            vanderpol_dymos_plots(q)  # only for visual inspection and debug
-        else:  # automate comparison
-            s = q.model.traj.simulate()
+        s = q.model.traj.simulate()
 
-            # get_val returns data for duplicate time points; remove them before interpolating
-            tq = q.get_val('traj.phase0.timeseries.time')[:, 0]
-            nodup = np.insert(tq[1:] != tq[:-1], 0, True)
-            tq = tq[nodup]
-            x1q = q.get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
-            x0q = q.get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
-            uq = q.get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
+        # get_val returns data for duplicate time points; remove them before interpolating
+        tq = q.get_val('traj.phase0.timeseries.time')[:, 0]
+        nodup = np.insert(tq[1:] != tq[:-1], 0, True)
+        tq = tq[nodup]
+        x1q = q.get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
+        x0q = q.get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
+        uq = q.get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
 
-            ts = s.get_val('traj.phase0.timeseries.time')[:, 0]
-            nodup = np.insert(ts[1:] != ts[:-1], 0, True)
-            ts = ts[nodup]
-            x1s = s.get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
-            x0s = s.get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
-            us = s.get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
+        ts = s.get_val('traj.phase0.timeseries.time')[:, 0]
+        nodup = np.insert(ts[1:] != ts[:-1], 0, True)
+        ts = ts[nodup]
+        x1s = s.get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
+        x0s = s.get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
+        us = s.get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
 
-            # create interpolation functions so that values can be looked up at matching time points
-            fx1s = interp1d(ts, x1s, kind='cubic')
-            fx0s = interp1d(ts, x0s, kind='cubic')
-            fus = interp1d(ts, us, kind='cubic')
+        # create interpolation functions so that values can be looked up at matching time points
+        fx1s = interp1d(ts, x1s, kind='cubic')
+        fx0s = interp1d(ts, x0s, kind='cubic')
+        fus = interp1d(ts, us, kind='cubic')
 
-            assert_almost_equal(x1q, fx1s(tq), decimal=2)
-            assert_almost_equal(x0q, fx0s(tq), decimal=2)
-            assert_almost_equal(uq, fus(tq), decimal=5)
+        assert_almost_equal(x1q, fx1s(tq), decimal=2)
+        assert_almost_equal(x0q, fx0s(tq), decimal=2)
+        assert_almost_equal(uq, fus(tq), decimal=5)
 
 
 @use_tempdirs

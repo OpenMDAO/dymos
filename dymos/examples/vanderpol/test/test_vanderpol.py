@@ -9,9 +9,6 @@ _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
 import dymos as dm
 from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
-from dymos.examples.vanderpol.vanderpol_dymos_plots import vanderpol_dymos_plots
-
-SHOW_PLOTS = False
 
 
 @use_tempdirs
@@ -21,15 +18,9 @@ class TestVanderpolExample(unittest.TestCase):
         p = vanderpol(transcription='gauss-lobatto', num_segments=75)
         p.run_model()
 
-        if SHOW_PLOTS:
-            vanderpol_dymos_plots(p)
-
     def test_vanderpol_optimal(self):
         p = vanderpol(transcription='gauss-lobatto', num_segments=75)
         dm.run_problem(p)  # find optimal control solution to stop oscillation
-
-        if SHOW_PLOTS:
-            vanderpol_dymos_plots(p)
 
         print('Objective function minimized to', p.get_val('traj.phase0.states:J')[-1, ...])
         # check that ODE states (excluding J) and control are driven to near zero
@@ -43,9 +34,6 @@ class TestVanderpolExample(unittest.TestCase):
 
         p.model.traj.phases.phase0.set_refine_options(refine=True)
         dm.run_problem(p, refine_iteration_limit=10)  # enable grid refinement and find optimal solution
-
-        if SHOW_PLOTS:
-            vanderpol_dymos_plots(p)
 
         print('Objective function minimized to', p.get_val('traj.phase0.timeseries.states:J')[-1, ...])
         # check that ODE states (excluding J) and control are driven to near zero
@@ -69,9 +57,6 @@ class TestVanderpolExampleMPI(unittest.TestCase):
         p = vanderpol(transcription='gauss-lobatto', num_segments=75, delay=True,
                       use_pyoptsparse=True, optimizer='IPOPT')
         p.run_driver()  # find optimal control solution to stop oscillation
-
-        if SHOW_PLOTS:
-            vanderpol_dymos_plots(p)
 
         print('Objective function minimized to', p.get_val('traj.phase0.states:J')[-1, ...])
         # check that ODE states (excluding J) and control are driven to near zero

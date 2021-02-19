@@ -27,33 +27,6 @@ class TestCollocationBalanceIndex(unittest.TestCase):
     def tearDown(self):
         dm.options['include_check_partials'] = False
 
-    def make_prob(self, transcription, n_segs, order, compressed):
-
-        p = om.Problem(model=om.Group())
-
-        gd = GridData(num_segments=n_segs, segment_ends=np.arange(n_segs+1),
-                      transcription=transcription, transcription_order=order, compressed=compressed)
-
-        state_options = {'x': {'units': 'm', 'shape': (1, ), 'fix_initial': True,
-                               'fix_final': False, 'solve_segments': True,
-                               'connected_initial': False, 'connected_final': False},
-                         'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial': False,
-                               'fix_final': True, 'solve_segments': True,
-                               'connected_initial': False, 'connected_final': False}}
-
-        subsys = StateIndependentsComp(grid_data=gd, state_options=state_options)
-        p.model.add_subsystem('defect_comp', subsys=subsys)
-
-        self.state_idx_map = {}
-        for state_name, options in state_options.items():
-            self._make_state_idx_map(state_name, options, gd, self.state_idx_map)
-        subsys.configure_io(self.state_idx_map)
-
-        p.setup()
-        p.final_setup()
-
-        return p
-
     def test_3_lgl(self):
         """
         Test one 3rd order LGL segment indices
@@ -285,11 +258,6 @@ class TestCollocationBalanceIndex(unittest.TestCase):
 @use_tempdirs
 class TestCollocationBalanceApplyNL(unittest.TestCase):
 
-    def setUp(self):
-        dm.options['include_check_partials'] = True
-        self.p = self.make_prob(transcription='gauss-lobatto', num_segments=3, transcription_order=3,
-                                compressed=True)
-
     def tearDown(self):
         dm.options['include_check_partials'] = False
 
@@ -305,10 +273,7 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
             t = dm.Radau(num_segments=num_segments,
                          order=transcription_order,
                          compressed=compressed)
-        elif transcription == 'runge-kutta':
-            t = dm.RungeKutta(num_segments=num_segments,
-                              order=transcription_order,
-                              compressed=compressed)
+
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
         p.model.add_subsystem('traj0', traj)
@@ -347,24 +312,49 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
 
         return p
 
-    def test_apply_nonlinear(self):
-        p = self.p
+    def test_apply_nonlinear_gl(self):
+        dm.options['include_check_partials'] = True
+        p = self.make_prob(transcription='gauss-lobatto', num_segments=3, transcription_order=3,
+                           compressed=True)
 
         p.final_setup()
         p.model.run_apply_nonlinear()  # need to make sure residuals are computed
 
-        expected = np.array([0., 1., 1., 1.])
+        expected = np.array([[0., 1., 1., 1.]]).T
 
         outputs = p.model.traj0.phases.phase0.indep_states.list_outputs(residuals=True, out_stream=None)
         resids = {k: v['resids'] for k, v in outputs}
 
-        assert_almost_equal(resids['states:x'], expected.reshape(4, 1))
-        assert_almost_equal(resids['states:v'], expected.reshape(4, 1))
+        assert_almost_equal(resids['states:x'], expected)
+        assert_almost_equal(resids['states:v'], expected)
 
-    def test_partials(self):
+    def test_apply_nonlinear_radau(self):
+        dm.options['include_check_partials'] = True
+        p = self.make_prob(transcription='radau-ps', num_segments=3, transcription_order=3,
+                           compressed=True)
+
+        p.final_setup()
+        p.model.run_apply_nonlinear()  # need to make sure residuals are computed
+
+        expected = np.array([[0., 1., 1., 1., 1., 1., 1., 1., 1., 1.]]).T
+
+        outputs = p.model.traj0.phases.phase0.indep_states.list_outputs(residuals=True, out_stream=None)
+        resids = {k: v['resids'] for k, v in outputs}
+
+        assert_almost_equal(resids['states:x'], expected)
+        assert_almost_equal(resids['states:v'], expected)
+
+    def test_partials_gl(self):
+        dm.options['include_check_partials'] = True
+        p = self.make_prob(transcription='gauss-lobatto', num_segments=3, transcription_order=3,
+                           compressed=True)
+
+    def test_partials_radau(self):
+        dm.options['include_check_partials'] = True
+        p = self.make_prob(transcription='radau-ps', num_segments=3, transcription_order=3,
+                           compressed=True)
 
         def assert_partials(data):
-            # assert_check_partials(cpd) # can't use this here, cause of indepvarcomp weirdness
             for of, wrt in data:
                 if of == wrt:
                     # IndepVarComp like outputs have correct derivs, but FD is wrong so we skip
@@ -373,9 +363,6 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
                 check_data = data[(of, wrt)]
                 self.assertLess(check_data['abs error'].forward, 1e-8)
 
-        np.set_printoptions(linewidth=1024, edgeitems=1e1000)
-
-        p = self.p
         cpd = p.check_partials(compact_print=True, method='fd', out_stream=None)
         data = cpd['traj0.phases.phase0.indep_states']
         assert_partials(data)

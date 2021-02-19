@@ -1,17 +1,34 @@
 import unittest
 
+import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.transcriptions.solve_ivp.components.segment_simulation_comp import SegmentSimulationComp
-from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE
 from dymos.phase.options import TimeOptionsDictionary, StateOptionsDictionary
 from dymos.transcriptions.grid_data import GridData
 
 # Modify class so we can run it standalone.
 from dymos.utils.misc import CompWrapperConfig
 SegmentSimulationComp = CompWrapperConfig(SegmentSimulationComp)
+
+
+class TestODE(om.ExplicitComponent):
+
+    def initialize(self):
+        self.options.declare('num_nodes', types=int)
+
+    def setup(self):
+        self.add_input('t', val=np.ones(self.options['num_nodes']), units='s')
+        self.add_input('y', val=np.ones(self.options['num_nodes']), units='m')
+        self.add_output('ydot', val=np.ones(self.options['num_nodes']), units='m/s')
+        self.declare_coloring(wrt='*', method='cs')
+
+    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+        t = inputs['t']
+        y = inputs['y']
+        outputs['ydot'] = y - t ** 2 + 1
 
 
 @use_tempdirs

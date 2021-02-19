@@ -16,8 +16,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
               connected=False, param_mode='param_sequence'):
 
     t = {'gauss-lobatto': dm.GaussLobatto(num_segments=5, order=transcription_order, compressed=compressed),
-         'radau': dm.Radau(num_segments=20, order=transcription_order, compressed=compressed),
-         'runge-kutta': dm.RungeKutta(num_segments=5, compressed=compressed)}
+         'radau': dm.Radau(num_segments=20, order=transcription_order, compressed=compressed)}
 
     traj = dm.Trajectory()
 
@@ -77,51 +76,27 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     # Third Phase (burn)
     burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=t[transcription])
 
-    if connected:
-        traj.add_phase('burn2', burn2)
-        traj.add_phase('coast', coast)
+    traj.add_phase('coast', coast)
+    traj.add_phase('burn2', burn2)
 
-        burn2.set_time_options(initial_bounds=(1.0, 60), duration_bounds=(-10.0, -0.5),
-                               initial_ref=10, units='TU')
-        burn2.add_state('r', fix_initial=True, fix_final=False, defect_scaler=100.0,
-                        rate_source='r_dot', targets=['r'], units='DU')
-        burn2.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
-                        rate_source='theta_dot', targets=['theta'], units='rad')
-        burn2.add_state('vr', fix_initial=True, fix_final=False, defect_scaler=1000.0,
-                        rate_source='vr_dot', targets=['vr'], units='DU/TU')
-        burn2.add_state('vt', fix_initial=True, fix_final=False, defect_scaler=1000.0,
-                        rate_source='vt_dot', targets=['vt'], units='DU/TU')
-        burn2.add_state('accel', fix_initial=False, fix_final=False, defect_scaler=1.0,
-                        rate_source='at_dot', targets=['accel'], units='DU/TU**2')
-        burn2.add_state('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0,
-                        rate_source='deltav_dot', units='DU/TU', targets=None)
+    burn2.set_time_options(initial_bounds=(0.5, 50), duration_bounds=(.5, 10), initial_ref=10, units='TU')
+    burn2.add_state('r', fix_initial=False, fix_final=True, defect_scaler=100.0,
+                    rate_source='r_dot', targets=['r'], units='DU')
+    burn2.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                    rate_source='theta_dot', targets=['theta'], units='rad')
+    burn2.add_state('vr', fix_initial=False, fix_final=True, defect_scaler=1000.0,
+                    rate_source='vr_dot', targets=['vr'], units='DU/TU')
+    burn2.add_state('vt', fix_initial=False, fix_final=True, defect_scaler=1000.0,
+                    rate_source='vt_dot', targets=['vt'], units='DU/TU')
+    burn2.add_state('accel', fix_initial=False, fix_final=False, defect_scaler=1.0,
+                    rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+    burn2.add_state('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0,
+                    rate_source='deltav_dot', units='DU/TU', targets=None)
 
-        burn2.add_objective('deltav', loc='initial', scaler=100.0)
+    burn2.add_objective('deltav', loc='final', scaler=100.0)
 
-        burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          scaler=0.01, lower=-180, upper=180, targets=['u1'])
-    else:
-        traj.add_phase('coast', coast)
-        traj.add_phase('burn2', burn2)
-
-        burn2.set_time_options(initial_bounds=(0.5, 50), duration_bounds=(.5, 10), initial_ref=10, units='TU')
-        burn2.add_state('r', fix_initial=False, fix_final=True, defect_scaler=100.0,
-                        rate_source='r_dot', targets=['r'], units='DU')
-        burn2.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
-                        rate_source='theta_dot', targets=['theta'], units='rad')
-        burn2.add_state('vr', fix_initial=False, fix_final=True, defect_scaler=1000.0,
-                        rate_source='vr_dot', targets=['vr'], units='DU/TU')
-        burn2.add_state('vt', fix_initial=False, fix_final=True, defect_scaler=1000.0,
-                        rate_source='vt_dot', targets=['vt'], units='DU/TU')
-        burn2.add_state('accel', fix_initial=False, fix_final=False, defect_scaler=1.0,
-                        rate_source='at_dot', targets=['accel'], units='DU/TU**2')
-        burn2.add_state('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0,
-                        rate_source='deltav_dot', units='DU/TU', targets=None)
-
-        burn2.add_objective('deltav', loc='final', scaler=100.0)
-
-        burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          scaler=0.01, lower=-180, upper=180, targets=['u1'])
+    burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
+                      scaler=0.01, lower=-180, upper=180, targets=['u1'])
 
     if 'sequence_missing_phase' in param_mode:
         coast.add_parameter('c', val=0.0, units='DU/TU', targets=['c'])
@@ -147,12 +122,12 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
         # No direct connections to the end of a phase.
         traj.link_phases(phases=['burn2', 'coast'],
                          vars=['r', 'theta', 'vr', 'vt', 'deltav'],
-                         locs=('++', '++'))
+                         locs=('final', 'final'))
         traj.link_phases(phases=['burn2', 'coast'],
-                         vars=['time'], locs=('++', '++'))
+                         vars=['time'], locs=('final', 'final'))
 
         traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'],
-                         locs=('++', '++'))
+                         locs=('final', 'final'))
 
     else:
         traj.link_phases(phases=['burn1', 'coast', 'burn2'],
@@ -234,36 +209,21 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
                   nodes='state_input'))
 
     if burn2 in p.model.orbit_transfer.phases._subsystems_myproc:
-        if connected:
-            p.set_val('orbit_transfer.burn2.t_initial', value=7.0)
-            p.set_val('orbit_transfer.burn2.t_duration', value=-1.75)
+        p.set_val('orbit_transfer.burn2.t_initial', value=5.25)
+        p.set_val('orbit_transfer.burn2.t_duration', value=1.75)
 
-            p.set_val('orbit_transfer.burn2.states:r', value=burn2.interpolate(ys=[r_target, 1], nodes='state_input'))
-            p.set_val('orbit_transfer.burn2.states:theta', value=burn2.interpolate(ys=[4.0, 0.0], nodes='state_input'))
-            p.set_val('orbit_transfer.burn2.states:vr', value=burn2.interpolate(ys=[0, 0], nodes='state_input'))
-            p.set_val('orbit_transfer.burn2.states:vt',
-                      value=burn2.interpolate(ys=[np.sqrt(1 / r_target), 1], nodes='state_input'))
-            p.set_val('orbit_transfer.burn2.states:deltav',
-                      value=burn2.interpolate(ys=[0.2, 0.1], nodes='state_input'))
-            p.set_val('orbit_transfer.burn2.states:accel', value=burn2.interpolate(ys=[0., 0.1],
-                      nodes='state_input'))
-
-        else:
-            p.set_val('orbit_transfer.burn2.t_initial', value=5.25)
-            p.set_val('orbit_transfer.burn2.t_duration', value=1.75)
-
-            p.set_val('orbit_transfer.burn2.states:r', value=burn2.interpolate(ys=[1, r_target],
-                      nodes='state_input'))
-            p.set_val('orbit_transfer.burn2.states:theta', value=burn2.interpolate(ys=[0, 4.0],
-                      nodes='state_input'))
-            p.set_val('orbit_transfer.burn2.states:vr', value=burn2.interpolate(ys=[0, 0], nodes='state_input'))
-            p.set_val('orbit_transfer.burn2.states:vt',
-                      value=burn2.interpolate(ys=[1, np.sqrt(1 / r_target)],
-                                              nodes='state_input'))
-            p.set_val('orbit_transfer.burn2.states:deltav',
-                      value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
-            p.set_val('orbit_transfer.burn2.states:accel', value=burn2.interpolate(ys=[0.1, 0],
-                      nodes='state_input'))
+        p.set_val('orbit_transfer.burn2.states:r', value=burn2.interpolate(ys=[1, r_target],
+                  nodes='state_input'))
+        p.set_val('orbit_transfer.burn2.states:theta', value=burn2.interpolate(ys=[0, 4.0],
+                  nodes='state_input'))
+        p.set_val('orbit_transfer.burn2.states:vr', value=burn2.interpolate(ys=[0, 0], nodes='state_input'))
+        p.set_val('orbit_transfer.burn2.states:vt',
+                  value=burn2.interpolate(ys=[1, np.sqrt(1 / r_target)],
+                                          nodes='state_input'))
+        p.set_val('orbit_transfer.burn2.states:deltav',
+                  value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
+        p.set_val('orbit_transfer.burn2.states:accel', value=burn2.interpolate(ys=[0.1, 0],
+                  nodes='state_input'))
 
         p.set_val('orbit_transfer.burn2.controls:u1', value=burn2.interpolate(ys=[0, 0],
                   nodes='control_input'))

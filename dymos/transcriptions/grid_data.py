@@ -7,7 +7,6 @@ from dymos.utils.lgl import lgl
 from dymos.utils.lgr import lgr
 from dymos.utils.hermite import hermite_matrices
 from dymos.utils.lagrange import lagrange_matrices
-from dymos.utils.rk_methods import rk_methods
 
 
 def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
@@ -110,106 +109,6 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     return subsets, lgr(n, include_endpoint=True)[0]
 
 
-def rk_subsets_and_nodes(method, seg_idx, compressed=False):
-    """
-    Returns the subset dictionary corresponding to the Runge-Kutta transcription.
-
-    Parameters
-    ----------
-    method : str
-        One of the available RK methods in dymos.utils.rk_methods.
-    seg_idx : int
-        The index of this segment within its phase.
-    compressed : bool
-        True if the subset requested is for a phase with compressed transcription.
-
-    Returns
-    -------
-    dict of {str: np.ndarray}
-        'state_disc' gives the indices of the state discretization nodes
-        'state_input' gives the indices of the state input nodes
-        'control_disc' gives the indices of the control discretization nodes
-        'control_input' gives the indices of the control input nodes
-        'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
-        'step' gives the indices of the nodes at step boundaries
-        'all' gives all node indices.
-    ndarray
-        The location of all nodes on the interval [-1, 1].
-
-    Notes
-    -----
-    (subsets, nodes)
-    Subset 'state_input' is the same as subset 'state_disc'.
-    """
-    # transform c onto [-1, 1]
-    nodes = 2.0 * np.asarray(rk_methods[method]['c']) - 1.0
-    n = len(nodes)
-    control_disc_idxs = np.asarray(rk_methods[method]['control_disc_indices'])
-
-    subsets = {
-        'control_disc': control_disc_idxs,
-        'control_input': control_disc_idxs if not compressed or seg_idx == 0
-        else control_disc_idxs[1:],
-        'segment_ends': np.array([0, n-1], dtype=int),
-        'all': np.arange(n, dtype=int)
-    }
-    subsets['state_disc'] = subsets['segment_ends']
-    subsets['state_input'] = subsets['state_disc'] if seg_idx == 0 else subsets['state_disc'][-1:]
-
-    return subsets, nodes
-
-
-def explicit_subsets_and_nodes(n, seg_idx, compressed=False, shooting='single'):
-    """
-    Returns the subset dictionary corresponding to the Runge-Kutta transcription.
-
-    Parameters
-    ----------
-    n : int
-        The total number of control discretization nodes in the Runge-Kutta segment.
-    seg_idx : int
-        The index of this segment within its phase.
-    compressed : bool
-        True if the subset requested is for a phase with compressed transcription.
-    shooting : str
-        One of the shooting method types for explicit phases ('single', 'hybrid', or 'multiple').
-
-    Returns
-    -------
-    dict of {str: np.ndarray}
-        'state_disc' gives the indices of the state discretization nodes
-        'state_input' gives the indices of the state input nodes
-        'control_disc' gives the indices of the control discretization nodes
-        'control_input' gives the indices of the control input nodes
-        'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
-        'step' gives the indices of the nodes at step boundaries
-        'all' gives all node indices.
-    ndarray
-        The location of all nodes on the interval [-1, 1].
-
-    Notes
-    -----
-    (subsets, nodes)
-    Subset 'state_input' is the same as subset 'state_disc'.
-    """
-    subsets = {
-        'disc': np.arange(0, n, 2, dtype=int),
-        'state_disc': np.zeros((1,), dtype=int) if seg_idx == 0 or shooting == 'multiple'
-        else np.empty((0,), dtype=int),
-        'state_input': np.zeros((1,), dtype=int) if seg_idx == 0 or shooting == 'multiple'
-        else np.empty((0,), dtype=int),
-        'control_disc': np.arange(n, dtype=int),
-        'control_input': np.arange(n, dtype=int) if not compressed or seg_idx == 0
-        else np.arange(1, n, dtype=int),
-        'segment_ends': np.array([0, n-1], dtype=int),
-        'col': np.arange(1, n, 2, dtype=int),
-        'all': np.arange(n, dtype=int),
-        'solution': np.arange(n, dtype=int),
-    }
-
-    return subsets, lgl(n)[0]
-
-
 def make_subset_map(from_subset_idxs, to_subset_idxs):
     """
     Creates a map from one subset to another using the indices of each subset within all nodes.
@@ -254,8 +153,7 @@ class GridData(object):
     transcription : str
         Case-insensitive transcription scheme (e.g., ('gauss-lobatto', 'radau-ps', 'explicit')).
     transcription_order : int or int ndarray[:] or str
-        The order of the state transcription in each segment, as a scalar or a vector.  For
-        Runge-Kutta phases, this is the RK method used.
+        The order of the state transcription in each segment, as a scalar or a vector.
     segment_ends : Iterable[num_segments + 1] or None
         The segments nodes on some arbitrary interval.
         This will be normalized to the interval [-1, 1].
@@ -364,10 +262,6 @@ class GridData(object):
             get_subsets_and_nodes = gauss_lobatto_subsets_and_nodes
         elif self.transcription == 'radau-ps':
             get_subsets_and_nodes = radau_pseudospectral_subsets_and_nodes
-        elif self.transcription == 'explicit':
-            get_subsets_and_nodes = explicit_subsets_and_nodes
-        elif self.transcription == 'runge-kutta':
-            get_subsets_and_nodes = rk_subsets_and_nodes
         else:
             raise ValueError('Unknown transcription: {0}'.format(transcription))
 
