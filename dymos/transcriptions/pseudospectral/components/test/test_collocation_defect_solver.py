@@ -320,7 +320,7 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
         p.final_setup()
         p.model.run_apply_nonlinear()  # need to make sure residuals are computed
 
-        expected = np.array([[0., 1., 1., 1.]].T)
+        expected = np.array([[0., 1., 1., 1.]]).T
 
         outputs = p.model.traj0.phases.phase0.indep_states.list_outputs(residuals=True, out_stream=None)
         resids = {k: v['resids'] for k, v in outputs}
