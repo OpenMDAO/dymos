@@ -7,7 +7,7 @@ from openmdao.utils.general_utils import warn_deprecation
 from ..transcription_base import TranscriptionBase
 from ..common import TimeComp, PseudospectralTimeseriesOutputComp
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp
-from ...utils.misc import CoerceDesvar, get_rate_units, get_source_metadata
+from ...utils.misc import CoerceDesvar, get_rate_units, get_source_metadata, reshape_val
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 
@@ -52,7 +52,9 @@ class PseudospectralBase(TranscriptionBase):
         super(PseudospectralBase, self).setup_time(phase)
 
         time_comp = TimeComp(num_nodes=grid_data.num_nodes, node_ptau=grid_data.node_ptau,
-                             node_dptau_dstau=grid_data.node_dptau_dstau, units=time_units)
+                             node_dptau_dstau=grid_data.node_dptau_dstau, units=time_units,
+                             initial_val=phase.time_options['initial_val'],
+                             duration_val=phase.time_options['duration_val'])
 
         phase.add_subsystem('time', time_comp, promotes_inputs=['*'], promotes_outputs=['*'])
 
@@ -124,12 +126,13 @@ class PseudospectralBase(TranscriptionBase):
         for name, options in phase.state_options.items():
             self._configure_state_introspection(name, options, phase)
             self._configure_solve_segments(name, options, phase)
-
-            size = np.prod(options['shape'])
+            shape = options['shape']
             # In certain cases, we put an output on the IVC.
             if isinstance(indep, om.IndepVarComp):
-                indep.add_output(name='states:{0}'.format(name),
-                                 shape=(num_state_input_nodes, size),
+                default_val = reshape_val(options['val'], shape, num_state_input_nodes)
+                indep.add_output(name=f'states:{name}',
+                                 shape=(num_state_input_nodes,) + shape,
+                                 val=default_val,
                                  units=options['units'])
 
             if options['opt']:

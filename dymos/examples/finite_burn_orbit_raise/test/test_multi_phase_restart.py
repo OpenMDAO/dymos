@@ -272,7 +272,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseRestart(unittest.TestCase):
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_restart_from_solution_gl(self):
         optimizer = 'IPOPT'
 
@@ -299,7 +299,7 @@ class TestExampleTwoBurnOrbitRaiseRestart(unittest.TestCase):
         assert_cases_equal(case1, case2)
         assert_cases_equal(sim_case1, sim_case2)
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_restart_from_solution_radau(self):
         optimizer = 'IPOPT'
 
@@ -330,7 +330,7 @@ class TestExampleTwoBurnOrbitRaiseRestart(unittest.TestCase):
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_ex_two_burn_orbit_raise_connected(self):
         optimizer = 'IPOPT'
 
@@ -358,7 +358,7 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
         assert_cases_equal(case1, case2)
         assert_cases_equal(sim_case1, sim_case2)
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_restart_from_solution_radau_to_connected(self):
         optimizer = 'IPOPT'
 

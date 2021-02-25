@@ -76,7 +76,7 @@ _compute_ method of a component. The nonlinear solver can
 also raise this error if it fails to converge by setting the following
 options:
 
-``` {.sourceCode .python}
+```python
 self.nonlinear_solver.options['maxiter'] = 150
 self.nonlinear_solver.options['err_on_maxiter'] = True
 ```
@@ -90,7 +90,7 @@ Setting the _solve\_subystems_ option to True will force
 subsystems to be updated, making sure that all derivative information is
 up-to-date.
 
-``` {.sourceCode .python}
+```python
 self.nonlinear_solver.options['solve_subsystems'] = True
 self.nonlinear_solver.options['max_sub_solves'] = 10
 ```
@@ -144,15 +144,15 @@ preferable when using a differential inclusion approach to problems.
 
 ### Objective
 
-|Name   |Location (initial or final)  |Minimized or Maximized|
-|-------|-----------------------------|----------------------|
-|range  |final                        | Maximized            |
+|Name   | Description | Location | Minimized or Maximized |
+|-------|-------------|----------|------------------------|
+|r      | range       | final    | Maximized              |
 
 ### Nonlinear Path Constraints
 
-|Name  |Location (initial or final)  |Lower  |Upper|
+|Name  | Description                 |Lower  |Upper|
 |------|-----------------------------|-------|-----|
-|tau   |engine throttle parameter    |0.01   |1.0  |
+|tau   | engine throttle parameter   |0.01   |1.0  |
 
 ### Nonlinear Boundary Constraints
 

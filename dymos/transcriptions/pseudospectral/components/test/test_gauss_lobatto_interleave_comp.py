@@ -53,9 +53,9 @@ class TestGaussLobattoInterleaveComp(unittest.TestCase):
         glic = self.p.model.add_subsystem('interleave_comp',
                                           subsys=GaussLobattoInterleaveComp(grid_data=gd))
 
-        glic.add_var('u', **state_options['u'])
-        glic.add_var('v', **state_options['v'])
-        glic.add_var('vehicle_cg', **ode_outputs['vehicle_cg'])
+        glic.add_var('u', **state_options['u'], disc_src='state_disc:u', col_src='state_col:u')
+        glic.add_var('v', **state_options['v'], disc_src='state_disc:v', col_src='state_col:v')
+        glic.add_var('vehicle_cg', **ode_outputs['vehicle_cg'], disc_src='ode_disc:cg', col_src='ode_col:cg')
 
         self.p.model.connect('state_disc:u', 'interleave_comp.disc_values:u')
         self.p.model.connect('state_disc:v', 'interleave_comp.disc_values:v')

@@ -1,12 +1,13 @@
 import unittest
 
+import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
-import numpy as np
 import dymos as dm
 
 
@@ -89,6 +90,7 @@ class _BrachistochroneTestODE(om.ExplicitComponent):
         jacobian['check', 'theta'] = -v * cos_theta / sin_theta**2
 
 
+@use_tempdirs
 class TestPhaseTimeTargets(unittest.TestCase):
 
     def _make_problem(self, transcription, num_seg, transcription_order=3):
@@ -100,8 +102,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
         p.driver.declare_coloring()
 
         t = {'gauss-lobatto': dm.GaussLobatto(num_segments=num_seg, order=transcription_order),
-             'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order),
-             'runge-kutta': dm.RungeKutta(num_segments=num_seg)}
+             'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order)}
 
         phase = dm.Phase(ode_class=_BrachistochroneTestODE, transcription=t[transcription])
 
@@ -217,66 +218,6 @@ class TestPhaseTimeTargets(unittest.TestCase):
         assert_near_equal(p['phase0.rhs_all.time_phase'], time_phase_all)
 
         assert_near_equal(p['phase0.rhs_all.time'], time_all)
-
-        exp_out = p.model.phase0.simulate()
-
-        for iseg in range(num_seg):
-            seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
-            iface = seg_comp_i.options['ode_integration_interface']
-            t_initial_i = iface.prob.get_val('ode.t_initial')
-            t_duration_i = iface.prob.get_val('ode.t_duration')
-            time_phase_i = iface.prob.get_val('ode.time_phase')
-            time_i = iface.prob.get_val('ode.time')
-
-            # Since the phase has simulated, all times should be equal to their respective value
-            # at the end of each segment.
-            assert_near_equal(t_initial_i, p['phase0.t_initial'])
-            assert_near_equal(t_duration_i, p['phase0.t_duration'])
-            assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
-            assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
-
-    def test_runge_kutta(self):
-        num_seg = 20
-        p = self._make_problem('runge-kutta', num_seg)
-
-        # Solve for the optimal trajectory
-        p.run_driver()
-
-        gd = p.model.phase0.options['transcription'].grid_data
-
-        time_all = p['phase0.time']
-        time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
-                                  newshape=(gd.num_segments, 2))
-
-        time_phase_all = p['phase0.time_phase']
-        time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
-                                        newshape=(gd.num_segments, 2))
-
-        # Test the iteration ODE
-
-        assert_near_equal(p['phase0.rk_solve_group.ode.time_phase'][-1], 1.8016,
-                          tolerance=1.0E-3)
-
-        assert_near_equal(p['phase0.rk_solve_group.ode.t_initial'], p['phase0.t_initial'])
-
-        assert_near_equal(p['phase0.rk_solve_group.ode.t_duration'], p['phase0.t_duration'])
-
-        assert_near_equal(p['phase0.rk_solve_group.ode.time_phase'], time_phase_all)
-
-        assert_near_equal(p['phase0.rk_solve_group.ode.time'], time_all)
-
-        # Now test the final ODE
-
-        assert_near_equal(p['phase0.ode.time_phase'][-1], 1.8016,
-                          tolerance=1.0E-3)
-
-        assert_near_equal(p['phase0.ode.t_initial'], p['phase0.t_initial'])
-
-        assert_near_equal(p['phase0.ode.t_duration'], p['phase0.t_duration'])
-
-        assert_near_equal(p['phase0.ode.time_phase'], time_phase_segends.ravel())
-
-        assert_near_equal(p['phase0.ode.time'], time_segends.ravel())
 
         exp_out = p.model.phase0.simulate()
 

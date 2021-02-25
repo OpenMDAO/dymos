@@ -12,11 +12,11 @@ not be able to sustain its momentum in the presence of atmospheric drag.
 Somewhere between these two extremes is the cannonball radius which
 allows for maximum range flight.
 
-The presense of atmospheric drag also means that we typically want to
+The presence of atmospheric drag also means that we typically want to
 launch the cannonball with more horizontal velocity, and thus use a
 launch angle less than 45 degrees.
 
-In this problem we will find the optimal design for the cannonball (its
+The goal of our optimization is to find the optimal design for the cannonball (its
 radius) and the optimal flight profile (its launch angle)
 simultaneously.
 
@@ -30,8 +30,8 @@ descent phase follows until the cannonball impacts the ground.
 The dynamics are given by
 
 \begin{align}
-  \frac{dv}{dt} &= \frac{T}{m} \cos \alpha - \frac{D}{m} - g \sin \gamma \\
-  \frac{d\gamma}{dt} &= \frac{T}{m v} \sin \alpha + \frac{L}{m v} - \frac{g \cos \gamma}{v} \\
+  \frac{dv}{dt} &= \frac{D}{m} - g \sin \gamma \\
+  \frac{d\gamma}{dt} &= - \frac{g \cos \gamma}{v} \\
   \frac{dh}{dt} &= v \sin \gamma \\
   \frac{dr}{dt} &= v \cos \gamma \\
 \end{align}
@@ -82,7 +82,8 @@ that provides the maximum range cannonball.
 
 ## Building and running the problem
 
-The following code instantiates our problem, our trajectory, two phases,
+The following code defines the components for the physical
+cannonball calculations and ODE problem, sets up trajectory using two phases,
 and links them accordingly. The initial flight path angle is free, since
 45 degrees is not necessarily optimal once air resistance is taken into
 account.

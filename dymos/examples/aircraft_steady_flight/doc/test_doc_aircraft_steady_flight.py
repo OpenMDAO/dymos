@@ -11,12 +11,6 @@ from openmdao.utils.testing_utils import use_tempdirs
 @use_tempdirs
 class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
-        for filename in ['total_coloring.pkl', 'test_doc_aircraft_steady_flight_rec.db', 'SLSQP.out']:
-            if os.path.exists(filename):
-                os.remove(filename)
-
     @save_for_docs
     def test_steady_aircraft_for_docs(self):
         import matplotlib.pyplot as plt

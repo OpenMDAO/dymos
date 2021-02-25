@@ -37,35 +37,21 @@ and the final conditions are
   m_f &= \rm{free}
 \end{align}
 
-## Component and Group Definitions
+## Defining the ODE
 
-The ODE system for this problem consists of two components. The
-atmosphere component computes density ($\rho$). The eom component
-computes the state rates.
+Generally, one could define the ODE system as a composite group of multile components.
+The atmosphere component computes density ($\rho$).
+The eom component computes the state rates.
+Decomposing the ODE into smaller calculations makes it easier to derive the analytic derivatives.
 
-![The XDSM diagram for the ODE system in the SSTO problem.](ssto_xdsm.png)
+![The notional XDSM diagram for the ODE system in the SSTO problem.](ssto_xdsm.png)
 
-The unconnected inputs to the EOM at the top of the diagram are provided by
-the Dymos phase as states, controls, or time values. The outputs,
-including the state rates, are shown on the right side of the diagram.
-The Dymos phases use state rate values to ensure that the integration
-technique satisfies the dynamics of the system.
+However, for this example we will demonstrate the use of complex-step differentiation and define the ODE as a single component.
+This saves time up front in the deevlopment of the ODE at a minor cost in execution time.
 
-=== "launch_vehicle_2d_eom_comp.py"
-{{ inline_source('dymos.examples.ssto.launch_vehicle_2d_eom_comp',
-include_def=True,
-include_docstring=True,
-indent_level=0)
-}}
-
-=== "log_atmosphere_comp.py"
-{{ inline_source('dymos.examples.ssto.log_atmosphere_comp',
-include_def=True,
-include_docstring=True,
-indent_level=0)
-}}
-
-### ## Defining the ODE
+The unconnected inputs to the EOM at the top of the diagram are provided by the Dymos phase as states, controls, or time values.
+The outputs, including the state rates, are shown on the right side of the diagram.
+The Dymos phases use state rate values to ensure that the integration technique satisfies the dynamics of the system.
 
 === "launch_vehicle_ode.py"
 {{ inline_source('dymos.examples.ssto.launch_vehicle_ode',

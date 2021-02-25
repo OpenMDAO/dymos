@@ -1,13 +1,15 @@
 import unittest
 
 import openmdao.api as om
-import dymos as dm
-
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
+
+import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
+@use_tempdirs
 class TestPhaseParameterPromotion(unittest.TestCase):
 
     def test_promotes_parameter(self):
@@ -32,10 +34,6 @@ class TestPhaseParameterPromotion(unittest.TestCase):
             t = dm.Radau(num_segments=num_segments,
                          order=transcription_order,
                          compressed=compressed)
-        elif transcription == 'runge-kutta':
-            t = dm.RungeKutta(num_segments=num_segments,
-                              order=transcription_order,
-                              compressed=compressed)
 
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)

@@ -3,6 +3,8 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
+
 import dymos as dm
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 
@@ -78,6 +80,7 @@ def make_problem(transcription=GaussLobatto, num_segments=10, order=3, compresse
     return p
 
 
+@use_tempdirs
 class TestPseudospectralBase(unittest.TestCase):
 
     def test_add_state_units_none(self):

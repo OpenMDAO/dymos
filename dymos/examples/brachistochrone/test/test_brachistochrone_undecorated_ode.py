@@ -1,8 +1,12 @@
 import unittest
+
 import numpy as np
+
 import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
 
 
+@use_tempdirs
 class BrachistochroneODE(om.ExplicitComponent):
 
     def initialize(self):
@@ -74,6 +78,7 @@ class BrachistochroneODE(om.ExplicitComponent):
         jacobian['check', 'theta'] = -v * cos_theta / sin_theta**2
 
 
+@use_tempdirs
 class TestBrachistochroneUndecoratedODE(unittest.TestCase):
 
     def test_brachistochrone_undecorated_ode_gl(self):
@@ -170,57 +175,8 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
         # Test the results
         assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
-    def test_brachistochrone_undecorated_ode_rk(self):
-        import numpy as np
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
-        import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
-        import dymos as dm
 
-        p = om.Problem(model=om.Group())
-        p.driver = om.ScipyOptimizeDriver()
-
-        phase = dm.Phase(ode_class=BrachistochroneODE, transcription=dm.RungeKutta(num_segments=20))
-
-        p.model.add_subsystem('phase0', phase)
-
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
-
-        phase.add_state('x', fix_initial=True, rate_source='xdot')
-        phase.add_state('y', fix_initial=True, rate_source='ydot')
-        phase.add_state('v', fix_initial=True, rate_source='vdot', targets=['v'])
-
-        phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9, targets=['theta'])
-
-        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
-
-        phase.add_boundary_constraint('x', loc='final', equals=10)
-        phase.add_boundary_constraint('y', loc='final', equals=5)
-
-        # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=10)
-
-        p.model.linear_solver = om.DirectSolver()
-
-        p.setup()
-
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
-
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
-
-        # Solve for the optimal trajectory
-        p.run_driver()
-
-        # Test the results
-        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
-
-
+@use_tempdirs
 class TestBrachistochroneBasePhaseClass(unittest.TestCase):
 
     def test_brachistochrone_base_phase_class_gl(self):

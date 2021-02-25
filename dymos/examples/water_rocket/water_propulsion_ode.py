@@ -5,7 +5,6 @@ from dymos.examples.min_time_climb.aero.dynamic_pressure_comp import DynamicPres
 from dymos.examples.min_time_climb.aero.lift_drag_force_comp import LiftDragForceComp
 from dymos.models.atmosphere import USatm1976Comp
 from dymos.models.eom import FlightPathEOM2D
-from dymos.examples.cannonball.kinetic_energy_comp import KineticEnergyComp
 from .water_engine_comp import WaterEngine
 
 
@@ -13,6 +12,8 @@ class WaterPropulsionODE(om.Group):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
+        self.options.declare('ballistic', types=bool, default=False,
+                             desc='If True, neglect propulsion system.')
 
     def setup(self):
         nn = self.options['num_nodes']
@@ -20,14 +21,12 @@ class WaterPropulsionODE(om.Group):
         self.add_subsystem(name='atmos',
                            subsys=USatm1976Comp(num_nodes=nn))
 
-        self.add_subsystem(name='kinetic_energy',
-                           subsys=KineticEnergyComp(num_nodes=nn))
+        if not self.options['ballistic']:
+            self.add_subsystem(name='water_engine',
+                               subsys=WaterEngine(num_nodes=nn))
 
-        self.add_subsystem(name='water_engine',
-                           subsys=WaterEngine(num_nodes=nn))
-
-        self.add_subsystem(name='mass_adder',
-                           subsys=_MassAdder(num_nodes=nn))
+            self.add_subsystem(name='mass_adder',
+                               subsys=_MassAdder(num_nodes=nn))
 
         self.add_subsystem(name='dynamic_pressure',
                            subsys=DynamicPressureComp(num_nodes=nn))
@@ -39,13 +38,15 @@ class WaterPropulsionODE(om.Group):
                            subsys=FlightPathEOM2D(num_nodes=nn))
 
         self.connect('atmos.rho', 'dynamic_pressure.rho')
-        self.connect('atmos.pres', 'water_engine.p_a')
         self.connect('dynamic_pressure.q', 'aero.q')
 
         self.connect('aero.f_drag', 'eom.D')
         self.connect('aero.f_lift', 'eom.L')
-        self.connect('water_engine.F', 'eom.T')
-        self.connect('mass_adder.m', 'eom.m')
+
+        if not self.options['ballistic']:
+            self.connect('atmos.pres', 'water_engine.p_a')
+            self.connect('water_engine.F', 'eom.T')
+            self.connect('mass_adder.m', 'eom.m')
 
 
 class _MassAdder(om.ExplicitComponent):

@@ -30,10 +30,7 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
             t = dm.Radau(num_segments=num_segments,
                          order=transcription_order,
                          compressed=compressed)
-        elif transcription == 'runge-kutta':
-            t = dm.RungeKutta(num_segments=num_segments,
-                              order=transcription_order,
-                              compressed=compressed)
+
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
 
@@ -103,11 +100,6 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
         assert_almost_equal(g, 9.80665, decimal=3)
 
         assert_almost_equal(thetaf, 100.12, decimal=0)
-
-    def test_refine_brachistochrone_rungekutta_compressed(self):
-        p = self.make_problem(transcription='runge-kutta', num_segments=10, transcription_order=3)
-        dm.run_problem(p)
-        self.run_asserts(self.p)
 
     def test_refine_brachistochrone_radau_compressed(self):
         p = self.make_problem(transcription='radau-ps', num_segments=5, transcription_order=3, compressed=True)

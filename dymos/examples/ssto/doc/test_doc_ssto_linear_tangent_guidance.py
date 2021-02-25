@@ -202,16 +202,6 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
                 jacobian['theta', 'b_ctrl'] = 1.0 / denom
                 jacobian['theta', 'time_phase'] = a / denom
 
-        # @dm.declare_time(units='s', targets=['guidance.time_phase'])
-        # @dm.declare_state('x', rate_source='eom.xdot', units='m')
-        # @dm.declare_state('y', rate_source='eom.ydot', units='m')
-        # @dm.declare_state('vx', rate_source='eom.vxdot', targets=['eom.vx'], units='m/s')
-        # @dm.declare_state('vy', rate_source='eom.vydot', targets=['eom.vy'], units='m/s')
-        # @dm.declare_state('m', rate_source='eom.mdot', targets=['eom.m'], units='kg')
-        # @dm.declare_parameter('thrust', targets=['eom.thrust'], units='N')
-        # @dm.declare_parameter('a_ctrl', targets=['guidance.a_ctrl'], units='1/s')
-        # @dm.declare_parameter('b_ctrl', targets=['guidance.b_ctrl'], units=None)
-        # @dm.declare_parameter('Isp', targets=['eom.Isp'], units='s')
         class LaunchVehicleLinearTangentODE(om.Group):
             """
             The LaunchVehicleLinearTangentODE for this case consists of a guidance component and

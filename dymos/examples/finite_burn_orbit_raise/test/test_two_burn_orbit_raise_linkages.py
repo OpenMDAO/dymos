@@ -9,17 +9,12 @@ import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
 
 
-@unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+@unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
 @use_tempdirs
 class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
-    def test_two_burn_orbit_raise_gl_rk_gl_changing_units_error(self):
-        import numpy as np
-
-        import matplotlib.pyplot as plt
-
+    def test_two_burn_orbit_raise_gl_radau_gl_changing_units_error(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
         from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         import dymos as dm
@@ -65,7 +60,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
         coast = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.RungeKutta(num_segments=20))
+                         transcription=dm.Radau(num_segments=10, order=3))
 
         traj.add_phase('coast', coast)
 
@@ -136,7 +131,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         self.assertEqual(expected_exception, str(e.exception))
 
-    def test_two_burn_orbit_raise_gl_rk_gl_constrained(self):
+    def test_two_burn_orbit_raise_gl_radau_gl_constrained(self):
         import numpy as np
 
         import matplotlib.pyplot as plt
@@ -188,7 +183,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
         coast = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.RungeKutta(num_segments=20))
+                         transcription=dm.Radau(num_segments=10, order=3))
 
         traj.add_phase('coast', coast)
 
@@ -437,7 +432,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
         coast = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.RungeKutta(num_segments=20))
+                         transcription=dm.Radau(num_segments=10, order=3, solve_segments='forward'))
 
         traj.add_phase('coast', coast)
 
@@ -688,7 +683,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
         coast = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.RungeKutta(num_segments=20))
+                         transcription=dm.Radau(num_segments=10, order=3))
 
         traj.add_phase('coast', coast)
 
@@ -867,7 +862,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
         coast = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.RungeKutta(num_segments=20))
+                         transcription=dm.Radau(num_segments=10, order=3))
 
         traj.add_phase('coast', coast)
 
@@ -913,7 +908,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # demonstrate adding multiple variables at once using wildcard in add_timeseries_output
         burn1.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Gauss Lobatto)
-        coast.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Runge Kutta)
+        coast.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Radau)
         burn2.add_timeseries_output('*')      # add all ODE outputs
 
         # Link Phases
@@ -1006,8 +1001,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
     def test_two_burn_orbit_raise_radau_wildcard_add_timeseries_output(self):
         import numpy as np
 
-        import matplotlib.pyplot as plt
-
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         from openmdao.utils.general_utils import set_pyoptsparse_opt
@@ -1054,7 +1047,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
         coast = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.RungeKutta(num_segments=20))
+                         transcription=dm.Radau(num_segments=10, order=3))
 
         traj.add_phase('coast', coast)
 
@@ -1100,7 +1093,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # demonstrate adding multiple variables at once using wildcard in add_timeseries_output
         burn1.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Radau)
-        coast.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Runge Kutta)
+        coast.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Radau)
         burn2.add_timeseries_output('*')      # add all ODE outputs
 
         # Link Phases

@@ -26,8 +26,8 @@ x.connect('OPT_dynamic', 'dynamic', ["t", r"\bar{x}", r"\bar{u}"],  label_width=
 x.connect('static', 'OPT_static', [r"J_\text{static}", r"g_\text{static}"],  label_width=3)
 x.connect('OPT_static', 'static', [r"\bar{d}"],  label_width=3)
 
-x.connect('OPT_static', 'OPT_dynamic', '')
-x.connect('OPT_dynamic', 'OPT_static', '')
+x.connect('OPT_static', 'OPT_dynamic', [r'\text{static optimization}', r'\text{outputs}'])
+x.connect('OPT_dynamic', 'OPT_static', [r'\text{dynamic optimization}', r'\text{outputs}'])
 
 x.write('sequential_co_design')
 
@@ -44,7 +44,7 @@ x.connect('OPT', 'dynamic', ["t", r"\bar{x}", r"\bar{u}"],  label_width=3)
 x.connect('static', 'OPT', [r"g_\text{static}"],  label_width=3)
 x.connect('OPT', 'static', [r"\bar{d}"],  label_width=3)
 
-x.connect('static', 'dynamic', '')
-x.connect('dynamic', 'static', '')
+x.connect('static', 'dynamic', [r'\text{static}', r'\text{outputs}'])
+x.connect('dynamic', 'static', [r'\text{dynamic}', r'\text{outputs}'])
 
 x.write('coupled_co_design')

@@ -1,13 +1,13 @@
 import unittest
 
 import numpy as np
-import openmdao.api as om
-import dymos as dm
 
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
-from dymos.utils.testing_utils import assert_timeseries_near_equal
 
+import dymos as dm
+from dymos.utils.testing_utils import assert_timeseries_near_equal
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 

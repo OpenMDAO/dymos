@@ -16,11 +16,6 @@ class TestCommandLine(unittest.TestCase):
         self.base_args = ['dymos_testing', os.path.join(self.test_dir,
                                                         'brachistochrone_for_command_line.py')]
 
-        print('Removing the stale test databases before running.')
-        for filename in ['dymos_solution.db', 'old_dymos_solution.db', 'grid_refinement.out']:
-            if os.path.exists(filename):
-                os.remove(filename)
-
     def _assert_correct_solution(self):
         # Fail if the recorded driver solution file does not exist (driver did not execute)
         self.assertTrue(os.path.exists('dymos_solution.db'))
@@ -113,7 +108,6 @@ class TestCommandLine(unittest.TestCase):
     def test_vanderpol_simulation_restart(self):
         from scipy.interpolate import interp1d
         from numpy.testing import assert_almost_equal
-        from dymos.examples.vanderpol.vanderpol_dymos_plots import vanderpol_dymos_plots
 
         self.base_args = ['dymos_testing',
                           os.path.join(self.test_dir,
@@ -132,34 +126,30 @@ class TestCommandLine(unittest.TestCase):
             q = command_line.dymos_cmd()
 
         #  The solution should look like the explicit time history for the states and controls.
-        DO_PLOTS = False
-        if DO_PLOTS:
-            vanderpol_dymos_plots(q['p'])  # only for visual inspection and debug
-        else:  # automate comparison
-            s['p'] = q['p'].model.traj.simulate()
-            # get_val returns data for duplicate time points; remove them before interpolating
-            tq = q['p'].get_val('traj.phase0.timeseries.time')[:, 0]
-            nodup = np.insert(tq[1:] != tq[:-1], 0, True)
-            tq = tq[nodup]
-            x1q = q['p'].get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
-            x0q = q['p'].get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
-            uq = q['p'].get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
+        s['p'] = q['p'].model.traj.simulate()
+        # get_val returns data for duplicate time points; remove them before interpolating
+        tq = q['p'].get_val('traj.phase0.timeseries.time')[:, 0]
+        nodup = np.insert(tq[1:] != tq[:-1], 0, True)
+        tq = tq[nodup]
+        x1q = q['p'].get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
+        x0q = q['p'].get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
+        uq = q['p'].get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
 
-            ts = s['p'].get_val('traj.phase0.timeseries.time')[:, 0]
-            nodup = np.insert(ts[1:] != ts[:-1], 0, True)
-            ts = ts[nodup]
-            x1s = s['p'].get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
-            x0s = s['p'].get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
-            us = s['p'].get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
+        ts = s['p'].get_val('traj.phase0.timeseries.time')[:, 0]
+        nodup = np.insert(ts[1:] != ts[:-1], 0, True)
+        ts = ts[nodup]
+        x1s = s['p'].get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
+        x0s = s['p'].get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
+        us = s['p'].get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
 
-            # create interpolation functions so that values can be looked up at matching time points
-            fx1s = interp1d(ts, x1s, kind='cubic')
-            fx0s = interp1d(ts, x0s, kind='cubic')
-            fus = interp1d(ts, us, kind='cubic')
+        # create interpolation functions so that values can be looked up at matching time points
+        fx1s = interp1d(ts, x1s, kind='cubic')
+        fx0s = interp1d(ts, x0s, kind='cubic')
+        fus = interp1d(ts, us, kind='cubic')
 
-            assert_almost_equal(x1q, fx1s(tq), decimal=2)
-            assert_almost_equal(x0q, fx0s(tq), decimal=2)
-            assert_almost_equal(uq, fus(tq), decimal=5)
+        assert_almost_equal(x1q, fx1s(tq), decimal=2)
+        assert_almost_equal(x0q, fx0s(tq), decimal=2)
+        assert_almost_equal(uq, fus(tq), decimal=5)
 
     def test_ex_brachistochrone_make_plots(self):
         print('test_ex_brachistochrone_make_plots')
@@ -173,7 +163,7 @@ class TestCommandLine(unittest.TestCase):
             self.assertTrue(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
 
     def test_ex_brachistochrone_make_plots_set_plot_dir(self):
-        print('test_ex_brachistochrone_make_plots')
+        print('test_ex_brachistochrone_make_plots_set_plot_dir')
         plot_dir = 'plot_dir'
         with patch.object(sys, 'argv', self.base_args + ['--make_plots'] +
                           [f'--plot_dir={plot_dir}']):

@@ -1,14 +1,17 @@
 import unittest
 from numpy.testing import assert_almost_equal
 
+import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
+
+import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-import openmdao.api as om
-import dymos as dm
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT', fallback=True)
 
 
+@use_tempdirs
 class TestBrachistochroneVaryingOrderControlSimulation(unittest.TestCase):
 
     def test_gauss_lobatto(self):

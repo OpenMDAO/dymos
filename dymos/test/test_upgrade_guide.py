@@ -1,3 +1,4 @@
+import os
 import unittest
 
 import openmdao.api as om
@@ -29,7 +30,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         #
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
-        p.driver.declare_coloring()
+        p.driver.declare_coloring(tol=1.0E-12)
 
         from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
@@ -39,7 +40,6 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         traj = dm.Trajectory()
 
         phase = dm.Phase(ode_class=LaunchVehicleODE,
-                         ode_init_kwargs={'central_body': 'earth'},
                          transcription=dm.GaussLobatto(num_segments=12, order=3, compressed=False))
 
         traj.add_phase('phase0', phase)
@@ -50,19 +50,19 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         #
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 500))
 
-        phase.add_state('x', fix_initial=True, ref=1.0E5, defect_ref=1.0,
-                        rate_source='eom.xdot', units='m')
-        phase.add_state('y', fix_initial=True, ref=1.0E5, defect_ref=1.0,
-                        rate_source='eom.ydot', targets=['atmos.y'], units='m')
-        phase.add_state('vx', fix_initial=True, ref=1.0E3, defect_ref=1.0,
-                        rate_source='eom.vxdot', targets=['eom.vx'], units='m/s')
-        phase.add_state('vy', fix_initial=True, ref=1.0E3, defect_ref=1.0,
-                        rate_source='eom.vydot', targets=['eom.vy'], units='m/s')
-        phase.add_state('m', fix_initial=True, ref=1.0E3, defect_ref=1.0,
-                        rate_source='eom.mdot', targets=['eom.m'], units='kg')
+        phase.add_state('x', fix_initial=True, ref=1.0E5, defect_ref=10000.0,
+                        rate_source='xdot')
+        phase.add_state('y', fix_initial=True, ref=1.0E5, defect_ref=10000.0,
+                        rate_source='ydot')
+        phase.add_state('vx', fix_initial=True, ref=1.0E3, defect_ref=1000.0,
+                        rate_source='vxdot')
+        phase.add_state('vy', fix_initial=True, ref=1.0E3, defect_ref=1000.0,
+                        rate_source='vydot')
+        phase.add_state('m', fix_initial=True, ref=1.0E3, defect_ref=100.0,
+                        rate_source='mdot')
 
-        phase.add_control('theta', units='rad', lower=-1.57, upper=1.57, targets=['eom.theta'])
-        phase.add_parameter('thrust', units='N', opt=False, val=2100000.0, targets=['eom.thrust'])
+        phase.add_control('theta', units='rad', lower=-1.57, upper=1.57)
+        phase.add_parameter('thrust', units='N', opt=False, val=2100000.0)
 
         #
         # Set the options for our constraints and objective
@@ -643,3 +643,131 @@ class TestUpgrade_0_17_0(unittest.TestCase):
 
         # Test the results
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+
+
+@use_tempdirs
+class TestUpgrade_0_19_0(unittest.TestCase):
+
+    def tearDown(self):
+        if os.path.exists('dymos_solution.db'):
+            os.remove('dymos_solution.db')
+        if os.path.exists('dymos_simulation.db'):
+            os.remove('dymos_simulation.db')
+
+    def _make_problem(self, transcription='gauss-lobatto', num_segments=8, transcription_order=3,
+                      compressed=True, optimizer='SLSQP', run_driver=True,
+                      force_alloc_complex=False,
+                      solve_segments=False):
+
+        p = om.Problem(model=om.Group())
+
+        p.driver = om.pyOptSparseDriver()
+        p.driver.options['optimizer'] = optimizer
+        p.driver.declare_coloring(tol=1.0E-12)
+
+        if transcription == 'gauss-lobatto':
+            t = dm.GaussLobatto(num_segments=num_segments,
+                                order=transcription_order,
+                                compressed=compressed)
+        elif transcription == 'radau-ps':
+            t = dm.Radau(num_segments=num_segments,
+                         order=transcription_order,
+                         compressed=compressed)
+
+        # upgrade_doc: begin exec_comp_ode
+        ode = lambda num_nodes: om.ExecComp(['vdot = g * cos(theta)',
+                                             'xdot = v * sin(theta)',
+                                             'ydot = -v * cos(theta)'],
+                                            g={'value': 9.80665, 'units': 'm/s**2'},
+                                            v={'shape': (num_nodes,), 'units': 'm/s'},
+                                            theta={'shape': (num_nodes,), 'units': 'rad'},
+                                            vdot={'shape': (num_nodes,), 'units': 'm/s**2'},
+                                            xdot={'shape': (num_nodes,), 'units': 'm/s'},
+                                            ydot={'shape': (num_nodes,), 'units': 'm/s'},
+                                            has_diag_partials=True)
+
+        phase = dm.Phase(ode_class=ode, transcription=t)
+        # upgrade_doc: end declare_rate_source
+        traj = dm.Trajectory()
+        p.model.add_subsystem('traj0', traj)
+        traj.add_phase('phase0', phase)
+
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.add_state('x', fix_initial=True, fix_final=False, solve_segments=solve_segments,
+                        rate_source='xdot')
+        phase.add_state('y', fix_initial=True, fix_final=False, solve_segments=solve_segments,
+                        rate_source='ydot')
+
+        # Note that by omitting the targets here Dymos will automatically attempt to connect
+        # to a top-level input named 'v' in the ODE, and connect to nothing if it's not found.
+        phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=solve_segments,
+                        rate_source='vdot')
+
+        phase.add_control('theta',
+                          continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_parameter('g', units='m/s**2', dynamic=False)
+
+        phase.add_boundary_constraint('x', loc='final', equals=10)
+        phase.add_boundary_constraint('y', loc='final', equals=5)
+        # Minimize time at the end of the phase
+        phase.add_objective('time_phase', loc='final', scaler=10)
+
+        p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
+
+        p['traj0.phase0.t_initial'] = 0.0
+        p['traj0.phase0.t_duration'] = 2.0
+
+        p['traj0.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+        p['traj0.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+        p['traj0.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['traj0.phase0.parameters:g'] = 9.80665
+
+        dm.run_problem(p, run_driver=run_driver, simulate=True)
+
+        return p
+
+    def run_asserts(self):
+
+        for db in ['dymos_solution.db', 'dymos_simulation.db']:
+            p = om.CaseReader(db).get_case('final')
+
+            t_initial = p.get_val('traj0.phase0.timeseries.time')[0]
+            tf = p.get_val('traj0.phase0.timeseries.time')[-1]
+
+            x0 = p.get_val('traj0.phase0.timeseries.states:x')[0]
+            xf = p.get_val('traj0.phase0.timeseries.states:x')[-1]
+
+            y0 = p.get_val('traj0.phase0.timeseries.states:y')[0]
+            yf = p.get_val('traj0.phase0.timeseries.states:y')[-1]
+
+            v0 = p.get_val('traj0.phase0.timeseries.states:v')[0]
+            vf = p.get_val('traj0.phase0.timeseries.states:v')[-1]
+
+            g = p.get_val('traj0.phase0.timeseries.parameters:g')[0]
+
+            thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1]
+
+            assert_near_equal(t_initial, 0.0)
+            assert_near_equal(x0, 0.0)
+            assert_near_equal(y0, 10.0)
+            assert_near_equal(v0, 0.0)
+
+            assert_near_equal(tf, 1.8016, tolerance=0.01)
+            assert_near_equal(xf, 10.0, tolerance=0.01)
+            assert_near_equal(yf, 5.0, tolerance=0.01)
+            assert_near_equal(vf, 9.902, tolerance=0.01)
+            assert_near_equal(g, 9.80665, tolerance=0.01)
+
+            assert_near_equal(thetaf, 100.12, tolerance=0.01)
+
+    def test_ex_brachistochrone_radau_uncompressed(self):
+        self._make_problem(transcription='radau-ps', compressed=False)
+        self.run_asserts()
+
+    def test_ex_brachistochrone_gl_uncompressed(self):
+        self._make_problem(transcription='gauss-lobatto', compressed=False)
+        self.run_asserts()
