@@ -95,7 +95,8 @@ class Phase(om.Group):
         Declare instantiation options for the phase.
         """
         self.options.declare('ode_class', default=None,
-                             desc='System defining the ODE')
+                             desc='System defining the ODE',
+                             recordable=False)
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
         self.options.declare('transcription', types=TranscriptionBase,
