@@ -900,7 +900,7 @@ class Trajectory(om.Group):
         complex behavior (branching phases, phases only continuous in some variables, etc).
 
         The location at which the variables should be coupled in the two phases are provided
-        with a two character string:
+        with one of two strings:
 
         - 'final' specifies the value at the end of the phase (at time t_initial + t_duration)
         - 'initial' specifies the value at the start of the phase (at time t_initial)
@@ -913,7 +913,7 @@ class Trajectory(om.Group):
             The variables in the phases to be linked, or '*'.  Providing '*' will time and all
             states.  Linking control values or rates requires them to be listed explicitly.
         locs : tuple of str
-            A two-element tuple of the two-character location specification.  For every pair in
+            A two-element tuple of a location specification.  For every pair in
             phases, the location specification refers to which location in the first phase is
             connected to which location in the second phase.  If the user wishes to specify
             different locations for different phase pairings, those phase pairings must be made

@@ -25,10 +25,10 @@ class LinkageOptionsDictionary(om.OptionsDictionary):
         self.declare(name='var_b', types=str,
                      desc='name of the second variable in the linkage')
 
-        self.declare(name='loc_a', values=('initial', 'final', '--', '-+', '+-', '++'),
+        self.declare(name='loc_a', values=('initial', 'final'),
                      desc='location of the first variable in the linkage (\'initial\' or \'final\')')
 
-        self.declare(name='loc_b', values=('initial', 'final', '--', '-+', '+-', '++'),
+        self.declare(name='loc_b', values=('initial', 'final'),
                      desc='location of the second variable in the linkage (\'initial\' or \'final\')')
 
         self.declare(name='sign_a', types=Number, default=1.0,
