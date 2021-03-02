@@ -108,7 +108,7 @@ In an optimization context, we can use the solver-based convergence of defects t
 
 ## Using a solver to converge the physical trajectory
 
-We let Dymos know that one or more states should be converged using the `solve_segments=True` argument.
+We let Dymos know that one or more states should be converged using the `solve_segments=forward` argument.
 If passed to the transcription, it applies to all states.
 Otherwise, we can pass it only to certain states as an argument to `add_state` or `set_state_options`.
 
