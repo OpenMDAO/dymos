@@ -695,8 +695,8 @@ class Trajectory(om.Group):
 
             for var_pair, options in var_dict.items():
                 var_a, var_b = var_pair
-                loc_a = 'initial' if options['loc_a'] in {'initial', '--', '-+'} else 'final'
-                loc_b = 'initial' if options['loc_b'] in {'initial', '--', '-+'} else 'final'
+                loc_a = options['loc_a']
+                loc_b = options['loc_b']
 
                 self._update_linkage_options_configure(options)
 
