@@ -26,9 +26,10 @@ class PseudospectralBase(TranscriptionBase):
         Declare transcription options.
         """
         self.options.declare(name='solve_segments', default=False,
-                             values=(True, False, 'forward', 'backward'),
+                             # values=(True, False, 'forward', 'backward'),
+                             values=(False, 'forward', 'backward'),
                              desc='Applies \'solve_segments\' behavior to _all_ states in the Phase. '
-                                  'If True (deprecated) or \'forward\', collocation defects within each '
+                                  'If \'forward\', collocation defects within each '
                                   'segment are solved with a Newton solver by fixing the initial value in the '
                                   'phase (if using compressed transcription) or segment (if not using '
                                   'compressed transcription). This provides a forward shooting (or multiple shooting) '
@@ -313,7 +314,7 @@ class PseudospectralBase(TranscriptionBase):
         if options['solve_segments'] is True:
             ss = options['solve_segments']
             warn_deprecation(f'State {state_name} in phase {phase.name} has option '
-                             f'\'solve_segments=True\'. Setting \'solve_segments=True\' now gives '
+                             f'\'solve_segments=forward\'. Setting \'solve_segments=forward\' now gives '
                              f'forward propagation. In Dymos 1.0 and later, only options '
                              f'\'forward\' and \'backward\' will be valid.')
 
