@@ -26,7 +26,6 @@ class PseudospectralBase(TranscriptionBase):
         Declare transcription options.
         """
         self.options.declare(name='solve_segments', default=False,
-                             # values=(True, False, 'forward', 'backward'),
                              values=(False, 'forward', 'backward'),
                              desc='Applies \'solve_segments\' behavior to _all_ states in the Phase. '
                                   'If \'forward\', collocation defects within each '
