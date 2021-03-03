@@ -1059,42 +1059,6 @@ class Phase(om.Group):
         self.set_parameter_options(name, val, units, opt, desc, lower, upper,
                                    scaler, adder, ref0, ref, targets, shape, dynamic, include_timeseries)
 
-    def add_input_parameter(self, name, val=_unspecified, units=_unspecified, targets=_unspecified,
-                            desc=_unspecified, shape=_unspecified, dynamic=_unspecified,
-                            include_timeseries=_unspecified):
-        """
-        Add an input parameter to the phase.
-
-        This method is deprecated. Use add_parameter instead.
-
-        Parameters
-        ----------
-        name : str
-            Name of the ODE parameter to be controlled via this input parameter.
-        val : float or ndarray
-            Default value of the input parameter at all nodes.
-        units : str or None or 0
-            Units in which the input parameter is defined.  If 0, use the units declared
-            for the parameter in the ODE.
-        targets : Sequence of str or None
-            Targets in the ODE to which this parameter is connected.
-        desc : str
-            A description of the input parameter.
-        shape : Sequence of str or None
-            The shape of the input parameter.
-        dynamic : bool
-            True if the targets in the ODE may be dynamic (if the inputs are sized to the number
-            of nodes) else False.
-        include_timeseries : bool
-            True if the static input parameters should be included in output timeseries, else False.
-        """
-        msg = "DesignParameters and InputParameters are being replaced by Parameters in  " + \
-            "Dymos 1.0.0. Please use add_parameter or set_parameter_options to remove this " + \
-            "deprecation warning."
-        warn_deprecation(msg)
-        self.add_parameter(name, val=val, units=units, desc=desc, targets=targets, shape=shape,
-                           dynamic=dynamic, include_timeseries=include_timeseries)
-
     def set_input_parameter_options(self, name, val=_unspecified, units=_unspecified, targets=_unspecified,
                                     desc=_unspecified, shape=_unspecified, dynamic=_unspecified,
                                     include_timeseries=_unspecified):
