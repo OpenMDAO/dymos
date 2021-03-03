@@ -27,8 +27,8 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
         traj.add_parameter('c', opt=False, val=1.5, units='DU/TU',
                            targets={'burn1': ['c'], 'burn2': ['c']})
     elif param_mode == 'param_sequence_missing_phase_deprecated':
-        traj.add_input_parameter('c', val=1.5, units='DU/TU',
-                                 targets={'burn1': ['c'], 'burn2': ['c']})
+        traj.add_parameter('c', val=1.5, units='DU/TU',
+                           targets={'burn1': ['c'], 'burn2': ['c']})
     elif param_mode == 'param_no_targets':
         traj.add_parameter('c', val=1.5, units='DU/TU')
 
