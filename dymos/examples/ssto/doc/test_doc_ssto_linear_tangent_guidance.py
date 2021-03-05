@@ -234,7 +234,7 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
 
         traj.add_phase('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 1000),
+        phase.set_time_options(fix_initial=True, duration_bounds=(10, 1000),
                                targets=['guidance.time_phase'])
 
         phase.add_state('x', fix_initial=True, lower=0, rate_source='eom.xdot', units='m')

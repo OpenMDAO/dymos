@@ -323,7 +323,7 @@ class TestPhaseBase(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='s')
 
         phase.add_state('x', fix_initial=True, fix_final=False)
 
@@ -372,7 +372,7 @@ class TestPhaseBase(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(0.1, 10))
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=False)
 
@@ -438,7 +438,7 @@ class TestPhaseBase(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=False)
 
@@ -501,7 +501,7 @@ class TestPhaseBase(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 

@@ -126,7 +126,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', rate_source='xdot',
                         units='m',
@@ -222,7 +222,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', rate_source='xdot',
                         units='m',
@@ -318,7 +318,7 @@ class TestBrachistochroneExplicitControlRateTargets(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', rate_source='xdot',
                         units='m',
@@ -412,7 +412,7 @@ class TestBrachistochroneExplicitControlRateTargets(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', rate_source='xdot',
                         units='m',
@@ -509,7 +509,7 @@ class TestBrachistochronePolynomialControlRateTargets(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', rate_source='xdot',
                         units='m',
@@ -603,7 +603,7 @@ class TestBrachistochronePolynomialControlRateTargets(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', rate_source='xdot',
                         units='m',
@@ -700,7 +700,7 @@ class TestBrachistochronePolynomialControlExplicitRateTargets(unittest.TestCase)
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', rate_source='xdot',
                         units='m',
@@ -794,7 +794,7 @@ class TestBrachistochronePolynomialControlExplicitRateTargets(unittest.TestCase)
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', rate_source='xdot',
                         units='m',
@@ -891,7 +891,7 @@ class TestBrachistochronePolynomialControlExplicitRate2Targets(unittest.TestCase
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', rate_source='xdot',
                         units='m',

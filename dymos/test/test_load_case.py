@@ -18,7 +18,7 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=Fal
 
     p.model.add_subsystem('phase0', phase)
 
-    phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+    phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
     phase.add_state('x', fix_initial=True, fix_final=True)
     phase.add_state('y', fix_initial=True, fix_final=True)

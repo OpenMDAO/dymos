@@ -429,7 +429,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
-        ascent.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 10), duration_ref=100, units='s')
+        ascent.set_time_options(fix_initial=True, duration_bounds=(10, 10), duration_ref=100, units='s')
         ascent.add_state('r', fix_initial=True, fix_final=False, units='m', rate_source='r_dot')
         ascent.add_state('h', fix_initial=True, fix_final=False, units='m', rate_source='h_dot')
         ascent.add_state('gam', fix_initial=False, fix_final=True, units='rad', rate_source='gam_dot')

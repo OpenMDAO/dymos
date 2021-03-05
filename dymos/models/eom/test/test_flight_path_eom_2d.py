@@ -36,7 +36,7 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         self.p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 20), units='s')
+        phase.set_time_options(fix_initial=True, duration_bounds=(10, 20), units='s')
 
         phase.add_state('r', rate_source='r_dot', units='m',
                         fix_initial=True, fix_final=False,

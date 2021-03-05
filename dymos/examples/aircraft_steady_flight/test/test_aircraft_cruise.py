@@ -48,7 +48,7 @@ class TestAircraftCruise(unittest.TestCase):
         phase = dm.Phase(ode_class=AircraftODE, transcription=transcription)
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0),
+        phase.set_time_options(fix_initial=True,
                                duration_bounds=(3600, 3600),
                                duration_ref=3600)
 
@@ -142,11 +142,11 @@ class TestAircraftCruise(unittest.TestCase):
         phase = dm.Phase(ode_class=AircraftODE, transcription=transcription)
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0),
+        phase.set_time_options(fix_initial=True,
                                duration_bounds=(3600, 3600),
                                duration_ref=3600)
 
-        phase.set_time_options(initial_bounds=(0, 0),
+        phase.set_time_options(fix_initial=True,
                                duration_bounds=(3600, 3600),
                                duration_ref=3600)
 

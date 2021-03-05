@@ -78,7 +78,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         # Set the variables
         #
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
@@ -160,7 +160,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         # Set the variables
         #
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
@@ -249,7 +249,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         # Set the variables
         #
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
@@ -340,7 +340,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         # Set the variables
         #
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True)
 

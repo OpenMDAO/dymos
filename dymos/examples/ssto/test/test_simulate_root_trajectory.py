@@ -181,7 +181,7 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
                          transcription=dm.Radau(num_segments=20, order=3, compressed=False))
         traj.add_phase('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 1000), units='s')
+        phase.set_time_options(fix_initial=True, duration_bounds=(10, 1000), units='s')
 
         #
         # Set the state options.  We include rate_source, units, and targets here since the ODE
