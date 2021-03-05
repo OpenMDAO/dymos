@@ -33,7 +33,7 @@ Optimization settings have to be applied using the OpenMDAO `add_design_var` met
 
 States behave a bit differently than controls.
 Rather than connecting the entire time history at the state input nodes, those are still managed by Dymos.
-If using `solve_segments=True`, one can connect the initial value of a state from an external source.
+If using `solve_segments=forward`, one can connect the initial value of a state from an external source.
 When using optimizer-driven collocation (`solve_segments=False`), states should be "connected" via constraint.
 In fact, this is how phases are connected in trajectories...new constraints are added that constrain the value of states at phase junctions.
 

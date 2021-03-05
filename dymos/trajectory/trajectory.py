@@ -177,43 +177,6 @@ class Trajectory(om.Group):
         if dynamic is not _unspecified:
             self.parameter_options[name]['dynamic'] = dynamic
 
-    def add_input_parameter(self, name, units, val=_unspecified, desc=_unspecified,
-                            targets=_unspecified, custom_targets=_unspecified,
-                            shape=_unspecified, dynamic=_unspecified):
-        """
-        Add an input parameter to the trajectory.
-
-        Parameters
-        ----------
-        name : str
-            Name of the input parameter.
-        units : str or None or 0
-            Units in which the input parameter is defined.  If 0, use the units declared
-            for the parameter in the ODE.
-        val : float or ndarray
-            Default value of the input parameter at all nodes.
-        desc : str
-            A description of the input parameter.
-        targets : dict or None
-            A dictionary mapping the name of each phase in the trajectory to a sequence of ODE
-            targets for this parameter in each phase.
-        custom_targets : dict or None
-            By default, the parameter will be connect to the parameter/targets of the given
-            name in each phase.  This argument can be used to override that behavior on a phase
-            by phase basis.
-        shape : Sequence of int
-            The shape of the input parameter.
-        dynamic : bool
-            True if the targets in the ODE may be dynamic (if the inputs are sized to the number
-            of nodes) else False.
-        """
-        msg = "DesignParameters and InputParameters are being replaced by Parameters in  " + \
-            "Dymos 1.0.0. Please use add_parameter or set_parameter_options to remove this " + \
-            "deprecation warning."
-        warn_deprecation(msg)
-        self.add_parameter(name, units, val=val, desc=desc, targets=targets, shape=shape,
-                           dynamic=dynamic)
-
     def add_design_parameter(self, name, units, val=_unspecified, desc=_unspecified, opt=_unspecified,
                              targets=_unspecified, custom_targets=_unspecified,
                              lower=_unspecified, upper=_unspecified, scaler=_unspecified,
@@ -695,8 +658,8 @@ class Trajectory(om.Group):
 
             for var_pair, options in var_dict.items():
                 var_a, var_b = var_pair
-                loc_a = 'initial' if options['loc_a'] in {'initial', '--', '-+'} else 'final'
-                loc_b = 'initial' if options['loc_b'] in {'initial', '--', '-+'} else 'final'
+                loc_a = options['loc_a']
+                loc_b = options['loc_b']
 
                 self._update_linkage_options_configure(options)
 
@@ -900,7 +863,7 @@ class Trajectory(om.Group):
         complex behavior (branching phases, phases only continuous in some variables, etc).
 
         The location at which the variables should be coupled in the two phases are provided
-        with a two character string:
+        with one of two strings:
 
         - 'final' specifies the value at the end of the phase (at time t_initial + t_duration)
         - 'initial' specifies the value at the start of the phase (at time t_initial)
@@ -913,7 +876,7 @@ class Trajectory(om.Group):
             The variables in the phases to be linked, or '*'.  Providing '*' will time and all
             states.  Linking control values or rates requires them to be listed explicitly.
         locs : tuple of str
-            A two-element tuple of the two-character location specification.  For every pair in
+            A two-element tuple of a location specification.  For every pair in
             phases, the location specification refers to which location in the first phase is
             connected to which location in the second phase.  If the user wishes to specify
             different locations for different phase pairings, those phase pairings must be made

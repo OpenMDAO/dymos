@@ -2,7 +2,7 @@
 
 Optimal control problems in Dymos are posed within the context of *phases*.
 
-When using an optimizer-based transcription, (Gauss-Lobatto or Radau *without* `solve_segments=True`), the user is **required** to provide an objective somewhere in the problem, even for a simple initial value problem.
+When using an optimizer-based transcription, (Gauss-Lobatto or Radau *without* `solve_segments=forward`), the user is **required** to provide an objective somewhere in the problem, even for a simple initial value problem.
 
 To support objectives, phases use an overridden version of OpenMDAO's `add_objective` method.
 This method handles a few complexities that would be involved in the standard OpenMDAO

@@ -246,25 +246,3 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                                           transcription_order=3)
                         dm.run_problem(p)
                         self.assert_results(p)
-
-    def test_solve_segments_deprecation(self):
-        import warnings
-
-        with warnings.catch_warnings(record=True) as w:
-            # Cause all warnings to always be triggered.
-            warnings.simplefilter("always")
-            # Trigger a warning.
-            _make_problem(transcription='radau-ps', compressed=False, optimizer='SLSQP',
-                          force_alloc_complex=True, solve_segments=True, num_segments=5,
-                          transcription_order=3, )
-            # Verify some things
-            assert len(w) == 3
-            assert issubclass(w[-1].category, DeprecationWarning)
-
-            messages = [str(w[i].message) for i in range(len(w))]
-
-            for var in ['x', 'y', 'v']:
-                expected = f'State {var} in phase phase0 has option \'solve_segments=True\'. ' \
-                           'Setting \'solve_segments=True\' now gives forward propagation. In ' \
-                           'Dymos 1.0 and later, only options \'forward\' and \'backward\' will be valid.'
-                assert expected in messages
