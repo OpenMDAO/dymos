@@ -97,7 +97,7 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='s')
 
         phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot')
         phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot')
@@ -144,7 +144,7 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='s')
 
         phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot')
         phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot')
@@ -189,7 +189,7 @@ class TestBrachistochroneBasePhaseClass(unittest.TestCase):
             def setup(self):
 
                 self.options['ode_class'] = BrachistochroneODE
-                self.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
+                self.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='s')
                 self.add_state('x', fix_initial=True, rate_source='xdot')
                 self.add_state('y', fix_initial=True, rate_source='ydot')
                 self.add_state('v', fix_initial=True, rate_source='vdot', targets=['v'])

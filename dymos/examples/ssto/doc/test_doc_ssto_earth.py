@@ -39,7 +39,7 @@ class TestDocSSTOEarth(unittest.TestCase):
         #
         # Set the options for the variables
         #
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 500))
+        phase.set_time_options(fix_initial=True, duration_bounds=(10, 500))
 
         phase.add_state('x', fix_initial=True, ref=1.0E5, defect_ref=10000.0,
                         rate_source='xdot')

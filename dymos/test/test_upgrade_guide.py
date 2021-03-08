@@ -48,7 +48,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         #
         # Set the options for the variables
         #
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 500))
+        phase.set_time_options(fix_initial=True, duration_bounds=(10, 500))
 
         phase.add_state('x', fix_initial=True, ref=1.0E5, defect_ref=10000.0,
                         rate_source='xdot')
@@ -188,11 +188,11 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
 
-        phase.set_time_options(initial_bounds=(0, 0),
+        phase.set_time_options(fix_initial=True,
                                duration_bounds=(3600, 3600),
                                duration_ref=3600)
 
-        phase.set_time_options(initial_bounds=(0, 0),
+        phase.set_time_options(fix_initial=True,
                                duration_bounds=(3600, 3600),
                                duration_ref=3600)
 
@@ -601,7 +601,7 @@ class TestUpgrade_0_17_0(unittest.TestCase):
         #
         # Set the variables
         #
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         # upgrade_doc: begin declare_rate_source
         phase.add_state('x', fix_initial=True, fix_final=True)

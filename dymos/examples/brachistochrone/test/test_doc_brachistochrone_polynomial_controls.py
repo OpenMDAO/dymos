@@ -24,7 +24,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True, solve_segments=False)
 
@@ -110,7 +110,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
@@ -199,7 +199,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
@@ -287,7 +287,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
@@ -378,7 +378,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
@@ -464,7 +464,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
@@ -556,7 +556,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
@@ -644,7 +644,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
@@ -736,7 +736,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
@@ -824,7 +824,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
@@ -912,7 +912,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
@@ -969,7 +969,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
