@@ -123,7 +123,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         # record_outputs is need to capture the timeseries outputs
         problem.recording_options['record_outputs'] = True
 
-    problem.final_setup()  # make sure command line option hook has a chance to run
+    problem.final_setup()
 
     if restart is not None:
         load_case(problem, case)
