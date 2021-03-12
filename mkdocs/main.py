@@ -580,31 +580,8 @@ def _options_dict_to_markdown(od):
     str
         A markdown table representation of the options dictionay.
     """
-    lines = od.__rst__()
+    return od.to_table(fmt='github')
 
-    # Now the lines are in rst format, convert to markdown
-    # First change = to - and space to | in the header rows
-    for i in range(len(lines)):
-        if set(lines[i]) == {'=', ' '}:
-            lines[i] = lines[i].replace('=', '-')
-            lines[i] = '|'.join(lines[i].split())
-            lines[i] = '|' + lines[i] + '|'
-        else:
-            lines[i] = '|' + lines[i]
-            lines[i] = lines[i][:-1] + '|'
-
-    # Now find the location of | in the first row, and make sure | are in that location in each row.
-    locs = [m.start() for m in re.finditer(r'[|]', lines[0])]
-
-    for i in range(len(lines)):
-        lstline = list(lines[i])
-        for loc in locs:
-            lstline[loc] = '|'
-        lines[i] = ''.join(lstline)
-
-    md = '\n'.join(lines[1:-1])
-
-    return md
 
 def _split_docstring(obj):
     docstring = inspect.getdoc(obj)
