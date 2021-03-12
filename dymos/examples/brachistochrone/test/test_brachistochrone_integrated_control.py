@@ -103,7 +103,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='s')
 
         phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot', units='m')
         phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot', units='m')
@@ -181,7 +181,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         traj.add_phase('phase0', phase)
         p.model.add_subsystem('traj', traj)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='s')
 
         phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot', units='m')
         phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot', units='m')

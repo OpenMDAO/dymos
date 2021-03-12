@@ -43,7 +43,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
 
     p.model.add_subsystem('phase0', phase)
 
-    phase.set_time_options(initial_bounds=(0, 0),
+    phase.set_time_options(fix_initial=True,
                            duration_bounds=(300, 10000),
                            duration_ref=5600)
 

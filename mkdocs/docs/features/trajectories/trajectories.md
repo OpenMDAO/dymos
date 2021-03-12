@@ -67,6 +67,55 @@ The acceleration needs to be zero in the coast phase, but continuous between `bu
 {{ api_doc('dymos.Trajectory.link_phases') }}
 
 
+## Examples of using the `link_phases` method
+
+**Typical Phase Linkage Sequence**
+
+A typical phase linkage sequence, where all phases use the same ODE (and therefore have
+the same states), are simply linked sequentially in time.
+
+``` python
+t.link_phases(['phase1', 'phase2', 'phase3'])
+```
+
+**Adding an Additional Linkage**
+
+If the user wants some control variable, `u`, to be continuous in value between `phase2` and
+`phase3` only, they could indicate that with the following code:
+
+``` python
+t.link_phases(['phase2', 'phase3'], vars=['u'])
+```
+
+**Branching Trajectories**
+
+For a more complex example, consider the case where there are two phases which branch off
+from the same point, such as the case of a jettisoned stage.  The nominal trajectory
+consists of the phase sequence `['a', 'b', 'c']`.  Let phase `['d']` be the phase that tracks
+the jettisoned component to its impact with the ground.  The linkages in this case
+would be defined as:
+
+``` python
+t.link_phases(['a', 'b', 'c'])
+t.link_phases(['b', 'd'])
+```
+
+**Specifying Linkage Locations**
+
+Phase linkages assume that, for each pair, the state/control values at the end (`'final'`)
+of the first phase are linked to the state/control values at the start of the second phase
+(`'initial'`).
+
+The user can override this behavior, but they must specify a pair of location strings for
+each pair given in `phases`.  For instance, in the following example phases `a` and `b`
+have the same initial time and state, but phase `c` follows phase `b`.  Note since there
+are three phases provided, there are two linkages and thus two pairs of location
+specifiers given.
+
+``` python
+t.link_phases(['a', 'b', 'c'], locs=[('initial', 'initial'), ('final', 'initial')])
+```
+
 ##  Trajectory-Level Parameters
 
 Often times, there are parameters which apply to the entirety of a trajectory that potentially need to be optimized.
