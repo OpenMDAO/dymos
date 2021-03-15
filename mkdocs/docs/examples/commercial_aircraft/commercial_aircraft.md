@@ -283,7 +283,7 @@ it's more efficient to leave it outside of flight equilibrium group.
   |CD     |drag coefficient           |output         |
   |CM     |moment coefficient         |output         |
   |L      |lift force (N)             |output         |
-  |D      |drag force (N)             |output
+  |D      |drag force (N)             |output         |
 
 !!! note "Note"
     This example uses _openmdao.api.MetaModelStructuredComp_ to
