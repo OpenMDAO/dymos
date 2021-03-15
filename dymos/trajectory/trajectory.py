@@ -11,7 +11,6 @@ except ImportError:
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.general_utils import warn_deprecation
 from openmdao.utils.mpi import MPI
 
 from ..utils.constants import INF_BOUND
@@ -74,9 +73,8 @@ class Trajectory(om.Group):
         return phase
 
     def add_parameter(self, name, units, val=_unspecified, desc=_unspecified, opt=False,
-                      targets=_unspecified, custom_targets=_unspecified,
-                      lower=_unspecified, upper=_unspecified, scaler=_unspecified,
-                      adder=_unspecified, ref0=_unspecified, ref=_unspecified,
+                      targets=_unspecified, lower=_unspecified, upper=_unspecified,
+                      scaler=_unspecified, adder=_unspecified, ref0=_unspecified, ref=_unspecified,
                       shape=_unspecified, dynamic=_unspecified):
         """
         Add a parameter (static control) to the trajectory.
@@ -101,10 +99,6 @@ class Trajectory(om.Group):
             a warning will be issued.  If targets is given as a dict, the dict should provide
             the relevant phase names as keys, each associated with the respective controllable
             parameter as a value.
-        custom_targets : dict or None
-            By default, the parameter will be connect to the parameter/targets of the given
-            name in each phase.  This argument can be used to override that behavior on a phase
-            by phase basis.
         lower : float or ndarray
             The lower bound of the parameter value.
         upper : float or ndarray
@@ -161,15 +155,6 @@ class Trajectory(om.Group):
                 self.parameter_options[name]['targets'] = (targets,)
             else:
                 self.parameter_options[name]['targets'] = targets
-
-        if custom_targets is not _unspecified:
-            warnings.warn('Option custom_targets is now targets, and should provide the ode '
-                          'targets for the parameter in each phase', DeprecationWarning)
-
-            if isinstance(custom_targets, str):
-                self.parameter_options[name]['targets'] = (custom_targets,)
-            else:
-                self.parameter_options[name]['targets'] = custom_targets
 
         if shape is not _unspecified:
             self.parameter_options[name]['shape'] = shape

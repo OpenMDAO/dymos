@@ -27,7 +27,6 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
     -------
     dict
         A dictionary with the following keys:
-        'disc' gives the indices of the state discretization nodes (deprecated)
         'state_disc' gives the indices of the state discretization nodes
         'state_input' gives the indices of the state input nodes
         'control_disc' gives the indices of the control discretization nodes
@@ -45,7 +44,6 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
         raise ValueError('A Gauss-Lobatto scheme must use an odd number of points')
 
     subsets = {
-        'disc': np.arange(0, n, 2, dtype=int),
         'state_disc': np.arange(0, n, 2, dtype=int),
         'state_input': np.arange(0, n, 2, dtype=int) if not compressed or seg_idx == 0
         else np.arange(2, n, 2, dtype=int),
@@ -78,7 +76,6 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     -------
     dict
         A dictionary with the following keys:
-        'disc' gives the indices of the state discretization nodes (deprecated)
         'state_disc' gives the indices of the state discretization nodes
         'state_input' gives the indices of the state input nodes
         'control_disc' gives the indices of the control discretization nodes
@@ -94,7 +91,6 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     the same as subset 'control_disc'.
     """
     subsets = {
-        'disc': np.arange(n + 1, dtype=int),
         'state_disc': np.arange(n + 1, dtype=int),
         'state_input': np.arange(n + 1, dtype=int) if not compressed or seg_idx == 0
         else np.arange(1, n + 1, dtype=int),

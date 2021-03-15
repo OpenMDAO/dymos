@@ -3,7 +3,6 @@ from collections.abc import Iterable
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.general_utils import warn_deprecation
 from ..transcription_base import TranscriptionBase
 from ..common import TimeComp, PseudospectralTimeseriesOutputComp
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp
@@ -308,14 +307,6 @@ class PseudospectralBase(TranscriptionBase):
         # Transcription solve_segments overrides state solve_segments if its not set
         if options['solve_segments'] is None:
             options['solve_segments'] = self.options['solve_segments']
-
-        # Flag deprecated solve_segments options:
-        if options['solve_segments'] is True:
-            ss = options['solve_segments']
-            warn_deprecation(f'State {state_name} in phase {phase.name} has option '
-                             f'\'solve_segments=forward\'. Setting \'solve_segments=forward\' now gives '
-                             f'forward propagation. In Dymos 1.0 and later, only options '
-                             f'\'forward\' and \'backward\' will be valid.')
 
         # Sanity-checks for solve segments
         # If solve_segments is used at all, we cannot fix the state at both ends of the phase.

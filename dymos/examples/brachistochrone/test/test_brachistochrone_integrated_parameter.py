@@ -221,10 +221,10 @@ class TestBrachistochroneIntegratedParameter(unittest.TestCase):
         v_sim = sim_out.get_val('phase0.timeseries.states:v')
         theta_sim = sim_out.get_val('phase0.timeseries.states:theta')
 
-        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, tolerance=1.0E-3, num_points=10)
-        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, tolerance=1.0E-3, num_points=10)
-        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, tolerance=1.0E-3, num_points=10)
-        assert_timeseries_near_equal(t_sol, theta_sol, t_sim, theta_sim, tolerance=1.0E-3, num_points=10)
+        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, tolerance=1.0E-3)
+        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, tolerance=1.0E-3)
+        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, tolerance=1.0E-3)
+        assert_timeseries_near_equal(t_sol, theta_sol, t_sim, theta_sim, tolerance=1.0E-3)
 
 
 if __name__ == '__main__':  # pragma: no cover

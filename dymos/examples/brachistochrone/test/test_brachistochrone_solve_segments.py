@@ -232,7 +232,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
     def test_brachistochrone_solve_segments(self):
 
         for tx in ('radau-ps', 'gauss-lobatto'):
-            for solve_segs in (True, False, 'forward', 'backward', None):
+            for solve_segs in (False, 'forward', 'backward', None):
                 for compressed in (True, False):
                     print(f'transcription: {tx}  solve_segments: {solve_segs}  compressed: {compressed}')
                     with self.subTest(f'transcription: {tx}  solve_segments: {solve_segs}  '

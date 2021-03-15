@@ -9,7 +9,6 @@ from scipy import interpolate
 import openmdao
 import openmdao.api as om
 from openmdao.core.system import System
-from openmdao.utils.general_utils import warn_deprecation
 import dymos as dm
 
 from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
@@ -132,8 +131,7 @@ class Phase(om.Group):
             The path to the targets of the state variable in the ODE system.  If given
             this will override the value given by the @declare_state decorator on the ODE.
             In the future, if left _unspecified (the default), the phase variable will try to connect to an ODE input
-            of the same name. Currently _unspecified is the same as None, but a deprecation warning is issued.
-            Set targets to None to prevent this (the old default behavior).
+            of the same name. Set targets to None to prevent this.
         val :  ndarray
             The default value of the state at the state discretization nodes of the phase.
         fix_initial : bool(False)
@@ -206,8 +204,7 @@ class Phase(om.Group):
             The path to the targets of the state variable in the ODE system.  If given
             this will override the value given by the @declare_state decorator on the ODE.
             In the future, if left _unspecified (the default), the phase variable will try to connect to an ODE input
-            of the same name. Currently _unspecified is the same as None, but a deprecation warning is issued.
-            Set targets to None to prevent this (the old default behavior).
+            of the same name. Set targets to None to prevent this.
         val :  ndarray
             The default value of the state at the state discretization nodes of the phase.
         fix_initial : bool(False)
@@ -366,8 +363,7 @@ class Phase(om.Group):
         targets : Sequence of str or None
             Targets in the ODE to which this control is connected.
             In the future, if left _unspecified (the default), the phase control will try to connect to an ODE input
-            of the same name. Currently _unspecified is the same as None, but a deprecation warning is issued.
-            Set targets to None to prevent this (the old default behavior).
+            of the same name. Set targets to None to prevent this.
         rate_targets : Sequence of str or None
             The targets in the ODE to which the control rate is connected.
         rate2_targets : Sequence of str or None
@@ -463,8 +459,7 @@ class Phase(om.Group):
         targets : Sequence of str or None
             Targets in the ODE to which this control is connected.
             In the future, if left _unspecified (the default), the phase control will try to connect to an ODE input
-            of the same name. Currently _unspecified is the same as None, but a deprecation warning is issued.
-            Set targets to None to prevent this (the old default behavior).
+            of the same name. Set targets to None to prevent this.
         rate_targets : Sequence of str or None
             The targets in the ODE to which the control rate is connected.
         rate2_targets : Sequence of str or None
@@ -822,8 +817,7 @@ class Phase(om.Group):
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
             In the future, if left _unspecified (the default), the phase parameter will try to connect to an ODE input
-            of the same name. Currently _unspecified is the same as None, but a deprecation warning is issued.
-            Set targets to None to prevent this (the old default behavior).
+            of the same name. Set targets to None to prevent this.
         shape : Sequence of int
             The shape of the parameter.
         dynamic : bool
@@ -880,8 +874,7 @@ class Phase(om.Group):
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
             In the future, if left _unspecified (the default), the phase parameter will try to connect to an ODE input
-            of the same name. Currently _unspecified is the same as None, but a deprecation warning is issued.
-            Set targets to None to prevent this (the old default behavior).
+            of the same name. Set targets to None to prevent this.
         shape : Sequence of int
             The shape of the parameter.
         dynamic : bool
@@ -1644,7 +1637,7 @@ class Phase(om.Group):
         """
         if not isinstance(ys, Iterable):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
-        if nodes not in ('col', 'disc', 'all', 'state_disc', 'state_input', 'control_disc',
+        if nodes not in ('col', 'all', 'state_disc', 'state_input', 'control_disc',
                          'control_input', 'segment_ends'):
             raise ValueError("nodes must be one of 'col', 'all', 'state_disc', "
                              "'state_input', 'control_disc', 'control_input', or 'segment_ends'")

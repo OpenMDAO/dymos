@@ -245,7 +245,7 @@ class GaussLobatto(PseudospectralBase):
                 # f_computed to the parameter name instead of connecting to it.
                 shape = phase.parameter_options[rate_src]['shape']
                 param_size = np.prod(shape)
-                ndn = self.grid_data.subset_num_nodes['disc']
+                ndn = self.grid_data.subset_num_nodes['state_disc']
                 ncn = self.grid_data.subset_num_nodes['col']
                 src_idxs = np.tile(np.arange(0, param_size, dtype=int), ndn)
                 src_idxs = np.reshape(src_idxs, (ndn,) + shape)
@@ -314,7 +314,7 @@ class GaussLobatto(PseudospectralBase):
                     # f_computed to the parameter name instead of connecting to it.
                     shape = phase.parameter_options[rate_src]['shape']
                     param_size = np.prod(shape)
-                    ndn = self.grid_data.subset_num_nodes['disc']
+                    ndn = self.grid_data.subset_num_nodes['state_disc']
                     ncn = self.grid_data.subset_num_nodes['col']
                     src_idxs = np.tile(np.arange(0, param_size, dtype=int), ndn)
                     src_idxs = np.reshape(src_idxs, (ndn,) + shape)
