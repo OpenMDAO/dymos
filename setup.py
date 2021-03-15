@@ -10,7 +10,8 @@ optional_dependencies = {
         'mkdocs-macros-plugin',
         'mkdocs-bibtex',
         'numpydoc>=0.9.1',
-        'redbaron'
+        'redbaron',
+        'tabulate'
     ],
     'test': [
         'pep8',
