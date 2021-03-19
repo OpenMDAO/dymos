@@ -1,7 +1,6 @@
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.general_utils import warn_deprecation
 
 from ..options import options as dymos_options
 

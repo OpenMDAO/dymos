@@ -175,7 +175,7 @@ class StateInterpComp(om.ExplicitComponent):
                                   rows=Ad_rows, cols=Ad_cols)
 
     def _compute_radau(self, inputs, outputs):
-        num_disc_nodes = self.options['grid_data'].subset_num_nodes['disc']
+        num_disc_nodes = self.options['grid_data'].subset_num_nodes['state_disc']
         num_col_nodes = self.options['grid_data'].subset_num_nodes['col']
         state_options = self.options['state_options']
         dt_dstau = inputs['dt_dstau'][:, np.newaxis]
@@ -197,7 +197,7 @@ class StateInterpComp(om.ExplicitComponent):
 
         dt_dstau = inputs['dt_dstau'][:, np.newaxis]
 
-        num_disc_nodes = self.options['grid_data'].subset_num_nodes['disc']
+        num_disc_nodes = self.options['grid_data'].subset_num_nodes['state_disc']
         num_col_nodes = self.options['grid_data'].subset_num_nodes['col']
 
         Ai = self.matrices['Ai']
@@ -227,7 +227,7 @@ class StateInterpComp(om.ExplicitComponent):
     def _compute_partials_radau(self, inputs, partials):
         state_options = self.options['state_options']
 
-        ndn = self.options['grid_data'].subset_num_nodes['disc']
+        ndn = self.options['grid_data'].subset_num_nodes['state_disc']
 
         Ad = self.matrices['Ad']
 
@@ -250,7 +250,7 @@ class StateInterpComp(om.ExplicitComponent):
             partials[xdotc_name, xd_name] = self.jacs['Ad'][name].multiply(dstau_dt_x_size).data
 
     def _compute_partials_gauss_lobatto(self, inputs, partials):
-        ndn = self.options['grid_data'].subset_num_nodes['disc']
+        ndn = self.options['grid_data'].subset_num_nodes['state_disc']
 
         Ad = self.matrices['Ad']
         Bi = self.matrices['Bi']
