@@ -513,8 +513,9 @@ class Radau(PseudospectralBase):
                         if len(var_list) > 1:
                             var_list_as_string = ', '.join(var_list)
                             simple_warning(f"The timeseries variable name {output_name} is "
-                            f"duplicated in these variables: {var_list_as_string}. "
-                            "Disambiguate by using the add_timeseries_output output_name option.")
+                                           f"duplicated in these variables: {var_list_as_string}. "
+                                           "Disambiguate by using the add_timeseries_output "
+                                           "output_name option.")
                 else:
                     matches = [var]
 
