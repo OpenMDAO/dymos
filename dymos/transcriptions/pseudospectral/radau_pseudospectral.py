@@ -1,8 +1,10 @@
+from collections import defaultdict
 from fnmatch import filter
 import warnings
 
 import numpy as np
 import openmdao.api as om
+from openmdao.utils.general_utils import simple_warning
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import RadauPSContinuityComp
@@ -494,6 +496,26 @@ class Radau(PseudospectralBase):
                     ode_outputs = {opts['prom_name']: opts for (k, opts) in
                                    phase.rhs_all.get_io_metadata(iotypes=('output',)).items()}
                     matches = filter(list(ode_outputs.keys()), var)
+
+                    # A nested ODE can have multiple outputs at different levels that share
+                    #   the same name.
+                    # If the user does not use the output_name option to add_timeseries_output
+                    #   to disambiguate the variables with the same name, only one of the
+                    #   variables will be added. This code warns the user if that is happening.
+                    # Find the duplicate timeseries names by looking at the last part of the names.
+                    output_name_groups = defaultdict(list)
+                    for v in matches:
+                        output_name = v.split('.')[-1]
+                        output_name_groups[output_name].append(v)
+
+                    # If there are duplicates, warn the user
+                    for output_name, var_list in output_name_groups.items():
+                        if len(var_list) > 1:
+                            var_list_as_string = ', '.join(var_list)
+                            simple_warning(f"The timeseries variable name {output_name} is "
+                                           f"duplicated in these variables: {var_list_as_string}. "
+                                           "Disambiguate by using the add_timeseries_output "
+                                           "output_name option.")
                 else:
                     matches = [var]
 
