@@ -6,7 +6,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
-from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.utils.doc_utils import save_for_docs
@@ -224,7 +223,6 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         import dymos as dm
         from dymos.examples.plotting import plot_results
         from dymos.examples.brachistochrone import BrachistochroneODE
-        from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         #
         # Initialize the Problem and the optimization driver
@@ -312,7 +310,6 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         import dymos as dm
         from dymos.examples.plotting import plot_results
         from dymos.examples.brachistochrone import BrachistochroneODE
-        from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         #
         # Initialize the Problem and the optimization driver
