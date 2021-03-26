@@ -4,13 +4,12 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.mpi import MPI
-_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
-from openmdao.utils.testing_utils import use_tempdirs
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=False,
@@ -266,10 +265,10 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     return p
 
 
+@require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
-    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_ex_two_burn_orbit_raise(self):
         optimizer = 'IPOPT'
 
@@ -283,10 +282,10 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
 
 # This test is separate because connected phases aren't directly parallelizable.
+@require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
-    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_ex_two_burn_orbit_raise_connected(self):
         optimizer = 'IPOPT'
 
@@ -299,12 +298,12 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
                               tolerance=4.0E-3)
 
 
+@require_pyoptsparse(optimizer='IPOPT')
 @unittest.skipUnless(MPI, "MPI is required.")
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseMPI(unittest.TestCase):
     N_PROCS = 3
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_ex_two_burn_orbit_raise(self):
         optimizer = 'IPOPT'
 

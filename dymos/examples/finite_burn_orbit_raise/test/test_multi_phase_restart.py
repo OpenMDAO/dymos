@@ -4,13 +4,11 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.general_utils import set_pyoptsparse_opt
-_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
-from openmdao.utils.testing_utils import use_tempdirs
-from dymos.utils.testing_utils import assert_cases_equal
+from dymos.utils.testing_utils import assert_cases_equal, require_pyoptsparse
 
 
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=False,
@@ -269,10 +267,10 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     return p
 
 
+@require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseRestart(unittest.TestCase):
 
-    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_restart_from_solution_gl(self):
         optimizer = 'IPOPT'
 
@@ -299,7 +297,6 @@ class TestExampleTwoBurnOrbitRaiseRestart(unittest.TestCase):
         assert_cases_equal(case1, case2)
         assert_cases_equal(sim_case1, sim_case2)
 
-    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_restart_from_solution_radau(self):
         optimizer = 'IPOPT'
 
@@ -327,10 +324,10 @@ class TestExampleTwoBurnOrbitRaiseRestart(unittest.TestCase):
 
 
 # This test is separate because connected phases aren't directly parallelizable.
+@require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
-    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_ex_two_burn_orbit_raise_connected(self):
         optimizer = 'IPOPT'
 
@@ -358,7 +355,6 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
         assert_cases_equal(case1, case2)
         assert_cases_equal(sim_case1, sim_case2)
 
-    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_restart_from_solution_radau_to_connected(self):
         optimizer = 'IPOPT'
 

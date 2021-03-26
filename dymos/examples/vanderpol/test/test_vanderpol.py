@@ -4,11 +4,10 @@ import numpy as np
 
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.mpi import MPI
-from openmdao.utils.general_utils import set_pyoptsparse_opt
-_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
 import dymos as dm
 from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 @use_tempdirs
@@ -47,7 +46,8 @@ class TestVanderpolExampleMPI(unittest.TestCase):
 
     N_PROCS = 4
 
-    @unittest.skipUnless(MPI and optimizer == 'IPOPT', 'this test requires MPI and IPOPT')
+    @require_pyoptsparse(optimizer='IPOPT')
+    @unittest.skipUnless(MPI, 'this test requires MPI')
     def test_vanderpol_optimal_mpi(self):
         """to test with MPI:
            OPENMDAO_REQUIRE_MPI=1 mpirun -n 4 python

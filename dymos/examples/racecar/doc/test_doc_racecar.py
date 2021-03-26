@@ -1,12 +1,15 @@
 import unittest
 
-from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs
+
+from dymos.utils.doc_utils import save_for_docs
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 @use_tempdirs
 class TestRaceCarForDocs(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='IPOPT')
     @save_for_docs
     def test_racecar_for_docs(self):
         import numpy as np
