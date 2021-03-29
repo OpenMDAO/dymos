@@ -186,7 +186,7 @@ Gradient-free methods could potentially be used in certain narrow circumstances 
 ## Statement of Need
 
 When dealing with the design of complex systems that include transient behavior, co-design becomes critical [@garciasans2019].
-Broadly there are two approaches: sequential co-design or coupled co-design [@allison2004complex].
+Broadly there are two approaches: sequential co-design or coupled co-design [@Fathy2001;  @Peters2009].
 The best choice depends on the degree of interaction, or coupling, between various sub-systems. 
 If the coupling is strong a coupled co-design approach is necessary to achieve the best performance.
 
@@ -338,7 +338,7 @@ The more traditional way to view the brachistochrone solution is to view the act
 ## Coupled co-design example: Designing a cannonball
 
 This co-design example seeks to find the best size cannonball to maximize range, considering aerodynamic drag subject to a limit on initial kinetic energy. 
-Given the same kinetic energ, a lighter ball will go faster, and hence farther, if aerodynamic drag is ignored. 
+Given the same kinetic energy, a lighter ball will go faster, and hence farther, if aerodynamic drag is ignored. 
 Heavier cannonballs will have more inertia to counteract drag.
 There is a balance between these two effects, which the optimizer seeks to find.
 
