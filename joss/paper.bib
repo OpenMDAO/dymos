@@ -165,14 +165,14 @@ year = {2018}
  FJOURNAL = {SIAM Review. A Publication of the Society for Industrial and Applied Mathematics},
  PAGES = {99--131},
  VOLUME = {47},
- YEAR = {2005}
+ YEAR = {2005}, 
+ doi = {10.1137/S0036144504446096}
 }
 
 @article{wachter2006,
 author = {W\"{a}chter, Andreas and Biegler, Lorenz T.},
 title = {On the Implementation of an Interior-Point Filter Line-Search Algorithm for Large-Scale Nonlinear Programming},
 year = {2006},
-issue_date = {March     2006},
 publisher = {Springer-Verlag},
 address = {Berlin, Heidelberg},
 volume = {106},
@@ -182,7 +182,7 @@ journal = {Math. Program.},
 month = mar,
 pages = {25–57},
 numpages = {33},
-keywords = {49M37, Line search, Nonlinear programming, 90C30, Barrier method, 65K05, 90C51, Interior-point method, Filter method, Nonconvex constrained optimization}
+doi={10.1007/s10107-004-0559-y}
 }
 
 @article{2020SciPy-NMeth,
@@ -218,6 +218,7 @@ keywords = {49M37, Line search, Nonlinear programming, 90C30, Barrier method, 65
   volume={11},
   pages={1--36},
   Year = {2019},
+  doi ={10.1007/s12532-018-0139-4}
 }
 
 @article{Patterson2014GPOPSII,
@@ -298,7 +299,8 @@ eprint = {
   volume={12},
   number={1},
   pages={321--398},
-  year={2003}
+  year={2003}, 
+  doi={10.1017/S0962492902000132}
 }
 
 @article{martins2005coupled,
@@ -319,7 +321,8 @@ eprint = {
   volume={46},
   number={4},
   pages={863--873},
-  year={2008}
+  year={2008}, 
+  doi={doi:10.2514/1.29123}
 }
 
 @article{kenway2019effective,
@@ -329,7 +332,8 @@ eprint = {
   volume={110},
   pages={100542},
   year={2019},
-  publisher={Elsevier}
+  publisher={Elsevier}, 
+  doi={10.1016/j.paerosci.2019.05.002}
 }
 
 @article{garciasans2019,
@@ -352,7 +356,30 @@ year = {2019}
   title={Complex system optimization: A review of analytical target cascading, collaborative optimization, and other formulations},
   author={Allison, J},
   year={2004},
-  publisher={A master’s thesis submitted in partial fulfillment of the requirements for~…}
+  publisher={University of Michigan, Masters Thesis}
+}
+
+@inproceedings{Fathy2001,
+  author={H. K. {Fathy} and J. A. {Reyer} and P. Y. {Papalambros} and A. G. {Ulsov}},
+  booktitle={Proceedings of the 2001 American Control Conference. (Cat. No.01CH37148)}, 
+  title={On the coupling between the plant and controller optimization problems}, 
+  year={2001},
+  volume={3},
+  number={},
+  pages={1864-1869 vol.3},
+  doi={10.1109/ACC.2001.946008}
+}
+
+
+@proceedings{Peters2009,
+  author = {Peters, Diane L. and Papalambros, Panos Y. and Ulsoy, A. Galip},
+  title = "{On Measures of Coupling Between the Artifact and Controller Optimal Design Problems}",
+  volume = {Volume 2: 29th Computers and Information in Engineering Conference, Parts A and B},
+  series = {International Design Engineering Technical Conferences and Computers and Information in Engineering Conference},
+  pages = {1363-1372},
+  year = {2009},
+  month = {08},
+  doi={10.1115/DETC2009-86868}
 }
 
 @article {hwang2018b,
@@ -367,9 +394,7 @@ number = {4},
 issn = {0098-3500},
 url = {https://doi.org/10.1145/3182393},
 doi = {10.1145/3182393},
-abstract = {One of the challenges in computational modeling is coupling models to solve multidisciplinary problems. Flow-based computational frameworks alleviate part of the challenge through a modular approach, where data flows from component to component. However, existing flow-based frameworks are inefficient when coupled derivatives are needed for optimization. To address this, we develop the modular analysis and unified derivatives (MAUD) architecture. MAUD formulates the multidisciplinary model as a nonlinear system of equations, which leads to a linear equation that unifies all methods for computing derivatives. This enables flow-based frameworks that use the MAUD architecture to provide a common interface for the chain rule, adjoint method, coupled adjoint method, and hybrid methods; MAUD automatically uses the appropriate method for the problem. A hierarchical, matrix-free approach enables modern solution techniques such as Newton--Krylov solvers to be used within this monolithic formulation without computational overhead. Two demonstration problems are solved using a Python implementation of MAUD: a nanosatellite optimization with more than 2 million unknowns and 25,000 design variables, and an aircraft optimization involving over 6,000 design variables and 23,000 constraints. MAUD is now implemented in the open source framework OpenMDAO, which has been used to solve aircraft, satellite, wind turbine, and turbofan engine design problems.},
-journal = {ACM Trans. Math. Softw.},
-month = jun,
+month = {June},
 articleno = {37},
 numpages = {39},
 keywords = {engineering design, adjoint methods, high-performance computing, Parallel computing, complex systems, Python, multiphysics simulation, PDE-constrained optimization, optimization, multidisciplinary design optimization, derivative computation}
