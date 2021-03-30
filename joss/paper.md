@@ -8,10 +8,10 @@ tags:
   - multidisciplinary optimization
   - NASA
 authors:
-  - name: Rob Falck
+  - name: Robert Falck
     orcid: 0000-0001-9864-4928
     affiliation: 1
-  - name: Justin Gray
+  - name: Justin S. Gray
     orcid: 0000-0002-7506-7360
     affiliation: 1
   - name: Kaushik Ponnapalli
