@@ -12,6 +12,7 @@ authors:
     orcid: 0000-0001-9864-4928
     affiliation: 1
   - name: Justin Gray
+    orcid: 0000-0002-7506-7360
     affiliation: 1
   - name: Kaushik Ponnapalli
     affiliation: 2
@@ -22,7 +23,7 @@ affiliations:
     index: 1
   - name: HX5 LLC
     index: 2
-date: 26 June 2020
+date: 23 March 2021
 bibliography: paper.bib
 ---
 
