@@ -28,7 +28,7 @@ More advanced installation instructions are available [here](https://openmdao.gi
 Citation
 --------
 
-You can see our [overview paper](https://joss.theoj.org/papers/10.21105/joss.02809) in the Journal of Open Source Software
+See our [overview paper](https://joss.theoj.org/papers/10.21105/joss.02809) in the Journal of Open Source Software
 
 If you use Dymos in your work, please cite: 
 ```
