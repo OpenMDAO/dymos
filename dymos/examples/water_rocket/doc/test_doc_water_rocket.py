@@ -1,21 +1,22 @@
 import unittest
 from collections import namedtuple
 
+import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.examples.water_rocket.phases import (new_water_rocket_trajectory,
                                                 set_sane_initial_guesses)
 
 from dymos.utils.doc_utils import save_for_docs
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
+@require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
 class TestWaterRocketForDocs(unittest.TestCase):
 
@@ -26,7 +27,6 @@ class TestWaterRocketForDocs(unittest.TestCase):
         traj, phases = new_water_rocket_trajectory(objective='height')
         traj = p.model.add_subsystem('traj', traj)
 
-        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=False)
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
         p.driver.opt_settings['print_level'] = 4
         p.driver.opt_settings['max_iter'] = 1000
@@ -69,7 +69,6 @@ class TestWaterRocketForDocs(unittest.TestCase):
         traj, phases = new_water_rocket_trajectory(objective='range')
         traj = p.model.add_subsystem('traj', traj)
 
-        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=False)
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
         p.driver.opt_settings['print_level'] = 4
         p.driver.opt_settings['max_iter'] = 1000

@@ -7,11 +7,13 @@ from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 @use_tempdirs
 class TestPhaseParameterPromotion(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='SNOPT')
     def test_promotes_parameter(self):
         transcription = 'radau-ps'
         optimizer = 'SNOPT'

@@ -3,17 +3,19 @@ from __future__ import print_function, division, absolute_import
 import os
 import unittest
 import warnings
+
+import numpy as np
+
 from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import printoptions
 from openmdao.utils.testing_utils import use_tempdirs
+
+import dymos as dm
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
-import numpy as np
-import dymos as dm
+from dymos.utils.testing_utils import require_pyoptsparse
 
-from openmdao.utils.general_utils import set_pyoptsparse_opt
-_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
 tf = np.float128(10)
 
@@ -89,7 +91,7 @@ class TestHyperSensitive(unittest.TestCase):
         with printoptions(linewidth=1024, edgeitems=100):
             cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
 
-    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_hyper_sensitive_radau(self):
         p = self.make_problem(transcription=Radau, optimizer='IPOPT')
         dm.run_problem(p, refine_iteration_limit=5)
@@ -107,7 +109,7 @@ class TestHyperSensitive(unittest.TestCase):
                           J,
                           tolerance=1e-6)
 
-    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_hyper_sensitive_gauss_lobatto(self):
         p = self.make_problem(transcription=GaussLobatto, optimizer='IPOPT')
         dm.run_problem(p, refine_iteration_limit=5)
@@ -126,7 +128,7 @@ class TestHyperSensitive(unittest.TestCase):
                           J,
                           tolerance=1e-4)
 
-    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_refinement_warning(self):
         p = self.make_problem(transcription=Radau, optimizer='IPOPT')
 

@@ -2,14 +2,18 @@ from __future__ import print_function, division, absolute_import
 
 import os
 import unittest
+
+import numpy as np
+
 from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
+from openmdao.utils.general_utils import printoptions
 from openmdao.utils.testing_utils import use_tempdirs
+
+import dymos as dm
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.robot_arm.robot_arm_ode import RobotArmODE
-import numpy as np
-import dymos as dm
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 @use_tempdirs
@@ -24,12 +28,11 @@ class TestRobotArm(unittest.TestCase):
         p = Problem(model=Group())
         p.driver = pyOptSparseDriver()
         p.driver.declare_coloring(tol=1.0E-12)
-        OPT, OPTIMIZER = set_pyoptsparse_opt(optimizer, fallback=False)
-        p.driver.options['optimizer'] = OPTIMIZER
-        if OPTIMIZER == 'SNOPT':
+        p.driver.options['optimizer'] = optimizer
+        if optimizer == 'SNOPT':
             p.driver.opt_settings['iSumm'] = 6
             p.driver.opt_settings['Verify level'] = 3
-        elif OPTIMIZER == 'IPOPT':
+        elif optimizer == 'IPOPT':
             p.driver.opt_settings['max_iter'] = 500
             p.driver.opt_settings['print_level'] = 4
             p.driver.opt_settings['tol'] = 1.0E-6
@@ -81,6 +84,7 @@ class TestRobotArm(unittest.TestCase):
         with printoptions(linewidth=1024, edgeitems=100):
             cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_robot_arm_radau(self):
         p = self.make_problem(transcription=Radau, optimizer='IPOPT', numseg=12)
         dm.run_problem(p, refine_iteration_limit=5)
@@ -88,6 +92,7 @@ class TestRobotArm(unittest.TestCase):
         t = p.get_val('traj.phase.timeseries.time')
         assert_near_equal(t[-1], 9.14138, tolerance=1e-3)
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_robot_arm_gl(self):
         p = self.make_problem(transcription=GaussLobatto, optimizer='IPOPT', numseg=12)
         dm.run_problem(p, refine_iteration_limit=3)

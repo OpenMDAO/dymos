@@ -1,14 +1,14 @@
 import unittest
 
 import numpy as np
+
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.assert_utils import assert_near_equal
+
 import dymos as dm
 from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
-
-from openmdao.utils.general_utils import set_pyoptsparse_opt
-_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 @use_tempdirs
@@ -218,6 +218,7 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
 
         return p
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_restart_from_sol(self):
         p = self._make_problem()
         dm.run_problem(p, run_driver=True, simulate=False)
@@ -237,6 +238,7 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         assert_near_equal(sol_results.get_val('traj.rto.timeseries.states:r')[-1], 2016, tolerance=0.01)
         assert_near_equal(sim_results.get_val('traj.rto.timeseries.states:r')[-1], 2016, tolerance=0.01)
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_restart_from_sim(self):
         p = self._make_problem()
         dm.run_problem(p, run_driver=True, simulate=True)

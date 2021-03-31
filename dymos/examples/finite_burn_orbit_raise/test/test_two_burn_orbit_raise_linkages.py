@@ -2,20 +2,19 @@ import unittest
 import warnings
 
 from openmdao.utils.testing_utils import use_tempdirs
-from openmdao.utils.general_utils import set_pyoptsparse_opt
-_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+
+from dymos.utils.testing_utils import require_pyoptsparse
 
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
 
 
-@unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
+@require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
 class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
     def test_two_burn_orbit_raise_gl_radau_gl_changing_units_error(self):
         import openmdao.api as om
-        from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         import dymos as dm
         from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
@@ -25,8 +24,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver()
-        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
-        p.driver.options['optimizer'] = optimizer
+        p.driver.options['optimizer'] = 'IPOPT'
 
         p.driver.declare_coloring()
 
@@ -138,7 +136,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
-        from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         import dymos as dm
         from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
@@ -148,8 +145,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver()
-        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
-        p.driver.options['optimizer'] = optimizer
+        p.driver.options['optimizer'] = 'IPOPT'
 
         p.driver.declare_coloring()
 
@@ -377,7 +373,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
-        from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         import dymos as dm
         from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
@@ -387,8 +382,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver()
-        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=False)
-        p.driver.options['optimizer'] = optimizer
+        p.driver.options['optimizer'] = 'IPOPT'
         p.driver.opt_settings['max_iter'] = 500
         p.driver.opt_settings['print_level'] = 4
 
@@ -631,7 +625,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
-        from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         import dymos as dm
         from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
@@ -641,8 +634,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver()
-        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
-        p.driver.options['optimizer'] = optimizer
+        p.driver.options['optimizer'] = 'IPOPT'
 
         p.driver.declare_coloring()
 
@@ -810,7 +802,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
-        from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         import dymos as dm
         from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
@@ -820,8 +811,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver()
-        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
-        p.driver.options['optimizer'] = optimizer
+        p.driver.options['optimizer'] = 'IPOPT'
 
         p.driver.declare_coloring()
 
@@ -995,7 +985,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
-        from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         import dymos as dm
         from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
@@ -1005,8 +994,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver()
-        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
-        p.driver.options['optimizer'] = optimizer
+        p.driver.options['optimizer'] = 'IPOPT'
 
         p.driver.declare_coloring()
 

@@ -8,9 +8,11 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
-from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.coloring import Coloring
+
+from dymos.utils.doc_utils import save_for_docs
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 def _view_coloring(coloring_file, show_sparsity_text=False, show_sparsity=True,
@@ -45,6 +47,7 @@ def _view_coloring(coloring_file, show_sparsity_text=False, show_sparsity=True,
 @use_tempdirs
 class TestMinTimeClimbForDocs(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='IPOPT')
     @save_for_docs
     def test_min_time_climb_for_docs_partial_coloring(self):
         import openmdao.api as om

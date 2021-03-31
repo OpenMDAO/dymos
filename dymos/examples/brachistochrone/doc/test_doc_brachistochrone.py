@@ -6,11 +6,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
-from openmdao.utils.general_utils import set_pyoptsparse_opt
-_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
-
 from openmdao.utils.testing_utils import use_tempdirs
+
 from dymos.utils.doc_utils import save_for_docs
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 @use_tempdirs
@@ -217,21 +216,19 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
         plt.show()
 
-    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_brachistochrone_for_docs_coloring_demo(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.plotting import plot_results
         from dymos.examples.brachistochrone import BrachistochroneODE
-        from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         #
         # Initialize the Problem and the optimization driver
         #
         p = om.Problem(model=om.Group())
-        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
-        p.driver = om.pyOptSparseDriver(optimizer=optimizer)
+        p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
         p.driver.declare_coloring(tol=1.0E-12)
 
         #
@@ -306,21 +303,19 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
         plt.show()
 
-    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_brachistochrone_for_docs_coloring_demo_solve_segments(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.plotting import plot_results
         from dymos.examples.brachistochrone import BrachistochroneODE
-        from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         #
         # Initialize the Problem and the optimization driver
         #
         p = om.Problem(model=om.Group())
-        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
-        p.driver = om.pyOptSparseDriver(optimizer=optimizer)
+        p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
         p.driver.opt_settings['print_level'] = 4
         # p.driver.declare_coloring()
 

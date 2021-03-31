@@ -2,7 +2,6 @@ import os
 import unittest
 
 import openmdao.api as om
-from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
 
@@ -15,7 +14,6 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
                               use_boundary_constraints=False, compressed=False):
     p = om.Problem(model=om.Group())
     p.driver = om.pyOptSparseDriver()
-    _, optimizer = set_pyoptsparse_opt(optimizer, fallback=False)
     p.driver.options['optimizer'] = optimizer
     p.driver.declare_coloring()
     if optimizer == 'SNOPT':

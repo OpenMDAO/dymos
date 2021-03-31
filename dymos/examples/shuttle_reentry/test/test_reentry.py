@@ -1,13 +1,14 @@
 import unittest
-import openmdao.api as om
 
+import numpy as np
+
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 from openmdao.utils.testing_utils import use_tempdirs
 
-from openmdao.utils.general_utils import set_pyoptsparse_opt
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.shuttle_reentry.shuttle_ode import ShuttleODE
-import numpy as np
+from dymos.utils.testing_utils import require_pyoptsparse
 
 # Expected results from Betts
 expected_results = {'constrained': {'time': 2198.67, 'theta': 30.6255},
@@ -22,8 +23,7 @@ class TestReentry(unittest.TestCase):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
-        OPT, OPTIMIZER = set_pyoptsparse_opt(optimizer, fallback=False)
-        p.driver.options['optimizer'] = OPTIMIZER
+        p.driver.options['optimizer'] = optimizer
 
         traj = p.model.add_subsystem('traj', Trajectory())
         phase0 = traj.add_phase('phase0',
@@ -88,6 +88,7 @@ class TestReentry(unittest.TestCase):
         cpd = p.check_partials(method='cs', compact_print=True, out_stream=None)
         assert_check_partials(cpd, atol=1.0E-4, rtol=1.1)
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_constrained_radau(self):
         p = self.make_problem(constrained=True, transcription=Radau, optimizer='IPOPT')
         p.run_driver()
@@ -99,6 +100,7 @@ class TestReentry(unittest.TestCase):
                           expected_results['constrained']['theta'],
                           tolerance=1e-2)
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_constrained_gauss_lobatto(self):
         p = self.make_problem(constrained=True, transcription=GaussLobatto, optimizer='IPOPT')
         p.run_driver()
@@ -110,6 +112,7 @@ class TestReentry(unittest.TestCase):
                           expected_results['constrained']['theta'],
                           tolerance=1e-2)
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_unconstrained_radau(self):
         p = self.make_problem(constrained=False, transcription=Radau, optimizer='IPOPT')
         p.run_driver()
@@ -121,6 +124,7 @@ class TestReentry(unittest.TestCase):
                           expected_results['unconstrained']['theta'],
                           tolerance=1e-2)
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_unconstrained_gauss_lobatto(self):
         p = self.make_problem(constrained=False, transcription=GaussLobatto, optimizer='IPOPT')
         p.run_driver()
@@ -132,13 +136,13 @@ class TestReentry(unittest.TestCase):
                           expected_results['unconstrained']['theta'],
                           tolerance=1e-2)
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_mixed_controls(self):
 
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
-        OPT, OPTIMIZER = set_pyoptsparse_opt('IPOPT', fallback=False)
-        p.driver.options['optimizer'] = OPTIMIZER
+        p.driver.options['optimizer'] = 'IPOPT'
 
         traj = p.model.add_subsystem('traj', Trajectory())
         phase0 = traj.add_phase('phase0',

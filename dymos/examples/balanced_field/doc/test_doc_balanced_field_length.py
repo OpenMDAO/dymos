@@ -1,11 +1,15 @@
 import unittest
+
 from openmdao.utils.testing_utils import use_tempdirs
+
 from dymos.utils.doc_utils import save_for_docs
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 @use_tempdirs
 class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='IPOPT')
     @save_for_docs
     def test_balanced_field_length_for_docs(self):
         import matplotlib.pyplot as plt
