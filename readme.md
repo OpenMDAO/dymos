@@ -3,6 +3,9 @@ Dymos:  Open Source Optimization of Dynamic Multidisciplinary Systems
 
 [![Build Status](https://travis-ci.com/OpenMDAO/dymos.svg?token=tUBGTjUY1qBbh4Htx3Sr&branch=master)](https://travis-ci.com/OpenMDAO/dymos) [![Coverage Status](https://coveralls.io/repos/github/OpenMDAO/dymos/badge.svg?branch=master&t=dJxu2Q)](https://coveralls.io/github/OpenMDAO/dymos?branch=master)
 
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.02809/status.svg)](https://doi.org/10.21105/joss.02809)
+
+
 
 Dymos is a framework for the simulation and optimization of dynamical systems within the OpenMDAO Multidisciplinary Analysis and Optimization environment.
 Dymos leverages implicit and explicit simulation techniques to simulate generic dynamic systems of arbitary complexity.
@@ -21,6 +24,29 @@ python -m pip install dymos
 ```
 
 More advanced installation instructions are available [here](https://openmdao.github.io/dymos/installation.html).
+
+Citation
+--------
+
+You can see our [overview paper](https://joss.theoj.org/papers/10.21105/joss.02809) in the Journal of Open Source Software
+
+If you use Dymos in your work, please cite: 
+```
+@article{Falck2021,
+  doi = {10.21105/joss.02809},
+  url = {https://doi.org/10.21105/joss.02809},
+  year = {2021},
+  publisher = {The Open Journal},
+  volume = {6},
+  number = {59},
+  pages = {2809},
+  author = {Robert Falck and Justin S. Gray and Kaushik Ponnapalli and Ted Wright},
+  title = {dymos: A Python package for optimal control of multidisciplinary systems},
+  journal = {Journal of Open Source Software}
+}
+```
+
+
 
 Documentation
 -------------
