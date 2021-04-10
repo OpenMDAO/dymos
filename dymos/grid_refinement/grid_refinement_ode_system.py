@@ -189,10 +189,17 @@ class GridRefinementODESystem(om.Group):
 
         # Configure the parameters
         for name, options in self.options['parameters'].items():
+            dynamic = options['dynamic']
+            shape = options['shape']
+            prom_name = f'parameters:{name}'
             targets = get_targets(self.ode, name, options['targets'])
             for tgt in targets:
-                self.promotes('ode', inputs=[(tgt, f'parameters:{name}')])
+                if dynamic:
+                    self.promotes('ode', inputs=[(tgt, prom_name)],
+                                  src_indices=om.slicer[np.zeros(num_nodes, dtype=int), ...])
+                else:
+                    self.promotes('ode', inputs=[(tgt, prom_name)])
             if targets:
-                self.set_input_defaults(name=f'parameters:{name}',
-                                        val=np.ones(num_nodes),
+                self.set_input_defaults(name=prom_name,
+                                        src_shape=shape,
                                         units=options['units'])
