@@ -124,6 +124,8 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase.add_timeseries_output(['aero.*', 'prop.thrust', 'prop.m_dot'],
                                 units={'aero.f_lift': 'lbf', 'prop.thrust': 'lbf'})
 
+    phase.set_refine_options(max_order=5)
+
     p.model.linear_solver = om.DirectSolver()
 
     p.setup(check=True, force_alloc_complex=force_alloc_complex)
@@ -138,7 +140,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p['traj.phase0.states:m'] = phase.interpolate(ys=[19030.468, 16841.431], nodes='state_input')
     p['traj.phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_input')
 
-    dm.run_problem(p, refine_iteration_limit=2)
+    dm.run_problem(p, refine_iteration_limit=1)
 
     return p
 
@@ -147,7 +149,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 class TestRefineShapedStaticParam(unittest.TestCase):
 
     def test_refine_shaped_static_param_gl(self):
-        p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
+        p = min_time_climb(optimizer='SLSQP', num_seg=8, transcription_order=3,
                            transcription='gauss-lobatto')
 
         # Check that time matches to within 1% of an externally verified solution.
@@ -157,7 +159,7 @@ class TestRefineShapedStaticParam(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
 
     def test_refine_shaped_static_param_radau(self):
-        p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
+        p = min_time_climb(optimizer='SLSQP', num_seg=8, transcription_order=3,
                            transcription='radau-ps')
 
         # Check that time matches to within 1% of an externally verified solution.
