@@ -214,9 +214,7 @@ def eval_ode_on_grid(phase, transcription):
     for name, options in phase.parameter_options.items():
         targets = get_targets(ode, name, options['targets'])
         # The value of the parameter at one node
-        d = phase.get_val(f'timeseries.parameters:{name}', units=options['units'])[0, ...]
-        # Duplicate along the first axis by the number of nodes in the new transcription
-        param[name] = np.atleast_2d(np.repeat(d, repeats=transcription.grid_data.num_nodes, axis=0))
+        param[name] = phase.get_val(f'timeseries.parameters:{name}', units=options['units'])[0, ...]
         if targets:
             p_refine.set_val(f'parameters:{name}', param[name], units=options['units'])
 
@@ -265,7 +263,9 @@ def eval_ode_on_grid(phase, transcription):
             f[name] = om.convert_units(p_rate2[rate_source], src_units, rate_units)
         elif rate_source_class in {'parameter'}:
             src_units = phase.parameter_options[rate_source]['units']
+            shape = phase.parameter_options[rate_source]['shape']
             f[name] = om.convert_units(param[rate_source], src_units, rate_units)
+            f[name] = np.broadcast_to(f[name], shape + (grid_data.num_nodes,))
         elif rate_source_class in {'ode'}:
             f[name] = np.atleast_2d(p_refine.get_val(f'ode.{rate_source}', units=rate_units))
 

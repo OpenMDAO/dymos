@@ -380,7 +380,7 @@ class TranscriptionBase(object):
             ode = phase._get_subsystem(self._rhs_source)
 
             for name, options in phase.parameter_options.items():
-                src_name = 'parameters:{0}'.format(name)
+                prom_name = f'parameters:{name}'
 
                 # Get units and shape from targets when needed.
                 shape, units = get_target_metadata(ode, name=name,
@@ -391,7 +391,6 @@ class TranscriptionBase(object):
                 options['units'] = units
                 options['shape'] = shape
 
-                prom_name = 'parameters:{0}'.format(name)
                 for tgts, src_idxs in self.get_parameter_connections(name, phase):
                     for pathname in tgts:
                         parts = pathname.split('.')
@@ -406,7 +405,7 @@ class TranscriptionBase(object):
                 val = options['val']
                 _shape = options['shape']
                 shaped_val = np.broadcast_to(val, _shape)
-                phase.set_input_defaults(name=src_name,
+                phase.set_input_defaults(name=prom_name,
                                          val=shaped_val,
                                          units=options['units'])
 
