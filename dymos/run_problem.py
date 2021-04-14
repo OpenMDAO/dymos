@@ -54,7 +54,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     plot_dir : str
         Path to directory for plot files.
     plot_display_vars : list of tuple of (str, list, list)
-        The list of the names of variables to plotted and displayed along with their axis limits
+        The list of the names of variables to plotted and displayed along with their axis limits.
     """
     if restart is not None:
         case = om.CaseReader(restart).get_case('final')
