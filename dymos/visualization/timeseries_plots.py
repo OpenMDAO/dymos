@@ -50,13 +50,59 @@ def _get_phases_node_in_problem_metadata(node, path=""):
     return None, None
 
 
+def _mpl_plot_axes(iphase, phases_node_path, time_val, time_name, var_val, var_name_full,
+                   last_simulation_case, ax):
+    # use a colormap with 20 values
+    cm = plt.cm.get_cmap('tab20')
+    color = cm.colors[iphase % 20]
+
+    ax.plot(time_val, var_val, marker='o', linestyle='None', label='solution', color=color)
+
+    # get simulation values, if plotting simulation
+    if last_simulation_case:
+        # if the phases_node_path is empty, need to pre-pend names with "sim_traj."
+        #   as that is pre-pended in Trajectory.simulate code
+        sim_prefix = "" if phases_node_path else "sim_traj."
+        var_val_simulate = last_simulation_case.outputs[sim_prefix + var_name_full]
+        time_val_simulate = last_simulation_case.outputs[sim_prefix + time_name]
+        ax.plot(time_val_simulate, var_val_simulate, linestyle='--', label='simulation',
+                color=color)
+
+
+def _mpl_legends(phase_names, last_simulation_case, fig):
+    # use a colormap with 20 values
+    cm = plt.cm.get_cmap('tab20')
+    # Create two legends
+    #   Solution/Simulation legend
+    solution_line = mlines.Line2D([], [], color='black', marker='o', linestyle='None',
+                                  label='Solution')
+    if last_simulation_case:
+        simulation_line = mlines.Line2D([], [], color='black', linestyle='--',
+                                        label='Simulation')
+        sol_sim_legend = fig.legend(handles=[solution_line, simulation_line],
+                                    loc='upper left', bbox_to_anchor=(-0.3, -0.12), shadow=True)
+    else:
+        sol_sim_legend = fig.legend(handles=[solution_line],
+                                    loc='upper left', bbox_to_anchor=(-0.3, -0.12),
+                                    shadow=True)
+    fig.gca().add_artist(sol_sim_legend)
+
+    #   Phases legend
+    handles = []
+    for iphase, phase_name in enumerate(phase_names):
+        patch = mpatches.Patch(color=cm.colors[iphase], label=phase_name)
+        handles.append(patch)
+    fig.legend(handles=handles, loc='upper right', ncol=len(phase_names), shadow=True,
+               bbox_to_anchor=(1.15, -0.12), title='Phases')
+
+    fig.subplots_adjust(bottom=0.23, top=0.9, left=0.2)
+
+
 def _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
-                          last_solution_case, last_simulation_case, plot_dir_path):
+                          last_solution_case, last_simulation_case, plot_dir_path, plot_display_vars=None):
     # get ready to plot
     backend_save = plt.get_backend()
     plt.switch_backend('Agg')
-    # use a colormap with 20 values
-    cm = plt.cm.get_cmap('tab20')
 
     for ivar, var_name in enumerate(varnames):
         # start a new plot
@@ -89,20 +135,11 @@ def _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_n
             time_val = last_solution_case.outputs[time_name]
 
             # Plot the data
-            color = cm.colors[iphase % 20]
+            _mpl_plot_axes(iphase, phases_node_path, time_val, time_name, var_val, var_name_full,
+                           last_simulation_case, ax)
 
-            ax.plot(time_val, var_val, marker='o', linestyle='None', label='solution', color=color)
-
-            # get simulation values, if plotting simulation
-            if last_simulation_case:
-                # if the phases_node_path is empty, need to pre-pend names with "sim_traj."
-                #   as that is pre-pended in Trajectory.simulate code
-                sim_prefix = "" if phases_node_path else "sim_traj."
-                var_val_simulate = last_simulation_case.outputs[sim_prefix + var_name_full]
-                time_val_simulate = last_simulation_case.outputs[sim_prefix + time_name]
-                ax.plot(time_val_simulate, var_val_simulate, linestyle='--', label='simulation',
-                        color=color)
-
+        # use a colormap with 20 values
+        cm = plt.cm.get_cmap('tab20')
         # Create two legends
         #   Solution/Simulation legend
         solution_line = mlines.Line2D([], [], color='black', marker='o', linestyle='None',
@@ -131,8 +168,77 @@ def _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_n
         # save to file
         plot_file_path = os.path.join(plot_dir_path, f'{var_name.replace(":","_")}.png')
         plt.savefig(plot_file_path)
+        plt.close()
 
     plt.switch_backend(backend_save)
+
+    if plot_display_vars is None:
+        return
+    num_display_vars = len(plot_display_vars)
+    display_fig, display_ax = plt.subplots(nrows=num_display_vars, ncols=1)
+
+    for ivar, (var_name, x_lim, y_lim) in enumerate(plot_display_vars):
+
+        # Get the labels
+        time_label = f'time ({time_units[var_name]})'
+        var_label = f'{var_name} ({var_units[var_name]})'
+
+        # add labels, title, and legend
+        if ivar == num_display_vars - 1:
+            display_ax[ivar].set_xlabel(time_label)
+        display_ax[ivar].set_ylabel(var_label)
+        if x_lim is not None:
+            display_ax[ivar].set_xlim(x_lim)
+        if y_lim is not None:
+            display_ax[ivar].set_ylim(y_lim)
+
+        # Plot each phase
+        for iphase, phase_name in enumerate(phase_names):
+            if phases_node_path:
+                var_name_full = f'{phases_node_path}.{phase_name}.timeseries.{var_name}'
+                time_name = f'{phases_node_path}.{phase_name}.timeseries.time'
+            else:
+                var_name_full = f'{phase_name}.timeseries.{var_name}'
+                time_name = f'{phase_name}.timeseries.time'
+
+            # Get values
+            if var_name_full not in last_solution_case.outputs:
+                continue
+
+            var_val = last_solution_case.outputs[var_name_full]
+            time_val = last_solution_case.outputs[time_name]
+
+            # Plot the data
+            _mpl_plot_axes(iphase, phases_node_path, time_val, time_name, var_val, var_name_full,
+                           last_simulation_case, display_ax[ivar])
+
+        if ivar == num_display_vars - 1:
+            # use a colormap with 20 values
+            cm = plt.cm.get_cmap('tab20')
+            # Create two legends
+            #   Solution/Simulation legend
+            solution_line = mlines.Line2D([], [], color='black', marker='o', linestyle='None',
+                                          label='Solution')
+            if last_simulation_case:
+                simulation_line = mlines.Line2D([], [], color='black', linestyle='--',
+                                                label='Simulation')
+                sol_sim_legend = plt.legend(handles=[solution_line, simulation_line],
+                                            loc='upper left', bbox_to_anchor=(-0.3, -0.12), shadow=True)
+            else:
+                sol_sim_legend = plt.legend(handles=[solution_line],
+                                            loc='upper left', bbox_to_anchor=(-0.3, -0.12),
+                                            shadow=True)
+            plt.gca().add_artist(sol_sim_legend)
+
+            #   Phases legend
+            handles = []
+            for iphase, phase_name in enumerate(phase_names):
+                patch = mpatches.Patch(color=cm.colors[iphase], label=phase_name)
+                handles.append(patch)
+            plt.legend(handles=handles, loc='upper right', ncol=len(phase_names), shadow=True,
+                       bbox_to_anchor=(1.15, -0.12), title='Phases')
+
+            plt.subplots_adjust(bottom=0.23, top=0.9, left=0.2)
 
 
 def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
@@ -269,7 +375,7 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
         save(plots)
 
 
-def timeseries_plots(solution_recorder_filename, simulation_record_file=None, plot_dir="plots"):
+def timeseries_plots(solution_recorder_filename, simulation_record_file=None, plot_dir="plots", plot_display_vars=None):
     """
     Create plots of the timeseries.
 
@@ -285,6 +391,8 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
         this implies that the data from it should be plotted.
     plot_dir : str
         The path to the directory to which the plot files will be written.
+    plot_display_vars : list of tuple of (str, list, list)
+        The list of the names of variables to plotted and displayed along with their axis limits
     """
 
     # get ready to generate plot files
@@ -350,6 +458,6 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
                                 last_solution_case, last_simulation_case, plot_dir_path)
     elif dymos_options['plots'] == 'matplotlib':
         _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
-                              last_solution_case, last_simulation_case, plot_dir_path)
+                              last_solution_case, last_simulation_case, plot_dir_path, plot_display_vars)
     else:
         raise ValueError(f'Unknown plotting option: {dymos_options["plots"]}')

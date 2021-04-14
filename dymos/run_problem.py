@@ -22,7 +22,8 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
                 solution_record_file='dymos_solution.db',
                 simulation_record_file='dymos_simulation.db',
                 make_plots=False,
-                plot_dir="plots"
+                plot_dir="plots",
+                plot_display_vars=None
                 ):
     """
     A Dymos-specific interface to execute an OpenMDAO problem containing Dymos Trajectories or
@@ -52,6 +53,8 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         Path to case recorder file use to store results from simulation.
     plot_dir : str
         Path to directory for plot files.
+    plot_display_vars : list of tuple of (str, list, list)
+        The list of the names of variables to plotted and displayed along with their axis limits
     """
     if restart is not None:
         case = om.CaseReader(restart).get_case('final')
@@ -88,7 +91,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     if make_plots:
         if simulate:
             timeseries_plots(solution_record_file, simulation_record_file=simulation_record_file,
-                             plot_dir=plot_dir)
+                             plot_dir=plot_dir, plot_display_vars=plot_display_vars)
         else:
             timeseries_plots(solution_record_file, simulation_record_file=None,
-                             plot_dir=plot_dir)
+                             plot_dir=plot_dir, plot_display_vars=plot_display_vars)
