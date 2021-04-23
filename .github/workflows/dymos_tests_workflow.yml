@@ -130,8 +130,8 @@ jobs:
             echo "Install OpenMDAO";
             echo "=============================================================";
             git clone -q https://github.com/OpenMDAO/OpenMDAO;
-            cd
             pip install OpenMDAO
+          fi
 #            cd OpenMDAO;
 #            chmod 755 ./build_pyoptsparse.sh;
 #            if [ "${{ matrix.PETSc }}" ] && [ "${{ matrix.PYOPTSPARSE }}" == "v1.2"]; then
@@ -155,7 +155,6 @@ jobs:
 #            fi
 #            cd ..;
 #            export LD_LIBRARY_PATH=$HOME/ipopt/lib;
-          fi
           echo "=============================================================";
           echo "Install Dymos";
           echo "=============================================================";
