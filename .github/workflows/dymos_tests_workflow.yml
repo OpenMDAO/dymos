@@ -89,52 +89,49 @@ jobs:
           echo $CONDA/bin >> $GITHUB_PATH;
           conda create -n test_env python=${{ matrix.PY }} numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y;
           conda activate test_env;
-##         PETSc
-#          if [ "${{ matrix.PETSc }}" ]; then
-#            echo "=============================================================";
-#            echo "Install PETSc";
-#            echo "=============================================================";
-#            conda install -c anaconda mpi4py -q -y;
-#            conda install -c conda-forge petsc=${{ matrix.PETSc }} petsc4py -q -y;
-#          fi
-##         pyoptsparse
-#          if [ "${{ matrix.PYOPTSPARSE }}" ]; then
-#            echo "=============================================================";
-#            echo "Install pyoptsparse";
-#            echo "=============================================================";
-#            git clone -q https://github.com/OpenMDAO/build_pyoptsparse;
-#            cd build_pyoptsparse;
-#            chmod 755 ./build_pyoptsparse.sh;
-#            if [ "${{ matrix.PETSc }}" ] && [ "${{ matrix.PYOPTSPARSE }}" == "v1.2"]; then
-#              PAROPT=-a;
-#            fi
-#            if [ "${{ matrix.SNOPT }}" == "7.7" ] && [ "${{ secrets.SNOPT_LOCATION_77 }}" ]; then
-#              echo "  > Secure copying SNOPT 7.7 over SSH";
-#              mkdir SNOPT;
-#              scp -qr ${{ secrets.SNOPT_LOCATION_77 }} SNOPT;
-#              ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}" -s SNOPT/src;
-#            elif [ "${{ matrix.SNOPT }}" == "7.2" ] && [ "${{ secrets.SNOPT_LOCATION_72 }}" ]; then
-#              echo "  > Secure copying SNOPT 7.2 over SSH";
-#              mkdir SNOPT;
-#              scp -qr ${{ secrets.SNOPT_LOCATION_72 }} SNOPT;
-#              ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}" -s SNOPT/source;
-#            else
-#              if [ "${{ matrix.SNOPT }}" ]; then
-#                echo "SNOPT version ${{ matrix.SNOPT }} was requested but source is not available";
-#              fi
-#              ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}";
-#            fi
-#            cd ..;
-#            export LD_LIBRARY_PATH=$HOME/ipopt/lib;
-#          fi
-##         OpenMDAO
-#          if [ "${{ matrix.OPENMDAO }}" ]; then
-#            echo "=============================================================";
-#            echo "Install OpenMDAO";
-#            echo "=============================================================";
-#            git clone -q https://github.com/OpenMDAO/OpenMDAO;
-#            pip install OpenMDAO
-#          fi
+          if [ "${{ matrix.PETSc }}" ]; then
+            echo "=============================================================";
+            echo "Install PETSc";
+            echo "=============================================================";
+            conda install -c anaconda mpi4py -q -y;
+            conda install -c conda-forge petsc=${{ matrix.PETSc }} petsc4py -q -y;
+          fi
+          if [ "${{ matrix.PYOPTSPARSE }}" ]; then
+            echo "=============================================================";
+            echo "Install pyoptsparse";
+            echo "=============================================================";
+            git clone -q https://github.com/OpenMDAO/build_pyoptsparse;
+            cd build_pyoptsparse;
+            chmod 755 ./build_pyoptsparse.sh;
+            if [ "${{ matrix.PETSc }}" ] && [ "${{ matrix.PYOPTSPARSE }}" == "v1.2"]; then
+              PAROPT=-a;
+            fi
+            if [ "${{ matrix.SNOPT }}" == "7.7" ] && [ "${{ secrets.SNOPT_LOCATION_77 }}" ]; then
+              echo "  > Secure copying SNOPT 7.7 over SSH";
+              mkdir SNOPT;
+              scp -qr ${{ secrets.SNOPT_LOCATION_77 }} SNOPT;
+              ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}" -s SNOPT/src;
+            elif [ "${{ matrix.SNOPT }}" == "7.2" ] && [ "${{ secrets.SNOPT_LOCATION_72 }}" ]; then
+              echo "  > Secure copying SNOPT 7.2 over SSH";
+              mkdir SNOPT;
+              scp -qr ${{ secrets.SNOPT_LOCATION_72 }} SNOPT;
+              ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}" -s SNOPT/source;
+            else
+              if [ "${{ matrix.SNOPT }}" ]; then
+                echo "SNOPT version ${{ matrix.SNOPT }} was requested but source is not available";
+              fi
+              ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}";
+            fi
+            cd ..;
+            export LD_LIBRARY_PATH=$HOME/ipopt/lib;
+          fi
+          if [ "${{ matrix.OPENMDAO }}" ]; then
+            echo "=============================================================";
+            echo "Install OpenMDAO";
+            echo "=============================================================";
+            git clone -q https://github.com/OpenMDAO/OpenMDAO;
+            pip install OpenMDAO
+          fi
 ##         Dymos
 #          echo "=============================================================";
 #          echo "Install Dymos";
