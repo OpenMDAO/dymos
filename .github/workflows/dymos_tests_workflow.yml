@@ -69,7 +69,7 @@ jobs:
         uses: actions/checkout@v2
       - run: |
           git fetch --prune --unshallow --tags
-      - name: Install & test
+      - name: Install Dependencies
 #        env:
 #          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #          COVERALLS_SERVICE_NAME: "github"
@@ -132,13 +132,15 @@ jobs:
             git clone -q https://github.com/OpenMDAO/OpenMDAO;
             pip install OpenMDAO
           fi
-##         Dymos
-#          echo "=============================================================";
-#          echo "Install Dymos";
-#          echo "=============================================================";
-#          pip install .${{ matrix.OPTIONAL }};
-#          dymos_path=$(python -c "import dymos as dm; import inspect; import pathlib; p=pathlib.PurePath(inspect.getfile(dm)).parent; print(p)" | tail -1);
-#          export OMPI_MCA_rmaps_base_oversubscribe=1
-#          testflo $dymos_path -n 1 --show_skipped --coverage --coverpkg dymos;
-#          testflo -n 1 joss/test --pre_announce
-#          testflo -b benchmark --pre_announce
+      - name: Install Dymos
+        run: |
+          echo "=============================================================";
+          echo "Install Dymos";
+          echo "=============================================================";
+      - name: Run Tests
+          pip install .${{ matrix.OPTIONAL }};
+          dymos_path=$(python -c "import dymos as dm; import inspect; import pathlib; p=pathlib.PurePath(inspect.getfile(dm)).parent; print(p)" | tail -1);
+          export OMPI_MCA_rmaps_base_oversubscribe=1
+          testflo $dymos_path -n 1 --show_skipped --coverage --coverpkg dymos;
+          testflo -n 1 joss/test --pre_announce
+          testflo -b benchmark --pre_announce
