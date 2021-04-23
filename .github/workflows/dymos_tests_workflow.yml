@@ -26,7 +26,7 @@ jobs:
             SCIPY: 1.4
             PETSc: 3.12
             PYOPTSPARSE: 'v2.1.5'
-            SNOPT: 7.7
+#            SNOPT: 7.7
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
 
@@ -36,7 +36,7 @@ jobs:
             SCIPY: 1
             # PETSc: 3
             PYOPTSPARSE: 'v2.1.5'
-            SNOPT: 7.7
+#            SNOPT: 7.7
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
 
@@ -46,7 +46,7 @@ jobs:
             SCIPY: 1.2
             PETSc: 3.10.2
             PYOPTSPARSE: 'v1.2'
-            SNOPT: 7.2
+#            SNOPT: 7.2
             OPENMDAO: 3.3.0
             OPTIONAL: '[all]'
 
@@ -137,9 +137,12 @@ jobs:
           echo "=============================================================";
           echo "Install Dymos";
           echo "=============================================================";
+          conda activate test_env;
+          pip install .${{ matrix.OPTIONAL }};
       - name: Run Tests
         run: |
-          pip install .${{ matrix.OPTIONAL }};
+          conda activate test_env;
+          export LD_LIBRARY_PATH=$HOME/ipopt/lib;
           dymos_path=$(python -c "import dymos as dm; import inspect; import pathlib; p=pathlib.PurePath(inspect.getfile(dm)).parent; print(p)" | tail -1);
           export OMPI_MCA_rmaps_base_oversubscribe=1
           testflo $dymos_path -n 1 --show_skipped --coverage --coverpkg dymos;
