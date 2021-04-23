@@ -89,6 +89,7 @@ jobs:
           echo $CONDA/bin >> $GITHUB_PATH;
           conda create -n test_env python=${{ matrix.PY }} numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y;
           conda activate test_env;
+#         PETSc
           if [ "${{ matrix.PETSc }}" ]; then
             echo "=============================================================";
             echo "Install PETSc";
@@ -96,6 +97,7 @@ jobs:
             conda install -c anaconda mpi4py -q -y;
             conda install -c conda-forge petsc=${{ matrix.PETSc }} petsc4py -q -y;
           fi
+#         pyoptsparse
           if [ "${{ matrix.PYOPTSPARSE }}" ]; then
             echo "=============================================================";
             echo "Install pyoptsparse";
@@ -125,6 +127,7 @@ jobs:
             cd ..;
             export LD_LIBRARY_PATH=$HOME/ipopt/lib;
           fi
+#         OpenMDAO
           if [ "${{ matrix.OPENMDAO }}" ]; then
             echo "=============================================================";
             echo "Install OpenMDAO";
@@ -132,6 +135,7 @@ jobs:
             git clone -q https://github.com/OpenMDAO/OpenMDAO;
             pip install OpenMDAO
           fi
+#         Dymos
           echo "=============================================================";
           echo "Install Dymos";
           echo "=============================================================";
