@@ -138,6 +138,7 @@ jobs:
           echo "Install Dymos";
           echo "=============================================================";
       - name: Run Tests
+        run: |
           pip install .${{ matrix.OPTIONAL }};
           dymos_path=$(python -c "import dymos as dm; import inspect; import pathlib; p=pathlib.PurePath(inspect.getfile(dm)).parent; print(p)" | tail -1);
           export OMPI_MCA_rmaps_base_oversubscribe=1
