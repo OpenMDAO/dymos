@@ -5,7 +5,7 @@ name: Dymos Tests
 on:
   # Trigger on push or pull request events for the master branch
   push:
-    branches: [ master ]
+    branches: [ master, actions_ci ]
   pull_request:
     branches: [ master ]
 
