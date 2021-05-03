@@ -211,3 +211,26 @@ jobs:
           echo "============================================================="
           cd mkdocs
           mkdocs build --verbose --clean
+
+      - name: Submit coverage
+        shell: bash -l {0}
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_SERVICE_NAME: "github"
+          COVERALLS_PARALLEL: True
+        run: |
+          echo "============================================================="
+          echo "Submit coverage"
+          echo "============================================================="
+          pip install coveralls
+          coveralls
+
+  coveralls:
+    name: Finish coveralls
+    needs: test_ubuntu
+    runs-on: ubuntu-latest
+    steps:
+    - uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        parallel-finished: true
