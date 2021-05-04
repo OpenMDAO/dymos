@@ -387,7 +387,7 @@ class TranscriptionBase(object):
                                                    user_targets=options['targets'],
                                                    user_shape=options['shape'],
                                                    user_units=options['units'],
-                                                   dynamic=options['dynamic'])
+                                                   user_dynamic=options['dynamic'])
                 options['units'] = units
                 options['shape'] = shape
 
@@ -430,8 +430,12 @@ class TranscriptionBase(object):
             for tag in sorted(tags):
 
                 # Declared as rate_source.
-                if tag.startswith('state_rate_source:'):
-                    state = tag[18:]
+                if tag.startswith('dymos.state_rate_source:') or tag.startswith('state_rate_source:'):
+                    state = tag.split(':')[-1]
+                    if tag.startswith('state_rate_source:'):
+                        msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
+                              f"dymos version 2.0.0. Use 'dymos.state_rate_source:{state}' instead."
+                        om.issue_warning(msg, category=om.OMDeprecationWarning)
                     if state not in state_options:
                         state_options[state] = StateOptionsDictionary()
                         state_options[state]['name'] = state
@@ -444,11 +448,17 @@ class TranscriptionBase(object):
                     state_options[state]['rate_source'] = prom_name
 
                 # Declares units for state.
-                if tag.startswith('state_units:'):
+                if tag.startswith('dymos.state_units:') or tag.startswith('state_units:'):
+                    tagged_state_units = tag.split(':')[-1]
+                    if tag.startswith('state_units:'):
+                        msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
+                              f"dymos version 2.0.0. Use 'dymos.{tag}' instead."
+                        om.issue_warning(msg, category=om.OMDeprecationWarning)
                     if state is None:
-                        raise ValueError(f"'state_units:' tag declared on '{name}' also requires "
-                                         f"that the 'state_rate_source:' tag be declared.")
-                    state_options[state]['units'] = tag[12:]
+                        raise ValueError(f"'{tag}' tag declared on '{prom_name}' also requires "
+                                         f"that the 'dymos.state_rate_source:{tagged_state_units}' "
+                                         f"tag be declared.")
+                    state_options[state]['units'] = tagged_state_units
 
         # Check over all existing states and make sure we aren't missing any rate sources.
         for name, options in state_options.items():

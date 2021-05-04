@@ -516,13 +516,13 @@ class TestUpgrade_0_17_0(unittest.TestCase):
 
                 # upgrade_doc: begin tag_rate_source
                 self.add_output('xdot', val=np.zeros(nn), desc='velocity component in x', units='m/s',
-                                tags=['state_rate_source:x', 'state_units:m'])
+                                tags=['dymos.state_rate_source:x', 'dymos.state_units:m'])
 
                 self.add_output('ydot', val=np.zeros(nn), desc='velocity component in y', units='m/s',
-                                tags=['state_rate_source:y', 'state_units:m'])
+                                tags=['dymos.state_rate_source:y', 'dymos.state_units:m'])
 
                 self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2',
-                                tags=['state_rate_source:v', 'state_units:m/s'])
+                                tags=['dymos.state_rate_source:v', 'dymos.state_units:m/s'])
                 # upgrade_doc: end tag_rate_source
 
                 self.add_output('check', val=np.zeros(nn), desc='check solution: v/sin(theta) = constant',

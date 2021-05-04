@@ -90,10 +90,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                 self.add_input('gam', units='rad', shape=nn)
 
                 # state rates
-                self.add_output('v_dot', shape=nn, units='m/s**2', tags=['state_rate_source:v'])
-                self.add_output('gam_dot', shape=nn, units='rad/s', tags=['state_rate_source:gam'])
-                self.add_output('h_dot', shape=nn, units='m/s', tags=['state_rate_source:h'])
-                self.add_output('r_dot', shape=nn, units='m/s', tags=['state_rate_source:r'])
+                self.add_output('v_dot', shape=nn, units='m/s**2', tags=['dymos.state_rate_source:v'])
+                self.add_output('gam_dot', shape=nn, units='rad/s', tags=['dymos.state_rate_source:gam'])
+                self.add_output('h_dot', shape=nn, units='m/s', tags=['dymos.state_rate_source:h'])
+                self.add_output('r_dot', shape=nn, units='m/s', tags=['dymos.state_rate_source:r'])
                 self.add_output('ke', shape=nn, units='J')
 
                 # Ask OpenMDAO to compute the partial derivatives using complex-step

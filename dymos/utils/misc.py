@@ -76,7 +76,7 @@ def get_rate_units(units, time_units, deriv=1):
 
 
 def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspecified,
-                        user_shape=_unspecified, control_rate=False, dynamic=True):
+                        user_shape=_unspecified, control_rate=False, user_dynamic=_unspecified):
     """
     Return the targets of a state variable in a given ODE system.
 
@@ -93,18 +93,20 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
         The OpenMDAO system which serves as the ODE for dymos.  This system should already have
         had its setup and configure methods called.
     name : str
-        The name of the state variable whose targets are desired.
+        The name of the variable whose targets are desired.
     user_targets : str or None or Sequence or _unspecified
         Targets for the variable as given by the user.
-    user_units : str or None or Sequence or _unspecified
+    user_units : str or None or _unspecified
         Units for the variable as given by the user.
-    user_shape : str or None or Sequence or _unspecified
+    user_shape : None or Sequence or _unspecified
         Shape for the variable as given by the user.
     control_rate : bool
         When True, check for the control rate if the name is not in the ODE.
-    dynamic : bool
+    user_dynamic : bool or None or _unspecified
         When True, assume the shape of the target in the ODE includes the number of nodes as the
-        first dimension.
+        first dimension.  If False, the connecting parameter does not need to be "fanned out" to
+        connect to each node.  If _unspecified, attempt to resolve by the presence of a tag
+        `dymos.static_target` on the target variable, which is the same as `dynamic=False`.
 
     Returns
     -------
@@ -121,7 +123,7 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
     """
     rate_src = False
     ode_inputs = {opts['prom_name']: opts for (k, opts) in
-                  ode.get_io_metadata(iotypes=('input', 'output'), get_remote=True).items()}
+                  ode.get_io_metadata(iotypes=('input',), get_remote=True).items()}
 
     if user_targets is _unspecified:
         if name in ode_inputs:
@@ -154,10 +156,24 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
         units = user_units
 
     if user_shape in {None, _unspecified}:
+
+        # Resolve whether targets are dynamic or static
+        static_target_tags = ['dymos.static_target' in ode_inputs[tgt]['tags']
+                              for tgt in targets]
+        _dynamic = True
+        if any(static_target_tags):
+            _dynamic = False
+        else:
+            if user_dynamic is _unspecified:
+                _dynamic = True
+            else:
+                _dynamic = user_dynamic
+
+        # Resolve target shape
         target_shape_set = {ode_inputs[tgt]['shape'] for tgt in targets}
         if len(target_shape_set) == 1:
             shape = next(iter(target_shape_set))
-            if dynamic:
+            if _dynamic:
                 if len(shape) == 1:
                     shape = (1,)
                 else:
