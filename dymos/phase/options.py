@@ -256,8 +256,9 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
                           'for the optimization problem.  If False, allow the '
                           'control to be connected externally.')
 
-        self.declare(name='dynamic', types=bool, default=True,
-                     desc='True if this parameter can be used as a dynamic control, else False')
+        self.declare(name='dynamic', values=[True, False, _unspecified], default=_unspecified,
+                     desc='True if this parameter can be used as a dynamic control, else False.'
+                          'If _unspecified, attempt to determine through introspection.')
 
         self.declare(name='targets', allow_none=True, default=_unspecified,
                      desc='Targets in the ODE to which the state is connected')

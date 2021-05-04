@@ -46,7 +46,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
         self.options.declare('rtol', default=1.0E-6, types=(float,),
                              desc='Relative tolerance passed to scipy.integrate.solve_ivp.')
 
-        self.options.declare('ode_class',
+        self.options.declare('ode_class', recordable=False,
                              desc='System defining the ODE')
 
         self.options.declare('ode_init_kwargs', types=dict, default={},
