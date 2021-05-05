@@ -176,6 +176,15 @@ jobs:
             pip install openmdao==${{ matrix.OPENMDAO }}
           fi
 
+      - name: Install optional dependencies
+        if: matrix.OPTIONAL == '[all]'
+        shell: bash -l {0}
+        run: |
+          echo "============================================================="
+          echo "Install additional packages for testing/coverage"
+          echo "============================================================="
+          pip install bokeh
+
       - name: Install Dymos
         shell: bash -l {0}
         run: |
