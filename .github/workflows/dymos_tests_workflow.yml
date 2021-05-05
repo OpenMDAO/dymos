@@ -5,7 +5,7 @@ name: Dymos Tests
 on:
   # Trigger on push or pull request events for the master branch
   push:
-    branches: [ master, actions_ci ]
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
@@ -190,27 +190,16 @@ jobs:
           conda info
           conda list
 
-      - name: Run Tests
+      - name: Run tests
         shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Run Tests"
           echo "============================================================="
-          dymos_path=$(python -c "import dymos as dm; import inspect; import pathlib; p=pathlib.PurePath(inspect.getfile(dm)).parent; print(p)" | tail -1)
           testflo -n 1 joss/test --pre_announce
           testflo -b benchmark --pre_announce
           cd $HOME
-          testflo $dymos_path -n 1 --show_skipped --coverage --coverpkg dymos
-
-      - name: Build docs
-        if: matrix.DOCS == '1'
-        shell: bash -l {0}
-        run: |
-          echo "============================================================="
-          echo "Building Docs"
-          echo "============================================================="
-          cd mkdocs
-          mkdocs build --verbose --clean
+          testflo dymos -n 1 --show_skipped --coverage --coverpkg dymos
 
       - name: Submit coverage
         shell: bash -l {0}
@@ -222,8 +211,20 @@ jobs:
           echo "============================================================="
           echo "Submit coverage"
           echo "============================================================="
-          pip install coveralls
-          coveralls
+          cp $HOME/.coverage .
+          pip install git+https://github.com/swryan/coveralls-python
+          SITE_DIR=`python -c 'import site; print(site.getsitepackages()[-1])'`
+          coveralls --base_dir $SITE_DIR
+
+      - name: Build docs
+        if: matrix.DOCS == '1'
+        shell: bash -l {0}
+        run: |
+          echo "============================================================="
+          echo "Building Docs"
+          echo "============================================================="
+          cd mkdocs
+          mkdocs build --verbose --clean
 
   coveralls:
     name: Finish coveralls

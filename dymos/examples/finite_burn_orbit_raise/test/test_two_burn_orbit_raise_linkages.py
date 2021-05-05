@@ -550,8 +550,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         coast_u1_final = p.get_val('traj.coast.timeseries.parameters:u1')[-1, ...]
         burn2_u1_initial = p.get_val('traj.burn2.timeseries.controls:u1')[0, ...]
 
-        assert_near_equal(burn1_u1_final - coast_u1_initial, 0.0)
-        assert_near_equal(coast_u1_final - burn2_u1_initial, 0.0)
+        assert_near_equal(burn1_u1_final - coast_u1_initial, 0.0, 1e-12)
+        assert_near_equal(coast_u1_final - burn2_u1_initial, 0.0, 1e-12)
 
         # Plot results
         exp_out = traj.simulate()
