@@ -110,14 +110,6 @@ class ControlOptionsDictionary(om.OptionsDictionary):
                           'segment boundaries. '
                           'This option is invalid if opt=False.')
 
-        self.declare('dynamic', default=True, types=bool,
-                     desc='If True, the value of the shape of the parameter will '
-                          'be (num_nodes, ...), allowing the variable to be used as either a '
-                          'static or dynamic control.  This impacts the shape of the partial '
-                          'derivatives matrix.  Unless a parameter is large and broadcasting a '
-                          'value to each individual node would be inefficient, users should stick '
-                          'to the default value of True.')
-
 
 class PolynomialControlOptionsDictionary(om.OptionsDictionary):
     """
@@ -204,14 +196,6 @@ class PolynomialControlOptionsDictionary(om.OptionsDictionary):
                      desc='A integer that provides the interpolation order when the control is '
                           'to assume a single polynomial basis across the entire phase, or None '
                           'to use the default control behavior.')
-
-        self.declare('dynamic', default=True, types=bool,
-                     desc='If True, the value of the shape of the parameter will '
-                          'be (num_nodes, ...), allowing the variable to be used as either a '
-                          'static or dynamic control.  This impacts the shape of the partial '
-                          'derivatives matrix.  Unless a parameter is large and broadcasting a '
-                          'value to each individual node would be inefficient, users should stick '
-                          'to the default value of True.')
 
 
 def check_valid_shape(name, value):
