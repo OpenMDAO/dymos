@@ -292,8 +292,28 @@ class TranscriptionBase(object):
             options['shape'] = shape
 
             if static_target:
-                raise ValueError(f"Control '{name} cannot be connected to its targets because one"
+                raise ValueError(f"Control '{name}' cannot be connected to its targets because one "
                                  f"or more targets are tagged with 'dymos.static_target'.")
+
+            # Now check rate targets
+            _, _, static_target = get_target_metadata(ode, name=name,
+                                                      user_targets=options['rate_targets'],
+                                                      user_units=options['units'],
+                                                      user_shape=options['shape'],
+                                                      control_rate=True)
+            if static_target:
+                raise ValueError(f"Control rate of '{name}' cannot be connected to its targets "
+                                 f"because one or more targets are tagged with 'dymos.static_target'.")
+
+            # Now check rate2 targets
+            _, _, static_target = get_target_metadata(ode, name=name,
+                                                      user_targets=options['rate2_targets'],
+                                                      user_units=options['units'],
+                                                      user_shape=options['shape'],
+                                                      control_rate=True)
+            if static_target:
+                raise ValueError(f"Control rate2 of '{name}' cannot be connected to its targets "
+                                 f"because one or more targets are tagged with 'dymos.static_target'.")
 
         if phase.control_options:
             phase.control_group.configure_io()
@@ -342,8 +362,30 @@ class TranscriptionBase(object):
             options['shape'] = shape
 
             if static_target:
-                raise ValueError(f"Control '{name} cannot be connected to its targets because one"
-                                 f"or more targets are tagged with 'dymos.static_target'.")
+                raise ValueError(f"Polynomial control '{name}' cannot be connected to its targets "
+                                 f"because one or more targets are tagged with 'dymos.static_target'.")
+
+            # Now check rate targets
+            _, _, static_target = get_target_metadata(ode, name=name,
+                                                      user_targets=options['rate_targets'],
+                                                      user_units=options['units'],
+                                                      user_shape=options['shape'],
+                                                      control_rate=True)
+            if static_target:
+                raise ValueError(f"Rate of polynomial control '{name}' cannot be connected to its "
+                                 f"targets because one or more targets are tagged with "
+                                 f"'dymos.static_target'.")
+
+            # Now check rate2 targets
+            _, _, static_target = get_target_metadata(ode, name=name,
+                                                      user_targets=options['rate2_targets'],
+                                                      user_units=options['units'],
+                                                      user_shape=options['shape'],
+                                                      control_rate=True)
+            if static_target:
+                raise ValueError(f"Rate2 of polynomial control '{name}' cannot be connected to its "
+                                 f"targets because one or more targets are tagged with "
+                                 f"'dymos.static_target'.")
 
         if phase.polynomial_control_options:
             phase.polynomial_control_group.configure_io()

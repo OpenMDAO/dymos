@@ -930,9 +930,9 @@ class Phase(om.Group):
 
         if dynamic is not _unspecified and static_target is not _unspecified:
             raise ValueError("Both the deprecated 'dynamic' option and option 'static_target' were "
-                             "specified for parameter '{name}. Going forward, please use only "
+                             f"specified for parameter '{name}'. Going forward, please use only "
                              "option static_target.  Option 'dynamic' will be removed in "
-                             "Dymos 2.0.0")
+                             "Dymos 2.0.0.")
 
         if lower is not _unspecified:
             self.parameter_options[name]['lower'] = lower

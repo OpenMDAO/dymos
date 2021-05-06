@@ -170,9 +170,9 @@ class Trajectory(om.Group):
 
         if dynamic is not _unspecified and static_target is not _unspecified:
             raise ValueError("Both the deprecated 'dynamic' option and option 'static_target' were "
-                             "specified for parameter '{name}. Going forward, please use only "
-                             "option static_target.  Option 'dynamic' will be removed in "
-                             "Dymos 2.0.0")
+                             f"specified for parameter '{name}'. "
+                             f"Going forward, please use only option static_target.  Option "
+                             f"'dynamic' will be removed in Dymos 2.0.0.")
 
     def _setup_parameters(self):
         """

@@ -156,10 +156,13 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
         units = user_units
 
     # Resolve whether the targets is static or dynamic
-    static_target_tags = ['dymos.static_target' in ode_inputs[tgt]['tags']
-                          for tgt in targets]
-    if any(static_target_tags):
+    static_target_tags = [tgt for tgt in targets if 'dymos.static_target' in ode_inputs[tgt]['tags']]
+    if static_target_tags:
         static_target = True
+        if not user_static_target:
+            raise ValueError(f"User has specified 'static_target = False' for parameter {name},"
+                             f"but one or more targets is tagged with "
+                             f"'dymos.static_target': {' '.join(static_target_tags)}")
     else:
         if user_static_target is _unspecified:
             static_target = False
