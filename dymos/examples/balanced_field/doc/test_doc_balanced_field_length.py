@@ -95,23 +95,23 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
                            targets={'br_to_v1': ['m'], 'v1_to_vr': ['m'], 'rto': ['m'],
                                     'rotate': ['m'], 'climb': ['m']})
 
-        traj.add_parameter('T_nominal', val=27000 * 2, opt=False, units='lbf', dynamic=False,
+        traj.add_parameter('T_nominal', val=27000 * 2, opt=False, units='lbf', static_target=True,
                            desc='nominal aircraft thrust',
                            targets={'br_to_v1': ['T']})
 
-        traj.add_parameter('T_engine_out', val=27000, opt=False, units='lbf', dynamic=False,
+        traj.add_parameter('T_engine_out', val=27000, opt=False, units='lbf', static_target=True,
                            desc='thrust under a single engine',
                            targets={'v1_to_vr': ['T'], 'rotate': ['T'], 'climb': ['T']})
 
-        traj.add_parameter('T_shutdown', val=0.0, opt=False, units='lbf', dynamic=False,
+        traj.add_parameter('T_shutdown', val=0.0, opt=False, units='lbf', static_target=True,
                            desc='thrust when engines are shut down for rejected takeoff',
                            targets={'rto': ['T']})
 
-        traj.add_parameter('mu_r_nominal', val=0.03, opt=False, units=None, dynamic=False,
+        traj.add_parameter('mu_r_nominal', val=0.03, opt=False, units=None, static_target=True,
                            desc='nominal runway friction coefficient',
                            targets={'br_to_v1': ['mu_r'], 'v1_to_vr': ['mu_r'],  'rotate': ['mu_r']})
 
-        traj.add_parameter('mu_r_braking', val=0.3, opt=False, units=None, dynamic=False,
+        traj.add_parameter('mu_r_braking', val=0.3, opt=False, units=None, static_target=True,
                            desc='runway friction coefficient under braking',
                            targets={'rto': ['mu_r']})
 
@@ -120,52 +120,52 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
                            targets={'br_to_v1': ['h'], 'v1_to_vr': ['h'], 'rto': ['h'],
                                     'rotate': ['h']})
 
-        traj.add_parameter('rho', val=1.225, opt=False, units='kg/m**3', dynamic=False,
+        traj.add_parameter('rho', val=1.225, opt=False, units='kg/m**3', static_target=True,
                            desc='atmospheric density',
                            targets={'br_to_v1': ['rho'], 'v1_to_vr': ['rho'], 'rto': ['rho'],
                                     'rotate': ['rho']})
 
-        traj.add_parameter('S', val=124.7, opt=False, units='m**2', dynamic=False,
+        traj.add_parameter('S', val=124.7, opt=False, units='m**2', static_target=True,
                            desc='aerodynamic reference area',
                            targets={'br_to_v1': ['S'], 'v1_to_vr': ['S'], 'rto': ['S'],
                                     'rotate': ['S'], 'climb': ['S']})
 
-        traj.add_parameter('CD0', val=0.03, opt=False, units=None, dynamic=False,
+        traj.add_parameter('CD0', val=0.03, opt=False, units=None, static_target=True,
                            desc='zero-lift drag coefficient',
                            targets={f'{phase}': ['CD0'] for phase in ['br_to_v1', 'v1_to_vr',
                                                                       'rto', 'rotate' 'climb']})
 
-        traj.add_parameter('AR', val=9.45, opt=False, units=None, dynamic=False,
+        traj.add_parameter('AR', val=9.45, opt=False, units=None, static_target=True,
                            desc='wing aspect ratio',
                            targets={f'{phase}': ['AR'] for phase in ['br_to_v1', 'v1_to_vr',
                                                                      'rto', 'rotate' 'climb']})
 
-        traj.add_parameter('e', val=801, opt=False, units=None, dynamic=False,
+        traj.add_parameter('e', val=801, opt=False, units=None, static_target=True,
                            desc='Oswald span efficiency factor',
                            targets={f'{phase}': ['e'] for phase in ['br_to_v1', 'v1_to_vr',
                                                                     'rto', 'rotate' 'climb']})
 
-        traj.add_parameter('span', val=35.7, opt=False, units='m', dynamic=False,
+        traj.add_parameter('span', val=35.7, opt=False, units='m', static_target=True,
                            desc='wingspan',
                            targets={f'{phase}': ['span'] for phase in ['br_to_v1', 'v1_to_vr',
                                                                        'rto', 'rotate' 'climb']})
 
-        traj.add_parameter('h_w', val=1.0, opt=False, units='m', dynamic=False,
+        traj.add_parameter('h_w', val=1.0, opt=False, units='m', static_target=True,
                            desc='height of wing above CG',
                            targets={f'{phase}': ['h_w'] for phase in ['br_to_v1', 'v1_to_vr',
                                                                       'rto', 'rotate' 'climb']})
 
-        traj.add_parameter('CL0', val=0.5, opt=False, units=None, dynamic=False,
+        traj.add_parameter('CL0', val=0.5, opt=False, units=None, static_target=True,
                            desc='zero-alpha lift coefficient',
                            targets={f'{phase}': ['CL0'] for phase in ['br_to_v1', 'v1_to_vr',
                                                                       'rto', 'rotate' 'climb']})
 
-        traj.add_parameter('CL_max', val=2.0, opt=False, units=None, dynamic=False,
+        traj.add_parameter('CL_max', val=2.0, opt=False, units=None, static_target=True,
                            desc='maximum lift coefficient for linear fit',
                            targets={f'{phase}': ['CL_max'] for phase in ['br_to_v1', 'v1_to_vr',
                                                                          'rto', 'rotate' 'climb']})
 
-        traj.add_parameter('alpha_max', val=10.0, opt=False, units='deg', dynamic=False,
+        traj.add_parameter('alpha_max', val=10.0, opt=False, units='deg', static_target=True,
                            desc='angle of attack at maximum lift',
                            targets={f'{phase}': ['alpha_max'] for phase in ['br_to_v1', 'v1_to_vr',
                                                                             'rto', 'rotate' 'climb']})

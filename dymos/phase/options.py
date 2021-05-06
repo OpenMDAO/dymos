@@ -258,6 +258,16 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='dynamic', values=[True, False, _unspecified], default=_unspecified,
                      desc='True if this parameter can be used as a dynamic control, else False.'
+                          'If _unspecified, attempt to determine through introspection.',
+                     deprecation="Option dynamic has been replaced by option 'static_target' and "
+                                 "will be removed in Dymos 2.0.0.\nNote that 'static_target' has "
+                                 "the opposite meaning of option 'dynamic', so parameters with "
+                                 "option 'dynamic' set to False should now use 'static_target' set "
+                                 "to True.")
+
+        self.declare(name='static_target', values=[True, False, _unspecified], default=_unspecified,
+                     desc='True if the target of this parameter does NOT have a unique value at '
+                          'each node in the ODE.'
                           'If _unspecified, attempt to determine through introspection.')
 
         self.declare(name='targets', allow_none=True, default=_unspecified,

@@ -92,19 +92,19 @@ def _run_racecar_problem(transcription, timeseries=False):
     # be found in their respective ODE files.
     phase.add_parameter('M', val=800.0, units='kg', opt=False,
                         targets=['car.M', 'tire.M', 'tireconstraint.M', 'normal.M'],
-                        dynamic=False)  # vehicle mass
+                        static_target=True)  # vehicle mass
     phase.add_parameter('beta', val=0.62, units=None, opt=False, targets=['tire.beta'],
-                        dynamic=False)  # brake bias
+                        static_target=True)  # brake bias
     phase.add_parameter('CoP', val=1.6, units='m', opt=False, targets=['normal.CoP'],
-                        dynamic=False)  # center of pressure location
+                        static_target=True)  # center of pressure location
     phase.add_parameter('h', val=0.3, units='m', opt=False, targets=['normal.h'],
-                        dynamic=False)  # center of gravity height
+                        static_target=True)  # center of gravity height
     phase.add_parameter('chi', val=0.5, units=None, opt=False, targets=['normal.chi'],
-                        dynamic=False)  # roll stiffness
+                        static_target=True)  # roll stiffness
     phase.add_parameter('ClA', val=4.0, units='m**2', opt=False, targets=['normal.ClA'],
-                        dynamic=False)  # downforce coefficient*area
+                        static_target=True)  # downforce coefficient*area
     phase.add_parameter('CdA', val=2.0, units='m**2', opt=False, targets=['car.CdA'],
-                        dynamic=False)  # drag coefficient*area
+                        static_target=True)  # drag coefficient*area
 
     # Minimize final time.
     # note that we use the 'state' time instead of Dymos 'time'

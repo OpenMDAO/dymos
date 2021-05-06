@@ -37,9 +37,9 @@ def add_parameter_test(testShape=None):
     phase = dm.Phase(ode_class=ODEComp, transcription=tx)
 
     if testShape is None:
-        phase.add_parameter('param', dynamic=False)
+        phase.add_parameter('param', static_target=True)
     else:
-        phase.add_parameter('param', shape=testShape, dynamic=False)
+        phase.add_parameter('param', shape=testShape, static_target=True)
 
     traj.add_phase('phase', phase)
 

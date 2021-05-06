@@ -472,7 +472,7 @@ class TestSimulateArrayParam(unittest.TestCase):
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', units='m/s**2', val=9.80665)
-        phase.add_parameter('array', units=None, shape=(10,), dynamic=False)
+        phase.add_parameter('array', units=None, shape=(10,), static_target=True)
 
         # dummy array of data
         indeps = p.model.add_subsystem('indeps', om.IndepVarComp(), promotes=['*'])

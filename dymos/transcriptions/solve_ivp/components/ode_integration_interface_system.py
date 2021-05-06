@@ -106,7 +106,7 @@ class ODEIntegrationInterfaceSystem(om.Group):
             targets = get_targets(ode=ode, name=name, user_targets=options['targets'])
             if targets:
                 for tgt in targets:
-                    tgt_shape, _ = get_target_metadata(ode=ode, name=name, user_targets=tgt)
+                    tgt_shape, _, _ = get_target_metadata(ode=ode, name=name, user_targets=tgt)
                     if len(tgt_shape) == 1 and tgt_shape[0] == 1:
                         src_idxs = np.arange(size, dtype=int).reshape(tgt_shape)
                     else:
@@ -156,10 +156,10 @@ class ODEIntegrationInterfaceSystem(om.Group):
         if self.options['parameter_options']:
             for name, options in self.options['parameter_options'].items():
                 targets = get_targets(ode=ode, name=name, user_targets=options['targets'])
-                shape, units = get_target_metadata(ode=ode, name=name,
-                                                   user_targets=options['targets'],
-                                                   user_shape=options['shape'],
-                                                   user_units=options['units'])
+                shape, units, _ = get_target_metadata(ode=ode, name=name,
+                                                      user_targets=options['targets'],
+                                                      user_shape=options['shape'],
+                                                      user_units=options['units'])
                 ivc.add_output(f'parameters:{name}', shape=shape, units=units)
                 if targets:
                     self.connect(f'parameters:{name}',
@@ -168,7 +168,7 @@ class ODEIntegrationInterfaceSystem(om.Group):
     def _get_rate_source_path(self, state_var):
         var = self.options['state_options'][state_var]['rate_source']
 
-        rate_path = 'ode.{0}'.format(var)
+        rate_path = f'ode.{var}'
 
         if var == 'time':
             rate_path = 'time'

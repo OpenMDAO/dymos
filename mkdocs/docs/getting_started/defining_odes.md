@@ -41,29 +41,10 @@ States have the following options set via the `add_state` and `set_state_options
 
 {{ embed_options('dymos.phase.options.StateOptionsDictionary', '###Options for States') }}
 
-### State Discovery
-
-Dymos will also automatically find and add any states that have been declared in components in the ODE. The syntax
-for declaring them is as follows.
-
-```python3
-
-        self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2',
-                        tags=['state_rate_source:v', 'state_units:m/s'])
-
-```
-
-The state is defined by adding tags to the state rate's output. The tag 'state_rate_source:v' declares that
-'v' is the state for which this output ('vdot') is the rate source.  You can also optionally use a tag
-in the format 'state_units:m/s' to define units for that state.  If you need to set any other options, then
-use `set_state_options` at the phase level.
-
-
 ###  Controls
 
 Inputs to the ODE which are to be dynamic controls are added via the `add_control` and `set_control_options` methods of Phase.
 The available options are as follows:
-
 
 {{ embed_options('dymos.phase.options.ControlOptionsDictionary', '###Options for Control') }}
 
@@ -77,7 +58,41 @@ The available options are as follows:
 
 By default, Dymos assumes that the ODE is defined such that a value of the parameter is provided at each node.
 This makes it easier to define the partials for the ODE in a way such that some inputs may be used interchangeably as either controls or parameters.
-If an ODE input is only to be used as a static variable (and sized as `(1,)` instead of by the number of nodes, then the user may specify option `dynamic = False` to override this behavior.
+If an ODE input is only to be used as a static variable (and not sized as `num_nodes` in the first dimension), then the user may specify option `static_target = True` to override this behavior.
+
+### Tagging Variables
+
+Dymos will also automatically find and add any states that have been declared in components in the ODE. The syntax
+for declaring them is as follows.
+
+```python3
+
+        self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2',
+                        tags=['dymos.state_rate_source:v', 'dymos.state_units:m/s'])
+
+```
+
+The state is defined by adding tags to the state rate's output.
+The tag 'dymos.state_rate_source:v' declares that 'v' is the state for which this output ('vdot') is the rate source.
+You can also optionally use a tag in the format 'dymos.state_units:m/s' to define units for that state.
+If you need to set any other options, then use `set_state_options` at the phase level.
+
+Inputs which are sized as 'static' in the ODE (the first dimension is _not_ the number of nodes), must be made known to Dymos when using them as parameters.
+This is normally accomplished with the 'static_target=True' option when calling add_parameter.
+To avoid repetitive use of this option, users can add the tag 'dymos.static_target' to any input which should always be considered static.
+When connecting to multiple targets, a 'dymos.static_target' tag on one of them will result in all of them being considered static.
+Inputs tagged with 'dymos.static_target' cannot be used as controls or polynomial controls.
+
+| Tag                                  | Applies to | Description                                                                                                                                                                                                                 |
+|--------------------------------------|------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| dymos.state_rate_source:{state_name} | Outputs    | Specifies that the tagged output provides the rate used to integrate the state of the given name.                                                                                                                           |
+| dymos.state_units:{units}            | Outputs    | Specifies the default units to be used for the state whose rate is provided by the tagged output. May only be used on outputs also tagged with 'dymos.state_rate_source:{state_name}'.                                      |
+| dymos.static_target                  | Inputs     | Specifies that the input is _not_ shaped with num_nodes as the first dimension. This effects the way in which parameters are connected to the input. Inputs tagged with 'dymos.static_target' cannot be used as controls.   |
+
+## Automatic target detection
+
+Dymos will attempt to automatically connect variables to targets in the same name if those targets
+exist at the top-level of the ODE and have the same name as the state, control, parameter, or 'time'.
 
 ## Vectorizing the ODE
 
@@ -172,7 +187,7 @@ variable at a single node filling out the remaining indices. A 3-vector is thus 
 
 Declaring inputs as vectors means that they have the potential to be used either as parameters or as dynamic controls which can assume a different value at each node.
 For some quantities, such as gravitational acceleration in the Brachistochrone example, we can assume that the value will never need to be dynamic.
-To accommodate this, parameters can be declared static with the argument `dynamic=False`.
+To accommodate this, parameters can be declared static with the argument `static_target=True`.
 This prevents Dymos from "fanning out" the static value to the *n* nodes in the ODE system.
 
 ##  Providing the ODE to the Phase

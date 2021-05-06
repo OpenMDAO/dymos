@@ -279,17 +279,21 @@ class TranscriptionBase(object):
         """
         ode = phase._get_subsystem(self._rhs_source)
 
-        # Interrogate shapes and units.
+        # Interrogate shapes and units and static/dynamic behavior
         for name, options in phase.control_options.items():
 
-            shape, units = get_target_metadata(ode, name=name,
-                                               user_targets=options['targets'],
-                                               user_units=options['units'],
-                                               user_shape=options['shape'],
-                                               control_rate=True)
+            shape, units, static_target = get_target_metadata(ode, name=name,
+                                                              user_targets=options['targets'],
+                                                              user_units=options['units'],
+                                                              user_shape=options['shape'],
+                                                              control_rate=True)
 
             options['units'] = units
             options['shape'] = shape
+
+            if static_target:
+                raise ValueError(f"Control '{name} cannot be connected to its targets because one"
+                                 f"or more targets are tagged with 'dymos.static_target'.")
 
         if phase.control_options:
             phase.control_group.configure_io()
@@ -328,14 +332,18 @@ class TranscriptionBase(object):
         # Interrogate shapes and units.
         for name, options in phase.polynomial_control_options.items():
 
-            shape, units = get_target_metadata(ode, name=name,
-                                               user_targets=options['targets'],
-                                               user_units=options['units'],
-                                               user_shape=options['shape'],
-                                               control_rate=True)
+            shape, units, static_target = get_target_metadata(ode, name=name,
+                                                              user_targets=options['targets'],
+                                                              user_units=options['units'],
+                                                              user_shape=options['shape'],
+                                                              control_rate=True)
 
             options['units'] = units
             options['shape'] = shape
+
+            if static_target:
+                raise ValueError(f"Control '{name} cannot be connected to its targets because one"
+                                 f"or more targets are tagged with 'dymos.static_target'.")
 
         if phase.polynomial_control_options:
             phase.polynomial_control_group.configure_io()
@@ -383,20 +391,21 @@ class TranscriptionBase(object):
                 prom_name = f'parameters:{name}'
 
                 # Get units and shape from targets when needed.
-                shape, units = get_target_metadata(ode, name=name,
-                                                   user_targets=options['targets'],
-                                                   user_shape=options['shape'],
-                                                   user_units=options['units'],
-                                                   user_dynamic=options['dynamic'])
+                shape, units, static = get_target_metadata(ode, name=name,
+                                                           user_targets=options['targets'],
+                                                           user_shape=options['shape'],
+                                                           user_units=options['units'],
+                                                           user_static_target=options['static_target'])
                 options['units'] = units
                 options['shape'] = shape
+                options['static_target'] = static
 
                 for tgts, src_idxs in self.get_parameter_connections(name, phase):
                     for pathname in tgts:
                         parts = pathname.split('.')
                         sub_sys = parts[0]
                         tgt_var = '.'.join(parts[1:])
-                        if options['dynamic']:
+                        if not options['static_target']:
                             phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)],
                                            src_indices=src_idxs, flat_src_indices=True)
                         else:

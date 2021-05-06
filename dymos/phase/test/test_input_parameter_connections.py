@@ -62,7 +62,7 @@ class TestStaticParameters(unittest.TestCase):
         phase.set_time_options(units='s', targets=['comp.time'])
         phase.add_state(name='F', rate_source='comp.y')
         phase.add_parameter('alpha', val=np.ones((n_traj, 2)), units='m',
-                            targets='comp.alpha', dynamic=False)
+                            targets='comp.alpha', static_target=True)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -84,7 +84,7 @@ class TestStaticParameters(unittest.TestCase):
         phase.set_time_options(units='s', targets=['comp.time'])
         phase.add_state(name='F', rate_source='comp.y')
         phase.add_parameter('alpha', val=np.ones((n_traj, 2)), units='m',
-                            targets='comp.alpha', dynamic=False)
+                            targets='comp.alpha', static_target=True)
 
         p.model.add_subsystem('phase0', phase)
 

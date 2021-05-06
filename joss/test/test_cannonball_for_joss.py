@@ -127,8 +127,8 @@ class TestCannonballForJOSS(unittest.TestCase):
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         # Declare parameters that will be constant across
         # the two phases of the trajectory, so we can connect to it only once
-        traj.add_parameter('mass', units='kg', val=0.01, dynamic=False)
-        traj.add_parameter('area', units='m**2', dynamic=False)
+        traj.add_parameter('mass', units='kg', val=0.01, static_target=True)
+        traj.add_parameter('area', units='m**2', static_target=True)
 
         tx = dm.Radau(num_segments=5, order=3, compressed=True)
         ascent = dm.Phase(transcription=tx, ode_class=CannonballODE)
@@ -151,8 +151,8 @@ class TestCannonballForJOSS(unittest.TestCase):
         ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100),
                                 duration_ref=100, units='s')
 
-        ascent.add_parameter('mass', units='kg', val=0.01, dynamic=False)
-        ascent.add_parameter('area', units='m**2', dynamic=False)
+        ascent.add_parameter('mass', units='kg', val=0.01, static_target=True)
+        ascent.add_parameter('area', units='m**2', static_target=True)
 
         # Limit the initial muzzle energy to create a well posed problem
         # with respect to cannonball size and initial velocity
@@ -180,8 +180,8 @@ class TestCannonballForJOSS(unittest.TestCase):
         descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
                                  duration_ref=100, units='s')
 
-        descent.add_parameter('mass', units='kg', val=0.01, dynamic=False)
-        descent.add_parameter('area', units='m**2', dynamic=False)
+        descent.add_parameter('mass', units='kg', val=0.01, static_target=True)
+        descent.add_parameter('area', units='m**2', static_target=True)
 
         # Link Phases (link time and all state variables)
         traj.link_phases(phases=['ascent', 'descent'], vars=['*'])

@@ -76,7 +76,7 @@ def get_rate_units(units, time_units, deriv=1):
 
 
 def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspecified,
-                        user_shape=_unspecified, control_rate=False, user_dynamic=_unspecified):
+                        user_shape=_unspecified, control_rate=False, user_static_target=_unspecified):
     """
     Return the targets of a state variable in a given ODE system.
 
@@ -102,11 +102,11 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
         Shape for the variable as given by the user.
     control_rate : bool
         When True, check for the control rate if the name is not in the ODE.
-    user_dynamic : bool or None or _unspecified
-        When True, assume the shape of the target in the ODE includes the number of nodes as the
-        first dimension.  If False, the connecting parameter does not need to be "fanned out" to
+    user_static_target : bool or None or _unspecified
+        When False, assume the shape of the target in the ODE includes the number of nodes as the
+        first dimension.  If True, the connecting parameter does not need to be "fanned out" to
         connect to each node.  If _unspecified, attempt to resolve by the presence of a tag
-        `dymos.static_target` on the target variable, which is the same as `dynamic=False`.
+        `dymos.static_target` on the target variable, which is the same as `static_target=True`.
 
     Returns
     -------
@@ -155,25 +155,23 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
     else:
         units = user_units
 
-    if user_shape in {None, _unspecified}:
-
-        # Resolve whether targets are dynamic or static
-        static_target_tags = ['dymos.static_target' in ode_inputs[tgt]['tags']
-                              for tgt in targets]
-        _dynamic = True
-        if any(static_target_tags):
-            _dynamic = False
+    # Resolve whether the targets is static or dynamic
+    static_target_tags = ['dymos.static_target' in ode_inputs[tgt]['tags']
+                          for tgt in targets]
+    if any(static_target_tags):
+        static_target = True
+    else:
+        if user_static_target is _unspecified:
+            static_target = False
         else:
-            if user_dynamic is _unspecified:
-                _dynamic = True
-            else:
-                _dynamic = user_dynamic
+            static_target = user_static_target
 
+    if user_shape in {None, _unspecified}:
         # Resolve target shape
         target_shape_set = {ode_inputs[tgt]['shape'] for tgt in targets}
         if len(target_shape_set) == 1:
             shape = next(iter(target_shape_set))
-            if _dynamic:
+            if not static_target:
                 if len(shape) == 1:
                     shape = (1,)
                 else:
@@ -190,7 +188,7 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
     else:
         shape = user_shape
 
-    return shape, units
+    return shape, units, static_target
 
 
 def get_source_metadata(ode, src, user_units, user_shape):

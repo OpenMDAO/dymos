@@ -122,7 +122,7 @@ class TestParameterConnections(unittest.TestCase):
         phase.add_state('h', fix_initial=True, fix_final=True, lower=0.0, units='m', rate_source='eom.h_dot')
         phase.add_state('v', fix_initial=True, fix_final=False, units='m/s', rate_source='eom.v_dot')
 
-        phase.add_parameter('m', val=[[1, 2], [3, 4]], units='kg', targets='sum.m', dynamic=False)
+        phase.add_parameter('m', val=[[1, 2], [3, 4]], units='kg', targets='sum.m', static_target=True)
 
         p.model.linear_solver = om.DirectSolver()
 
@@ -249,7 +249,7 @@ class TestParameterConnections(unittest.TestCase):
         phase.add_state('h', fix_initial=True, fix_final=True, lower=0.0, units='m', rate_source='eom.h_dot')
         phase.add_state('v', fix_initial=True, fix_final=False, units='m/s', rate_source='eom.v_dot')
 
-        phase.add_parameter('m', val=[[1, 2], [3, 4]], units='kg', targets='sum.m', dynamic=False)
+        phase.add_parameter('m', val=[[1, 2], [3, 4]], units='kg', targets='sum.m', static_target=True)
 
         p.model.linear_solver = om.DirectSolver()
 

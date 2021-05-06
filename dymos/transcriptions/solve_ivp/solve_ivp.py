@@ -311,14 +311,18 @@ class SolveIVP(TranscriptionBase):
         # Interrogate shapes and units.
         for name, options in phase.control_options.items():
 
-            shape, units = get_target_metadata(ode, name=name,
-                                               user_targets=options['targets'],
-                                               user_units=options['units'],
-                                               user_shape=options['shape'],
-                                               control_rate=True)
+            shape, units, static_target = get_target_metadata(ode, name=name,
+                                                              user_targets=options['targets'],
+                                                              user_units=options['units'],
+                                                              user_shape=options['shape'],
+                                                              control_rate=True)
 
             options['units'] = units
             options['shape'] = shape
+
+            if static_target:
+                raise ValueError(f"Control '{name} cannot be connected to its targets because one"
+                                 f"or more targets are tagged with 'dymos.static_target'.")
 
         grid_data = self.grid_data
 
@@ -422,10 +426,10 @@ class SolveIVP(TranscriptionBase):
 
         for name, options in phase.parameter_options.items():
             prom_name = f'parameters:{name}'
-            shape, units = get_target_metadata(phase.ode, name=name,
-                                               user_targets=options['targets'],
-                                               user_shape=options['shape'],
-                                               user_units=options['units'])
+            shape, units, static_target = get_target_metadata(phase.ode, name=name,
+                                                              user_targets=options['targets'],
+                                                              user_shape=options['shape'],
+                                                              user_units=options['units'])
             options['units'] = units
             options['shape'] = shape
 
@@ -769,11 +773,11 @@ class SolveIVP(TranscriptionBase):
             options = phase.parameter_options[name]
             ode_tgts = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
 
-            dynamic = options['dynamic']
+            static = options['static_target']
             shape = options['shape']
 
             # Connections to the final ODE
-            if dynamic:
+            if not static:
                 src_idxs_raw = np.zeros(num_final_ode_nodes, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
                 if shape == (1,):

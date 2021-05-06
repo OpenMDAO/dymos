@@ -105,7 +105,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase.add_parameter('S', val=49.2386, units='m**2', opt=False, targets=['S'])
     phase.add_parameter('Isp', val=1600.0, units='s', opt=False, targets=['Isp'])
     phase.add_parameter('throttle', val=1.0, opt=False, targets=['throttle'])
-    phase.add_parameter('test', val=40 * [1], opt=False, dynamic=False, targets=['test'])
+    phase.add_parameter('test', val=40 * [1], opt=False, static_target=True, targets=['test'])
 
     phase.add_boundary_constraint('h', loc='final', equals=20000, scaler=1.0E-3)
     phase.add_boundary_constraint('aero.mach', loc='final', equals=1.0)
