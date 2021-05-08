@@ -46,10 +46,10 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.polynomial_controls:theta'][:] = 5.0
+        p['phase0.states:x'] = phase.interpolate('x', ys=[0, 10])
+        p['phase0.states:y'] = phase.interpolate('y', ys=[10, 5])
+        p['phase0.states:v'] = phase.interpolate('v', ys=[0, 9.9])
+        p['phase0.polynomial_controls:theta'] = phase.interpolate('theta', ys=[5.0, 100.5])
 
         # Solve for the optimal trajectory
         p.run_driver()

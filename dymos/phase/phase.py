@@ -17,6 +17,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.misc import _unspecified
+from ..utils.lgl import lgl
 
 
 om_dev_version = openmdao.__version__.endswith('dev')
@@ -1607,12 +1608,18 @@ class Phase(om.Group):
                                   'phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
                                   RuntimeWarning)
 
-    def interpolate(self, xs=None, ys=None, nodes='all', kind='linear', axis=0):
+    def interpolate(self, name=None, xs=None, ys=None, nodes=None, kind='linear', axis=0):
         """
         Return an array of values on interpolated to the given node subset of the phase.
 
         Parameters
         ----------
+        name : str or None
+            If nodes is None, then use the name argument to determine which kind of variable is
+            being interpolated.  If it is a state, assume nodes is 'state_input'.  If it is related
+            to a control, assume nodes is 'control_input'.  If it is a polynomial control, assume
+            the nodes are the input nodes for that polynomial control.  Any other type of variable
+            will result in an error.
         xs :  ndarray or Sequence or None
             Array of integration variable values.
         ys :  ndarray or Sequence or None
@@ -1638,9 +1645,10 @@ class Phase(om.Group):
         if not isinstance(ys, Iterable):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
         if nodes not in ('col', 'all', 'state_disc', 'state_input', 'control_disc',
-                         'control_input', 'segment_ends'):
+                         'control_input', 'segment_ends', None):
             raise ValueError("nodes must be one of 'col', 'all', 'state_disc', "
-                             "'state_input', 'control_disc', 'control_input', or 'segment_ends'")
+                             "'state_input', 'control_disc', 'control_input', 'segment_ends', or "
+                             "None.")
         if xs is None:
             if len(ys) != 2:
                 raise ValueError('xs may only be unspecified when len(ys)=2')
@@ -1656,7 +1664,24 @@ class Phase(om.Group):
             raise RuntimeError('interpolate cannot be called until the associated '
                                'problem has been setup')
 
-        node_locations = gd.node_ptau[gd.subset_node_indices[nodes]]
+        if nodes is None:
+            if name is None:
+                raise ValueError('nodes for interpolation were not specified but the name of the'
+                                 'variable to be interpolated was not provided.  Please specify '
+                                 'the name of the interpolated variable or a node subset.')
+            elif name in self.state_options:
+                node_locations = gd.node_ptau[gd.subset_node_indices['state_input']]
+            elif name in self.control_options:
+                node_locations = gd.node_ptau[gd.subset_node_indices['control_input']]
+            elif name in self.polynomial_control_options:
+                node_locations, _ = lgl(self.polynomial_control_options[name]['order'] + 1)
+            else:
+                raise ValueError('Could not find a state, control, or polynomial control named '
+                                 f'{name} to be interpolated.  Please explicitly specified the'
+                                 f'node subset onto which this value should be interpolated.')
+        else:
+            node_locations = gd.node_ptau[gd.subset_node_indices[nodes]]
+
         # Affine transform xs into tau space [-1, 1]
         _xs = np.asarray(xs).ravel()
         m = 2.0 / (_xs[-1] - _xs[0])
