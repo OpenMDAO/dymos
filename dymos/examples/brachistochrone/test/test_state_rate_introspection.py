@@ -182,13 +182,12 @@ class TestIntegrateControl(unittest.TestCase):
 
         p.set_val('traj.phase0.t_initial', 0.0, units='s')
         p.set_val('traj.phase0.t_duration', 5.0, units='s')
-  
+
         p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
         p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
         p.set_val('traj.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
         p.set_val('traj.phase0.states:int_theta', phase.interp('int_theta', [0.1, 45]), units='deg')
         p.set_val('traj.phase0.controls:theta', phase.interp('theta', [0, 100]), units='deg')
-
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=False)

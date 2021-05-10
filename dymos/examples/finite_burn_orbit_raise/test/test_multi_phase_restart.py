@@ -233,7 +233,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
             p.set_val('traj.burn2.states:deltav', value=burn2.interp('deltav', [0.1, 0.2]))
             p.set_val('traj.burn2.states:accel', value=burn2.interp('accel', [0.1, 0]))
 
-        p.set_val('traj.burn2.controls:u1', value=burn2.interp('', [0, 0]))
+        p.set_val('traj.burn2.controls:u1', value=burn2.interp('u1', [0, 0]))
 
     dm.run_problem(p, run_driver=True, simulate=True, restart=restart)
 

@@ -169,7 +169,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         p['tp'] = 1.0
 
         p['phase0.states:x'] = phase.interp('x', [0, 0.25])
-        p['phase0.states:v'] = phase.interp('y', [0, 0])
+        p['phase0.states:v'] = phase.interp('v', [0, 0])
         p['phase0.controls:u'] = phase.interp('u', [1, -1])
 
         p.run_driver()
@@ -218,10 +218,14 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         p['tp'] = 1.0
 
         p['phase0.states:x'] = phase.interp('x', [0, 0.25])
-        p['phase0.states:v'] = phase.interp('y', [0, 0])
+        p['phase0.states:v'] = phase.interp('v', [0, 0])
         p['phase0.controls:u'] = phase.interp('u', [1, -1])
 
         p.run_driver()
+
+        assert_near_equal(p.get_val('phase0.timeseries.states:x')[-1, ...],
+                          [0.25],
+                          tolerance=1.0E-8)
 
 
 if __name__ == "__main__":
