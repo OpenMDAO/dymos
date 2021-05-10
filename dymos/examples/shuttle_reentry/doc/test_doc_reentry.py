@@ -65,24 +65,26 @@ class TestReentryForDocs(unittest.TestCase):
 
         p.setup(check=True)
 
-        p.set_val('traj.phase0.states:h',
-                  phase0.interpolate(ys=[260000, 80000], nodes='state_input'), units='ft')
-        p.set_val('traj.phase0.states:gamma',
-                  phase0.interpolate(ys=[-1, -5], nodes='state_input'), units='deg')
-        p.set_val('traj.phase0.states:phi',
-                  phase0.interpolate(ys=[0, 75], nodes='state_input'), units='deg')
-        p.set_val('traj.phase0.states:psi',
-                  phase0.interpolate(ys=[90, 10], nodes='state_input'), units='deg')
-        p.set_val('traj.phase0.states:theta',
-                  phase0.interpolate(ys=[0, 25], nodes='state_input'), units='deg')
-        p.set_val('traj.phase0.states:v',
-                  phase0.interpolate(ys=[25600, 2500], nodes='state_input'), units='ft/s')
         p.set_val('traj.phase0.t_initial', 0, units='s')
         p.set_val('traj.phase0.t_duration', 2000, units='s')
+
+        p.set_val('traj.phase0.states:h',
+                  phase0.interp('h', [260000, 80000]), units='ft')
+        p.set_val('traj.phase0.states:gamma',
+                  phase0.interp('gamma', [-1, -5]), units='deg')
+        p.set_val('traj.phase0.states:phi',
+                  phase0.interp('phi', [0, 75]), units='deg')
+        p.set_val('traj.phase0.states:psi',
+                  phase0.interp('psi', [90, 10]), units='deg')
+        p.set_val('traj.phase0.states:theta',
+                  phase0.interp('theta', [0, 25]), units='deg')
+        p.set_val('traj.phase0.states:v',
+                  phase0.interp('v', [25600, 2500]), units='ft/s')
+
         p.set_val('traj.phase0.controls:alpha',
-                  phase0.interpolate(ys=[17.4, 17.4], nodes='control_input'), units='deg')
+                  phase0.interp('alpha', ys=[17.4, 17.4]), units='deg')
         p.set_val('traj.phase0.controls:beta',
-                  phase0.interpolate(ys=[-75, 0], nodes='control_input'), units='deg')
+                  phase0.interp('beta', ys=[-75, 0]), units='deg')
 
         # Run the driver
         dm.run_problem(p)
@@ -92,8 +94,6 @@ class TestReentryForDocs(unittest.TestCase):
                           tolerance=1e-3)
         assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
                           34.1412, tolerance=1e-3)
-        # assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 2181.90371131, tolerance=1e-3)
-        # assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta')[-1], .53440626, tolerance=1e-3)
 
         # Run the simulation to check if the model is physically valid
         sim_out = traj.simulate()

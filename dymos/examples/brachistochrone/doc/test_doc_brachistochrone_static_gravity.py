@@ -119,13 +119,13 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         # We use the phase.interpolate method to linearly interpolate values onto the state input nodes.
         # Since fix_initial=True for all states and fix_final=True for x and y, the initial or final
         # values of the interpolation provided here will not be changed by the optimizer.
-        p.set_val('traj.phase0.states:x', phase.interpolate(ys=[0, 10], nodes='state_input'))
-        p.set_val('traj.phase0.states:y', phase.interpolate(ys=[10, 5], nodes='state_input'))
-        p.set_val('traj.phase0.states:v', phase.interpolate(ys=[0, 9.9], nodes='state_input'))
+        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]))
+        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]))
+        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 9.9]))
 
         # Guesses for controls are provided at all control_input node.
         # Here phase.interpolate is used to linearly interpolate values onto the control input nodes.
-        p.set_val('traj.phase0.controls:theta', phase.interpolate(ys=[5, 100.5], nodes='control_input'))
+        p.set_val('traj.phase0.controls:theta', phase.interp('theta', [5, 100.5]))
 
         # Set the value for gravitational acceleration.
         p.set_val('traj.phase0.parameters:g', 9.80665)

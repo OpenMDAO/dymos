@@ -70,12 +70,12 @@ class TestRobotArm(unittest.TestCase):
 
         p.set_val('traj.phase.t_initial', 0)
         p.set_val('traj.phase.t_duration', 10)
-        p.set_val('traj.phase.states:x0', phase.interpolate(ys=[4.5, 4.5], nodes='state_input'))
-        p.set_val('traj.phase.states:x1', phase.interpolate(ys=[0.0, 2 * np.pi / 3], nodes='state_input'))
-        p.set_val('traj.phase.states:x2', phase.interpolate(ys=[np.pi / 4, np.pi / 4], nodes='state_input'))
-        p.set_val('traj.phase.states:x3', phase.interpolate(ys=[0.0, 0.0], nodes='state_input'))
-        p.set_val('traj.phase.states:x4', phase.interpolate(ys=[0.0, 0.0], nodes='state_input'))
-        p.set_val('traj.phase.states:x5', phase.interpolate(ys=[0.0, 0.0], nodes='state_input'))
+        p.set_val('traj.phase.states:x0', phase.interp([4.5, 4.5]))
+        p.set_val('traj.phase.states:x1', phase.interp([0.0, 2 * np.pi / 3]))
+        p.set_val('traj.phase.states:x2', phase.interp([np.pi / 4, np.pi / 4]))
+        p.set_val('traj.phase.states:x3', phase.interp([0.0, 0.0]))
+        p.set_val('traj.phase.states:x4', phase.interp([0.0, 0.0]))
+        p.set_val('traj.phase.states:x5', phase.interp([0.0, 0.0]))
 
         return p
 

@@ -126,10 +126,10 @@ class TestBrachistochroneIntegratedParameter(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.states:theta'] = np.radians(phase.interpolate(ys=[0.05, 100.0], nodes='state_input'))
+        p['phase0.states:x'] = phase.interp('x', [0, 10])
+        p['phase0.states:y'] = phase.interp('y', [10, 5])
+        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['phase0.states:theta'] = np.radians(phase.interp('theta', [0.05, 100.0]))
         p['phase0.parameters:theta_dot'] = 60.0
 
         # Solve for the optimal trajectory
@@ -195,10 +195,10 @@ class TestBrachistochroneIntegratedParameter(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.states:theta'] = np.radians(phase.interpolate(ys=[0.05, 100.0], nodes='state_input'))
+        p['phase0.states:x'] = phase.interp('x', [0, 10])
+        p['phase0.states:y'] = phase.interp('y', [10, 5])
+        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['phase0.states:theta'] = np.radians(phase.interp('theta', [0.05, 100.0]))
         p['phase0.parameters:theta_dot'] = 60.0
 
         # Solve for the optimal trajectory

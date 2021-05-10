@@ -78,25 +78,11 @@ class TestIntegrateControl(unittest.TestCase):
         p.set_val('traj.phase0.t_initial', 0.0, units='s')
         p.set_val('traj.phase0.t_duration', 5.0, units='s')
 
-        p.set_val('traj.phase0.states:x',
-                  phase.interpolate(ys=[0, 10], nodes='state_input'),
-                  units='m')
-
-        p.set_val('traj.phase0.states:y',
-                  phase.interpolate(ys=[10, 5], nodes='state_input'),
-                  units='m')
-
-        p.set_val('traj.phase0.states:v',
-                  phase.interpolate(ys=[0, 5], nodes='state_input'),
-                  units='m/s')
-
-        p.set_val('traj.phase0.states:int_theta',
-                  phase.interpolate(ys=[0.1, 45], nodes='state_input'),
-                  units='deg')
-
-        p.set_val('traj.phase0.controls:theta_rate',
-                  phase.interpolate(ys=[10, 10], nodes='control_input'),
-                  units='deg/s')
+        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
+        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
+        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
+        p.set_val('traj.phase0.states:int_theta', phase.interp('int_theta', [0.1, 45]), units='deg')
+        p.set_val('traj.phase0.controls:theta_rate', phase.interp('theta_rate', [10, 10]), units='deg/s')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=False)
@@ -196,26 +182,13 @@ class TestIntegrateControl(unittest.TestCase):
 
         p.set_val('traj.phase0.t_initial', 0.0, units='s')
         p.set_val('traj.phase0.t_duration', 5.0, units='s')
+  
+        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
+        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
+        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
+        p.set_val('traj.phase0.states:int_theta', phase.interp('int_theta', [0.1, 45]), units='deg')
+        p.set_val('traj.phase0.controls:theta', phase.interp('theta', [0, 100]), units='deg')
 
-        p.set_val('traj.phase0.states:x',
-                  phase.interpolate(ys=[0, 10], nodes='state_input'),
-                  units='m')
-
-        p.set_val('traj.phase0.states:y',
-                  phase.interpolate(ys=[10, 5], nodes='state_input'),
-                  units='m')
-
-        p.set_val('traj.phase0.states:v',
-                  phase.interpolate(ys=[0, 5], nodes='state_input'),
-                  units='m/s')
-
-        p.set_val('traj.phase0.states:int_theta',
-                  phase.interpolate(ys=[0.1, 45], nodes='state_input'),
-                  units='deg')
-
-        p.set_val('traj.phase0.controls:theta',
-                  phase.interpolate(ys=[0, 100], nodes='control_input'),
-                  units='deg')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=False)
@@ -323,29 +296,12 @@ class TestIntegrateControl(unittest.TestCase):
         p.set_val('traj.phase0.t_initial', 0.0, units='s')
         p.set_val('traj.phase0.t_duration', 5.0, units='s')
 
-        p.set_val('traj.phase0.states:x',
-                  phase.interpolate(ys=[0, 10], nodes='state_input'),
-                  units='m')
-
-        p.set_val('traj.phase0.states:y',
-                  phase.interpolate(ys=[10, 5], nodes='state_input'),
-                  units='m')
-
-        p.set_val('traj.phase0.states:v',
-                  phase.interpolate(ys=[0, 5], nodes='state_input'),
-                  units='m/s')
-
-        p.set_val('traj.phase0.states:int_theta',
-                  phase.interpolate(ys=[0.1, 45], nodes='state_input'),
-                  units='deg')
-
-        p.set_val('traj.phase0.states:int_theta_dot',
-                  phase.interpolate(ys=[0.0, 0.0], nodes='state_input'),
-                  units='deg/s')
-
-        p.set_val('traj.phase0.controls:theta',
-                  phase.interpolate(ys=[0, 100], nodes='control_input'),
-                  units='deg')
+        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
+        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
+        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
+        p.set_val('traj.phase0.states:int_theta', phase.interp('int_theta', [0.1, 45]), units='deg')
+        p.set_val('traj.phase0.states:int_theta_dot', phase.interp('int_theta_dot', [0, 0]), units='deg/s')
+        p.set_val('traj.phase0.controls:theta', phase.interp('theta', [0, 100]), units='deg')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=False)
@@ -465,22 +421,10 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         p.set_val('traj.phase0.t_initial', 0.0, units='s')
         p.set_val('traj.phase0.t_duration', 5.0, units='s')
 
-        p.set_val('traj.phase0.states:x',
-                  phase.interpolate(ys=[0, 10], nodes='state_input'),
-                  units='m')
-
-        p.set_val('traj.phase0.states:y',
-                  phase.interpolate(ys=[10, 5], nodes='state_input'),
-                  units='m')
-
-        p.set_val('traj.phase0.states:v',
-                  phase.interpolate(ys=[0, 5], nodes='state_input'),
-                  units='m/s')
-
-        p.set_val('traj.phase0.states:int_theta',
-                  phase.interpolate(ys=[0.1, 45], nodes='state_input'),
-                  units='deg')
-
+        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
+        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
+        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
+        p.set_val('traj.phase0.states:int_theta', phase.interp('int_theta', [0.1, 45]), units='deg')
         p.set_val('traj.phase0.polynomial_controls:theta_rate', 10.0, units='deg/s')
 
         # Run the driver to solve the problem
@@ -582,23 +526,11 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         p.set_val('traj.phase0.t_initial', 0.0, units='s')
         p.set_val('traj.phase0.t_duration', 5.0, units='s')
 
-        p.set_val('traj.phase0.states:x',
-                  phase.interpolate(ys=[0, 10], nodes='state_input'),
-                  units='m')
-
-        p.set_val('traj.phase0.states:y',
-                  phase.interpolate(ys=[10, 5], nodes='state_input'),
-                  units='m')
-
-        p.set_val('traj.phase0.states:v',
-                  phase.interpolate(ys=[0, 5], nodes='state_input'),
-                  units='m/s')
-
-        p.set_val('traj.phase0.states:int_theta',
-                  phase.interpolate(ys=[0.1, 45], nodes='state_input'),
-                  units='deg')
-
-        p.set_val('traj.phase0.polynomial_controls:theta', 45, units='deg')
+        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
+        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
+        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
+        p.set_val('traj.phase0.states:int_theta', phase.interp('int_theta', [0.1, 45]), units='deg')
+        p.set_val('traj.phase0.polynomial_controls:theta', 45.0, units='deg')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=False)
@@ -708,27 +640,12 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         p.set_val('traj.phase0.t_initial', 0.0, units='s')
         p.set_val('traj.phase0.t_duration', 5.0, units='s')
 
-        p.set_val('traj.phase0.states:x',
-                  phase.interpolate(ys=[0, 10], nodes='state_input'),
-                  units='m')
-
-        p.set_val('traj.phase0.states:y',
-                  phase.interpolate(ys=[10, 5], nodes='state_input'),
-                  units='m')
-
-        p.set_val('traj.phase0.states:v',
-                  phase.interpolate(ys=[0, 5], nodes='state_input'),
-                  units='m/s')
-
-        p.set_val('traj.phase0.states:int_theta',
-                  phase.interpolate(ys=[0.1, 45], nodes='state_input'),
-                  units='deg')
-
-        p.set_val('traj.phase0.states:int_theta_dot',
-                  phase.interpolate(ys=[0.0, 0.0], nodes='state_input'),
-                  units='deg/s')
-
-        p.set_val('traj.phase0.polynomial_controls:theta', 45, units='deg')
+        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
+        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
+        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
+        p.set_val('traj.phase0.states:int_theta', phase.interp('int_theta', [0.1, 45]), units='deg')
+        p.set_val('traj.phase0.states:int_theta_dot', phase.interp('int_theta_dot', [0, 0]), units='deg/s')
+        p.set_val('traj.phase0.polynomial_controls:theta', 45.0, units='deg')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=True)
@@ -854,37 +771,35 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
 
         p.set_val('traj.phase0.parameters:one', 1.0)
 
-        p.set_val('traj.phase0.states:x',
-                  phase.interpolate(ys=[0, 10], nodes='state_input'),
-                  units='m')
+        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
 
         p.set_val('traj.phase0.states:y',
-                  phase.interpolate(ys=[10, 5], nodes='state_input'),
+                  phase.interp('y', [10, 5]),
                   units='m')
 
         p.set_val('traj.phase0.states:v',
-                  phase.interpolate(ys=[0, 5], nodes='state_input'),
+                  phase.interp('v', [0, 5]),
                   units='m/s')
 
         p.set_val('traj.phase0.controls:theta',
-                  phase.interpolate(ys=[0.1, 45], nodes='control_input'),
+                  phase.interp('theta', [0.1, 45], nodes='control_input'),
                   units='deg')
 
         # Additional states to test rate sources
         p.set_val('traj.phase0.states:int_one',
-                  phase.interpolate(ys=[0, 10], nodes='state_input'),
+                  phase.interp('int_one', [0, 10]),
                   units='s')
 
         p.set_val('traj.phase0.states:int_time',
-                  phase.interpolate(ys=[0, 10], nodes='state_input'),
+                  phase.interp('int_time', [0, 10]),
                   units='s**2')
 
         p.set_val('traj.phase0.states:int_time_phase',
-                  phase.interpolate(ys=[0, 10], nodes='state_input'),
+                  phase.interp('int_time_phase', [0, 10]),
                   units='s**2')
 
         p.set_val('traj.phase0.states:int_int_one',
-                  phase.interpolate(ys=[0, 10], nodes='state_input'),
+                  phase.interp('int_int_one', [0, 10]),
                   units='s**2')
 
         # Run the driver to solve the problem

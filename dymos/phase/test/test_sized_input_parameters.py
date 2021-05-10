@@ -70,8 +70,8 @@ class TestParameterConnections(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 100.0
 
-        p['phase0.states:h'] = phase.interpolate(ys=[20, 0], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, -5], nodes='state_input')
+        p['phase0.states:h'] = phase.interp('h', [20, 0])
+        p['phase0.states:v'] = phase.interp('v', [0, -5])
 
         p.run_model()
 
@@ -131,8 +131,8 @@ class TestParameterConnections(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 100.0
 
-        p['phase0.states:h'] = phase.interpolate(ys=[20, 0], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, -5], nodes='state_input')
+        p['phase0.states:h'] = phase.interp('h', [20, 0])
+        p['phase0.states:v'] = phase.interp('v', [0, -5])
 
         p.run_model()
 
@@ -191,8 +191,8 @@ class TestParameterConnections(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 100.0
 
-        p['phase0.states:h'] = phase.interpolate(ys=[20, 0], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, -5], nodes='state_input')
+        p['phase0.states:h'] = phase.interp('h', [20, 0])
+        p['phase0.states:v'] = phase.interp('v', [0, -5])
 
         p.run_model()
 
@@ -258,8 +258,8 @@ class TestParameterConnections(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 100.0
 
-        p['phase0.states:h'] = phase.interpolate(ys=[20, 0], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, -5], nodes='state_input')
+        p['phase0.states:h'] = phase.interp('h', [20, 0])
+        p['phase0.states:v'] = phase.interp('v', [0, -5])
 
         p.run_model()
 

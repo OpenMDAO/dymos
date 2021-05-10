@@ -42,13 +42,14 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=Fal
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 2.0
 
-    p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-    p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-    p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-    if not polynomial_control:
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
+    p['phase0.states:x'] = phase.interp('x', [0, 10])
+    p['phase0.states:y'] = phase.interp('y', [10, 5])
+    p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+
+    if polynomial_control:
+        p['phase0.polynomial_controls:theta'] = phase.interp('theta', [5, 100.5])
     else:
-        p['phase0.polynomial_controls:theta'][:] = 5.0
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100.5])
 
     return p
 
@@ -150,7 +151,7 @@ class TestLoadCase(unittest.TestCase):
         theta_val = outputs['phase0.timeseries.controls:theta']['value']
 
         assert_near_equal(q['phase0.timeseries.controls:theta'],
-                          q.model.phase0.interpolate(xs=time_val, ys=theta_val, nodes='all'),
+                          q.model.phase0.interp(xs=time_val, ys=theta_val, nodes='all'),
                           tolerance=1.0E-3)
 
     def test_load_case_radau_to_lgl(self):
@@ -182,7 +183,7 @@ class TestLoadCase(unittest.TestCase):
         theta_val = outputs['phase0.timeseries.controls:theta']['value']
 
         assert_near_equal(q['phase0.timeseries.controls:theta'],
-                          q.model.phase0.interpolate(xs=time_val, ys=theta_val, nodes='all'),
+                          q.model.phase0.interp(xs=time_val, ys=theta_val, nodes='all'),
                           tolerance=1.0E-2)
 
 

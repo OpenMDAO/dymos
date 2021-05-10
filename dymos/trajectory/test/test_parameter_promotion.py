@@ -66,14 +66,14 @@ class TestPhaseParameterPromotion(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p['traj.t_initial'] = 0.0
-        p['traj.t_duration'] = 2.0
+        p.set_val('traj.t_initial', 0.0)
+        p.set_val('traj.t_duration', 2.0)
 
-        p['traj.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['traj.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['traj.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['traj.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-        p['traj.parameters:g'] = 9.80665
+        p.set_val('traj.phase0.states:x', phase.interp('x', ys=[0, 10]))
+        p.set_val('traj.phase0.states:y', phase.interp('y', ys=[10, 5]))
+        p.set_val('traj.phase0.states:v', phase.interp('v', ys=[0, 9.9]))
+        p.set_val('traj.phase0.controls:theta', phase.interp('theta', ys=[5, 100]))
+        p.set_val('traj.parameters:g', 9.80665)
 
         p.run_driver()
 

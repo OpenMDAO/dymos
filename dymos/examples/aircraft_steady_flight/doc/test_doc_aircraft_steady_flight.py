@@ -93,8 +93,8 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         p['traj.phase0.t_initial'] = 0.0
         p['traj.phase0.t_duration'] = 3600.0
-        p['traj.phase0.states:range'][:] = phase.interpolate(ys=(0, 724.0), nodes='state_input')
-        p['traj.phase0.states:mass_fuel'][:] = phase.interpolate(ys=(30000, 1e-3), nodes='state_input')
+        p['traj.phase0.states:range'] = phase.interp('range', ys=(0, 724.0))
+        p['traj.phase0.states:mass_fuel'] = phase.interp('mass_fuel', ys=(30000, 1e-3))
         p['traj.phase0.states:alt'][:] = 10.0
 
         p['traj.phase0.controls:mach'][:] = 0.8

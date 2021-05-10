@@ -137,8 +137,8 @@ def load_case(problem, previous_solution):
             prev_state_val = prev_vars[prev_state_path]['value']
             prev_state_units = prev_vars[prev_state_path]['units']
             problem.set_val(state_path,
-                            phase.interpolate(xs=prev_time_val, ys=prev_state_val,
-                                              nodes='state_input', kind='slinear'),
+                            phase.interp(xs=prev_time_val, ys=prev_state_val,
+                                         nodes='state_input', kind='slinear'),
                             units=prev_state_units)
 
         # Interpolate the timeseries control outputs from the previous solution onto the new grid.
@@ -149,8 +149,8 @@ def load_case(problem, previous_solution):
             prev_control_val = prev_vars[prev_control_path]['value']
             prev_control_units = prev_vars[prev_control_path]['units']
             problem.set_val(control_path,
-                            phase.interpolate(xs=prev_time_val, ys=prev_control_val,
-                                              nodes='control_input', kind='slinear'),
+                            phase.interp(xs=prev_time_val, ys=prev_control_val,
+                                         nodes='control_input', kind='slinear'),
                             units=prev_control_units)
 
         # Set the output polynomial control outputs from the previous solution as the value
