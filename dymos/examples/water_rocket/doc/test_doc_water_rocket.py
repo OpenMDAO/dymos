@@ -7,12 +7,13 @@ import matplotlib.pyplot as plt
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.examples.water_rocket.phases import (new_water_rocket_trajectory,
                                                 set_sane_initial_guesses)
 
 from dymos.utils.doc_utils import save_for_docs
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 @require_pyoptsparse(optimizer='IPOPT')

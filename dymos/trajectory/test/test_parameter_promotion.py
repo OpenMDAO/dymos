@@ -3,10 +3,11 @@ import unittest
 import openmdao.api as om
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 @use_tempdirs

@@ -3,11 +3,12 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 @use_tempdirs
