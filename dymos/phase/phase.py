@@ -1677,7 +1677,9 @@ class Phase(om.Group):
 
     def interp(self, name=None, ys=None, xs=None, nodes=None, kind='linear', axis=0):
         """
-        Return an array of values on interpolated to the given node subset of the phase.
+        Interpolate values onto the given subset of nodes in the phase.
+
+        If specified, name will be used to determine the kind of variable being interpolated.
 
         Parameters
         ----------
@@ -1727,15 +1729,10 @@ class Phase(om.Group):
             raise ValueError('xs must be viewable as a 1D array')
 
         gd = self.options['transcription'].grid_data
-
-        if gd is None:
-            raise RuntimeError('interpolate cannot be called until the associated '
-                               'problem has been setup')
-
         if nodes is None:
             if name is None:
-                raise ValueError('nodes for interpolation were not specified but the name of the'
-                                 'variable to be interpolated was not provided.  Please specify '
+                raise ValueError('nodes for interpolation were not specified but the name of the '
+                                 'variable to be interpolated was not provided.\nPlease specify '
                                  'the name of the interpolated variable or a node subset.')
             elif name in self.state_options:
                 node_locations = gd.node_ptau[gd.subset_node_indices['state_input']]
@@ -1745,7 +1742,7 @@ class Phase(om.Group):
                 node_locations, _ = lgl(self.polynomial_control_options[name]['order'] + 1)
             else:
                 raise ValueError('Could not find a state, control, or polynomial control named '
-                                 f'{name} to be interpolated.  Please explicitly specified the'
+                                 f'{name} to be interpolated.\nPlease explicitly specified the '
                                  f'node subset onto which this value should be interpolated.')
         else:
             node_locations = gd.node_ptau[gd.subset_node_indices[nodes]]

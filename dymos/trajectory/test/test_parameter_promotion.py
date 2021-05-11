@@ -13,10 +13,10 @@ from dymos.utils.testing_utils import require_pyoptsparse
 @use_tempdirs
 class TestPhaseParameterPromotion(unittest.TestCase):
 
-    @require_pyoptsparse(optimizer='SNOPT')
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_promotes_parameter(self):
         transcription = 'radau-ps'
-        optimizer = 'SNOPT'
+        optimizer = 'SLSQP'
         num_segments = 10
         transcription_order = 3
         compressed = False
