@@ -8,11 +8,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.coloring import Coloring
 
 from dymos.utils.doc_utils import save_for_docs
-from dymos.utils.testing_utils import require_pyoptsparse
 
 
 def _view_coloring(coloring_file, show_sparsity_text=False, show_sparsity=True,
