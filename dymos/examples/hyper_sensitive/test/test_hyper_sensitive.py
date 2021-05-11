@@ -9,11 +9,12 @@ import numpy as np
 from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import printoptions
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 tf = np.float128(10)

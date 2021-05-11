@@ -1,7 +1,9 @@
 import unittest
 import warnings
 
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.testing_utils import use_tempdirs
+
+from dymos.utils.testing_utils import require_pyoptsparse
 
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')

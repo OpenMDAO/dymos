@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
@@ -12,6 +12,7 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
 from dymos.utils.lgl import lgl
 from dymos.visualization.timeseries_plots import timeseries_plots
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 @use_tempdirs

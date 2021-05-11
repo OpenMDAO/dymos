@@ -2,11 +2,12 @@ import unittest
 from numpy.testing import assert_almost_equal
 import numpy as np
 
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.mpi import MPI
 
 import dymos as dm
 from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
+from dymos.utils.testing_utils import require_pyoptsparse
 
 
 @use_tempdirs
