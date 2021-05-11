@@ -12,6 +12,7 @@ import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from dymos.utils.lgl import lgl
 
+
 @use_tempdirs
 class TestPhaseInterp(unittest.TestCase):
 
