@@ -2,10 +2,7 @@ import unittest
 
 import numpy as np
 
-from scipy.interpolate import interp1d
-
-import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal, assert_warning
+from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
