@@ -140,10 +140,10 @@ class TestStateDiscovery(unittest.TestCase):
         p['traj.phase0.t_initial'] = 0.0
         p['traj.phase0.t_duration'] = 2.0
 
-        p['traj.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['traj.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['traj.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['traj.phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
+        p['traj.phase0.states:x'] = phase.interp('x', [0, 10])
+        p['traj.phase0.states:y'] = phase.interp('y', [10, 5])
+        p['traj.phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['traj.phase0.controls:theta'] = phase.interp('theta', [5, 100.5])
 
         dm.run_problem(p)
 

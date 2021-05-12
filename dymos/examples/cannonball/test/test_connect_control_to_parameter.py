@@ -188,26 +188,25 @@ class TestConnectControlToParameter(unittest.TestCase):
         p.set_val('traj.ascent.t_initial', 0.0)
         p.set_val('traj.ascent.t_duration', 10.0)
 
-        p.set_val('traj.ascent.states:r', ascent.interpolate(ys=[0, 100], nodes='state_input'))
-        p.set_val('traj.ascent.states:h', ascent.interpolate(ys=[0, 100], nodes='state_input'))
-        p.set_val('traj.ascent.states:v', ascent.interpolate(ys=[200, 150], nodes='state_input'))
-        p.set_val('traj.ascent.states:gam', ascent.interpolate(ys=[25, 0], nodes='state_input'),
-                  units='deg')
+        p.set_val('traj.ascent.states:r', ascent.interp('r', [0, 100]))
+        p.set_val('traj.ascent.states:h', ascent.interp('h', [0, 100]))
+        p.set_val('traj.ascent.states:v', ascent.interp('v', [200, 150]))
+        p.set_val('traj.ascent.states:gam', ascent.interp('gam', [25, 0]), units='deg')
 
         p.set_val('traj.descent.t_initial', 10.0)
         p.set_val('traj.descent.t_duration', 10.0)
 
-        p.set_val('traj.descent.states:r', descent.interpolate(ys=[100, 200], nodes='state_input'))
-        p.set_val('traj.descent.states:h', descent.interpolate(ys=[100, 0], nodes='state_input'))
-        p.set_val('traj.descent.states:v', descent.interpolate(ys=[150, 200], nodes='state_input'))
-        p.set_val('traj.descent.states:gam', descent.interpolate(ys=[0, -45], nodes='state_input'),
-                  units='deg')
+        p.set_val('traj.descent.states:r', descent.interp('r', [100, 200]))
+        p.set_val('traj.descent.states:h', descent.interp('h', [100, 0]))
+        p.set_val('traj.descent.states:v', descent.interp('v', [150, 200]))
+        p.set_val('traj.descent.states:gam', descent.interp('gam', [0, -45]), units='deg')
 
         dm.run_problem(p, simulate=True, make_plots=True)
 
         assert_near_equal(p.get_val('traj.descent.states:r')[-1], 3183.25, tolerance=1.0E-2)
         assert_near_equal(p.get_val('traj.ascent.timeseries.controls:CD')[-1],
                           p.get_val('traj.descent.timeseries.parameters:CD')[0])
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

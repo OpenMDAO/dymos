@@ -133,12 +133,12 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p['traj.phase0.t_initial'] = 0.0
     p['traj.phase0.t_duration'] = 300.0
 
-    p['traj.phase0.states:r'] = phase.interpolate(ys=[0.0, 111319.54], nodes='state_input')
-    p['traj.phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='state_input')
-    p['traj.phase0.states:v'] = phase.interpolate(ys=[135.964, 283.159], nodes='state_input')
-    p['traj.phase0.states:gam'] = phase.interpolate(ys=[0.0, 0.0], nodes='state_input')
-    p['traj.phase0.states:m'] = phase.interpolate(ys=[19030.468, 16841.431], nodes='state_input')
-    p['traj.phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_input')
+    p['traj.phase0.states:r'] = phase.interp('r', [0.0, 111319.54])
+    p['traj.phase0.states:h'] = phase.interp('h', [100.0, 20000.0])
+    p['traj.phase0.states:v'] = phase.interp('v', [135.964, 283.159])
+    p['traj.phase0.states:gam'] = phase.interp('gam', [0.0, 0.0])
+    p['traj.phase0.states:m'] = phase.interp('m', [19030.468, 16841.431])
+    p['traj.phase0.controls:alpha'] = phase.interp('alpha', [0.0, 0.0])
 
     dm.run_problem(p, refine_iteration_limit=1)
 

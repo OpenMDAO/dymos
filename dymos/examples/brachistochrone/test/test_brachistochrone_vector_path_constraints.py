@@ -58,9 +58,9 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         pos0 = [0, 10]
         posf = [10, 5]
 
-        p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.states:pos'] = phase.interp('pos', [pos0, posf])
+        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()
@@ -171,9 +171,9 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         pos0 = [0, 10]
         posf = [10, 5]
 
-        p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.states:pos'] = phase.interp('pos', [pos0, posf])
+        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()
@@ -284,9 +284,9 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         pos0 = [0, 10]
         posf = [10, 5]
 
-        p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.states:pos'] = phase.interp('pos', [pos0, posf])
+        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()
@@ -397,9 +397,9 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         pos0 = [0, 10]
         posf = [10, 5]
 
-        p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.states:pos'] = phase.interp('pos', [pos0, posf])
+        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()
@@ -514,9 +514,9 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         pos0 = [0, 10]
         posf = [10, 5]
 
-        p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.states:pos'] = phase.interp('pos', [pos0, posf])
+        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()
@@ -627,9 +627,9 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         pos0 = [0, 10]
         posf = [10, 5]
 
-        p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.states:pos'] = phase.interp('pos', [pos0, posf])
+        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()

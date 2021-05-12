@@ -86,10 +86,10 @@ def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order
     p['traj.phase0.t_duration'] = t_final
 
     # add a linearly interpolated initial guess for the state and control curves
-    p['traj.phase0.states:x0'] = phase.interpolate(ys=[1, 0], nodes='state_input')
-    p['traj.phase0.states:x1'] = phase.interpolate(ys=[1, 0], nodes='state_input')
-    p['traj.phase0.states:J'] = phase.interpolate(ys=[0, 1], nodes='state_input')
-    p['traj.phase0.controls:u'] = phase.interpolate(ys=[-0.75, -0.75], nodes='control_input')
+    p['traj.phase0.states:x0'] = phase.interp('x0', [1, 0])
+    p['traj.phase0.states:x1'] = phase.interp('x1', [1, 0])
+    p['traj.phase0.states:J'] = phase.interp('J', [0, 1])
+    p['traj.phase0.controls:u'] = phase.interp('u', [-0.75, -0.75])
 
     p.final_setup()
 

@@ -155,10 +155,10 @@ class TestTandemPhases(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase0.interpolate(ys=[0, 10], nodes='state_input')
-        p['phase0.states:y'] = phase0.interpolate(ys=[10, 5], nodes='state_input')
-        p['phase0.states:v'] = phase0.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.controls:theta'] = phase0.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.states:x'] = phase0.interp('x', ys=[0, 10])
+        p['phase0.states:y'] = phase0.interp('y', ys=[10, 5])
+        p['phase0.states:v'] = phase0.interp('v', ys=[0, 9.9])
+        p['phase0.controls:theta'] = phase0.interp('theta', ys=[5, 100])
         p['phase0.parameters:g'] = 9.80665
 
         p['phase1.states:S'] = 0.0
