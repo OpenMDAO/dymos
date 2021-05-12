@@ -95,7 +95,7 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_parameter('g', targets=['g'], dynamic=False, opt=False)
+        phase.add_parameter('g', targets=['g'], static_target=True, opt=False)
 
         #
         # Minimize time at the end of the phase

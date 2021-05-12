@@ -682,10 +682,10 @@ class Radau(PseudospectralBase):
             options = phase.parameter_options[name]
             targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
 
-            dynamic = options['dynamic']
+            static = options['static_target']
             shape = options['shape']
 
-            if dynamic:
+            if not static:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
                 if shape == (1,):

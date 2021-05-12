@@ -18,10 +18,10 @@ class BrachistochroneVectorStatesODE(om.ExplicitComponent):
         self.add_input('theta', val=np.zeros(nn), desc='angle of wire', units='rad')
 
         self.add_output('pos_dot', val=np.zeros((nn, 2)), desc='velocity components', units='m/s',
-                        tags=['state_rate_source:pos'])
+                        tags=['dymos.state_rate_source:pos'])
 
         self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2',
-                        tags=['state_rate_source:v', 'state_units:m/s'])
+                        tags=['dymos.state_rate_source:v', 'dymos.state_units:m/s'])
 
         self.add_output('check', val=np.zeros(nn), desc='check solution: v/sin(theta) = constant',
                         units='m/s')

@@ -38,13 +38,13 @@ class TestBrachExecCompODE(unittest.TestCase):
                                             theta={'shape': (num_nodes,), 'units': 'rad'},
                                             vdot={'shape': (num_nodes,),
                                                   'units': 'm/s**2',
-                                                  'tags': ['state_rate_source:v']},
+                                                  'tags': ['dymos.state_rate_source:v']},
                                             xdot={'shape': (num_nodes,),
                                                   'units': 'm/s',
-                                                  'tags': ['state_rate_source:x']},
+                                                  'tags': ['dymos.state_rate_source:x']},
                                             ydot={'shape': (num_nodes,),
                                                   'units': 'm/s',
-                                                  'tags': ['state_rate_source:y']},
+                                                  'tags': ['dymos.state_rate_source:y']},
                                             has_diag_partials=True)
 
         traj = dm.Trajectory()
@@ -65,7 +65,7 @@ class TestBrachExecCompODE(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_parameter('g', units='m/s**2', dynamic=False)
+        phase.add_parameter('g', units='m/s**2', static_target=True)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -168,7 +168,7 @@ class TestInvalidCallableODEClass(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_parameter('g', units='m/s**2', dynamic=False)
+        phase.add_parameter('g', units='m/s**2', static_target=True)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -204,13 +204,13 @@ class CallableBrachistochroneODE(om.ExplicitComponent):
         self.add_input('theta', val=np.ones(nn), desc='angle of wire', units='rad')
 
         self.add_output('xdot', val=np.zeros(nn), desc='velocity component in x', units='m/s',
-                        tags=['state_rate_source:x', 'state_units:m'])
+                        tags=['dymos.state_rate_source:x', 'dymos.state_units:m'])
 
         self.add_output('ydot', val=np.zeros(nn), desc='velocity component in y', units='m/s',
-                        tags=['state_rate_source:y', 'state_units:m'])
+                        tags=['dymos.state_rate_source:y', 'dymos.state_units:m'])
 
         self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2',
-                        tags=['state_rate_source:v', 'state_units:m/s'])
+                        tags=['dymos.state_rate_source:v', 'dymos.state_units:m/s'])
 
         self.declare_partials(of='*', wrt='*', method='cs')
 
@@ -273,7 +273,7 @@ class TestBrachCallableODE(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_parameter('g', units='m/s**2', dynamic=False)
+        phase.add_parameter('g', units='m/s**2', static_target=True)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)

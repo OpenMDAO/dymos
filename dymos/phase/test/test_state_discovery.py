@@ -2,6 +2,7 @@
 Unit tests for tagging state rate targets in a model.
 """
 import unittest
+import warnings
 
 import numpy as np
 
@@ -31,13 +32,13 @@ class BrachistochroneODE(om.ExplicitComponent):
         self.add_input('theta', val=np.ones(nn), desc='angle of wire', units='rad')
 
         self.add_output('xdot', val=np.zeros(nn), desc='velocity component in x', units='m/s',
-                        tags=['state_rate_source:x', 'state_units:m'])
+                        tags=['dymos.state_rate_source:x', 'dymos.state_units:m'])
 
         self.add_output('ydot', val=np.zeros(nn), desc='velocity component in y', units='m/s',
-                        tags=['state_rate_source:y', 'state_units:m'])
+                        tags=['dymos.state_rate_source:y', 'dymos.state_units:m'])
 
         self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2',
-                        tags=['state_rate_source:v', 'state_units:m/s'])
+                        tags=['dymos.state_rate_source:v', 'dymos.state_units:m/s'])
 
         self.add_output('check', val=np.zeros(nn), desc='check solution: v/sin(theta) = constant',
                         units='m/s')
@@ -156,7 +157,7 @@ class TestStateDiscovery(unittest.TestCase):
             def setup(self):
                 nn = self.options['num_nodes']
                 self.add_input('x', np.ones((nn, )))
-                self.add_output('xdot', np.ones((nn, )), tags=['state_units:m'])
+                self.add_output('xdot', np.ones((nn, )), tags=['dymos.state_units:x'])
 
         p = om.Problem()
 
@@ -167,8 +168,8 @@ class TestStateDiscovery(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             p.setup()
 
-        msg = ("'state_units:' tag declared on 'xdot' also requires "
-               "that the 'state_rate_source:' tag be declared.")
+        msg = ("'dymos.state_units:x' tag declared on 'xdot' also requires "
+               "that the 'dymos.state_rate_source:x' tag be declared.")
         self.assertEqual(str(cm.exception), msg)
 
         class BadComp(om.ExplicitComponent):
@@ -179,7 +180,7 @@ class TestStateDiscovery(unittest.TestCase):
             def setup(self):
                 nn = self.options['num_nodes']
                 self.add_input('x', np.ones((nn, )))
-                self.add_output('xdot', np.ones((nn, )), tags=['state_rate_source:x'])
+                self.add_output('xdot', np.ones((nn, )), tags=['dymos.state_rate_source:x'])
 
         p = om.Problem()
 
@@ -219,6 +220,38 @@ class TestStateDiscovery(unittest.TestCase):
 
         msg = ("State 'x' is missing a rate_source.")
         self.assertEqual(str(cm.exception), msg)
+
+    def test_deprecations(self):
+
+        class DepComp(om.ExplicitComponent):
+
+            def initialize(self):
+                self.options.declare('num_nodes', types=int)
+
+            def setup(self):
+                nn = self.options['num_nodes']
+                self.add_input('x', np.ones((nn, )), units='m')
+                self.add_output('xdot', np.ones((nn, )), units='m/s',
+                                tags=['state_rate_source:x', 'state_units:m'])
+
+        p = om.Problem()
+
+        phase = dm.Phase(ode_class=DepComp,
+                         transcription=dm.GaussLobatto(num_segments=2))
+        p.model.add_subsystem('phase', phase)
+
+        expected_msg0 = "The tag 'state_rate_source:x' has a deprecated format and will no longer " \
+                        "work in dymos version 2.0.0. Use 'dymos.state_rate_source:x' instead."
+
+        expected_msg1 = "The tag 'state_units:m' has a deprecated format and will no longer work " \
+                        "in dymos version 2.0.0. Use 'dymos.state_units:m' instead."
+
+        with warnings.catch_warnings(record=True) as ctx:
+            warnings.simplefilter('always')
+            p.setup(check=True)
+
+        self.assertIn(expected_msg0, [str(w.message) for w in ctx])
+        self.assertIn(expected_msg1, [str(w.message) for w in ctx])
 
 
 if __name__ == "__main__":

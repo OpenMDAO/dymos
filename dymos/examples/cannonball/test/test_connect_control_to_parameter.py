@@ -122,8 +122,8 @@ class TestConnectControlToParameter(unittest.TestCase):
         ascent.add_state('gam', fix_initial=False, fix_final=True, units='rad', rate_source='gam_dot')
         ascent.add_state('v', fix_initial=False, fix_final=False, units='m/s', rate_source='v_dot')
 
-        ascent.add_parameter('S', targets=['S'], units='m**2', dynamic=False)
-        ascent.add_parameter('mass', targets=['m'], units='kg', dynamic=False)
+        ascent.add_parameter('S', targets=['S'], units='m**2', static_target=True)
+        ascent.add_parameter('mass', targets=['m'], units='kg', static_target=True)
 
         ascent.add_control('CD', targets=['CD'], opt=False, val=0.05)
 
@@ -146,8 +146,8 @@ class TestConnectControlToParameter(unittest.TestCase):
         descent.add_state('gam', units='rad', rate_source='gam_dot', fix_initial=False, fix_final=False)
         descent.add_state('v', units='m/s', rate_source='v_dot', fix_initial=False, fix_final=False)
 
-        descent.add_parameter('S', targets=['S'], units='m**2', dynamic=False)
-        descent.add_parameter('mass', targets=['m'], units='kg', dynamic=False)
+        descent.add_parameter('S', targets=['S'], units='m**2', static_target=True)
+        descent.add_parameter('mass', targets=['m'], units='kg', static_target=True)
         descent.add_parameter('CD', targets=['CD'], val=0.01)
 
         descent.add_objective('r', loc='final', scaler=-1.0)
@@ -155,11 +155,11 @@ class TestConnectControlToParameter(unittest.TestCase):
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
         traj.add_parameter('m', units='kg', val=1.0,
-                           targets={'ascent': 'mass', 'descent': 'mass'}, dynamic=False)
+                           targets={'ascent': 'mass', 'descent': 'mass'}, static_target=True)
 
         # In this case, by omitting targets, we're connecting these parameters to parameters
         # with the same name in each phase.
-        traj.add_parameter('S', units='m**2', val=0.005, dynamic=False)
+        traj.add_parameter('S', units='m**2', val=0.005, static_target=True)
 
         # Link Phases (link time and all state variables)
         traj.link_phases(phases=['ascent', 'descent'], vars=['*'])

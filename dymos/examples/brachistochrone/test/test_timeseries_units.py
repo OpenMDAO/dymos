@@ -63,7 +63,7 @@ class TestTimeseriesUnits(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_parameter('g', units='m/s**2', dynamic=False)
+        phase.add_parameter('g', units='m/s**2', static_target=True)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)

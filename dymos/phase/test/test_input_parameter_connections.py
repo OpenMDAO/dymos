@@ -62,7 +62,7 @@ class TestStaticParameters(unittest.TestCase):
         phase.set_time_options(units='s', targets=['comp.time'])
         phase.add_state(name='F', rate_source='comp.y')
         phase.add_parameter('alpha', val=np.ones((n_traj, 2)), units='m',
-                            targets='comp.alpha', dynamic=False)
+                            targets='comp.alpha', static_target=True)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -84,7 +84,7 @@ class TestStaticParameters(unittest.TestCase):
         phase.set_time_options(units='s', targets=['comp.time'])
         phase.add_state(name='F', rate_source='comp.y')
         phase.add_parameter('alpha', val=np.ones((n_traj, 2)), units='m',
-                            targets='comp.alpha', dynamic=False)
+                            targets='comp.alpha', static_target=True)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -92,6 +92,38 @@ class TestStaticParameters(unittest.TestCase):
             p.setup()
         except Exception as e:
             self.fail('Exception encountered in setup:\n' + str(e))
+
+    def test_static_and_dynamic_error(self):
+
+        phase = dm.Phase(ode_class=MyODE,
+                         ode_init_kwargs={'n_traj': n_traj},
+                         transcription=dm.Radau(num_segments=25,
+                                                order=3,
+                                                compressed=True))
+
+        with self.assertRaises(ValueError) as e:
+            phase.add_parameter('alpha', val=np.ones((n_traj, 2)), units='m',
+                                targets='comp.alpha', dynamic=False, static_target=True)
+
+        expected_msg = "Both the deprecated 'dynamic' option and option 'static_target' were " \
+                       "specified for parameter 'alpha'. Going forward, please use only option " \
+                       "static_target.  Option 'dynamic' will be removed in Dymos 2.0.0."
+
+        self.assertEqual(str(e.exception), expected_msg)
+
+    def test_static_and_dynamic_error_in_traj(self):
+
+        t = dm.Trajectory()
+
+        with self.assertRaises(ValueError) as e:
+            t.add_parameter('alpha', val=np.ones((n_traj, 2)), units='m',
+                            targets={'p': ['comp.alpha']}, dynamic=False, static_target=True)
+
+        expected_msg = "Both the deprecated 'dynamic' option and option 'static_target' were " \
+                       "specified for parameter 'alpha'. Going forward, please use only option " \
+                       "static_target.  Option 'dynamic' will be removed in Dymos 2.0.0."
+
+        self.assertEqual(str(e.exception), expected_msg)
 
 
 if __name__ == '__main__':  # pragma: no cover
