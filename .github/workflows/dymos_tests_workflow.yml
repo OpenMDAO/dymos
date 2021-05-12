@@ -226,7 +226,7 @@ jobs:
           coveralls --base_dir $SITE_DIR
 
       - name: Build docs
-        if: matrix.DOCS == '1'
+        if: ${{ matrix.DOCS == '1' && (github.event_name != 'push' || github.ref != 'refs/heads/master') }}
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -234,6 +234,16 @@ jobs:
           echo "============================================================="
           cd mkdocs
           mkdocs build --verbose --clean
+
+      - name: Publish docs
+        if: ${{ matrix.DOCS == '1' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        shell: bash -l {0}
+        run: |
+          echo "============================================================="
+          echo "Publishing Docs"
+          echo "============================================================="
+          cd mkdocs
+          mkdocs gh-deploy --verbose --clean
 
   coveralls:
     name: Finish coveralls
