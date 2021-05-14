@@ -441,12 +441,15 @@ class PseudospectralBase(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         if self.any_solved_segs or self.any_connected_opt_segs:
-            newton = phase.nonlinear_solver = om.NewtonSolver()
-            newton.options['solve_subsystems'] = True
-            newton.options['maxiter'] = 100
-            newton.options['iprint'] = -1
-            newton.linesearch = om.BoundsEnforceLS()
-            phase.linear_solver = om.DirectSolver()
+            # Only override the solvers if the user hasn't set them to something else.
+            if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
+                newton = phase.nonlinear_solver = om.NewtonSolver()
+                newton.options['solve_subsystems'] = True
+                newton.options['maxiter'] = 100
+                newton.options['iprint'] = 2
+                newton.linesearch = om.BoundsEnforceLS()
+            if isinstance(phase.linear_solver, om.LinearRunOnce):
+                phase.linear_solver = om.DirectSolver()
 
     def setup_timeseries_outputs(self, phase):
         """
