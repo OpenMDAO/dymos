@@ -38,6 +38,7 @@ class TestVanderpolForDocs(unittest.TestCase):
     def test_vanderpol_for_docs_optimize_refine(self):
         import dymos as dm
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
+        from openmdao.utils.assert_utils import assert_near_equal
 
         # Create the Dymos problem instance
         p = vanderpol(transcription='gauss-lobatto', num_segments=15,
@@ -47,6 +48,11 @@ class TestVanderpolForDocs(unittest.TestCase):
         p.model.traj.phases.phase0.set_refine_options(refine=True)
 
         dm.run_problem(p, refine_iteration_limit=10, simulate=True, make_plots=True)
+
+        assert_near_equal(p.get_val('traj.phase0.states:x0')[-1, ...], 0.0)
+        assert_near_equal(p.get_val('traj.phase0.states:x1')[-1, ...], 0.0)
+        assert_near_equal(p.get_val('traj.phase0.states:J')[-1, ...], 5.2808, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('traj.phase0.controls:u')[-1, ...], 0.0, tolerance=1.0E-3)
 
 
 @unittest.skipUnless(MPI, "MPI is required.")
@@ -59,6 +65,7 @@ class TestVanderpolDelayMPI(unittest.TestCase):
         import openmdao.api as om
         import dymos as dm
         from dymos.examples.vanderpol.vanderpol_ode import VanderpolODE
+        from openmdao.utils.assert_utils import assert_near_equal
 
         DELAY = 0.005
 
@@ -124,3 +131,8 @@ class TestVanderpolDelayMPI(unittest.TestCase):
         p['traj.phase0.controls:u'] = phase.interp('u', [-0.75, -0.75])
 
         dm.run_problem(p, run_driver=True, simulate=False)
+
+        assert_near_equal(p.get_val('traj.phase0.states:x0')[-1, ...], 0.0)
+        assert_near_equal(p.get_val('traj.phase0.states:x1')[-1, ...], 0.0)
+        assert_near_equal(p.get_val('traj.phase0.states:J')[-1, ...], 5.2808, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('traj.phase0.controls:u')[-1, ...], 0.0, tolerance=1.0E-3)
