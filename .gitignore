@@ -77,3 +77,6 @@ fort.6
 
 # mkdocs
 /mkdocs/site
+
+# output
+dymos/examples/*/*/_output/
