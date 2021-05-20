@@ -1,0 +1,1077 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Commercial Aircraft Range Maximization by Differential Inclusion &#8212; Dymos</title>
+    
+  <link href="../../_static/css/theme.css" rel="stylesheet" />
+  <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/sphinx-book-theme.acff12b8f9c144ce68a297486a2fa670.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/togglebutton.js"></script>
+    <script src="../../_static/clipboard.min.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../../_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <script async="async" src="https://unpkg.com/thebelab@latest/lib/index.js"></script>
+    <script >
+        const thebe_selector = ".thebe"
+        const thebe_selector_input = "pre"
+        const thebe_selector_output = ".output"
+    </script>
+    <script async="async" src="../../_static/sphinx-thebe.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "processRefs": false, "processEnvironments": false}})</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Double Integrator" href="../double_integrator/double_integrator.html" />
+    <link rel="prev" title="The Van der Pol Oscillator" href="../vanderpol/vanderpol.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../../index.html">
+      
+      <img src="../../_static/dymos_logo.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">Dymos</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <div class="bd-toc-item active">
+        <ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../index.html">
+   Multidisciplinary Optimal Control Library
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../installation.html">
+   Installing Dymos
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/collocation.html">
+   What is collocation?
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/defining_odes.html">
+   Defining ODEs
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/optimal_control.html">
+   Optimal Control
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">
+   Modeling Dynamic Systems with Dymos
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/intro_to_dymos/intro_segments.html">
+   Segments of Phases
+  </a>
+ </li>
+</ul>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="../examples.html">
+   Dymos by Example
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="../brachistochrone/brachistochrone.html">
+     The Brachistochrone
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../balanced_field/balanced_field.html">
+     Aircraft Balanced Field Length Calculation
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../vanderpol/vanderpol.html">
+     The Van der Pol Oscillator
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     Commercial Aircraft Range Maximization by Differential Inclusion
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../double_integrator/double_integrator.html">
+     Double Integrator
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../hypersensitive/hypersensitive.html">
+     Hyper-Sensitive Problem
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../finite_burn_orbit_raise/finite_burn_orbit_raise.html">
+     Two-Burn Orbit Raise
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html">
+     The Length-Constrained Brachistochrone
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../min_time_climb/min_time_climb.html">
+     Supersonic Interceptor Minimum Time Climb
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../multi_phase_cannonball/multi_phase_cannonball.html">
+     Multi-Phase Cannonball
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../multibranch_trajectory/multibranch_trajectory.html">
+     Multibranch Trajectory
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../racecar/racecar.html">
+     Race car Lap Simulation
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reentry/reentry.html">
+     Single-Phase Space Shuttle Reentry
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../ssto_earth/ssto_earth.html">
+     SSTO Earth Launch
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Powered by <a href="https://jupyterbook.org">Jupyter Book</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../../_sources/examples/commercial_aircraft/commercial_aircraft.md"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.md</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/OpenMDAO/OpenMDAO_Book"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/OpenMDAO/OpenMDAO_Book/issues/new?title=Issue%20on%20page%20%2Fexamples/commercial_aircraft/commercial_aircraft.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+            <div class="tocsection onthispage pt-5 pb-3">
+                <i class="fas fa-list"></i> Contents
+            </div>
+            <nav id="bd-toc-nav">
+                <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#differential-inclusion">
+   Differential Inclusion
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pitfalls-of-differential-inclusion">
+     Pitfalls of Differential Inclusion
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#solver-options">
+       Solver Options
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#the-impact-of-choice-of-transcription">
+       The Impact of Choice of Transcription
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#problem-formulation">
+   Problem Formulation
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#state-variables">
+     State Variables
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#dynamic-controls">
+     Dynamic Controls
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#parameters">
+     Parameters
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#objective">
+     Objective
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#nonlinear-path-constraints">
+     Nonlinear Path Constraints
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#nonlinear-boundary-constraints">
+     Nonlinear Boundary Constraints
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#models">
+   Models
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#atmosphere">
+     Atmosphere
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#true-airspeed">
+     True Airspeed
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#flight-path-angle">
+     Flight Path Angle
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#range-rate">
+     Range Rate
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#mass">
+     Mass
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#dynamic-pressure">
+     Dynamic Pressure
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#aerodynamics">
+     Aerodynamics
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#flight-equilibrium">
+     Flight Equilibrium
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#propulsion">
+     Propulsion
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#the-ode-system-aircraft-ode-py">
+   The ODE System: aircraft_ode.py
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#building-and-running-the-problem">
+   Building and running the problem
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#references">
+   References
+  </a>
+ </li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="commercial-aircraft-range-maximization-by-differential-inclusion">
+<h1>Commercial Aircraft Range Maximization by Differential Inclusion<a class="headerlink" href="#commercial-aircraft-range-maximization-by-differential-inclusion" title="Permalink to this headline">¶</a></h1>
+<p>In this example we seek to maximize the range of a commercial aircraft
+flying at a constant Mach number with a fixed initial fuel load. The
+initial and final altitudes are constrained to 10000 ft (that is, in
+this simplified example we’re ignoring the aircraft behavior near the
+ground).</p>
+<p>This example is simplified in several ways. The Mach number is fixed at
+0.8. When only considering fuel burn, the aircraft will tend to fly
+slower to conserve fuel, ignoring the running costs of being airborne.</p>
+<p>For a more detailed optimization of commercial aircraft performance, see
+Betts[&#64;betts1995application].</p>
+<div class="section" id="differential-inclusion">
+<h2>Differential Inclusion<a class="headerlink" href="#differential-inclusion" title="Permalink to this headline">¶</a></h2>
+<p>In this case we also use the steady flight assumption to allow the
+problem to be parameterized with a different control set. Rather than
+providing throttle/thrust and angle of attack as control variables, we
+use a <em>differential inclusion</em> approach. Whereas altitude and velocity
+are often treated as state variables to be integrated, here we take a
+slightly different approach.</p>
+<p>Rather than using the differential equations to compute rates for the
+flight path angle and true airspeed, we use a nonlinear solver to
+determine the alpha and thrust time-history which is needed to make the
+given altitude and airspeed time-history possible. This technique is
+known as differential inclusion. It was demonstrated by Seywald[&#64;Seywald1994].
+Since the collocation
+techniques in Dymos are based on polynomial approximations, rates of the
+control variables can be easily calculated, which can then be applied to
+the reordered dynamics equations to solve for angle of attack and
+thrust.</p>
+<p>The use of collocation/psuedospectral techniques in solving problems via
+differential inclusion has been examined by Fahroo and Ross[&#64;fahroo2001second]
+and Kumar and Seywald[&#64;Kumar1996]. Since the differential inclusion
+approach demonstrated here relies on nonlinear solvers running within
+the ODE model, obtaining accurate derivatives is paramount. Computing
+derivatives with finite differences in the presence of nonlinear solvers
+can lead to inaccurate derivatives based on the properties of the
+solver. With OpenMDAO’s unified derivatives framework, the sensitivy to
+solver tolerances is greatly reduced.</p>
+<div class="section" id="pitfalls-of-differential-inclusion">
+<h3>Pitfalls of Differential Inclusion<a class="headerlink" href="#pitfalls-of-differential-inclusion" title="Permalink to this headline">¶</a></h3>
+<p>Differential inclusion works well in this case but it is highly
+dependent on the parameterization of the problem. For instance, it is
+possible for the optimizer to suggest a flight profile that requires
+thrust well beyond the capabilities of the vehicle. In our case, the
+throttle parameter <span class="math notranslate nohighlight">\(\tau\)</span> is path constrained within the optimizer, so
+that the optimizer can make the solution physically attainable by our
+model.</p>
+<p>We have two options for how to tackle this problem. We could specify
+altitude as a control variable, and use it’s approximate derivative
+(<span class="math notranslate nohighlight">\(alt\_rate\)</span>) to provide the altitude rate for the flight
+equilibrium conditions. In practice, however, this noisy derivative of
+altitude can cause numerical difficulties. Other times, the optimizer
+will shape the control to satisfy our equilibrium conditions at the
+collocation nodes but be wildly wrong in between these nodes. One simple
+way to get around this is to still integrate altitude, but to provide
+<span class="math notranslate nohighlight">\(climb\_rate\)</span> as the control variable. This makes it easy to
+constraint <span class="math notranslate nohighlight">\(climb\_rate\)</span> with bounds constraints, and the
+time-history of altitude will be smoother since it is the time integral
+of the rate of climb.</p>
+<div class="section" id="solver-options">
+<h4>Solver Options<a class="headerlink" href="#solver-options" title="Permalink to this headline">¶</a></h4>
+<p>In general, <em>openmdao.api.AnalysisError</em> should be raised
+when the design variables provided by the optimizer result in
+nonconvergence of the solvers. This informs pyoptsparse to backtrack
+along its line search for a solution. This error can be raised by the
+<em>compute</em> method of a component. The nonlinear solver can
+also raise this error if it fails to converge by setting the following
+options:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">nonlinear_solver</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;maxiter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">150</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">nonlinear_solver</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;err_on_maxiter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>In the course of solving, an outer NewtonSolver won’t necessarily force
+subsystems to be solved, instead relying on the derivative at the at the
+previous solution. In the context of OpenMDAO, even explicit components
+constitute subsystems. This can lead to poorly converged solutions.</p>
+<p>Setting the <em>solve_subystems</em> option to True will force
+subsystems to be updated, making sure that all derivative information is
+up-to-date.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">nonlinear_solver</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;solve_subsystems&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">nonlinear_solver</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;max_sub_solves&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-impact-of-choice-of-transcription">
+<h4>The Impact of Choice of Transcription<a class="headerlink" href="#the-impact-of-choice-of-transcription" title="Permalink to this headline">¶</a></h4>
+<p>The high-order Gauss-Lobatto method used by Dymos evaluates the ordinary
+differential equations in a two-step process. First, the ODEs are
+evaluated at the <em>state discretization</em> nodes. Using the state values
+and derivatives, values and rates at the <em>collocation</em> nodes are then
+interpolated. If a large rate is found at one of the state
+discretization nodes, the interpolation at the collocation node can be
+outside of the expected range, leading to nonconvergence of solvers
+within the ODEs.</p>
+<p>There is also an overhead cost to invoking solvers. While differential
+inclusion reduces the number of design variables for the optimizer, it
+also slows down each evaluation of the ODE somewhat. Since evaluating
+the collocation constraints in the Gauss-Lobatto method requires two
+evaluations of the ODE, it typically suffers greater slowdown that the
+Radau Pseudospectral method, which evaluates the defects of the ODE with
+a single evaluation that encompasses all the nodes.</p>
+<p>For these reasons the Radau Pseudospectral transcription is typically
+preferable when using a differential inclusion approach to problems.</p>
+</div>
+</div>
+</div>
+<div class="section" id="problem-formulation">
+<h2>Problem Formulation<a class="headerlink" href="#problem-formulation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="state-variables">
+<h3>State Variables<a class="headerlink" href="#state-variables" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Fixed Initial Value</p></th>
+<th class="head"><p>Fixed Final Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>range</p></td>
+<td><p>distance flown along ground</p></td>
+<td><p>True (0 NM)</p></td>
+<td><p>False</p></td>
+</tr>
+<tr class="row-odd"><td><p>mass_fuel</p></td>
+<td><p>mass of fuel aboard aircraft</p></td>
+<td><p>True (30000 lbm)</p></td>
+<td><p>True (0 lbm)</p></td>
+</tr>
+<tr class="row-even"><td><p>alt</p></td>
+<td><p>aircraft altitude</p></td>
+<td><p>True (10000 ft)</p></td>
+<td><p>True (10000 ft)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="dynamic-controls">
+<h3>Dynamic Controls<a class="headerlink" href="#dynamic-controls" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Optimized</p></th>
+<th class="head"><p>Fixed Initial Value</p></th>
+<th class="head"><p>Fixed Final Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>climb_rate</p></td>
+<td><p>aircraft rate of climb</p></td>
+<td><p>True</p></td>
+<td><p>False</p></td>
+<td><p>False</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Optimized</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>mach</p></td>
+<td><p>mach number</p></td>
+<td><p>False (0.8)</p></td>
+</tr>
+<tr class="row-odd"><td><p>S</p></td>
+<td><p>aerodynamic reference area</p></td>
+<td><p>False (427.8 m**2)</p></td>
+</tr>
+<tr class="row-even"><td><p>mass_empty</p></td>
+<td><p>aircraft empty mass</p></td>
+<td><p>False (330693.393 lbm)</p></td>
+</tr>
+<tr class="row-odd"><td><p>mass_payload</p></td>
+<td><p>aircraft payload mass</p></td>
+<td><p>False (74100 lbm)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="objective">
+<h3>Objective<a class="headerlink" href="#objective" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Location</p></th>
+<th class="head"><p>Minimized or Maximized</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>r</p></td>
+<td><p>range</p></td>
+<td><p>final</p></td>
+<td><p>Maximized</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="nonlinear-path-constraints">
+<h3>Nonlinear Path Constraints<a class="headerlink" href="#nonlinear-path-constraints" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Lower</p></th>
+<th class="head"><p>Upper</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>tau</p></td>
+<td><p>engine throttle parameter</p></td>
+<td><p>0.01</p></td>
+<td><p>1.0</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="nonlinear-boundary-constraints">
+<h3>Nonlinear Boundary Constraints<a class="headerlink" href="#nonlinear-boundary-constraints" title="Permalink to this headline">¶</a></h3>
+<p>None</p>
+</div>
+</div>
+<div class="section" id="models">
+<h2>Models<a class="headerlink" href="#models" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="atmosphere">
+<h3>Atmosphere<a class="headerlink" href="#atmosphere" title="Permalink to this headline">¶</a></h3>
+<p>This problem uses an analytic fit to the 1976 standard atmosphere.</p>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Input or Output</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>alt</p></td>
+<td><p>altitude (m)</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-odd"><td><p>pres</p></td>
+<td><p>static pressure (Pa)</p></td>
+<td><p>output</p></td>
+</tr>
+<tr class="row-even"><td><p>temp</p></td>
+<td><p>temperature (K)</p></td>
+<td><p>output</p></td>
+</tr>
+<tr class="row-odd"><td><p>sos</p></td>
+<td><p>speed of sound (m/s)</p></td>
+<td><p>output</p></td>
+</tr>
+<tr class="row-even"><td><p>rho</p></td>
+<td><p>density (kg/m**3)</p></td>
+<td><p>output</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="true-airspeed">
+<h3>True Airspeed<a class="headerlink" href="#true-airspeed" title="Permalink to this headline">¶</a></h3>
+<p><em>TrueAirspeedComp</em> uses the Mach number, provided as a
+control, and the speed of sound from the atmosphere model to compute the
+true airspeed of the aircraft.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-b5a47958-a67f-4565-9f7e-9333fd093e3d">
+<span class="eqno">(27)<a class="headerlink" href="#equation-b5a47958-a67f-4565-9f7e-9333fd093e3d" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  TAS &amp;= mach \cdot sos
+\end{align}\]</div>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Input or Output</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>mach</p></td>
+<td><p>Mach number</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-odd"><td><p>sos</p></td>
+<td><p>speed of sound (m/s)</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-even"><td><p>TAS</p></td>
+<td><p>true airspeed (m/s)</p></td>
+<td><p>output</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="flight-path-angle">
+<h3>Flight Path Angle<a class="headerlink" href="#flight-path-angle" title="Permalink to this headline">¶</a></h3>
+<p><em>SteadyFlightPathAngleComp</em> uses the true airspeed and the
+climb rate, obtained by differentiating the altitude time history at the
+nodes, to compute the flight path angle.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-4d9b7a82-e08a-4e93-8310-98781499937c">
+<span class="eqno">(28)<a class="headerlink" href="#equation-4d9b7a82-e08a-4e93-8310-98781499937c" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  \gamma &amp;= \arctan \frac{TAS}{\dot h}
+\end{align}\]</div>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Input or Output</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>TAS</p></td>
+<td><p>true airspeed (m/s)</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-odd"><td><p>alt_rate</p></td>
+<td><p>climb rate (m/s)</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-even"><td><p>gamma</p></td>
+<td><p>flight path angle (rad)</p></td>
+<td><p>output</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="range-rate">
+<h3>Range Rate<a class="headerlink" href="#range-rate" title="Permalink to this headline">¶</a></h3>
+<p><em>RangeRateComp</em> uses the true airspeed and the flight path
+angle to determine the velocity projected along the ground. This is the
+derivative of the state variable <em>range</em>.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-b1ba8da5-d7dc-4ed6-81af-3ff28e3b6c70">
+<span class="eqno">(29)<a class="headerlink" href="#equation-b1ba8da5-d7dc-4ed6-81af-3ff28e3b6c70" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  \dot{range} &amp;= TAS \cos \gamma
+\end{align}\]</div>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Input or Output</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>TAS</p></td>
+<td><p>true airspeed (m/s)</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-odd"><td><p>gamma</p></td>
+<td><p>flight path angle (rad)</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-even"><td><p>dXdt:range</p></td>
+<td><p>range rate (m/s)</p></td>
+<td><p>output</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="mass">
+<h3>Mass<a class="headerlink" href="#mass" title="Permalink to this headline">¶</a></h3>
+<p>The component <em>MassComp</em> defined in
+<code class="docutils literal notranslate"><span class="pre">mass_comp.py</span></code> computes the aircraft total mass based on
+its empty mass, payload mass, and current fuel mass. It also computes
+total weight which simplifies some equations later on.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-2442cd5f-9641-4305-a08c-ea7c8a67f4dd">
+<span class="eqno">(30)<a class="headerlink" href="#equation-2442cd5f-9641-4305-a08c-ea7c8a67f4dd" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  mass_{total} &amp;= mass_{empty} + mass_{payload} + mass_{fuel} W_{total} = 9.80665 \, mass_{total}
+\end{align}\]</div>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Input or Output</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>mass_empty</p></td>
+<td><p>aircraft empty mass (kg)</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-odd"><td><p>mass_payload</p></td>
+<td><p>payload mass (kg)</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-even"><td><p>mass_fuel</p></td>
+<td><p>fuel mass (kg)</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-odd"><td><p>mass_total</p></td>
+<td><p>total aircraft mass (kg)</p></td>
+<td><p>output</p></td>
+</tr>
+<tr class="row-even"><td><p>W_total</p></td>
+<td><p>total aircraft weight (N)</p></td>
+<td><p>output</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="dynamic-pressure">
+<h3>Dynamic Pressure<a class="headerlink" href="#dynamic-pressure" title="Permalink to this headline">¶</a></h3>
+<p>The <em>DynamicPressureComp</em> computes the dynamic pressure from
+true airspeed and atmospheric density.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-fad9bcac-19be-4e19-9072-6bd9a5bbca79">
+<span class="eqno">(31)<a class="headerlink" href="#equation-fad9bcac-19be-4e19-9072-6bd9a5bbca79" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  q &amp;= \frac{1}{2} \rho TAS^2
+\end{align}\]</div>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Input or Output</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>TAS</p></td>
+<td><p>true airspeed (m/s)</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-odd"><td><p>rho</p></td>
+<td><p>atmospheric density (kg/m**3)</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-even"><td><p>q</p></td>
+<td><p>dynamic pressure (Pa)</p></td>
+<td><p>output</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="aerodynamics">
+<h3>Aerodynamics<a class="headerlink" href="#aerodynamics" title="Permalink to this headline">¶</a></h3>
+<p>The aerodynamics group computes the aerodynamic coefficients and forces
+on the vehicle. It consists of an interpolation component which outputs
+lift, drag, and moment coefficients as a function of Mach number, angle
+of attack, altitude, and tail rotation angle. A second component then
+uses these coefficients, along with dynamic pressure and aerodynamic
+reference area, to compute the lift and drag forces on the vehicle.</p>
+<p>The aerodynamics group resides within the flight equilibrium group. As
+that group iterates to find the combination of thrust coefficient, angle
+of attack, and tail rotation angle, aerodynamics needs to update the
+values of the interpolated coefficients and resulting forces.</p>
+<p>Organizationally speaking, we logically could have put the dynamic
+pressure component within the aerodynamics group. However, since that
+group doesn’t need to be updated with changes in alpha and tail angle,
+it’s more efficient to leave it outside of flight equilibrium group.</p>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Input or Output</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>mach</p></td>
+<td><p>mach number</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-odd"><td><p>alt</p></td>
+<td><p>altitude (m)</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-even"><td><p>alpha</p></td>
+<td><p>angle of attack (deg)</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-odd"><td><p>eta</p></td>
+<td><p>tail rotation angle (deg)</p></td>
+<td><p>input</p></td>
+</tr>
+<tr class="row-even"><td><p>CL</p></td>
+<td><p>lift coefficient</p></td>
+<td><p>output</p></td>
+</tr>
+<tr class="row-odd"><td><p>CD</p></td>
+<td><p>drag coefficient</p></td>
+<td><p>output</p></td>
+</tr>
+<tr class="row-even"><td><p>CM</p></td>
+<td><p>moment coefficient</p></td>
+<td><p>output</p></td>
+</tr>
+<tr class="row-odd"><td><p>L</p></td>
+<td><p>lift force (N)</p></td>
+<td><p>output</p></td>
+</tr>
+<tr class="row-even"><td><p>D</p></td>
+<td><p>drag force (N)</p></td>
+<td><p>output</p></td>
+</tr>
+</tbody>
+</table>
+<p>!!! note “Note”
+This example uses <em>openmdao.api.MetaModelStructuredComp</em> to
+interpolate aerodynamic properties of the vehicle. This component is
+somewhat easier to use since it is distributed as part of OpenMDAO, but
+it can be significantly slower than alternatives such as
+<a class="reference external" href="https://github.com/OpenMDAO/MBI">MBI</a> and
+<a class="reference external" href="https://github.com/SMTorg/smt">SMT</a>. The Aerodynamics group includes an
+implementation of the aerodynamics coefficients interpolant which uses
+MBI that is commented out. By switching to MBI for this component, this
+problem will solve roughly 20 times faster.</p>
+</div>
+<div class="section" id="flight-equilibrium">
+<h3>Flight Equilibrium<a class="headerlink" href="#flight-equilibrium" title="Permalink to this headline">¶</a></h3>
+<p>The steady flight equilibrium group uses balances to solve for the angle
+of attack and tail plane rotation angle such that the aircraft is in
+steady flight (the rates of change in flight path angle and true
+airspeed are zero) and the aerodynamic moment in the pitch axis is zero.</p>
+<p>Of course, in reality the vehicle will accelerate, but the flight
+profile being modeled is so benign that assuming steady flight at
+discrete points (nodes) in the trajectory is not terribly inaccurate.</p>
+<p>The thrust necessary for steady flight is computed by balancing the drag
+equation</p>
+<div class="amsmath math notranslate nohighlight" id="equation-259d6832-1f74-44b4-8421-11e29d2d59df">
+<span class="eqno">(32)<a class="headerlink" href="#equation-259d6832-1f74-44b4-8421-11e29d2d59df" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  C_T &amp;= W_{total} \frac{sin \gamma}{q \cdot S \cdot \cos \alpha} + \frac{C_D}{\cos \alpha}
+\end{align}\]</div>
+<p>The lift coefficient required for steady flight is found by balancing
+lift and weight:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-9f5a52c4-4daf-4fbe-9afa-4c222af78107">
+<span class="eqno">(33)<a class="headerlink" href="#equation-9f5a52c4-4daf-4fbe-9afa-4c222af78107" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  \tilde{C_L} &amp;= W_{total} \frac{cos \gamma}{q \cdot S} - C_T \sin \alpha
+\end{align}\]</div>
+<p>Using coefficients in the balance equations is better scaled from a numerical standpoint.</p>
+</div>
+<div class="section" id="propulsion">
+<h3>Propulsion<a class="headerlink" href="#propulsion" title="Permalink to this headline">¶</a></h3>
+<p>Having determined the thrust, the propulsion group then computes the
+rate of fuel burn. In addition, by normalizing thrust at any point by
+the maximum possible thrust, we obtain the throttle parameter <span class="math notranslate nohighlight">\(\tau\)</span>.
+The propulsion group uses a number of components to perform these
+calculations.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-d572c4ee-d7fb-4a13-94d0-bed017961a7c">
+<span class="eqno">(34)<a class="headerlink" href="#equation-d572c4ee-d7fb-4a13-94d0-bed017961a7c" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  T &amp;= C_T \cdot q \cdot S
+\end{align}\]</div>
+<p>Maximum thrust is computed by multiplying sea-level thrust by the ratio
+of pressure to sea-level atmospheric pressure.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-0753830b-b567-4d12-91b3-1dbe2593669b">
+<span class="eqno">(35)<a class="headerlink" href="#equation-0753830b-b567-4d12-91b3-1dbe2593669b" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  T_{max} &amp;= T_{max,sl} \frac{P}{P_{sl}}
+\end{align}\]</div>
+<p>The throttle parameter is then the ratio current thrust to maximum
+possible thrust.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-fb057897-a5c2-4544-8ffc-9964d91b9123">
+<span class="eqno">(36)<a class="headerlink" href="#equation-fb057897-a5c2-4544-8ffc-9964d91b9123" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  \tau &amp;= \frac{T}{T_{max}}
+\end{align}\]</div>
+<p>The thrust specific fuel consumption is computed as follows:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-bb3a461a-c7f3-4f08-a0aa-e507e99f026a">
+<span class="eqno">(37)<a class="headerlink" href="#equation-bb3a461a-c7f3-4f08-a0aa-e507e99f026a" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  TSFC &amp;= TSFC_{sl} - 1.5 E - 10 \cdot 9.80665 \cdot alt
+\end{align}\]</div>
+<p>Finally, fuel burn rate is:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-53d1dba3-569d-4704-990d-cef7a0e03f7b">
+<span class="eqno">(38)<a class="headerlink" href="#equation-53d1dba3-569d-4704-990d-cef7a0e03f7b" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  \dot{mass_{fuel}} &amp;= -TSFC \frac{T}{9.80665}
+\end{align}\]</div>
+</div>
+</div>
+<div class="section" id="the-ode-system-aircraft-ode-py">
+<h2>The ODE System: aircraft_ode.py<a class="headerlink" href="#the-ode-system-aircraft-ode-py" title="Permalink to this headline">¶</a></h2>
+<p>=== “aircraft_ode.py”
+</p>
+<p>In this case the system has only two integrated states:
+<em>range</em> and <em>mass_fuel</em>. There are six parameters.
+Two of them (<em>alt</em> and <em>climb_rate</em>) will be varied dynamically in the phase
+The other four (<em>mach</em>, <em>S</em>, <em>mass_empty</em>, and <em>mass_payload</em>), will be set to fixed values as non-optimized parameters.
+More details on the various models involved can be found in the examples code.</p>
+</div>
+<div class="section" id="building-and-running-the-problem">
+<h2>Building and running the problem<a class="headerlink" href="#building-and-running-the-problem" title="Permalink to this headline">¶</a></h2>
+<p>In the following code we define and solve the optimal control problem.
+Note that we demonstrate the use of externally-connected design parameters in this case.
+The four parameters are connected to a source provided by the <em>assumptions</em> IndepVarComp.</p>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>\bibliography</p>
+</div>
+</div>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./examples/commercial_aircraft"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+        
+        <div class='prev-next-bottom'>
+            
+    <a class='left-prev' id="prev-link" href="../vanderpol/vanderpol.html" title="previous page">The Van der Pol Oscillator</a>
+    <a class='right-next' id="next-link" href="../double_integrator/double_integrator.html" title="next page">Double Integrator</a>
+
+        </div>
+        
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By The Dymos Development Team<br/>
+        
+            &copy; Copyright 2021.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+  
+  <script src="../../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+  
+  </body>
+</html>

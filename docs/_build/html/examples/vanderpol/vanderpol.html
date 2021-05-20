@@ -1,0 +1,547 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Van der Pol Oscillator &#8212; Dymos</title>
+    
+  <link href="../../_static/css/theme.css" rel="stylesheet" />
+  <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/sphinx-book-theme.acff12b8f9c144ce68a297486a2fa670.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/togglebutton.js"></script>
+    <script src="../../_static/clipboard.min.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../../_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <script async="async" src="https://unpkg.com/thebelab@latest/lib/index.js"></script>
+    <script >
+        const thebe_selector = ".thebe"
+        const thebe_selector_input = "pre"
+        const thebe_selector_output = ".output"
+    </script>
+    <script async="async" src="../../_static/sphinx-thebe.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "processRefs": false, "processEnvironments": false}})</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Commercial Aircraft Range Maximization by Differential Inclusion" href="../commercial_aircraft/commercial_aircraft.html" />
+    <link rel="prev" title="Aircraft Balanced Field Length Calculation" href="../balanced_field/balanced_field.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../../index.html">
+      
+      <img src="../../_static/dymos_logo.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">Dymos</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <div class="bd-toc-item active">
+        <ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../index.html">
+   Multidisciplinary Optimal Control Library
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../installation.html">
+   Installing Dymos
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/collocation.html">
+   What is collocation?
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/defining_odes.html">
+   Defining ODEs
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/optimal_control.html">
+   Optimal Control
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">
+   Modeling Dynamic Systems with Dymos
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/intro_to_dymos/intro_segments.html">
+   Segments of Phases
+  </a>
+ </li>
+</ul>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="../examples.html">
+   Dymos by Example
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="../brachistochrone/brachistochrone.html">
+     The Brachistochrone
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../balanced_field/balanced_field.html">
+     Aircraft Balanced Field Length Calculation
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     The Van der Pol Oscillator
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../commercial_aircraft/commercial_aircraft.html">
+     Commercial Aircraft Range Maximization by Differential Inclusion
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../double_integrator/double_integrator.html">
+     Double Integrator
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../hypersensitive/hypersensitive.html">
+     Hyper-Sensitive Problem
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../finite_burn_orbit_raise/finite_burn_orbit_raise.html">
+     Two-Burn Orbit Raise
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html">
+     The Length-Constrained Brachistochrone
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../min_time_climb/min_time_climb.html">
+     Supersonic Interceptor Minimum Time Climb
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../multi_phase_cannonball/multi_phase_cannonball.html">
+     Multi-Phase Cannonball
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../multibranch_trajectory/multibranch_trajectory.html">
+     Multibranch Trajectory
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../racecar/racecar.html">
+     Race car Lap Simulation
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reentry/reentry.html">
+     Single-Phase Space Shuttle Reentry
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../ssto_earth/ssto_earth.html">
+     SSTO Earth Launch
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Powered by <a href="https://jupyterbook.org">Jupyter Book</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../../_sources/examples/vanderpol/vanderpol.md"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.md</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/OpenMDAO/OpenMDAO_Book"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/OpenMDAO/OpenMDAO_Book/issues/new?title=Issue%20on%20page%20%2Fexamples/vanderpol/vanderpol.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+            <div class="tocsection onthispage pt-5 pb-3">
+                <i class="fas fa-list"></i> Contents
+            </div>
+            <nav id="bd-toc-nav">
+                <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#state-variables">
+   State Variables
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#system-dynamics">
+   System Dynamics
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#control-variables">
+   Control Variables
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#the-initial-and-final-conditions">
+   The initial and final conditions
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#defining-the-ode-as-an-openmdao-system">
+   Defining the ODE as an OpenMDAO System
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#defining-the-dymos-problem">
+   Defining the Dymos Problem
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#simulating-the-problem-without-control">
+   Simulating the Problem (without control)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#solving-the-optimal-control-problem">
+   Solving the Optimal Control Problem
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#solving-the-optimal-control-problem-with-grid-refinement">
+   Solving the Optimal Control Problem with Grid Refinement
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#references">
+   References
+  </a>
+ </li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="the-van-der-pol-oscillator">
+<h1>The Van der Pol Oscillator<a class="headerlink" href="#the-van-der-pol-oscillator" title="Permalink to this headline">¶</a></h1>
+<p>In dynamics, the Van Der Pol oscillator[&#64;wikivanderpol] is a non-conservative oscillator with non-linear damping.
+It evolves in time according to the second-order differential equation:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-ca929f1d-8b63-4b2e-a35a-e62144076d9d">
+<span class="eqno">(22)<a class="headerlink" href="#equation-ca929f1d-8b63-4b2e-a35a-e62144076d9d" title="Permalink to this equation">¶</a></span>\[\begin{align}
+    \frac{d^2x}{dt^2} - u (1 - x^2) \frac{dx}{dt} + x &amp;= 0
+\end{align}\]</div>
+<p>where <span class="math notranslate nohighlight">\(x\)</span> is the position coordinate (a function of the time <span class="math notranslate nohighlight">\(t\)</span>), and <span class="math notranslate nohighlight">\(u\)</span> is a scalar parameter
+indicating the nonlinearity and the strength of the damping.</p>
+<p>To make this an optimal control problem, we want to find the smallest control that will dampen the oscillation
+(drive the state variables to zero). We can express this as an objective function <span class="math notranslate nohighlight">\(J\)</span> to minimize:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-186cf088-cbe8-4537-a1ee-470c8fd018e5">
+<span class="eqno">(23)<a class="headerlink" href="#equation-186cf088-cbe8-4537-a1ee-470c8fd018e5" title="Permalink to this equation">¶</a></span>\[\begin{align}
+    J &amp;= \int x^2_0 + x^2_1 + u^2
+\end{align}\]</div>
+<p>In other words, we want to find the optimal (smallest) trajectory of the control <span class="math notranslate nohighlight">\(u\)</span> such that the oscillation
+and the oscillation’s rate of change are driven to zero.</p>
+<div class="section" id="state-variables">
+<h2>State Variables<a class="headerlink" href="#state-variables" title="Permalink to this headline">¶</a></h2>
+<p>There are three <em>state</em> variables are used to define the configuration of the system at any given instant in time.</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(x_1\)</span>: The primary output of the oscillator.</p></li>
+<li><p><span class="math notranslate nohighlight">\(x_0\)</span>: The rate of change of the primary output.</p></li>
+<li><p><span class="math notranslate nohighlight">\(J\)</span>: The objective function to be minimized.</p></li>
+</ul>
+<p>The objective function is included as a state variable so that Dymos will do the integration.</p>
+<p>The <span class="math notranslate nohighlight">\(x_1\)</span> and <span class="math notranslate nohighlight">\(x_0\)</span> state variables are also inputs to the system, along with the control <span class="math notranslate nohighlight">\(u\)</span>.</p>
+</div>
+<div class="section" id="system-dynamics">
+<h2>System Dynamics<a class="headerlink" href="#system-dynamics" title="Permalink to this headline">¶</a></h2>
+<p>The evolution of the state variables is given by the following ordinary differential equations (ODE):</p>
+<div class="amsmath math notranslate nohighlight" id="equation-d47a6d58-6e08-4530-b207-47478ca06bf8">
+<span class="eqno">(24)<a class="headerlink" href="#equation-d47a6d58-6e08-4530-b207-47478ca06bf8" title="Permalink to this equation">¶</a></span>\[\begin{align}
+    \frac{dx_0}{dt} &amp;= (1 - x^2_1) x_0 - x_1 + u \\
+    \frac{dx_1}{dt} &amp;= x_0 \\
+    \frac{dJ}{dt} &amp;= x^2_0 + x^2_1 + u^2
+\end{align}\]</div>
+</div>
+<div class="section" id="control-variables">
+<h2>Control Variables<a class="headerlink" href="#control-variables" title="Permalink to this headline">¶</a></h2>
+<p>This system has a single control variable:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(u\)</span>: The control input.</p></li>
+</ul>
+<p>The control variable has a constraint: <span class="math notranslate nohighlight">\(-0.75 \leq u \leq 1.0\)</span></p>
+</div>
+<div class="section" id="the-initial-and-final-conditions">
+<h2>The initial and final conditions<a class="headerlink" href="#the-initial-and-final-conditions" title="Permalink to this headline">¶</a></h2>
+<p>The initial conditions are:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-9a1a8098-c424-46cb-8e6b-209b71f34b8c">
+<span class="eqno">(25)<a class="headerlink" href="#equation-9a1a8098-c424-46cb-8e6b-209b71f34b8c" title="Permalink to this equation">¶</a></span>\[\begin{align}
+    x_0 &amp;= 1 \\
+    x_1 &amp;= 1 \\
+      u &amp;= -0.75
+\end{align}\]</div>
+<p>The final conditions are:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-bc6b28e4-4802-44c5-a7ef-5b4f4a580236">
+<span class="eqno">(26)<a class="headerlink" href="#equation-bc6b28e4-4802-44c5-a7ef-5b4f4a580236" title="Permalink to this equation">¶</a></span>\[\begin{align}
+    x_0 &amp;= 0 \\
+    x_1 &amp;= 0 \\
+      u &amp;= 0
+\end{align}\]</div>
+</div>
+<div class="section" id="defining-the-ode-as-an-openmdao-system">
+<h2>Defining the ODE as an OpenMDAO System<a class="headerlink" href="#defining-the-ode-as-an-openmdao-system" title="Permalink to this headline">¶</a></h2>
+<p>In Dymos, the ODE is an OpenMDAO System (a Component, or a Group of components).
+The following <em>ExplicitComponent</em> computes the state rates for the Van der Pol problem.</p>
+<p>More detail on the workings of an <em>ExplicitComponent</em> can be found in the OpenMDAO documentation.  In summary:</p>
+<ul class="simple">
+<li><p><strong>initialize</strong>:  Called at setup, and used to define options for the component.  <strong>ALL</strong> Dymos ODE components
+should have the property <code class="docutils literal notranslate"><span class="pre">num_nodes</span></code>, which defines the number of points at which the outputs are simultaneously computed.</p></li>
+<li><p><strong>setup</strong>: Used to add inputs and outputs to the component, and declare which outputs (and indices of outputs)
+are dependent on each of the inputs.</p></li>
+<li><p><strong>compute</strong>: Used to compute the outputs, given the inputs.</p></li>
+<li><p><strong>compute_partials</strong>: Used to compute the derivatives of the outputs with respect to each of the inputs analytically.
+This method may be omitted if finite difference or complex-step approximations are used, though analytic is recommended.</p></li>
+</ul>
+<p>!!! note “Things to note about the Van der Pol ODE system”
+- Only the <em>vanderpol_ode</em> class below is important for defining the basic problem. The other classes are
+used to demonstrate Message Passing Interface (MPI) parallel calculation of the system. They can be ignored.
+- <span class="math notranslate nohighlight">\(x_1\)</span>, <span class="math notranslate nohighlight">\(x_0\)</span>, and <span class="math notranslate nohighlight">\(u\)</span> are inputs.
+- <span class="math notranslate nohighlight">\(\dot{x_1}\)</span>, <span class="math notranslate nohighlight">\(\dot{x_0}\)</span>, and <span class="math notranslate nohighlight">\(\dot{J}\)</span> are outputs.
+- <strong>declare_partials</strong> is called for every output with respect to every input.
+- For efficiency, partial derrivatives that are constant have values specified in the <strong>setup</strong> method rather than
+the <strong>compute_partials</strong> method. So although 9 partials are declared, only 5 are computed in <strong>compute_partials</strong>.</p>
+<p>=== “vanderpol_ode.py”
+</p>
+</div>
+<div class="section" id="defining-the-dymos-problem">
+<h2>Defining the Dymos Problem<a class="headerlink" href="#defining-the-dymos-problem" title="Permalink to this headline">¶</a></h2>
+<p>Once the ODEs are defined, they are used to create a Dymos <em>Problem</em> object that allows solution.</p>
+<p>!!! note “Things to note about the Van der Pol Dymos Problem definition”
+- The <strong>vanderpol</strong> function creates and returns a Dymos <em>Problem</em> instance that can be used
+for simulation or optimization.
+- The <strong>vanderpol</strong> function has optional arguments for specifying options for the
+type of transcription, number of segments, optimizer, etc. These can be ignored
+when first trying to understand the code.
+- The <em>Problem</em> object has a <em>Trajectory</em> object, and the trajectory has a single <em>Phase</em>.
+Most of the problem setup is performed by calling methods on the phase (<strong>set_time_options</strong>,
+<strong>add_state</strong>, <strong>add_boundary_constraint</strong>, <strong>add_objective</strong>).
+- The <strong>add_state</strong> and <strong>add_control</strong> calls include the <em>target</em> parameter for <span class="math notranslate nohighlight">\(x_0\)</span>, <span class="math notranslate nohighlight">\(x_1\)</span>, and <span class="math notranslate nohighlight">\(u\)</span>.
+This is required so that the inputs are correctly calculated.
+- Initial (linear) guesses are supplied for the states and control.</p>
+<p>=== “vanderpol_dymos.py”
+</p>
+</div>
+<div class="section" id="simulating-the-problem-without-control">
+<h2>Simulating the Problem (without control)<a class="headerlink" href="#simulating-the-problem-without-control" title="Permalink to this headline">¶</a></h2>
+<p>The following script creates an instance of the Dymos vanderpol problem and simulates it.</p>
+<p>Since the problem was only simulated and not solved, the solution lines in the plots show only
+the initial guesses for <span class="math notranslate nohighlight">\(x_0\)</span>, <span class="math notranslate nohighlight">\(x_1\)</span>, and <span class="math notranslate nohighlight">\(u\)</span>. The simulation lines shown in the plots are the
+system response with the control variable <span class="math notranslate nohighlight">\(u\)</span> held constant.</p>
+<p>The first two plots shows the variables <span class="math notranslate nohighlight">\(x_0\)</span> and <span class="math notranslate nohighlight">\(x_1\)</span> vs time. The third plots shows <span class="math notranslate nohighlight">\(x_0\)</span> vs. <span class="math notranslate nohighlight">\(x_1\)</span>
+(which will be mostly circular in the case of undamped oscillation). The final plot is the (fixed)
+control variable <span class="math notranslate nohighlight">\(u\)</span> vs time.</p>
+</div>
+<div class="section" id="solving-the-optimal-control-problem">
+<h2>Solving the Optimal Control Problem<a class="headerlink" href="#solving-the-optimal-control-problem" title="Permalink to this headline">¶</a></h2>
+<p>The next example shows optimization followed by simulation.</p>
+<p>With a successful optimization, the resulting plots show a good match between the simulated (with varying control)
+and optimized results. The state variables <span class="math notranslate nohighlight">\(x_0\)</span> and <span class="math notranslate nohighlight">\(x_1\)</span> as well as the control variable <span class="math notranslate nohighlight">\(u\)</span> are all driven to zero.</p>
+</div>
+<div class="section" id="solving-the-optimal-control-problem-with-grid-refinement">
+<h2>Solving the Optimal Control Problem with Grid Refinement<a class="headerlink" href="#solving-the-optimal-control-problem-with-grid-refinement" title="Permalink to this headline">¶</a></h2>
+<p>Repeating the optimization with grid refinement enabled requires changing only two lines in the code. For the sake
+of grid refinement demonstration, the initial number of segments is also reduced by a factor of 5.</p>
+<p>Optimization with grid refinement gets results similar to the example without grid refinement, but runs faster
+and does not require supplying a good guess for the number segments.</p>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>\bibliography</p>
+</div>
+</div>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./examples/vanderpol"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+        
+        <div class='prev-next-bottom'>
+            
+    <a class='left-prev' id="prev-link" href="../balanced_field/balanced_field.html" title="previous page">Aircraft Balanced Field Length Calculation</a>
+    <a class='right-next' id="next-link" href="../commercial_aircraft/commercial_aircraft.html" title="next page">Commercial Aircraft Range Maximization by Differential Inclusion</a>
+
+        </div>
+        
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By The Dymos Development Team<br/>
+        
+            &copy; Copyright 2021.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+  
+  <script src="../../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+  
+  </body>
+</html>

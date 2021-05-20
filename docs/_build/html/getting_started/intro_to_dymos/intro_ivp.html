@@ -1,0 +1,460 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modeling Dynamic Systems with Dymos &#8212; Dymos</title>
+    
+  <link href="../../_static/css/theme.css" rel="stylesheet" />
+  <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/sphinx-book-theme.acff12b8f9c144ce68a297486a2fa670.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/togglebutton.js"></script>
+    <script src="../../_static/clipboard.min.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../../_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <script async="async" src="https://unpkg.com/thebelab@latest/lib/index.js"></script>
+    <script >
+        const thebe_selector = ".thebe"
+        const thebe_selector_input = "pre"
+        const thebe_selector_output = ".output"
+    </script>
+    <script async="async" src="../../_static/sphinx-thebe.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "processRefs": false, "processEnvironments": false}})</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Segments of Phases" href="intro_segments.html" />
+    <link rel="prev" title="Optimal Control" href="../optimal_control.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../../index.html">
+      
+      <img src="../../_static/dymos_logo.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">Dymos</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <div class="bd-toc-item active">
+        <ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../index.html">
+   Multidisciplinary Optimal Control Library
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../installation.html">
+   Installing Dymos
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Getting Started
+ </span>
+</p>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../collocation.html">
+   What is collocation?
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../defining_odes.html">
+   Defining ODEs
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../optimal_control.html">
+   Optimal Control
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Modeling Dynamic Systems with Dymos
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="intro_segments.html">
+   Segments of Phases
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples and Tutorials
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../examples/examples.html">
+   Dymos by Example
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Powered by <a href="https://jupyterbook.org">Jupyter Book</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../../_sources/getting_started/intro_to_dymos/intro_ivp.md"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.md</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/OpenMDAO/OpenMDAO_Book"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/OpenMDAO/OpenMDAO_Book/issues/new?title=Issue%20on%20page%20%2Fgetting_started/intro_to_dymos/intro_ivp.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+            <div class="tocsection onthispage pt-5 pb-3">
+                <i class="fas fa-list"></i> Contents
+            </div>
+            <nav id="bd-toc-nav">
+                <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#the-openmdao-model-of-the-ode">
+   The OpenMDAO model of the ODE
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#hello-world-propagating-the-dynamics">
+   Hello World: Propagating the dynamics
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#what-happened">
+   What happened?
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#why-is-the-solution-different-from-the-simulation-results">
+   Why is the solution different from the simulation results?
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#using-a-solver-to-converge-the-physical-trajectory">
+   Using a solver to converge the physical trajectory
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#using-an-optimization-driver-to-converge-the-physical-trajectory">
+   Using an optimization driver to converge the physical trajectory
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#but-the-solution-still-doesn-t-match-the-simulation">
+   But the solution still doesn’t match the simulation
+  </a>
+ </li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="modeling-dynamic-systems-with-dymos">
+<h1>Modeling Dynamic Systems with Dymos<a class="headerlink" href="#modeling-dynamic-systems-with-dymos" title="Permalink to this headline">¶</a></h1>
+<p>!!! info “Things you’ll learn through this example”
+- How to define a basic Dymos ODE system.
+- How to explicitly propagate the system from some initial state.</p>
+<p>Dymos is a library for modeling dynamic systems and performing optimal
+control with the <a class="reference external" href="https://github.com/OpenMDAO/OpenMDAO">OpenMDAO</a> framework.
+Dynamic systems are typically defined by some set of ordinary
+differential equations (the ODE) which governs their behavior.</p>
+<p>Consider a simple damped harmonic oscillator.</p>
+<p><img alt="Damped harmonic oscillator free-body diagram" src="../../_images/spring_mass_damper.png" /></p>
+<div class="amsmath math notranslate nohighlight" id="equation-4e227403-a623-4973-bbf5-fb03306794e6">
+<span class="eqno">(11)<a class="headerlink" href="#equation-4e227403-a623-4973-bbf5-fb03306794e6" title="Permalink to this equation">¶</a></span>\[\begin{align}
+    \ddot{x} &amp;= -\frac{kx}{m} - \frac{c \dot{x}}{m}
+\end{align}\]</div>
+<p>Converting this to a first order system results in an ODE system with two states:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-bc61fa73-ec54-4236-8772-fb6c70ea00ab">
+<span class="eqno">(12)<a class="headerlink" href="#equation-bc61fa73-ec54-4236-8772-fb6c70ea00ab" title="Permalink to this equation">¶</a></span>\[\begin{align}
+    \dot{x} &amp;= v \\
+    \dot{v} &amp;= -\frac{kx}{m} - \frac{c \dot{x}}{m}
+\end{align}\]</div>
+<div class="section" id="the-openmdao-model-of-the-ode">
+<h2>The OpenMDAO model of the ODE<a class="headerlink" href="#the-openmdao-model-of-the-ode" title="Permalink to this headline">¶</a></h2>
+<p>In Dymos, the ODE is an OpenMDAO System (a Component, or a Group of components).
+The following ExplicitComponent computes the velocity rate for the damped harmonic oscillator.</p>
+<p>More detail on the workings of an ExplicitComponent can be found in the OpenMDAO documentation.  In summary, an ExplicitComponent used as part of an ODE in Dymos should override the following methods:</p>
+<ul class="simple">
+<li><p><strong>initialize</strong>:  Called at setup, and used to define options for the component.  <strong>ALL</strong> Dymos ODE components should have the property <code class="docutils literal notranslate"><span class="pre">num_nodes</span></code>, which defines the number of points at which the outputs are simultaneously computed.</p></li>
+<li><p><strong>setup</strong>: Used to add inputs and outputs to the component, and declare which outputs (and indices of outputs) are dependent on each of the inputs.</p></li>
+<li><p><strong>compute</strong>: Used to compute the outputs, given the inputs.</p></li>
+<li><p><strong>compute_partials</strong>: Used to compute the derivatives of the outputs w.r.t. each of the inputs analytically.  This method may be omitted if finite difference or complex-step approximations are used, though analytic is recommended.</p></li>
+</ul>
+<p>=== “oscillator_ode.py”
+</p>
+<p>!!! note “Things to note about the ODE system”
+- In this case, the ODE is a function of both states, but this isn’t always the case.  If the dynamics aren’t functions of some states, those states aren’t needed as inputs.
+- This ODE only computes the rate of change of velocity.  Since the rate of change of displacement can directly be obtained from another state variable, it doesn’t need to be computed by the ODE.
+This would also be true if the state’s rate was a control, design parameter, or input parameter value.
+- It’s possible that we might want to use parameters <code class="docutils literal notranslate"><span class="pre">c</span></code>, <code class="docutils literal notranslate"><span class="pre">k</span></code>, and <code class="docutils literal notranslate"><span class="pre">m</span></code> as design variables at some point, so they’re also included as inputs here.
+Alternatively, if we had no interest in ever treating them as design variables, we could add their values as options to the ODE system in the <code class="docutils literal notranslate"><span class="pre">initialize</span></code> method.</p>
+</div>
+<div class="section" id="hello-world-propagating-the-dynamics">
+<h2>Hello World: Propagating the dynamics<a class="headerlink" href="#hello-world-propagating-the-dynamics" title="Permalink to this headline">¶</a></h2>
+<p>One of the first things one might be interested in regarding an ODE is propagating it from some given initial conditions.
+This is known as solving the initial value problem (IVP), and there are many software packages that can do this.
+The following is a minimal script that starts the system at some set of initial conditions and propagates them for some fixed duration.
+Some elements of this code will be explained later, but we’ll hit the highlights now.</p>
+</div>
+<div class="section" id="what-happened">
+<h2>What happened?<a class="headerlink" href="#what-happened" title="Permalink to this headline">¶</a></h2>
+<p>This script consists of the following general steps:</p>
+<ol class="simple">
+<li><p>After importing relevant packages, an OpenMDAO Problem is instantiated</p></li>
+<li><p>A Dymos Trajectory object is instantiated, and a single Phase named <code class="docutils literal notranslate"><span class="pre">'phase0'</span></code> is added to it.</p>
+<ol class="simple">
+<li><p>That Phase takes the ODE <em>class</em> as one of its arguments.  It will instantiate instances of it as needed.</p></li>
+<li><p>The transcription determines how the implicit integration and optimization are performed.  It’s necessary but not particularly relevant in this example.</p></li>
+</ol>
+</li>
+<li><p>The states to be integrated are added to the phase.</p>
+<ol class="simple">
+<li><p>Each state needs a rate source - an ODE-relative path of the output which provides the time derivative of the state variable.
+For the rate_source of <code class="docutils literal notranslate"><span class="pre">x</span></code>, we provide <code class="docutils literal notranslate"><span class="pre">v</span></code>.  Dymos understands this is the name of one of the other states (or time, or controls, or parameters).</p></li>
+<li><p>Those states which are inputs to the ODE need to provide their targets in the ODE (again, with an ODE-relative path).</p></li>
+</ol>
+</li>
+<li><p>The problem is setup (this prepares the model for execution in OpenMDAO).</p></li>
+<li><p>Default values are assigned to the states and time.</p>
+<ol class="simple">
+<li><p>Variables <code class="docutils literal notranslate"><span class="pre">t_initial</span></code> and <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> (the initial time and duration of the Phase) are scalars.</p></li>
+<li><p>State variables are vectors whose values are provided throughout the Phase.  Here they’re all being filled with a single value (10.0 for displacement, 0.0 for the velocity)</p></li>
+</ol>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Problem.run_model</span></code> is called.  This executes the Problem’s <code class="docutils literal notranslate"><span class="pre">model</span></code> one time.  This is a necessary step before using the <code class="docutils literal notranslate"><span class="pre">Trajectory.simulate</span></code> method.</p></li>
+<li><p>The trajectory is simulated using the <code class="docutils literal notranslate"><span class="pre">simulate()</span></code> method and the results returned as an OpenMDAO Problem instance called <code class="docutils literal notranslate"><span class="pre">sim_out</span></code>.</p></li>
+<li><p>The states are plotted using values obtained from the <em>timeseries</em>.  Phases contain <code class="docutils literal notranslate"><span class="pre">_timeseries_</span></code> data that provides contiguous values regardless of the transcription used.</p></li>
+</ol>
+<p>Method <code class="docutils literal notranslate"><span class="pre">simulate</span></code> exists on both Trajectory and Phase objects.
+It uses the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html">scipy.integrate.solve_ivp</a> function to propagate the states defined in each phase of the trajectory from their initial values at the initial time to some final value at <code class="docutils literal notranslate"><span class="pre">time</span> <span class="pre">=</span> <span class="pre">t_initial</span> <span class="pre">+</span> <span class="pre">t_duration</span></code>.</p>
+<p>In Dymos, the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> method is useful for testing the functionality of an ODE (making sure it behaves as expected) and for checking the validity of answers after optimization.
+However, it cannot solve boundary value problems.</p>
+</div>
+<div class="section" id="why-is-the-solution-different-from-the-simulation-results">
+<h2>Why is the solution different from the simulation results?<a class="headerlink" href="#why-is-the-solution-different-from-the-simulation-results" title="Permalink to this headline">¶</a></h2>
+<p>The plots above display both the solution from the implicit transcription (blue dots) and the results of the simulation (orange line).
+Here they do not match because we only performed a single execution of the model.
+<strong>The purpose of a model execution in Dymos is to calculate the objective and constraints for the optimizer.</strong>
+These constraints include the collocation <em>defect</em> constraints, which (when driven to zero) indicate that the current polynomial representation of the state-time history matches the physically correct trajectory.
+In this case, no iteration was performed, and thus the solution is not physically valid.</p>
+<p>To be clear, the output of Dymos in this case is not a physically valid trajectory.
+The <code class="docutils literal notranslate"><span class="pre">simulate()</span></code> call after executing the model is the expected result using the variable step integrator from Scipy.</p>
+<p>There are two ways to converge this solution using the implicit transcription techniques in Dymos.</p>
+<ol class="simple">
+<li><p>We can run an optimization driver with some “dummy” objective to converge the collocation defect constraints.</p></li>
+<li><p>We can have Dymos use a nonlinear solver to vary the state time-history until the collocation defect constraints are satisfied.</p></li>
+</ol>
+<p>Traditionally, many collocation optimal control techniques have use an optimizer-based approach because it is extremely efficient.
+OpenMDAO provides a lot of versatility in adding in nonlinear solvers within the optimization problem.
+In our case, using a solver to converge state-time history means that the optimizer “sees” a physical trajectory at every iteration.
+In an optimization context, we can use the solver-based convergence of defects to obtain a shooting method with analytic derivatives.</p>
+</div>
+<div class="section" id="using-a-solver-to-converge-the-physical-trajectory">
+<h2>Using a solver to converge the physical trajectory<a class="headerlink" href="#using-a-solver-to-converge-the-physical-trajectory" title="Permalink to this headline">¶</a></h2>
+<p>We let Dymos know that one or more states should be converged using the <code class="docutils literal notranslate"><span class="pre">solve_segments=forward</span></code> argument.
+If passed to the transcription, it applies to all states.
+Otherwise, we can pass it only to certain states as an argument to <code class="docutils literal notranslate"><span class="pre">add_state</span></code> or <code class="docutils literal notranslate"><span class="pre">set_state_options</span></code>.</p>
+</div>
+<div class="section" id="using-an-optimization-driver-to-converge-the-physical-trajectory">
+<h2>Using an optimization driver to converge the physical trajectory<a class="headerlink" href="#using-an-optimization-driver-to-converge-the-physical-trajectory" title="Permalink to this headline">¶</a></h2>
+<p>Alternatively, we can use an optimization driver to converge the state time histories.</p>
+<p>In the case of an initial value problem (fixed time duration, fixed initial states, and no controls or parameters as design variables) there are no
+degrees of freedom to optimize the problem, just single possible trajectory which satisfies the collocation constraints.</p>
+<p>In OpenMDAO (and thus Dymos) optimizers require an objective.
+Even though the initial time and duration of the phase are fixed, we provide the final time as a “dummy” objective here.</p>
+</div>
+<div class="section" id="but-the-solution-still-doesn-t-match-the-simulation">
+<h2>But the solution still doesn’t match the simulation<a class="headerlink" href="#but-the-solution-still-doesn-t-match-the-simulation" title="Permalink to this headline">¶</a></h2>
+<p>If you look at the plots from the last two examples, you’ll notice that the state time-history from the solution has some pretty significant deviations from the simulation results.
+This is an important lesson in using implicit collocation techniques.</p>
+<p>!!! warning “A converged trajectory isn’t necessarily correct”</p>
+<p>As we mentioned before, the <code class="docutils literal notranslate"><span class="pre">simulate()</span></code> method exists to provide a check on a converged trajectory.
+In this case, the trajectory found using <code class="docutils literal notranslate"><span class="pre">simulate()</span></code> doesn’t really interpolate the solution from the collocation technique.
+In the next section, we’ll explain how to deal with this.</p>
+</div>
+</div>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./getting_started/intro_to_dymos"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+        
+        <div class='prev-next-bottom'>
+            
+    <a class='left-prev' id="prev-link" href="../optimal_control.html" title="previous page">Optimal Control</a>
+    <a class='right-next' id="next-link" href="intro_segments.html" title="next page">Segments of Phases</a>
+
+        </div>
+        
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By The Dymos Development Team<br/>
+        
+            &copy; Copyright 2021.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+  
+  <script src="../../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+  
+  </body>
+</html>

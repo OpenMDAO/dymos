@@ -1,0 +1,490 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Single-Phase Space Shuttle Reentry &#8212; Dymos</title>
+    
+  <link href="../../_static/css/theme.css" rel="stylesheet" />
+  <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/sphinx-book-theme.acff12b8f9c144ce68a297486a2fa670.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/togglebutton.js"></script>
+    <script src="../../_static/clipboard.min.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../../_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <script async="async" src="https://unpkg.com/thebelab@latest/lib/index.js"></script>
+    <script >
+        const thebe_selector = ".thebe"
+        const thebe_selector_input = "pre"
+        const thebe_selector_output = ".output"
+    </script>
+    <script async="async" src="../../_static/sphinx-thebe.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "processRefs": false, "processEnvironments": false}})</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="SSTO Earth Launch" href="../ssto_earth/ssto_earth.html" />
+    <link rel="prev" title="Race car Lap Simulation" href="../racecar/racecar.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../../index.html">
+      
+      <img src="../../_static/dymos_logo.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">Dymos</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <div class="bd-toc-item active">
+        <ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../index.html">
+   Multidisciplinary Optimal Control Library
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../installation.html">
+   Installing Dymos
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/collocation.html">
+   What is collocation?
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/defining_odes.html">
+   Defining ODEs
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/optimal_control.html">
+   Optimal Control
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">
+   Modeling Dynamic Systems with Dymos
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../getting_started/intro_to_dymos/intro_segments.html">
+   Segments of Phases
+  </a>
+ </li>
+</ul>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="../examples.html">
+   Dymos by Example
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="../brachistochrone/brachistochrone.html">
+     The Brachistochrone
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../balanced_field/balanced_field.html">
+     Aircraft Balanced Field Length Calculation
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../vanderpol/vanderpol.html">
+     The Van der Pol Oscillator
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../commercial_aircraft/commercial_aircraft.html">
+     Commercial Aircraft Range Maximization by Differential Inclusion
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../double_integrator/double_integrator.html">
+     Double Integrator
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../hypersensitive/hypersensitive.html">
+     Hyper-Sensitive Problem
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../finite_burn_orbit_raise/finite_burn_orbit_raise.html">
+     Two-Burn Orbit Raise
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html">
+     The Length-Constrained Brachistochrone
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../min_time_climb/min_time_climb.html">
+     Supersonic Interceptor Minimum Time Climb
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../multi_phase_cannonball/multi_phase_cannonball.html">
+     Multi-Phase Cannonball
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../multibranch_trajectory/multibranch_trajectory.html">
+     Multibranch Trajectory
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../racecar/racecar.html">
+     Race car Lap Simulation
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     Single-Phase Space Shuttle Reentry
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../ssto_earth/ssto_earth.html">
+     SSTO Earth Launch
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Powered by <a href="https://jupyterbook.org">Jupyter Book</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../../_sources/examples/reentry/reentry.md"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.md</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/OpenMDAO/OpenMDAO_Book"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/OpenMDAO/OpenMDAO_Book/issues/new?title=Issue%20on%20page%20%2Fexamples/reentry/reentry.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+            <div class="tocsection onthispage pt-5 pb-3">
+                <i class="fas fa-list"></i> Contents
+            </div>
+            <nav id="bd-toc-nav">
+                <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#component-models">
+   Component Models
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#defining-the-ode">
+   Defining the ODE
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#building-and-running-the-problem">
+   Building and running the problem
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#references">
+   References
+  </a>
+ </li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="single-phase-space-shuttle-reentry">
+<h1>Single-Phase Space Shuttle Reentry<a class="headerlink" href="#single-phase-space-shuttle-reentry" title="Permalink to this headline">¶</a></h1>
+<p>The problem of the space shuttle reentering Earth’s atmosphere is an
+optimal control problem governed by six equations of motion and limited
+by the aerodynamic heating rate. For a detailed layout of this problem
+and other optimal control problems see Betts[&#64;betts2010practical].
+The governing equations of motion for this problem are:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-b68d773c-2123-4739-b38e-7c356a4a8351">
+<span class="eqno">(58)<a class="headerlink" href="#equation-b68d773c-2123-4739-b38e-7c356a4a8351" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  \frac{dh}{dt} &amp;= v \sin \gamma \\
+  \frac{d\phi}{dt} &amp;= \frac{v}{r} \cos \gamma \frac{\sin \psi}{\cos \theta} \\
+  \frac{d\theta}{dt} &amp;= \frac{v}{r} \cos \gamma \cos \psi  \\
+  \frac{dv}{dt} &amp;= - \frac{D}{m} - g \sin \gamma \\
+  \frac{d\gamma}{dt} &amp;= \frac{L}{mv} \cos \beta + \cos \gamma (\frac{v}{r} - \frac{g}{v}) \\
+  \frac{d\psi}{dt} &amp;= \frac{L \sin \beta}{mv \cos \gamma} + \frac{v}{r \cos \theta} \cos \gamma \sin \psi \sin \theta
+\end{align}\]</div>
+<p>where <span class="math notranslate nohighlight">\(v\)</span> <span class="math notranslate nohighlight">\([ft/s]\)</span> is airspeed, <span class="math notranslate nohighlight">\(\gamma\)</span> <span class="math notranslate nohighlight">\([rad]\)</span> is flight path angle,
+<span class="math notranslate nohighlight">\(r\)</span> <span class="math notranslate nohighlight">\([ft]\)</span> is distance from the center of the Earth, <span class="math notranslate nohighlight">\(\psi\)</span> <span class="math notranslate nohighlight">\([rad]\)</span> is
+azimuth, <span class="math notranslate nohighlight">\(\theta\)</span> <span class="math notranslate nohighlight">\([rad]\)</span> is latitude, <span class="math notranslate nohighlight">\(D\)</span> <span class="math notranslate nohighlight">\([lb]\)</span> is drag, <span class="math notranslate nohighlight">\(m\)</span> <span class="math notranslate nohighlight">\([sl]\)</span> is
+mass, <span class="math notranslate nohighlight">\(g\)</span> <span class="math notranslate nohighlight">\([\frac{ft}{s^2}]\)</span> is the local gravitational acceleration, <span class="math notranslate nohighlight">\(L\)</span>
+<span class="math notranslate nohighlight">\([lb]\)</span> is lift, <span class="math notranslate nohighlight">\(\beta\)</span> <span class="math notranslate nohighlight">\([rad]\)</span> is bank angle, <span class="math notranslate nohighlight">\(h\)</span> <span class="math notranslate nohighlight">\([ft]\)</span> is altitude,
+and <span class="math notranslate nohighlight">\(\phi\)</span> <span class="math notranslate nohighlight">\([rad]\)</span> is longitude. Mass is considered to be a constant for
+this case, because the model spans the time from when the shuttle begins
+reentry to the time right before the shuttle starts its engines. The
+engines are not actually running at any time during the model, so there
+is no thrust and thus no mass lost. The goal is to maximize the
+crossrange (latitude) that the shuttle can cover before reaching the
+final altitude, without exceding a maximum heat rate at the leading
+edges. This heat rate is constrained by <span class="math notranslate nohighlight">\(q \leq 70\)</span> where q
+<span class="math notranslate nohighlight">\([\frac{btu}{ft^2s}]\)</span> is the heating rate.</p>
+<p>The initial conditions are</p>
+<div class="amsmath math notranslate nohighlight" id="equation-1283ad5e-8d29-4bd5-9cb8-193318439782">
+<span class="eqno">(59)<a class="headerlink" href="#equation-1283ad5e-8d29-4bd5-9cb8-193318439782" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  h_0 &amp;= 26000 \\
+  v_0 &amp;= 25600 \\
+  \phi_0 &amp;= 0 \\
+  \gamma_0 &amp;= -0.01745 \\
+  \theta_0 &amp;= 0 \\
+  \psi_0 &amp;= \frac{\pi}{2}
+\end{align}\]</div>
+<p>and the final conditions are</p>
+<div class="amsmath math notranslate nohighlight" id="equation-4305a3e3-2201-43a3-87ef-739bfaf95641">
+<span class="eqno">(60)<a class="headerlink" href="#equation-4305a3e3-2201-43a3-87ef-739bfaf95641" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  h_0 &amp;= 80000 \\
+  v_0 &amp;= 2500 \\
+  \gamma_0 &amp;= -0.08727 \\
+  \theta &amp;= \rm{free} \\
+  \psi &amp;= \rm{free}
+\end{align}\]</div>
+<p>Notice that no final condition appears for <span class="math notranslate nohighlight">\(\phi\)</span>. This is because none
+of the equations of motion actually depend on <span class="math notranslate nohighlight">\(\phi\)</span>, and as a result,
+while <span class="math notranslate nohighlight">\(\phi\)</span> exists in the dymos model (last code block below) as a
+state variable, it does not exist as either an input or output in the
+ode (ShuttleODE group, second to last code block below).</p>
+<p>This model uses four explicit OpenMDAO components. The first component
+computes the local atmospheric condition at the shuttle’s altitude. The
+second component computes the aerodynamic forces of lift and drag on the
+shuttle. The third component is where the heating rate on the leading
+edge of the shuttles wings is computed. The heating rate is given by
+<span class="math notranslate nohighlight">\(q = q_a q_r\)</span> where</p>
+<div class="amsmath math notranslate nohighlight" id="equation-25cdac4d-b6f9-42a6-b6c1-3286a865556e">
+<span class="eqno">(61)<a class="headerlink" href="#equation-25cdac4d-b6f9-42a6-b6c1-3286a865556e" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  q_a &amp;= c_0 + c_1\alpha + c_2 \alpha^2 + c_3 \alpha^3
+\end{align}\]</div>
+<p>and</p>
+<div class="amsmath math notranslate nohighlight" id="equation-ac933be5-c34c-4a43-8ecf-5b0b18c13bb4">
+<span class="eqno">(62)<a class="headerlink" href="#equation-ac933be5-c34c-4a43-8ecf-5b0b18c13bb4" title="Permalink to this equation">¶</a></span>\[\begin{align}
+  q_r &amp;= 17700 \rho^.5 (.0001v)^{3.07}
+\end{align}\]</div>
+<p>where <span class="math notranslate nohighlight">\(c_0, c_1, c_2,\)</span> and <span class="math notranslate nohighlight">\(c_3\)</span> are constants, <span class="math notranslate nohighlight">\(\alpha\)</span> <span class="math notranslate nohighlight">\([deg]\)</span> is the
+angle of attack, <span class="math notranslate nohighlight">\(\rho\)</span> <span class="math notranslate nohighlight">\([\frac{sl}{ft^3}]\)</span> is local atmospheric density,
+and <span class="math notranslate nohighlight">\(v\)</span> <span class="math notranslate nohighlight">\([\frac{ft}{s}]\)</span> is velocity. The final component is where the
+equations of motion are implemented. These four components are put
+together in the ShuttleODE group, which is the top level ode that the
+dymos model sees.</p>
+<div class="section" id="component-models">
+<h2>Component Models<a class="headerlink" href="#component-models" title="Permalink to this headline">¶</a></h2>
+<p>Below is the code for the atmospheric component:</p>
+<p>=== “atmosphere_comp.py”
+</p>
+<p>Below is the code for the aerodynamic component:</p>
+<p>=== “aerodynamics_comp.py”
+</p>
+<p>Below is the code for the heating component:</p>
+<p>=== “heating_comp.py”
+</p>
+<p>Below is the code for the component containing the equations of motion:</p>
+<p>=== “flight_dynamics_comp.py”
+</p>
+</div>
+<div class="section" id="defining-the-ode">
+<h2>Defining the ODE<a class="headerlink" href="#defining-the-ode" title="Permalink to this headline">¶</a></h2>
+<p>Below is the code for the top level ode group that will be fed to dymos:</p>
+<p>=== “shuttle_ode.py”
+</p>
+</div>
+<div class="section" id="building-and-running-the-problem">
+<h2>Building and running the problem<a class="headerlink" href="#building-and-running-the-problem" title="Permalink to this headline">¶</a></h2>
+<p>The following code is the dymos implementation of the model. As the code
+shows, there are six states, two controls, and one constraint in the
+model. The states are <span class="math notranslate nohighlight">\(h, v, \phi, \gamma, \theta,\)</span> and <span class="math notranslate nohighlight">\(\psi\)</span>.
+The two controls are <span class="math notranslate nohighlight">\(\alpha\)</span> and <span class="math notranslate nohighlight">\(\beta\)</span>, and the constraint is <span class="math notranslate nohighlight">\(q\)</span>.</p>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>\bibliography</p>
+</div>
+</div>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./examples/reentry"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+        
+        <div class='prev-next-bottom'>
+            
+    <a class='left-prev' id="prev-link" href="../racecar/racecar.html" title="previous page">Race car Lap Simulation</a>
+    <a class='right-next' id="next-link" href="../ssto_earth/ssto_earth.html" title="next page">SSTO Earth Launch</a>
+
+        </div>
+        
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By The Dymos Development Team<br/>
+        
+            &copy; Copyright 2021.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+  
+  <script src="../../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+  
+  </body>
+</html>
