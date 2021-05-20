@@ -18,11 +18,11 @@ In Dymos these are broken into the dynamic controls $\bar{u}$ and the static par
 
 ##  System Options
 
-ODE Systems in Dymos need provide values at numerous points in time we call nodes.
+ODE systems in Dymos need to provide values at numerous points in time we call nodes.
 For performance reasons, it's best if it can do so using vectorized mathematical operations to compute the values simultaneously rather than using the loop to perform the calculation at each node.
 Different optimal control transcriptions will need to have computed ODE values at different numbers of nodes, so each ODE system in Dymos is required to support the option `num_nodes`, which is defined in the `initialize` method.
 
-ODE system may define initial options as well.
+ODE systems may define initial options as well.
 Since these options in OpenMDAO are typically provided as arguments to the instantiation of the ODE system, the user has the ability to provide additional input keyword arguments using the `ode_init_kwargs` option on Phase.
 
 ## Variables of the Optimal Control Problem
@@ -272,6 +272,6 @@ ode = CallableBrachistochroneODE(num_nodes=1)
 phase = dm.Phase(ode_class=ode, transcription=t)
 ```
 
-This can potentially lead to unintended behavior if multiple copeis of the ODE are intended to share data.
+This can potentially lead to unintended behavior if multiple copies of the ODE are intended to share data.
 See [the Python docs](https://docs.python.org/3/library/copy.html) for some of the limitations of deepcopy.
 
