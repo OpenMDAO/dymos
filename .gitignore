@@ -1,3 +1,6 @@
+# VSCode
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -80,3 +83,6 @@ fort.6
 
 # output
 dymos/examples/*/*/_output/
+
+# Jupyter Ignores
+docs/_build
