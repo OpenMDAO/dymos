@@ -233,7 +233,7 @@ jobs:
           echo "Building Docs"
           echo "============================================================="
           cd docs/
-          jupyter-book build -W --keep-going docs/
+          jupyter-book build docs/
 
       - name: Publish docs
         if: ${{ matrix.DOCS == '1' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
