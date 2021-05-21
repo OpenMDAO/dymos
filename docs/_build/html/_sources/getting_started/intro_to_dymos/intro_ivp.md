@@ -1,8 +1,20 @@
+```python
+try:
+    import openmdao.api as om
+    import dymos as dm
+except ImportError:
+    !python -m pip install openmdao[notebooks]
+    !python -m pip install dymos
+    import openmdao.api as om
+    import dymos as dm
+```
+
 # Modeling Dynamic Systems with Dymos
 
-!!! info "Things you'll learn through this example"
-    - How to define a basic Dymos ODE system.
-    - How to explicitly propagate the system from some initial state.
+```{admonition} Things you'll learn through this example
+- How to define a basic Dymos ODE system.
+- How to explicitly propagate the system from some initial state.
+```
 
 Dymos is a library for modeling dynamic systems and performing optimal
 control with the [OpenMDAO](https://github.com/OpenMDAO/OpenMDAO) framework.
@@ -37,19 +49,52 @@ More detail on the workings of an ExplicitComponent can be found in the OpenMDAO
 - **compute**: Used to compute the outputs, given the inputs.
 - **compute_partials**: Used to compute the derivatives of the outputs w.r.t. each of the inputs analytically.  This method may be omitted if finite difference or complex-step approximations are used, though analytic is recommended.
 
-=== "oscillator_ode.py"
-{{ inline_source('dymos.examples.oscillator.doc.oscillator_ode',
-include_def=True,  
-include_docstring=True,
-indent_level=0)
-}}
+```python
+import numpy as np
+import openmdao.api as om
 
-!!! note "Things to note about the ODE system"
-    - In this case, the ODE is a function of both states, but this isn't always the case.  If the dynamics aren't functions of some states, those states aren't needed as inputs.
-    - This ODE only computes the rate of change of velocity.  Since the rate of change of displacement can directly be obtained from another state variable, it doesn't need to be computed by the ODE.
-      This would also be true if the state's rate was a control, design parameter, or input parameter value.
-    - It's possible that we might want to use parameters `c`, `k`, and `m` as design variables at some point, so they're also included as inputs here.
-      Alternatively, if we had no interest in ever treating them as design variables, we could add their values as options to the ODE system in the `initialize` method.
+
+class OscillatorODE(om.ExplicitComponent):
+    """
+    A Dymos ODE for a damped harmonic oscillator.
+    """
+
+    def initialize(self):
+        self.options.declare('num_nodes', types=int)
+
+    def setup(self):
+        nn = self.options['num_nodes']
+
+        # Inputs
+        self.add_input('x', shape=(nn,), desc='displacement', units='m')
+        self.add_input('v', shape=(nn,), desc='velocity', units='m/s')
+        self.add_input('k', shape=(nn,), desc='spring constant', units='N/m')
+        self.add_input('c', shape=(nn,), desc='damping coefficient', units='N*s/m')
+        self.add_input('m', shape=(nn,), desc='mass', units='kg')
+
+        # self.add_output('x_dot', val=np.zeros(nn), desc='rate of change of displacement', units='m/s')
+        self.add_output('v_dot', val=np.zeros(nn), desc='rate of change of velocity', units='m/s**2')
+
+        self.declare_partials(of='*', wrt='*', method='fd')
+
+    def compute(self, inputs, outputs):
+        x = inputs['x']
+        v = inputs['v']
+        k = inputs['k']
+        c = inputs['c']
+        m = inputs['m']
+
+        f_spring = -k * x
+        f_damper = -c * v
+
+        outputs['v_dot'] = (f_spring + f_damper) / m
+```
+
+```{admonition} Things to note about the ODE system
+- In this case, the ODE is a function of both states, but this isn't always the case.  If the dynamics aren't functions of some states, those states aren't needed as inputs.
+- This ODE only computes the rate of change of velocity.  Since the rate of change of displacement can directly be obtained from another state variable, it doesn't need to be computed by the ODE. This would also be true if the state's rate was a control, design parameter, or input parameter value.
+- It's possible that we might want to use parameters `c`, `k`, and `m` as design variables at some point, so they're also included as inputs here. Alternatively, if we had no interest in ever treating them as design variables, we could add their values as options to the ODE system in the `initialize` method.
+```
 
 ## Hello World: Propagating the dynamics
 
@@ -58,7 +103,71 @@ This is known as solving the initial value problem (IVP), and there are many sof
 The following is a minimal script that starts the system at some set of initial conditions and propagates them for some fixed duration.
 Some elements of this code will be explained later, but we'll hit the highlights now.
 
-{{ embed_test('dymos.examples.oscillator.doc.test_doc_oscillator.TestDocOscillator.test_ivp') }}
+```python
+import openmdao.api as om
+import dymos as dm
+import matplotlib.pyplot as plt
+plt.switch_backend('Agg')  # disable plotting to the screen
+
+from dymos.examples.oscillator.doc.oscillator_ode import OscillatorODE
+
+# Instantiate an OpenMDAO Problem instance.
+prob = om.Problem()
+
+# Instantiate a Dymos Trajectory and add it to the Problem model.
+traj = dm.Trajectory()
+prob.model.add_subsystem('traj', traj)
+
+# Instantiate a Phase and add it to the Trajectory.
+# Here the transcription is necessary but not particularly relevant.
+phase = dm.Phase(ode_class=OscillatorODE, transcription=dm.Radau(num_segments=4))
+traj.add_phase('phase0', phase)
+
+# Tell Dymos the states to be propagated using the given ODE.
+phase.add_state('v', rate_source='v_dot', targets=['v'], units='m/s')
+phase.add_state('x', rate_source='v', targets=['x'], units='m')
+
+# The spring constant, damping coefficient, and mass are inputs to the system
+# that are constant throughout the phase.
+phase.add_parameter('k', units='N/m', targets=['k'])
+phase.add_parameter('c', units='N*s/m', targets=['c'])
+phase.add_parameter('m', units='kg', targets=['m'])
+
+# Setup the OpenMDAO problem
+prob.setup()
+
+# Assign values to the times and states
+prob.set_val('traj.phase0.t_initial', 0.0)
+prob.set_val('traj.phase0.t_duration', 15.0)
+
+prob.set_val('traj.phase0.states:x', 10.0)
+prob.set_val('traj.phase0.states:v', 0.0)
+
+prob.set_val('traj.phase0.parameters:k', 1.0)
+prob.set_val('traj.phase0.parameters:c', 0.5)
+prob.set_val('traj.phase0.parameters:m', 1.0)
+
+# Perform a single execution of the model (executing the model is required before simulation).
+prob.run_model()
+
+# Perform an explicit simulation of our ODE from the initial conditions.
+sim_out = traj.simulate(times_per_seg=50)
+
+# Plot the state values obtained from the phase timeseries objects in the simulation output.
+t_sol = prob.get_val('traj.phase0.timeseries.time')
+t_sim = sim_out.get_val('traj.phase0.timeseries.time')
+
+states = ['x', 'v']
+fig, axes = plt.subplots(len(states), 1)
+for i, state in enumerate(states):
+    sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.states:{state}'), 'o')
+    sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.states:{state}'), '-')
+    axes[i].set_ylabel(state)
+axes[-1].set_xlabel('time (s)')
+fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
+plt.tight_layout()
+plt.show()
+```
 
 ## What happened?
 
@@ -112,7 +221,71 @@ We let Dymos know that one or more states should be converged using the `solve_s
 If passed to the transcription, it applies to all states.
 Otherwise, we can pass it only to certain states as an argument to `add_state` or `set_state_options`.
 
-{{ embed_test('dymos.examples.oscillator.doc.test_doc_oscillator.TestDocOscillator.test_ivp_solver') }}
+```python
+import openmdao.api as om
+import dymos as dm
+import matplotlib.pyplot as plt
+plt.switch_backend('Agg')  # disable plotting to the screen
+
+from dymos.examples.oscillator.doc.oscillator_ode import OscillatorODE
+
+# Instantiate an OpenMDAO Problem instance.
+prob = om.Problem()
+
+# Instantiate a Dymos Trajectory and add it to the Problem model.
+traj = dm.Trajectory()
+prob.model.add_subsystem('traj', traj)
+
+# Instantiate a Phase and add it to the Trajectory.
+phase = dm.Phase(ode_class=OscillatorODE, transcription=dm.Radau(num_segments=4, solve_segments='forward'))
+traj.add_phase('phase0', phase)
+
+# Tell Dymos the states to be propagated using the given ODE.
+phase.add_state('x', fix_initial=True, rate_source='v', targets=['x'], units='m')
+phase.add_state('v', fix_initial=True, rate_source='v_dot', targets=['v'], units='m/s')
+
+# The spring constant, damping coefficient, and mass are inputs to the system that are
+# constant throughout the phase.
+phase.add_parameter('k', units='N/m', targets=['k'])
+phase.add_parameter('c', units='N*s/m', targets=['c'])
+phase.add_parameter('m', units='kg', targets=['m'])
+
+# Setup the OpenMDAO problem
+prob.setup()
+
+# Assign values to the times and states
+prob.set_val('traj.phase0.t_initial', 0.0)
+prob.set_val('traj.phase0.t_duration', 15.0)
+
+prob.set_val('traj.phase0.states:x', 10.0)
+prob.set_val('traj.phase0.states:v', 0.0)
+
+prob.set_val('traj.phase0.parameters:k', 1.0)
+prob.set_val('traj.phase0.parameters:c', 0.5)
+prob.set_val('traj.phase0.parameters:m', 1.0)
+
+# Now we're using the optimization driver to iteratively run the model and vary the
+# phase duration until the final y value is 0.
+prob.run_model()
+
+# Perform an explicit simulation of our ODE from the initial conditions.
+sim_out = traj.simulate(times_per_seg=50)
+
+# Plot the state values obtained from the phase timeseries objects in the simulation output.
+t_sol = prob.get_val('traj.phase0.timeseries.time')
+t_sim = sim_out.get_val('traj.phase0.timeseries.time')
+
+states = ['x', 'v']
+fig, axes = plt.subplots(len(states), 1)
+for i, state in enumerate(states):
+    sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.states:{state}'), 'o')
+    sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.states:{state}'), '-')
+    axes[i].set_ylabel(state)
+axes[-1].set_xlabel('time (s)')
+fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
+plt.tight_layout()
+plt.show()
+```
 
 ## Using an optimization driver to converge the physical trajectory
 
@@ -122,18 +295,93 @@ Alternatively, we can use an optimization driver to converge the state time hist
 In the case of an initial value problem (fixed time duration, fixed initial states, and no controls or parameters as design variables) there are no
 degrees of freedom to optimize the problem, just single possible trajectory which satisfies the collocation constraints.
 
-
 In OpenMDAO (and thus Dymos) optimizers require an objective.
 Even though the initial time and duration of the phase are fixed, we provide the final time as a "dummy" objective here.
 
-{{ embed_test('dymos.examples.oscillator.doc.test_doc_oscillator.TestDocOscillator.test_ivp_driver') }}
+```python
+import openmdao.api as om
+import dymos as dm
+import matplotlib.pyplot as plt
+plt.switch_backend('Agg')  # disable plotting to the screen
+
+from dymos.examples.oscillator.doc.oscillator_ode import OscillatorODE
+
+# Instantiate an OpenMDAO Problem instance.
+prob = om.Problem()
+
+# We need an optimization driver.  To solve this simple problem ScipyOptimizerDriver will work.
+prob.driver = om.ScipyOptimizeDriver()
+
+# Instantiate a Dymos Trajectory and add it to the Problem model.
+traj = dm.Trajectory()
+prob.model.add_subsystem('traj', traj)
+
+# Instantiate a Phase and add it to the Trajectory.
+phase = dm.Phase(ode_class=OscillatorODE, transcription=dm.Radau(num_segments=4))
+traj.add_phase('phase0', phase)
+
+# Tell Dymos that the duration of the phase is bounded.
+phase.set_time_options(fix_initial=True, fix_duration=True)
+
+# Tell Dymos the states to be propagated using the given ODE.
+phase.add_state('x', fix_initial=True, rate_source='v', targets=['x'], units='m')
+phase.add_state('v', fix_initial=True, rate_source='v_dot', targets=['v'], units='m/s')
+
+# The spring constant, damping coefficient, and mass are inputs to the system that are
+# constant throughout the phase.
+phase.add_parameter('k', units='N/m', targets=['k'])
+phase.add_parameter('c', units='N*s/m', targets=['c'])
+phase.add_parameter('m', units='kg', targets=['m'])
+
+# Since we're using an optimization driver, an objective is required.  We'll minimize
+# the final time in this case.
+phase.add_objective('time', loc='final')
+
+# Setup the OpenMDAO problem
+prob.setup()
+
+# Assign values to the times and states
+prob.set_val('traj.phase0.t_initial', 0.0)
+prob.set_val('traj.phase0.t_duration', 15.0)
+
+prob.set_val('traj.phase0.states:x', 10.0)
+prob.set_val('traj.phase0.states:v', 0.0)
+
+prob.set_val('traj.phase0.parameters:k', 1.0)
+prob.set_val('traj.phase0.parameters:c', 0.5)
+prob.set_val('traj.phase0.parameters:m', 1.0)
+
+# Now we're using the optimization driver to iteratively run the model and vary the
+# phase duration until the final y value is 0.
+prob.run_driver()
+
+# Perform an explicit simulation of our ODE from the initial conditions.
+sim_out = traj.simulate(times_per_seg=50)
+
+# Plot the state values obtained from the phase timeseries objects in the simulation output.
+t_sol = prob.get_val('traj.phase0.timeseries.time')
+t_sim = sim_out.get_val('traj.phase0.timeseries.time')
+
+states = ['x', 'v']
+fig, axes = plt.subplots(len(states), 1)
+for i, state in enumerate(states):
+    sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.states:{state}'), 'o')
+    sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.states:{state}'), '-')
+    axes[i].set_ylabel(state)
+axes[-1].set_xlabel('time (s)')
+fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
+plt.tight_layout()
+plt.show()
+```
 
 ## But the solution still doesn't match the simulation
 
 If you look at the plots from the last two examples, you'll notice that the state time-history from the solution has some pretty significant deviations from the simulation results.
 This is an important lesson in using implicit collocation techniques.
 
-!!! warning "A converged trajectory isn't necessarily correct"
+```{Note} 
+A converged trajectory isn't necessarily correct
+```
 
 As we mentioned before, the `simulate()` method exists to provide a check on a converged trajectory.
 In this case, the trajectory found using `simulate()` doesn't really interpolate the solution from the collocation technique.
