@@ -85,4 +85,4 @@ fort.6
 dymos/examples/*/*/_output/
 
 # Jupyter Ignores
-docs/_build
+docs/_build/
