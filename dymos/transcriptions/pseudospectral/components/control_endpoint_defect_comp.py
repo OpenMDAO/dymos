@@ -55,14 +55,14 @@ class ControlEndpointDefectComp(om.ExplicitComponent):
         self._output_str = {}
 
         for control_name, options in control_options.items():
-            if not (options['dynamic'] and options['opt']):
+            if not options['opt']:
                 continue
 
             shape = options['shape']
             size = np.prod(shape)
             units = options['units']
-            self._input_str[control_name] = 'controls:{0}'.format(control_name)
-            self._output_str[control_name] = 'control_endpoint_defects:{0}'.format(control_name)
+            self._input_str[control_name] = f'controls:{control_name}'
+            self._output_str[control_name] = f'control_endpoint_defects:{control_name}'
 
             self.add_input(name=self._input_str[control_name],
                            shape=(num_nodes,) + shape,

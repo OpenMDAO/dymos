@@ -1,20 +1,11 @@
 import warnings
 
-from .grid_refinement.ph_adaptive.ph_adaptive import PHAdaptive
-from .grid_refinement.hp_adaptive.hp_adaptive import HPAdaptive
-from .grid_refinement.write_iteration import write_error, write_refine_iter
-from .grid_refinement.refinement import _refine_iter
-from .phase.phase import Phase
-
 import openmdao.api as om
-import dymos as dm
-import numpy as np
 from dymos.trajectory.trajectory import Trajectory
-from dymos.load_case import load_case, find_phases
+from dymos.load_case import load_case
 from dymos.visualization.timeseries_plots import timeseries_plots
-from dymos.grid_refinement.error_estimation import check_error
-import os
-import sys
+
+from .grid_refinement.refinement import _refine_iter
 
 
 def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_driver=True,

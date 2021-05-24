@@ -129,7 +129,7 @@ In this case, there are no _control_ inputs to the ODE.
 However, if there were, the value of the control would also need to be provided at the collocation node.
 Thus, in high-order Gauss-Lobatto collocation, the _control input nodes_ include both the state discretization nodes and the collocation nodes.
 
-The free variables in the problem ($t_{duration}$ and $vy_f$) can be iterated until the difference between the interpolated state rates and the ODE-computed state rates is zero.
+The free variables in the problem ($t_{duration}$ and $v_{yf}$) can be iterated until the difference between the interpolated state rates and the ODE-computed state rates is zero.
 
 ![Screenshot](scripts/lgl_solution_5.png)
 
@@ -161,7 +161,7 @@ Again, the free variables are iterated until the defects are zero and any bounda
 
 The simple examples above use one single 3rd-order polynomial to represent the time history of the states.
 With more complex states, a single 3rd-order polynomial would not be capable of replicating the time history.
-In practice, we can more polynomial segments _and_ higher-order polynomials to better match the dynamics.
+In practice, we can use more polynomial segments _and_ higher-order polynomials to better match the dynamics.
 
 In the case of adding more segments, one can choose whether the segment boundaries are shared by the segments, or independent.
 If they are shared, fewer design variables are necessary, but it may be more difficult for the optimizer to search for a solution.
@@ -181,7 +181,7 @@ This can cause convergence issues if there are nonlinear solvers within the ODE 
 
 Typically, collocation problems are solved by posing the defects as constraints to an optimizer.
 In Dymos, another option exists.
-One can use an embedded Newton-solver satisfy the defect and continuity constraints.
+One can use an embedded Newton-solver to satisfy the defect and continuity constraints.
 This mode, which we call `solve_segments`, gives the Newton-Solver control over all but the first or final state value in the phase.
 The optimizer only controls the initial or final value, and the solver is responsible for converging the trajectory time history.
 This results in a shooting method, but one that is mathematically consistent with the collocation methods.

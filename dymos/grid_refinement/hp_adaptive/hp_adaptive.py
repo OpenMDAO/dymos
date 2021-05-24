@@ -109,6 +109,8 @@ class HPAdaptive:
             phase = self.phases[phase_path]
             tx = phase.options['transcription']
             gd = tx.grid_data
+            refine_tol = phase.refine_options['tolerance']
+            refine_min_order = phase.refine_options['min_order']
             self.previous_gd[phase_path] = gd
             self.previous_x_dd[phase_path] = {}
             self.error[phase_path] = refine_results[phase_path]['max_rel_error']
@@ -164,7 +166,7 @@ class HPAdaptive:
             check_comb_indx = np.where(np.logical_and(np.logical_and(np.logical_and(np.invert(need_refine[:-1]),
                                                                                     np.invert(need_refine[1:])),
                                                                      new_order[:-1] == new_order[1:]),
-                                                      new_order[:-1] == phase.refine_options['min_order']))[0]
+                                                      new_order[:-1] == refine_min_order))[0]
 
             # segments under error tolerance but may not be combined are checked to have their order reduced
             reduce_order_indx = np.setdiff1d(np.where(np.invert(need_refine)), check_comb_indx)
@@ -185,7 +187,7 @@ class HPAdaptive:
 
                 for k in np.nditer(reduce_order_indx):
                     seg_size = {'radau-ps': seg_order[k] + 1, 'gauss-lobatto': seg_order[k]}
-                    if seg_order[k] == phase.refine_options['min_order']:
+                    if seg_order[k] == refine_min_order:
                         continue
                     new_order_state = {}
                     new_order[k] = seg_order[k]
@@ -199,14 +201,17 @@ class HPAdaptive:
                         a[:, j] = Q / np.polyval(Q, s[j])
 
                     for state_name, options in phase.state_options.items():
+                        new_order_state[state_name] = seg_order[k]
                         b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
-
                         for i in range(seg_size[gd.transcription] - 1, phase.refine_options['min_order'], -1):
-                            if np.abs(b[i]) / beta[state_name] < phase.refine_options['tolerance'] and \
-                                    i - 1 < new_order_state[state_name]:
-                                new_order_state[state_name] = i - 1
-                            else:
-                                new_order_state[state_name] = seg_order[k]
+                            state_error = np.abs(b[i]) / beta[state_name]
+                            if state_error < refine_tol:
+                                if gd.transcription == 'gauss-lobatto':
+                                    if new_order_state[state_name] < i - 2 <= refine_min_order:
+                                        new_order_state[state_name] = i - 2
+                                elif gd.transcription == 'radau-ps':
+                                    if new_order_state[state_name] < i - 1 <= refine_min_order:
+                                        new_order_state[state_name] = i - 1
                         new_order[k] = max(new_order_state.values())
 
             # combine unnecessary segments
@@ -302,6 +307,8 @@ class HPAdaptive:
         for phase_path, phase_refinement_results in refine_results.items():
             phase = self.phases[phase_path]
             self.error[phase_path] = refine_results[phase_path]['max_rel_error']
+            refine_tol = phase.refine_options['tolerance']
+            refine_min_order = phase.refine_options['min_order']
             tx = phase.options['transcription']
             gd = tx.grid_data
 
@@ -451,13 +458,15 @@ class HPAdaptive:
                     for state_name, options in phase.state_options.items():
                         new_order_state[state_name] = seg_order[k]
                         b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
-
                         for i in range(seg_size[gd.transcription] - 1, phase.refine_options['min_order'], -1):
-                            if np.min(np.abs(b[i])) / beta[state_name] < phase.refine_options['tolerance']/10 and \
-                                    i - 1 < new_order_state[state_name]:
-                                new_order_state[state_name] = i - 1
-                            else:
-                                new_order_state[state_name] = seg_order[k]
+                            state_error = np.abs(b[i]) / beta[state_name]
+                            if state_error < refine_tol:
+                                if gd.transcription == 'gauss-lobatto':
+                                    if new_order_state[state_name] < i - 2 <= refine_min_order:
+                                        new_order_state[state_name] = i - 2
+                                elif gd.transcription == 'radau-ps':
+                                    if new_order_state[state_name] < i - 1 <= refine_min_order:
+                                        new_order_state[state_name] = i - 1
                         new_order[k] = max(new_order_state.values())
 
             # combine unnecessary segments

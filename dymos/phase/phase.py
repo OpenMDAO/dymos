@@ -17,6 +17,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.misc import _unspecified
+from ..utils.lgl import lgl
 
 
 om_dev_version = openmdao.__version__.endswith('dev')
@@ -782,7 +783,8 @@ class Phase(om.Group):
     def add_parameter(self, name, val=_unspecified, units=_unspecified, opt=False,
                       desc=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
                       adder=_unspecified, ref0=_unspecified, ref=_unspecified, targets=_unspecified,
-                      shape=_unspecified, dynamic=_unspecified, include_timeseries=_unspecified):
+                      shape=_unspecified, dynamic=_unspecified, static_target=_unspecified,
+                      include_timeseries=_unspecified):
         """
         Add a parameter (static control variable) to the phase.
 
@@ -823,6 +825,9 @@ class Phase(om.Group):
         dynamic : bool
             True if the targets in the ODE may be dynamic (if the inputs are sized to the number
             of nodes) else False.
+        static_target : bool or _unspecified
+            True if the targets in the ODE are not shaped with num_nodes as the first dimension
+            (meaning they cannot have a unique value at each node).  Otherwise False.
         include_timeseries : bool
             True if the static parameters should be included in output timeseries, else False.
         """
@@ -833,13 +838,15 @@ class Phase(om.Group):
             self.parameter_options[name]['name'] = name
 
         self.set_parameter_options(name, val, units, opt, desc, lower, upper,
-                                   scaler, adder, ref0, ref, targets, shape, dynamic, include_timeseries)
+                                   scaler, adder, ref0, ref, targets, shape, dynamic,
+                                   static_target, include_timeseries)
 
     def set_parameter_options(self, name, val=_unspecified, units=_unspecified, opt=False,
                               desc=_unspecified, lower=_unspecified, upper=_unspecified,
                               scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
                               ref=_unspecified, targets=_unspecified, shape=_unspecified,
-                              dynamic=_unspecified, include_timeseries=_unspecified):
+                              dynamic=_unspecified, static_target=_unspecified,
+                              include_timeseries=_unspecified):
         """
         Set options for an existing parameter (static control variable) in the phase.
 
@@ -879,7 +886,10 @@ class Phase(om.Group):
             The shape of the parameter.
         dynamic : bool
             True if the targets in the ODE may be dynamic (if the inputs are sized to the number
-            of nodes) else False.
+            of nodes) else False.  This option is deprecated.
+        static_target : bool or _unspecified
+            True if the targets in the ODE are not shaped with num_nodes as the first dimension
+            (meaning they cannot have a unique value at each node).  Otherwise False.
         include_timeseries : bool
             True if the static parameters should be included in output timeseries, else False.
         """
@@ -914,7 +924,16 @@ class Phase(om.Group):
                 self.parameter_options[name]['shape'] = tuple(np.asarray(val).shape)
 
         if dynamic is not _unspecified:
-            self.parameter_options[name]['dynamic'] = dynamic
+            self.parameter_options[name]['static_target'] = not dynamic
+
+        if static_target is not _unspecified:
+            self.parameter_options[name]['static_target'] = static_target
+
+        if dynamic is not _unspecified and static_target is not _unspecified:
+            raise ValueError("Both the deprecated 'dynamic' option and option 'static_target' were "
+                             f"specified for parameter '{name}'. Going forward, please use only "
+                             "option static_target.  Option 'dynamic' will be removed in "
+                             "Dymos 2.0.0.")
 
         if lower is not _unspecified:
             self.parameter_options[name]['lower'] = lower
@@ -1618,7 +1637,7 @@ class Phase(om.Group):
         ys :  ndarray or Sequence or None
             Array of control/state/parameter values.
         nodes : str or None
-            The name of the node subset or None (default).
+            The name of the node subset.
         kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
             One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
@@ -1635,6 +1654,11 @@ class Phase(om.Group):
         np.array
             The values of y interpolated at nodes of the specified type.
         """
+        om.issue_warning('phase.interpolate has been deprecated and will be removed from Dymos '
+                         '2.0.0. Use phase.interp instead, which uses a different order for the '
+                         'arguments but is more terse and can interpolate polynomial control '
+                         'values.', category=om.OMDeprecationWarning)
+
         if not isinstance(ys, Iterable):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
         if nodes not in ('col', 'all', 'state_disc', 'state_input', 'control_disc',
@@ -1657,6 +1681,90 @@ class Phase(om.Group):
                                'problem has been setup')
 
         node_locations = gd.node_ptau[gd.subset_node_indices[nodes]]
+        # Affine transform xs into tau space [-1, 1]
+        _xs = np.asarray(xs).ravel()
+        m = 2.0 / (_xs[-1] - _xs[0])
+        b = 1.0 - (m * _xs[-1])
+        taus = m * _xs + b
+        interpfunc = interpolate.interp1d(taus, ys, axis=axis, kind=kind,
+                                          bounds_error=False, fill_value='extrapolate')
+        res = np.atleast_2d(interpfunc(node_locations))
+        if res.shape[0] == 1:
+            res = res.T
+        return res
+
+    def interp(self, name=None, ys=None, xs=None, nodes=None, kind='linear', axis=0):
+        """
+        Interpolate values onto the given subset of nodes in the phase.
+
+        If specified, name will be used to determine the kind of variable being interpolated.
+
+        Parameters
+        ----------
+        name : str or None
+            If nodes is None, then use the name argument to determine which kind of variable is
+            being interpolated.  If it is a state, assume nodes is 'state_input'.  If it is related
+            to a control, assume nodes is 'control_input'.  If it is a polynomial control, assume
+            the nodes are the input nodes for that polynomial control.  Any other type of variable
+            will result in an error.
+        ys :  ndarray or Sequence or None
+            Array of control/state/parameter values.
+        xs :  ndarray or Sequence or None
+            Array of integration variable values.
+        nodes : str or None
+            The name of the node subset or None (default).
+        kind : str
+            Specifies the kind of interpolation, as per the scipy.interpolate package.
+            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
+            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
+            interpolation of zeroth, first, second or third order) or as an
+            integer specifying the order of the spline interpolator to use.
+            Default is 'linear'.
+        axis : int
+            Specifies the axis along which interpolation should be performed.  Default is
+            the first axis (0).
+
+        Returns
+        -------
+        np.array
+            The values of y interpolated at nodes of the specified type.
+        """
+        if not isinstance(ys, Iterable):
+            raise ValueError('ys must be provided as an Iterable of length at least 2.')
+        if nodes not in ('col', 'all', 'state_disc', 'state_input', 'control_disc',
+                         'control_input', 'segment_ends', None):
+            raise ValueError("nodes must be one of 'col', 'all', 'state_disc', "
+                             "'state_input', 'control_disc', 'control_input', 'segment_ends', or "
+                             "None.")
+
+        if xs is None:
+            if len(ys) != 2:
+                raise ValueError('xs may only be unspecified when len(ys)=2')
+            if kind != 'linear':
+                raise ValueError('kind must be linear when xs is unspecified.')
+            xs = [-1, 1]
+        elif len(xs) != np.prod(np.asarray(xs).shape):
+            raise ValueError('xs must be viewable as a 1D array')
+
+        gd = self.options['transcription'].grid_data
+        if nodes is None:
+            if name is None:
+                raise ValueError('nodes for interpolation were not specified but the name of the '
+                                 'variable to be interpolated was not provided.\nPlease specify '
+                                 'the name of the interpolated variable or a node subset.')
+            elif name in self.state_options:
+                node_locations = gd.node_ptau[gd.subset_node_indices['state_input']]
+            elif name in self.control_options:
+                node_locations = gd.node_ptau[gd.subset_node_indices['control_input']]
+            elif name in self.polynomial_control_options:
+                node_locations, _ = lgl(self.polynomial_control_options[name]['order'] + 1)
+            else:
+                raise ValueError('Could not find a state, control, or polynomial control named '
+                                 f'{name} to be interpolated.\nPlease explicitly specified the '
+                                 f'node subset onto which this value should be interpolated.')
+        else:
+            node_locations = gd.node_ptau[gd.subset_node_indices[nodes]]
+
         # Affine transform xs into tau space [-1, 1]
         _xs = np.asarray(xs).ravel()
         m = 2.0 / (_xs[-1] - _xs[0])

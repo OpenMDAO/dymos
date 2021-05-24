@@ -89,8 +89,8 @@ class TestAircraftCruise(unittest.TestCase):
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 1.515132 * 3600.0
-        p['phase0.states:range'] = phase.interpolate(ys=(0, 1296.4), nodes='state_input')
-        p['phase0.states:mass_fuel'] = phase.interpolate(ys=(12236.594555, 0), nodes='state_input')
+        p['phase0.states:range'] = phase.interp('range', (0, 1296.4))
+        p['phase0.states:mass_fuel'] = phase.interp('mass_fuel', (12236.594555, 1))
         p['phase0.states:alt'] = 5.0
         p['phase0.controls:mach'] = 0.8
         p['phase0.controls:climb_rate'] = 0.0
@@ -187,8 +187,8 @@ class TestAircraftCruise(unittest.TestCase):
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 1.515132 * 3600.0
-        p['phase0.states:range'] = phase.interpolate(ys=(0, 1296.4), nodes='state_input')
-        p['phase0.states:mass_fuel'] = phase.interpolate(ys=(12236.594555, 0), nodes='state_input')
+        p['phase0.states:range'] = phase.interp('range', (0, 1296.4))
+        p['phase0.states:mass_fuel'] = phase.interp('mass_fuel', (12236.594555, 0))
         p['phase0.states:alt'] = 5.0
         p['phase0.controls:mach'] = 0.8
         p['phase0.controls:climb_rate'] = 0.0

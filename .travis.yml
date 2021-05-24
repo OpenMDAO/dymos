@@ -160,9 +160,9 @@ script:
 - cd mkdocs;
 - mkdocs build --verbose --clean
 
-after_success:
-- cd ..;
-- coveralls -v;
+# after_success:
+# - cd ..;
+# - coveralls -v;
 
 deploy:
   on:
