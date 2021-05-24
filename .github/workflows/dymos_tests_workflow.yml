@@ -232,6 +232,10 @@ jobs:
           echo "============================================================="
           echo "Building Docs"
           echo "============================================================="
+          git clone -q https://github.com/executablebooks/jupyter-book
+          cd jupyter-book
+          pip install -e .
+          cd ..
           cd docs/
           jupyter-book build docs/
 
