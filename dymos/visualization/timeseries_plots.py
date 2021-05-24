@@ -392,7 +392,7 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
     plot_dir : str
         The path to the directory to which the plot files will be written.
     plot_display_vars : list of tuple of (str, list, list)
-        The list of the names of variables to plotted and displayed along with their axis limits.
+        The list of the names of variables to be plotted and displayed along with their axis limits.
     """
 
     # get ready to generate plot files
