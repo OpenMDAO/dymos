@@ -512,8 +512,11 @@ class TranscriptionBase(object):
             if loc == 'initial' else phase._final_boundary_constraints
 
         if bc_dict:
-            bc_comp = phase.add_subsystem('{0}_boundary_constraints'.format(loc),
-                                          subsys=BoundaryConstraintComp(loc=loc))
+            bc_comp = om.ExecComp(has_diag_partials=True)
+            phase.add_subsystem('{0}_boundary_constraints'.format(loc),
+                                subsys=bc_comp)
+            # bc_comp = phase.add_subsystem('{0}_boundary_constraints'.format(loc),
+            #                               subsys=BoundaryConstraintComp(loc=loc))
 
     def configure_boundary_constraints(self, loc, phase):
         """

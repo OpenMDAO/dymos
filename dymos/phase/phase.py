@@ -937,7 +937,7 @@ class Phase(om.Group):
         if include_timeseries is not _unspecified:
             self.parameter_options[name]['include_timeseries'] = include_timeseries
 
-    def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
+    def add_boundary_constraint(self, expr, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
                                 scaler=None, adder=None, ref=None, ref0=None, linear=False):
         r"""
@@ -945,9 +945,10 @@ class Phase(om.Group):
 
         Parameters
         ----------
-        name : str
-            Name of the variable to constrain.  If name is not a state, control, or 'time',
-            then this is assumed to be the path of the variable to be constrained in the ODE.
+        expr : str
+            Variable or expression to be constrained. If a variable, requires only the name of
+            the variable. If a mathematical expression must be of the form "constraint_name = a + b"
+            where constraint_name is the name that will be given to the constraint
         loc : str
             The location of the boundary constraint ('initial' or 'final').
         constraint_name : str or None
@@ -989,14 +990,25 @@ class Phase(om.Group):
             raise ValueError('Invalid boundary constraint location "{0}". Must be '
                              '"initial" or "final".'.format(loc))
 
+        if '=' not in expr:
+            raise ValueError('Invalid expression "{0}" provided. Must be of the form'
+                             ' "constraint_name = function".'.format(expr))
+
+        expr.replace(" ", "")
         if constraint_name is None:
-            constraint_name = name.split('.')[-1]
+            name = expr.split('=')[0]
+        else:
+            name = constraint_name
+
+        # if constraint_name is None:
+        #     constraint_name = name.split('.')[-1]
 
         bc_dict = self._initial_boundary_constraints \
             if loc == 'initial' else self._final_boundary_constraints
 
         bc_dict[name] = {}
         bc_dict[name]['constraint_name'] = constraint_name
+        bc_dict[name]['expr'] = expr
 
         bc_dict[name]['shape'] = shape
         bc_dict[name]['indices'] = indices
@@ -1010,7 +1022,7 @@ class Phase(om.Group):
         bc_dict[name]['linear'] = linear
         bc_dict[name]['units'] = units
 
-        self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+        # self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
