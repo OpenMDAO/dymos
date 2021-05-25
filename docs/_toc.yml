@@ -9,7 +9,7 @@ parts:
   - file: getting_started/collocation
   - file: getting_started/defining_odes
   - file: getting_started/optimal_control
-  - file: getting_started/intro_to_dymos/intro_ivp.ipynb
+  - file: getting_started/intro_to_dymos/intro_ivp
   - file: getting_started/intro_to_dymos/intro_segments
 - caption: Examples and Tutorials
   chapters:
