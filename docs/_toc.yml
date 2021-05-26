@@ -16,8 +16,8 @@ parts:
   - file: examples/examples
     sections:
     - file: examples/brachistochrone/brachistochrone
-    - file: examples/balanced_field/balanced_field
     - file: examples/vanderpol/vanderpol
+    - file: examples/balanced_field/balanced_field
     - file: examples/commercial_aircraft/commercial_aircraft
     - file: examples/double_integrator/double_integrator
     - file: examples/hypersensitive/hypersensitive
@@ -29,6 +29,9 @@ parts:
     - file: examples/racecar/racecar
     - file: examples/reentry/reentry
     - file: examples/ssto_earth/ssto_earth
+    - file: examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent
+    - file: examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls
+    - file: examples/water_rocket/water_rocket
 - caption: Feature Reference
   chapters:
   - file: features/phases/phases_list
