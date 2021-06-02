@@ -512,11 +512,10 @@ class TranscriptionBase(object):
             if loc == 'initial' else phase._final_boundary_constraints
 
         if bc_dict:
-            bc_comp = om.ExecComp(has_diag_partials=True)
+            bc_comp = om.ExecComp(has_diag_partials=True, shape_by_conn=True)
             phase.add_subsystem('{0}_boundary_constraints'.format(loc),
                                 subsys=bc_comp)
-            # bc_comp = phase.add_subsystem('{0}_boundary_constraints'.format(loc),
-            #                               subsys=BoundaryConstraintComp(loc=loc))
+            bc_comp.add_expr('1')
 
     def configure_boundary_constraints(self, loc, phase):
         """
@@ -537,11 +536,28 @@ class TranscriptionBase(object):
 
         sys_name = f'{loc}_boundary_constraints'
         bc_comp = phase._get_subsystem(sys_name)
+        constraint_list = []
 
-        for var, options in bc_dict.items():
-            con_name = options['constraint_name']
+        expr_var_dict = {}
+        vars_added_to_EC = []
 
-            _, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase)
+        for con_name, options in bc_dict.items():
+            expr = options['expr']
+            expr_var_dict[con_name] = {}
+            v_names, _ = bc_comp._parse_for_names(expr)
+            for expr_var in v_names:
+                if expr_var in vars_added_to_EC:
+                    continue
+                expr_var_dict[con_name][expr_var] = {}
+                if expr_var in expr.split('=')[1]:
+                    _, shape, units, _ = self._get_boundary_constraint_src(expr_var, loc, phase)
+                    expr_var_dict[con_name][expr_var]['units'] = units
+                else:
+                    expr_var_dict[con_name][expr_var]['units'] = options['units']
+
+            vars_added_to_EC = [*vars_added_to_EC, *expr_var_dict[con_name]]
+
+            bc_comp.add_expr(expr, **expr_var_dict[con_name])
 
             if options['indices'] is not None:
                 # Sliced shape.
@@ -551,19 +567,19 @@ class TranscriptionBase(object):
                         np.asarray(options['lower']).shape != con_shape:
                     raise ValueError('The lower bounds of boundary constraint on {0} are not '
                                      'compatible with its shape, and no indices were '
-                                     'provided.'.format(var))
+                                     'provided.'.format(con_name))
 
                 if options['upper'] and not np.isscalar(options['upper']) and \
                         np.asarray(options['upper']).shape != con_shape:
                     raise ValueError('The upper bounds of boundary constraint on {0} are not '
                                      'compatible with its shape, and no indices were '
-                                     'provided.'.format(var))
+                                     'provided.'.format(con_name))
 
                 if options['equals'] and not np.isscalar(options['equals']) and \
                         np.asarray(options['equals']).shape != con_shape:
                     raise ValueError('The equality boundary constraint value on {0} is not '
                                      'compatible the provided indices. Provide them as a '
-                                     'flat array with the same size as indices.'.format(var))
+                                     'flat array with the same size as indices.'.format(con_name))
 
             else:
                 # Indices not provided, make sure lower/upper/equals have shape of source.
@@ -572,25 +588,24 @@ class TranscriptionBase(object):
                     raise ValueError('The lower bounds of boundary constraint on {0} are not '
                                      'compatible with its shape, and no indices were '
                                      'provided. Expected a shape of {1} but given shape '
-                                     'is {2}'.format(var, shape, np.asarray(options['lower']).shape))
+                                     'is {2}'.format(con_name, shape, np.asarray(options['lower']).shape))
 
                 if 'upper' in options and options['upper'] is not None and \
                         not np.isscalar(options['upper']) and np.asarray(options['upper']).shape != shape:
                     raise ValueError('The upper bounds of boundary constraint on {0} are not '
                                      'compatible with its shape, and no indices were '
                                      'provided. Expected a shape of {1} but given shape '
-                                     'is {2}'.format(var, shape, np.asarray(options['upper']).shape))
+                                     'is {2}'.format(con_name, shape, np.asarray(options['upper']).shape))
 
                 if 'equals' in options and options['equals'] is not None and \
                         not np.isscalar(options['equals']) and np.asarray(options['equals']).shape != shape:
                     raise ValueError('The equality boundary constraint value on {0} is not '
                                      'compatible with its shape, and no indices were '
                                      'provided. Expected a shape of {1} but given shape '
-                                     'is {2}'.format(var, shape, np.asarray(options['equals']).shape))
+                                     'is {2}'.format(con_name, shape, np.asarray(options['equals']).shape))
 
-            # Constraint options are a copy of options with constraint_name key removed.
+            # Constraint options are a copy of options with constraint_name and expr keys removed.
             con_options = options.copy()
-            con_options.pop('constraint_name')
 
             # By now, all possible constraint target shapes should have been introspected.
             con_options['shape'] = options['shape'] = shape
@@ -598,37 +613,42 @@ class TranscriptionBase(object):
             # If user overrides the introspected unit, then change the unit on the add_constraint call.
             con_units = options['units']
             con_options['units'] = units if con_units is None else con_units
-            con_options['linear'] = linear
 
-            bc_comp._add_constraint(con_name, **con_options)
+            con_options['lower'] = -INF_BOUND if con_options['upper'] is not None and con_options['lower'] is None\
+                else con_options['lower']
+            con_options['upper'] = INF_BOUND if con_options['lower'] is not None and con_options['upper'] is None\
+                else con_options['upper']
+            con_kwargs = {k: con_options.get(k, None)
+                                 for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
+                                           'scaler', 'indices', 'linear')}
 
-        if bc_comp:
-            bc_comp.configure_io()
+            constraint_list.append((con_name, con_kwargs))
+            phase.add_constraint(con_name, **con_kwargs)
 
-        for var, options in bc_dict.items():
-            con_name = options['constraint_name']
-
-            src, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase)
-
-            size = np.prod(shape)
-
-            # Build the correct src_indices regardless of shape
-            if loc == 'initial':
-                src_idxs = np.arange(size, dtype=int).reshape(shape)
-            else:
-                src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
-
-            if 'parameters:' in src:
-                sys_name = '{0}_boundary_constraints'.format(loc)
-                tgt_name = '{0}_value_in:{1}'.format(loc, con_name)
-                phase.promotes(sys_name, inputs=[(tgt_name, src)],
-                               src_indices=src_idxs, flat_src_indices=True)
-
-            else:
-                phase.connect(src,
-                              f'{loc}_boundary_constraints.{loc}_value_in:{con_name}',
-                              src_indices=src_idxs,
-                              flat_src_indices=True)
+        # for var, options in bc_dict.items():
+        #     con_name = options['constraint_name']
+        #
+        #     src, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase)
+        #
+        #     size = np.prod(shape)
+        #
+        #     # Build the correct src_indices regardless of shape
+        #     if loc == 'initial':
+        #         src_idxs = np.arange(size, dtype=int).reshape(shape)
+        #     else:
+        #         src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
+        #
+        #     if 'parameters:' in src:
+        #         sys_name = '{0}_boundary_constraints'.format(loc)
+        #         tgt_name = '{0}_value_in:{1}'.format(loc, con_name)
+        #         phase.promotes(sys_name, inputs=[(tgt_name, src)],
+        #                        src_indices=src_idxs, flat_src_indices=True)
+        #
+        #     else:
+        #         phase.connect(src,
+        #                       f'{loc}_boundary_constraints.{loc}_value_in:{con_name}',
+        #                       src_indices=src_idxs,
+        #                       flat_src_indices=True)
 
     def setup_path_constraints(self, phase):
         """

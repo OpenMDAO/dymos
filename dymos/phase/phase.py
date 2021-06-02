@@ -991,17 +991,17 @@ class Phase(om.Group):
                              '"initial" or "final".'.format(loc))
 
         if '=' not in expr:
-            raise ValueError('Invalid expression "{0}" provided. Must be of the form'
-                             ' "constraint_name = function".'.format(expr))
+            expr = expr.split('.')[-1] + '=' + expr
+            single_var = True
 
-        expr.replace(" ", "")
+        if len(expr.split('=')) > 2:
+            raise ValueError('Provided expression "{0}" contains multiple "=".'
+                             'May only contain one'.format(expr))
+
+        expr = expr.replace(" ", "")
         if constraint_name is None:
-            name = expr.split('=')[0]
-        else:
-            name = constraint_name
-
-        # if constraint_name is None:
-        #     constraint_name = name.split('.')[-1]
+            constraint_name = expr.split('=')[0]
+        name = constraint_name
 
         bc_dict = self._initial_boundary_constraints \
             if loc == 'initial' else self._final_boundary_constraints
