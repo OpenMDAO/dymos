@@ -88,7 +88,7 @@ However, it cannot solve boundary value problems.
 
 ## Why is the solution different from the simulation results?
 
-The plots above display both the solution from the implicit transcription (blue dots) and the results of the simulation (orange line).
+The plots above display both the solution from the implicit transcription (red dots) and the results of the simulation (blue line).
 Here they do not match because we only performed a single execution of the model.
 **The purpose of a model execution in Dymos is to calculate the objective and constraints for the optimizer.**
 These constraints include the collocation _defect_ constraints, which (when driven to zero) indicate that the current polynomial representation of the state-time history matches the physically correct trajectory.
@@ -101,7 +101,7 @@ There are two ways to converge this solution using the implicit transcription te
 1. We can run an optimization driver with some "dummy" objective to converge the collocation defect constraints.
 2. We can have Dymos use a nonlinear solver to vary the state time-history until the collocation defect constraints are satisfied.
 
-Traditionally, many collocation optimal control techniques have use an optimizer-based approach because it is extremely efficient.
+Traditionally, many collocation optimal control techniques have used an optimizer-based approach because it is extremely efficient.
 OpenMDAO provides a lot of versatility in adding in nonlinear solvers within the optimization problem.
 In our case, using a solver to converge state-time history means that the optimizer "sees" a physical trajectory at every iteration.
 In an optimization context, we can use the solver-based convergence of defects to obtain a shooting method with analytic derivatives.

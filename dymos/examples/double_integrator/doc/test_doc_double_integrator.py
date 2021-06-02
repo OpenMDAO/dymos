@@ -67,9 +67,9 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         p['traj.phase0.t_initial'] = 0.0
         p['traj.phase0.t_duration'] = 1.0
 
-        p['traj.phase0.states:x'] = phase.interpolate(ys=[0, 0.25], nodes='state_input')
-        p['traj.phase0.states:v'] = phase.interpolate(ys=[0, 0], nodes='state_input')
-        p['traj.phase0.controls:u'] = phase.interpolate(ys=[1, -1], nodes='control_input')
+        p.set_val('traj.phase0.states:x', phase.interp('x', ys=[0, 0.25]))
+        p.set_val('traj.phase0.states:v', phase.interp('v', ys=[0, 0]))
+        p.set_val('traj.phase0.controls:u', phase.interp('u', ys=[1, -1]))
 
         #
         # Solve the problem.

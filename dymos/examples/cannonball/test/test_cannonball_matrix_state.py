@@ -52,7 +52,7 @@ class TestCannonballMatrixState(unittest.TestCase):
 
         p.set_val('traj.phase.t_initial', 0)
         p.set_val('traj.phase.t_duration', 5)
-        p.set_val('traj.phase.states:z', phase.interpolate(ys=[[[0, 0], [10, 10]], [[10, 0], [10, -10]]], nodes='state_input'))
+        p.set_val('traj.phase.states:z', phase.interp('z', [[[0, 0], [10, 10]], [[10, 0], [10, -10]]]))
 
         return p
 
@@ -152,7 +152,8 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
 
         p.set_val('traj.phase.t_initial', 0)
         p.set_val('traj.phase.t_duration', 5)
-        p.set_val('traj.phase.states:z', phase.interpolate(ys=[[[0, 0], [10, 10]], [[10, 0], [10, -10]]], nodes='state_input'))
+        p.set_val('traj.phase.states:z',
+                  phase.interp('z', [[[0, 0], [10, 10]], [[10, 0], [10, -10]]]))
 
         return p
 

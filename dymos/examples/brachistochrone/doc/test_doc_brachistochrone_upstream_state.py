@@ -106,19 +106,19 @@ class TestBrachistochroneUpstreamState(unittest.TestCase):
         # Here we're intentially setting the intiial x value to something other than zero, just
         # to demonstrate that the optimizer brings it back in line with the value of x0 set above.
         p.set_val('traj.phase0.states:x',
-                  phase.interpolate(ys=[1, 10], nodes='state_input'),
+                  phase.interp('x', [1, 10]),
                   units='m')
 
         p.set_val('traj.phase0.states:y',
-                  phase.interpolate(ys=[10, 5], nodes='state_input'),
+                  phase.interp('y', [10, 5]),
                   units='m')
 
         p.set_val('traj.phase0.states:v',
-                  phase.interpolate(ys=[0, 5], nodes='state_input'),
+                  phase.interp('v', [0, 5]),
                   units='m/s')
 
         p.set_val('traj.phase0.controls:theta',
-                  phase.interpolate(ys=[90, 90], nodes='control_input'),
+                  phase.interp('theta', [90, 90]),
                   units='deg')
 
         # Run the driver to solve the problem

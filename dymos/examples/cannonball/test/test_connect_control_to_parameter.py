@@ -122,8 +122,8 @@ class TestConnectControlToParameter(unittest.TestCase):
         ascent.add_state('gam', fix_initial=False, fix_final=True, units='rad', rate_source='gam_dot')
         ascent.add_state('v', fix_initial=False, fix_final=False, units='m/s', rate_source='v_dot')
 
-        ascent.add_parameter('S', targets=['S'], units='m**2', dynamic=False)
-        ascent.add_parameter('mass', targets=['m'], units='kg', dynamic=False)
+        ascent.add_parameter('S', targets=['S'], units='m**2', static_target=True)
+        ascent.add_parameter('mass', targets=['m'], units='kg', static_target=True)
 
         ascent.add_control('CD', targets=['CD'], opt=False, val=0.05)
 
@@ -146,8 +146,8 @@ class TestConnectControlToParameter(unittest.TestCase):
         descent.add_state('gam', units='rad', rate_source='gam_dot', fix_initial=False, fix_final=False)
         descent.add_state('v', units='m/s', rate_source='v_dot', fix_initial=False, fix_final=False)
 
-        descent.add_parameter('S', targets=['S'], units='m**2', dynamic=False)
-        descent.add_parameter('mass', targets=['m'], units='kg', dynamic=False)
+        descent.add_parameter('S', targets=['S'], units='m**2', static_target=True)
+        descent.add_parameter('mass', targets=['m'], units='kg', static_target=True)
         descent.add_parameter('CD', targets=['CD'], val=0.01)
 
         descent.add_objective('r', loc='final', scaler=-1.0)
@@ -155,11 +155,11 @@ class TestConnectControlToParameter(unittest.TestCase):
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
         traj.add_parameter('m', units='kg', val=1.0,
-                           targets={'ascent': 'mass', 'descent': 'mass'}, dynamic=False)
+                           targets={'ascent': 'mass', 'descent': 'mass'}, static_target=True)
 
         # In this case, by omitting targets, we're connecting these parameters to parameters
         # with the same name in each phase.
-        traj.add_parameter('S', units='m**2', val=0.005, dynamic=False)
+        traj.add_parameter('S', units='m**2', val=0.005, static_target=True)
 
         # Link Phases (link time and all state variables)
         traj.link_phases(phases=['ascent', 'descent'], vars=['*'])
@@ -188,26 +188,25 @@ class TestConnectControlToParameter(unittest.TestCase):
         p.set_val('traj.ascent.t_initial', 0.0)
         p.set_val('traj.ascent.t_duration', 10.0)
 
-        p.set_val('traj.ascent.states:r', ascent.interpolate(ys=[0, 100], nodes='state_input'))
-        p.set_val('traj.ascent.states:h', ascent.interpolate(ys=[0, 100], nodes='state_input'))
-        p.set_val('traj.ascent.states:v', ascent.interpolate(ys=[200, 150], nodes='state_input'))
-        p.set_val('traj.ascent.states:gam', ascent.interpolate(ys=[25, 0], nodes='state_input'),
-                  units='deg')
+        p.set_val('traj.ascent.states:r', ascent.interp('r', [0, 100]))
+        p.set_val('traj.ascent.states:h', ascent.interp('h', [0, 100]))
+        p.set_val('traj.ascent.states:v', ascent.interp('v', [200, 150]))
+        p.set_val('traj.ascent.states:gam', ascent.interp('gam', [25, 0]), units='deg')
 
         p.set_val('traj.descent.t_initial', 10.0)
         p.set_val('traj.descent.t_duration', 10.0)
 
-        p.set_val('traj.descent.states:r', descent.interpolate(ys=[100, 200], nodes='state_input'))
-        p.set_val('traj.descent.states:h', descent.interpolate(ys=[100, 0], nodes='state_input'))
-        p.set_val('traj.descent.states:v', descent.interpolate(ys=[150, 200], nodes='state_input'))
-        p.set_val('traj.descent.states:gam', descent.interpolate(ys=[0, -45], nodes='state_input'),
-                  units='deg')
+        p.set_val('traj.descent.states:r', descent.interp('r', [100, 200]))
+        p.set_val('traj.descent.states:h', descent.interp('h', [100, 0]))
+        p.set_val('traj.descent.states:v', descent.interp('v', [150, 200]))
+        p.set_val('traj.descent.states:gam', descent.interp('gam', [0, -45]), units='deg')
 
         dm.run_problem(p, simulate=True, make_plots=True)
 
         assert_near_equal(p.get_val('traj.descent.states:r')[-1], 3183.25, tolerance=1.0E-2)
         assert_near_equal(p.get_val('traj.ascent.timeseries.controls:CD')[-1],
                           p.get_val('traj.descent.timeseries.parameters:CD')[0])
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

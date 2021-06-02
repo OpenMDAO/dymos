@@ -105,7 +105,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase.add_parameter('S', val=49.2386, units='m**2', opt=False, targets=['S'])
     phase.add_parameter('Isp', val=1600.0, units='s', opt=False, targets=['Isp'])
     phase.add_parameter('throttle', val=1.0, opt=False, targets=['throttle'])
-    phase.add_parameter('test', val=40 * [1], opt=False, dynamic=False, targets=['test'])
+    phase.add_parameter('test', val=40 * [1], opt=False, static_target=True, targets=['test'])
 
     phase.add_boundary_constraint('h', loc='final', equals=20000, scaler=1.0E-3)
     phase.add_boundary_constraint('aero.mach', loc='final', equals=1.0)
@@ -133,12 +133,12 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p['traj.phase0.t_initial'] = 0.0
     p['traj.phase0.t_duration'] = 300.0
 
-    p['traj.phase0.states:r'] = phase.interpolate(ys=[0.0, 111319.54], nodes='state_input')
-    p['traj.phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='state_input')
-    p['traj.phase0.states:v'] = phase.interpolate(ys=[135.964, 283.159], nodes='state_input')
-    p['traj.phase0.states:gam'] = phase.interpolate(ys=[0.0, 0.0], nodes='state_input')
-    p['traj.phase0.states:m'] = phase.interpolate(ys=[19030.468, 16841.431], nodes='state_input')
-    p['traj.phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_input')
+    p['traj.phase0.states:r'] = phase.interp('r', [0.0, 111319.54])
+    p['traj.phase0.states:h'] = phase.interp('h', [100.0, 20000.0])
+    p['traj.phase0.states:v'] = phase.interp('v', [135.964, 283.159])
+    p['traj.phase0.states:gam'] = phase.interp('gam', [0.0, 0.0])
+    p['traj.phase0.states:m'] = phase.interp('m', [19030.468, 16841.431])
+    p['traj.phase0.controls:alpha'] = phase.interp('alpha', [0.0, 0.0])
 
     dm.run_problem(p, refine_iteration_limit=1)
 

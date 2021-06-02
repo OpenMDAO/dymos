@@ -73,12 +73,11 @@ class TestDocSSTOEarth(unittest.TestCase):
 
         p.set_val('traj.phase0.t_initial', 0.0)
         p.set_val('traj.phase0.t_duration', 150.0)
-        p.set_val('traj.phase0.states:x', phase.interpolate(ys=[0, 1.15E5], nodes='state_input'))
-        p.set_val('traj.phase0.states:y', phase.interpolate(ys=[0, 1.85E5], nodes='state_input'))
-        p.set_val('traj.phase0.states:vx', phase.interpolate(ys=[0, 7796.6961], nodes='state_input'))
-        p.set_val('traj.phase0.states:vy', phase.interpolate(ys=[1.0E-6, 0], nodes='state_input'))
-        p.set_val('traj.phase0.states:m', phase.interpolate(ys=[117000, 1163], nodes='state_input'))
-        p.set_val('traj.phase0.controls:theta', phase.interpolate(ys=[1.5, -0.76], nodes='control_input'))
+        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 1.15E5]))
+        p.set_val('traj.phase0.states:y', phase.interp('y', [0, 1.85E5]))
+        p.set_val('traj.phase0.states:vy', phase.interp('vx', [1.0E-6, 0]))
+        p.set_val('traj.phase0.states:m', phase.interp('vy', [117000, 1163]))
+        p.set_val('traj.phase0.controls:theta', phase.interp('theta', [1.5, -0.76]))
         p.set_val('traj.phase0.parameters:thrust', 2.1, units='MN')
 
         #

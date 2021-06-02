@@ -47,9 +47,9 @@ def flying_robot_direct_collocation(transcription='gauss-lobatto', compressed=Tr
     p['traj.phase0.t_initial'] = 0.0
     p['traj.phase0.t_duration'] = 1.0
 
-    p['traj.phase0.states:x'] = phase.interpolate(ys=[[0.0, 0.0], [-100.0, 100.0]], nodes='state_input')
-    p['traj.phase0.states:v'] = phase.interpolate(ys=[[0.0, 0.0], [0.0, 0.0]], nodes='state_input')
-    p['traj.phase0.controls:u'] = phase.interpolate(ys=[[1, 1], [-1, -1]], nodes='control_input')
+    p['traj.phase0.states:x'] = phase.interp('x', [[0.0, 0.0], [-100.0, 100.0]])
+    p['traj.phase0.states:v'] = phase.interp('v', [[0.0, 0.0], [0.0, 0.0]])
+    p['traj.phase0.controls:u'] = phase.interp('u', [[1, 1], [-1, -1]])
 
     p.run_driver()
 

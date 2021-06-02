@@ -56,10 +56,10 @@ class TestTimeseriesOutput(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.states:x'] = phase.interp('x', [0, 10])
+        p['phase0.states:y'] = phase.interp('y', [10, 5])
+        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()
@@ -146,10 +146,10 @@ class TestTimeseriesOutput(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.states:x'] = phase.interp('x', [0, 10])
+        p['phase0.states:y'] = phase.interp('y', [10, 5])
+        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()
@@ -317,12 +317,12 @@ def min_time_climb(num_seg=3, transcription_class=dm.Radau, transcription_order=
     p['traj.phase0.t_initial'] = 0.0
     p['traj.phase0.t_duration'] = 300.0
 
-    p['traj.phase0.states:r'] = phase.interpolate(ys=[0.0, 111319.54], nodes='state_input')
-    p['traj.phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='state_input')
-    p['traj.phase0.states:v'] = phase.interpolate(ys=[135.964, 283.159], nodes='state_input')
-    p['traj.phase0.states:gam'] = phase.interpolate(ys=[0.0, 0.0], nodes='state_input')
-    p['traj.phase0.states:m'] = phase.interpolate(ys=[19030.468, 16841.431], nodes='state_input')
-    p['traj.phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_input')
+    p['traj.phase0.states:r'] = phase.interp('r', [0.0, 111319.54])
+    p['traj.phase0.states:h'] = phase.interp('h', [100.0, 20000.0])
+    p['traj.phase0.states:v'] = phase.interp('v', [135.964, 283.159])
+    p['traj.phase0.states:gam'] = phase.interp('gam', [0.0, 0.0])
+    p['traj.phase0.states:m'] = phase.interp('m', [19030.468, 16841.431])
+    p['traj.phase0.controls:alpha'] = phase.interp('alpha', [0.0, 0.0])
 
     return p
 

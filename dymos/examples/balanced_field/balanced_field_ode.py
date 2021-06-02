@@ -48,9 +48,9 @@ class BalancedFieldODEComp(om.ExplicitComponent):
         self.add_output('K', val=np.ones(nn), desc='drag-due-to-lift factor', units=None)
         self.add_output('F_r', shape=(nn,), desc='runway normal force', units='N')
         self.add_output('v_dot', shape=(nn,), desc='rate of change of speed', units='m/s**2',
-                        tags=['state_rate_source:v'])
+                        tags=['dymos.state_rate_source:v'])
         self.add_output('r_dot', shape=(nn,), desc='rate of change of range', units='m/s',
-                        tags=['state_rate_source:r'])
+                        tags=['dymos.state_rate_source:r'])
         self.add_output('W', shape=(nn,), desc='aircraft weight', units='N')
         self.add_output('v_stall', shape=(nn,), desc='stall speed', units='m/s')
         self.add_output('v_over_v_stall', shape=(nn,), desc='stall speed ratio', units=None)
@@ -61,9 +61,9 @@ class BalancedFieldODEComp(om.ExplicitComponent):
         else:
             self.add_input('gam', shape=(nn,), desc='flight path angle', units='rad')
             self.add_output('gam_dot', shape=(nn,), desc='rate of change of flight path angle',
-                            units='rad/s', tags=['state_rate_source:gam'])
+                            units='rad/s', tags=['dymos.state_rate_source:gam'])
             self.add_output('h_dot', shape=(nn,), desc='rate of change of altitude', units='m/s',
-                            tags=['state_rate_source:h'])
+                            tags=['dymos.state_rate_source:h'])
 
         self.declare_coloring(wrt='*', method='cs')
 

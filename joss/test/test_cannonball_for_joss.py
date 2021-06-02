@@ -127,8 +127,8 @@ class TestCannonballForJOSS(unittest.TestCase):
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         # Declare parameters that will be constant across
         # the two phases of the trajectory, so we can connect to it only once
-        traj.add_parameter('mass', units='kg', val=0.01, dynamic=False)
-        traj.add_parameter('area', units='m**2', dynamic=False)
+        traj.add_parameter('mass', units='kg', val=0.01, static_target=True)
+        traj.add_parameter('area', units='m**2', static_target=True)
 
         tx = dm.Radau(num_segments=5, order=3, compressed=True)
         ascent = dm.Phase(transcription=tx, ode_class=CannonballODE)
@@ -151,8 +151,8 @@ class TestCannonballForJOSS(unittest.TestCase):
         ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100),
                                 duration_ref=100, units='s')
 
-        ascent.add_parameter('mass', units='kg', val=0.01, dynamic=False)
-        ascent.add_parameter('area', units='m**2', dynamic=False)
+        ascent.add_parameter('mass', units='kg', val=0.01, static_target=True)
+        ascent.add_parameter('area', units='m**2', static_target=True)
 
         # Limit the initial muzzle energy to create a well posed problem
         # with respect to cannonball size and initial velocity
@@ -180,8 +180,8 @@ class TestCannonballForJOSS(unittest.TestCase):
         descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
                                  duration_ref=100, units='s')
 
-        descent.add_parameter('mass', units='kg', val=0.01, dynamic=False)
-        descent.add_parameter('area', units='m**2', dynamic=False)
+        descent.add_parameter('mass', units='kg', val=0.01, static_target=True)
+        descent.add_parameter('area', units='m**2', static_target=True)
 
         # Link Phases (link time and all state variables)
         traj.link_phases(phases=['ascent', 'descent'], vars=['*'])
@@ -200,27 +200,19 @@ class TestCannonballForJOSS(unittest.TestCase):
         p.set_val('static_calcs.radius', 0.05, units='m')
         p.set_val('traj.ascent.t_duration', 10.0)
 
-        p.set_val('traj.ascent.states:r',
-                  ascent.interpolate(ys=[0, 100], nodes='state_input'))
-        p.set_val('traj.ascent.states:h',
-                  ascent.interpolate(ys=[0, 100], nodes='state_input'))
-        p.set_val('traj.ascent.states:v',
-                  ascent.interpolate(ys=[200, 150], nodes='state_input'))
-        p.set_val('traj.ascent.states:gam',
-                  ascent.interpolate(ys=[25, 0], nodes='state_input'), units='deg')
+        p.set_val('traj.ascent.states:r', ascent.interp('r', [0, 100]))
+        p.set_val('traj.ascent.states:h', ascent.interp('h', [0, 100]))
+        p.set_val('traj.ascent.states:v', ascent.interp('v', [200, 150]))
+        p.set_val('traj.ascent.states:gam', ascent.interp('gam', [25, 0]), units='deg')
 
         # more intitial guesses for descent
         p.set_val('traj.descent.t_initial', 10.0)
         p.set_val('traj.descent.t_duration', 10.0)
 
-        p.set_val('traj.descent.states:r',
-                  descent.interpolate(ys=[100, 200], nodes='state_input'))
-        p.set_val('traj.descent.states:h',
-                  descent.interpolate(ys=[100, 0], nodes='state_input'))
-        p.set_val('traj.descent.states:v',
-                  descent.interpolate(ys=[150, 200], nodes='state_input'))
-        p.set_val('traj.descent.states:gam',
-                  descent.interpolate(ys=[0, -45], nodes='state_input'), units='deg')
+        p.set_val('traj.descent.states:r', descent.interp('r', [100, 200]))
+        p.set_val('traj.descent.states:h', descent.interp('h', [100, 0]))
+        p.set_val('traj.descent.states:v', descent.interp('v', [150, 200]))
+        p.set_val('traj.descent.states:gam', descent.interp('gam', [0, -45]), units='deg')
 
         dm.run_problem(p, simulate=True, make_plots=True)
 

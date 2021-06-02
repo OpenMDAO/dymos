@@ -817,10 +817,10 @@ class GaussLobatto(PseudospectralBase):
             options = phase.parameter_options[name]
             targets = get_targets(ode=phase.rhs_disc, name=name, user_targets=options['targets'])
 
-            dynamic = options['dynamic']
+            static = options['static_target']
             shape = options['shape']
 
-            if dynamic:
+            if not static:
                 disc_rows = np.zeros(self.grid_data.subset_num_nodes['state_disc'], dtype=int)
                 col_rows = np.zeros(self.grid_data.subset_num_nodes['col'], dtype=int)
                 disc_src_idxs = get_src_indices_by_row(disc_rows, shape)

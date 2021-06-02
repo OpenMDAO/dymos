@@ -67,10 +67,10 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         p['traj0.phase0.t_initial'] = 0.0
         p['traj0.phase0.t_duration'] = 2.0
 
-        p['traj0.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['traj0.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['traj0.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['traj0.phase0.states:x'] = phase.interp('x', [0, 10])
+        p['traj0.phase0.states:y'] = phase.interp('y', [10, 5])
+        p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['traj0.phase0.parameters:g'] = 9.80665
 
         p.setup()
@@ -222,40 +222,36 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         p.set_val('burn1.t_initial', value=0.0)
         p.set_val('burn1.t_duration', value=2.25)
 
-        p.set_val('burn1.states:r', value=burn1.interpolate(ys=[1, 1.5], nodes='state_input'))
-        p.set_val('burn1.states:theta', value=burn1.interpolate(ys=[0, 1.7], nodes='state_input'))
-        p.set_val('burn1.states:vr', value=burn1.interpolate(ys=[0, 0], nodes='state_input'))
-        p.set_val('burn1.states:vt', value=burn1.interpolate(ys=[1, 1], nodes='state_input'))
-        p.set_val('burn1.states:accel', value=burn1.interpolate(ys=[0.1, 0], nodes='state_input'))
-        p.set_val('burn1.states:deltav', value=burn1.interpolate(ys=[0, 0.1], nodes='state_input'))
-        p.set_val('burn1.controls:u1',
-                  value=burn1.interpolate(ys=[-3.5, 13.0], nodes='control_input'))
+        p.set_val('burn1.states:r', value=burn1.interp('r', [1, 1.5]))
+        p.set_val('burn1.states:theta', value=burn1.interp('theta', [0, 1.7]))
+        p.set_val('burn1.states:vr', value=burn1.interp('vr', [0, 0]))
+        p.set_val('burn1.states:vt', value=burn1.interp('vt', [1, 1]))
+        p.set_val('burn1.states:accel', value=burn1.interp('accel', [0.1, 0]))
+        p.set_val('burn1.states:deltav', value=burn1.interp('deltav', [0, 0.1]))
+        p.set_val('burn1.controls:u1', value=burn1.interp('u1', [-3.5, 13.0]))
         p.set_val('burn1.parameters:c', value=1.5)
 
         p.set_val('coast.t_initial', value=2.25)
         p.set_val('coast.t_duration', value=3.0)
 
-        p.set_val('coast.states:r', value=coast.interpolate(ys=[1.3, 1.5], nodes='state_input'))
-        p.set_val('coast.states:theta',
-                  value=coast.interpolate(ys=[2.1767, 1.7], nodes='state_input'))
-        p.set_val('coast.states:vr', value=coast.interpolate(ys=[0.3285, 0], nodes='state_input'))
-        p.set_val('coast.states:vt', value=coast.interpolate(ys=[0.97, 1], nodes='state_input'))
-        p.set_val('coast.states:accel', value=coast.interpolate(ys=[0, 0], nodes='state_input'))
-        p.set_val('coast.controls:u1', value=coast.interpolate(ys=[0, 0], nodes='control_input'))
+        p.set_val('coast.states:r', value=coast.interp('r', [1.3, 1.5]))
+        p.set_val('coast.states:theta', value=coast.interp('theta', [2.1767, 1.7]))
+        p.set_val('coast.states:vr', value=coast.interp('vr', [0.3285, 0]))
+        p.set_val('coast.states:vt', value=coast.interp('vt', [0.97, 1]))
+        p.set_val('coast.states:accel', value=coast.interp('accel', [0, 0]))
+        p.set_val('coast.controls:u1', value=coast.interp('u1', [0, 0]))
         p.set_val('coast.parameters:c', value=1.5)
 
         p.set_val('burn2.t_initial', value=5.25)
         p.set_val('burn2.t_duration', value=1.75)
 
-        p.set_val('burn2.states:r', value=burn2.interpolate(ys=[1, 3], nodes='state_input'))
-        p.set_val('burn2.states:theta', value=burn2.interpolate(ys=[0, 4.0], nodes='state_input'))
-        p.set_val('burn2.states:vr', value=burn2.interpolate(ys=[0, 0], nodes='state_input'))
-        p.set_val('burn2.states:vt',
-                  value=burn2.interpolate(ys=[1, np.sqrt(1 / 3)], nodes='state_input'))
-        p.set_val('burn2.states:accel', value=burn2.interpolate(ys=[0.1, 0], nodes='state_input'))
-        p.set_val('burn2.states:deltav',
-                  value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
-        p.set_val('burn2.controls:u1', value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
+        p.set_val('burn2.states:r', value=burn2.interp('r', [1, 3]))
+        p.set_val('burn2.states:theta', value=burn2.interp('theta', [0, 4.0]))
+        p.set_val('burn2.states:vr', value=burn2.interp('vr', [0, 0]))
+        p.set_val('burn2.states:vt', value=burn2.interp('vt', [1, np.sqrt(1 / 3)]))
+        p.set_val('burn2.states:accel', value=burn2.interp('accel', [0.1, 0]))
+        p.set_val('burn2.states:deltav', value=burn2.interp('deltav', [0.1, 0.2]))
+        p.set_val('burn2.controls:u1', value=burn2.interp('u1', [1, 1]))
         p.set_val('burn2.parameters:c', value=1.5)
 
         dm.run_problem(p, simulate=True, make_plots=False,
@@ -454,44 +450,38 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         p.setup(check=True)
 
         # Set Initial Guesses
-
         p.set_val('burn1.t_initial', value=0.0)
         p.set_val('burn1.t_duration', value=2.25)
 
-        p.set_val('burn1.states:r', value=burn1.interpolate(ys=[1, 1.5], nodes='state_input'))
-        p.set_val('burn1.states:theta', value=burn1.interpolate(ys=[0, 1.7], nodes='state_input'))
-        p.set_val('burn1.states:vr', value=burn1.interpolate(ys=[0, 0], nodes='state_input'))
-        p.set_val('burn1.states:vt', value=burn1.interpolate(ys=[1, 1], nodes='state_input'))
-        p.set_val('burn1.states:accel', value=burn1.interpolate(ys=[0.1, 0], nodes='state_input'))
-        p.set_val('burn1.states:deltav', value=burn1.interpolate(ys=[0, 0.1], nodes='state_input'))
-        p.set_val('burn1.controls:u1',
-                  value=burn1.interpolate(ys=[-3.5, 13.0], nodes='control_input'))
+        p.set_val('burn1.states:r', value=burn1.interp('r', [1, 1.5]))
+        p.set_val('burn1.states:theta', value=burn1.interp('theta', [0, 1.7]))
+        p.set_val('burn1.states:vr', value=burn1.interp('vr', [0, 0]))
+        p.set_val('burn1.states:vt', value=burn1.interp('vt', [1, 1]))
+        p.set_val('burn1.states:accel', value=burn1.interp('accel', [0.1, 0]))
+        p.set_val('burn1.states:deltav', value=burn1.interp('deltav', [0, 0.1]))
+        p.set_val('burn1.controls:u1', value=burn1.interp('u1', [-3.5, 13.0]))
         p.set_val('burn1.parameters:c', value=1.5)
 
         p.set_val('coast.t_initial', value=2.25)
         p.set_val('coast.t_duration', value=3.0)
 
-        p.set_val('coast.states:r', value=coast.interpolate(ys=[1.3, 1.5], nodes='state_input'))
-        p.set_val('coast.states:theta',
-                  value=coast.interpolate(ys=[2.1767, 1.7], nodes='state_input'))
-        p.set_val('coast.states:vr', value=coast.interpolate(ys=[0.3285, 0], nodes='state_input'))
-        p.set_val('coast.states:vt', value=coast.interpolate(ys=[0.97, 1], nodes='state_input'))
-        p.set_val('coast.states:accel', value=coast.interpolate(ys=[0, 0], nodes='state_input'))
-        p.set_val('coast.parameters:u1', value=0.0)
+        p.set_val('coast.states:r', value=coast.interp('r', [1.3, 1.5]))
+        p.set_val('coast.states:theta', value=coast.interp('theta', [2.1767, 1.7]))
+        p.set_val('coast.states:vr', value=coast.interp('vr', [0.3285, 0]))
+        p.set_val('coast.states:vt', value=coast.interp('vt', [0.97, 1]))
+        p.set_val('coast.states:accel', value=coast.interp('accel', [0, 0]))
         p.set_val('coast.parameters:c', value=1.5)
 
         p.set_val('burn2.t_initial', value=5.25)
         p.set_val('burn2.t_duration', value=1.75)
 
-        p.set_val('burn2.states:r', value=burn2.interpolate(ys=[1, 3], nodes='state_input'))
-        p.set_val('burn2.states:theta', value=burn2.interpolate(ys=[0, 4.0], nodes='state_input'))
-        p.set_val('burn2.states:vr', value=burn2.interpolate(ys=[0, 0], nodes='state_input'))
-        p.set_val('burn2.states:vt',
-                  value=burn2.interpolate(ys=[1, np.sqrt(1 / 3)], nodes='state_input'))
-        p.set_val('burn2.states:accel', value=burn2.interpolate(ys=[0.1, 0], nodes='state_input'))
-        p.set_val('burn2.states:deltav',
-                  value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
-        p.set_val('burn2.controls:u1', value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
+        p.set_val('burn2.states:r', value=burn2.interp('r', [1, 3]))
+        p.set_val('burn2.states:theta', value=burn2.interp('theta', [0, 4.0]))
+        p.set_val('burn2.states:vr', value=burn2.interp('vr', [0, 0]))
+        p.set_val('burn2.states:vt', value=burn2.interp('vt', [1, np.sqrt(1 / 3)]))
+        p.set_val('burn2.states:accel', value=burn2.interp('accel', [0.1, 0]))
+        p.set_val('burn2.states:deltav', value=burn2.interp('deltav', [0.1, 0.2]))
+        p.set_val('burn2.controls:u1', value=burn2.interp('u1', [1, 1]))
         p.set_val('burn2.parameters:c', value=1.5)
 
         dm.run_problem(p, simulate=True, make_plots=False,

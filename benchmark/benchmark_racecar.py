@@ -92,19 +92,19 @@ def _run_racecar_problem(transcription, timeseries=False):
     # be found in their respective ODE files.
     phase.add_parameter('M', val=800.0, units='kg', opt=False,
                         targets=['car.M', 'tire.M', 'tireconstraint.M', 'normal.M'],
-                        dynamic=False)  # vehicle mass
+                        static_target=True)  # vehicle mass
     phase.add_parameter('beta', val=0.62, units=None, opt=False, targets=['tire.beta'],
-                        dynamic=False)  # brake bias
+                        static_target=True)  # brake bias
     phase.add_parameter('CoP', val=1.6, units='m', opt=False, targets=['normal.CoP'],
-                        dynamic=False)  # center of pressure location
+                        static_target=True)  # center of pressure location
     phase.add_parameter('h', val=0.3, units='m', opt=False, targets=['normal.h'],
-                        dynamic=False)  # center of gravity height
+                        static_target=True)  # center of gravity height
     phase.add_parameter('chi', val=0.5, units=None, opt=False, targets=['normal.chi'],
-                        dynamic=False)  # roll stiffness
+                        static_target=True)  # roll stiffness
     phase.add_parameter('ClA', val=4.0, units='m**2', opt=False, targets=['normal.ClA'],
-                        dynamic=False)  # downforce coefficient*area
+                        static_target=True)  # downforce coefficient*area
     phase.add_parameter('CdA', val=2.0, units='m**2', opt=False, targets=['car.CdA'],
-                        dynamic=False)  # drag coefficient*area
+                        static_target=True)  # drag coefficient*area
 
     # Minimize final time.
     # note that we use the 'state' time instead of Dymos 'time'
@@ -142,30 +142,22 @@ def _run_racecar_problem(transcription, timeseries=False):
     # Now that the OpenMDAO problem is setup, we can set the values of the states.
 
     # States
-    p.set_val('traj.phase0.states:V', phase.interpolate(ys=[20, 20], nodes='state_input'),
-              units='m/s')  # non-zero velocity in order to protect against 1/0 errors.
-    p.set_val('traj.phase0.states:lambda',
-              phase.interpolate(ys=[0.0, 0.0], nodes='state_input'),
-              units='rad')  # all other states start at 0
-    p.set_val('traj.phase0.states:omega', phase.interpolate(ys=[0.0, 0.0], nodes='state_input'),
-              units='rad/s')
-    p.set_val('traj.phase0.states:alpha', phase.interpolate(ys=[0.0, 0.0], nodes='state_input'),
-              units='rad')
-    p.set_val('traj.phase0.states:ax', phase.interpolate(ys=[0.0, 0.0], nodes='state_input'),
-              units='m/s**2')
-    p.set_val('traj.phase0.states:ay', phase.interpolate(ys=[0.0, 0.0], nodes='state_input'),
-              units='m/s**2')
-    p.set_val('traj.phase0.states:n', phase.interpolate(ys=[0.0, 0.0], nodes='state_input'),
-              units='m')
-    p.set_val('traj.phase0.states:t', phase.interpolate(ys=[0.0, 100.0], nodes='state_input'),
-              units='s')  # initial guess for what the final time should be
+    # non-zero velocity in order to protect against 1/0 errors.
+    p.set_val('traj.phase0.states:V', phase.interp('V', [20, 20]), units='m/s')
+    p.set_val('traj.phase0.states:lambda', phase.interp('lambda', [0.0, 0.0]), units='rad')
+    # all other states start at 0
+    p.set_val('traj.phase0.states:omega', phase.interp('omega', [0.0, 0.0]), units='rad/s')
+    p.set_val('traj.phase0.states:alpha', phase.interp('alpha', [0.0, 0.0]), units='rad')
+    p.set_val('traj.phase0.states:ax', phase.interp('ax', [0.0, 0.0]), units='m/s**2')
+    p.set_val('traj.phase0.states:ay', phase.interp('ay', [0.0, 0.0]), units='m/s**2')
+    p.set_val('traj.phase0.states:n', phase.interp('n', [0.0, 0.0]), units='m')
+    # initial guess for what the final time should be
+    p.set_val('traj.phase0.states:t', phase.interp('t', [0.0, 100.0]), units='s')
 
     # Controls
-    p.set_val('traj.phase0.controls:delta',
-              phase.interpolate(ys=[0.0, 0.0], nodes='control_input'), units='rad')
-    p.set_val('traj.phase0.controls:thrust',
-              phase.interpolate(ys=[0.1, 0.1], nodes='control_input'),
-              units=None)  # a small amount of thrust can speed up convergence
+    p.set_val('traj.phase0.controls:delta', phase.interp('delta', [0.0, 0.0]), units='rad')
+    p.set_val('traj.phase0.controls:thrust', phase.interp('thrust', [0.1, 0.1]), units=None)
+    # a small amount of thrust can speed up convergence
 
     dm.run_problem(p, run_driver=True, simulate=False, make_plots=False)
     print('Optimization finished')

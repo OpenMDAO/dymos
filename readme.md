@@ -1,7 +1,7 @@
 Dymos:  Open Source Optimization of Dynamic Multidisciplinary Systems
 =====================================================================
 
-[![Build Status](https://travis-ci.com/OpenMDAO/dymos.svg?token=tUBGTjUY1qBbh4Htx3Sr&branch=master)](https://travis-ci.com/OpenMDAO/dymos) [![Coverage Status](https://coveralls.io/repos/github/OpenMDAO/dymos/badge.svg?branch=master&t=dJxu2Q)](https://coveralls.io/github/OpenMDAO/dymos?branch=master)
+[![Dymos Tests](https://github.com/OpenMDAO/dymos/actions/workflows/dymos_tests_workflow.yml/badge.svg)](https://github.com/OpenMDAO/dymos/actions/workflows/dymos_tests_workflow.yml) [![Coverage Status](https://coveralls.io/repos/github/OpenMDAO/dymos/badge.svg?branch=master&t=dJxu2Q)](https://coveralls.io/github/OpenMDAO/dymos?branch=master)
 
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.02809/status.svg)](https://doi.org/10.21105/joss.02809)
 

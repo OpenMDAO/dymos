@@ -88,9 +88,8 @@ prob.setup()
 prob.set_val('traj.phase0.t_initial', 0.0)
 prob.set_val('traj.phase0.t_duration', 2.0)
 
-prob.set_val('traj.phase0.states:y', phase.interpolate(ys=[100.0, 0.0], nodes='state_input'))
-prob.set_val('traj.phase0.states:vy', phase.interpolate(ys=[0, -50], nodes='state_input'))
-
+prob.set_val('traj.phase0.states:y', phase.interp('y', [100.0, 0.0]))
+prob.set_val('traj.phase0.states:vy', phase.interp('vy', [0, -50]))
 
 # Now we're using the optimization driver to iteratively run the model and vary the
 # phase duration until the final y value is 0.
