@@ -19,6 +19,7 @@ class TranscriptionBase(object):
     **kwargs : dict
         Dictionary of optional arguments.
     """
+
     def __init__(self, **kwargs):
 
         self.grid_data = None
@@ -28,7 +29,7 @@ class TranscriptionBase(object):
         self.options.declare('num_segments', types=int, desc='Number of segments')
         self.options.declare('segment_ends', default=None, types=(Sequence, np.ndarray),
                              allow_none=True, desc='Locations of segment ends or None for equally '
-                             'spaced segments')
+                                                   'spaced segments')
         self.options.declare('order', default=3, types=(int, Sequence, np.ndarray),
                              desc='Order of the state transcription')
         self.options.declare('compressed', default=True, types=bool,
@@ -197,7 +198,7 @@ class TranscriptionBase(object):
             options['targets'] = get_targets(ode, state_name, user_targets)
 
         # 1. No introspection necessary
-        if not(need_shape or need_units):
+        if not (need_shape or need_units):
             return
 
         # 2. Attempt target introspection
@@ -611,7 +612,11 @@ class TranscriptionBase(object):
                     continue
                 expr_var_dict[con_name][expr_var] = {}
                 if expr_var in expr.split('=')[1]:
-                    _, shape, units, _ = self._get_boundary_constraint_src(expr_var, loc, phase)
+                    if not options['single_variable']:
+                        _, _, units, _ = self._get_boundary_constraint_src(expr_var, loc, phase)
+                    else:
+                        _, shape, units, _ = self._get_boundary_constraint_src(expr_var, loc, phase)
+
                     expr_var_dict[con_name][expr_var]['units'] = units
                 else:
                     expr_var_dict[con_name][expr_var]['units'] = options['units']
@@ -620,9 +625,16 @@ class TranscriptionBase(object):
 
             bc_comp.add_expr(expr, **expr_var_dict[con_name])
 
+            # For constraints that are expressions, shape must be specified
+            # If it is not specified, it is assumed to be a scalar
+            if not options['single_variable'] and options['shape'] is not None:
+                shape = options['shape']
+            elif not options['single_variable'] and options['shape'] is None:
+                shape = (1,)
+
             if options['indices'] is not None:
                 # Sliced shape.
-                con_shape = (len(options['indices']), )
+                con_shape = (len(options['indices']),)
                 # Indices provided, make sure lower/upper/equals have shape of the indices.
                 if options['lower'] and not np.isscalar(options['lower']) and \
                         np.asarray(options['lower']).shape != con_shape:
@@ -675,41 +687,49 @@ class TranscriptionBase(object):
             con_units = options['units']
             con_options['units'] = units if con_units is None else con_units
 
-            con_options['lower'] = -INF_BOUND if con_options['upper'] is not None and con_options['lower'] is None\
+            con_options['lower'] = -INF_BOUND if con_options['upper'] is not None and con_options['lower'] is None \
                 else con_options['lower']
-            con_options['upper'] = INF_BOUND if con_options['lower'] is not None and con_options['upper'] is None\
+            con_options['upper'] = INF_BOUND if con_options['lower'] is not None and con_options['upper'] is None \
                 else con_options['upper']
             con_kwargs = {k: con_options.get(k, None)
-                                 for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
-                                           'scaler', 'indices', 'linear')}
+                          for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
+                                    'scaler', 'indices', 'linear')}
 
             constraint_list.append((con_name, con_kwargs))
             phase.add_constraint(con_name, **con_kwargs)
 
-        # for var, options in bc_dict.items():
-        #     con_name = options['constraint_name']
-        #
-        #     src, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase)
-        #
-        #     size = np.prod(shape)
-        #
-        #     # Build the correct src_indices regardless of shape
-        #     if loc == 'initial':
-        #         src_idxs = np.arange(size, dtype=int).reshape(shape)
-        #     else:
-        #         src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
-        #
-        #     if 'parameters:' in src:
-        #         sys_name = '{0}_boundary_constraints'.format(loc)
-        #         tgt_name = '{0}_value_in:{1}'.format(loc, con_name)
-        #         phase.promotes(sys_name, inputs=[(tgt_name, src)],
-        #                        src_indices=src_idxs, flat_src_indices=True)
-        #
-        #     else:
-        #         phase.connect(src,
-        #                       f'{loc}_boundary_constraints.{loc}_value_in:{con_name}',
-        #                       src_indices=src_idxs,
-        #                       flat_src_indices=True)
+        expr_var_dict = {}
+        vars_connected = []
+        for con_name, options in bc_dict.items():
+            expr = options['expr']
+            v_names, _ = bc_comp._parse_for_names(expr)
+            for expr_var in v_names:
+                if expr_var in vars_added_to_EC or expr_var not in expr.split('=')[1]:
+                    continue
+                expr_var_dict[con_name][expr_var] = {}
+                src, shape, units, linear = self._get_boundary_constraint_src(expr_var, loc, phase)
+
+                expr_var_dict[con_name][expr_var]['units'] = units
+
+                size = np.prod(shape)
+
+                # Build the correct src_indices regardless of shape
+                if loc == 'initial':
+                    src_idxs = np.arange(size, dtype=int).reshape(shape)
+                else:
+                    src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
+
+                if 'parameters:' in src:
+                    sys_name = '{0}_boundary_constraints'.format(loc)
+                    tgt_name = '{0}_value_in:{1}'.format(loc, con_name)
+                    phase.promotes(sys_name, inputs=[(tgt_name, src)],
+                                   src_indices=src_idxs, flat_src_indices=True)
+
+                else:
+                    phase.connect(src,
+                                  '{0}_boundary_constraints.{0}_value_in:{1}'.format(loc, con_name),
+                                  src_indices=src_idxs,
+                                  flat_src_indices=True)
 
     def setup_path_constraints(self, phase):
         """

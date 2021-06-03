@@ -958,7 +958,7 @@ class Phase(om.Group):
 
     def add_boundary_constraint(self, expr, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
-                                scaler=None, adder=None, ref=None, ref0=None, linear=False):
+                                scaler=None, adder=None, ref=None, ref0=None, linear=False, single_var=False):
         r"""
         Add a boundary constraint to a variable in the phase.
 
@@ -1004,12 +1004,14 @@ class Phase(om.Group):
             Value of response variable that scales to 0.0 in the driver.
         linear : bool
             Set to True if constraint is linear. Default is False.
+        single_var : bool
+            Set to True if constraint is a single variable to be constrained. Default is False.
         """
         if loc not in ['initial', 'final']:
             raise ValueError('Invalid boundary constraint location "{0}". Must be '
                              '"initial" or "final".'.format(loc))
 
-        if '=' not in expr:
+        if '=' not in expr or single_var:
             expr = expr.split('.')[-1] + '=' + expr
             single_var = True
 
@@ -1040,6 +1042,7 @@ class Phase(om.Group):
         bc_dict[name]['ref'] = ref
         bc_dict[name]['linear'] = linear
         bc_dict[name]['units'] = units
+        bc_dict[name]['single_variable'] = single_var
 
         # self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
