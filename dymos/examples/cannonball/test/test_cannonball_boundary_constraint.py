@@ -52,8 +52,6 @@ class TestCannonballBoundaryConstraint(unittest.TestCase):
         # Limit the muzzle energy
         ascent.add_boundary_constraint(expr='ke = 0.5 * m * v**2', loc='initial',
                                        upper=400000, lower=0, ref=100000)
-        ascent.add_boundary_constraint(expr='pe = 9.80665 * m * h', loc='initial',
-                                       equals=0, ref=100000)
 
         # Second Phase (descent)
         transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)

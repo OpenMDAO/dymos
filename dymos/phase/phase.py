@@ -1012,7 +1012,7 @@ class Phase(om.Group):
                              '"initial" or "final".'.format(loc))
 
         if '=' not in expr or single_var:
-            expr = expr.split('.')[-1] + '=' + expr
+            expr = expr.split('.')[-1] + '_constraint=' + expr
             single_var = True
 
         if len(expr.split('=')) > 2:

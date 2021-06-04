@@ -696,15 +696,16 @@ class TranscriptionBase(object):
                                     'scaler', 'indices', 'linear')}
 
             constraint_list.append((con_name, con_kwargs))
-            phase.add_constraint(con_name, **con_kwargs)
+            bc_comp.add_constraint(con_name, **con_kwargs)
 
         expr_var_dict = {}
         vars_connected = []
         for con_name, options in bc_dict.items():
             expr = options['expr']
+            expr_var_dict[con_name] = {}
             v_names, _ = bc_comp._parse_for_names(expr)
             for expr_var in v_names:
-                if expr_var in vars_added_to_EC or expr_var not in expr.split('=')[1]:
+                if expr_var in vars_connected or expr_var not in expr.split('=')[1]:
                     continue
                 expr_var_dict[con_name][expr_var] = {}
                 src, shape, units, linear = self._get_boundary_constraint_src(expr_var, loc, phase)
@@ -721,15 +722,17 @@ class TranscriptionBase(object):
 
                 if 'parameters:' in src:
                     sys_name = '{0}_boundary_constraints'.format(loc)
-                    tgt_name = '{0}_value_in:{1}'.format(loc, con_name)
+                    tgt_name = expr_var
                     phase.promotes(sys_name, inputs=[(tgt_name, src)],
                                    src_indices=src_idxs, flat_src_indices=True)
 
                 else:
                     phase.connect(src,
-                                  '{0}_boundary_constraints.{0}_value_in:{1}'.format(loc, con_name),
+                                  '{0}_boundary_constraints.{1}'.format(loc, expr_var),
                                   src_indices=src_idxs,
                                   flat_src_indices=True)
+
+                vars_connected = [*vars_connected, *expr_var_dict[con_name]]
 
     def setup_path_constraints(self, phase):
         """
