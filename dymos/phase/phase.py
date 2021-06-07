@@ -1044,8 +1044,6 @@ class Phase(om.Group):
         bc_dict[name]['units'] = units
         bc_dict[name]['single_variable'] = single_var
 
-        # self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
-
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
                             ref0=None, linear=False):
