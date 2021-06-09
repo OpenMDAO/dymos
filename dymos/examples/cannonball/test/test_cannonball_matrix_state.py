@@ -142,7 +142,7 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
         phase.set_time_options(fix_initial=True, duration_bounds=(1, 5), units=None)
         phase.add_state('z', rate_source='zdot', fix_initial=True, units=None, shape=(2, 2))
 
-        phase.add_boundary_constraint('z', loc='final', lower=0, upper=0, indices=[1])
+        phase.add_boundary_constraint('z', loc='final', lower=0, upper=0, indices=[3])
         phase.add_objective('time', loc='final')
 
         p.driver = om.pyOptSparseDriver()

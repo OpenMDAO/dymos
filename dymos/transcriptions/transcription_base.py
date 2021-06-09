@@ -692,8 +692,7 @@ class TranscriptionBase(object):
             con_options['upper'] = INF_BOUND if con_options['lower'] is not None and con_options['upper'] is None \
                 else con_options['upper']
             con_kwargs = {k: con_options.get(k, None)
-                          for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
-                                    'scaler', 'indices', 'linear')}
+                          for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder', 'scaler', 'linear')}
 
             constraint_list.append((con_name, con_kwargs))
             bc_comp.add_constraint(con_name, **con_kwargs)
