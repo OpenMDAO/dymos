@@ -1207,8 +1207,7 @@ class Phase(om.Group):
                                   'outputs': {}}
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
-                      adder=None, scaler=None, parallel_deriv_color=None,
-                      vectorize_derivs=False):
+                      adder=None, scaler=None, parallel_deriv_color=None):
         """
         Add an objective in the phase.
 
@@ -1241,8 +1240,6 @@ class Phase(om.Group):
         parallel_deriv_color : str
             If specified, this design var will be grouped for parallel derivative
             calculations with other variables sharing the same parallel_deriv_color.
-        vectorize_derivs : bool
-            If True, vectorize derivative calculations.
         """
         obj_dict = {'loc': loc,
                     'index': index,
@@ -1251,8 +1248,7 @@ class Phase(om.Group):
                     'ref0': ref0,
                     'adder': adder,
                     'scaler': scaler,
-                    'parallel_deriv_color': parallel_deriv_color,
-                    'vectorize_derivs': vectorize_derivs}
+                    'parallel_deriv_color': parallel_deriv_color}
         self._objectives[name] = obj_dict
 
     def set_time_options(self, units=_unspecified, fix_initial=_unspecified,
