@@ -577,7 +577,6 @@ class TranscriptionBase(object):
             bc_comp = om.ExecComp(has_diag_partials=True, shape_by_conn=True)
             phase.add_subsystem('{0}_boundary_constraints'.format(loc),
                                 subsys=bc_comp)
-            bc_comp.add_expr('1')
 
     def configure_boundary_constraints(self, loc, phase):
         """
