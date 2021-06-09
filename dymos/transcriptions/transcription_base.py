@@ -720,6 +720,14 @@ class TranscriptionBase(object):
                 else:
                     src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
 
+                if options['indices'] is not None:
+                    flat_src_indices = list(np.concatenate(src_idxs).flat)
+                    if loc == 'initial':
+                        idxs = options['indices']
+                    if loc == 'final':
+                        idxs = size - options['indices']
+                    src_idxs = [flat_src_indices[i] for i in idxs]
+
                 if 'parameters:' in src:
                     sys_name = '{0}_boundary_constraints'.format(loc)
                     tgt_name = expr_var
@@ -730,7 +738,7 @@ class TranscriptionBase(object):
                     phase.connect(src,
                                   '{0}_boundary_constraints.{1}'.format(loc, expr_var),
                                   src_indices=src_idxs,
-                                  flat_src_indices=True)
+                                  flat_src_indices=False)
 
                 vars_connected = [*vars_connected, *expr_var_dict[con_name]]
 
