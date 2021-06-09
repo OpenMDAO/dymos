@@ -918,8 +918,7 @@ class TranscriptionBase(object):
             super(Phase, phase).add_objective(obj_path, ref=options['ref'], ref0=options['ref0'],
                                               index=obj_index, adder=options['adder'],
                                               scaler=options['scaler'],
-                                              parallel_deriv_color=options['parallel_deriv_color'],
-                                              vectorize_derivs=options['vectorize_derivs'])
+                                              parallel_deriv_color=options['parallel_deriv_color'])
 
     def _get_boundary_constraint_src(self, name, loc, phase):
         raise NotImplementedError('Transcription {0} does not implement method'
