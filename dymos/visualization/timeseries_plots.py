@@ -295,13 +295,13 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
     cr = om.CaseReader(solution_recorder_filename)
 
     # get outputs from the solution
-    solution_cases = cr.list_cases('problem')
+    solution_cases = cr.list_cases('problem', out_stream=None)
     last_solution_case = cr.get_case(solution_cases[-1])
 
     # If plotting simulation results, get the values for those variables
     if simulation_record_file:
         cr_simulate = om.CaseReader(simulation_record_file)
-        system_simulation_cases = cr_simulate.list_cases('problem')
+        system_simulation_cases = cr_simulate.list_cases('problem', out_stream=None)
         last_simulation_case = cr_simulate.get_case(system_simulation_cases[-1])
     else:
         last_simulation_case = None

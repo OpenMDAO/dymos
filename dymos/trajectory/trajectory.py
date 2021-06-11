@@ -267,9 +267,7 @@ class Trajectory(om.Group):
         phases_group = self.add_subsystem('phases', subsys=om.ParallelGroup())
 
         for name, phs in self._phases.items():
-            g = phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
-            # DirectSolvers were moved down into the phases for use with MPI
-            g.linear_solver = om.DirectSolver()
+            phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
 
         if self._linkages:
             self._setup_linkages()
