@@ -9,15 +9,15 @@ parts:
   - file: getting_started/collocation
   - file: getting_started/defining_odes
   - file: getting_started/optimal_control
-  - file: getting_started/intro_to_dymos/intro_ivp.ipynb
+  - file: getting_started/intro_to_dymos/intro_ivp
   - file: getting_started/intro_to_dymos/intro_segments
 - caption: Examples and Tutorials
   chapters:
   - file: examples/examples
     sections:
     - file: examples/brachistochrone/brachistochrone
-    - file: examples/balanced_field/balanced_field
     - file: examples/vanderpol/vanderpol
+    - file: examples/balanced_field/balanced_field
     - file: examples/commercial_aircraft/commercial_aircraft
     - file: examples/double_integrator/double_integrator
     - file: examples/hypersensitive/hypersensitive
@@ -29,6 +29,9 @@ parts:
     - file: examples/racecar/racecar
     - file: examples/reentry/reentry
     - file: examples/ssto_earth/ssto_earth
+    - file: examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent
+    - file: examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls
+    - file: examples/water_rocket/water_rocket
 - caption: Feature Reference
   chapters:
   - file: features/phases/phases_list
@@ -60,12 +63,6 @@ parts:
     - file: api/run_problem
     - file: api/phase_api
     - file: api/trajectory_api
-- caption: Whats New
-  chapters:
-  - file: release_notes/whats_new
-    sections:
-    - file: release_notes/version_0.16.0
-    - file: release_notes/version_0.17.0
 - caption: Contributing
   chapters:
   - file: contributing/contributing
