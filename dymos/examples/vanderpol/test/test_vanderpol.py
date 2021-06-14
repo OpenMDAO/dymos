@@ -54,8 +54,8 @@ class TestVanderpolExampleMPI(unittest.TestCase):
                dymos/examples/vanderpol/test/test_vanderpol.py TestVanderpolExampleMPI.test_vanderpol_optimal_mpi
            (using varying values for n should give the same answer)
         """
-        p = vanderpol(transcription='gauss-lobatto', num_segments=75, delay=True,
-                      use_pyoptsparse=True, optimizer='IPOPT')
+        p = vanderpol(transcription='gauss-lobatto', num_segments=75, delay=0.005,
+                      use_pyoptsparse=True, distrib=True, optimizer='IPOPT')
         p.run_driver()  # find optimal control solution to stop oscillation
 
         print('Objective function minimized to', p.get_val('traj.phase0.states:J')[-1, ...])

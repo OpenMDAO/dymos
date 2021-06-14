@@ -63,12 +63,6 @@ parts:
     - file: api/run_problem
     - file: api/phase_api
     - file: api/trajectory_api
-- caption: Whats New
-  chapters:
-  - file: release_notes/whats_new
-    sections:
-    - file: release_notes/version_0.16.0
-    - file: release_notes/version_0.17.0
 - caption: Contributing
   chapters:
   - file: contributing/contributing
