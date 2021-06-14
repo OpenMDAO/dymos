@@ -31,4 +31,4 @@ def copy_build_artifacts(book_dir='docs'):
 
 
 if __name__ == '__main__':
-    copy_build_artifacts('openmdao_book')
+    copy_build_artifacts('docs')
