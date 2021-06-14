@@ -48,3 +48,11 @@ parse:
 
 launch_buttons:
   colab_url: "https://colab.research.google.com"
+
+# Enable use of sphinx autodoc
+sphinx:
+  extra_extensions:
+  - 'sphinx.ext.autodoc'
+  - 'sphinx.ext.autosummary'
+  - 'sphinx.ext.viewcode'
+  - 'numpydoc'
