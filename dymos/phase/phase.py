@@ -958,7 +958,7 @@ class Phase(om.Group):
 
     def add_boundary_constraint(self, expr, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
-                                scaler=None, adder=None, ref=None, ref0=None, linear=False, single_var=False):
+                                scaler=None, adder=None, ref=None, ref0=None, linear=False):
         r"""
         Add a boundary constraint to a variable in the phase.
 
@@ -1004,16 +1004,16 @@ class Phase(om.Group):
             Value of response variable that scales to 0.0 in the driver.
         linear : bool
             Set to True if constraint is linear. Default is False.
-        single_var : bool
-            Set to True if constraint is a single variable to be constrained. Default is False.
         """
         if loc not in ['initial', 'final']:
             raise ValueError('Invalid boundary constraint location "{0}". Must be '
                              '"initial" or "final".'.format(loc))
 
-        if '=' not in expr or single_var:
+        if '=' not in expr:
             expr = expr.split('.')[-1] + '_constraint=' + expr
             single_var = True
+        else:
+            single_var = False
 
         if len(expr.split('=')) > 2:
             raise ValueError('Provided expression "{0}" contains multiple "=".'
