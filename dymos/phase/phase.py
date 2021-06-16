@@ -971,9 +971,9 @@ class Phase(om.Group):
         loc : str
             The location of the boundary constraint ('initial' or 'final').
         constraint_name : str or None
-            The name of the variable as provided to the boundary constraint comp.  By
-            default this is the last element in `name` when split by dots.  The user may
-            override the constraint name if splitting the path causes name collisions.
+            The name of the boundary constraint. By default this is the left hand side of
+            the given expression or "var_constraint" if var is a single variable. The user may
+            override the constraint name if desired.
         units : str or None
             The units in which the boundary constraint is to be applied.  If None, use the
             units associated with the constrained output.  If provided, must be compatible with
@@ -981,7 +981,8 @@ class Phase(om.Group):
         shape : tuple, list, ndarray, or None
             The shape of the variable being boundary-constrained.  This can be inferred
             automatically for time, states, controls, and parameters, but is required
-            if the constrained variable is an output of the ODE system.
+            if the constrained variable is an output of the ODE system or in the case of
+            expressions using only parts of an array valued state.
         indices : tuple, list, ndarray, or None
             The indices of the output variable to be boundary constrained.  Indices assumes C-order
             flattening.  For instance, when constraining element [0, 1] of a variable of shape
