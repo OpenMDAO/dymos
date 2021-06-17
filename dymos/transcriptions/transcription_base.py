@@ -574,7 +574,7 @@ class TranscriptionBase(object):
             if loc == 'initial' else phase._final_boundary_constraints
 
         if bc_dict:
-            bc_comp = om.ExecComp(has_diag_partials=True, shape_by_conn=True)
+            bc_comp = om.ExecComp(has_diag_partials=True)
             phase.add_subsystem('{0}_boundary_constraints'.format(loc),
                                 subsys=bc_comp)
 
@@ -606,19 +606,32 @@ class TranscriptionBase(object):
             expr = options['expr']
             expr_var_dict[con_name] = {}
             v_names, _ = bc_comp._parse_for_names(expr)
+            v_names = list(v_names)
             for expr_var in v_names:
                 if expr_var in vars_added_to_EC:
                     continue
                 expr_var_dict[con_name][expr_var] = {}
-                if expr_var in expr.split('=')[1]:
-                    if not options['single_variable']:
-                        _, _, units, _ = self._get_boundary_constraint_src(expr_var, loc, phase)
-                    else:
-                        _, shape, units, _ = self._get_boundary_constraint_src(expr_var, loc, phase)
+                if expr_var in expr.split('=')[-1]:
+                    _, shape, units, _ = self._get_boundary_constraint_src(expr_var, loc, phase)
+                    if options['indices'] is not None:
+                        con_shape = (len(options['indices']),)
+                        if shape != con_shape:
+                            shape = con_shape
 
                     expr_var_dict[con_name][expr_var]['units'] = units
+                    expr_var_dict[con_name][expr_var]['shape'] = shape
                 else:
                     expr_var_dict[con_name][expr_var]['units'] = options['units']
+                    if options['indices'] is not None:
+                        shape = (len(options['indices']),)
+                    elif options['shape'] is not None:
+                        shape = options['shape']
+                    elif options['single_variable']:
+                        src_var_ind = v_names.index(expr_var) - 1
+                        _, shape, _, _ = self._get_boundary_constraint_src(v_names[src_var_ind], loc, phase)
+                    else:
+                        shape = (1,)
+                    expr_var_dict[con_name][expr_var]['shape'] = shape
 
             vars_added_to_EC = [*vars_added_to_EC, *expr_var_dict[con_name]]
 
@@ -703,7 +716,7 @@ class TranscriptionBase(object):
             expr_var_dict[con_name] = {}
             v_names, _ = bc_comp._parse_for_names(expr)
             for expr_var in v_names:
-                if expr_var in vars_connected or expr_var not in expr.split('=')[1]:
+                if expr_var in vars_connected or expr_var not in expr.split('=')[-1]:
                     continue
                 expr_var_dict[con_name][expr_var] = {}
                 src, shape, units, linear = self._get_boundary_constraint_src(expr_var, loc, phase)

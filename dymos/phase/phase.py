@@ -1010,7 +1010,12 @@ class Phase(om.Group):
             raise ValueError('Invalid boundary constraint location "{0}". Must be '
                              '"initial" or "final".'.format(loc))
 
-        if '=' not in expr:
+        expr_operators = ['(', '+', '-', '/', '*', '&', '%']
+        if '=' not in expr and any(opr in expr for opr in expr_operators):
+            raise ValueError('The expression provided {0} has invalid format. '
+                             'Expression may be a single variable or an equation'
+                             'of the form "constraint_name = a + b"'.format(expr))
+        elif '=' not in expr:
             expr = expr.split('.')[-1] + '_constraint=' + expr
             single_var = True
         else:

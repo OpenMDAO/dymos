@@ -82,8 +82,7 @@ class TestAddBoundaryConstraint(unittest.TestCase):
 
         # test add_boundary_constraint with arrays:
         expected = np.array([10, 5])
-        phase.add_boundary_constraint('pos', loc='final', lower=expected-1)
-        phase.add_boundary_constraint('pos', loc='final', upper=expected+1)
+        phase.add_boundary_constraint('pos', loc='final', lower=expected-1, upper=expected+1)
         phase.add_boundary_constraint('pos', loc='final', equals=expected)
 
         phase.add_state('v',
