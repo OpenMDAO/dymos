@@ -24,7 +24,7 @@ def build_book(book_dir=BOOK_DIR, clean=True):
     if clean:
         os.system(f'jupyter-book clean {book_dir}')
     # Letting the errors through until the final PR.
-    os.system(f'jupyter-book build -W {book_dir} --keep-going')
+    os.system(f'jupyter-book build {book_dir} --keep-going')
     copy_build_artifacts(book_dir)
     os.chdir(save_cwd)
 
