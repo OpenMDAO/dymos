@@ -1,0 +1,536 @@
+@article {Tedford:2007:ACO,
+	title = {Benchmarking Multidisciplinary Design Optimization Algorithms},
+	journal = {Optimization and Engineering},
+	volume = {11},
+	number = {1},
+	year = {2010},
+	month = {February},
+	pages = {159{\textendash}183},
+	keywords = {MDO},
+	doi = {10.1007/s11081-009-9082-6},
+	author = {Nathan P. Tedford and Joaquim R. R. A. Martins}
+}
+
+
+@incollection{Gray2016,
+annote = {doi:10.2514/6.2016-0669},
+author = {Gray, Justin S and Chin, Jeff and Hearn, Tristan and Hendricks, Eric S and Lavelle, Thomas M and Martins, Joaquim},
+booktitle = {57th AIAA/ASCE/AHS/ASC Structures, Structural Dynamics, and Materials Conference},
+doi = {doi:10.2514/6.2016-0669},
+month = {jan},
+publisher = {American Institute of Aeronautics and Astronautics},
+series = {AIAA SciTech Forum},
+title = {{Thermodynamics For Gas Turbine Cycles With Analytic Derivatives in OpenMDAO}},
+url = {https://doi.org/10.2514/6.2016-0669},
+year = {2016}
+}
+
+@inproceedings{gray2010openmdao,
+  title={OpenMDAO: An open source framework for multidisciplinary analysis and optimization},
+  author={Gray, Justin and Moore, Kenneth and Naylor, Bret},
+  booktitle={13th AIAA/ISSMO Multidisciplinary Analysis Optimization Conference},
+  pages={9101},
+  year={2010}
+}
+
+@article{Herman1996,
+abstract = {The method of collocation and nonlinear programming has been used recently to solve a number of optimal control problems. In this method polynomials are commonly used to represent the state variable time histories over subintervals of the total time of interest. These polynomials correspond to a family of modified-Gaussian quadrature rules known as the Gauss-Lobatto rules. Presently, relatively low-order rules from the Gauss-Lobatto family, such as the trapezoid and Simpson`s rule, are used to construct collocation solution schemes. In this work higher-order Gauss-Lobatto quadrature rules are formulated using collocation point selection based on a particular family of Jacobi polynomials. The advantage of using a quadrature rule of higher order is that the approximation using the higher degree polynomial may be more accurate, due to finite precision arithmetic, than a formulation based on a lower degree polynomial. In addition, the number of subintervals and, therefore, the number of nonlinear programming parameters needed to solve a problem accurately may be significantly reduced from that required if the conventional trapezoidal or Simpson`s quadrature schemes are used. An optimal trajectory maximizing final energy for a low-thrust spacecraft is used to demonstrate the benefits of using the higher-order schemes. (28 References).},
+author = {Herman, A L and Conway, B A},
+doi = {10.2514/3.21662},
+isbn = {0731-5090},
+journal = {{\{}AIAA{\}} Journal of Guidance, Control, and Dynamics},
+number = {3},
+pages = {522--529},
+title = {{Direct optimization using collocation based on high-order Gauss-Lobatto quadrature rules}},
+volume = {19},
+year = {1996}
+}
+
+@inbook{garg_rpm_2009,
+author = {Garg, Divya and Patterson, Michael and Darby, Christopher and Francolin, Camila and Huntington, Geoffrey and Hager, William and Rao, Anil},
+publisher = {American Institute of Aeronautics and Astronautics},
+title = {{Direct Trajectory Optimization and Costate Estimation of General Optimal Control Problems Using a Radau Pseudospectral Method}},
+year = {2009}
+}
+
+@incollection{Hwang2018,
+annote = {doi:10.2514/6.2018-1646},
+author = {Hwang, John T and Munster, Drayton},
+booktitle = {2018 AIAA/ASCE/AHS/ASC Structures, Structural Dynamics, and Materials Conference},
+doi = {doi:10.2514/6.2018-1646},
+month = {jan},
+publisher = {American Institute of Aeronautics and Astronautics},
+series = {AIAA SciTech Forum},
+title = {{Solution of ordinary differential equations in gradient-based multidisciplinary design optimization}},
+url = {https://doi.org/10.2514/6.2018-1646},
+year = {2018}
+}
+
+@article {hwang2018b,
+author = {Hwang, John T. and Martins, Joaquim R.R.A.},
+title = {A Computational Architecture for Coupling Heterogeneous Numerical Models and Computing Coupled Derivatives},
+year = {2018},
+issue_date = {August 2018},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {44},
+number = {4},
+issn = {0098-3500},
+url = {https://doi.org/10.1145/3182393},
+doi = {10.1145/3182393},
+abstract = {One of the challenges in computational modeling is coupling models to solve multidisciplinary problems. Flow-based computational frameworks alleviate part of the challenge through a modular approach, where data flows from component to component. However, existing flow-based frameworks are inefficient when coupled derivatives are needed for optimization. To address this, we develop the modular analysis and unified derivatives (MAUD) architecture. MAUD formulates the multidisciplinary model as a nonlinear system of equations, which leads to a linear equation that unifies all methods for computing derivatives. This enables flow-based frameworks that use the MAUD architecture to provide a common interface for the chain rule, adjoint method, coupled adjoint method, and hybrid methods; MAUD automatically uses the appropriate method for the problem. A hierarchical, matrix-free approach enables modern solution techniques such as Newton--Krylov solvers to be used within this monolithic formulation without computational overhead. Two demonstration problems are solved using a Python implementation of MAUD: a nanosatellite optimization with more than 2 million unknowns and 25,000 design variables, and an aircraft optimization involving over 6,000 design variables and 23,000 constraints. MAUD is now implemented in the open source framework OpenMDAO, which has been used to solve aircraft, satellite, wind turbine, and turbofan engine design problems.},
+journal = {ACM Trans. Math. Softw.},
+month = jun,
+articleno = {37},
+numpages = {39},
+keywords = {engineering design, adjoint methods, high-performance computing, Parallel computing, complex systems, Python, multiphysics simulation, PDE-constrained optimization, optimization, multidisciplinary design optimization, derivative computation}
+}
+
+@article{Martins2013,
+abstract = {This paper presents a review of all of the discrete methods for computing derivatives of computational models within a unified mathematical framework. A generalized chain rule is first presented as the underlying principle from which all methods can be derived. Derivation computation is described as a two-step process: evaluating the partial derivatives and obtaining the total derivatives from the computed partial derivatives. Next, finite differencing, the complex-step method and symbolic dif- ferentiation are discussed in detail as the options for computing partial derivatives. It is shown that these are building blocks with which total derivatives can be assembled using algorithmic differenti- ation, the direct and adjoint methods, and coupled analytic methods for multidisciplinary systems. A numerical example is used throughout to demonstrate and compare the various approaches.},
+author = {Martins, Joaquim R R A and Hwang, John T},
+doi = {10.2514/1.J052184},
+isbn = {978-1-60086-937-2},
+issn = {0001-1452},
+journal = {AIAA Journal},
+number = {11},
+pages = {2582--2599},
+title = {{Review and Unification of Methods for Computing Derivatives of Multidisciplinary Computational Models}},
+url = {http://arc.aiaa.org/doi/abs/10.2514/1.J052184},
+volume = {51},
+year = {2013}
+}
+
+@article{hargraves_paris_1987,
+author = {Hargraves, C R and Paris, S W},
+journal = {Journal of Guidance, Control, and Dynamics},
+keywords = {collocation},
+month = {aug},
+pages = {338--342},
+series = {AAS/AIAA Astrodynamics Conference},
+title = {{Direct trajectory optimization using nonlinear programming and collocation}},
+volume = {10},
+year = {1987}
+}
+
+@article{patterson2014gpops,
+  title={GPOPS-II: A MATLAB software for solving multiple-phase optimal control problems using hp-adaptive Gaussian quadrature collocation methods and sparse nonlinear programming},
+  author={Patterson, Michael A and Rao, Anil V},
+  journal={ACM Transactions on Mathematical Software (TOMS)},
+  volume={41},
+  number={1},
+  pages={1},
+  year={2014},
+  publisher={ACM}
+}
+
+@article{Seywald1994,
+annote = {doi: 10.2514/3.21224},
+author = {Seywald, Hans},
+doi = {10.2514/3.21224},
+issn = {0731-5090},
+journal = {Journal of Guidance, Control, and Dynamics},
+month = {may},
+number = {3},
+pages = {480--487},
+publisher = {American Institute of Aeronautics and Astronautics},
+title = {{Trajectory optimization based on differential inclusion (Revised)}},
+url = {https://doi.org/10.2514/3.21224},
+volume = {17},
+year = {1994}
+}
+
+@article{Kumar1996,
+annote = {doi: 10.2514/3.21634},
+author = {Kumar, Renjith R and Seywald, Hans},
+doi = {10.2514/3.21634},
+issn = {0731-5090},
+journal = {Journal of Guidance, Control, and Dynamics},
+month = {mar},
+number = {2},
+pages = {418--423},
+publisher = {American Institute of Aeronautics and Astronautics},
+title = {{Should controls be eliminated while solving optimal control problems via direct methods?}},
+url = {https://doi.org/10.2514/3.21634},
+volume = {19},
+year = {1996}
+}
+
+@article{fahroo2001second,
+  title={Second look at approximating differential inclusions},
+  author={Fahroo, Fariba and Ross, I Michael},
+  journal={Journal of Guidance, Control, and Dynamics},
+  volume={24},
+  number={1},
+  pages={131--133},
+  year={2001}
+}
+
+@inproceedings{paris_riehl_sjauw_2006,
+author = {Paris, Stephen W and Riehl, John P and Sjauw, Waldy K},
+booktitle = {Proceedings of the AIAA/AAS Astrodynamics Specialists Conference and Exhibit},
+number = {2006--6309},
+organization = {American Institute of Aeronautics and Astronautics},
+title = {{Enhanced Procedures for Direct Trajectory Optimization Using Nonlinear Programming and Implicit Integration}},
+type = {AIAA Paper},
+year = {2006}
+}
+
+@book{bryson1999dynamic,
+  title={Dynamic optimization},
+  author={Bryson, Arthur Earl},
+  year={1999},
+  publisher={Addison Wesley Longman Menlo Park, CA}
+}
+
+@book{betts2010practical,
+author = {Betts, J.},
+title = {Practical Methods for Optimal Control and Estimation Using Nonlinear Programming},
+publisher = {Society for Industrial and Applied Mathematics},
+year = {2010},
+doi = {10.1137/1.9780898718577},
+edition   = {Second},
+URL = {https://epubs.siam.org/doi/abs/10.1137/1.9780898718577},
+eprint = {https://epubs.siam.org/doi/pdf/10.1137/1.9780898718577}
+}
+
+@article{herman1996direct,
+  title={Direct optimization using collocation based on high-order Gauss-Lobatto quadrature rules},
+  author={Herman, Albert L and Conway, Bruce A},
+  journal={Journal of Guidance, Control, and Dynamics},
+  volume={19},
+  number={3},
+  pages={592--599},
+  year={1996}
+}
+
+@article{garg2011direct,
+  title={Direct trajectory optimization and costate estimation of finite-horizon and infinite-horizon optimal control problems using a Radau pseudospectral method},
+  author={Garg, Divya and Patterson, Michael A and Francolin, Camila and Darby, Christopher L and Huntington, Geoffrey T and Hager, William W and Rao, Anil V},
+  journal={Computational Optimization and Applications},
+  volume={49},
+  number={2},
+  pages={335--358},
+  year={2011},
+  publisher={Springer}
+}
+
+@article{patterson2015ph,
+  title={A ph mesh refinement method for optimal control},
+  author={Patterson, Michael A and Hager, William W and Rao, Anil V},
+  journal={Optimal Control Applications and Methods},
+  volume={36},
+  number={4},
+  pages={398--421},
+  year={2015},
+  publisher={Wiley Online Library}
+}
+
+@misc{wikivanderpol,
+	author = "{Wikipedia contributors}",
+	title = "Van der Pol oscillator --- {Wikipedia}{,} The Free Encyclopedia",
+	year = "2020",
+	url = "https://en.wikipedia.org/w/index.php?title=Van_der_Pol_oscillator&oldid=953857769",
+	note = "[Online; accessed 12-June-2020]"
+}
+
+@article{enright1991optimal,
+  title={Optimal finite-thrust spacecraft trajectories using collocation and nonlinear programming},
+  author={Enright, Paul J and Conway, Brace A},
+  journal={Journal of Guidance, Control, and Dynamics},
+  volume={14},
+  number={5},
+  pages={981--985},
+  year={1991}
+}
+
+@inproceedings{chin2019battery,
+  title={Battery Performance Modeling on SCEPTOR X-57 Subject to Thermal and Transient Considerations},
+  author={Chin, Jeff and Schnulo, Sydney L and Miller, Thomas and Prokopius, Kevin and Gray, Justin S},
+  booktitle={AIAA Scitech 2019 Forum},
+  pages={0784},
+  year={2019}
+}
+
+@book{longuski2014optimal,
+  title={Optimal control with aerospace applications},
+  author={Longuski, James M and Guzm{\'a}n, Jos{\'e} J and Prussing, John E},
+  year={2014},
+  publisher={Springer}
+}
+
+@article{betts1995application,
+  title={Application of direct transcription to commercial aircraft trajectory optimization},
+  author={Betts, John T and Cramer, Evin J},
+  journal={Journal of Guidance, Control, and Dynamics},
+  volume={18},
+  number={1},
+  pages={151--159},
+  year={1995}
+}
+
+% Water rocket references
+
+@Article{BarrioPerotti2009,
+  author    = {R Barrio-Perotti and E Blanco-Marigorta and K Argüelles-D{\'{\i}}az and J Fern{\'{a}}ndez-Oro},
+  journal   = {European Journal of Physics},
+  title     = {Experimental evaluation of the drag coefficient of water rockets by a simple free-fall test},
+  year      = {2009},
+  month     = {jul},
+  number    = {5},
+  pages     = {1039--1048},
+  volume    = {30},
+  abstract  = {The flight trajectory of a water rocket can be reasonably calculated if the magnitude of the drag coefficient is known. The experimental determination of this coefficient with enough precision is usually quite difficult, but in this paper we propose a simple free-fall experiment for undergraduate students to reasonably estimate the drag coefficient of water rockets made from plastic soft drink bottles. The experiment is performed using relatively small fall distances (only about 14 m) in addition with a simple digital-sound-recording device. The fall time is inferred from the recorded signal with quite good precision, and it is subsequently introduced as an input of a Matlab® program that estimates the magnitude of the drag coefficient. This procedure was tested first with a toy ball, obtaining a result with a deviation from the typical sphere value of only about 3%. For the particular water rocket used in the present investigation, a drag coefficient of 0.345 was estimated.},
+  doi       = {10.1088/0143-0807/30/5/012},
+  publisher = {{IOP} Publishing},
+  timestamp = {2020-04-26},
+}
+
+@Article{Romanelli2013,
+  author    = {Alejandro Romanelli and Italo Bove and Federico Gonz{\'{a}}lez Madina},
+  journal   = {American Journal of Physics},
+  title     = {Air expansion in a water rocket},
+  year      = {2013},
+  month     = {oct},
+  number    = {10},
+  pages     = {762--766},
+  volume    = {81},
+  doi       = {10.1119/1.4811116},
+  publisher = {American Association of Physics Teachers ({AAPT})},
+  timestamp = {2020-04-26},
+}
+
+@Article{Prusa2000,
+  author    = {Joseph M. Prusa},
+  journal   = {{SIAM} Review},
+  title     = {Hydrodynamics of a Water Rocket},
+  year      = {2000},
+  month     = {jan},
+  number    = {4},
+  pages     = {719--726},
+  volume    = {42},
+  doi       = {10.1137/s0036144598348223},
+  publisher = {Society for Industrial {\&} Applied Mathematics ({SIAM})},
+  timestamp = {2020-04-26},
+}
+
+@Article{BarrioPerotti2010,
+  author    = {R Barrio-Perotti and E Blanco-Marigorta and J Fern{\'{a}}ndez-Francos and M Galdo-Vega},
+  journal   = {European Journal of Physics},
+  title     = {Theoretical and experimental analysis of the physics of water rockets},
+  year      = {2010},
+  month     = {jul},
+  number    = {5},
+  pages     = {1131--1147},
+  volume    = {31},
+  abstract  = {A simple rocket can be made using a plastic bottle filled with a volume of water and pressurized air. When opened, the air pressure pushes the water out of the bottle. This causes an increase in the bottle momentum so that it can be propelled to fairly long distances or heights. Water rockets are widely used as an educational activity, and several mathematical models have been proposed to investigate and predict their physics. However, the real equations that describe the physics of the rockets are so complicated that certain assumptions are usually made to obtain models that are easier to use. These models provide relatively good predictions but fail in describing the complex physics of the flow. This paper presents a detailed theoretical analysis of the physics of water rockets that concludes with the proposal of a physical model. The validity of the model is checked by a series of field tests. The tests showed maximum differences with predictions of about 6%. The proposed model is finally used to investigate the temporal evolution of some significant variables during the propulsion and flight of the rocket. The experience and procedure described in this paper can be proposed to graduate students and also at undergraduate level if certain simplifications are assumed in the general equations.},
+  doi       = {10.1088/0143-0807/31/5/015},
+  publisher = {{IOP} Publishing},
+  timestamp = {2020-04-26},
+}
+
+@Article{AlQutub2013,
+  author    = {Amro Al-Qutub and Jad Taleb and Esmail M. A. Mokheimer},
+  journal   = {Arabian Journal for Science and Engineering},
+  title     = {A Novel Approach for Optimizing Two-Phase Flow in Water Rockets: Part I},
+  year      = {2013},
+  month     = {sep},
+  number    = {4},
+  pages     = {3169--3180},
+  volume    = {39},
+  doi       = {10.1007/s13369-013-0779-7},
+  publisher = {Springer Science and Business Media {LLC}},
+  timestamp = {2020-04-26},
+}
+
+@Article{Thorncroft2009,
+  author    = {Glen E. Thorncroft and John R. Ridgely and Christopher C. Pascual},
+  journal   = {International Journal of Mechanical Engineering Education},
+  title     = {Hydrodynamics and Thrust Characteristics of a Water-Propelled Rocket},
+  year      = {2009},
+  month     = {jul},
+  number    = {3},
+  pages     = {241--261},
+  volume    = {37},
+  doi       = {10.7227/ijmee.37.3.9},
+  publisher = {{SAGE} Publications},
+  timestamp = {2020-04-26},
+}
+
+@Article{Finney2000,
+  author    = {G. A. Finney},
+  journal   = {American Journal of Physics},
+  title     = {Analysis of a water-propelled rocket: A problem in honors physics},
+  year      = {2000},
+  month     = {mar},
+  number    = {3},
+  pages     = {223--227},
+  volume    = {68},
+  doi       = {10.1119/1.19415},
+  publisher = {American Association of Physics Teachers ({AAPT})},
+  timestamp = {2020-04-26},
+}
+
+@Article{Gale1970,
+  author    = {Douglas S. Gale},
+  journal   = {American Journal of Physics},
+  title     = {Instructional Uses of the Computer: Rocket Trajectory Simulation},
+  year      = {1970},
+  month     = {dec},
+  number    = {12},
+  pages     = {1475--1475},
+  volume    = {38},
+  doi       = {10.1119/1.1976167},
+  publisher = {American Association of Physics Teachers ({AAPT})},
+  timestamp = {2020-04-26},
+}
+
+@Article{Nelson1976,
+  author    = {Robert A. Nelson and Mark E. Wilson},
+  journal   = {The Physics Teacher},
+  title     = {Mathematical analysis of a model rocket trajectory part I: The powered phase},
+  year      = {1976},
+  month     = {mar},
+  number    = {3},
+  pages     = {150--161},
+  volume    = {14},
+  doi       = {10.1119/1.2339337},
+  publisher = {American Association of Physics Teachers ({AAPT})},
+  timestamp = {2020-04-26},
+}
+
+@Misc{Wheeler,
+  author    = {Dean R. Wheeler},
+  title     = {Dean's Benchtop},
+  year      = {2000--2009},
+  timestamp = {2020-05-06},
+  url       = {https://www.et.byu.edu/~wheeler/benchtop},
+}
+
+@Misc{Wheeler2002,
+  author    = {Dean Wheeler},
+  title     = {Modeling the Thrust Phase},
+  year      = {2002},
+  timestamp = {2020-04-26},
+  url       = {https://www.et.byu.edu/~wheeler/benchtop/pix/thrust_eqns.pdf},
+}
+
+@Article{Redfield2006,
+  author    = {R. C. Redfield},
+  journal   = {Proceedings of the Institution of Mechanical Engineers, Part I: Journal of Systems and Control Engineering},
+  title     = {Bond graphs of open systems: A water rocket example},
+  year      = {2006},
+  month     = {nov},
+  number    = {7},
+  pages     = {607--615},
+  volume    = {220},
+  doi       = {10.1243/09596518jsce178},
+  publisher = {{SAGE} Publications},
+  timestamp = {2020-04-26},
+}
+
+@Article{Yonemoto2008,
+  author    = {Koichi Yonemoto, Takehiro Himeno, Yusuke Oshikata},
+  journal   = {Proceedings of KSAS-JSASS Joint International Symposium on Aerospace Engineering},
+  title     = {Experiment and Numerical Calculation on Air-Water Phased Propulsion Flow of Water Rocket},
+  year      = {2008},
+  month     = {11},
+  pages     = {375--378},
+  publisher = {The Korean Society for Aeronautical & Space Sciences},
+  timestamp = {2020-05-06},
+  url       = {http://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE01110603},
+}
+
+@Article{Gommes2010,
+  author    = {Cedric J. Gommes},
+  journal   = {American Journal of Physics},
+  title     = {A more thorough analysis of water rockets: Moist adiabats, transient flows, and inertial forces in a soda bottle},
+  year      = {2010},
+  month     = {mar},
+  number    = {3},
+  pages     = {236--243},
+  volume    = {78},
+  doi       = {10.1119/1.3257702},
+  publisher = {American Association of Physics Teachers ({AAPT})},
+  timestamp = {2020-04-26},
+}
+
+@Misc{Fischer2020,
+  author        = {Laura Fischer and Thomas Günther and Linda Herzig and Tobias Jarzina and Frank Klinker and Sabine Knipper and Franz-Georg Schürmann and Marvin Wollek},
+  howpublished  = {arXiv:2001.08828},
+  title         = {On the approximation of {D.I.Y.} water rocket dynamics including air drag},
+  year          = {2020},
+  archiveprefix = {arXiv},
+  eprint        = {2001.08828},
+  primaryclass  = {physics.pop-ph},
+  timestamp     = {2020-05-15},
+}
+
+@Article{Kagan1995,
+  author    = {David Kagan and Louis Buchholtz and Lynda Klein},
+  journal   = {The Physics Teacher},
+  title     = {Soda-bottle water rockets},
+  year      = {1995},
+  month     = {mar},
+  number    = {3},
+  pages     = {150--157},
+  volume    = {33},
+  doi       = {10.1119/1.2344175},
+  publisher = {American Association of Physics Teachers ({AAPT})},
+  timestamp = {2020-05-03},
+}
+
+@misc{aircommand_nozzle,
+    url={http://www.aircommandrockets.com/nozzles.htm},
+    year={2013},
+    title={Nozzles},
+}
+
+@misc{bbahia_2020,
+ title={Optimization of a Water Rocket in OpenMDAO/dymos},
+ url={engrxiv.org/nqta8},
+ DOI={10.31224/osf.io/nqta8},
+ publisher={engrXiv},
+ author={Bahia Monteiro, Bernardo},
+ year={2020},
+ month={Aug},
+}
+
+@Comment{jabref-meta: databaseType:bibtex;}
+
+@article{liu2015adaptive,
+  title={Adaptive mesh refinement method for optimal control using nonsmoothness detection and mesh size reduction},
+  author={Liu, Fengjin and Hager, William W and Rao, Anil V},
+  journal={Journal of the Franklin Institute},
+  volume={352},
+  number={10},
+  pages={4081--4106},
+  year={2015},
+  publisher={Elsevier}
+}
+
+@Article{Andersson2018,
+  Author = {Joel A E Andersson and Joris Gillis and Greg Horn
+            and James B Rawlings and Moritz Diehl},
+  Title = {{CasADi} -- {A} software framework for nonlinear optimization
+           and optimal control},
+  Journal = {Mathematical Programming Computation},
+  volume={11},
+  pages={1--36},
+  Year = {2019},
+}
+
+@inproceedings{gray2019coloring,
+  title={Using Graph Coloring To Compute Total Derivatives More Efficiently in OpenMDAO},
+  author={Gray, Justin S and Hearn, Tristan A and Naylor, Bret A},
+  booktitle={AIAA Aviation 2019 Forum},
+  pages={3108},
+  year={2019}
+}
+
+@book{raymer2012aircraft,
+  title={Aircraft design: a conceptual approach},
+  author={Raymer, Daniel},
+  year={2012},
+  publisher={American Institute of Aeronautics and Astronautics, Inc.}
+}
