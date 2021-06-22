@@ -221,7 +221,7 @@ jobs:
           echo "Submit coverage"
           echo "============================================================="
           cp $HOME/.coverage .
-          pip install git+https://github.com/swryan/coveralls-python
+          pip install coveralls
           SITE_DIR=`python -c 'import site; print(site.getsitepackages()[-1])'`
           coveralls --basedir $SITE_DIR
 
