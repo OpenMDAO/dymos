@@ -246,8 +246,7 @@ jobs:
           echo "============================================================="
           echo "Publishing Docs"
           echo "============================================================="
-          cd mkdocs
-          mkdocs gh-deploy --verbose --clean
+          ghp-import -n -p -f docs_build/html
 
   coveralls:
     name: Finish coveralls
