@@ -247,7 +247,7 @@ jobs:
           echo "Publishing Docs"
           echo "============================================================="
           pip install ghp-import
-          ghp-import -n -p -f docs/_build/html
+          ghp-import -n -p -f -r dymos_fork docs/_build/html
 
   coveralls:
     name: Finish coveralls
