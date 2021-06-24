@@ -4,8 +4,10 @@ from setuptools import find_packages
 # Setup optional dependencies
 optional_dependencies = {
     'docs': [
-        'mkdocs',
-        'mkdocs-material',
+        'jupyter-book',
+        'nbconvert',
+        'notebook',
+        'ipython'
         'pymdown-extensions',
         'mkdocs-macros-plugin',
         'mkdocs-bibtex',
