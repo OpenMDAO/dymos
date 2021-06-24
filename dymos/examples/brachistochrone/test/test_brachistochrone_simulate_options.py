@@ -144,4 +144,3 @@ class TestBrachistochroneSimulate(unittest.TestCase):
 
                 # Run the driver to solve the problem
                 dm.run_problem(p, run_driver=True, simulate=True)
-

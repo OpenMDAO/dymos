@@ -136,7 +136,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         # Test the results
         assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
-        sim_out = phase.simulate(times_per_seg=20)
+        sim_out = phase.simulate(times_per_seg=20, rtol=1.0E-5)
 
         x_sol = p.get_val('phase0.timeseries.states:x')
         y_sol = p.get_val('phase0.timeseries.states:y')
@@ -158,11 +158,11 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         theta_interp = interp1d(time_sim[:, 0], theta_sim[:, 0])
         theta_dot_interp = interp1d(time_sim[:, 0], theta_dot_sim[:, 0])
 
-        assert_near_equal(x_interp(time_sol), x_sol, tolerance=1.0E-5)
-        assert_near_equal(y_interp(time_sol), y_sol, tolerance=1.0E-5)
-        assert_near_equal(v_interp(time_sol), v_sol, tolerance=1.0E-5)
-        assert_near_equal(theta_interp(time_sol), theta_sol, tolerance=1.0E-5)
-        assert_near_equal(theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-5)
+        assert_near_equal(x_interp(time_sol), x_sol, tolerance=1.0E-4)
+        assert_near_equal(y_interp(time_sol), y_sol, tolerance=1.0E-4)
+        assert_near_equal(v_interp(time_sol), v_sol, tolerance=1.0E-4)
+        assert_near_equal(theta_interp(time_sol), theta_sol, tolerance=1.0E-4)
+        assert_near_equal(theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-4)
 
     def test_brachistochrone_integrated_control_radau_ps(self):
         import numpy as np
@@ -190,6 +190,8 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         phase.add_control('theta_dot', units='deg/s', rate_continuity=True, shape=(1, ), lower=0, upper=60)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
+
+        phase.set_simulate_options(rtol=1.0E-8, atol=1.0E-8)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)

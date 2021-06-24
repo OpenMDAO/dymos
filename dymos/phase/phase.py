@@ -1793,13 +1793,13 @@ class Phase(om.Group):
             None, output to all nodes provided by this phases GridData.
         method : str
             The scipy.integrate.solve_ivp integration method.
-        atol : float or _unspecified
+        atol : float
             Absolute convergence tolerance for the scipy.integrate.solve_ivp method.
-        rtol : float or _unspecified
+        rtol : float
             Relative convergence tolerance for the scipy.integrate.solve_ivp method.
-        first_step: float or _unspecified
-            Initital step size for the integration.
-        max_step: float or _unspecified
+        first_step : float
+            Initial step size for the integration.
+        max_step : float or _unspecified
             Maximum step size for the integration.
 
         Returns
@@ -1921,9 +1921,9 @@ class Phase(om.Group):
             Absolute convergence tolerance for scipy.integrate.solve_ivp.
         rtol : float
             Relative convergence tolerance for scipy.integrate.solve_ivp.
-        first_step: float or _unspecified
-            Initital step size for the integration.
-        max_step: float or _unspecified
+        first_step : float
+            Initial step size for the integration.
+        max_step : float
             Maximum step size for the integration.
         record_file : str or None
             If a string, the file to which the result of the simulation will be saved.
@@ -2001,13 +2001,13 @@ class Phase(om.Group):
         ----------
         method : str
             The scipy.integrate.solve_ivp integration method.
-        atol : float or _unspecified
+        atol : float
             Absolute convergence tolerance for the scipy.integrate.solve_ivp method.
-        rtol : float or _unspecified
+        rtol : float
             Relative convergence tolerance for the scipy.integrate.solve_ivp method.
-        first_step: float or _unspecified
-            Initital step size for the integration.
-        max_step: float or _unspecified
+        first_step : float
+            Initial step size for the integration.
+        max_step : float
             Maximum step size for the integration.
         """
         if method is not _unspecified:

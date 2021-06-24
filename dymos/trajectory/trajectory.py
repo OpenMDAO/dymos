@@ -918,9 +918,9 @@ class Trajectory(om.Group):
             Absolute convergence tolerance for scipy.integrate.solve_ivp.
         rtol : float
             Relative convergence tolerance for scipy.integrate.solve_ivp.
-        first_step: float or _unspecified
-            Initital step size for the integration.
-        max_step: float or _unspecified
+        first_step : float
+            Initial step size for the integration.
+        max_step : float
             Maximum step size for the integration.
         record_file : str or None
             If a string, the file to which the result of the simulation will be saved.

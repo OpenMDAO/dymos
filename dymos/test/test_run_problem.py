@@ -305,7 +305,7 @@ class TestRunProblem(unittest.TestCase):
         # # Run the model
         run_problem(q, restart='vanderpol_simulation.sql')
 
-        s = q.model.traj.simulate()
+        s = q.model.traj.simulate(rtol=1.0E-9, atol=1.0E-9)
 
         # get_val returns data for duplicate time points; remove them before interpolating
         tq = q.get_val('traj.phase0.timeseries.time')[:, 0]
