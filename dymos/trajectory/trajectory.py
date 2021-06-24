@@ -902,7 +902,8 @@ class Trajectory(om.Group):
                                             var_a=var, var_b=var, loc_a=loc_a, loc_b=loc_b,
                                             connected=connected)
 
-    def simulate(self, times_per_seg=10, method='RK45', atol=1.0E-9, rtol=1.0E-9, record_file=None):
+    def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
+                 first_step=_unspecified, max_step=_unspecified, record_file=None):
         """
         Simulate the Trajectory using scipy.integrate.solve_ivp.
 
@@ -917,6 +918,10 @@ class Trajectory(om.Group):
             Absolute convergence tolerance for scipy.integrate.solve_ivp.
         rtol : float
             Relative convergence tolerance for scipy.integrate.solve_ivp.
+        first_step: float or _unspecified
+            Initital step size for the integration.
+        max_step: float or _unspecified
+            Maximum step size for the integration.
         record_file : str or None
             If a string, the file to which the result of the simulation will be saved.
             If None, no record of the simulation will be saved.
@@ -932,7 +937,8 @@ class Trajectory(om.Group):
 
         for name, phs in self._phases.items():
             sim_phs = phs.get_simulation_phase(times_per_seg=times_per_seg, method=method,
-                                               atol=atol, rtol=rtol)
+                                               atol=atol, rtol=rtol, first_step=first_step,
+                                               max_step=max_step)
             sim_traj.add_phase(name, sim_phs)
 
         sim_traj.parameter_options.update(self.parameter_options)

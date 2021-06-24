@@ -13,7 +13,7 @@ import dymos as dm
 
 from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     StateOptionsDictionary, TimeOptionsDictionary, \
-    PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary
+    PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.misc import _unspecified
@@ -58,6 +58,7 @@ class Phase(om.Group):
         self.polynomial_control_options = {}
         self.parameter_options = {}
         self.refine_options = GridRefinementOptionsDictionary()
+        self.simulate_options = SimulateOptionsDictionary()
 
         # Dictionaries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE
@@ -78,6 +79,7 @@ class Phase(om.Group):
             self.parameter_options = from_phase.parameter_options.copy()
 
             self.refine_options.update(from_phase.refine_options)
+            self.simulate_options.update(from_phase.simulate_options)
 
             self._initial_boundary_constraints = from_phase._initial_boundary_constraints.copy()
             self._final_boundary_constraints = from_phase._final_boundary_constraints.copy()
@@ -1773,12 +1775,16 @@ class Phase(om.Group):
             res = res.T
         return res
 
-    def get_simulation_phase(self, times_per_seg=None, method='RK45', atol=1.0E-9, rtol=1.0E-9):
+    def get_simulation_phase(self, times_per_seg=None, method=_unspecified, atol=_unspecified,
+                             rtol=_unspecified, first_step=_unspecified, max_step=_unspecified):
         """
         Return a SolveIVPPhase instance.
 
         This instance is initialized based on data from this Phase instance and
         the given simulation times.
+
+        If left unspecified, options `method`, `atol`, `rtol`, `first_step`, and `max_step` will
+        be taken from Phase.simulate_options.
 
         Parameters
         ----------
@@ -1787,10 +1793,14 @@ class Phase(om.Group):
             None, output to all nodes provided by this phases GridData.
         method : str
             The scipy.integrate.solve_ivp integration method.
-        atol : float
+        atol : float or _unspecified
             Absolute convergence tolerance for the scipy.integrate.solve_ivp method.
-        rtol : float
+        rtol : float or _unspecified
             Relative convergence tolerance for the scipy.integrate.solve_ivp method.
+        first_step: float or _unspecified
+            Initital step size for the integration.
+        max_step: float or _unspecified
+            Maximum step size for the integration.
 
         Returns
         -------
@@ -1804,10 +1814,14 @@ class Phase(om.Group):
 
         sim_phase = dm.Phase(from_phase=self,
                              transcription=SolveIVP(grid_data=t.grid_data,
-                                                    method=method,
-                                                    atol=atol,
-                                                    rtol=rtol,
                                                     output_nodes_per_seg=times_per_seg))
+
+        # Copy over any simulation options from the simulate call.  The fallback will be to
+        # phase.simulate_options, which are copied from the original phase.
+        for key, val in {'method': method, 'atol': atol, 'rtol': rtol, 'first_step': first_step,
+                         'max_step': max_step}.items():
+            if val is not _unspecified:
+                sim_phase.simulate_options[key] = val
 
         return sim_phase
 
@@ -1891,8 +1905,8 @@ class Phase(om.Group):
                 prob_path = '{0}.parameters:{1}'.format(self.name, name)
             prob[prob_path][...] = val
 
-    def simulate(self, times_per_seg=10, method='RK45', atol=1.0E-9, rtol=1.0E-9,
-                 record_file=None):
+    def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
+                 first_step=_unspecified, max_step=_unspecified, record_file=None):
         """
         Simulate the Phase using scipy.integrate.solve_ivp.
 
@@ -1907,6 +1921,10 @@ class Phase(om.Group):
             Absolute convergence tolerance for scipy.integrate.solve_ivp.
         rtol : float
             Relative convergence tolerance for scipy.integrate.solve_ivp.
+        first_step: float or _unspecified
+            Initital step size for the integration.
+        max_step: float or _unspecified
+            Maximum step size for the integration.
         record_file : str or None
             If a string, the file to which the result of the simulation will be saved.
             If None, no record of the simulation will be saved.
@@ -1921,7 +1939,8 @@ class Phase(om.Group):
 
         sim_prob = om.Problem(model=om.Group())
 
-        sim_phase = self.get_simulation_phase(times_per_seg, method=method, atol=atol, rtol=rtol)
+        sim_phase = self.get_simulation_phase(times_per_seg, method=method, atol=atol, rtol=rtol,
+                                              first_step=first_step, max_step=max_step)
 
         sim_prob.model.add_subsystem(self.name, sim_phase)
 
@@ -1972,6 +1991,35 @@ class Phase(om.Group):
             self.refine_options['max_order'] = max_order
         if smoothness_factor is not _unspecified:
             self.refine_options['smoothness_factor'] = smoothness_factor
+
+    def set_simulate_options(self, method=_unspecified, atol=_unspecified, rtol=_unspecified,
+                             first_step=_unspecified, max_step=_unspecified):
+        """
+        Set the specified option(s) for grid refinement in the phase.
+
+        Parameters
+        ----------
+        method : str
+            The scipy.integrate.solve_ivp integration method.
+        atol : float or _unspecified
+            Absolute convergence tolerance for the scipy.integrate.solve_ivp method.
+        rtol : float or _unspecified
+            Relative convergence tolerance for the scipy.integrate.solve_ivp method.
+        first_step: float or _unspecified
+            Initital step size for the integration.
+        max_step: float or _unspecified
+            Maximum step size for the integration.
+        """
+        if method is not _unspecified:
+            self.simulate_options['method'] = method
+        if atol is not _unspecified:
+            self.simulate_options['atol'] = atol
+        if rtol is not _unspecified:
+            self.simulate_options['rtol'] = rtol
+        if first_step is not _unspecified:
+            self.simulate_options['first_step'] = first_step
+        if max_step is not _unspecified:
+            self.simulate_options['max_step'] = max_step
 
     def is_time_fixed(self, loc):
         """

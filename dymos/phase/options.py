@@ -569,6 +569,34 @@ class GridRefinementOptionsDictionary(om.OptionsDictionary):
                      desc='Maximum allowed ratio of state second derivatives across refinement iterations')
 
 
+class SimulateOptionsDictionary(om.OptionsDictionary):
+    """
+    An OptionsDictionary for simulate options in a Phase.
+
+    Parameters
+    ----------
+    read_only : bool
+        If True, setting (via __setitem__ or update) is not permitted.
+    """
+    def __init__(self, read_only=False):
+        super(SimulateOptionsDictionary, self).__init__(read_only)
+
+        self.declare('method', values=('RK23', 'RK45', 'DOP853'), default='RK45',
+                     desc='The method used by simulate to propagate the ODE.')
+
+        self.declare(name='atol', types=(float, np.array), default=1.0E-6,
+                     desc='Absolute error tolerance for variable step integration.')
+
+        self.declare(name='rtol', types=(float, np.array), default=1.0E-3,
+                     desc='Relative error tolerance for variable step integration.')
+
+        self.declare(name='first_step', types=float, allow_none=True, default=None,
+                     desc='Initial step size, or None if the algorithm should choose.')
+
+        self.declare(name='max_step', types=float, default=np.inf,
+                     desc='Maximum allowable step size')
+
+
 class _ForDocs(object):  # pragma: no cover
     """
     This class is provided as a way to automatically display options dictionaries in the docs,

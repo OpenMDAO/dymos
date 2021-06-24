@@ -43,16 +43,6 @@ class SolveIVP(TranscriptionBase):
         """
         super(SolveIVP, self).initialize()
 
-        self.options.declare('method', default='RK45', values=('RK45', 'RK23', 'BDF'),
-                             desc='The integrator used within scipy.integrate.solve_ivp. Currently '
-                                  'supports \'RK45\', \'RK23\', and \'BDF\'.')
-
-        self.options.declare('atol', default=1.0E-6, types=(float,),
-                             desc='Absolute tolerance passed to scipy.integrate.solve_ivp.')
-
-        self.options.declare('rtol', default=1.0E-6, types=(float,),
-                             desc='Relative tolerance passed to scipy.integrate.solve_ivp.')
-
         self.options.declare('output_nodes_per_seg', default=None, types=(int,), allow_none=True,
                              desc='If None, results are provided at the all nodes within each'
                                   'segment.  If an int (n) then results are provided at n '
@@ -226,9 +216,7 @@ class SolveIVP(TranscriptionBase):
         for i in range(num_seg):
             seg_i_comp = SegmentSimulationComp(
                 index=i,
-                method=self.options['method'],
-                atol=self.options['atol'],
-                rtol=self.options['rtol'],
+                simulate_options=phase.simulate_options,
                 grid_data=self.grid_data,
                 ode_class=phase.options['ode_class'],
                 ode_init_kwargs=phase.options['ode_init_kwargs'],
