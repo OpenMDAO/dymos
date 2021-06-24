@@ -79,5 +79,5 @@ If you use Dymos in your work, please cite:
 ## References
 
 ```{bibliography}
-:style: unsrt
+:filter: docname in docnames
 ```
