@@ -71,7 +71,7 @@ class TestBrachistochroneSimulate(unittest.TestCase):
         import openmdao.api as om
         import dymos as dm
 
-        for method, atol, first_step in itertools.product(('RK23', 'RK45', 'DOP853'), (0.01, 0.001),
+        for method, atol, first_step in itertools.product(('RK23', 'RK45'), (0.01, 0.001),
                                                           (None, 0.01, .1)):
             with self.subTest():
 

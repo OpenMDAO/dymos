@@ -62,7 +62,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
 
-    phase.set_simulate_options(method='DOP853')
+    phase.set_simulate_options(method='RK23')
 
     p['traj0.phase0.t_initial'] = 0.0
     p['traj0.phase0.t_duration'] = 2.0
