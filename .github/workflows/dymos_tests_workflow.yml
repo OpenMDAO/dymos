@@ -246,6 +246,7 @@ jobs:
           echo "============================================================="
           echo "Publishing Docs"
           echo "============================================================="
+          cd $HOME
           pip install ghp-import
           ghp-import -n -p -f docs/_build/html
 
