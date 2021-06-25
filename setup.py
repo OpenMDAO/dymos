@@ -4,11 +4,11 @@ from setuptools import find_packages
 # Setup optional dependencies
 optional_dependencies = {
     'docs': [
-        'mkdocs',
-        'mkdocs-material',
-        'pymdown-extensions',
-        'mkdocs-macros-plugin',
-        'mkdocs-bibtex',
+        'jupyter',
+        'jupyter-book',
+        'nbconvert',
+        'notebook',
+        'ipython',
         'numpydoc>=0.9.1',
         'redbaron',
         'tabulate'

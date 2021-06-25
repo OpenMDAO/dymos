@@ -232,8 +232,12 @@ jobs:
           echo "============================================================="
           echo "Building Docs"
           echo "============================================================="
-          cd mkdocs
-          mkdocs build --verbose --clean
+          pwd
+          git clone -q https://github.com/executablebooks/jupyter-book
+          cd jupyter-book
+          pip install -e .
+          cd ..
+          jupyter-book build docs/
 
       - name: Publish docs
         if: ${{ matrix.DOCS == '1' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
@@ -242,8 +246,8 @@ jobs:
           echo "============================================================="
           echo "Publishing Docs"
           echo "============================================================="
-          cd mkdocs
-          mkdocs gh-deploy --verbose --clean
+          pip install ghp-import
+          ghp-import -n -p -f docs/_build/html
 
   coveralls:
     name: Finish coveralls
