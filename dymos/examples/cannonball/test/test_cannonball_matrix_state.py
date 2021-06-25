@@ -45,6 +45,8 @@ class TestCannonballMatrixState(unittest.TestCase):
         phase.add_boundary_constraint('z', loc='final', lower=0, upper=0, indices=[1])
         phase.add_objective('time', loc='final')
 
+        phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
+
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring(tol=1.0E-12)
 
@@ -144,6 +146,8 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
 
         phase.add_boundary_constraint('z', loc='final', lower=0, upper=0, indices=[1])
         phase.add_objective('time', loc='final')
+
+        phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
 
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring(tol=1.0E-12)

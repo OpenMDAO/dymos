@@ -12,7 +12,7 @@ class _ReprClass(object):
 
     def __init__(self, repr_string):
         """
-        Inititialize the __repr__ string.
+        Initialize the __repr__ string.
 
         Parameters
         ----------
