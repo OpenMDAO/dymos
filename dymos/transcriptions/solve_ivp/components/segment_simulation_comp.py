@@ -242,6 +242,8 @@ class SegmentSimulationComp(om.ExplicitComponent):
         # Perform the integration using solve_ivp
         sim_options = {key: val for key, val in self.options['simulate_options'].items()}
 
+        print(sim_options)
+
         sol = solve_ivp(fun=self.options['ode_integration_interface'],
                         t_span=(inputs['time'][0], inputs['time'][-1]),
                         y0=self.initial_state_vec,
