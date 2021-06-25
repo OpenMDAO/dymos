@@ -248,6 +248,7 @@ jobs:
           echo "============================================================="
           cd ..
           pip install ghp-import
+          pwd
           ghp-import -n -p -f docs/_build/html
 
   coveralls:
