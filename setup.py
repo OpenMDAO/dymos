@@ -8,7 +8,7 @@ optional_dependencies = {
         'jupyter-book',
         'nbconvert',
         'notebook',
-        'ipython'
+        'ipython',
         'numpydoc>=0.9.1',
         'redbaron',
         'tabulate'
