@@ -225,26 +225,19 @@ jobs:
           SITE_DIR=`python -c 'import site; print(site.getsitepackages()[-1])'`
           coveralls --basedir $SITE_DIR
 
-      # - name: Build docs
-      #   if: ${{ matrix.DOCS == '1' && (github.event_name != 'push' || github.ref != 'refs/heads/master') }}
-      #   shell: bash -l {0}
-      #   run: |
-      #     echo "============================================================="
-      #     echo "Building Docs"
-      #     echo "============================================================="
-      #     pwd
-      #     git clone -q https://github.com/executablebooks/jupyter-book
-      #     cd jupyter-book
-      #     pip install -e .
-      #     cd ..
-      #     jupyter-book build docs/
-
-      - name: Check Dir Temp
+      - name: Build docs
+        if: ${{ matrix.DOCS == '1' && (github.event_name != 'push' || github.ref != 'refs/heads/master') }}
         shell: bash -l {0}
         run: |
+          echo "============================================================="
+          echo "Building Docs"
+          echo "============================================================="
           pwd
-          cd $HOME
-          pwd
+          git clone -q https://github.com/executablebooks/jupyter-book
+          cd jupyter-book
+          pip install -e .
+          cd ..
+          jupyter-book build docs/
 
       - name: Publish docs
         if: ${{ matrix.DOCS == '1' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
@@ -253,8 +246,7 @@ jobs:
           echo "============================================================="
           echo "Publishing Docs"
           echo "============================================================="
-          cd $HOME
-          pwd
+          cd ..
           pip install ghp-import
           ghp-import -n -p -f docs/_build/html
 
