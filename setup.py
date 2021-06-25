@@ -4,6 +4,7 @@ from setuptools import find_packages
 # Setup optional dependencies
 optional_dependencies = {
     'docs': [
+        'jupyter',
         'jupyter-book',
         'nbconvert',
         'notebook',
