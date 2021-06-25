@@ -8,9 +8,6 @@ optional_dependencies = {
         'nbconvert',
         'notebook',
         'ipython'
-        'pymdown-extensions',
-        'mkdocs-macros-plugin',
-        'mkdocs-bibtex',
         'numpydoc>=0.9.1',
         'redbaron',
         'tabulate'
