@@ -247,7 +247,7 @@ jobs:
           echo "Publishing Docs"
           echo "============================================================="
           pip install ghp-import
-          cd $HOME
+          cd $HOME/dymos
           pwd
           ls
           ghp-import -n -p -f -r dymos_fork docs/_build/html
