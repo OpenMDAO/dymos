@@ -249,7 +249,7 @@ jobs:
           pip install ghp-import
           cd $HOME/work/dymos/dymos
           pwd
-          ghp-import -n -p -f -r dymos_fork docs/_build/html
+          ghp-import -n -p -f docs/_build/html
 
   coveralls:
     name: Finish coveralls
