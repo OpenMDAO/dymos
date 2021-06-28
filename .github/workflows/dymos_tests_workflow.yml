@@ -205,10 +205,10 @@ jobs:
           echo "============================================================="
           echo "Run Tests"
           echo "============================================================="
-          testflo -n 1 joss/test --pre_announce
-          testflo -b benchmark --pre_announce
+          echo testflo -n 1 joss/test --pre_announce
+          echo testflo -b benchmark --pre_announce
           cd $HOME
-          testflo dymos -n 1 --show_skipped --coverage --coverpkg dymos
+          echo testflo dymos -n 1 --show_skipped --coverage --coverpkg dymos
 
       - name: Submit coverage
         shell: bash -l {0}
@@ -225,22 +225,22 @@ jobs:
           SITE_DIR=`python -c 'import site; print(site.getsitepackages()[-1])'`
           coveralls --basedir $SITE_DIR
 
-      - name: Build docs
-        if: ${{ matrix.DOCS == '1' && (github.event_name != 'push' || github.ref != 'refs/heads/master') }}
-        shell: bash -l {0}
-        run: |
-          echo "============================================================="
-          echo "Building Docs"
-          echo "============================================================="
-          pwd
-          git clone -q https://github.com/executablebooks/jupyter-book
-          cd jupyter-book
-          pip install -e .
-          cd ..
-          jupyter-book build docs/
+      # - name: Build docs
+      #   if: ${{ matrix.DOCS == '1' && (github.event_name != 'push' || github.ref != 'refs/heads/master') }}
+      #   shell: bash -l {0}
+      #   run: |
+      #     echo "============================================================="
+      #     echo "Building Docs"
+      #     echo "============================================================="
+      #     pwd
+      #     git clone -q https://github.com/executablebooks/jupyter-book
+      #     cd jupyter-book
+      #     pip install -e .
+      #     cd ..
+      #     jupyter-book build docs/
 
       - name: Publish docs
-        if: ${{ matrix.DOCS == '1' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        # if: ${{ matrix.DOCS == '1' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -249,7 +249,7 @@ jobs:
           cd ..
           pip install ghp-import
           pwd
-          ghp-import -n -p -f docs/_build/html
+          ls
 
   coveralls:
     name: Finish coveralls
