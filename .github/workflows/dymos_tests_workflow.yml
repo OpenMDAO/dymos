@@ -240,7 +240,7 @@ jobs:
       #     jupyter-book build docs/
 
       - name: Publish docs
-        # if: ${{ matrix.DOCS == '1' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ matrix.DOCS == '1' && (github.event_name != 'push' || github.ref != 'refs/heads/master') }}
         shell: bash -l {0}
         run: |
           echo "============================================================="
