@@ -248,7 +248,9 @@ jobs:
           echo "============================================================="
           pip install ghp-import
           pwd
-          cd $HOME/work/dymos/dymos/dymos
+          cd $HOME/work/dymos/dymos
+          ls docs
+          ls docs/_build
           pwd
           ls
           ghp-import -n -p -f -r dymos_fork docs/_build/html
