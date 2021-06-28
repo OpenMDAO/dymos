@@ -210,20 +210,20 @@ jobs:
           cd $HOME
           echo testflo dymos -n 1 --show_skipped --coverage --coverpkg dymos
 
-      - name: Submit coverage
-        shell: bash -l {0}
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_SERVICE_NAME: "github"
-          COVERALLS_PARALLEL: True
-        run: |
-          echo "============================================================="
-          echo "Submit coverage"
-          echo "============================================================="
-          cp $HOME/.coverage .
-          pip install coveralls
-          SITE_DIR=`python -c 'import site; print(site.getsitepackages()[-1])'`
-          coveralls --basedir $SITE_DIR
+      # - name: Submit coverage
+      #   shell: bash -l {0}
+      #   env:
+      #     COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     COVERALLS_SERVICE_NAME: "github"
+      #     COVERALLS_PARALLEL: True
+      #   run: |
+      #     echo "============================================================="
+      #     echo "Submit coverage"
+      #     echo "============================================================="
+      #     cp $HOME/.coverage .
+      #     pip install coveralls
+      #     SITE_DIR=`python -c 'import site; print(site.getsitepackages()[-1])'`
+      #     coveralls --basedir $SITE_DIR
 
       # - name: Build docs
       #   if: ${{ matrix.DOCS == '1' && (github.event_name != 'push' || github.ref != 'refs/heads/master') }}
