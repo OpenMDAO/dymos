@@ -30,7 +30,6 @@ jobs:
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
-            BUILD_DOCS: True
             DOCS: 1
 
           # try latest versions
@@ -241,7 +240,7 @@ jobs:
           jupyter-book build docs/
 
       - name: Publish docs
-        if: if: ${{ matrix.DOCS == '1' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ matrix.DOCS == '1' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         shell: bash -l {0}
         run: |
           echo "============================================================="
