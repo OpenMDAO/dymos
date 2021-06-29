@@ -226,7 +226,7 @@ jobs:
           coveralls --basedir $SITE_DIR
 
       - name: Build docs
-        if: ${{ matrix.DOCS == '1' && (github.event_name != 'push' || github.ref != 'refs/heads/master') }}
+        if: ${{ matrix.DOCS == '1' }}
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -247,6 +247,7 @@ jobs:
           echo "Publishing Docs"
           echo "============================================================="
           pip install ghp-import
+          cd $HOME/work/dymos/dymos
           pwd
           ghp-import -n -p -f docs/_build/html
 
