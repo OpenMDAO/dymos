@@ -30,7 +30,6 @@ jobs:
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
-            BUILD_DOCS: True
             PUBLISH_DOCS: True
             DOCS: 1
 
@@ -44,6 +43,7 @@ jobs:
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
+            PUBLISH_DOCS: False
             DOCS: 0
 
           # oldest supported versions
@@ -56,6 +56,7 @@ jobs:
             MBI: 1
             OPENMDAO: 3.9.0
             OPTIONAL: '[all]'
+            PUBLISH_DOCS: False
             DOCS: 0
 
     steps:
@@ -228,7 +229,7 @@ jobs:
           coveralls --basedir $SITE_DIR
 
       - name: Build docs
-        if: matrix.BUILD_DOCS || (matrix.BUILD_DOCS && matrix.PUBLISH_DOCS)
+        if: ${{ matrix.DOCS == '1' || (matrix.DOCS == '1' && matrix.PUBLISH_DOCS) }}
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -242,7 +243,7 @@ jobs:
           jupyter-book build docs/
 
       - name: Publish docs
-        if: ${{ github.event_name == 'push' && matrix.PUBLISH_DOCS }}
+        if: ${{ matrix.DOCS == '1' && matrix.PUBLISH_DOCS }}
         shell: bash -l {0}
         run: |
           echo "============================================================="
