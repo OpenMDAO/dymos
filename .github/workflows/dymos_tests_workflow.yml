@@ -205,6 +205,7 @@ jobs:
           echo "============================================================="
           echo "Run Tests"
           echo "============================================================="
+          testflo -n 1 docs/test --pre_announce
           testflo -n 1 joss/test --pre_announce
           testflo -b benchmark --pre_announce
           cd $HOME
