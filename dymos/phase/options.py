@@ -595,17 +595,3 @@ class SimulateOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='max_step', types=float, default=np.inf,
                      desc='Maximum allowable step size')
-
-
-class _ForDocs(object):  # pragma: no cover
-    """
-    This class is provided as a way to automatically display options dictionaries in the docs,
-    since these option dictionaries typically don't exist in instantiated form in the code base.
-    """
-
-    def __init__(self):
-
-        self.time_options = TimeOptionsDictionary()
-        self.state_options = StateOptionsDictionary()
-        self.control_options = ControlOptionsDictionary()
-        self.parameter_options = ParameterOptionsDictionary()
