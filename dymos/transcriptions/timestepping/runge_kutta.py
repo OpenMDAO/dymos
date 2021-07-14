@@ -6,9 +6,9 @@ import dymos as dm
 
 
 def f_ode(t, x, u=None, d=None):
-    dy_dt = np.zeros(2)
-    dy_dt[0] = x[0] - t**2 + 1
-    dy_dt[1] = 0.5 * x[1] - t + 1
+    # dy_dt = np.zeros(1)
+    dy_dt = x - t**2 + 1
+    # dy_dt[1] = 0.5 * x[1] - t + 1
     return dy_dt
 
 
@@ -19,12 +19,12 @@ class TestODE(om.ExplicitComponent):
 
     def setup(self):
         nn = self.options['num_nodes']
-        self.add_input('t', val=np.ones(nn))
-        self.add_input('x0', val=np.ones(nn))
-        self.add_input('x1', val=np.ones(nn))
+        self.add_input('t', val=np.ones(nn), units='s')
+        self.add_input('x0', val=np.ones(nn), units='m')
+        self.add_input('x1', val=np.ones(nn), units='m')
 
-        self.add_output('x0_dot', val=np.ones(nn))
-        self.add_output('x1_dot', val=np.ones(nn))
+        self.add_output('x0_dot', val=np.ones(nn), units='m/s')
+        self.add_output('x1_dot', val=np.ones(nn), units='m/s')
 
         ar = np.arange(nn, dtype=int)
 
@@ -116,6 +116,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         super().__init__(**kwargs)
         self.prob = None
         self._state_rates = {}
+        self._state_rates_derivs = {}
 
     def initialize(self):
         self.options.declare('ode_class', desc='The system providing the ODE for the integration component.')
@@ -141,9 +142,11 @@ class RKIntegrationComp(om.ExplicitComponent):
         self.options.declare('tableau', default=rk4, types=dict,
                              desc='Dictionary containing parameters for the Runge Kutta tableau.')
 
-        self.options.declare('h', default=0.5, types=float,
-                             desc='stepsize for the integration.  this is only the initial '
-                                  'stepsize if a variable step method is used.')
+        # self.options.declare('h', default=0.5, types=float,
+        #                      desc='stepsize for the integration.  this is only the initial '
+        #                           'stepsize if a variable step method is used.')
+
+        self.options.declare('num_steps', default=10, types=int, desc='number of fixed steps')
 
 
     def _setup_subprob(self):
@@ -152,7 +155,25 @@ class RKIntegrationComp(om.ExplicitComponent):
         ode_class = self.options['ode_class']
         ode_init_kwargs = self.options['ode_init_kwargs']
 
-        self.prob.model.add_subsystem('ode', ode_class(num_nodes=1, **ode_init_kwargs))
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
+        p.model.add_subsystem('ode', ode_class(num_nodes=1, **ode_init_kwargs))
+
+        ivc.add_output('time', units=time_options['units'])
+        #TODO: Hook these up
+        # ivc.add_output('time_phase', units=time_options['units'])
+        # ivc.add_output('t_initial', units=time_options['units'])
+        # ivc.add_output('t_duration', units=time_options['units'])
+        for tgt in self.options['time_options']['targets']:
+            p.model.connect(f'time', f'ode.{tgt}')
+
+        for state_name, options in self.options['state_options'].items():
+            ivc.add_output(f'states:{state_name}',
+                           shape=options['shape'],
+                           units=options['units'],
+                           desc=f'value of state {state_name}')
+
+            for tgt in options['targets']:
+                p.model.connect(f'states:{state_name}', f'ode.{tgt}')
 
         p.setup()
         p.final_setup()
@@ -177,7 +198,7 @@ class RKIntegrationComp(om.ExplicitComponent):
 
         self.declare_partials('*', '*')
 
-    def _eval_f(self, stage_inputs, state_rates):
+    def _eval_f(self, stage_inputs, state_rates, rate_partials=None):
         """
         Evaluate the ODE sub-problem with the given inputs.
 
@@ -192,28 +213,29 @@ class RKIntegrationComp(om.ExplicitComponent):
             The state rates from the given evaluation.
         """
         p = self.prob
-        for tgt in self.options['time_options']['targets']:
-            p[f'ode.{tgt}'] = stage_inputs['time']
 
-        for tgt in self.options['time_options']['t_initial_targets']:
-            p[f'ode.{tgt}'] = stage_inputs['t_initial']
+        p.set_val('time', stage_inputs['time'])
 
-        for tgt in self.options['time_options']['t_duration_targets']:
-            p[f'ode.{tgt}'] = stage_inputs['t_duration']
+        # for tgt in self.options['time_options']['t_initial_targets']:
+        #     p[f'ode.{tgt}'] = stage_inputs['t_initial']
+        #
+        # for tgt in self.options['time_options']['t_duration_targets']:
+        #     p[f'ode.{tgt}'] = stage_inputs['t_duration']
 
         for name, options in self.options['state_options'].items():
-            for tgt in options['targets']:
-                p[f'ode.{tgt}'] = stage_inputs[f'states:{name}']
+            p.set_val(f'states:{name}', stage_inputs[f'states:{name}'])
 
         p.run_model()
 
         for name, options in self.options['state_options'].items():
             rate_src = options['rate_source']
             state_rates[name][...] = p[f'ode.{rate_src}']
+            for wrt, wrt_options in self.options['state_options'].items():
+                rate_partials[name, wrt] = p.compute_totals(of=f'ode.{rate_src}',
+                                                            wrt=f'states:{name}')# [f'ode.{rate_src}', wrt]
+                print(name, wrt, rate_partials[name, wrt])
 
-        return self._state_rates
-
-    def _rk_step(self, t0, y0, inputs):
+    def _rk_step(self, t0, y0, h, inputs):
         a = self.options['tableau']['a']
         b = self.options['tableau']['b']
         b_star = self.options['tableau'].get('b_star', None)
@@ -227,10 +249,14 @@ class RKIntegrationComp(om.ExplicitComponent):
 
         for state_name, options in self.options['state_options'].items():
             k[state_name] = np.zeros((num_stages,) + options['shape'])
+            size = np.prod(options['shape'])
             # y0[state_name] = inputs[f'state_initial_value:{state_name}']
             step_errors[state_name] = np.zeros((num_stages,) + options['shape'])
             stage_inputs[f'states:{state_name}'] = np.zeros(shape=options['shape'])
             self._state_rates[state_name] = np.zeros(shape=options['shape'])
+            for wrt_state, wrt_state_options in self.options['state_options'].items():
+                wrt_size = np.prod(wrt_state_options['shape'])
+                self._state_rates_derivs[state_name, wrt_state] = {i: np.zeros((size, wrt_size)) for i in range(num_stages)}
 
         for i in range(num_stages):
             t_s = t0 + c[i] * h
@@ -241,22 +267,22 @@ class RKIntegrationComp(om.ExplicitComponent):
                 for j in range(i):
                     stage_inputs[f'states:{state_name}'][...] += a[i, j] * k[state_name][j, ...]
 
-            self._state_rates = self._eval_f(stage_inputs, self._state_rates)
+            self._eval_f(stage_inputs, self._state_rates, self._state_rates_derivs)
 
-            print('state rates')
-            print(self._state_rates)
+            # print('state rates')
+            # print(self._state_rates)
 
             for state_name in self.options['state_options']:
                 k[state_name][i, ...] = h * self._state_rates[state_name]
 
-        print(k['x0'])
+        # print(k['x0'])
 
         for state_name, options in self.options['state_options'].items():
             step_outputs[state_name] = y0[state_name] + np.tensordot(b, k[state_name], axes=(0, 0))
 
             if b_star is not None:
                 yf_star = y0[state_name] + np.tensordot(b, k[state_name], axes=(0, 0))
-                step_errors[state_name][...] = yf - yf_star
+                step_errors[state_name][...] = step_outputs[state_name] - yf_star
             else:
                 step_errors[state_name][...] = 0.0
 
@@ -268,135 +294,51 @@ class RKIntegrationComp(om.ExplicitComponent):
         tf_interval = inputs['t_initial'] + inputs['t_duration']
         t_step = t0_interval
         y_step = {}
-        h = self.options['h']
+        h = inputs['t_duration'] / self.options['num_steps']
 
-        print(inputs)
+        # print(inputs)
 
         for state_name in self.options['state_options']:
             y_step[state_name] = inputs[f'state_initial_value:{state_name}']
 
-        while True:
-            print(t_step)
-            yf, yerr = self._rk_step(t_step, y_step, inputs)
+        # print(t_step, y_step['x0'])
 
-            t_prev = t_step
+        for i in range(self.options['num_steps']):
+            yf, yerr = self._rk_step(t_step, y_step, h, inputs)
+            t_step += h
+            y_step = yf
 
-            if True:
-                y_step = yf
+            # print(t_step, yf['x0'])
 
-                t_step = t_step + h
-                h = min(h, tf_interval - t_step)
+        for state_name in self.options['state_options']:
+            outputs[f'state_final_value:{state_name}'] = yf[state_name]
 
-                # If we just took a step that carried us to tf, we can quit now.
-                # print('just computed at', t_prev, h, yf, yerr)
-                if h <= 0:
-                    break
-            else:
-                pass
-        print('done')
-        print('t_step', t_step)
-        print('yf', y_step)
-        # Rejec
+    def compute_partials(self, inputs, partials, discrete_inputs=None):
+        t_step = inputs['t_initial']
+        y_step = {}
+        h = inputs['t_duration'] / self.options['num_steps']
 
+        for state_name in self.options['state_options']:
+            y_step[state_name] = inputs[f'state_initial_value:{state_name}']
 
-
-def rk_step(f, t0, y0, h, tableau):
-    """
-    Compute the final state and integration error from one Runge-Kutta integration step.
-
-    Parameters
-    ----------
-    f : callable
-        The ODE function to be integrated.
-    t0 : float
-        The initial time of integration.
-    y0 : np.array
-        The initial state vector.
-    h : float
-        The time duration of the timestep.
-    tableau : dict
-        The tableau associated with the Runge-Kutta method used for the integration.
-
-    Returns
-    -------
-
-    """
-    a = tableau['a']
-    b = tableau['b']
-    c = tableau['c']
-    b_star = tableau.get('b_star', None)
-    num_stages = len(c)
-
-    _y0 = np.asarray(y0, dtype=float)
-    y_s = np.empty_like(y0, dtype=float)
-
-    k = np.zeros((num_stages,) + _y0.shape)
-
-    for i in range(num_stages):
-        t_s = t0 + c[i] * h
-        y_s[...] = _y0
-        for j in range(i):
-            y_s += a[i, j] * k[j, ...]
-
-        ydot = f(t_s, y_s)
-        k[i] = h * f(t_s, y_s)
-
-    print(k[:, 0])
-    yf = _y0 + np.tensordot(b, k, axes=(0, 0))
-
-    if b_star is not None:
-        yf_star = _y0 + np.dot(b_star, k)
-        error = yf - yf_star
-    else:
-        error = np.zeros_like(yf)
-
-    return yf, error
+        for i in range(self.options['num_steps']):
+            yf, yerr = self._rk_step(t_step, y_step, h, inputs)
+            t_step += h
+            y_step = yf
 
 
-
-def rk_integrate(f, y0, t0, tf, h, tableau=rk4):
-    """
-    Propagate an ODE given by f from an initial state (y0) from some initial time (t0) to a final
-    time (tf) using a step size h and a Runge Kutta method with the given tablaau.
-
-    Parameters
-    ----------
-    f
-    y0
-    t0
-    tf
-    h
-    tableau
-
-    Returns
-    -------
-
-    """
-    t = t0
-    y = np.array(y0)
-    while True:
-        # print('computing step at', t, y, h, t+h)
-
-        yf, yerr = rk_step(f, t0=t, y0=y, h=h, tableau=tableau)
-
-        t_prev = t
-
-        if True:
-            # Accept the step (we always do this for now.
-            y = yf
-
-            t = t + h
-            h = min(h, tf - t)
-
-            # If we just took a step that carried us to tf, we can quit now.
-            # print('just computed at', t_prev, h, yf, yerr)
-            if h <= 0:
-                break
-        else:
-            # Reject the step (not implemented yet)
-            pass
-
-    return yf
+def validate(h=0.2, num_steps=10):
+    t = 0
+    y = 0.5
+    print(f'Step 0: t = {t:6.2f}, y= {y:12.8f}')
+    for i in range(num_steps):
+        k1 = h * f_ode(t, y)
+        k2 = h * f_ode(t + h / 2, y + k1 / 2)
+        k3 = h * f_ode(t + h / 2, y + k2 / 2)
+        k4 = h * f_ode(t + h, y + k3)
+        y = y + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        t = t + h
+        print(f'Step {i:d}: t = {t:6.2f}, y= {y:12.8f}')
 
 
 if __name__ == '__main__':
@@ -408,12 +350,12 @@ if __name__ == '__main__':
 
     f = f_ode
 
-    yf = rk_integrate(f_ode, y0=y, t0=t, tf=tf, h=h, tableau=rk4)
+    # yf = rk_integrate(f_ode, y0=y, t0=t, tf=tf, h=h, tableau=rk4)
 
     # y = [2, 2]
     # f = lotka_volterra
 
-    print(tf, yf)
+    # print(tf, yf)
 
     p = om.Problem()
 
@@ -428,14 +370,16 @@ if __name__ == '__main__':
     state_options['x0']['targets'] = ['x0']
     state_options['x0']['rate_source'] = 'x0_dot'
     state_options['x0']['shape'] = (1,)
+    state_options['x0']['units'] = 'm'
 
     state_options['x1']['name'] = 'x1'
     state_options['x1']['targets'] = ['x1']
     state_options['x1']['rate_source'] = 'x1_dot'
     state_options['x1']['shape'] = (1,)
+    state_options['x1']['units'] = 'm'
 
     p.model.add_subsystem('rk', RKIntegrationComp(ode_class=TestODE, time_options=time_options,
-                                                  state_options=state_options, h=0.5))
+                                                  state_options=state_options, num_steps=10))
 
     p.setup()
 
@@ -446,5 +390,8 @@ if __name__ == '__main__':
 
     p.run_model()
 
+    p.model.list_outputs()
 
+    p.compute_totals(of=['rk.state_final_value:x0'], wrt=['rk.state_initial_value:x0'])
 
+    # validate()
