@@ -6,10 +6,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 from dymos.utils.doc_utils import save_for_docs
-from dymos.utils.testing_utils import require_pyoptsparse
 
 
 @use_tempdirs

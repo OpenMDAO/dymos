@@ -5,11 +5,10 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.mpi import MPI
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
-from dymos.utils.testing_utils import require_pyoptsparse
 
 
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=False,
