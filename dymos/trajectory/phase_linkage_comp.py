@@ -72,8 +72,15 @@ class PhaseLinkageComp(om.ExplicitComponent):
         units_b = lnk['units_b']
         units = lnk['units']
 
-        lnk._conv_a, lnk._offset_a = om.unit_conversion(units_a, units)
-        lnk._conv_b, lnk._offset_b = om.unit_conversion(units_b, units)
+        if units_a is None and units is None:
+            lnk._conv_a, lnk._offset_a = 1.0, 0.0
+        else:
+            lnk._conv_a, lnk._offset_a = om.unit_conversion(units_a, units)
+
+        if units_b is None and units is None:
+            lnk._conv_b, lnk._offset_b = 1.0, 0.0
+        else:
+            lnk._conv_b, lnk._offset_b = om.unit_conversion(units_b, units)
 
         input_a = f'{phase_a}:{var_a}'
         input_b = f'{phase_b}:{var_b}'
@@ -134,7 +141,7 @@ class PhaseLinkageComp(om.ExplicitComponent):
             idxs_b = lnk._idxs_b
             output = lnk._output
 
-            a_val = lnk['sign_a'] * (lnk._conv_a * inputs[input_a][idxs_a] + lnk._offset_a)
-            b_val = lnk['sign_b'] * (lnk._conv_b * inputs[input_b][idxs_b] + lnk._offset_b)
+            a_val = lnk['sign_a'] * (inputs[input_a][idxs_a] + lnk._offset_a) * lnk._conv_a
+            b_val = lnk['sign_b'] * (inputs[input_b][idxs_b] + lnk._offset_b) * lnk._conv_b
 
             outputs[output] = a_val + b_val
