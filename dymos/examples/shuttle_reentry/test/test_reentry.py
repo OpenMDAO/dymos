@@ -4,11 +4,10 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.shuttle_reentry.shuttle_ode import ShuttleODE
-from dymos.utils.testing_utils import require_pyoptsparse
 
 # Expected results from Betts
 expected_results = {'constrained': {'time': 2198.67, 'theta': 30.6255},
