@@ -222,18 +222,25 @@ class RKIntegrationComp(om.ExplicitComponent):
         # for tgt in self.options['time_options']['t_duration_targets']:
         #     p[f'ode.{tgt}'] = stage_inputs['t_duration']
 
+        wrt = ['time'] + \
+              [f'states:{state_name}' for state_name in self.options['state_options'].keys()]
+
         for name, options in self.options['state_options'].items():
             p.set_val(f'states:{name}', stage_inputs[f'states:{name}'])
 
         p.run_model()
 
+        print(stage_inputs['time'])
         for name, options in self.options['state_options'].items():
             rate_src = options['rate_source']
             state_rates[name][...] = p[f'ode.{rate_src}']
-            for wrt, wrt_options in self.options['state_options'].items():
-                rate_partials[name, wrt] = p.compute_totals(of=f'ode.{rate_src}',
-                                                            wrt=f'states:{name}')# [f'ode.{rate_src}', wrt]
-                print(name, wrt, rate_partials[name, wrt])
+            derivs = p.compute_totals(of=f'ode.{rate_src}', wrt=wrt, return_format='array')
+            print(derivs)
+            # for wrt, wrt_options in self.options['state_options'].items():
+            #     rate_partials[name, wrt] = p.compute_totals(of=f'ode.{rate_src}',
+            #                                                 wrt=f'states:{name}',
+            #                                                 return_format='array')
+            #     print(name, wrt, rate_partials[name, wrt])
 
     def _rk_step(self, t0, y0, h, inputs):
         a = self.options['tableau']['a']
