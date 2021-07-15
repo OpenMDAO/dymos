@@ -61,13 +61,19 @@ class PhaseLinkageComp(om.ExplicitComponent):
         phase_a = lnk['phase_a']
         phase_b = lnk['phase_b']
         shape = lnk['shape']
-        units = lnk['units']
 
         var_a = lnk['constraint_name'] if lnk['constraint_name'] else lnk['var_a'].split('.')[-1]
         var_b = lnk['constraint_name'] if lnk['constraint_name'] else lnk['var_b'].split('.')[-1]
 
         loc_a = lnk['loc_a']
         loc_b = lnk['loc_b']
+
+        units_a = lnk['units_a']
+        units_b = lnk['units_b']
+        units = lnk['units']
+
+        lnk._conv_a, lnk._offset_a = om.unit_conversion(units_a, units)
+        lnk._conv_b, lnk._offset_b = om.unit_conversion(units_b, units)
 
         input_a = f'{phase_a}:{var_a}'
         input_b = f'{phase_b}:{var_b}'
@@ -81,12 +87,12 @@ class PhaseLinkageComp(om.ExplicitComponent):
         lnk._output = output
 
         try:
-            self.add_input(name=input_a, shape=ishape, val=np.zeros(ishape), units=units)
+            self.add_input(name=input_a, shape=ishape, val=np.zeros(ishape), units=units_a)
         except ValueError as e:
             pass
 
         try:
-            self.add_input(name=input_b, shape=ishape, val=np.zeros(ishape), units=units)
+            self.add_input(name=input_b, shape=ishape, val=np.zeros(ishape), units=units_b)
         except ValueError as e:
             pass
 
@@ -104,8 +110,11 @@ class PhaseLinkageComp(om.ExplicitComponent):
         cs_a = rs if loc_a == 'initial' else size + rs
         cs_b = rs if loc_b == 'initial' else size + rs
 
-        self.declare_partials(of=output, wrt=input_a, rows=rs, cols=cs_a, val=lnk['sign_a'])
-        self.declare_partials(of=output, wrt=input_b, rows=rs, cols=cs_b, val=lnk['sign_b'])
+        self.declare_partials(of=output, wrt=input_a, rows=rs, cols=cs_a,
+                              val=lnk['sign_a'] * lnk._conv_a)
+
+        self.declare_partials(of=output, wrt=input_b, rows=rs, cols=cs_b,
+                              val=lnk['sign_b'] * lnk._conv_b)
 
     def compute(self, inputs, outputs):
         """
@@ -125,4 +134,7 @@ class PhaseLinkageComp(om.ExplicitComponent):
             idxs_b = lnk._idxs_b
             output = lnk._output
 
-            outputs[output] = lnk['sign_a'] * inputs[input_a][idxs_a] + lnk['sign_b'] * inputs[input_b][idxs_b]
+            a_val = lnk['sign_a'] * (lnk._conv_a * inputs[input_a][idxs_a] + lnk._offset_a)
+            b_val = lnk['sign_b'] * (lnk._conv_b * inputs[input_b][idxs_b] + lnk._offset_b)
+
+            outputs[output] = a_val + b_val
