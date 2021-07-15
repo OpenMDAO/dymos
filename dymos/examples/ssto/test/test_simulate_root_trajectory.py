@@ -248,11 +248,11 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
         #
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 500.0
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_input')
-        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='state_input')
-        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_input')
-        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_input')
-        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_input')
+        p['phase0.states:x'] = phase.interp('x', [0, 350000.0])
+        p['phase0.states:y'] = phase.interp('y', [0, 185000.0])
+        p['phase0.states:vx'] = phase.interp('vx', [0, 1627.0])
+        p['phase0.states:vy'] = phase.interp('vy', [1.0E-6, 0])
+        p['phase0.states:m'] = phase.interp('m', [50000, 50000])
         p['phase0.polynomial_controls:tan_theta'] = [[0.5 * np.pi], [0.0]]
 
         #

@@ -37,9 +37,9 @@ def add_parameter_test(testShape=None):
     phase = dm.Phase(ode_class=ODEComp, transcription=tx)
 
     if testShape is None:
-        phase.add_parameter('param', dynamic=False)
+        phase.add_parameter('param', static_target=True)
     else:
-        phase.add_parameter('param', shape=testShape, dynamic=False)
+        phase.add_parameter('param', shape=testShape, static_target=True)
 
     traj.add_phase('phase', phase)
 
@@ -60,7 +60,7 @@ def add_parameter_test(testShape=None):
 
     p.set_val('traj.phase.t_initial', 0)
     p.set_val('traj.phase.t_duration', 5)
-    p.set_val('traj.phase.states:z', phase.interpolate(ys=[[[0, 0], [10, 10]], [[10, 0], [10, -10]]], nodes='state_input'))
+    p.set_val('traj.phase.states:z', phase.interp('z', [[[0, 0], [10, 10]], [[10, 0], [10, -10]]]))
 
     p.run_driver()
 

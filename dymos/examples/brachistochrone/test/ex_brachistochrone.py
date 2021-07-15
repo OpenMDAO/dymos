@@ -62,56 +62,18 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
 
+    phase.set_simulate_options(method='RK23')
+
     p['traj0.phase0.t_initial'] = 0.0
     p['traj0.phase0.t_duration'] = 2.0
 
-    p['traj0.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-    p['traj0.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-    p['traj0.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-    p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+    p['traj0.phase0.states:x'] = phase.interp('x', [0, 10])
+    p['traj0.phase0.states:y'] = phase.interp('y', [10, 5])
+    p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
+    p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
     p['traj0.phase0.parameters:g'] = 9.80665
 
-    dm.run_problem(p, run_driver=run_driver)
-
-    # Plot results
-    if SHOW_PLOTS:
-        exp_out = traj.simulate()
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('traj0.phase0.timeseries.states:x')
-        y_imp = p.get_val('traj0.phase0.timeseries.states:y')
-
-        x_exp = exp_out.get_val('traj0.phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('traj0.phase0.timeseries.states:y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='implicit')
-        ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('traj0.phase0.timeseries.time_phase')
-        y_imp = p.get_val('traj0.phase0.timeseries.controls:theta')
-
-        x_exp = exp_out.get_val('traj0.phase0.timeseries.time_phase')
-        y_exp = exp_out.get_val('traj0.phase0.timeseries.controls:theta')
-
-        ax.plot(x_imp, y_imp, 'ro', label='implicit')
-        ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel('theta (rad)')
-        ax.grid(True)
-        ax.legend(loc='lower right')
-
-        plt.show()
+    dm.run_problem(p, run_driver=run_driver, simulate=True, make_plots=True)
 
     return p
 

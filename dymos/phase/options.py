@@ -110,14 +110,6 @@ class ControlOptionsDictionary(om.OptionsDictionary):
                           'segment boundaries. '
                           'This option is invalid if opt=False.')
 
-        self.declare('dynamic', default=True, types=bool,
-                     desc='If True, the value of the shape of the parameter will '
-                          'be (num_nodes, ...), allowing the variable to be used as either a '
-                          'static or dynamic control.  This impacts the shape of the partial '
-                          'derivatives matrix.  Unless a parameter is large and broadcasting a '
-                          'value to each individual node would be inefficient, users should stick '
-                          'to the default value of True.')
-
 
 class PolynomialControlOptionsDictionary(om.OptionsDictionary):
     """
@@ -205,14 +197,6 @@ class PolynomialControlOptionsDictionary(om.OptionsDictionary):
                           'to assume a single polynomial basis across the entire phase, or None '
                           'to use the default control behavior.')
 
-        self.declare('dynamic', default=True, types=bool,
-                     desc='If True, the value of the shape of the parameter will '
-                          'be (num_nodes, ...), allowing the variable to be used as either a '
-                          'static or dynamic control.  This impacts the shape of the partial '
-                          'derivatives matrix.  Unless a parameter is large and broadcasting a '
-                          'value to each individual node would be inefficient, users should stick '
-                          'to the default value of True.')
-
 
 def check_valid_shape(name, value):
     """
@@ -256,8 +240,19 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
                           'for the optimization problem.  If False, allow the '
                           'control to be connected externally.')
 
-        self.declare(name='dynamic', types=bool, default=True,
-                     desc='True if this parameter can be used as a dynamic control, else False')
+        self.declare(name='dynamic', values=[True, False, _unspecified], default=_unspecified,
+                     desc='True if this parameter can be used as a dynamic control, else False.'
+                          'If _unspecified, attempt to determine through introspection.',
+                     deprecation="Option dynamic has been replaced by option 'static_target' and "
+                                 "will be removed in Dymos 2.0.0.\nNote that 'static_target' has "
+                                 "the opposite meaning of option 'dynamic', so parameters with "
+                                 "option 'dynamic' set to False should now use 'static_target' set "
+                                 "to True.")
+
+        self.declare(name='static_target', values=[True, False, _unspecified], default=_unspecified,
+                     desc='True if the target of this parameter does NOT have a unique value at '
+                          'each node in the ODE.'
+                          'If _unspecified, attempt to determine through introspection.')
 
         self.declare(name='targets', allow_none=True, default=_unspecified,
                      desc='Targets in the ODE to which the state is connected')
@@ -574,15 +569,29 @@ class GridRefinementOptionsDictionary(om.OptionsDictionary):
                      desc='Maximum allowed ratio of state second derivatives across refinement iterations')
 
 
-class _ForDocs(object):  # pragma: no cover
+class SimulateOptionsDictionary(om.OptionsDictionary):
     """
-    This class is provided as a way to automatically display options dictionaries in the docs,
-    since these option dictionaries typically don't exist in instantiated form in the code base.
+    An OptionsDictionary for simulate options in a Phase.
+
+    Parameters
+    ----------
+    read_only : bool
+        If True, setting (via __setitem__ or update) is not permitted.
     """
+    def __init__(self, read_only=False):
+        super(SimulateOptionsDictionary, self).__init__(read_only)
 
-    def __init__(self):
+        self.declare('method', values=('RK23', 'RK45', 'DOP853'), default='RK45',
+                     desc='The method used by simulate to propagate the ODE.')
 
-        self.time_options = TimeOptionsDictionary()
-        self.state_options = StateOptionsDictionary()
-        self.control_options = ControlOptionsDictionary()
-        self.parameter_options = ParameterOptionsDictionary()
+        self.declare(name='atol', types=(float, np.array), default=1.0E-6,
+                     desc='Absolute error tolerance for variable step integration.')
+
+        self.declare(name='rtol', types=(float, np.array), default=1.0E-3,
+                     desc='Relative error tolerance for variable step integration.')
+
+        self.declare(name='first_step', types=float, allow_none=True, default=None,
+                     desc='Initial step size, or None if the algorithm should choose.')
+
+        self.declare(name='max_step', types=float, default=np.inf,
+                     desc='Maximum allowable step size')

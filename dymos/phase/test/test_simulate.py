@@ -59,7 +59,7 @@ class TestSimulateShapedParams(unittest.TestCase):
         main_phase.set_time_options(fix_initial=True, fix_duration=True, units='s')
 
         main_phase.add_parameter('chord', targets='chord', shape=(4,), units='inch',
-                                 dynamic=False)
+                                 static_target=True)
         p.model.connect('chord', 'hop0.main_phase.parameters:chord')
 
         main_phase.add_state('impulse', fix_initial=True, fix_final=False, units='N*s',
@@ -78,7 +78,7 @@ class TestSimulateShapedParams(unittest.TestCase):
         p['hop0.main_phase.t_initial'] = 0.0
         p['hop0.main_phase.t_duration'] = 10
         p['hop0.main_phase.polynomial_controls:Thrust'][:, 0] = -3400
-        p['hop0.main_phase.states:impulse'] = main_phase.interpolate(ys=[0, 0], nodes='state_input')
+        p['hop0.main_phase.states:impulse'] = main_phase.interp('impulse', [0, 0])
 
         p.run_driver()
 

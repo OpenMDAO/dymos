@@ -45,6 +45,8 @@ class TestCannonballMatrixState(unittest.TestCase):
         phase.add_boundary_constraint('z', loc='final', lower=0, upper=0, indices=[1])
         phase.add_objective('time', loc='final')
 
+        phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
+
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring(tol=1.0E-12)
 
@@ -52,7 +54,7 @@ class TestCannonballMatrixState(unittest.TestCase):
 
         p.set_val('traj.phase.t_initial', 0)
         p.set_val('traj.phase.t_duration', 5)
-        p.set_val('traj.phase.states:z', phase.interpolate(ys=[[[0, 0], [10, 10]], [[10, 0], [10, -10]]], nodes='state_input'))
+        p.set_val('traj.phase.states:z', phase.interp('z', [[[0, 0], [10, 10]], [[10, 0], [10, -10]]]))
 
         return p
 
@@ -145,6 +147,8 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
         phase.add_boundary_constraint('z', loc='final', lower=0, upper=0, indices=[1])
         phase.add_objective('time', loc='final')
 
+        phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
+
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring(tol=1.0E-12)
 
@@ -152,7 +156,8 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
 
         p.set_val('traj.phase.t_initial', 0)
         p.set_val('traj.phase.t_duration', 5)
-        p.set_val('traj.phase.states:z', phase.interpolate(ys=[[[0, 0], [10, 10]], [[10, 0], [10, -10]]], nodes='state_input'))
+        p.set_val('traj.phase.states:z',
+                  phase.interp('z', [[[0, 0], [10, 10]], [[10, 0], [10, -10]]]))
 
         return p
 

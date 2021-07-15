@@ -57,12 +57,11 @@ class TestRunProblem(unittest.TestCase):
 
         tf = np.float128(20)
 
-        p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[1.5, 1], nodes='state_input'))
-        p.set_val('traj.phase0.states:xL', phase0.interpolate(ys=[0, 1], nodes='state_input'))
+        p.set_val('traj.phase0.states:x', phase0.interp('x', [1.5, 1]))
+        p.set_val('traj.phase0.states:xL', phase0.interp('xL', [0, 1]))
         p.set_val('traj.phase0.t_initial', 0)
         p.set_val('traj.phase0.t_duration', tf)
-        p.set_val('traj.phase0.controls:u', phase0.interpolate(ys=[-0.6, 2.4],
-                                                               nodes='control_input'))
+        p.set_val('traj.phase0.controls:u', phase0.interp('u', [-0.6, 2.4]))
         dm.run_problem(p, refine_method='hp', refine_iteration_limit=10)
 
         sqrt_two = np.sqrt(2)
@@ -123,12 +122,11 @@ class TestRunProblem(unittest.TestCase):
 
         tf = 20
 
-        p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[1.5, 1], nodes='state_input'))
-        p.set_val('traj.phase0.states:xL', phase0.interpolate(ys=[0, 1], nodes='state_input'))
+        p.set_val('traj.phase0.states:x', phase0.interp('x', [1.5, 1]))
+        p.set_val('traj.phase0.states:xL', phase0.interp('xL', [0, 1]))
         p.set_val('traj.phase0.t_initial', 0)
         p.set_val('traj.phase0.t_duration', tf)
-        p.set_val('traj.phase0.controls:u', phase0.interpolate(ys=[-0.6, 2.4],
-                                                               nodes='control_input'))
+        p.set_val('traj.phase0.controls:u', phase0.interp('u', [-0.6, 2.4]))
         dm.run_problem(p, refine_method='hp', refine_iteration_limit=5)
 
         sqrt_two = np.sqrt(2)
@@ -184,11 +182,10 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.t_initial', 0.0)
         p.set_val('traj.phase0.t_duration', 2.0)
 
-        p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[0, 10], nodes='state_input'))
-        p.set_val('traj.phase0.states:y', phase0.interpolate(ys=[10, 5], nodes='state_input'))
-        p.set_val('traj.phase0.states:v', phase0.interpolate(ys=[0, 9.9], nodes='state_input'))
-        p.set_val('traj.phase0.controls:theta', phase0.interpolate(ys=[5, 100],
-                                                                   nodes='control_input'))
+        p.set_val('traj.phase0.states:x', phase0.interp('x', [0, 10]))
+        p.set_val('traj.phase0.states:y', phase0.interp('y', [10, 5]))
+        p.set_val('traj.phase0.states:v', phase0.interp('v', [0, 9.9]))
+        p.set_val('traj.phase0.controls:theta', phase0.interp('theta', [5, 100]))
         p.set_val('traj.phase0.parameters:g', 9.80665)
 
         dm.run_problem(p)
@@ -233,9 +230,9 @@ class TestRunProblem(unittest.TestCase):
         pos0 = [0, 10]
         posf = [10, 5]
 
-        p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.states:pos'] = phase.interp('pos', [pos0, posf])
+        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
 
         dm.run_problem(p, refine_iteration_limit=5)
@@ -273,11 +270,10 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.t_initial', 0.0)
         p.set_val('traj.phase0.t_duration', 2.0)
 
-        p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[0, 10], nodes='state_input'))
-        p.set_val('traj.phase0.states:y', phase0.interpolate(ys=[10, 5], nodes='state_input'))
-        p.set_val('traj.phase0.states:v', phase0.interpolate(ys=[0, 9.9], nodes='state_input'))
-        p.set_val('traj.phase0.controls:theta', phase0.interpolate(ys=[5, 100],
-                                                                   nodes='control_input'))
+        p.set_val('traj.phase0.states:x', phase0.interp('x', [0, 10]))
+        p.set_val('traj.phase0.states:y', phase0.interp('y', [10, 5]))
+        p.set_val('traj.phase0.states:v', phase0.interp('v', [0, 9.9]))
+        p.set_val('traj.phase0.controls:theta', phase0.interp('theta', [5, 100]))
         p.set_val('traj.phase0.parameters:g', 9.80665)
 
         dm.run_problem(p, simulate=True)
@@ -309,7 +305,7 @@ class TestRunProblem(unittest.TestCase):
         # # Run the model
         run_problem(q, restart='vanderpol_simulation.sql')
 
-        s = q.model.traj.simulate()
+        s = q.model.traj.simulate(rtol=1.0E-9, atol=1.0E-9)
 
         # get_val returns data for duplicate time points; remove them before interpolating
         tq = q.get_val('traj.phase0.timeseries.time')[:, 0]
@@ -369,11 +365,10 @@ class TestRunProblemPlotting(unittest.TestCase):
         p.set_val('traj.phase0.t_initial', 0.0)
         p.set_val('traj.phase0.t_duration', 2.0)
 
-        p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[0, 10], nodes='state_input'))
-        p.set_val('traj.phase0.states:y', phase0.interpolate(ys=[10, 5], nodes='state_input'))
-        p.set_val('traj.phase0.states:v', phase0.interpolate(ys=[0, 9.9], nodes='state_input'))
-        p.set_val('traj.phase0.controls:theta', phase0.interpolate(ys=[5, 100],
-                                                                   nodes='control_input'))
+        p.set_val('traj.phase0.states:x', phase0.interp('x', [0, 10]))
+        p.set_val('traj.phase0.states:y', phase0.interp('y', [10, 5]))
+        p.set_val('traj.phase0.states:v', phase0.interp('v', [0, 9.9]))
+        p.set_val('traj.phase0.controls:theta', phase0.interp('theta', [5, 100]))
         p.set_val('traj.phase0.parameters:g', 9.80665)
 
         self.p = p
@@ -472,7 +467,7 @@ class TestSimulateArrayParam(unittest.TestCase):
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', units='m/s**2', val=9.80665)
-        phase.add_parameter('array', units=None, shape=(10,), dynamic=False)
+        phase.add_parameter('array', units=None, shape=(10,), static_target=True)
 
         # dummy array of data
         indeps = p.model.add_subsystem('indeps', om.IndepVarComp(), promotes=['*'])
@@ -498,11 +493,10 @@ class TestSimulateArrayParam(unittest.TestCase):
         p['traj.phase0.t_initial'] = 0.0
         p['traj.phase0.t_duration'] = 2.0
 
-        p['traj.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['traj.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['traj.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['traj.phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5],
-                                                            nodes='control_input')
+        p['traj.phase0.states:x'] = phase.interp('x', [0, 10])
+        p['traj.phase0.states:y'] = phase.interp('y', [10, 5])
+        p['traj.phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['traj.phase0.controls:theta'] = phase.interp('theta', [5, 100.5])
 
         #
         # Solve for the optimal trajectory

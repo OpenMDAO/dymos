@@ -57,27 +57,24 @@ class TestReentry(unittest.TestCase):
         p.setup(check=True, force_alloc_complex=True)
 
         p.set_val('traj.phase0.states:h',
-                  phase0.interpolate(ys=[260000, 80000], nodes='state_input'), units='ft')
+                  phase0.interp('h', [260000, 80000]), units='ft')
         p.set_val('traj.phase0.states:gamma',
-                  phase0.interpolate(ys=[-1 * np.pi / 180, -5 * np.pi / 180], nodes='state_input'),
+                  phase0.interp('gamma', [-1 * np.pi / 180, -5 * np.pi / 180]),
                   units='rad')
         p.set_val('traj.phase0.states:phi',
-                  phase0.interpolate(ys=[0, 75 * np.pi / 180], nodes='state_input'), units='rad')
+                  phase0.interp('phi', [0, 75 * np.pi / 180]), units='rad')
         p.set_val('traj.phase0.states:psi',
-                  phase0.interpolate(ys=[90 * np.pi / 180, 10 * np.pi / 180], nodes='state_input'),
+                  phase0.interp('psi', [90 * np.pi / 180, 10 * np.pi / 180]),
                   units='rad')
         p.set_val('traj.phase0.states:theta',
-                  phase0.interpolate(ys=[0, 25 * np.pi / 180], nodes='state_input'), units='rad')
-        p.set_val('traj.phase0.states:v', phase0.interpolate(ys=[25600, 2500], nodes='state_input'),
-                  units='ft/s')
+                  phase0.interp('theta', [0, 25 * np.pi / 180]), units='rad')
+        p.set_val('traj.phase0.states:v', phase0.interp('v', [25600, 2500]), units='ft/s')
         p.set_val('traj.phase0.t_initial', 0, units='s')
         p.set_val('traj.phase0.t_duration', 2000, units='s')
         p.set_val('traj.phase0.controls:alpha',
-                  phase0.interpolate(ys=[17.4 * np.pi / 180, 17.4 * np.pi / 180],
-                                     nodes='control_input'), units='rad')
+                  phase0.interp('alpha', [17.4 * np.pi / 180, 17.4 * np.pi / 180]), units='rad')
         p.set_val('traj.phase0.controls:beta',
-                  phase0.interpolate(ys=[-75 * np.pi / 180, 0 * np.pi / 180],
-                                     nodes='control_input'), units='rad')
+                  phase0.interp('beta', [-75 * np.pi / 180, 0 * np.pi / 180]), units='rad')
 
         return p
 
@@ -174,29 +171,26 @@ class TestReentry(unittest.TestCase):
         p.setup(check=True, force_alloc_complex=True)
 
         p.set_val('traj.phase0.states:h',
-                  phase0.interpolate(ys=[260000, 80000], nodes='state_input'), units='ft')
+                  phase0.interp('h', [260000, 80000]), units='ft')
         p.set_val('traj.phase0.states:gamma',
-                  phase0.interpolate(ys=[-1 * np.pi / 180, -5 * np.pi / 180],
-                                     nodes='state_input'),
+                  phase0.interp('gamma', [-1 * np.pi / 180, -5 * np.pi / 180]),
                   units='rad')
         p.set_val('traj.phase0.states:phi',
-                  phase0.interpolate(ys=[0, 75 * np.pi / 180], nodes='state_input'),
+                  phase0.interp('phi', [0, 75 * np.pi / 180]),
                   units='rad')
         p.set_val('traj.phase0.states:psi',
-                  phase0.interpolate(ys=[90 * np.pi / 180, 10 * np.pi / 180],
-                                     nodes='state_input'),
+                  phase0.interp('psi', [90 * np.pi / 180, 10 * np.pi / 180]),
                   units='rad')
         p.set_val('traj.phase0.states:theta',
-                  phase0.interpolate(ys=[0, 25 * np.pi / 180], nodes='state_input'),
+                  phase0.interp('theta', [0, 25 * np.pi / 180]),
                   units='rad')
         p.set_val('traj.phase0.states:v',
-                  phase0.interpolate(ys=[25600, 2500], nodes='state_input'),
+                  phase0.interp('v', [25600, 2500]),
                   units='ft/s')
         p.set_val('traj.phase0.t_initial', 0, units='s')
         p.set_val('traj.phase0.t_duration', 2000, units='s')
         p.set_val('traj.phase0.controls:alpha',
-                  phase0.interpolate(ys=[17.4 * np.pi / 180, 17.4 * np.pi / 180],
-                                     nodes='control_input'), units='rad')
+                  phase0.interp('alpha', [17.4 * np.pi / 180, 17.4 * np.pi / 180]), units='rad')
         p.set_val('traj.phase0.polynomial_controls:beta', np.radians(-75))
 
         p.run_driver()

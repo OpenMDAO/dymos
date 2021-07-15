@@ -58,10 +58,10 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 2.0
 
-    p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-    p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-    p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+    p['phase0.states:x'] = phase.interp('x', ys=[0, 10])
+    p['phase0.states:y'] = phase.interp('y', ys=[10, 5])
+    p['phase0.states:v'] = phase.interp('v', ys=[0, 9.9])
+    p['phase0.controls:theta'] = phase.interp('theta', ys=[5, 100])
     p['phase0.parameters:g'] = 9.80665
 
     p.run_driver()

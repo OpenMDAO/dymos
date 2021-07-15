@@ -63,12 +63,11 @@ class TestHyperSensitive(unittest.TestCase):
 
         p.setup(check=True)
 
-        p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[1.5, 1], nodes='state_input'))
-        p.set_val('traj.phase0.states:xL', phase0.interpolate(ys=[0, 1], nodes='state_input'))
+        p.set_val('traj.phase0.states:x', phase0.interp('x', [1.5, 1]))
+        p.set_val('traj.phase0.states:xL', phase0.interp('xL', [0, 1]))
         p.set_val('traj.phase0.t_initial', 0)
         p.set_val('traj.phase0.t_duration', tf)
-        p.set_val('traj.phase0.controls:u', phase0.interpolate(ys=[-0.6, 2.4],
-                                                               nodes='control_input'))
+        p.set_val('traj.phase0.controls:u', phase0.interp('u', [-0.6, 2.4]))
 
         return p
 

@@ -279,17 +279,41 @@ class TranscriptionBase(object):
         """
         ode = phase._get_subsystem(self._rhs_source)
 
-        # Interrogate shapes and units.
+        # Interrogate shapes and units and static/dynamic behavior
         for name, options in phase.control_options.items():
 
-            shape, units = get_target_metadata(ode, name=name,
-                                               user_targets=options['targets'],
-                                               user_units=options['units'],
-                                               user_shape=options['shape'],
-                                               control_rate=True)
+            shape, units, static_target = get_target_metadata(ode, name=name,
+                                                              user_targets=options['targets'],
+                                                              user_units=options['units'],
+                                                              user_shape=options['shape'],
+                                                              control_rate=True)
 
             options['units'] = units
             options['shape'] = shape
+
+            if static_target:
+                raise ValueError(f"Control '{name}' cannot be connected to its targets because one "
+                                 f"or more targets are tagged with 'dymos.static_target'.")
+
+            # Now check rate targets
+            _, _, static_target = get_target_metadata(ode, name=name,
+                                                      user_targets=options['rate_targets'],
+                                                      user_units=options['units'],
+                                                      user_shape=options['shape'],
+                                                      control_rate=True)
+            if static_target:
+                raise ValueError(f"Control rate of '{name}' cannot be connected to its targets "
+                                 f"because one or more targets are tagged with 'dymos.static_target'.")
+
+            # Now check rate2 targets
+            _, _, static_target = get_target_metadata(ode, name=name,
+                                                      user_targets=options['rate2_targets'],
+                                                      user_units=options['units'],
+                                                      user_shape=options['shape'],
+                                                      control_rate=True)
+            if static_target:
+                raise ValueError(f"Control rate2 of '{name}' cannot be connected to its targets "
+                                 f"because one or more targets are tagged with 'dymos.static_target'.")
 
         if phase.control_options:
             phase.control_group.configure_io()
@@ -328,14 +352,40 @@ class TranscriptionBase(object):
         # Interrogate shapes and units.
         for name, options in phase.polynomial_control_options.items():
 
-            shape, units = get_target_metadata(ode, name=name,
-                                               user_targets=options['targets'],
-                                               user_units=options['units'],
-                                               user_shape=options['shape'],
-                                               control_rate=True)
+            shape, units, static_target = get_target_metadata(ode, name=name,
+                                                              user_targets=options['targets'],
+                                                              user_units=options['units'],
+                                                              user_shape=options['shape'],
+                                                              control_rate=True)
 
             options['units'] = units
             options['shape'] = shape
+
+            if static_target:
+                raise ValueError(f"Polynomial control '{name}' cannot be connected to its targets "
+                                 f"because one or more targets are tagged with 'dymos.static_target'.")
+
+            # Now check rate targets
+            _, _, static_target = get_target_metadata(ode, name=name,
+                                                      user_targets=options['rate_targets'],
+                                                      user_units=options['units'],
+                                                      user_shape=options['shape'],
+                                                      control_rate=True)
+            if static_target:
+                raise ValueError(f"Rate of polynomial control '{name}' cannot be connected to its "
+                                 f"targets because one or more targets are tagged with "
+                                 f"'dymos.static_target'.")
+
+            # Now check rate2 targets
+            _, _, static_target = get_target_metadata(ode, name=name,
+                                                      user_targets=options['rate2_targets'],
+                                                      user_units=options['units'],
+                                                      user_shape=options['shape'],
+                                                      control_rate=True)
+            if static_target:
+                raise ValueError(f"Rate2 of polynomial control '{name}' cannot be connected to its "
+                                 f"targets because one or more targets are tagged with "
+                                 f"'dymos.static_target'.")
 
         if phase.polynomial_control_options:
             phase.polynomial_control_group.configure_io()
@@ -383,20 +433,21 @@ class TranscriptionBase(object):
                 prom_name = f'parameters:{name}'
 
                 # Get units and shape from targets when needed.
-                shape, units = get_target_metadata(ode, name=name,
-                                                   user_targets=options['targets'],
-                                                   user_shape=options['shape'],
-                                                   user_units=options['units'],
-                                                   dynamic=options['dynamic'])
+                shape, units, static = get_target_metadata(ode, name=name,
+                                                           user_targets=options['targets'],
+                                                           user_shape=options['shape'],
+                                                           user_units=options['units'],
+                                                           user_static_target=options['static_target'])
                 options['units'] = units
                 options['shape'] = shape
+                options['static_target'] = static
 
                 for tgts, src_idxs in self.get_parameter_connections(name, phase):
                     for pathname in tgts:
                         parts = pathname.split('.')
                         sub_sys = parts[0]
                         tgt_var = '.'.join(parts[1:])
-                        if options['dynamic']:
+                        if not options['static_target']:
                             phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)],
                                            src_indices=src_idxs, flat_src_indices=True)
                         else:
@@ -430,8 +481,12 @@ class TranscriptionBase(object):
             for tag in sorted(tags):
 
                 # Declared as rate_source.
-                if tag.startswith('state_rate_source:'):
-                    state = tag[18:]
+                if tag.startswith('dymos.state_rate_source:') or tag.startswith('state_rate_source:'):
+                    state = tag.split(':')[-1]
+                    if tag.startswith('state_rate_source:'):
+                        msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
+                              f"dymos version 2.0.0. Use 'dymos.state_rate_source:{state}' instead."
+                        om.issue_warning(msg, category=om.OMDeprecationWarning)
                     if state not in state_options:
                         state_options[state] = StateOptionsDictionary()
                         state_options[state]['name'] = state
@@ -444,11 +499,17 @@ class TranscriptionBase(object):
                     state_options[state]['rate_source'] = prom_name
 
                 # Declares units for state.
-                if tag.startswith('state_units:'):
+                if tag.startswith('dymos.state_units:') or tag.startswith('state_units:'):
+                    tagged_state_units = tag.split(':')[-1]
+                    if tag.startswith('state_units:'):
+                        msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
+                              f"dymos version 2.0.0. Use 'dymos.{tag}' instead."
+                        om.issue_warning(msg, category=om.OMDeprecationWarning)
                     if state is None:
-                        raise ValueError(f"'state_units:' tag declared on '{name}' also requires "
-                                         f"that the 'state_rate_source:' tag be declared.")
-                    state_options[state]['units'] = tag[12:]
+                        raise ValueError(f"'{tag}' tag declared on '{prom_name}' also requires "
+                                         f"that the 'dymos.state_rate_source:{tagged_state_units}' "
+                                         f"tag be declared.")
+                    state_options[state]['units'] = tagged_state_units
 
         # Check over all existing states and make sure we aren't missing any rate sources.
         for name, options in state_options.items():
@@ -805,8 +866,7 @@ class TranscriptionBase(object):
             super(Phase, phase).add_objective(obj_path, ref=options['ref'], ref0=options['ref0'],
                                               index=obj_index, adder=options['adder'],
                                               scaler=options['scaler'],
-                                              parallel_deriv_color=options['parallel_deriv_color'],
-                                              vectorize_derivs=options['vectorize_derivs'])
+                                              parallel_deriv_color=options['parallel_deriv_color'])
 
     def _get_boundary_constraint_src(self, name, loc, phase):
         raise NotImplementedError('Transcription {0} does not implement method'

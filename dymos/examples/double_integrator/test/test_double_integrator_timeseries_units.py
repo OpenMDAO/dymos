@@ -31,6 +31,8 @@ def double_integrator_direct_collocation(transcription=dm.GaussLobatto, compress
     phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
                       rate2_continuity=False, shape=(1, ), lower=-1.0, upper=1.0)
 
+    phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
+
     # Maximize distance travelled in one second.
     phase.add_objective('x', loc='final', scaler=-1)
 
@@ -41,9 +43,9 @@ def double_integrator_direct_collocation(transcription=dm.GaussLobatto, compress
     p.set_val('traj.phase0.t_initial', 0.0)
     p.set_val('traj.phase0.t_duration', 1.0)
 
-    p.set_val('traj.phase0.states:x', phase.interpolate(ys=[0, 0.25], nodes='state_input'), units='m')
-    p.set_val('traj.phase0.states:v', phase.interpolate(ys=[0, 0], nodes='state_input'), units='m/s')
-    p.set_val('traj.phase0.controls:u', phase.interpolate(ys=[1, -1], nodes='control_input'), units='m/s**2')
+    p.set_val('traj.phase0.states:x', phase.interp('x', [0, 0.25]), units='m')
+    p.set_val('traj.phase0.states:v', phase.interp('v', [0, 0]), units='m/s')
+    p.set_val('traj.phase0.controls:u', phase.interp('u', [1, -1]), units='m/s**2')
 
     dm.run_problem(p, simulate=True, make_plots=True)
 

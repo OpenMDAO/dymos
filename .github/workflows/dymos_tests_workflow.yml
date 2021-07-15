@@ -52,7 +52,7 @@ jobs:
             PYOPTSPARSE: 'v1.2'
             SNOPT: 7.2
             MBI: 1
-            OPENMDAO: 3.6.0
+            OPENMDAO: 3.9.0
             OPTIONAL: '[all]'
             DOCS: 0
 
@@ -205,6 +205,7 @@ jobs:
           echo "============================================================="
           echo "Run Tests"
           echo "============================================================="
+          testflo -n 1 docs/test --pre_announce
           testflo -n 1 joss/test --pre_announce
           testflo -b benchmark --pre_announce
           cd $HOME
@@ -221,19 +222,23 @@ jobs:
           echo "Submit coverage"
           echo "============================================================="
           cp $HOME/.coverage .
-          pip install git+https://github.com/swryan/coveralls-python
+          pip install coveralls
           SITE_DIR=`python -c 'import site; print(site.getsitepackages()[-1])'`
-          coveralls --base_dir $SITE_DIR
+          coveralls --basedir $SITE_DIR
 
       - name: Build docs
-        if: ${{ matrix.DOCS == '1' && (github.event_name != 'push' || github.ref != 'refs/heads/master') }}
+        if: ${{ matrix.DOCS == '1' }}
         shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Building Docs"
           echo "============================================================="
-          cd mkdocs
-          mkdocs build --verbose --clean
+          pwd
+          git clone -q https://github.com/executablebooks/jupyter-book
+          cd jupyter-book
+          pip install -e .
+          cd ..
+          jupyter-book build docs/
 
       - name: Publish docs
         if: ${{ matrix.DOCS == '1' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
@@ -242,8 +247,10 @@ jobs:
           echo "============================================================="
           echo "Publishing Docs"
           echo "============================================================="
-          cd mkdocs
-          mkdocs gh-deploy --verbose --clean
+          pip install ghp-import
+          cd $HOME/work/dymos/dymos
+          pwd
+          ghp-import -n -p -f docs/_build/html
 
   coveralls:
     name: Finish coveralls

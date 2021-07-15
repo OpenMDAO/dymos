@@ -63,7 +63,7 @@ class TestTimeseriesUnits(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_parameter('g', units='m/s**2', dynamic=False)
+        phase.add_parameter('g', units='m/s**2', static_target=True)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -78,10 +78,10 @@ class TestTimeseriesUnits(unittest.TestCase):
         p['traj0.phase0.t_initial'] = 0.0
         p['traj0.phase0.t_duration'] = 2.0
 
-        p['traj0.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['traj0.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['traj0.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['traj0.phase0.states:x'] = phase.interp('x', [0, 10])
+        p['traj0.phase0.states:y'] = phase.interp('y', [10, 5])
+        p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['traj0.phase0.parameters:g'] = 9.80665
 
         dm.run_problem(p, run_driver=run_driver, simulate=True)

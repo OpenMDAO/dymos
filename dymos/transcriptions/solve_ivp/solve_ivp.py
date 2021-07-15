@@ -43,16 +43,6 @@ class SolveIVP(TranscriptionBase):
         """
         super(SolveIVP, self).initialize()
 
-        self.options.declare('method', default='RK45', values=('RK45', 'RK23', 'BDF'),
-                             desc='The integrator used within scipy.integrate.solve_ivp. Currently '
-                                  'supports \'RK45\', \'RK23\', and \'BDF\'.')
-
-        self.options.declare('atol', default=1.0E-6, types=(float,),
-                             desc='Absolute tolerance passed to scipy.integrate.solve_ivp.')
-
-        self.options.declare('rtol', default=1.0E-6, types=(float,),
-                             desc='Relative tolerance passed to scipy.integrate.solve_ivp.')
-
         self.options.declare('output_nodes_per_seg', default=None, types=(int,), allow_none=True,
                              desc='If None, results are provided at the all nodes within each'
                                   'segment.  If an int (n) then results are provided at n '
@@ -226,9 +216,7 @@ class SolveIVP(TranscriptionBase):
         for i in range(num_seg):
             seg_i_comp = SegmentSimulationComp(
                 index=i,
-                method=self.options['method'],
-                atol=self.options['atol'],
-                rtol=self.options['rtol'],
+                simulate_options=phase.simulate_options,
                 grid_data=self.grid_data,
                 ode_class=phase.options['ode_class'],
                 ode_init_kwargs=phase.options['ode_init_kwargs'],
@@ -311,14 +299,38 @@ class SolveIVP(TranscriptionBase):
         # Interrogate shapes and units.
         for name, options in phase.control_options.items():
 
-            shape, units = get_target_metadata(ode, name=name,
-                                               user_targets=options['targets'],
-                                               user_units=options['units'],
-                                               user_shape=options['shape'],
-                                               control_rate=True)
+            shape, units, static_target = get_target_metadata(ode, name=name,
+                                                              user_targets=options['targets'],
+                                                              user_units=options['units'],
+                                                              user_shape=options['shape'],
+                                                              control_rate=True)
 
             options['units'] = units
             options['shape'] = shape
+
+            if static_target:
+                raise ValueError(f"Control '{name}' cannot be connected to its targets because one"
+                                 f"or more targets are tagged with 'dymos.static_target'.")
+
+            # Now check rate targets
+            _, _, static_target = get_target_metadata(ode, name=name,
+                                                      user_targets=options['rate_targets'],
+                                                      user_units=options['units'],
+                                                      user_shape=options['shape'],
+                                                      control_rate=True)
+            if static_target:
+                raise ValueError(f"Control rate of '{name}' cannot be connected to its targets "
+                                 f"because one or more targets are tagged with 'dymos.static_target'.")
+
+            # Now check rate2 targets
+            _, _, static_target = get_target_metadata(ode, name=name,
+                                                      user_targets=options['rate2_targets'],
+                                                      user_units=options['units'],
+                                                      user_shape=options['shape'],
+                                                      control_rate=True)
+            if static_target:
+                raise ValueError(f"Control rate2 of '{name}' cannot be connected to its targets "
+                                 f"because one or more targets are tagged with 'dymos.static_target'.")
 
         grid_data = self.grid_data
 
@@ -422,10 +434,10 @@ class SolveIVP(TranscriptionBase):
 
         for name, options in phase.parameter_options.items():
             prom_name = f'parameters:{name}'
-            shape, units = get_target_metadata(phase.ode, name=name,
-                                               user_targets=options['targets'],
-                                               user_shape=options['shape'],
-                                               user_units=options['units'])
+            shape, units, static_target = get_target_metadata(phase.ode, name=name,
+                                                              user_targets=options['targets'],
+                                                              user_shape=options['shape'],
+                                                              user_units=options['units'])
             options['units'] = units
             options['shape'] = shape
 
@@ -769,11 +781,11 @@ class SolveIVP(TranscriptionBase):
             options = phase.parameter_options[name]
             ode_tgts = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
 
-            dynamic = options['dynamic']
+            static = options['static_target']
             shape = options['shape']
 
             # Connections to the final ODE
-            if dynamic:
+            if not static:
                 src_idxs_raw = np.zeros(num_final_ode_nodes, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
                 if shape == (1,):

@@ -2,7 +2,6 @@
 SimulationPhase is an instance that resembles a Phase in structure but is intended for
 use with scipy.solve_ivp to verify the accuracy of the implicit solutions of Dymos.
 """
-import inspect
 import numpy as np
 
 from scipy.integrate import solve_ivp
@@ -11,7 +10,7 @@ import openmdao.api as om
 from ....utils.interpolate import LagrangeBarycentricInterpolant
 from ....utils.lgl import lgl
 from .ode_integration_interface import ODEIntegrationInterface
-from ....phase.options import TimeOptionsDictionary
+from ....phase.options import TimeOptionsDictionary, SimulateOptionsDictionary
 
 
 class SegmentSimulationComp(om.ExplicitComponent):
@@ -36,17 +35,10 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         self.options.declare('grid_data', desc='the grid data of the corresponding phase.')
 
-        self.options.declare('method', default='RK45', values=('RK45', 'RK23', 'BDF', 'Radau'),
-                             desc='The integrator used within scipy.integrate.solve_ivp. Currently '
-                                  'supports \'RK45\', \'RK23\', and \'BDF\'.')
+        self.options.declare('simulate_options', types=SimulateOptionsDictionary,
+                             desc='The simulation options of the parent phase.')
 
-        self.options.declare('atol', default=1.0E-6, types=(float,),
-                             desc='Absolute tolerance passed to scipy.integrate.solve_ivp.')
-
-        self.options.declare('rtol', default=1.0E-6, types=(float,),
-                             desc='Relative tolerance passed to scipy.integrate.solve_ivp.')
-
-        self.options.declare('ode_class',
+        self.options.declare('ode_class', recordable=False,
                              desc='System defining the ODE')
 
         self.options.declare('ode_init_kwargs', types=dict, default={},
@@ -248,13 +240,13 @@ class SegmentSimulationComp(om.ExplicitComponent):
                                  self.options['output_nodes_per_seg'])
 
         # Perform the integration using solve_ivp
+        sim_options = {key: val for key, val in self.options['simulate_options'].items()}
+
         sol = solve_ivp(fun=self.options['ode_integration_interface'],
                         t_span=(inputs['time'][0], inputs['time'][-1]),
                         y0=self.initial_state_vec,
-                        method=self.options['method'],
-                        atol=self.options['atol'],
-                        rtol=self.options['rtol'],
-                        t_eval=t_eval)
+                        t_eval=t_eval,
+                        **sim_options)
 
         if not sol.success:
             raise om.AnalysisError(f'solve_ivp failed: {sol.message}')

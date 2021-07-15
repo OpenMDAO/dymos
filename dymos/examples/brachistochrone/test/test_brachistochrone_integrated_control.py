@@ -124,12 +124,11 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.states:theta'] = np.radians(phase.interpolate(ys=[0.05, 100.0],
-                                                                nodes='state_input'))
-        p['phase0.controls:theta_dot'] = phase.interpolate(ys=[50, 50], nodes='control_input')
+        p.set_val('phase0.states:x', phase.interp('x', ys=[0, 10]))
+        p.set_val('phase0.states:y', phase.interp('y', ys=[10, 5]))
+        p.set_val('phase0.states:v', phase.interp('v', ys=[0, 9.9]))
+        p.set_val('phase0.states:theta', phase.interp('theta', ys=[5, 100.5]), units='deg')
+        p.set_val('phase0.controls:theta_dot', phase.interp('theta_dot', ys=[50, 50]))
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -137,7 +136,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         # Test the results
         assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
-        sim_out = phase.simulate(times_per_seg=20)
+        sim_out = phase.simulate(times_per_seg=20, rtol=1.0E-5)
 
         x_sol = p.get_val('phase0.timeseries.states:x')
         y_sol = p.get_val('phase0.timeseries.states:y')
@@ -159,11 +158,11 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         theta_interp = interp1d(time_sim[:, 0], theta_sim[:, 0])
         theta_dot_interp = interp1d(time_sim[:, 0], theta_dot_sim[:, 0])
 
-        assert_near_equal(x_interp(time_sol), x_sol, tolerance=1.0E-5)
-        assert_near_equal(y_interp(time_sol), y_sol, tolerance=1.0E-5)
-        assert_near_equal(v_interp(time_sol), v_sol, tolerance=1.0E-5)
-        assert_near_equal(theta_interp(time_sol), theta_sol, tolerance=1.0E-5)
-        assert_near_equal(theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-5)
+        assert_near_equal(x_interp(time_sol), x_sol, tolerance=1.0E-4)
+        assert_near_equal(y_interp(time_sol), y_sol, tolerance=1.0E-4)
+        assert_near_equal(v_interp(time_sol), v_sol, tolerance=1.0E-4)
+        assert_near_equal(theta_interp(time_sol), theta_sol, tolerance=1.0E-4)
+        assert_near_equal(theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-4)
 
     def test_brachistochrone_integrated_control_radau_ps(self):
         import numpy as np
@@ -192,6 +191,8 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
 
+        phase.set_simulate_options(rtol=1.0E-8, atol=1.0E-8)
+
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
@@ -202,11 +203,11 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         p['traj.phase0.t_initial'] = 0.0
         p['traj.phase0.t_duration'] = 2.0
 
-        p['traj.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['traj.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['traj.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['traj.phase0.states:theta'] = np.radians(phase.interpolate(ys=[0.05, 100.0], nodes='state_input'))
-        p['traj.phase0.controls:theta_dot'] = phase.interpolate(ys=[50, 50], nodes='control_input')
+        p.set_val('traj.phase0.states:x', phase.interp('x', ys=[0, 10]))
+        p.set_val('traj.phase0.states:y', phase.interp('y', ys=[10, 5]))
+        p.set_val('traj.phase0.states:v', phase.interp('v', ys=[0, 9.9]))
+        p.set_val('traj.phase0.states:theta', phase.interp('theta', ys=[5, 100.5]), units='deg')
+        p.set_val('traj.phase0.controls:theta_dot', phase.interp('theta_dot', ys=[50, 50]))
 
         # Solve for the optimal trajectory
         dm.run_problem(p, simulate=True, make_plots=True)

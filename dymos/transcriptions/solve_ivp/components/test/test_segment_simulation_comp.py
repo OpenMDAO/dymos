@@ -6,7 +6,8 @@ from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.transcriptions.solve_ivp.components.segment_simulation_comp import SegmentSimulationComp
-from dymos.phase.options import TimeOptionsDictionary, StateOptionsDictionary
+from dymos.phase.options import TimeOptionsDictionary, StateOptionsDictionary, \
+    SimulateOptionsDictionary
 from dymos.transcriptions.grid_data import GridData
 
 # Modify class so we can run it standalone.
@@ -53,8 +54,11 @@ class TestSegmentSimulationComp(unittest.TestCase):
 
         gd = GridData(num_segments=4, transcription='gauss-lobatto', transcription_order=3)
 
-        seg0_comp = SegmentSimulationComp(index=0, grid_data=gd, method='RK45',
-                                          atol=1.0E-9, rtol=1.0E-9,
+        sim_options = SimulateOptionsDictionary()
+        sim_options['rtol'] = 1.0E-9
+        sim_options['atol'] = 1.0E-9
+
+        seg0_comp = SegmentSimulationComp(index=0, grid_data=gd, simulate_options=sim_options,
                                           ode_class=TestODE, time_options=time_options,
                                           state_options=state_options)
 

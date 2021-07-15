@@ -1,3 +1,6 @@
+# VSCode
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -77,3 +80,15 @@ fort.6
 
 # mkdocs
 /mkdocs/site
+
+# Examples
+dymos/examples/*/*/_output/
+docs/examples/*/*.db
+docs/examples/*/coloring_files/
+
+# Misc files
+docs/faq/*/*.pkl
+docs/faq/*.db
+
+# Jupyter Ignores
+docs/_build/

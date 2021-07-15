@@ -90,10 +90,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                 self.add_input('gam', units='rad', shape=nn)
 
                 # state rates
-                self.add_output('v_dot', shape=nn, units='m/s**2', tags=['state_rate_source:v'])
-                self.add_output('gam_dot', shape=nn, units='rad/s', tags=['state_rate_source:gam'])
-                self.add_output('h_dot', shape=nn, units='m/s', tags=['state_rate_source:h'])
-                self.add_output('r_dot', shape=nn, units='m/s', tags=['state_rate_source:r'])
+                self.add_output('v_dot', shape=nn, units='m/s**2', tags=['dymos.state_rate_source:v'])
+                self.add_output('gam_dot', shape=nn, units='rad/s', tags=['dymos.state_rate_source:gam'])
+                self.add_output('h_dot', shape=nn, units='m/s', tags=['dymos.state_rate_source:h'])
+                self.add_output('r_dot', shape=nn, units='m/s', tags=['dymos.state_rate_source:r'])
                 self.add_output('ke', shape=nn, units='J')
 
                 # Ask OpenMDAO to compute the partial derivatives using complex-step
@@ -172,8 +172,8 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         ascent.set_state_options('gam', fix_initial=False, fix_final=True)
         ascent.set_state_options('v', fix_initial=False, fix_final=False)
 
-        ascent.add_parameter('S', units='m**2', dynamic=False)
-        ascent.add_parameter('m', units='kg', dynamic=False)
+        ascent.add_parameter('S', units='m**2', static_target=True)
+        ascent.add_parameter('m', units='kg', static_target=True)
 
         # Limit the muzzle energy
         ascent.add_boundary_constraint('ke', loc='initial',
@@ -196,25 +196,25 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         descent.add_state('gam', fix_initial=False, fix_final=False)
         descent.add_state('v', fix_initial=False, fix_final=False)
 
-        descent.add_parameter('S', units='m**2', dynamic=False)
-        descent.add_parameter('m', units='kg', dynamic=False)
+        descent.add_parameter('S', units='m**2', static_target=True)
+        descent.add_parameter('m', units='kg', static_target=True)
 
         descent.add_objective('r', loc='final', scaler=-1.0)
 
         # Add internally-managed design parameters to the trajectory.
         traj.add_parameter('CD',
                            targets={'ascent': ['CD'], 'descent': ['CD']},
-                           val=0.5, units=None, opt=False, dynamic=False)
+                           val=0.5, units=None, opt=False, static_target=True)
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters
         # named 'mass' in each phase.
         traj.add_parameter('m', units='kg', val=1.0,
-                           targets={'ascent': 'mass', 'descent': 'mass'}, dynamic=False)
+                           targets={'ascent': 'mass', 'descent': 'mass'}, static_target=True)
 
         # In this case, by omitting targets, we're connecting these
         # parameters to parameters with the same name in each phase.
-        traj.add_parameter('S', units='m**2', val=0.005, dynamic=False)
+        traj.add_parameter('S', units='m**2', val=0.005, static_target=True)
 
         # Link Phases (link time and all state variables)
         traj.link_phases(phases=['ascent', 'descent'], vars=['*'])
@@ -240,26 +240,18 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.set_val('traj.ascent.t_initial', 0.0)
         p.set_val('traj.ascent.t_duration', 10.0)
 
-        p.set_val('traj.ascent.states:r', ascent.interpolate(ys=[0, 100],
-                  nodes='state_input'))
-        p.set_val('traj.ascent.states:h', ascent.interpolate(ys=[0, 100],
-                  nodes='state_input'))
-        p.set_val('traj.ascent.states:v', ascent.interpolate(ys=[200, 150],
-                  nodes='state_input'))
-        p.set_val('traj.ascent.states:gam', ascent.interpolate(ys=[25, 0],
-                  nodes='state_input'), units='deg')
+        p.set_val('traj.ascent.states:r', ascent.interp('r', [0, 100]))
+        p.set_val('traj.ascent.states:h', ascent.interp('h', [0, 100]))
+        p.set_val('traj.ascent.states:v', ascent.interp('v', [200, 150]))
+        p.set_val('traj.ascent.states:gam', ascent.interp('gam', [25, 0]), units='deg')
 
         p.set_val('traj.descent.t_initial', 10.0)
         p.set_val('traj.descent.t_duration', 10.0)
 
-        p.set_val('traj.descent.states:r', descent.interpolate(ys=[100, 200],
-                  nodes='state_input'))
-        p.set_val('traj.descent.states:h', descent.interpolate(ys=[100, 0],
-                  nodes='state_input'))
-        p.set_val('traj.descent.states:v', descent.interpolate(ys=[150, 200],
-                  nodes='state_input'))
-        p.set_val('traj.descent.states:gam', descent.interpolate(ys=[0, -45],
-                  nodes='state_input'), units='deg')
+        p.set_val('traj.descent.states:r', descent.interp('r', [100, 200]))
+        p.set_val('traj.descent.states:h', descent.interp('h', [100, 0]))
+        p.set_val('traj.descent.states:v', descent.interp('v', [150, 200]))
+        p.set_val('traj.descent.states:gam', descent.interp('gam', [0, -45]), units='deg')
 
         #####################################################
         # Run the optimization and final explicit simulation

@@ -58,13 +58,15 @@ class TestBrachistochroneExample(unittest.TestCase):
         p['traj0.phase0.t_initial'] = 0.0
         p['traj0.phase0.t_duration'] = 2.0
 
-        p['traj0.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['traj0.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['traj0.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p.set_val('traj0.phase0.states:x', phase.interp('x', [0, 10]), units='m')
+        p.set_val('traj0.phase0.states:y', phase.interp('y', [10, 5]), units='m')
+        p.set_val('traj0.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
         if control_type == 'control':
-            p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+            p.set_val('traj0.phase0.controls:theta', phase.interp('theta', [90, 90]), units='deg')
         else:
-            p['traj0.phase0.polynomial_controls:theta'] = [5, 15, 80, 100]
+            p.set_val('traj0.phase0.polynomial_controls:theta',
+                      phase.interp('theta', [5, 100]), units='deg')
+
         p['traj0.phase0.parameters:g'] = g
 
         return p

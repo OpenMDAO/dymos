@@ -4,11 +4,11 @@ from setuptools import find_packages
 # Setup optional dependencies
 optional_dependencies = {
     'docs': [
-        'mkdocs',
-        'mkdocs-material',
-        'pymdown-extensions',
-        'mkdocs-macros-plugin',
-        'mkdocs-bibtex',
+        'jupyter',
+        'jupyter-book',
+        'nbconvert',
+        'notebook',
+        'ipython',
         'numpydoc>=0.9.1',
         'redbaron',
         'tabulate'
@@ -58,7 +58,7 @@ The software has two primary objectives:
     packages=find_packages(),
     python_requires=">=3.6",
     install_requires=[
-        'openmdao>=3.3.0',
+        'openmdao>=3.9.0',
         'numpy>=1.14.1',
         'scipy>=1.0.0'
     ],
