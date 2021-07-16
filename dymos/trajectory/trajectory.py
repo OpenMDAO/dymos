@@ -472,13 +472,19 @@ class Trajectory(om.Group):
         linkage_options._src_b = sources['b']
         linkage_options['shape'] = shapes['b']
 
-        if linkage_options['units'] is _unspecified:
-            if units['a'] != units['b']:
-                raise ValueError(f'{info_str}: Linkage units were not specified but the units of '
-                                 f'var_a ({units["a"]}) and var_b ({units["b"]}) are not the same. '
-                                 f'Units for this linkage constraint must be specified explicitly.')
-            else:
-                linkage_options['units'] = units['b']
+        if linkage_options['units_a'] is _unspecified:
+            linkage_options['units_a'] = units['a']
+
+        if linkage_options['units_b'] is _unspecified:
+            linkage_options['units_b'] = units['b']
+
+        if (linkage_options['units_a'] != linkage_options['units_b']) and \
+                linkage_options['units'] is _unspecified:
+            raise ValueError(f'{info_str}: Linkage units were not specified but the units of '
+                             f'var_a ({units["a"]}) and var_b ({units["b"]}) are not the same. '
+                             f'Units for this linkage constraint must be specified explicitly.')
+        else:
+            linkage_options['units'] = units['a']
 
     def _expand_star_linkage_configure(self):
         """
@@ -826,47 +832,6 @@ class Trajectory(om.Group):
         See Also
         --------
         add_linkage_constraint : Explicitly add a single phase linkage constraint.
-
-        Examples
-        --------
-        **Typical Phase Linkage Sequence**
-
-        A typical phase linkage sequence, where all phases use the same ODE (and therefore have
-        the same states), and are simply linked sequentially in time.
-
-        >>> t.link_phases(['phase1', 'phase2', 'phase3'])
-
-        **Adding an Additional Linkage**
-
-        If we want some control variable, u, to be continuous in value between phase2 and
-        phase3 only, we could subsequently issue the following:
-
-        >>> t.link_phases(['phase2', 'phase3'], vars=['u'])
-
-        **Branching Trajectories**
-
-        For a more complex example, consider the case where we have two phases which branch off
-        from the same point, such as the case of a jettisoned stage.  The nominal trajectory
-        consists of the phase sequence ['a', 'b', 'c'].  Let phase ['d'] be the phase that tracks
-        the jettisoned component to its impact with the ground.  The linkages in this case
-        would be defined as:
-
-        >>> t.link_phases(['a', 'b', 'c'])
-        >>> t.link_phases(['b', 'd'])
-
-        **Specifying Linkage Locations**
-
-        Phase linkages assume that, for each pair, the state/control values at the end ('final')
-        of the first phase are linked to the state/control values at the start of the second phase
-        ('initial').
-
-        The user can override this behavior, but they must specify a pair of location strings for
-        each pair given in `phases`.  For instance, in the following example phases 'a' and 'b'
-        have the same initial time and state, but phase 'c' follows phase 'b'.  Note since there
-        are three phases provided, there are two linkages and thus two pairs of location
-        specifiers given.
-
-        >>> t.link_phases(['a', 'b', 'c'], locs=[('initial', 'initial'), ('final', 'initial')])
         """
         num_links = len(phases) - 1
 
@@ -902,7 +867,8 @@ class Trajectory(om.Group):
                                             var_a=var, var_b=var, loc_a=loc_a, loc_b=loc_b,
                                             connected=connected)
 
-    def simulate(self, times_per_seg=10, method='RK45', atol=1.0E-9, rtol=1.0E-9, record_file=None):
+    def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
+                 first_step=_unspecified, max_step=_unspecified, record_file=None):
         """
         Simulate the Trajectory using scipy.integrate.solve_ivp.
 
@@ -917,6 +883,10 @@ class Trajectory(om.Group):
             Absolute convergence tolerance for scipy.integrate.solve_ivp.
         rtol : float
             Relative convergence tolerance for scipy.integrate.solve_ivp.
+        first_step : float
+            Initial step size for the integration.
+        max_step : float
+            Maximum step size for the integration.
         record_file : str or None
             If a string, the file to which the result of the simulation will be saved.
             If None, no record of the simulation will be saved.
@@ -932,7 +902,8 @@ class Trajectory(om.Group):
 
         for name, phs in self._phases.items():
             sim_phs = phs.get_simulation_phase(times_per_seg=times_per_seg, method=method,
-                                               atol=atol, rtol=rtol)
+                                               atol=atol, rtol=rtol, first_step=first_step,
+                                               max_step=max_step)
             sim_traj.add_phase(name, sim_phs)
 
         sim_traj.parameter_options.update(self.parameter_options)

@@ -1,0 +1,68 @@
+format: jb-book
+root: index
+parts:
+- caption: Installation
+  chapters:
+  - file: installation
+- caption: Getting Started
+  chapters:
+  - file: getting_started/collocation
+  - file: getting_started/defining_odes
+  - file: getting_started/optimal_control
+  - file: getting_started/intro_to_dymos/intro_ivp
+  - file: getting_started/intro_to_dymos/intro_segments
+- caption: Examples and Tutorials
+  chapters:
+  - file: examples/examples
+    sections:
+    - file: examples/brachistochrone/brachistochrone
+    - file: examples/vanderpol/vanderpol
+    - file: examples/balanced_field/balanced_field
+    - file: examples/commercial_aircraft/commercial_aircraft
+    - file: examples/double_integrator/double_integrator
+    - file: examples/hypersensitive/hypersensitive
+    - file: examples/finite_burn_orbit_raise/finite_burn_orbit_raise
+    - file: examples/length_constrained_brachistochrone/length_constrained_brachistochrone
+    - file: examples/min_time_climb/min_time_climb
+    - file: examples/multi_phase_cannonball/multi_phase_cannonball
+    - file: examples/multibranch_trajectory/multibranch_trajectory
+    - file: examples/racecar/racecar
+    - file: examples/reentry/reentry
+    - file: examples/ssto_earth/ssto_earth
+    - file: examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent
+    - file: examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls
+    - file: examples/water_rocket/water_rocket
+- caption: Feature Reference
+  chapters:
+  - file: features/phases/phases_list
+    sections:
+    - file: features/phases/phases
+    - file: features/phases/segments
+    - file: features/phases/variables
+    - file: features/phases/constraints
+    - file: features/phases/objective
+    - file: features/phases/timeseries
+  - file: features/trajectories/trajectories
+  - file: features/exploiting_sparsity
+  - file: features/plotting
+- caption: Frequentsly Asked Questions
+  chapters:
+  - file: faq/faq
+    sections:
+    - file: faq/add_ode_output_to_timeseries
+    - file: faq/connect_scalar_parameters_to_ode
+    - file: faq/upstream_analysis
+    - file: faq/downstream_analysis
+    - file: faq/tandem_phases
+    - file: faq/use_partial_coloring
+    - file: faq/debugging
+- caption: Dymos API Reference
+  chapters:
+  - file: api/api
+    sections:
+    - file: api/run_problem
+    - file: api/phase_api
+    - file: api/trajectory_api
+- caption: Contributing
+  chapters:
+  - file: contributing/contributing

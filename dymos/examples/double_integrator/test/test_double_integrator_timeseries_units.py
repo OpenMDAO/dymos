@@ -31,6 +31,8 @@ def double_integrator_direct_collocation(transcription=dm.GaussLobatto, compress
     phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
                       rate2_continuity=False, shape=(1, ), lower=-1.0, upper=1.0)
 
+    phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
+
     # Maximize distance travelled in one second.
     phase.add_objective('x', loc='final', scaler=-1)
 
