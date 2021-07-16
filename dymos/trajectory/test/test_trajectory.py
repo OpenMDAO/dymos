@@ -1340,13 +1340,11 @@ class TestInvalidLinkages(unittest.TestCase):
         self.assertEqual(expected_warning, str(w.warning))
 
     def test_linkage_units(self):
-        """
-        Test that a linkage variable being linked to mutliple phases is done using the correct
-        units each time when the linkage units are different.
-        """
         import numpy as np
         from scipy.interpolate import interp1d
+
         import openmdao.api as om
+
         import dymos as dm
         from dymos.models.atmosphere.atmos_1976 import USatm1976Data
 
@@ -1454,32 +1452,24 @@ class TestInvalidLinkages(unittest.TestCase):
                 outputs['r_dot'] = v*cgam
                 outputs['ke'] = 0.5*m*v**2
 
-        # Setup the Dymos problem
-
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
-        p.driver.declare_coloring()
-
-        # p.driver.opt_settings['Major iterations limit'] = 5
-
-        p.model.add_subsystem('size_comp', CannonballSizeComp(), promotes_inputs=['radius', 'dens'])
+        p.model.add_subsystem('size_comp', CannonballSizeComp(),
+                              promotes_inputs=['radius', 'dens'])
         p.model.set_input_defaults('dens', val=7.87, units='g/cm**3')
-        p.model.add_design_var('radius', lower=0.01, upper=0.10, ref0=0.01, ref=0.10, units='m')
+        p.model.add_design_var('radius', lower=0.01, upper=0.10,
+                               ref0=0.01, ref=0.10, units='m')
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
         transcription = dm.Radau(num_segments=5, order=3, compressed=True)
-
-        # Define 1st phase
 
         start = dm.Phase(ode_class=CannonballODE, transcription=transcription,
                          ode_init_kwargs={'alt_unit': 'm'})
 
         start = traj.add_phase('start', start)
 
-        start.set_time_options(fix_initial=True, duration_bounds=(1, 100),
-                               duration_ref=100, units='s')
+        start.set_time_options(fix_initial=True, duration_bounds=(1, 100), duration_ref=100, units='s')
         start.set_state_options('r', fix_initial=True, fix_final=False)
         start.set_state_options('h', fix_initial=True, fix_final=False)
         start.set_state_options('gam', fix_initial=False, fix_final=False)
@@ -1489,12 +1479,9 @@ class TestInvalidLinkages(unittest.TestCase):
         start.add_parameter('m', units='kg', static_target=True)
 
         # Limit the muzzle energy
-        start.add_boundary_constraint('ke', loc='initial',
-                                      upper=400000, lower=0, ref=100000)
+        start.add_boundary_constraint('ke', loc='initial', upper=400000, lower=0, ref=100000)
 
         start.add_boundary_constraint('h', loc='final', equals=2, units='m')
-
-        # Define 2nd phase
 
         ascent = dm.Phase(ode_class=CannonballODE, transcription=transcription,
                           ode_init_kwargs={'alt_unit': 'm'})
@@ -1510,8 +1497,6 @@ class TestInvalidLinkages(unittest.TestCase):
 
         ascent.add_parameter('S', units='m**2', static_target=True)
         ascent.add_parameter('m', units='kg', static_target=True)
-
-        # Define 3rd Phase
 
         transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
         descent = dm.Phase(ode_class=CannonballODE, transcription=transcription,
@@ -1545,9 +1530,8 @@ class TestInvalidLinkages(unittest.TestCase):
 
         # Link Phases (link time and all state variables)
         traj.link_phases(phases=['start', 'ascent'], vars=['*'])
-
-        # Now add another h linkage with different units.
         traj.add_linkage_constraint('ascent', 'descent', 'h', 'h', 'final', 'initial', units='ft')
+        # traj.add_linkage_constraint('ascent', 'descent', 'h', 'h', 'final', 'initial')
         traj.link_phases(phases=['ascent', 'descent'], vars=['time', 'r', 'v', 'gam'])
 
         # Issue Connections
@@ -1560,7 +1544,9 @@ class TestInvalidLinkages(unittest.TestCase):
         # Finish Problem Setup
         p.setup()
 
+        #############################################
         # Set constants and initial guesses
+        #############################################
         p.set_val('radius', 0.05, units='m')
         p.set_val('dens', 7.87, units='g/cm**3')
 
@@ -1573,7 +1559,7 @@ class TestInvalidLinkages(unittest.TestCase):
         p.set_val('traj.ascent.t_duration', 10.0)
 
         p.set_val('traj.start.states:r', ascent.interp('r', [0, 100]))
-        p.set_val('traj.start.states:h', ascent.interp('h', [0, 100]))
+        p.set_val('traj.start.states:h', ascent.interp('h', [0, 50]))
         p.set_val('traj.start.states:v', ascent.interp('v', [200, 150]))
         p.set_val('traj.start.states:gam', ascent.interp('gam', [25, 0]), units='deg')
 
@@ -1586,20 +1572,36 @@ class TestInvalidLinkages(unittest.TestCase):
         p.set_val('traj.descent.t_duration', 10.0)
 
         p.set_val('traj.descent.states:r', descent.interp('r', [100, 200]))
-        p.set_val('traj.descent.states:h', descent.interp('h', [100, 0]))
+        p.set_val('traj.descent.states:h', descent.interp('h', [200, 0]))
         p.set_val('traj.descent.states:v', descent.interp('v', [150, 200]))
         p.set_val('traj.descent.states:gam', descent.interp('gam', [0, -45]), units='deg')
 
-        # Run the optimization
-        dm.run_problem(p)
+        #####################################################
+        # Run the optimization and final explicit simulation
+        #####################################################
+        dm.run_problem(p, run_driver=False, simulate=False)
 
-        h0_final = p.get_val('traj.start.timeseries.states:h', units='m')[-1, ...]
-        h1_initial = p.get_val('traj.ascent.timeseries.states:h', units='m')[0, ...]
-        h1_final = p.get_val('traj.ascent.timeseries.states:h', units='m')[-1, ...]
-        h2_initial = p.get_val('traj.descent.timeseries.states:h', units='m')[0, ...]
+        lnk_start_h_m = p.get_val('traj.linkages.start:h', units='m')
+        lnk_ascent_h_m = p.get_val('traj.linkages.ascent:h', units='m')
+        lnk_descent_h_m = p.get_val('traj.linkages.descent:h', units='m')
 
-        assert_near_equal(h0_final, h1_initial, tolerance=1.0E-6)
-        assert_near_equal(h1_final, h2_initial, tolerance=1.0E-6)
+        start_h_m = p.get_val('traj.start.timeseries.states:h', units='m')[[0, -1], ...]
+        ascent_h_m = p.get_val('traj.ascent.timeseries.states:h', units='m')[[0, -1], ...]
+        descent_h_m = p.get_val('traj.descent.timeseries.states:h', units='m')[[0, -1], ...]
+
+        assert_near_equal(lnk_start_h_m, start_h_m, tolerance=1.0E-12)
+        assert_near_equal(lnk_ascent_h_m, ascent_h_m, tolerance=1.0E-12)
+        assert_near_equal(lnk_descent_h_m, descent_h_m, tolerance=1.0E-12)
+
+        # manual linkage values
+        lnk_1_manual = - ascent_h_m[0, ...] + start_h_m[-1, ...]
+        lnk_2_manual = - descent_h_m[0, ...] + ascent_h_m[-1, ...]
+
+        lnk_1_output = p.get_val('traj.linkages.start:h_final|ascent:h_initial')
+        lnk_2_output = p.get_val('traj.linkages.ascent:h_final|descent:h_initial')
+
+        assert_near_equal(lnk_1_output, lnk_1_manual)
+        assert_near_equal(lnk_2_output, lnk_2_manual)
 
 
 if __name__ == '__main__':  # pragma: no cover
