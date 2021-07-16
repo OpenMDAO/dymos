@@ -1458,7 +1458,7 @@ class TestInvalidLinkages(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+        p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
         p.driver.declare_coloring()
 
         # p.driver.opt_settings['Major iterations limit'] = 5

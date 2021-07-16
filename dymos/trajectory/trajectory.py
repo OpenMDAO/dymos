@@ -478,7 +478,8 @@ class Trajectory(om.Group):
         if linkage_options['units_b'] is _unspecified:
             linkage_options['units_b'] = units['b']
 
-        if (linkage_options['units_a'] != linkage_options['units_b']) and units is _unspecified:
+        if (linkage_options['units_a'] != linkage_options['units_b']) and \
+                linkage_options['units'] is _unspecified:
             raise ValueError(f'{info_str}: Linkage units were not specified but the units of '
                              f'var_a ({units["a"]}) and var_b ({units["b"]}) are not the same. '
                              f'Units for this linkage constraint must be specified explicitly.')
