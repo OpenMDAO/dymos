@@ -1458,11 +1458,10 @@ class TestInvalidLinkages(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver = om.pyOptSparseDriver(optimizer='SLSQP')
         p.driver.declare_coloring()
 
-        p.driver.opt_settings['Major iterations limit'] = 5
+        # p.driver.opt_settings['Major iterations limit'] = 5
 
         p.model.add_subsystem('size_comp', CannonballSizeComp(), promotes_inputs=['radius', 'dens'])
         p.model.set_input_defaults('dens', val=7.87, units='g/cm**3')

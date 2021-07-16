@@ -3,6 +3,7 @@ import numpy as np
 import openmdao.api as om
 
 from ..options import options as dymos_options
+from ..utils.misc import _unspecified
 
 
 class PhaseLinkageComp(om.ExplicitComponent):
@@ -68,16 +69,16 @@ class PhaseLinkageComp(om.ExplicitComponent):
         loc_a = lnk['loc_a']
         loc_b = lnk['loc_b']
 
-        units_a = lnk['units_a']
-        units_b = lnk['units_b']
-        units = lnk['units']
+        units_a = lnk['units_a'] if lnk['units_a'] is not _unspecified else None
+        units_b = lnk['units_b'] if lnk['units_b'] is not _unspecified else None
+        units = lnk['units'] if lnk['units'] is not _unspecified else None
 
-        if units_a is None and units is None:
+        if units_a is None or units is None:
             lnk._conv_a, lnk._offset_a = 1.0, 0.0
         else:
             lnk._conv_a, lnk._offset_a = om.unit_conversion(units_a, units)
 
-        if units_b is None and units is None:
+        if units_b is None or units is None:
             lnk._conv_b, lnk._offset_b = 1.0, 0.0
         else:
             lnk._conv_b, lnk._offset_b = om.unit_conversion(units_b, units)
