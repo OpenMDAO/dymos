@@ -116,8 +116,7 @@ class TestDocOscillator(unittest.TestCase):
         prob.set_val('traj.phase0.parameters:c', 0.5)
         prob.set_val('traj.phase0.parameters:m', 1.0)
 
-        # Now we're using the optimization driver to iteratively run the model and vary the
-        # phase duration until the final y value is 0.
+        # Now converge the dynamics using a nonlinear solver to find the trajectory without optimization.
         prob.run_model()
 
         # Perform an explicit simulation of our ODE from the initial conditions.
