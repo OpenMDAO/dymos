@@ -8,12 +8,11 @@ import numpy as np
 from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import printoptions
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.robot_arm.robot_arm_ode import RobotArmODE
-from dymos.utils.testing_utils import require_pyoptsparse
 
 
 @use_tempdirs

@@ -37,6 +37,12 @@ class LinkageOptionsDictionary(om.OptionsDictionary):
         self.declare(name='sign_b', types=Number, default=-1.0,
                      desc='sign of the second variable in the linkage (\'initial\' or \'final\')')
 
+        self.declare(name='units_a', default=_unspecified,
+                     allow_none=True, desc='units in which the first variable is defined')
+
+        self.declare(name='units_b', default=_unspecified,
+                     allow_none=True, desc='units in which the second variable is defined')
+
         self.declare(name='units', default=_unspecified,
                      allow_none=True, desc='units in which the linkage constraint is defined')
 

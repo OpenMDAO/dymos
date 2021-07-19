@@ -472,13 +472,19 @@ class Trajectory(om.Group):
         linkage_options._src_b = sources['b']
         linkage_options['shape'] = shapes['b']
 
-        if linkage_options['units'] is _unspecified:
-            if units['a'] != units['b']:
-                raise ValueError(f'{info_str}: Linkage units were not specified but the units of '
-                                 f'var_a ({units["a"]}) and var_b ({units["b"]}) are not the same. '
-                                 f'Units for this linkage constraint must be specified explicitly.')
-            else:
-                linkage_options['units'] = units['b']
+        if linkage_options['units_a'] is _unspecified:
+            linkage_options['units_a'] = units['a']
+
+        if linkage_options['units_b'] is _unspecified:
+            linkage_options['units_b'] = units['b']
+
+        if (linkage_options['units_a'] != linkage_options['units_b']) and \
+                linkage_options['units'] is _unspecified:
+            raise ValueError(f'{info_str}: Linkage units were not specified but the units of '
+                             f'var_a ({units["a"]}) and var_b ({units["b"]}) are not the same. '
+                             f'Units for this linkage constraint must be specified explicitly.')
+        else:
+            linkage_options['units'] = units['a']
 
     def _expand_star_linkage_configure(self):
         """
