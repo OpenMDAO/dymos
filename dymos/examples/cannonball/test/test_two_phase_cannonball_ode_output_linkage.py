@@ -2,12 +2,13 @@ import unittest
 
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
 @use_tempdirs
 class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_two_phase_cannonball_ode_output_linkage(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
@@ -206,6 +207,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
         plt.show()
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_traj_param_target_none(self):
         # Tests a bug where you couldn't specify None as a target for a specific phase.
         import openmdao.api as om

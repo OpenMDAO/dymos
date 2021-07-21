@@ -6,6 +6,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
+from openmdao.utils.testing_utils import require_pyoptsparse
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
@@ -109,6 +110,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     return traj
 
 
+@require_pyoptsparse(optimizer='SLSQP')
 def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP', r_target=3.0,
                                  transcription_order=3, compressed=False,
                                  show_output=True):

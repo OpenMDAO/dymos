@@ -6,7 +6,7 @@ import unittest
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
@@ -23,6 +23,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
     def tearDown(self):
         dm.options['include_check_partials'] = False
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_optimizer_defects(self):
 
         prob = om.Problem()
@@ -278,6 +279,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         soc1 = prob['traj.phase1.states:state_of_charge']
         assert_near_equal(soc1[-1], 1.0, 1e-6)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_optimizer_segments_direct_connections(self):
         prob = om.Problem()
 

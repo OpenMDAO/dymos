@@ -2,12 +2,13 @@ import unittest
 
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
 @use_tempdirs
 class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_link_fixed_states_final_to_initial(self):
         """ Test that linking phases with states that are fixed at the linkage point raises an exception. """
 
@@ -105,6 +106,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
                                            'value of "gam" in ascent to initial value of "gam" in '
                                            'descent.  Values on both sides of the linkage are fixed.')
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_link_fixed_states_final_to_final(self):
         """ Test that linking phases with states that are fixed at the linkage point raises an exception. """
 
@@ -205,6 +207,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
                                            'value of "h" in ascent to final value of "h" in '
                                            'descent.  Values on both sides of the linkage are fixed.')
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_link_fixed_states_initial_to_initial(self):
         """ Test that linking phases with states that are fixed at the linkage point raises an exception. """
 
@@ -305,6 +308,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
                                            'value of "h" in ascent to initial value of "h" in '
                                            'descent.  Values on both sides of the linkage are fixed.')
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_link_fixed_times_final_to_initial(self):
         """ Test that linking phases with times that are fixed at the linkage point raises an exception. """
 
@@ -401,6 +405,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
                                            'value of "time" in ascent to initial value of "time" in '
                                            'descent.  Values on both sides of the linkage are fixed.')
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_link_bounded_times_final_to_initial(self):
         """ Test that linking phases with times that are fixed at the linkage point raises an exception. """
 

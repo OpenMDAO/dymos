@@ -15,6 +15,7 @@ expected_results = {'constrained': {'time': 2198.67, 'theta': 30.6255},
 
 
 @use_tempdirs
+@require_pyoptsparse(optimizer='SLSQP')
 class TestReentry(unittest.TestCase):
 
     def make_problem(self, constrained=True, transcription=GaussLobatto, optimizer='SLSQP',

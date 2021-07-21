@@ -17,6 +17,7 @@ from dymos.visualization.timeseries_plots import timeseries_plots
 @use_tempdirs
 class TestTimeSeriesPlotsBasics(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def setUp(self):
         optimizer = 'SLSQP'
         num_segments = 8

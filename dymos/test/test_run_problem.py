@@ -7,7 +7,7 @@ from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
@@ -21,6 +21,7 @@ _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 class TestRunProblem(unittest.TestCase):
 
     @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_run_HS_problem_radau(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
@@ -87,6 +88,7 @@ class TestRunProblem(unittest.TestCase):
                           tolerance=5e-4)
 
     @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_run_HS_problem_gl(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
@@ -151,6 +153,7 @@ class TestRunProblem(unittest.TestCase):
                           J,
                           tolerance=5e-4)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_run_brachistochrone_problem(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
@@ -196,6 +199,7 @@ class TestRunProblem(unittest.TestCase):
         case = cr.get_case('final')
         assert_almost_equal(case.outputs['traj.phase0.timeseries.time'].max(), 1.8016, decimal=4)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_run_brachistochrone_vector_states_problem(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
@@ -239,6 +243,7 @@ class TestRunProblem(unittest.TestCase):
 
         assert_near_equal(p.get_val('phase0.time')[-1], 1.8016, tolerance=1.0E-3)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_run_brachistochrone_problem_with_simulate(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
@@ -334,6 +339,7 @@ class TestRunProblem(unittest.TestCase):
 
 @use_tempdirs
 class TestRunProblemPlotting(unittest.TestCase):
+    @require_pyoptsparse(optimizer='SLSQP')
     def setUp(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()

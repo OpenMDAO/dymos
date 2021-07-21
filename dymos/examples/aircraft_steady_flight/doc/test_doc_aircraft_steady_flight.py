@@ -5,13 +5,14 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
 from dymos.utils.doc_utils import save_for_docs
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
 @use_tempdirs
 class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
     @save_for_docs
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_steady_aircraft_for_docs(self):
         import matplotlib.pyplot as plt
 

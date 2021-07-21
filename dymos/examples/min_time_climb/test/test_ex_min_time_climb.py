@@ -4,9 +4,10 @@ import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
+@require_pyoptsparse(optimizer='SLSQP')
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                    transcription_order=3, force_alloc_complex=False):
 

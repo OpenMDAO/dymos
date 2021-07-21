@@ -4,12 +4,13 @@ import unittest
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos.examples.flying_robot.flying_robot_ode import FlyingRobotODE
 
 
+@require_pyoptsparse(optimizer='SLSQP')
 def flying_robot_direct_collocation(transcription='gauss-lobatto', compressed=True):
 
     p = om.Problem(model=om.Group())

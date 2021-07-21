@@ -6,7 +6,7 @@ from scipy.interpolate import interp1d
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal, assert_warning
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -245,6 +245,7 @@ class MinTimeClimbODEDuplicateOutput(om.Group):
         self.connect('prop.thrust', 'flight_dynamics.T')
 
 
+@require_pyoptsparse(optimizer='SLSQP')
 def min_time_climb(num_seg=3, transcription_class=dm.Radau, transcription_order=3,
                    force_alloc_complex=False):
 
