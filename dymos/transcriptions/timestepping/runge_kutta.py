@@ -66,6 +66,10 @@ def lotka_volterra(t, x, u=None, d=None):
 
     return dx_dt
 
+euler = {'a': np.array([[0]]),
+         'c': np.array([0]),
+         'b': np.array([1])}
+
 rk4 = {'a': np.array([[0, 0, 0, 0],
                       [1/2, 0, 0, 0],
                       [0, 1/2, 0, 0],
@@ -204,8 +208,12 @@ class RKIntegrationComp(om.ExplicitComponent):
 
         Parameters
         ----------
-        inputs : `Vector`
+        stage_inputs : dict of {str : np.array}
             The inputs to be evaluated at the given point.
+        state_rates : dict of {str : np.array}
+            The time derivative of each state variable for the given stage inputs.
+        rate_partials : dict of { (str, str) : np.array}
+            The partial of the time derivatives wrt each input variable.
 
         Returns
         -------
@@ -230,19 +238,30 @@ class RKIntegrationComp(om.ExplicitComponent):
 
         p.run_model()
 
-        print(stage_inputs['time'])
         for name, options in self.options['state_options'].items():
             rate_src = options['rate_source']
             state_rates[name][...] = p[f'ode.{rate_src}']
-            derivs = p.compute_totals(of=f'ode.{rate_src}', wrt=wrt, return_format='array')
-            print(derivs)
-            # for wrt, wrt_options in self.options['state_options'].items():
-            #     rate_partials[name, wrt] = p.compute_totals(of=f'ode.{rate_src}',
-            #                                                 wrt=f'states:{name}',
-            #                                                 return_format='array')
-            #     print(name, wrt, rate_partials[name, wrt])
+            derivs = p.compute_totals(of=f'ode.{rate_src}', wrt=wrt)
+            for var in wrt:
+                rate_partials[name, var] = derivs[f'ode.{rate_src}', var]
 
     def _rk_step(self, t0, y0, h, inputs):
+        """
+        Evaluate a single step of the given RK method.
+
+        Parameters
+        ----------
+        t0
+        y0
+        h
+        inputs
+
+        Returns
+        -------
+
+        """
+        #todo: Remove instantiation of numpy arrays from this method and use pre-created ones instead.
+
         a = self.options['tableau']['a']
         b = self.options['tableau']['b']
         b_star = self.options['tableau'].get('b_star', None)
@@ -253,6 +272,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         stage_inputs = {'time': np.zeros(1)}
         step_outputs = {}
         step_errors = {}
+        step_derivs = {}
 
         for state_name, options in self.options['state_options'].items():
             k[state_name] = np.zeros((num_stages,) + options['shape'])
@@ -265,6 +285,8 @@ class RKIntegrationComp(om.ExplicitComponent):
                 wrt_size = np.prod(wrt_state_options['shape'])
                 self._state_rates_derivs[state_name, wrt_state] = {i: np.zeros((size, wrt_size)) for i in range(num_stages)}
 
+        # For each stage in the RK method used, set the stage inputs and compute the k
+        # coefficients of the RK method.
         for i in range(num_stages):
             t_s = t0 + c[i] * h
             stage_inputs['time'][:] = t_s
@@ -276,29 +298,24 @@ class RKIntegrationComp(om.ExplicitComponent):
 
             self._eval_f(stage_inputs, self._state_rates, self._state_rates_derivs)
 
-            # print('state rates')
-            # print(self._state_rates)
-
             for state_name in self.options['state_options']:
                 k[state_name][i, ...] = h * self._state_rates[state_name]
 
-        # print(k['x0'])
-
+        # Apply the step for the RK method
         for state_name, options in self.options['state_options'].items():
             step_outputs[state_name] = y0[state_name] + np.tensordot(b, k[state_name], axes=(0, 0))
 
-            if b_star is not None:
-                yf_star = y0[state_name] + np.tensordot(b, k[state_name], axes=(0, 0))
-                step_errors[state_name][...] = step_outputs[state_name] - yf_star
-            else:
-                step_errors[state_name][...] = 0.0
+            # if b_star is not None:
+            #     yf_star = y0[state_name] + np.tensordot(b, k[state_name], axes=(0, 0))
+            #     step_errors[state_name][...] = step_outputs[state_name] - yf_star
+            # else:
+            #     step_errors[state_name][...] = 0.0
 
-        return step_outputs, step_errors
+        return step_outputs, step_errors, step_derivs
 
     def compute(self, inputs, outputs):
 
         t0_interval = inputs['t_initial']
-        tf_interval = inputs['t_initial'] + inputs['t_duration']
         t_step = t0_interval
         y_step = {}
         h = inputs['t_duration'] / self.options['num_steps']
@@ -308,30 +325,36 @@ class RKIntegrationComp(om.ExplicitComponent):
         for state_name in self.options['state_options']:
             y_step[state_name] = inputs[f'state_initial_value:{state_name}']
 
-        # print(t_step, y_step['x0'])
-
         for i in range(self.options['num_steps']):
-            yf, yerr = self._rk_step(t_step, y_step, h, inputs)
+            yf, yerr, yderivs = self._rk_step(t_step, y_step, h, inputs)
             t_step += h
             y_step = yf
-
-            # print(t_step, yf['x0'])
 
         for state_name in self.options['state_options']:
             outputs[f'state_final_value:{state_name}'] = yf[state_name]
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
-        t_step = inputs['t_initial']
+        t0_interval = inputs['t_initial']
+        t_step = t0_interval
         y_step = {}
         h = inputs['t_duration'] / self.options['num_steps']
+
+        derivs_per_step = []
 
         for state_name in self.options['state_options']:
             y_step[state_name] = inputs[f'state_initial_value:{state_name}']
 
         for i in range(self.options['num_steps']):
-            yf, yerr = self._rk_step(t_step, y_step, h, inputs)
+            step_y, step_err, step_derivs = self._rk_step(t_step, y_step, h, inputs)
             t_step += h
-            y_step = yf
+            y_step = step_y
+            derivs_per_step.append(step_derivs)
+
+        for state_name, options in self.options['state_options'].items():
+            state_size = np.prod(options['shape'])
+            for input_name in inputs:
+                input_size = np.prod(inputs[input_name].shape)
+                partials[f'state_final_value:{state_name}', input_name] = np.zeros((state_size, input_size))
 
 
 def validate(h=0.2, num_steps=10):
@@ -386,9 +409,16 @@ if __name__ == '__main__':
     state_options['x1']['units'] = 'm'
 
     p.model.add_subsystem('rk', RKIntegrationComp(ode_class=TestODE, time_options=time_options,
-                                                  state_options=state_options, num_steps=10))
+                                                  state_options=state_options, num_steps=100,
+                                                  tableau=euler))
 
-    p.setup()
+    p.model.add_design_var('rk.state_initial_value:x0')
+    p.model.add_design_var('rk.t_initial')
+    p.model.add_design_var('rk.t_duration')
+
+    p.model.add_objective('rk.state_final_value:x0')
+
+    p.setup(force_alloc_complex=True)
 
     p.set_val('rk.state_initial_value:x0', 0.5)
     p.set_val('rk.state_initial_value:x1', 0.5)
@@ -401,4 +431,5 @@ if __name__ == '__main__':
 
     p.compute_totals(of=['rk.state_final_value:x0'], wrt=['rk.state_initial_value:x0'])
 
+    p.check_totals(method='fd', form='central')
     # validate()
