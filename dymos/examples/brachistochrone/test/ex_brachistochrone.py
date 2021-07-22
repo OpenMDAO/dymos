@@ -3,6 +3,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import openmdao.api as om
+from openmdao.utils.testing_utils import require_pyoptsparse
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -10,6 +11,7 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 SHOW_PLOTS = True
 
 
+@require_pyoptsparse(optimizer='SLSQP')
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
                              compressed=True, optimizer='SLSQP', run_driver=True, force_alloc_complex=False,
                              solve_segments=False):

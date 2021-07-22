@@ -3,6 +3,11 @@ import unittest
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 
+try:
+    from openmdao.drivers.pyoptsparse_driver import pyOptSparseDriver
+except:
+    pyOptSparseDriver = None
+
 import dymos as dm
 
 
@@ -66,6 +71,7 @@ def add_parameter_test(testShape=None):
 
 
 @use_tempdirs
+@unittest.skipIf(pyOptSparseDriver, "pyOptSparse is required.")
 class TestParameterTypes(unittest.TestCase):
     def test_tuple(self):
         add_parameter_test((3, ))

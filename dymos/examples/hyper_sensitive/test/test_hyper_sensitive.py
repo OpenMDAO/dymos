@@ -27,6 +27,7 @@ class TestHyperSensitive(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def make_problem(self, transcription=GaussLobatto, optimizer='SLSQP', numseg=30):
         p = Problem(model=Group())
         p.driver = pyOptSparseDriver()

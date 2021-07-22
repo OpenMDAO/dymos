@@ -7,13 +7,14 @@ import dymos as dm
 import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
 import dymos.examples.brachistochrone.test.ex_brachistochrone as ex_brachistochrone
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 
 OPT, OPTIMIZER = set_pyoptsparse_opt('SLSQP')
 
 
+@require_pyoptsparse(optimizer='SLSQP')
 def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
                   compressed=True, optimizer='SLSQP', run_driver=True, force_alloc_complex=False,
                   solve_segments=False):

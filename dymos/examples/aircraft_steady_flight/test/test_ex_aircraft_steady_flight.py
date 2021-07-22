@@ -3,13 +3,14 @@ import unittest
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos.utils.lgl import lgl
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 
+@require_pyoptsparse(optimizer='SLSQP')
 def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
                               use_boundary_constraints=False, compressed=False):
     p = om.Problem(model=om.Group())

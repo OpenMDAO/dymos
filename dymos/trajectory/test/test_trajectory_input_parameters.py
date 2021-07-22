@@ -9,9 +9,10 @@ _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
+@require_pyoptsparse(optimizer='SLSQP')
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=False,
               connected=False, param_mode='param_sequence'):
 
@@ -135,6 +136,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     return traj
 
 
+@require_pyoptsparse(optimizer='SLSQP')
 def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP', r_target=3.0,
                                  transcription_order=3, compressed=False,
                                  show_output=True, connected=False, param_mode='param_sequence'):

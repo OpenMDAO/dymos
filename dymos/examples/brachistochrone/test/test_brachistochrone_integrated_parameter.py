@@ -5,7 +5,7 @@ import numpy as np
 
 import openmdao.api as om
 from dymos.utils.testing_utils import assert_timeseries_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
 class BrachistochroneODE(om.ExplicitComponent):
@@ -88,6 +88,7 @@ class TestBrachistochroneIntegratedParameter(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_integrated_param_gauss_lobatto(self):
         import numpy as np
         import openmdao.api as om
@@ -157,6 +158,7 @@ class TestBrachistochroneIntegratedParameter(unittest.TestCase):
         assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, tolerance=5.0E-3)
         assert_timeseries_near_equal(t_sol, theta_sol, t_sim, theta_sim, tolerance=5.0E-3)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_integrated_parameter_radau_ps(self):
         import numpy as np
         import openmdao.api as om

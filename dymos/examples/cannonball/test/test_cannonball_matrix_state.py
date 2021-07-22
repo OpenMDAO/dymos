@@ -3,7 +3,7 @@ import dymos as dm
 
 import unittest
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
 class ODEComp(om.ExplicitComponent):
@@ -30,6 +30,7 @@ class ODEComp(om.ExplicitComponent):
 @use_tempdirs
 class TestCannonballMatrixState(unittest.TestCase):
     """ Tests to verify that dymos can use matrix-states"""
+    @require_pyoptsparse(optimizer='SLSQP')
     def _make_problem(self, tx):
         p = om.Problem()
 
@@ -132,6 +133,7 @@ class TestCannonballMatrixState(unittest.TestCase):
 @use_tempdirs
 class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
     """ Tests to verify that dymos can use matrix-states"""
+    @require_pyoptsparse(optimizer='SLSQP')
     def _make_problem(self, tx):
         p = om.Problem()
 
