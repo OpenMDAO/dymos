@@ -30,7 +30,7 @@ optional_dependencies['all'] = sorted([
 
 
 setup(name='dymos',
-    version='1.0.0',
+    version='1.1.0',
     description='Open-Source Optimization of Dynamic Multidisciplinary Systems',
     long_description='''
 Dymos is a framework for the simulation and optimization of dynamical systems within the OpenMDAO Multidisciplinary Analysis and Optimization environment.
@@ -58,7 +58,7 @@ The software has two primary objectives:
     packages=find_packages(),
     python_requires=">=3.6",
     install_requires=[
-        'openmdao>=3.9.0',
+        'openmdao>=3.10.0',
         'numpy>=1.14.1',
         'scipy>=1.0.0'
     ],
