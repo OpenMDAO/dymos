@@ -1,3 +1,50 @@
+*******************************
+# Release Notes for Dymos 1.1.0
+
+July 22, 2021
+
+This is version 1.1.0 of Dymos.
+The release provides compatibility with OpenMDAO >3.10.0, updates the
+documentation to JupyterBook, and adds a few new features.
+
+## Backwards Incompatible API Changes & Deprecations
+
+* Removed vectorize_derivs option from phase objectives due to OpenMDAO update. [#605](https://github.com/OpenMDAO/dymos/pull/605)
+* Updated tags and changed the name of option `dynamic` to `static_target` on parameters.  [#591](https://github.com/OpenMDAO/dymos/pull/591)
+* Updated phase.interpolate to automatically detect variable type, renamed to phase.interp.  Old version is deprecated. [#592](https://github.com/OpenMDAO/dymos/pull/592)
+
+## Enhancements
+
+* Documentation updated to JupyterBook. [#611](https://github.com/OpenMDAO/dymos/pull/611) [#613](https://github.com/OpenMDAO/dymos/pull/613) [#614](https://github.com/OpenMDAO/dymos/pull/614) [#615](https://github.com/OpenMDAO/dymos/pull/615) [#616](https://github.com/OpenMDAO/dymos/pull/616) [#618](https://github.com/OpenMDAO/dymos/pull/618)
+* simulate_options are now stored within each Phase. [#610](https://github.com/OpenMDAO/dymos/pull/610)
+* Removed vectorize_derivs option from phase objectives due to OpenMDAO update. [#605](https://github.com/OpenMDAO/dymos/pull/605)
+* Updated dymos to handle the new OpenMDAO distributed I/O approach [#597](https://github.com/OpenMDAO/dymos/pull/597)
+* Updated tags and changed the name of option `dynamic` to `static_target` on parameters.  [#591](https://github.com/OpenMDAO/dymos/pull/591)
+* Updated phase.interpolate to automatically detect variable type, renamed to phase.interp.  Old version is deprecated. [#592](https://github.com/OpenMDAO/dymos/pull/592)
+
+## Bug Fixes
+
+* Fixed an issue with units in linkage constraints. [#620](https://github.com/OpenMDAO/dymos/pull/620)
+* Fix for key error when performing order reduction under hp adaptive refinement. [#590](https://github.com/OpenMDAO/dymos/pull/590)
+* Parameters in the ODE system now respect both dynamic=True and False. [#581](https://github.com/OpenMDAO/dymos/pull/581)
+
+## Miscellaneous
+
+* Added require_pyoptsparse to all tests that use pyOptSparseDriver [#624](https://github.com/OpenMDAO/dymos/pull/624)
+* Added a couple of fixes to examples docs [#622](https://github.com/OpenMDAO/dymos/pull/622)
+* Fixed some typos in 'Getting Started' section of the docs [#621](https://github.com/OpenMDAO/dymos/pull/621)
+* Install coveralls from pypi in github workflow [#601](https://github.com/OpenMDAO/dymos/pull/601)
+* Change base_dir arg to coveralls [#600](https://github.com/OpenMDAO/dymos/pull/600)
+* Fixed minor typos in docs. [#599](https://github.com/OpenMDAO/dymos/pull/599)
+* Removed require_pyoptsparse and moved it to OpenMDAO. [#595](https://github.com/OpenMDAO/dymos/pull/595)
+* Added publishing mkdocs to gh-pages. [#594](https://github.com/OpenMDAO/dymos/pull/594)
+* Added github actions workflow for CI. [#589](https://github.com/OpenMDAO/dymos/pull/589)
+* Readme updated to point to JOSS paper. [#578](https://github.com/OpenMDAO/dymos/pull/578)
+* Updated JOSS bibliography. [#573](https://github.com/OpenMDAO/dymos/pull/573) [#574](https://github.com/OpenMDAO/dymos/pull/574) [#576](https://github.com/OpenMDAO/dymos/pull/576) [#577](https://github.com/OpenMDAO/dymos/pull/577)
+* Fixed some references in JOSS paper. [#572](https://github.com/OpenMDAO/dymos/pull/572)
+* Minor grammar and consistency edits for JOSS paper. [#571](https://github.com/OpenMDAO/dymos/pull/571)
+* New decorator 'require_pyoptsparse' that can be used to skip tests or test objects that require specific optimizers. (note: subsequently moved to OpenMDAO) [#570](https://github.com/OpenMDAO/dymos/pull/570)
+
 ********************************
 # Release Notes for Dymos 1.0.0
 
