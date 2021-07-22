@@ -30,6 +30,7 @@ documentation to JupyterBook, and adds a few new features.
 
 ## Miscellaneous
 
+* Added missing example Brachistochrone with upstream initial and duration states. [#623](https://github.com/OpenMDAO/dymos/pull/623)
 * Added require_pyoptsparse to all tests that use pyOptSparseDriver [#624](https://github.com/OpenMDAO/dymos/pull/624)
 * Added a couple of fixes to examples docs [#622](https://github.com/OpenMDAO/dymos/pull/622)
 * Fixed some typos in 'Getting Started' section of the docs [#621](https://github.com/OpenMDAO/dymos/pull/621)
