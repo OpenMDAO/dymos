@@ -186,8 +186,10 @@ def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6):
 
 class MissingImports(object):
     """
-    ContextManager that emulates missing python packages or modules
+    ContextManager that emulates missing python packages or modules.
+
     Each import is checked to see if it starts with a missing import.
+
     For instance:
     with MissingImports('matplotlib'):
         from matplotlib.pyplot import plt
@@ -196,6 +198,7 @@ class MissingImports(object):
     This implementation modifies builtins.__import__ which is allowed but highly
     discouraged according to the documentation, but implementing a MetaPathFinder
     seemed like overkill.  Use at your own risk.
+
     Parameters
     ----------
     missing_imports : str or Sequence of str
@@ -218,7 +221,6 @@ class MissingImports(object):
             if name.startswith(mi):
                 raise ImportError(f'No module named {name} due to missing import {mi}.')
         return self._cached_import(name, globals, locals, fromlist, level)
-
 
     def __exit__(self, type, value, traceback):
         builtins.__import__ = self._cached_import

@@ -232,6 +232,7 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             assert_timeseries_near_equal(t1, x1, t2, x2)
 
+
 @use_tempdirs
 class TestMissingImports(unittest.TestCase):
 
@@ -244,4 +245,3 @@ class TestMissingImports(unittest.TestCase):
         msg = "No module named pyoptsparse due to missing import pyoptsparse."
 
         self.assertEqual(msg, str(e.exception))
-
