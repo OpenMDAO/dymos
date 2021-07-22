@@ -6,7 +6,7 @@ import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 import dymos as dm
 
-from dymos.utils.testing_utils import assert_cases_equal, assert_timeseries_near_equal
+from dymos.utils.testing_utils import assert_cases_equal, assert_timeseries_near_equal, MissingImports
 
 
 @use_tempdirs
@@ -231,3 +231,17 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
 
         with self.assertRaises(ValueError) as e:
             assert_timeseries_near_equal(t1, x1, t2, x2)
+
+@use_tempdirs
+class TestMissingImports(unittest.TestCase):
+
+    def test_missing_imports(self):
+
+        with self.assertRaises(ImportError) as e:
+            with MissingImports('pyoptsparse'):
+                import pyoptsparse
+
+        msg = "No module named pyoptsparse due to missing import pyoptsparse."
+
+        self.assertEqual(msg, str(e.exception))
+
