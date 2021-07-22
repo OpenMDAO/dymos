@@ -4,7 +4,7 @@
 July 22, 2021
 
 This is version 1.1.0 of Dymos.
-The release provides compatibility with OpenMDAO >3.10.0, updates the
+The release provides compatibility with OpenMDAO >=3.10.0, updates the
 documentation to JupyterBook, and adds a few new features.
 
 ## Backwards Incompatible API Changes & Deprecations
