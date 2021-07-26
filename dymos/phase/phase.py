@@ -8,6 +8,7 @@ from scipy import interpolate
 
 import openmdao
 import openmdao.api as om
+from openmdao.utils.mpi import MPI
 from openmdao.core.system import System
 import dymos as dm
 
@@ -1855,6 +1856,10 @@ class Phase(om.Group):
             self_path = self.name + '.'
         else:
             self_path = self.pathname.split('.')[0] + '.' + self.name + '.'
+
+        if MPI:
+            op_dict = MPI.COMM_WORLD.bcast(op_dict, root=0)
+
 
         # Set the integration times
         op = op_dict['timeseries.time']
