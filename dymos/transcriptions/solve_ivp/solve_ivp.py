@@ -620,7 +620,7 @@ class SolveIVP(TranscriptionBase):
                                src_indices=src_idxs, src_shape=shape)
             else:
                 phase.connect(src_name=self.get_rate_source_path(name, phase),
-                              tgt_name=f'timeseries.all_values:state_rates:{name}')
+                              tgt_name=f'timeseries.all_values:state_rates:{name}', src_indices=om.slicer[:])
 
         for name, options in phase.control_options.items():
             control_units = options['units']
