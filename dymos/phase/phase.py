@@ -1860,7 +1860,6 @@ class Phase(om.Group):
         if MPI:
             op_dict = MPI.COMM_WORLD.bcast(op_dict, root=0)
 
-
         # Set the integration times
         op = op_dict['timeseries.time']
         prob.set_val(f'{self_path}t_initial', op['value'][0, ...])

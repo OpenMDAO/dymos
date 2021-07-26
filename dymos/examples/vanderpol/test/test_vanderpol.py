@@ -19,7 +19,7 @@ class TestVanderpolExample(unittest.TestCase):
     def test_vanderpol_simulate_true(self):
         # simulate true
         p = vanderpol(transcription='radau-ps', num_segments=30, transcription_order=3,
-                    compressed=True, optimizer='SLSQP', delay=0.005, distrib=True, use_pyoptsparse=True)
+                      compressed=True, optimizer='SLSQP', delay=0.005, distrib=True, use_pyoptsparse=True)
 
         dm.run_problem(p, run_driver=True, simulate=True)
 
