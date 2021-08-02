@@ -249,7 +249,8 @@ class SegmentSimulationComp(om.ExplicitComponent):
                         **sim_options)
 
         if not sol.success:
-            raise om.AnalysisError(f'solve_ivp failed: {sol.message}')
+            raise om.AnalysisError(f'solve_ivp failed: {sol.message} Dynamics changing '
+                                   f'too dramatically')
 
         # Extract the solution
         pos = 0
