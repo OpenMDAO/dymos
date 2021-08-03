@@ -497,27 +497,59 @@ class EulerIntegrationComp(om.ExplicitComponent):
         return self._f_x, self._f_t
 
     def _update_derivs_fwd(self, pt_pt, pt_ph, px_pt, px_px, px_ph):
-        # Accumulate the totals
-        # Compute this with the initial values of dx_dx and dt_dtd before they're updated
-        self.dx_dtd = px_px @ self.dx_dtd + \
-                      px_pt @ self.dt_dtd + \
-                      px_ph @ self.dh_dtd
+        """
+        Update the total derivatives being integrated across the propagation in forward mode.
 
-        self.dx_dt0 = px_px @ self.dx_dt0 + \
-                      px_pt @ self.dt_dt0 + \
-                      px_ph @ self.dh_dt0
+        Parameters
+        ----------
+        pt_pt : np.array
+            The partial derivative of time after the time update wrt time before the update.
+        pt_ph : np.array
+            The partial derivative of time after the time update wrt the step size.
+        px_pt : np.array
+            The partial derivative of the state vector after the state update wrt the time before
+            the update.
+        px_px : np.array
+            The partial derivative of the state vector after the state update wrt the state vector
+            before the update.
+        px_ph : np.array
+            The partial derivative of the state vector after the state update wrt the step size.
+        """
+        self.dx_dtd[...] = px_px @ self.dx_dtd + \
+                           px_pt @ self.dt_dtd + \
+                           px_ph @ self.dh_dtd
 
-        self.dx_dx0 = px_px @ self.dx_dx0
+        self.dx_dt0[...] = px_px @ self.dx_dt0 + \
+                           px_pt @ self.dt_dt0 + \
+                           px_ph @ self.dh_dt0
 
-        self.dt_dtd = pt_pt @ self.dt_dtd + \
-                      pt_ph @ self.dh_dtd
+        self.dx_dx0[...] = px_px @ self.dx_dx0
 
-        self.dt_dt0 = pt_pt @ self.dt_dt0
+        self.dt_dtd[...] = pt_pt @ self.dt_dtd + \
+                           pt_ph @ self.dh_dtd
+
+        self.dt_dt0[...] = pt_pt @ self.dt_dt0
 
     def _update_derivs_rev(self, pt_pt, pt_ph, px_pt, px_px, px_ph):
-        # Accumulate the totals in reverse
-        # Compute this with the initial values of dx_dx and dt_dtd before they're updated
-        self.dx_dtd_bar = self.dx_dtd_bar @ px_px.T  + \
+        """
+        Update the total derivatives being integrated across the propagation in reverse mode.
+
+        Parameters
+        ----------
+        pt_pt : np.array
+            The partial derivative of time after the time update wrt time before the update.
+        pt_ph : np.array
+            The partial derivative of time after the time update wrt the step size.
+        px_pt : np.array
+            The partial derivative of the state vector after the state update wrt the time before
+            the update.
+        px_px : np.array
+            The partial derivative of the state vector after the state update wrt the state vector
+            before the update.
+        px_ph : np.array
+            The partial derivative of the state vector after the state update wrt the step size.
+        """
+        self.dx_dtd_bar = self.dx_dtd_bar @ px_px.T + \
                           self.dt_dtd_bar @ px_pt.T + \
                           self.dh_dtd_bar @ px_ph.T
 
@@ -530,7 +562,7 @@ class EulerIntegrationComp(om.ExplicitComponent):
         self.dt_dtd_bar = self.dt_dtd_bar @ pt_pt.T + \
                           self.dh_dtd_bar @ pt_ph.T
 
-        self.dt_dt0_bar = self.dt_dt0.T @ pt_pt.T
+        self.dt_dt0_bar = self.dt_dt0_bar @ pt_pt.T
 
     def _propagate(self, inputs, outputs, derivs=None, time_stack=None, state_stack=None):
         """
@@ -539,15 +571,20 @@ class EulerIntegrationComp(om.ExplicitComponent):
 
         Parameters
         ----------
-        inputs
-        outputs
-        derivs
-        time_stack
-        state_stack
-
-        Returns
-        -------
-
+        inputs : vector
+            The inputs from the compute call to the EulerIntegrationComp.
+        outputs : vector
+            The outputs from the compute call to the EulerIntegrationComp.
+        derivs : vector or None
+            If derivatives are to be calculated in a forward mode, this is the vector of partials
+            from the compute_partials call to this component.  If derivatives are not to be
+            computed, this should be None.
+        time_stack : collections.deque
+            A stack into which the time of each evaluation should be stored. This stack is cleared
+            by this method before any values are added.
+        state_stack : collections.deque
+            A stack into which the state vector at each evaluation should be stored. This stack is
+            cleared by this method before any values are added.
         """
         N = self.options['num_steps']
 
@@ -555,9 +592,6 @@ class EulerIntegrationComp(om.ExplicitComponent):
             h = inputs['t_duration'] / N
         else:
             h = 0
-
-        # Initialize the total derivatives
-        self._initialize_derivs()
 
         # Initialize states
         x = self._x
@@ -568,6 +602,8 @@ class EulerIntegrationComp(om.ExplicitComponent):
         t = inputs['t_initial']
 
         if derivs:
+            # Initialize the total derivatives
+            self._initialize_derivs()
             # From the time update equation, the partial of the new time wrt the previous time and
             # the partial wrt the stepsize are both [1].
             pt_pt = np.ones((1, 1), dtype=complex)
@@ -578,7 +614,7 @@ class EulerIntegrationComp(om.ExplicitComponent):
             state_stack.append(x)
         if time_stack is not None:
             time_stack.clear()
-            time_stack.append(x)
+            time_stack.append(t)
 
         for i in range(N):
             # Compute the state rates
@@ -600,10 +636,12 @@ class EulerIntegrationComp(om.ExplicitComponent):
             t = t + h
             x = x + h * f
 
-            if state_stack:
-                state_stack.append(x)
-            if time_stack:
-                time_stack.append(t)
+            # The ODE is not evaluated at the final time, so don't append its value here.
+            if i < N - 1:
+                if state_stack:
+                    state_stack.append(x)
+                if time_stack:
+                    time_stack.append(t)
 
         # Unpack the final values
         if outputs:
@@ -637,14 +675,16 @@ class EulerIntegrationComp(om.ExplicitComponent):
 
         Parameters
         ----------
-        inputs
-        derivs
-        time_stack
-        state_stack
-
-        Returns
-        -------
-
+        inputs : vector
+            The inputs from the compute call to the EulerIntegrationComp.
+        derivs : vector or None
+            The vector of partials from the compute_partials call to this component.
+        time_stack : collections.deque
+            A stack into which the time of each evaluation are stored. This stack is emptied
+            in the process of executing this method.
+        state_stack : collections.deque
+            A stack into which the state vector at each evaluation are stored. This stack is emptied
+            in the process of executing this method.
         """
         N = self.options['num_steps']
 
@@ -676,22 +716,7 @@ class EulerIntegrationComp(om.ExplicitComponent):
             px_pt = h * f_t
             px_ph = f
 
-            self.dx_dtd_bar = self.dx_dtd_bar @ px_px.T + \
-                              self.dt_dtd_bar @ px_pt.T + \
-                              self.dh_dtd_bar @ px_ph.T
-
-            print(self.dx_dt0_bar)
-
-            self.dx_dt0_bar = self.dx_dt0_bar @ px_px.T + \
-                              self.dt_dt0_bar @ px_pt.T + \
-                              self.dh_dt0_bar @ px_ph.T
-
-            self.dx_dx0_bar = self.dx_dx0_bar @ px_px.T
-
-            self.dt_dtd_bar = self.dt_dtd_bar @ pt_pt.T + \
-                              self.dh_dtd_bar @ pt_ph.T
-
-            self.dt_dt0_bar = self.dt_dt0_bar @ pt_pt.T
+            self._update_derivs_rev(pt_pt, pt_ph, px_pt, px_px, px_ph)
 
         derivs['t_final', 't_initial'] = self.dt_dt0_bar.T
         derivs['t_final', 't_duration'] = self.dt_dtd_bar.T
@@ -823,7 +848,7 @@ def test_rev():
     p.model.add_subsystem('fixed_step_integrator', EulerIntegrationComp(ode_class, time_options, state_options,
                                                                         parameter_options, control_options,
                                                                         polynomial_control_options, mode='rev',
-                                                                        num_steps=20,
+                                                                        num_steps=10,
                                                                         ode_init_kwargs=None))
     p.setup(mode='rev', force_alloc_complex=True)
 
@@ -842,5 +867,5 @@ def test_rev():
 
 if __name__ == '__main__':
     # test_eval()
-    # test_fwd()
-    test_rev()
+    test_fwd()
+    # test_rev()
