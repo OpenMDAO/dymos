@@ -2,11 +2,9 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 
 from dymos.models.atmosphere.atmos_1976 import USatm1976Comp
-
-assert_almost_equal = np.testing.assert_almost_equal
 
 reference = np.array([[0.00000, 288.150, 101325., 1.22500,  340.294, 0.0000181206],
                       [1000.00, 281.650, 89874.6, 1.111640, 336.434, 0.0000177943],
@@ -44,7 +42,7 @@ class TestAtmosphere(unittest.TestCase):
         p.model.add_subsystem('atmos', subsys=USatm1976Comp(num_nodes=n))
         p.model.connect('alt_m', 'atmos.h')
 
-        p.setup()
+        p.setup(force_alloc_complex=True)
         p.run_model()
 
         assert_near_equal(p.get_val('atmos.temp', units='K'),
@@ -55,6 +53,9 @@ class TestAtmosphere(unittest.TestCase):
                           reference[:, 3], tolerance=1.0E-2)
         assert_near_equal(p.get_val('atmos.sos', units='m/s'),
                           reference[:, 4], tolerance=1.0E-2)
+
+        cpd = p.check_partials(method='cs', out_stream=None)
+        assert_check_partials(cpd)
 
 
 if __name__ == '__main__':  # pragma: no cover
