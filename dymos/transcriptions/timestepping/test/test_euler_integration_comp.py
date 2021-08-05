@@ -73,6 +73,7 @@ class TestEulerIntegrationComp(unittest.TestCase):
         cpd = p.check_partials(method='fd', form='central', compact_print=True)
         assert_check_partials(cpd)
 
+    @unittest.skip('Not implemented')
     def test_rev(self):
         ode_class = SimpleODE
         time_options = dm.phase.options.TimeOptionsDictionary()

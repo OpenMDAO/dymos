@@ -269,6 +269,10 @@ class EulerIntegrationComp(om.ExplicitComponent):
             before the update.
         px_ph : np.array
             The partial derivative of the state vector after the state update wrt the step size.
+        px_pp : np.array
+            The partial derivative of the state vector after the state update wrt the parameter vector.
+        pt_pp : np.array
+            The partial derivative of time after the time update wrt the parameter vector.
         """
         self.dx_dtd[...] = px_px @ self.dx_dtd + \
                            px_pt @ self.dt_dtd + \
@@ -284,6 +288,8 @@ class EulerIntegrationComp(om.ExplicitComponent):
                            pt_ph @ self.dh_dtd
 
         self.dt_dt0[...] = pt_pt @ self.dt_dt0
+                           # pt_ph @ self.dt_dh
+                           # pt_pp @ self.dp_dt0
 
     def _update_derivs_rev(self, pt_pt, pt_ph, px_pt, px_px, px_ph):
         """
@@ -304,6 +310,8 @@ class EulerIntegrationComp(om.ExplicitComponent):
         px_ph : np.array
             The partial derivative of the state vector after the state update wrt the step size.
         """
+        raise NotImplementedError('Reverse-mode derivatives across integration are not yet implemented.')
+
         self.dx_dtd_bar = self.dx_dtd_bar @ px_px.T + \
                           self.dt_dtd_bar @ px_pt.T + \
                           self.dh_dtd_bar @ px_ph.T
