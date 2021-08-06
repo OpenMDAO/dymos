@@ -24,19 +24,25 @@ class TestODEEvaluationGroup(unittest.TestCase):
         state_options['x']['rate_source'] = 'x_dot'
         state_options['x']['targets'] = ['x']
 
+        param_options = {'p': dm.phase.options.ParameterOptionsDictionary()}
+
+        param_options['p']['shape'] = (1,)
+        param_options['p']['units'] = 's**2'
+        param_options['p']['targets'] = ['p']
+
         control_options = {}
         polynomial_control_options = {}
-        parameter_options = {}
 
         p = om.Problem()
         p.model.add_subsystem('ode_eval', ODEEvaluationGroup(ode_class, time_options, state_options,
                                                              control_options,
                                                              polynomial_control_options,
-                                                             parameter_options, ode_init_kwargs=None))
+                                                             param_options, ode_init_kwargs=None))
         p.setup(force_alloc_complex=True)
 
         p.set_val('ode_eval.states:x', [1.25])
         p.set_val('ode_eval.time', [2.2])
+        p.set_val('ode_eval.parameters:p', [1.0])
 
         p.run_model()
 
@@ -46,7 +52,7 @@ class TestODEEvaluationGroup(unittest.TestCase):
 
         assert_near_equal(p.get_val('ode_eval.state_rate_collector.state_rates:x_rate'), xdot_check)
 
-        cpd = p.check_partials(method='cs', out_stream=None)
+        cpd = p.check_partials(method='cs')
         assert_check_partials(cpd)
 
 

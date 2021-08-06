@@ -43,6 +43,7 @@ class ODEEvaluationGroup(om.Group):
     def configure(self):
         self._configure_time()
         self._configure_states()
+        self._configure_params()
 
     def _configure_time(self):
         targets = self.time_options['targets']
@@ -84,6 +85,22 @@ class ODEEvaluationGroup(om.Group):
 
             self.add_design_var(f'states:{name}')
             self.add_constraint(f'state_rate_collector.state_rates:{name}_rate')
+
+    def _configure_params(self):
+        for name, options in self.parameter_options.items():
+            shape = options['shape']
+            targets = options['targets']
+            # rate_path, rate_io = self._get_rate_source_path(name)
+
+            # Promote targets from the ODE
+            for tgt in targets:
+                self.promotes('ode', inputs=[(tgt, f'parameters:{name}')])
+            if targets:
+                self.set_input_defaults(name=f'parameters:{name}',
+                                        val=np.ones(shape),
+                                        units=options['units'])
+
+            self.add_design_var(f'parameters:{name}')
 
     def _get_rate_source_path(self, state_var):
         """

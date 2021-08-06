@@ -14,7 +14,7 @@ class EulerIntegrationComp(om.ExplicitComponent):
     """
     def __init__(self, ode_class, time_options=None,
                  state_options=None, parameter_options=None, control_options=None,
-                 polynomial_control_options=None, mode=None, **kwargs):
+                 polynomial_control_options=None, mode='fwd', complex_step_mode=False, **kwargs):
         super().__init__(**kwargs)
         self.ode_class = ode_class
         self.time_options = time_options
@@ -22,25 +22,29 @@ class EulerIntegrationComp(om.ExplicitComponent):
         self.parameter_options = parameter_options
         self.control_options = control_options
         self.polynomial_control_options = polynomial_control_options
-        self.mode = mode
-        self.prob = None
+        self._mode = mode
+        self._prob = None
+        self._complex_step_mode = complex_step_mode
+        self._TYPE = complex if complex_step_mode else float
 
     def initialize(self):
         self.options.declare('num_steps', types=(int,), default=10)
         self.options.declare('ode_init_kwargs', types=dict, allow_none=True, default=None)
 
     def _setup_subprob(self):
-        self.prob = p = om.Problem(comm=self.comm)
+        self._prob = p = om.Problem(comm=self.comm)
         p.model.add_subsystem('ode_eval',
                               ODEEvaluationGroup(self.ode_class, self.time_options,
                                                  self.state_options, self.control_options,
                                                  self.polynomial_control_options,
-                                                 self.parameter_options, ode_init_kwargs=None),
+                                                 self.parameter_options,
+                                                 ode_init_kwargs=None),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        p.setup()
+        p.setup(force_alloc_complex=self._complex_step_mode)
         p.final_setup()
+        self._prob.set_complex_step_mode(self._complex_step_mode)
 
     def _setup_time(self):
         self.add_input('time', shape=(1,), units=self.time_options['units'])
@@ -55,24 +59,38 @@ class EulerIntegrationComp(om.ExplicitComponent):
     def _setup_states(self):
         N = self.options['num_steps']
 
-        if self.mode == 'fwd':
-            self.dt_dt0 = np.zeros((1, 1), dtype=complex)
-            self.dt_dtd = np.zeros((1, 1), dtype=complex)
+        if self._mode == 'fwd':
+            self.dt_dt0 = np.zeros((1, 1), dtype=self._TYPE)
+            self.dt_dtd = np.zeros((1, 1), dtype=self._TYPE)
 
-            self.dh_dt0 = np.zeros((1, 1), dtype=complex)
-            self.dh_dtd = np.ones((1, 1), dtype=complex) / N
-            self.dt_dt = np.ones((1, 1), dtype=complex)
-            self.dt_dh = np.ones((1, 1), dtype=complex)
+            self.dh_dt0 = np.zeros((1, 1), dtype=self._TYPE)
+            self.dh_dtd = np.ones((1, 1), dtype=self._TYPE) / N
+            self.dt_dt = np.ones((1, 1), dtype=self._TYPE)
+            self.dt_dh = np.ones((1, 1), dtype=self._TYPE)
         else:
             # These are all 1x1 matrices but we transpose them here just to avoid confusion.
-            self.dt_dt0_bar = np.zeros((1, 1), dtype=complex).T
-            self.dt_dtd_bar = np.zeros((1, 1), dtype=complex).T
+            self.dt_dt0_bar = np.zeros((1, 1), dtype=self._TYPE).T
+            self.dt_dtd_bar = np.zeros((1, 1), dtype=self._TYPE).T
 
-            self.dh_dt0_bar = np.zeros((1, 1), dtype=complex).T
-            self.dh_dtd_bar = np.ones((1, 1), dtype=complex).T / N
-            self.dt_dt_bar = np.ones((1, 1), dtype=complex).T
-            self.dt_dh_bar = np.ones((1, 1), dtype=complex).T
+            self.dh_dt0_bar = np.zeros((1, 1), dtype=self._TYPE).T
+            self.dh_dtd_bar = np.ones((1, 1), dtype=self._TYPE).T / N
+            self.dt_dt_bar = np.ones((1, 1), dtype=self._TYPE).T
+            self.dt_dh_bar = np.ones((1, 1), dtype=self._TYPE).T
 
+        # The total size of the entire parameter vector
+        self.p_size = 0
+
+        # The indices of each parameter
+        self.parameter_idxs = {}
+
+        for param_name, options in self.parameter_options.items():
+            self.add_input(f'parameters:{param_name}',
+                           shape=options['shape'],
+                           desc=f'value for parameter {param_name}')
+
+            param_size = np.prod(options['shape'], dtype=int)
+            self.parameter_idxs[param_name] = np.s_[self.p_size:param_size]
+            self.p_size += param_size
 
         # The total size of the entire state vector
         self.x_size = 0
@@ -100,47 +118,58 @@ class EulerIntegrationComp(om.ExplicitComponent):
             self.declare_partials(of=f'state_final_value:{state_name}',
                                   wrt='t_duration')
 
-            for state_name_wrt, options_wrt in self.state_options.items():
+            for state_name_wrt in self.state_options:
                 self.declare_partials(of=f'state_final_value:{state_name}',
                                       wrt=f'state_initial_value:{state_name_wrt}')
 
+            for param_name_wrt in self.parameter_options:
+                self.declare_partials(of=f'state_final_value:{state_name}',
+                                      wrt=f'parameters:{param_name_wrt}')
+
         # The contiguous vector of state values
-        self._x = np.zeros(self.x_size, dtype=complex)
+        self._x = np.zeros(self.x_size, dtype=self._TYPE)
+
+        # The contiguous vector of parameter values
+        self._p = np.zeros(self.p_size, dtype=self._TYPE)
 
         # The contiguous vector of state rates
-        self._f = np.zeros(self.x_size, dtype=complex)
+        self._f = np.zeros(self.x_size, dtype=self._TYPE)
 
-        self._f_t = np.zeros((self.x_size, 1), dtype=complex)
-        self._f_x = np.zeros((self.x_size, self.x_size), dtype=complex)
+        self._f_t = np.zeros((self.x_size, 1), dtype=self._TYPE)
+        self._f_x = np.zeros((self.x_size, self.x_size), dtype=self._TYPE)
+        self._f_p = np.zeros((self.x_size, self.p_size), dtype=self._TYPE)
 
         # An identity matrix of the size of x
-        self.I_x = np.eye(self.x_size, dtype=complex)
+        self.I_x = np.eye(self.x_size, dtype=self._TYPE)
 
         # The partial derivative of the final state vector wrt time from state update equation.
-        self.px_pt = np.zeros((self.x_size, 1), dtype=complex)
+        self.px_pt = np.zeros((self.x_size, 1), dtype=self._TYPE)
 
         # The partial derivative of the final state vector wrt the initial state vector from the
         # state update equation.
-        self.px_px = np.zeros((self.x_size, self.x_size), dtype=complex)
+        self.px_px = np.zeros((self.x_size, self.x_size), dtype=self._TYPE)
 
-        if self.mode == 'fwd':
+        if self._mode == 'fwd':
             # The total derivative of the current value of x wrt the initial time of the propagation.
-            self.dx_dt0 = np.zeros((self.x_size, 1), dtype=complex)
+            self.dx_dt0 = np.zeros((self.x_size, 1), dtype=self._TYPE)
 
             # The total derivative of the current value of x wrt the time duration of the propagation.
-            self.dx_dtd = np.zeros((self.x_size, 1), dtype=complex)
+            self.dx_dtd = np.zeros((self.x_size, 1), dtype=self._TYPE)
 
             # The total derivative of the current value of x wrt the initial value of x
-            self.dx_dx0 = np.eye(self.x_size, dtype=complex)
+            self.dx_dx0 = np.eye(self.x_size, dtype=self._TYPE)
+
+            # The total derivative of the current value of x wrt the parameter values
+            self.dx_dp = np.zeros((self.x_size, self.p_size), dtype=self._TYPE)
         else:
             # The total derivative of the current value of x wrt the initial time of the propagation.
-            self.dx_dt0_bar = np.zeros((self.x_size, 1), dtype=complex).T
+            self.dx_dt0_bar = np.zeros((self.x_size, 1), dtype=self._TYPE).T
 
             # The total derivative of the current value of x wrt the time duration of the propagation.
-            self.dx_dtd_bar = np.zeros((self.x_size, 1), dtype=complex).T
+            self.dx_dtd_bar = np.zeros((self.x_size, 1), dtype=self._TYPE).T
 
             # The total derivative of the current value of x wrt the initial value of x
-            self.dx_dx0_bar = np.eye(self.x_size, dtype=complex).T
+            self.dx_dx0_bar = np.eye(self.x_size, dtype=self._TYPE).T
 
     def setup(self):
         self._setup_subprob()
@@ -152,7 +181,7 @@ class EulerIntegrationComp(om.ExplicitComponent):
         Reset the value of total derivatives prior to propagation.
         """
         N = self.options['num_steps']
-        if self.mode == 'fwd':
+        if self._mode == 'fwd':
             # Initialize the total derivatives of/wrt the states
             self.dx_dt0[...] = 0.0
             self.dx_dtd[...] = 0.0
@@ -177,7 +206,7 @@ class EulerIntegrationComp(om.ExplicitComponent):
             self.dh_dt0_bar[...] = 0.0
             self.dh_dtd_bar[...] = 1.0 / N
 
-    def eval_f(self, x, t):
+    def eval_f(self, x, t, p):
         """
         Evaluate the ODE which provides the state rates for integration.
 
@@ -187,6 +216,8 @@ class EulerIntegrationComp(om.ExplicitComponent):
             A flattened, contiguous vector of the state values.
         t : float
             The current time of the integration.
+        p : np.ndarray
+            A flattened, contiguous vector of the parameter values.
 
         Returns
         -------
@@ -195,22 +226,26 @@ class EulerIntegrationComp(om.ExplicitComponent):
 
         """
         # transcribe time
-        self.prob.set_val('time', t, units=self.time_options['units'])
+        self._prob.set_val('time', t, units=self.time_options['units'])
 
         # transcribe states
         for state_name in self.state_options:
-            self.prob.set_val(f'states:{state_name}', x[self.state_idxs[state_name]])
+            self._prob.set_val(f'states:{state_name}', x[self.state_idxs[state_name]])
+
+        # transcribe parameters
+        for param_name in self.parameter_options:
+            self._prob.set_val(f'parameters:{param_name}', p[self.parameter_idxs[param_name]])
 
         # execute the ODE
-        self.prob.run_model()
+        self._prob.run_model()
 
         # pack the resulting array
         for state_name in self.state_options:
-            self._f[self.state_idxs[state_name]] = self.prob.get_val(f'state_rate_collector.state_rates:{state_name}_rate').ravel()
+            self._f[self.state_idxs[state_name]] = self._prob.get_val(f'state_rate_collector.state_rates:{state_name}_rate').ravel()
 
         return self._f
 
-    def eval_f_derivs(self, x, t):
+    def eval_f_derivs(self, x, t, p):
         """
         Evaluate the derivative of the ODE output rates wrt the inputs.
 
@@ -220,6 +255,8 @@ class EulerIntegrationComp(om.ExplicitComponent):
             A flattened, contiguous vector of the state values.
         t : float
             The current time of the integration.
+        p : np.ndarray
+            A flattened, contiguous vector of the parameter values.
 
         Returns
         -------
@@ -227,31 +264,46 @@ class EulerIntegrationComp(om.ExplicitComponent):
             A matrix of the derivative of each element of the rates `f` wrt each value in `x`.
         f_t : np.ndarray
             A matrix of the derivatives of each element of the rates `f` wrt time.
+        f_p : np.ndarray
+            A matrix fo the derivatives of each element of the parameters p.
 
         """
         # transcribe time
-        self.prob.set_val('time', t, units=self.time_options['units'])
+        self._prob.set_val('time', t, units=self.time_options['units'])
+
+        # transcribe parameters
+        for param_name in self.parameter_options:
+            self._prob.set_val(f'parameters:{param_name}', p[self.parameter_idxs[param_name]])
 
         # transcribe states
         for state_name in self.state_options:
-            self.prob.set_val(f'states:{state_name}', x[self.state_idxs[state_name]])
+            self._prob.set_val(f'states:{state_name}', x[self.state_idxs[state_name]])
 
+
+        for state_name in self.state_options:
             idxs = self.state_idxs[state_name]
-
-            self._f_t[self.state_idxs[state_name]] = self.prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
+            self._f_t[self.state_idxs[state_name]] = self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
                                                                               wrt='time', return_format='array', use_abs_names=False)
 
             for state_name_wrt in self.state_options:
-                idxs_wrt = self.state_idxs[state_name]
+                idxs_wrt = self.state_idxs[state_name_wrt]
 
-                px_px = self.prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
+                px_px = self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
                                                  wrt=f'states:{state_name_wrt}', return_format='array', use_abs_names=False)
 
                 self._f_x[idxs, idxs_wrt] = px_px.ravel()
 
-        return self._f_x, self._f_t
+            for param_name_wrt in self.parameter_options:
+                idxs_wrt = self.parameter_idxs[param_name_wrt]
 
-    def _update_derivs_fwd(self, pt_pt, pt_ph, px_pt, px_px, px_ph):
+                px_pp = self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
+                                                 wrt=f'parameters:{param_name_wrt}', return_format='array', use_abs_names=False)
+
+                self._f_p[idxs, idxs_wrt] = px_pp.ravel()
+
+        return self._f_x, self._f_t, self._f_p
+
+    def _update_derivs_fwd(self, pt_pt, pt_ph, px_pt, px_px, px_ph, px_pp):
         """
         Update the total derivatives being integrated across the propagation in forward mode.
 
@@ -271,8 +323,6 @@ class EulerIntegrationComp(om.ExplicitComponent):
             The partial derivative of the state vector after the state update wrt the step size.
         px_pp : np.array
             The partial derivative of the state vector after the state update wrt the parameter vector.
-        pt_pp : np.array
-            The partial derivative of time after the time update wrt the parameter vector.
         """
         self.dx_dtd[...] = px_px @ self.dx_dtd + \
                            px_pt @ self.dt_dtd + \
@@ -284,12 +334,13 @@ class EulerIntegrationComp(om.ExplicitComponent):
 
         self.dx_dx0[...] = px_px @ self.dx_dx0
 
+        self.dx_dp[...] = px_px @ self.dx_dp + \
+                          px_pp
+
         self.dt_dtd[...] = pt_pt @ self.dt_dtd + \
                            pt_ph @ self.dh_dtd
 
         self.dt_dt0[...] = pt_pt @ self.dt_dt0
-                           # pt_ph @ self.dt_dh
-                           # pt_pp @ self.dp_dt0
 
     def _update_derivs_rev(self, pt_pt, pt_ph, px_pt, px_px, px_ph):
         """
@@ -349,6 +400,7 @@ class EulerIntegrationComp(om.ExplicitComponent):
             A stack into which the state vector at each evaluation should be stored. This stack is
             cleared by this method before any values are added.
         """
+        print('propagating')
         N = self.options['num_steps']
 
         if N > 0:
@@ -358,8 +410,13 @@ class EulerIntegrationComp(om.ExplicitComponent):
 
         # Initialize states
         x = self._x
-        for state_name, options in self.state_options.items():
+        for state_name in self.state_options:
             x[self.state_idxs[state_name]] = inputs[f'state_initial_value:{state_name}'].ravel()
+
+        # Initialize parameters
+        p = self._p
+        for param_name in self.parameter_options:
+            p[self.parameter_idxs[param_name]] = inputs[f'parameters:{param_name}'].ravel()
 
         # Initialize time
         t = inputs['t_initial']
@@ -369,8 +426,8 @@ class EulerIntegrationComp(om.ExplicitComponent):
             self._initialize_derivs()
             # From the time update equation, the partial of the new time wrt the previous time and
             # the partial wrt the stepsize are both [1].
-            pt_pt = np.ones((1, 1), dtype=complex)
-            pt_ph = np.ones((1, 1), dtype=complex)
+            pt_pt = np.ones((1, 1), dtype=self._TYPE)
+            pt_ph = np.ones((1, 1), dtype=self._TYPE)
 
         if state_stack is not None:
             state_stack.clear()
@@ -381,20 +438,21 @@ class EulerIntegrationComp(om.ExplicitComponent):
 
         for i in range(N):
             # Compute the state rates
-            f = self.eval_f(x, t)
+            f = self.eval_f(x, t, p)
 
             if derivs:
                 # Compute the state rate derivatives
-                f_x, f_t = self.eval_f_derivs(x, t)
+                f_x, f_t, f_p = self.eval_f_derivs(x, t, p)
 
                 # The partials of the state update equation for Euler's method.
                 px_px = self.I_x + h * f_x
                 px_pt = h * f_t
                 px_ph = f
+                px_pp = h * f_p
 
                 # Accumulate the totals
-                if self.mode == 'fwd':
-                    self._update_derivs_fwd(pt_pt, pt_ph, px_pt, px_px, px_ph)
+                if self._mode == 'fwd':
+                    self._update_derivs_fwd(pt_pt, pt_ph, px_pt, px_px, px_ph, px_pp)
 
             t = t + h
             x = x + h * f
@@ -410,7 +468,7 @@ class EulerIntegrationComp(om.ExplicitComponent):
         if outputs:
             outputs['t_final'] = t
 
-            for state_name in self.state_options:
+            for state_name, options in self.state_options.items():
                 of = f'state_final_value:{state_name}'
                 outputs[of] = x[self.state_idxs[state_name]].reshape(options['shape'])
 
@@ -431,6 +489,11 @@ class EulerIntegrationComp(om.ExplicitComponent):
                     wrt = f'state_initial_value:{wrt_state_name}'
                     wrt_cols = self.state_idxs[wrt_state_name]
                     derivs[of, wrt] = self.dx_dx0[of_rows, wrt_cols]
+
+                for wrt_param_name in self.parameter_options:
+                    wrt = f'parameters:{wrt_param_name}'
+                    wrt_cols = self.parameter_idxs[wrt_param_name]
+                    derivs[of, wrt] = self.dx_dp[of_rows, wrt_cols]
 
     def _backpropagate_derivs(self, inputs, derivs, time_stack, state_stack):
         """
@@ -460,8 +523,8 @@ class EulerIntegrationComp(om.ExplicitComponent):
 
         # From the time update equation, the partial of the new time wrt the previous time and
         # the partial wrt the stepsize are both [1].
-        pt_pt = np.ones((1, 1), dtype=complex)
-        pt_ph = np.ones((1, 1), dtype=complex)
+        pt_pt = np.ones((1, 1), dtype=self._TYPE)
+        pt_ph = np.ones((1, 1), dtype=self._TYPE)
 
         for i in range(N):
             # Extract the saved integrated quantities
@@ -504,7 +567,7 @@ class EulerIntegrationComp(om.ExplicitComponent):
     def compute_partials(self, inputs, partials):
         # note that typically you would only have to define partials for one direction,
         # either fwd OR rev, not both.
-        if self.mode == 'fwd':
+        if self._mode == 'fwd':
             self._propagate(inputs, outputs=False, derivs=partials)
         else:
             time_stack = collections.deque()
