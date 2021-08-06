@@ -80,8 +80,9 @@ class TestEulerIntegrationComp(unittest.TestCase):
         x = np.array([0.5])
         t = np.array([0.0])
         p = np.array([1.0])
+        u = np.empty((0,))
 
-        f = prob.model.fixed_step_integrator.eval_f(x, t, p)
+        f = prob.model.fixed_step_integrator.eval_f(x, t, p, u)
 
         assert_near_equal(f, x - t**2 + p)
 
@@ -125,20 +126,21 @@ class TestEulerIntegrationComp(unittest.TestCase):
         x = np.array([0.5], dtype=complex)
         t = np.array([0.0], dtype=complex)
         p = np.array([1.0], dtype=complex)
+        u = np.empty((0,), dtype=complex)
 
-        f_x, f_t, f_p = prob.model.fixed_step_integrator.eval_f_derivs(x, t, p)
+        f_x, f_t, f_p, f_u = prob.model.fixed_step_integrator.eval_f_derivs(x, t, p, u)
 
         step = 1.0E-20
 
-        f_x_cs = prob.model.fixed_step_integrator.eval_f(x + step * 1.0j, t, p).imag / step
+        f_x_cs = prob.model.fixed_step_integrator.eval_f(x + step * 1.0j, t, p, u).imag / step
 
         assert_near_equal(f_x.real, np.atleast_2d(f_x_cs))
 
-        f_t_cs = prob.model.fixed_step_integrator.eval_f(x, t + step * 1.0j, p).imag / step
+        f_t_cs = prob.model.fixed_step_integrator.eval_f(x, t + step * 1.0j, p, u).imag / step
 
         assert_near_equal(f_t.real, np.atleast_2d(f_t_cs))
 
-        f_p_cs = prob.model.fixed_step_integrator.eval_f(x, t, p + step * 1.0j).imag / step
+        f_p_cs = prob.model.fixed_step_integrator.eval_f(x, t, p + step * 1.0j, u).imag / step
 
         assert_near_equal(f_p.real, np.atleast_2d(f_p_cs))
 
