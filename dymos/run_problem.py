@@ -83,5 +83,5 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         else:
             timeseries_plots(solution_record_file, simulation_record_file=None,
                              plot_dir=plot_dir)
-            
+
     return failed
