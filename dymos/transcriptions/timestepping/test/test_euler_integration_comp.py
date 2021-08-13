@@ -267,10 +267,14 @@ class TestEulerIntegrationComp(unittest.TestCase):
 
         p = om.Problem()
 
-        p.model.add_subsystem('fixed_step_integrator', EulerIntegrationComp(BrachistochroneODE, time_options, state_options,
-                                                                            param_options, control_options,
-                                                                            polynomial_control_options, mode='fwd',
-                                                                            num_steps=100, grid_data=gd,
+        p.model.add_subsystem('fixed_step_integrator', EulerIntegrationComp(ode_class=BrachistochroneODE,
+                                                                            time_options=time_options,
+                                                                            state_options=state_options,
+                                                                            parameter_options=param_options,
+                                                                            control_options=control_options,
+                                                                            polynomial_control_options=polynomial_control_options,
+                                                                            mode='fwd', num_steps=100,
+                                                                            grid_data=gd,
                                                                             ode_init_kwargs=None))
         p.setup(mode='fwd', force_alloc_complex=True)
 
@@ -278,6 +282,7 @@ class TestEulerIntegrationComp(unittest.TestCase):
         p.set_val('fixed_step_integrator.t_initial', 0.0)
         p.set_val('fixed_step_integrator.t_duration', 2.0)
         p.set_val('fixed_step_integrator.parameters:g', 9.80665)
+        p.set_val('fixed_step_integrator.controls:theta', np.linspace(1.0, 100.0, 5), units='deg')
 
         p.run_model()
 

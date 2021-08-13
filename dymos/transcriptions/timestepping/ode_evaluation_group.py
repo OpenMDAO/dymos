@@ -1,6 +1,7 @@
 import numpy as np
 import openmdao.api as om
 
+from .control_interpolation_comp import ControlInterpolationComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from .tau_comp import TauComp
 
@@ -30,15 +31,27 @@ class ODEEvaluationGroup(om.Group):
         self.ode_init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
 
     def setup(self):
+        gd = self.grid_data
+
         ### All times, states, controls, parameters, and polyomial controls need to exist
         # in the ODE evaluation group regardless of whether or not they have targets in the ODE.
         # This makes taking the derivatives more consistent without Exceptions.
         self._ivc = self.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         if self.control_options or self.polynomial_control_options:
-            # Add a component to compute the current non-dimensional phase time.
-            self.add_subsystem('ptau_comp', TauComp(units=self.time_options['units']))
+            c_options = self.control_options
+            pc_options = self.polynomial_control_options
 
+            # Add a component to compute the current non-dimensional phase time.
+            self.add_subsystem('tau_comp', TauComp(grid_data=self.grid_data,
+                                                   time_units=self.time_options['units']),
+                               promotes_inputs=['time', 't_initial', 't_duration'])
+            # Add control interpolant
+            self._control_comp = self.add_subsystem('control_interp',
+                                                    ControlInterpolationComp(grid_data=gd,
+                                                                             control_options=c_options,
+                                                                             polynomial_control_options=pc_options,
+                                                                             time_units=self.time_options['units']))
         # # Required
         # self.options.declare('num_nodes', types=int,
         #                      desc='The total number of points at which times are required in the'
@@ -61,12 +74,7 @@ class ODEEvaluationGroup(om.Group):
         # self.options.declare('duration_val', default=1.0, types=(int, float),
         #                      desc='default value of duration')
 
-        if self.control_options:
-            # Add control interpolant
-            self._controls = self.add_subsystem('control_interp',
-                                                om.MetaModelStructuredComp(method='akima',
-                                                                           training_data_gradients=True,
-                                                                           extrapolate=True))
+
         if self.polynomial_control_options:
             # Add polynomial control interpolant
             raise NotImplementedError('polynomial controls not yet implemented')
@@ -156,31 +164,26 @@ class ODEEvaluationGroup(om.Group):
             control_input_node_ptau = self.grid_data.node_ptau[
                 self.grid_data.subset_node_indices['control_input']]
             num_control_input_nodes = len(control_input_node_ptau)
-            self._controls.add_input('ptau', 1.0, control_input_node_ptau)
-            self.connect('ptau_comp.ptau', 'control_interp.ptau')
+            self.connect('tau_comp.ptau', 'control_interp.ptau')
+            self.connect('tau_comp.stau', 'control_interp.stau')
 
             for name, options in self.control_options.items():
                 shape = options['shape']
                 units = options['units']
                 targets = options['targets']
-                var_name = f'controls:{name}'
+                uhat_name = f'controls:{name}'
+                u_name = f'control_values:{name}'
 
-                self._ivc.add_output(var_name, shape=(num_control_input_nodes,) + shape, units=units)
-                self.add_design_var(var_name)
+                self._ivc.add_output(uhat_name, shape=(num_control_input_nodes,) + shape, units=units)
+                self.add_design_var(uhat_name)
 
-                self._controls.add_output(f'control_values:{name}',
-                                          val=np.ones(shape),
-                                          training_data=np.ones(num_control_input_nodes),
-                                          units=units)
-                self.connect(var_name, f'control_interp.control_values:{name}_train')
-
-                # self.promotes('control_interp', inputs=[(f'{var_name}_train', var_name)])
+                self.promotes('control_interp', inputs=[uhat_name], outputs=[u_name])
 
                 # Promote targets from the ODE
                 for tgt in targets:
-                    self.promotes('ode', inputs=[(tgt, f'control_values:{name}')])
+                    self.promotes('ode', inputs=[(tgt, u_name)])
                 if targets:
-                    self.set_input_defaults(name=f'control_values:{name}',
+                    self.set_input_defaults(name=u_name,
                                             val=np.ones(shape),
                                             units=options['units'])
 

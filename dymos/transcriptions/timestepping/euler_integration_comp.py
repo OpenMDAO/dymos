@@ -127,10 +127,12 @@ class EulerIntegrationComp(om.ExplicitComponent):
                 self.grid_data.subset_node_indices['control_disc']]
 
         for control_name, options in self.control_options.items():
-            control_size = np.prod(options['shape'], dtype=int)
-            control_param_size = len(control_disc_node_ptau) * control_size
+            # control_size = np.prod(options['shape'], dtype=int)
+            control_param_shape = (len(control_disc_node_ptau),) + options['shape']
+            control_param_size = np.prod(control_param_shape, dtype=int)
             self.add_input(f'controls:{control_name}',
-                           shape=(len(control_disc_node_ptau), control_size),
+                           shape=control_param_shape,
+                           units=options['units'],
                            desc=f'values for control {control_name} at input nodes')
 
             self.control_idxs[control_name] = np.s_[self.u_size:self.u_size+control_param_size]
@@ -289,7 +291,7 @@ class EulerIntegrationComp(om.ExplicitComponent):
 
         # transcribe controls
         for control_name in self.control_options:
-            self._prob.set_val(f'controls:{control_name}', p[self.control_idxs[control_name]])
+            self._prob.set_val(f'controls:{control_name}', u[self.control_idxs[control_name]])
 
         # execute the ODE
         self._prob.run_model()
