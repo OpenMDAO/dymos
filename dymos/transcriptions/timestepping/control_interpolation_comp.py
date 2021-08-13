@@ -71,12 +71,11 @@ class ControlInterpolationComp(om.ExplicitComponent):
             self._control_io_names[control_name] = (input_name, output_name)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
-        seg_idx = discrete_inputs['segment_index']
+        seg_idx = int(discrete_inputs['segment_index'])
         seg_order = self._grid_data.transcription_order[seg_idx] - 1
 
         stau = inputs['stau']
         stau_array = np.power(stau, range(self._max_seg_order + 1)[::-1])
-
 
         for control_name, options in self._control_options.items():
             input_name, output_name = self._control_io_names[control_name]
@@ -87,7 +86,7 @@ class ControlInterpolationComp(om.ExplicitComponent):
             # outputs[output_name] = np.einsum('ij,i', a, stau_array)
             # outputs[output_name] = np.matmul(stau_array, a)
             outputs[output_name] = stau_array @ a
-            print(control_name, u_hat, outputs[output_name])
+            # print(control_name, u_hat, outputs[output_name])
 
         for pc_name, options in self._polynomial_control_options.items():
             order = options['order']

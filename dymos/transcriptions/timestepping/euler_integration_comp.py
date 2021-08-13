@@ -257,7 +257,7 @@ class EulerIntegrationComp(om.ExplicitComponent):
             self.dh_dt0_bar[...] = 0.0
             self.dh_dtd_bar[...] = 1.0 / N
 
-    def eval_f(self, x, t, p, u):
+    def eval_f(self, x, t, p, u, t_initial, t_duration):
         """
         Evaluate the ODE which provides the state rates for integration.
 
@@ -280,6 +280,8 @@ class EulerIntegrationComp(om.ExplicitComponent):
         """
         # transcribe time
         self._prob.set_val('time', t, units=self.time_options['units'])
+        self._prob.set_val('t_initial', t_initial, units=self.time_options['units'])
+        self._prob.set_val('t_duration', t_duration, units=self.time_options['units'])
 
         # transcribe states
         for state_name in self.state_options:
@@ -302,7 +304,7 @@ class EulerIntegrationComp(om.ExplicitComponent):
 
         return self._f
 
-    def eval_f_derivs(self, x, t, p, u):
+    def eval_f_derivs(self, x, t, p, u, t_initial, t_duration):
         """
         Evaluate the derivative of the ODE output rates wrt the inputs.
 
@@ -525,6 +527,8 @@ class EulerIntegrationComp(om.ExplicitComponent):
 
         # Initialize time
         t = inputs['t_initial']
+        t_initial = inputs['t_initial']
+        t_duration = inputs['t_duration']
 
         if derivs:
             # Initialize the total derivatives
@@ -543,11 +547,11 @@ class EulerIntegrationComp(om.ExplicitComponent):
 
         for i in range(N):
             # Compute the state rates
-            f = self.eval_f(x, t, p, u)
+            f = self.eval_f(x, t, p, u, t_initial, t_duration)
 
             if derivs:
                 # Compute the state rate derivatives
-                f_x, f_t, f_p, f_u, pu_pt = self.eval_f_derivs(x, t, p, u)
+                f_x, f_t, f_p, f_u, pu_pt = self.eval_f_derivs(x, t, p, u, t_initial, t_duration)
 
                 # The partials of the state update equation for Euler's method.
                 px_px = self.I_x + h * f_x

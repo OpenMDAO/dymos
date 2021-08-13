@@ -166,6 +166,7 @@ class ODEEvaluationGroup(om.Group):
             num_control_input_nodes = len(control_input_node_ptau)
             self.connect('tau_comp.ptau', 'control_interp.ptau')
             self.connect('tau_comp.stau', 'control_interp.stau')
+            self.connect('tau_comp.segment_index', 'control_interp.segment_index')
 
             for name, options in self.control_options.items():
                 shape = options['shape']
