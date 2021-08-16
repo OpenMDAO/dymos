@@ -73,12 +73,23 @@ class ControlInterpolationComp(om.ExplicitComponent):
             self.declare_partials(of=output_name, wrt='stau', val=1.0)
 
     def _setup_polynomial_controls(self):
-        for pc, options in self._polynomial_control_options.items():
+        for pc_name, options in self._polynomial_control_options.items():
             order = options['order']
+            shape = options['shape']
+            units = options['units']
+            input_name = f'polynomial_controls:{pc_name}'
+            output_name = f'polynomial_control_values:{pc_name}'
+            self.add_input(input_name, shape=shape, units=units)
+            self.add_output(output_name, shape=shape, units=units)
+            self._control_io_names[pc_name] = (input_name, output_name)
+            self.declare_partials(of=output_name, wrt=input_name, val=1.0)
+            self.declare_partials(of=output_name, wrt='ptau', val=1.0)
+
             if order not in self._V_pc:
                 tau_phase, _ = lgl(order + 1)
                 self._V_pc[order] = np.vander(tau_phase)
                 self._V_pc_inv[order] = np.linalg.inv(self._V_pc[order])
+                self._u_exponents[order] = np.arange(order + 1, dtype=int)[::-1]
 
     def setup(self):
         self._V_u = []
@@ -114,35 +125,38 @@ class ControlInterpolationComp(om.ExplicitComponent):
             # outputs[output_name] = np.matmul(stau_array, a)
 
         for pc_name, options in self._polynomial_control_options.items():
+            input_name, output_name = self._control_io_names[pc_name]
             order = options['order']
             ptau_array = np.power(ptau, range(order))
-            a = self._V_pc_inv[order] @ inputs[f'polynomial_controls:{pc_name}']
-            outputs[f'polynomial_control_values:{pc_name}'] = ptau_array @ a
+            a = self._V_pc_inv[order] @ inputs[input_name]
+            outputs[output_name] = ptau_array @ a
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
         seg_idx = int(discrete_inputs['segment_index'])
+        u_idxs = self._u_node_idxs_by_segment[seg_idx]
         stau = inputs['stau']
         ptau = inputs['ptau']
 
         seg_order = self._grid_data.transcription_order[seg_idx] - 1
         exponents = self._u_exponents[seg_order]
+        dir_exponents = (exponents-1)[:len(exponents)-1]
         stau_array = np.power(stau, exponents)
+        dstau_array_dstau = np.atleast_2d(np.power(stau, dir_exponents))
+
+        pu_pa = stau_array
 
         for control_name, options in self._control_options.items():
             input_name, output_name = self._control_io_names[control_name]
-            u_hat = inputs[input_name][self._u_node_idxs_by_segment[seg_idx]]
-            a = self._V_u_inv[seg_order] @ u_hat
-            # outputs[output_name] = stau_array @ a
+
+            da_duhat = self._V_u_inv[seg_order]
 
             partials[output_name, input_name] = 0.0
-            partials[output_name, input_name][self._u_node_idxs_by_segment, ...] = \
-                stau_array @ self._V_u_inv[seg_order]
+            partials[output_name, input_name][..., u_idxs] = pu_pa @ da_duhat
 
-            partials[output_name, 'stau'] = 1
-            # 4 Different wats to achieve matrix multiplication
-            # outputs[output_name] = np.sum(a * stau_array[..., np.newaxis])
-            # outputs[output_name] = np.einsum('ij,i', a, stau_array)
-            # outputs[output_name] = np.matmul(stau_array, a)
+            u_hat = inputs[input_name][self._u_node_idxs_by_segment[seg_idx]]
+            a = self._V_u_inv[seg_order] @ u_hat
+
+            partials[output_name, 'stau'] = exponents[:-1] * dstau_array_dstau @ a[:len(exponents)-1]
 
         for pc_name, options in self._polynomial_control_options.items():
             order = options['order']

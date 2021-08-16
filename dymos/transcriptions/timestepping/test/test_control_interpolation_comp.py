@@ -47,7 +47,8 @@ class TestControlInterpolationComp(unittest.TestCase):
             p.run_model()
             y[i] = p.get_val('interp.control_values:u1')
 
-        p.check_partials(compact_print=True)
+        with np.printoptions(linewidth=1024):
+            p.check_partials(compact_print=False, method='cs')
 
         # print(time()-t0)
         #
