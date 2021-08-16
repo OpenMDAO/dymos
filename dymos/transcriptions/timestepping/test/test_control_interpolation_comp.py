@@ -14,7 +14,7 @@ class TestControlInterpolationComp(unittest.TestCase):
 
     def test_eval(self):
         grid_data = dm.transcriptions.grid_data.GridData(num_segments=2, transcription='gauss-lobatto',
-                                                         transcription_order=3)
+                                                         transcription_order=3, compressed=True)
 
         time_options = dm.phase.options.TimeOptionsDictionary()
 
@@ -33,26 +33,28 @@ class TestControlInterpolationComp(unittest.TestCase):
                                                                  time_units='s'))
         p.setup(force_alloc_complex=True)
 
-        p.set_val('interp.segment_index', 0)
-        p.set_val('interp.controls:u1', [0.0, 4.0, 4.0])
+        p.set_val('interp.segment_index', 1)
+        p.set_val('interp.controls:u1', [0.0, 4.0, 4.0, 0.0, 4.0, 3.0])
 
-        x = np.linspace(-1, 1, 20000)
+        x = np.linspace(-1, 1, 100)
         y = np.zeros_like(x)
 
-        from time import time
-        t0 = time()
+        # from time import time
+        # t0 = time()
 
         for i, stau in enumerate(x):
             p.set_val('interp.stau', stau)
             p.run_model()
             y[i] = p.get_val('interp.control_values:u1')
 
-        print(time()-t0)
+        p.check_partials(compact_print=True)
 
-
-        import matplotlib.pyplot as plt
-        plt.plot(x, y)
-        plt.show()
+        # print(time()-t0)
+        #
+        #
+        # import matplotlib.pyplot as plt
+        # plt.plot(x, y)
+        # plt.show()
 
         # x = p.get_val('ode_eval.states:x')
         # t = p.get_val('ode_eval.time')

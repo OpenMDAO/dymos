@@ -40,6 +40,7 @@ class TauComp(om.ExplicitComponent):
         self.add_input('time', val=1.0, units=time_units)
         self.add_output('ptau', units=None, val=0.5)
         self.add_output('stau', units=None, val=0.0)
+        self.add_output('time_phase', units=time_units, val=1.0)
         self.add_discrete_output('segment_index', val=0)
 
         # Setup partials
@@ -50,6 +51,9 @@ class TauComp(om.ExplicitComponent):
         self.declare_partials(of='stau', wrt='t_initial', val=1.0)
         self.declare_partials(of='stau', wrt='t_duration', val=1.0)
         self.declare_partials(of='stau', wrt='time', val=1.0)
+
+        self.declare_partials(of='time_phase', wrt='time', val=1.0)
+        self.declare_partials(of='time_phase', wrt='t_initial', val=-1.0)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """
@@ -84,6 +88,7 @@ class TauComp(om.ExplicitComponent):
         td_seg = ptauf_seg - ptau0_seg
 
         outputs['stau'] = 2.0 * (ptau - ptau0_seg) / td_seg - 1.0
+        outputs['time_phase'] = time - t_initial
 
 
     def compute_partials(self, inputs, partials):

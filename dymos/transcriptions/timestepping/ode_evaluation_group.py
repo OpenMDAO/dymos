@@ -45,7 +45,8 @@ class ODEEvaluationGroup(om.Group):
             # Add a component to compute the current non-dimensional phase time.
             self.add_subsystem('tau_comp', TauComp(grid_data=self.grid_data,
                                                    time_units=self.time_options['units']),
-                               promotes_inputs=['time', 't_initial', 't_duration'])
+                               promotes_inputs=['time', 't_initial', 't_duration'],
+                               promotes_outputs=['stau', 'ptau', 'time_phase', 'segment_index'])
             # Add control interpolant
             self._control_comp = self.add_subsystem('control_interp',
                                                     ControlInterpolationComp(grid_data=gd,
@@ -100,7 +101,8 @@ class ODEEvaluationGroup(om.Group):
 
         for tgts, var in [(targets, 'time'), (time_phase_targets, 'time_phase'),
                           (t_initial_targets, 't_initial'), (t_duration_targets, 't_duration')]:
-            self._ivc.add_output(var, shape=(1,), units=units)
+            if var != 'time_phase':
+                self._ivc.add_output(var, shape=(1,), units=units)
             for t in tgts:
                 self.promotes('ode', inputs=[(t, var)])
             if tgts:
@@ -164,9 +166,9 @@ class ODEEvaluationGroup(om.Group):
             control_input_node_ptau = self.grid_data.node_ptau[
                 self.grid_data.subset_node_indices['control_input']]
             num_control_input_nodes = len(control_input_node_ptau)
-            self.connect('tau_comp.ptau', 'control_interp.ptau')
-            self.connect('tau_comp.stau', 'control_interp.stau')
-            self.connect('tau_comp.segment_index', 'control_interp.segment_index')
+            # self.connect('tau_comp.ptau', 'control_interp.ptau')
+            # self.connect('tau_comp.stau', 'control_interp.stau')
+            # self.connect('tau_comp.segment_index', 'control_interp.segment_index')
 
             for name, options in self.control_options.items():
                 shape = options['shape']

@@ -183,8 +183,8 @@ class TestEulerIntegrationComp(unittest.TestCase):
 
         p.run_model()
 
-        # cpd = p.check_partials(method='fd', form='central', compact_print=True)
-        # assert_check_partials(cpd)
+        cpd = p.check_partials(method='fd', form='central', compact_print=True)
+        assert_check_partials(cpd)
 
     @unittest.skip('Not implemented')
     def test_rev(self):
@@ -285,6 +285,8 @@ class TestEulerIntegrationComp(unittest.TestCase):
         p.set_val('fixed_step_integrator.controls:theta', np.linspace(1.0, 100.0, 5), units='deg')
 
         p.run_model()
+
+        p.check_partials(compact_print=True)
 
 
 if __name__ == '__main__':  # pragma: no cover
