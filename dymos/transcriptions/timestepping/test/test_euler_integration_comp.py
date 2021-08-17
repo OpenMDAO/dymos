@@ -73,7 +73,7 @@ class TestEulerIntegrationComp(unittest.TestCase):
                                                       num_steps=100, ode_init_kwargs=None))
         prob.setup(mode='fwd', force_alloc_complex=True)
 
-        prob.set_val('fixed_step_integrator.state_initial_value:x', 0.5)
+        prob.set_val('fixed_step_integrator.state_initial_values:x', 0.5)
         prob.set_val('fixed_step_integrator.t_initial', 0.0)
         prob.set_val('fixed_step_integrator.t_duration', 2.0)
         prob.set_val('fixed_step_integrator.parameters:p', 1.0)
@@ -119,7 +119,7 @@ class TestEulerIntegrationComp(unittest.TestCase):
                                                       ode_init_kwargs=None))
         prob.setup(mode='fwd', force_alloc_complex=True)
 
-        prob.set_val('fixed_step_integrator.state_initial_value:x', 0.5)
+        prob.set_val('fixed_step_integrator.state_initial_values:x', 0.5)
         prob.set_val('fixed_step_integrator.t_initial', 0.0)
         prob.set_val('fixed_step_integrator.t_duration', 2.0)
         prob.set_val('fixed_step_integrator.parameters:p', 1.0)
@@ -176,7 +176,7 @@ class TestEulerIntegrationComp(unittest.TestCase):
                                                                             ode_init_kwargs=None))
         p.setup(mode='fwd', force_alloc_complex=True)
 
-        p.set_val('fixed_step_integrator.state_initial_value:x', 0.5)
+        p.set_val('fixed_step_integrator.state_initial_values:x', 0.5)
         p.set_val('fixed_step_integrator.t_initial', 0.0)
         p.set_val('fixed_step_integrator.t_duration', 2.0)
         p.set_val('fixed_step_integrator.parameters:p', 1.0)
@@ -214,7 +214,7 @@ class TestEulerIntegrationComp(unittest.TestCase):
                                                                             ode_init_kwargs=None))
         p.setup(mode='rev', force_alloc_complex=True)
 
-        p.set_val('fixed_step_integrator.state_initial_value:x', 0.5)
+        p.set_val('fixed_step_integrator.state_initial_values:x', 0.5)
         p.set_val('fixed_step_integrator.t_initial', 0.0)
         p.set_val('fixed_step_integrator.t_duration', 2.0)
 
@@ -225,8 +225,8 @@ class TestEulerIntegrationComp(unittest.TestCase):
         assert_check_partials(cpd)
 
     def test_fwd_parameters_controls(self):
-        gd = dm.transcriptions.grid_data.GridData(num_segments=1, transcription='radau-ps',
-                                                  transcription_order=5)
+        gd = dm.transcriptions.grid_data.GridData(num_segments=10, transcription='gauss-lobatto',
+                                                  transcription_order=3)
 
         time_options = dm.phase.options.TimeOptionsDictionary()
 
@@ -273,62 +273,34 @@ class TestEulerIntegrationComp(unittest.TestCase):
                                                                             parameter_options=param_options,
                                                                             control_options=control_options,
                                                                             polynomial_control_options=polynomial_control_options,
-                                                                            mode='fwd', num_steps=100,
+                                                                            mode='fwd', num_steps=10,
                                                                             grid_data=gd,
-                                                                            ode_init_kwargs=None))
+                                                                            ode_init_kwargs=None,
+                                                                            complex_step_mode=True))
         p.setup(mode='fwd', force_alloc_complex=True)
 
-        p.set_val('fixed_step_integrator.state_initial_value:x', 0.5)
+        p.set_val('fixed_step_integrator.state_initial_values:x', 0.0)
+        p.set_val('fixed_step_integrator.state_initial_values:y', 10.0)
+        p.set_val('fixed_step_integrator.state_initial_values:v', 0.0)
         p.set_val('fixed_step_integrator.t_initial', 0.0)
-        p.set_val('fixed_step_integrator.t_duration', 2.0)
+        p.set_val('fixed_step_integrator.t_duration', 1.8016)
         p.set_val('fixed_step_integrator.parameters:g', 9.80665)
-        p.set_val('fixed_step_integrator.controls:theta', np.linspace(1.0, 100.0, 5), units='deg')
+        p.set_val('fixed_step_integrator.controls:theta', np.linspace(1.0, 100.0, 30), units='deg')
 
         p.run_model()
 
-        p.check_partials(compact_print=True)
+        x_f = p.get_val('fixed_step_integrator.state_final_values:x')
+        y_f = p.get_val('fixed_step_integrator.state_final_values:y')
+        v_f = p.get_val('fixed_step_integrator.state_final_values:v')
+
+        # These tolerances are loose since theta is not properly spaced along the lgl nodes.
+        assert_near_equal(x_f, 10.0, tolerance=0.1)
+        assert_near_equal(y_f, 5.0, tolerance=0.1)
+        assert_near_equal(v_f, 9.9, tolerance=0.1)
+
+        with np.printoptions(linewidth=1024):
+            p.check_partials(compact_print=False, method='cs')
 
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()
-    #
-    # time_options = dm.phase.options.TimeOptionsDictionary()
-    #
-    # time_options['targets'] = 't'
-    # time_options['units'] = 's'
-    #
-    # state_options = {'x': dm.phase.options.StateOptionsDictionary()}
-    #
-    # state_options['x']['shape'] = (1,)
-    # state_options['x']['units'] = 's**2'
-    # state_options['x']['rate_source'] = 'x_dot'
-    # state_options['x']['targets'] = ['x']
-    #
-    # param_options = {'p': dm.phase.options.ParameterOptionsDictionary()}
-    #
-    # param_options['p']['shape'] = (1,)
-    # param_options['p']['units'] = 's**2'
-    # param_options['p']['targets'] = ['p']
-    #
-    # control_options = {}
-    # polynomial_control_options = {}
-    #
-    # p = om.Problem()
-    #
-    # p.model.add_subsystem('fixed_step_integrator',
-    #                       EulerIntegrationComp(SimpleODE, time_options, state_options,
-    #                                            param_options, control_options,
-    #                                            polynomial_control_options, mode='fwd',
-    #                                            num_steps=100,
-    #                                            ode_init_kwargs=None))
-    # p.setup(mode='fwd', force_alloc_complex=True)
-    #
-    # p.set_val('fixed_step_integrator.state_initial_value:x', 0.5)
-    # p.set_val('fixed_step_integrator.t_initial', 0.0)
-    # p.set_val('fixed_step_integrator.t_duration', 2.0)
-    # p.set_val('fixed_step_integrator.parameters:p', 1.0)
-    #
-    # p.run_model()
-    #
-    # cpd = p.check_partials(method='fd', form='central', compact_print=True)
-    # assert_check_partials(cpd)

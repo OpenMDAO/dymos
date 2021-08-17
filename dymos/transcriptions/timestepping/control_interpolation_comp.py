@@ -138,10 +138,6 @@ class ControlInterpolationComp(om.ExplicitComponent):
                 u_hat = inputs[input_name][self._u_node_idxs_by_segment[seg_idx]]
                 a = self._V_u_inv[seg_order] @ u_hat
                 outputs[output_name] = stau_array @ a
-                # 4 Different wats to achieve matrix multiplication
-                # outputs[output_name] = np.sum(a * stau_array[..., np.newaxis])
-                # outputs[output_name] = np.einsum('ij,i', a, stau_array)
-                # outputs[output_name] = np.matmul(stau_array, a)
 
         for pc_name, options in self._polynomial_control_options.items():
             input_name, output_name = self._control_io_names[pc_name]

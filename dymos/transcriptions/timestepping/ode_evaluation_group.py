@@ -52,7 +52,8 @@ class ODEEvaluationGroup(om.Group):
                                                     ControlInterpolationComp(grid_data=gd,
                                                                              control_options=c_options,
                                                                              polynomial_control_options=pc_options,
-                                                                             time_units=self.time_options['units']))
+                                                                             time_units=self.time_options['units']),
+                                                    promotes_inputs=['ptau', 'stau', 'segment_index', 'controls:*'])
         # # Required
         # self.options.declare('num_nodes', types=int,
         #                      desc='The total number of points at which times are required in the'

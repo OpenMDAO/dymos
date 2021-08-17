@@ -193,10 +193,10 @@ class RKIntegrationComp(om.ExplicitComponent):
         if self.options['time_options']['t_duration_targets']:
             self.add_input('t_duration', val=1.0, desc='duration of the integration interval')
         for state_name, options in self.options['state_options'].items():
-            self.add_input(f'state_initial_value:{state_name}',
+            self.add_input(f'state_initial_values:{state_name}',
                            shape=options['shape'],
                            desc=f'initial value of state {state_name}')
-            self.add_output(f'state_final_value:{state_name}',
+            self.add_output(f'state_final_values:{state_name}',
                             shape=options['shape'],
                             desc=f'final value of state {state_name}')
 
@@ -277,7 +277,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         for state_name, options in self.options['state_options'].items():
             k[state_name] = np.zeros((num_stages,) + options['shape'])
             size = np.prod(options['shape'])
-            # y0[state_name] = inputs[f'state_initial_value:{state_name}']
+            # y0[state_name] = inputs[f'state_initial_values:{state_name}']
             step_errors[state_name] = np.zeros((num_stages,) + options['shape'])
             stage_inputs[f'states:{state_name}'] = np.zeros(shape=options['shape'])
             self._state_rates[state_name] = np.zeros(shape=options['shape'])
@@ -323,7 +323,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         # print(inputs)
 
         for state_name in self.options['state_options']:
-            y_step[state_name] = inputs[f'state_initial_value:{state_name}']
+            y_step[state_name] = inputs[f'state_initial_values:{state_name}']
 
         for i in range(self.options['num_steps']):
             yf, yerr, yderivs = self._rk_step(t_step, y_step, h, inputs)
@@ -331,7 +331,7 @@ class RKIntegrationComp(om.ExplicitComponent):
             y_step = yf
 
         for state_name in self.options['state_options']:
-            outputs[f'state_final_value:{state_name}'] = yf[state_name]
+            outputs[f'state_final_values:{state_name}'] = yf[state_name]
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
         t0_interval = inputs['t_initial']
@@ -342,7 +342,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         derivs_per_step = []
 
         for state_name in self.options['state_options']:
-            y_step[state_name] = inputs[f'state_initial_value:{state_name}']
+            y_step[state_name] = inputs[f'state_initial_values:{state_name}']
 
         for i in range(self.options['num_steps']):
             step_y, step_err, step_derivs = self._rk_step(t_step, y_step, h, inputs)
@@ -354,7 +354,7 @@ class RKIntegrationComp(om.ExplicitComponent):
             state_size = np.prod(options['shape'])
             for input_name in inputs:
                 input_size = np.prod(inputs[input_name].shape)
-                partials[f'state_final_value:{state_name}', input_name] = np.zeros((state_size, input_size))
+                partials[f'state_final_values:{state_name}', input_name] = np.zeros((state_size, input_size))
 
 
 def validate(h=0.2, num_steps=10):
@@ -412,16 +412,16 @@ if __name__ == '__main__':
                                                   state_options=state_options, num_steps=100,
                                                   tableau=euler))
 
-    p.model.add_design_var('rk.state_initial_value:x0')
+    p.model.add_design_var('rk.state_initial_values:x0')
     p.model.add_design_var('rk.t_initial')
     p.model.add_design_var('rk.t_duration')
 
-    p.model.add_objective('rk.state_final_value:x0')
+    p.model.add_objective('rk.state_final_values:x0')
 
     p.setup(force_alloc_complex=True)
 
-    p.set_val('rk.state_initial_value:x0', 0.5)
-    p.set_val('rk.state_initial_value:x1', 0.5)
+    p.set_val('rk.state_initial_values:x0', 0.5)
+    p.set_val('rk.state_initial_values:x1', 0.5)
     p.set_val('rk.t_initial', 0.0)
     p.set_val('rk.t_duration', 2.0)
 
@@ -429,7 +429,7 @@ if __name__ == '__main__':
 
     p.model.list_outputs()
 
-    p.compute_totals(of=['rk.state_final_value:x0'], wrt=['rk.state_initial_value:x0'])
+    p.compute_totals(of=['rk.state_final_values:x0'], wrt=['rk.state_initial_values:x0'])
 
     p.check_totals(method='fd', form='central')
     # validate()
