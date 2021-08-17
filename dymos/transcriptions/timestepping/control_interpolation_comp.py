@@ -48,16 +48,33 @@ class ControlInterpolationComp(om.ExplicitComponent):
         if not self._control_options:
             return
 
+        first_node_in_seg = 0
+
         for seg_idx in range(gd.num_segments):
-            i1, i2 = gd.subset_segment_indices['control_disc'][seg_idx, :]
-            control_disc_idxs_in_seg = gd.subset_node_indices['control_disc'][i1:i2]
-            self._u_node_idxs_by_segment.append(control_disc_idxs_in_seg)
-            tau_seg = gd.node_stau[control_disc_idxs_in_seg]
-            seg_order = gd.transcription_order[seg_idx] - 1
-            if seg_order not in self._V_u:
-                self._V_u[seg_order] = np.vander(tau_seg)
-                self._V_u_inv[seg_order] = np.linalg.inv(self._V_u[seg_order])
-                self._u_exponents[seg_order] = np.arange(seg_order + 1, dtype=int)[::-1]
+            # Number of control discretization nodes per segment
+            ncdnps = gd.subset_num_nodes_per_segment['control_disc'][seg_idx]
+            ar_control_disc_nodes = np.arange(ncdnps, dtype=int)
+            idxs_in_seg = first_node_in_seg + ar_control_disc_nodes
+            first_node_in_seg += ncdnps
+
+            # The indices of the input u vector pertaining to the given segment
+            self._u_node_idxs_by_segment.append(idxs_in_seg)
+
+            # Indices of the control disc nodes belonging to the current segment
+            control_disc_seg_idxs = gd.subset_segment_indices['control_disc'][seg_idx]
+
+            # Segment tau values for the control disc nodes in the phase
+            control_disc_stau = gd.node_stau[gd.subset_node_indices['control_disc']]
+
+            # Segment tau values for the control disc nodes in the given segment
+            control_disc_seg_stau = control_disc_stau[control_disc_seg_idxs[0]:
+                                                      control_disc_seg_idxs[1]]
+
+            seg_control_order = gd.transcription_order[seg_idx] - 1
+            if seg_control_order not in self._V_u:
+                self._V_u[seg_control_order] = np.vander(control_disc_seg_stau)
+                self._V_u_inv[seg_control_order] = np.linalg.inv(self._V_u[seg_control_order])
+                self._u_exponents[seg_control_order] = np.arange(seg_control_order + 1, dtype=int)[::-1]
 
         num_uhat_nodes = gd.subset_num_nodes['control_disc']
         for control_name, options in self._control_options.items():
