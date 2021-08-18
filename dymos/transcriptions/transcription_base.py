@@ -427,7 +427,7 @@ class TranscriptionBase(object):
             The phase object to which this transcription instance applies.
         """
         if phase.parameter_options:
-            ode = phase._get_subsystem(self._rhs_source)
+            ode = self._get_ode(phase)
 
             for name, options in phase.parameter_options.items():
                 prom_name = f'parameters:{name}'
@@ -875,6 +875,23 @@ class TranscriptionBase(object):
     def _get_rate_source_path(self, name, loc, phase):
         raise NotImplementedError('Transcription {0} does not implement method'
                                   '_get_rate_source_path.'.format(self.__class__.__name__))
+
+    def _get_ode(self, phase):
+        """
+        Returns an instance of the ODE used in the phase that can be interrogated for IO metadata.
+
+        Parameters
+        ----------
+        phase : dm.Phase
+            The Phase instance to which this transcription applies
+
+        Returns
+        -------
+        ode : om.System
+            The OpenMDAO system which serves as the ODE for the given Phase.
+
+        """
+        return phase._get_subsystem(self._rhs_source)
 
     def get_parameter_connections(self, name, phase):
         """

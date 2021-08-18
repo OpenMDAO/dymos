@@ -273,7 +273,8 @@ class TestEulerIntegrationComp(unittest.TestCase):
                                                                             parameter_options=param_options,
                                                                             control_options=control_options,
                                                                             polynomial_control_options=polynomial_control_options,
-                                                                            mode='fwd', num_steps=10,
+                                                                            mode='fwd',
+                                                                            num_steps_per_segment=10,
                                                                             grid_data=gd,
                                                                             ode_init_kwargs=None,
                                                                             complex_step_mode=True))

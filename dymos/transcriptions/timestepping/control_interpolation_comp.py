@@ -110,6 +110,9 @@ class ControlInterpolationComp(om.ExplicitComponent):
                 self._u_exponents[order] = np.arange(order + 1, dtype=int)[::-1]
 
     def setup(self):
+        pass
+
+    def configure_io(self):
         self._V_u = []
         self._V_u_inv = []
 

@@ -5,6 +5,7 @@ from .control_interpolation_comp import ControlInterpolationComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from .tau_comp import TauComp
 
+from ...utils.introspection import get_targets
 
 class ODEEvaluationGroup(om.Group):
     """
@@ -53,29 +54,7 @@ class ODEEvaluationGroup(om.Group):
                                                                              control_options=c_options,
                                                                              polynomial_control_options=pc_options,
                                                                              time_units=self.time_options['units']),
-                                                    promotes_inputs=['ptau', 'stau', 'segment_index', 'controls:*'])
-        # # Required
-        # self.options.declare('num_nodes', types=int,
-        #                      desc='The total number of points at which times are required in the'
-        #                           'phase.')
-        #
-        # self.options.declare('node_ptau', types=(np.ndarray,),
-        #                      desc='The locations of all nodes in non-dimensional phase tau space.')
-        #
-        # self.options.declare('node_dptau_dstau', types=(np.ndarray,),
-        #                      desc='For each node, the ratio of the total phase length to the length'
-        #                           ' of the nodes containing segment.')
-        #
-        # # Optional
-        # self.options.declare('units', default=None, allow_none=True, types=str,
-        #                      desc='Units of time (or the integration variable)')
-        #
-        # self.options.declare('initial_val', default=0.0, types=(int, float),
-        #                      desc='default value of initial time')
-        #
-        # self.options.declare('duration_val', default=1.0, types=(int, float),
-        #                      desc='default value of duration')
-
+                                                    promotes_inputs=['ptau', 'stau', 'segment_index'])
 
         if self.polynomial_control_options:
             # Add polynomial control interpolant
@@ -143,8 +122,8 @@ class ODEEvaluationGroup(om.Group):
     def _configure_params(self):
         for name, options in self.parameter_options.items():
             shape = options['shape']
+            targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
             units = options['units']
-            targets = options['targets']
             var_name = f'parameters:{name}'
 
             self._ivc.add_output(var_name, shape=shape, units=units)
@@ -162,14 +141,14 @@ class ODEEvaluationGroup(om.Group):
 
         if self.control_options:
             if self.grid_data is None:
-                raise ValueError('ODEEvaluationGroup was provided with control options but the '
+                raise ValueError('ODEEvaluationGroup was provided with control options but '
                                  'a GridData object was not provided.')
+
+            self._get_subsystem('control_interp').configure_io()
+
             control_input_node_ptau = self.grid_data.node_ptau[
                 self.grid_data.subset_node_indices['control_input']]
             num_control_input_nodes = len(control_input_node_ptau)
-            # self.connect('tau_comp.ptau', 'control_interp.ptau')
-            # self.connect('tau_comp.stau', 'control_interp.stau')
-            # self.connect('tau_comp.segment_index', 'control_interp.segment_index')
 
             for name, options in self.control_options.items():
                 shape = options['shape']
