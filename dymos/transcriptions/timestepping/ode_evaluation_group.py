@@ -5,7 +5,7 @@ from .control_interpolation_comp import ControlInterpolationComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from .tau_comp import TauComp
 
-from ...utils.introspection import get_targets
+from ...utils.introspection import get_targets, configure_control_introspection
 
 class ODEEvaluationGroup(om.Group):
     """
@@ -138,6 +138,7 @@ class ODEEvaluationGroup(om.Group):
                                         units=options['units'])
 
     def _configure_controls(self):
+        configure_control_introspection(self.control_options, self.ode)
 
         if self.control_options:
             if self.grid_data is None:

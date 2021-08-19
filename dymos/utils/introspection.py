@@ -1,12 +1,13 @@
 from dymos.utils.misc import _unspecified
+from .misc import get_target_metadata
 
 
-def get_targets(ode, name, user_targets):
+def get_targets(ode, name, user_targets, control_rates=False):
     """
-    Return the targets of a state variable in a given ODE system.
+    Return the targets of a variable in a given ODE system.
 
-    If the targets of the state is _unspecified, and the state name is a top level input name
-    in the ODE, then the state values are automatically connected to that top-level input.
+    If the targets of the variable is _unspecified, and the name is a top level input name
+    in the ODE, then the values are automatically connected to that top-level input.
     If _unspecified and not a top-level input of the ODE, no connection is made.
     If targets is explicitly None, then no connection is made.
     Otherwise, if the user specified some other string or sequence of strings as targets, then
@@ -39,6 +40,10 @@ def get_targets(ode, name, user_targets):
     if user_targets is _unspecified:
         if name in ode_inputs:
             targets = [name]
+        elif control_rates and f'{name}_rate' in ode_inputs:
+            targets = [f'{name}_rate']
+        elif control_rates and f'{name}_rate2' in ode_inputs:
+            targets = [f'{name}_rate2']
         else:
             targets = []
     elif user_targets:
@@ -128,3 +133,62 @@ def get_state_target_metadata(ode, name, targets=_unspecified, user_units=_unspe
         shape = user_shape
 
     return shape, units
+
+def configure_control_introspection(control_options, ode):
+    """
+    Modify control options in-place using introspection of the user-provided ODE.
+
+    Parameters
+    ----------
+    control_options : dict of {str: ControlOptionsDictionary
+        A dictionary keyed by control name containing the options for all controls to be applied
+        to the ODE.
+    ode : om.System
+        An instantiated System that serves as the ODE to which the controls should be applied.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    ValueError
+        If the control or one of its rates are connected to a variable that is tagged as static
+        within the ODE.
+    """
+    # Interrogate shapes and units and static/dynamic behavior
+    for name, options in control_options.items():
+        options['targets'] = get_targets(ode, name, options['targets'], control_rates=True)
+
+        shape, units, static_target = get_target_metadata(ode, name=name,
+                                                          user_targets=options['targets'],
+                                                          user_units=options['units'],
+                                                          user_shape=options['shape'],
+                                                          control_rate=True)
+
+        options['units'] = units
+        options['shape'] = shape
+
+        if static_target:
+            raise ValueError(f"Control '{name}' cannot be connected to its targets because one "
+                             f"or more targets are tagged with 'dymos.static_target'.")
+
+        # Now check rate targets
+        _, _, static_target = get_target_metadata(ode, name=name,
+                                                  user_targets=options['rate_targets'],
+                                                  user_units=options['units'],
+                                                  user_shape=options['shape'],
+                                                  control_rate=True)
+        if static_target:
+            raise ValueError(f"Control rate of '{name}' cannot be connected to its targets "
+                             f"because one or more targets are tagged with 'dymos.static_target'.")
+
+        # Now check rate2 targets
+        _, _, static_target = get_target_metadata(ode, name=name,
+                                                  user_targets=options['rate2_targets'],
+                                                  user_units=options['units'],
+                                                  user_shape=options['shape'],
+                                                  control_rate=True)
+        if static_target:
+            raise ValueError(f"Control rate2 of '{name}' cannot be connected to its targets "
+                             f"because one or more targets are tagged with 'dymos.static_target'.")

@@ -131,6 +131,9 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
         elif control_rate and f'{name}_rate' in ode_inputs:
             targets = [f'{name}_rate']
             rate_src = True
+        elif control_rate and f'{name}_rate2' in ode_inputs:
+            targets = [f'{name}_rate2']
+            rate_src = True
         else:
             targets = []
     elif user_targets:

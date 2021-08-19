@@ -103,6 +103,16 @@ class PseudospectralBase(TranscriptionBase):
         phase.add_subsystem('indep_states', indep, promotes_inputs=prom_inputs,
                             promotes_outputs=['*'])
 
+    def configure_controls(self, phase):
+        super().configure_controls(phase)
+
+        if phase.control_options:
+            phase.control_group.configure_io()
+            phase.promotes('control_group',
+                           any=['controls:*', 'control_values:*', 'control_rates:*'])
+
+            phase.connect('dt_dstau', 'control_group.dt_dstau')
+
     def configure_states(self, phase):
         """
         Configure state connections post-introspection.

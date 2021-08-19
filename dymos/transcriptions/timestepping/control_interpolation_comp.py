@@ -37,7 +37,7 @@ class ControlInterpolationComp(om.ExplicitComponent):
     def initialize(self):
         self.options.declare('segment_index', types=int, default=0)
 
-    def _setup_controls(self):
+    def _configure_controls(self):
         gd = self._grid_data
 
         self._V_u = {}
@@ -89,7 +89,7 @@ class ControlInterpolationComp(om.ExplicitComponent):
             self.declare_partials(of=output_name, wrt=input_name, val=1.0)
             self.declare_partials(of=output_name, wrt='stau', val=1.0)
 
-    def _setup_polynomial_controls(self):
+    def _configure_polynomial_controls(self):
         for pc_name, options in self._polynomial_control_options.items():
             order = options['order']
             shape = options['shape']
@@ -123,8 +123,8 @@ class ControlInterpolationComp(om.ExplicitComponent):
         self.add_input('stau', val=0.0, units=None)
         self.add_input('ptau', val=0.0, units=None)
 
-        self._setup_controls()
-        self._setup_polynomial_controls()
+        self._configure_controls()
+        self._configure_polynomial_controls()
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         seg_idx = int(discrete_inputs['segment_index'])

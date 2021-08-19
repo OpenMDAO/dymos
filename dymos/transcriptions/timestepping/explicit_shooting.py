@@ -247,7 +247,8 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        phase._check_control_options()
+
         # output_nodes_per_seg = self.options['output_nodes_per_seg']
         #
         # phase._check_control_options()
@@ -273,7 +274,7 @@ class ExplicitShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         pass
-        # ode = phase._get_subsystem(self._rhs_source)
+        # super().configure_controls(phase)
         #
         # # Interrogate shapes and units.
         # for name, options in phase.control_options.items():
