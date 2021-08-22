@@ -273,16 +273,15 @@ class TestEulerIntegrationComp(unittest.TestCase):
                                                                             parameter_options=param_options,
                                                                             control_options=control_options,
                                                                             polynomial_control_options=polynomial_control_options,
-                                                                            mode='fwd',
                                                                             num_steps_per_segment=10,
                                                                             grid_data=gd,
                                                                             ode_init_kwargs=None,
                                                                             complex_step_mode=True))
         p.setup(mode='fwd', force_alloc_complex=True)
 
-        p.set_val('fixed_step_integrator.state_initial_values:x', 0.0)
-        p.set_val('fixed_step_integrator.state_initial_values:y', 10.0)
-        p.set_val('fixed_step_integrator.state_initial_values:v', 0.0)
+        p.set_val('fixed_step_integrator.states:x', 0.0)
+        p.set_val('fixed_step_integrator.states:y', 10.0)
+        p.set_val('fixed_step_integrator.states:v', 0.0)
         p.set_val('fixed_step_integrator.t_initial', 0.0)
         p.set_val('fixed_step_integrator.t_duration', 1.8016)
         p.set_val('fixed_step_integrator.parameters:g', 9.80665)
@@ -290,9 +289,9 @@ class TestEulerIntegrationComp(unittest.TestCase):
 
         p.run_model()
 
-        x_f = p.get_val('fixed_step_integrator.state_final_values:x')
-        y_f = p.get_val('fixed_step_integrator.state_final_values:y')
-        v_f = p.get_val('fixed_step_integrator.state_final_values:v')
+        x_f = p.get_val('fixed_step_integrator.states_out:x')
+        y_f = p.get_val('fixed_step_integrator.states_out:y')
+        v_f = p.get_val('fixed_step_integrator.states_out:v')
 
         # These tolerances are loose since theta is not properly spaced along the lgl nodes.
         assert_near_equal(x_f, 10.0, tolerance=0.1)

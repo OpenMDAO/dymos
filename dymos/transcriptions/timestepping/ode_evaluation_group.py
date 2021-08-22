@@ -5,7 +5,9 @@ from .control_interpolation_comp import ControlInterpolationComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from .tau_comp import TauComp
 
-from ...utils.introspection import get_targets, configure_control_introspection
+from ...utils.introspection import get_targets, configure_controls_introspection,\
+    configure_time_introspection, configure_parameters_introspection, \
+    configure_states_discovery, configure_states_introspection
 
 class ODEEvaluationGroup(om.Group):
     """
@@ -34,7 +36,7 @@ class ODEEvaluationGroup(om.Group):
     def setup(self):
         gd = self.grid_data
 
-        ### All times, states, controls, parameters, and polyomial controls need to exist
+        ### All states, controls, parameters, and polyomial controls need to exist
         # in the ODE evaluation group regardless of whether or not they have targets in the ODE.
         # This makes taking the derivatives more consistent without Exceptions.
         self._ivc = self.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
@@ -67,12 +69,25 @@ class ODEEvaluationGroup(om.Group):
                                                   time_units=self.time_options['units']))
 
     def configure(self):
+        # In dymos, this system sits within a subproblem and therefore isn't in the standard
+        # configuration chain.  We need to perform all of the introspection of the ODE here.
+        ode = self._get_subsystem('ode')
+        configure_time_introspection(self.time_options, ode)
         self._configure_time()
-        self._configure_states()
+        configure_parameters_introspection(self.parameter_options, ode)
         self._configure_params()
         self._configure_controls()
+        configure_controls_introspection(self.control_options, ode)
+        configure_states_discovery(self.state_options, ode)
+        configure_states_introspection(self.state_options, self.time_options, self.control_options,
+                                       self.parameter_options,
+                                       self.polynomial_control_options, ode)
+        self._configure_states()
+
+        self.state_rate_collector.configure_io()
 
     def _configure_time(self):
+        print('ODEEvaluationGroup: _configure_time')
         targets = self.time_options['targets']
         time_phase_targets = self.time_options['time_phase_targets']
         t_initial_targets = self.time_options['t_initial_targets']
@@ -91,6 +106,7 @@ class ODEEvaluationGroup(om.Group):
                                         units=units)
 
     def _configure_states(self):
+        print('ODEEvaluationGroup: _configure_states')
         for name, options in self.state_options.items():
             shape = options['shape']
             units = options['units']
@@ -120,6 +136,7 @@ class ODEEvaluationGroup(om.Group):
             self.add_constraint(f'state_rate_collector.state_rates:{name}_rate')
 
     def _configure_params(self):
+        print('ODEEvaluationGroup: _configure_params')
         for name, options in self.parameter_options.items():
             shape = options['shape']
             targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
@@ -138,18 +155,20 @@ class ODEEvaluationGroup(om.Group):
                                         units=options['units'])
 
     def _configure_controls(self):
-        configure_control_introspection(self.control_options, self.ode)
+        print('ODEEvaluationGroup: _configure_controls')
+        configure_controls_introspection(self.control_options, self.ode)
 
         if self.control_options:
-            if self.grid_data is None:
+            gd = self.grid_data
+
+            if gd is None:
                 raise ValueError('ODEEvaluationGroup was provided with control options but '
                                  'a GridData object was not provided.')
 
             self._get_subsystem('control_interp').configure_io()
 
-            control_input_node_ptau = self.grid_data.node_ptau[
-                self.grid_data.subset_node_indices['control_input']]
-            num_control_input_nodes = len(control_input_node_ptau)
+            num_control_input_nodes = gd.subset_num_nodes['control_input']
+            num_control_disc_nodes = gd.subset_num_nodes['control_disc']
 
             for name, options in self.control_options.items():
                 shape = options['shape']
@@ -158,7 +177,7 @@ class ODEEvaluationGroup(om.Group):
                 uhat_name = f'controls:{name}'
                 u_name = f'control_values:{name}'
 
-                self._ivc.add_output(uhat_name, shape=(num_control_input_nodes,) + shape, units=units)
+                self._ivc.add_output(uhat_name, shape=(num_control_disc_nodes,) + shape, units=units)
                 self.add_design_var(uhat_name)
 
                 self.promotes('control_interp', inputs=[uhat_name], outputs=[u_name])

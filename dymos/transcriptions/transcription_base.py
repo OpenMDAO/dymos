@@ -8,7 +8,7 @@ from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup
 from ..phase.options import StateOptionsDictionary
 from ..utils.constants import INF_BOUND
 from ..utils.misc import get_rate_units, _unspecified, get_target_metadata, get_source_metadata
-from ..utils.introspection import configure_control_introspection
+from ..utils.introspection import configure_controls_introspection
 
 
 class TranscriptionBase(object):
@@ -279,7 +279,7 @@ class TranscriptionBase(object):
             The phase object to which this transcription instance applies.
         """
         ode = self._get_ode(phase)
-        configure_control_introspection(phase.control_options, ode)
+        configure_controls_introspection(phase.control_options, ode)
 
     def setup_polynomial_controls(self, phase):
         """
@@ -418,62 +418,6 @@ class TranscriptionBase(object):
                 phase.set_input_defaults(name=prom_name,
                                          val=shaped_val,
                                          units=options['units'])
-
-    def configure_state_discovery(self, phase):
-        """
-        Searches phase output metadata for any declared states and adds them.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        state_options = phase.state_options
-        ode = phase._get_subsystem(self._rhs_source)
-        out_meta = ode.get_io_metadata(iotypes='output', metadata_keys=['tags'],
-                                       get_remote=True)
-
-        for name, meta in out_meta.items():
-            tags = meta['tags']
-            prom_name = meta['prom_name']
-            state = None
-            for tag in sorted(tags):
-
-                # Declared as rate_source.
-                if tag.startswith('dymos.state_rate_source:') or tag.startswith('state_rate_source:'):
-                    state = tag.split(':')[-1]
-                    if tag.startswith('state_rate_source:'):
-                        msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
-                              f"dymos version 2.0.0. Use 'dymos.state_rate_source:{state}' instead."
-                        om.issue_warning(msg, category=om.OMDeprecationWarning)
-                    if state not in state_options:
-                        state_options[state] = StateOptionsDictionary()
-                        state_options[state]['name'] = state
-
-                    if state_options[state]['rate_source'] is not None:
-                        if state_options[state]['rate_source'] != prom_name:
-                            raise ValueError(f"rate_source has been declared twice for state "
-                                             f"'{state}' which is tagged on '{name}'.")
-
-                    state_options[state]['rate_source'] = prom_name
-
-                # Declares units for state.
-                if tag.startswith('dymos.state_units:') or tag.startswith('state_units:'):
-                    tagged_state_units = tag.split(':')[-1]
-                    if tag.startswith('state_units:'):
-                        msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
-                              f"dymos version 2.0.0. Use 'dymos.{tag}' instead."
-                        om.issue_warning(msg, category=om.OMDeprecationWarning)
-                    if state is None:
-                        raise ValueError(f"'{tag}' tag declared on '{prom_name}' also requires "
-                                         f"that the 'dymos.state_rate_source:{tagged_state_units}' "
-                                         f"tag be declared.")
-                    state_options[state]['units'] = tagged_state_units
-
-        # Check over all existing states and make sure we aren't missing any rate sources.
-        for name, options in state_options.items():
-            if options['rate_source'] is None:
-                raise ValueError(f"State '{name}' is missing a rate_source.")
 
     def setup_states(self, phase):
         """

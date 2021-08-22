@@ -40,6 +40,9 @@ class StateRateCollectorComp(om.ExplicitComponent):
             desc='Units of time')
 
     def setup(self):
+        pass
+
+    def configure_io(self):
         """
         Create inputs/outputs on this component.
         """
