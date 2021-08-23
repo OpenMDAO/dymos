@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.sparse as sp
 import openmdao.api as om
 
 from ...utils.lgl import lgl
@@ -21,16 +22,24 @@ class ControlInterpolationComp(om.ExplicitComponent):
         self._polynomial_control_options = {} if polynomial_control_options is None else polynomial_control_options
         self._time_units = time_units
 
-        # Storage for the vandermonde matrix and its inverse for each segment
+        # Storage for the Vandermonde matrix and its inverse for each segment
         self._V_u = None
         self._V_u_inv = None
 
-        # Storage for the vandermonde matrix and its inverse for each polynomial control
+        # Storage for the Vandermonde matrix and its inverse for each polynomial control
         self._V_pc = {}
         self._V_pc_inv = {}
 
         # Cache formatted strings: { control_name : (input_name, output_name) }
         self._control_io_names = {}
+
+        # The Lagrange interpolation matrix L_id maps control values as given at the input nodes
+        # to values at the discretization nodes.
+        num_disc_nodes = grid_data.subset_num_nodes['control_disc']
+        num_input_nodes = grid_data.subset_num_nodes['control_input']
+        self._L_id = np.zeros((num_disc_nodes, num_input_nodes), dtype=float)
+        self._L_id[np.arange(num_disc_nodes, dtype=int),
+                   self._grid_data.input_maps['dynamic_control_input_to_disc']] = 1.0
 
         super().__init__(**kwargs)
 
@@ -42,23 +51,37 @@ class ControlInterpolationComp(om.ExplicitComponent):
 
         self._V_u = {}
         self._V_u_inv = {}
-        self._u_node_idxs_by_segment = []
+        self._disc_node_idxs_by_segment = []
+        self._input_node_idxs_by_segment = []
         self._u_exponents = {}
 
         if not self._control_options:
             return
 
-        first_node_in_seg = 0
+        first_disc_node_in_seg = 0
+        first_input_node_in_seg = 0
 
         for seg_idx in range(gd.num_segments):
             # Number of control discretization nodes per segment
             ncdnps = gd.subset_num_nodes_per_segment['control_disc'][seg_idx]
             ar_control_disc_nodes = np.arange(ncdnps, dtype=int)
-            idxs_in_seg = first_node_in_seg + ar_control_disc_nodes
-            first_node_in_seg += ncdnps
+            disc_idxs_in_seg = first_disc_node_in_seg + ar_control_disc_nodes
+            first_disc_node_in_seg += ncdnps
 
             # The indices of the input u vector pertaining to the given segment
-            self._u_node_idxs_by_segment.append(idxs_in_seg)
+            self._disc_node_idxs_by_segment.append(disc_idxs_in_seg)
+            self._input_node_idxs_by_segment.append(gd.input_maps['dynamic_control_input_to_disc'][disc_idxs_in_seg])
+
+            # print(gd.input_maps['dynamic_control_input_to_disc'])
+            #
+            # # Number of control input nodes per segment
+            # ncinps = gd.subset_num_nodes_per_segment['control_input']
+            # ar_control_input_nodes = np.arange(ncinps, dtype=int)
+            # idxs_in_seg = first_input_node_in_seg + ar_control_input_nodes
+            # first_input_node_in_seg += ncinps
+            #
+            # # The indices of the input u vector pertaining to the given segment
+            # self._input_node_idxs_by_segment.append(idxs_in_seg)
 
             # Indices of the control disc nodes belonging to the current segment
             control_disc_seg_idxs = gd.subset_segment_indices['control_disc'][seg_idx]
@@ -76,7 +99,7 @@ class ControlInterpolationComp(om.ExplicitComponent):
                 self._V_u_inv[seg_control_order] = np.linalg.inv(self._V_u[seg_control_order])
                 self._u_exponents[seg_control_order] = np.arange(seg_control_order + 1, dtype=int)[::-1]
 
-        num_uhat_nodes = gd.subset_num_nodes['control_disc']
+        num_uhat_nodes = gd.subset_num_nodes['control_input']
         for control_name, options in self._control_options.items():
             shape = options['shape']
             units = options['units']
@@ -133,12 +156,20 @@ class ControlInterpolationComp(om.ExplicitComponent):
 
         if self._control_options:
             seg_order = self._grid_data.transcription_order[seg_idx] - 1
+            num_input_nodes = self._grid_data.subset_num_nodes['control_input']
+            num_disc_nodes = self._grid_data.subset_num_nodes['control_disc']
+            disc_node_idxs = self._disc_node_idxs_by_segment[seg_idx]
+            input_node_idxs = self._input_node_idxs_by_segment[seg_idx]
             exponents = self._u_exponents[seg_order]
             stau_array = np.power(stau, exponents)
 
+            L_seg = self._L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
+                               input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
+
             for control_name, options in self._control_options.items():
                 input_name, output_name = self._control_io_names[control_name]
-                u_hat = inputs[input_name][self._u_node_idxs_by_segment[seg_idx]]
+                u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
+                # print(inputs[input_name][input_node_idxs])
                 a = self._V_u_inv[seg_order] @ u_hat
                 outputs[output_name] = stau_array @ a
 
@@ -156,23 +187,28 @@ class ControlInterpolationComp(om.ExplicitComponent):
         ptau = inputs['ptau']
 
         if self._control_options:
-            u_idxs = self._u_node_idxs_by_segment[seg_idx]
+            u_idxs = self._input_node_idxs_by_segment[seg_idx]
             seg_order = self._grid_data.transcription_order[seg_idx] - 1
             exponents = self._u_exponents[seg_order]
             dir_exponents = (exponents-1)[:len(exponents)-1]
             stau_array = np.power(stau, exponents)
             dstau_array_dstau = np.atleast_2d(np.power(stau, dir_exponents))
             pu_pa = stau_array
+            disc_node_idxs = self._disc_node_idxs_by_segment[seg_idx]
+            input_node_idxs = self._input_node_idxs_by_segment[seg_idx]
+
+            L_seg = self._L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
+                               input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
 
             for control_name, options in self._control_options.items():
                 input_name, output_name = self._control_io_names[control_name]
 
-                da_duhat = self._V_u_inv[seg_order]
+                da_duhat = self._V_u_inv[seg_order] @ L_seg
 
                 partials[output_name, input_name] = 0.0
                 partials[output_name, input_name][..., u_idxs] = pu_pa @ da_duhat
 
-                u_hat = inputs[input_name][self._u_node_idxs_by_segment[seg_idx]]
+                u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
                 a = self._V_u_inv[seg_order] @ u_hat
 
                 partials[output_name, 'stau'] = exponents[:-1] * dstau_array_dstau @ a[:len(exponents)-1]

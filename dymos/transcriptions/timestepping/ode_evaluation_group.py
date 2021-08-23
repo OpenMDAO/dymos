@@ -168,7 +168,7 @@ class ODEEvaluationGroup(om.Group):
             self._get_subsystem('control_interp').configure_io()
 
             num_control_input_nodes = gd.subset_num_nodes['control_input']
-            num_control_disc_nodes = gd.subset_num_nodes['control_disc']
+            # num_control_disc_nodes = gd.subset_num_nodes['control_disc']
 
             for name, options in self.control_options.items():
                 shape = options['shape']
@@ -177,7 +177,7 @@ class ODEEvaluationGroup(om.Group):
                 uhat_name = f'controls:{name}'
                 u_name = f'control_values:{name}'
 
-                self._ivc.add_output(uhat_name, shape=(num_control_disc_nodes,) + shape, units=units)
+                self._ivc.add_output(uhat_name, shape=(num_control_input_nodes,) + shape, units=units)
                 self.add_design_var(uhat_name)
 
                 self.promotes('control_interp', inputs=[uhat_name], outputs=[u_name])

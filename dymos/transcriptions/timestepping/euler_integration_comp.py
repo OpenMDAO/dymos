@@ -131,6 +131,7 @@ class EulerIntegrationComp(om.ExplicitComponent):
             self._param_input_names[param_name] = f'parameters:{param_name}'
             self.add_input(self._param_input_names[param_name],
                            shape=options['shape'],
+                           val=options['val'],
                            units=options['units'],
                            desc=f'value for parameter {param_name}')
 
@@ -149,11 +150,11 @@ class EulerIntegrationComp(om.ExplicitComponent):
         self._control_input_names = {}
 
         if self.control_options:
-            control_disc_node_ptau = self.grid_data.node_ptau[
-                self.grid_data.subset_node_indices['control_disc']]
+            control_input_node_ptau = self.grid_data.node_ptau[
+                self.grid_data.subset_node_indices['control_input']]
 
         for control_name, options in self.control_options.items():
-            control_param_shape = (len(control_disc_node_ptau),) + options['shape']
+            control_param_shape = (len(control_input_node_ptau),) + options['shape']
             control_param_size = np.prod(control_param_shape, dtype=int)
             self._control_input_names[control_name] = f'controls:{control_name}'
             self.add_input(self._control_input_names[control_name],
