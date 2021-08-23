@@ -1,14 +1,18 @@
 import numpy as np
-import scipy.sparse as sp
 import openmdao.api as om
 
 from ...utils.lgl import lgl
+from ...utils.misc import CoerceDesvar
 
 
 class ControlInterpolationComp(om.ExplicitComponent):
     """
-    A segmented component which divides the interpolated region into some number of segments
-    num_seg.
+    A component which takes training values for control variables at given _input_ nodes,
+    broadcaasts them to _discretization_ nodes, and then interpolates the discretization values
+    to provide a control variable at a given segment tau or phase tau.
+
+    For dynamic controls, the current segment is given as a discrete input and the interpolation is
+    a smooth polynomial along the given segment.
 
     OpenMDAO assumes sizes of variables at setup time, and we don't want to need to change the
     size of the control input nodes when we evaluate different segments. Instead, this component
@@ -59,7 +63,6 @@ class ControlInterpolationComp(om.ExplicitComponent):
             return
 
         first_disc_node_in_seg = 0
-        first_input_node_in_seg = 0
 
         for seg_idx in range(gd.num_segments):
             # Number of control discretization nodes per segment
@@ -68,20 +71,11 @@ class ControlInterpolationComp(om.ExplicitComponent):
             disc_idxs_in_seg = first_disc_node_in_seg + ar_control_disc_nodes
             first_disc_node_in_seg += ncdnps
 
-            # The indices of the input u vector pertaining to the given segment
+            # The indices of the discretization node u vector pertaining to the given segment
             self._disc_node_idxs_by_segment.append(disc_idxs_in_seg)
-            self._input_node_idxs_by_segment.append(gd.input_maps['dynamic_control_input_to_disc'][disc_idxs_in_seg])
 
-            # print(gd.input_maps['dynamic_control_input_to_disc'])
-            #
-            # # Number of control input nodes per segment
-            # ncinps = gd.subset_num_nodes_per_segment['control_input']
-            # ar_control_input_nodes = np.arange(ncinps, dtype=int)
-            # idxs_in_seg = first_input_node_in_seg + ar_control_input_nodes
-            # first_input_node_in_seg += ncinps
-            #
-            # # The indices of the input u vector pertaining to the given segment
-            # self._input_node_idxs_by_segment.append(idxs_in_seg)
+            # The indices of the input u vector pertaining to the given segment
+            self._input_node_idxs_by_segment.append(gd.input_maps['dynamic_control_input_to_disc'][disc_idxs_in_seg])
 
             # Indices of the control disc nodes belonging to the current segment
             control_disc_seg_idxs = gd.subset_segment_indices['control_disc'][seg_idx]
@@ -156,8 +150,6 @@ class ControlInterpolationComp(om.ExplicitComponent):
 
         if self._control_options:
             seg_order = self._grid_data.transcription_order[seg_idx] - 1
-            num_input_nodes = self._grid_data.subset_num_nodes['control_input']
-            num_disc_nodes = self._grid_data.subset_num_nodes['control_disc']
             disc_node_idxs = self._disc_node_idxs_by_segment[seg_idx]
             input_node_idxs = self._input_node_idxs_by_segment[seg_idx]
             exponents = self._u_exponents[seg_order]
@@ -169,7 +161,6 @@ class ControlInterpolationComp(om.ExplicitComponent):
             for control_name, options in self._control_options.items():
                 input_name, output_name = self._control_io_names[control_name]
                 u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
-                # print(inputs[input_name][input_node_idxs])
                 a = self._V_u_inv[seg_order] @ u_hat
                 outputs[output_name] = stau_array @ a
 
@@ -206,7 +197,7 @@ class ControlInterpolationComp(om.ExplicitComponent):
                 da_duhat = self._V_u_inv[seg_order] @ L_seg
 
                 partials[output_name, input_name] = 0.0
-                partials[output_name, input_name][..., u_idxs] = pu_pa @ da_duhat
+                partials[output_name, input_name][..., u_idxs] = pu_pa.real @ da_duhat.real
 
                 u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
                 a = self._V_u_inv[seg_order] @ u_hat

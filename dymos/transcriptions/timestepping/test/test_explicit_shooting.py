@@ -4,6 +4,9 @@ import numpy as np
 
 import openmdao.api as om
 import dymos as dm
+
+from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
+
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
@@ -11,6 +14,8 @@ class TestExplicitShooting(unittest.TestCase):
 
     def test_brachistochrone_explicit_shooting(self):
         prob = om.Problem()
+
+        prob.driver = om.ScipyOptimizeDriver()
 
         tx = dm.transcriptions.ExplicitShooting(num_segments=10, grid='gauss-lobatto',
                                                 order=3, num_steps_per_segment=10, compressed=True)
@@ -26,7 +31,9 @@ class TestExplicitShooting(unittest.TestCase):
 
         prob.model.add_subsystem('phase0', phase)
 
-        prob.setup()
+        phase.add_objective('time', loc='final')
+
+        prob.setup(force_alloc_complex=True)
 
         prob.set_val('phase0.t_initial', 0.0)
         prob.set_val('phase0.t_duration', 1.8016)
@@ -39,8 +46,9 @@ class TestExplicitShooting(unittest.TestCase):
         prob.run_model()
 
         with np.printoptions(linewidth=1024):
-            prob.model.phase0._get_subsystem('integrator')._prob.check_partials(compact_print=False)
-
-        # print(prob.get_val('phase0.controls:theta', units='deg'))
+            cpd = prob.check_partials(compact_print=True, method='cs')
+            assert_check_partials(cpd)
 
         prob.model.list_outputs(print_arrays=True)
+
+        prob.list_problem_vars()

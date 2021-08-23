@@ -10,7 +10,7 @@ from ..grid_data import GridData
 from .euler_integration_comp import EulerIntegrationComp
 from ..common import TimeComp
 from ...utils.misc import get_rate_units, get_target_metadata, get_source_metadata, \
-    _unspecified
+    _unspecified, CoerceDesvar
 from ...utils.introspection import get_targets
 from ...utils.indexing import get_src_indices_by_row
 
@@ -209,38 +209,6 @@ class ExplicitShooting(TranscriptionBase):
 
         phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'])
 
-        # for i in range(num_seg):
-        #     seg_i_comp = SegmentSimulationComp(
-        #         index=i,
-        #         simulate_options=phase.simulate_options,
-        #         grid_data=self.grid_data,
-        #         ode_class=phase.options['ode_class'],
-        #         ode_init_kwargs=phase.options['ode_init_kwargs'],
-        #         time_options=phase.time_options,
-        #         state_options=phase.state_options,
-        #         control_options=phase.control_options,
-        #         polynomial_control_options=phase.polynomial_control_options,
-        #         parameter_options=phase.parameter_options,
-        #         output_nodes_per_seg=self.options['output_nodes_per_seg'])
-        #
-        #     segments_group.add_subsystem(f'segment_{i}', subsys=seg_i_comp)
-        #
-        # # scipy.integrate.solve_ivp does not actually evaluate the ODE at the desired output points,
-        # # but just returns the time and interpolated integrated state values there instead. We need
-        # # to instantiate a second ODE group that will call the ODE at those points so that we can
-        # # accurately obtain timeseries for ODE outputs.
-        # phase.add_subsystem('state_mux_comp',
-        #                     SegmentStateMuxComp(grid_data=gd, state_options=phase.state_options,
-        #                                         output_nodes_per_seg=self.options['output_nodes_per_seg']))
-        #
-        # if self.options['output_nodes_per_seg'] is None:
-        #     self.num_output_nodes = gd.subset_num_nodes['all']
-        # else:
-        #     self.num_output_nodes = num_seg * self.options['output_nodes_per_seg']
-        #
-        # phase.add_subsystem('ode', phase.options['ode_class'](num_nodes=self.num_output_nodes,
-        #                                                       **phase.options['ode_init_kwargs']))
-
     def configure_ode(self, phase):
         """
         Create connections to the introspected states.
@@ -274,10 +242,24 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        print('ExplicitShooting: configure controls')
         super().configure_controls(phase)
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp.configure_controls_io()
+
+        # Add the appropriate design parameters
+        ncin = self.grid_data.subset_num_nodes['control_input']
+        for control_name, options in phase.control_options.items():
+            if options['opt']:
+                coerce_desvar_option = CoerceDesvar(num_input_nodes=ncin, options=options)
+
+                phase.add_design_var(name=f'controls:{control_name}',
+                                     lower=coerce_desvar_option('lower'),
+                                     upper=coerce_desvar_option('upper'),
+                                     scaler=coerce_desvar_option('scaler'),
+                                     adder=coerce_desvar_option('adder'),
+                                     ref0=coerce_desvar_option('ref0'),
+                                     ref=coerce_desvar_option('ref'),
+                                     indices=coerce_desvar_option.desvar_indices)
 
     def setup_polynomial_controls(self, phase):
         """
@@ -372,7 +354,7 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        super().configure_objective(phase)
 
     def setup_path_constraints(self, phase):
         """
@@ -671,8 +653,112 @@ class ExplicitShooting(TranscriptionBase):
         # connection_info.append(([f'parameters:{name}'], None))
         return connection_info
 
-    def _get_boundary_constraint_src(self, var, loc):
-        pass
+    def _get_boundary_constraint_src(self, var, loc, phase):
+        """
+        Return the path to the variable that will be  constrained.
+
+        Parameters
+        ----------
+        var : str
+            Name of the state.
+        loc : str
+            The location of the boundary constraint ['intitial', 'final'].
+        phase : dymos.Phase
+            Phase object containing the rate source.
+
+        Returns
+        -------
+        str
+            Path to the source.
+        shape
+            Source shape.
+        str
+            Source units.
+        bool
+            True if the constraint is linear.
+        """
+        time_units = phase.time_options['units']
+        var_type = phase.classify_var(var)
+
+        if var_type == 'time':
+            shape = (1,)
+            units = time_units
+            linear = True
+            if loc == 'initial':
+                constraint_path = 't_initial'
+            else:
+                constraint_path = 'integrator.t_final'
+        elif var_type == 'time_phase':
+            shape = (1,)
+            units = time_units
+            linear = True
+            constraint_path = 'integrator.time_phase'
+        elif var_type == 'state':
+            shape = phase.state_options[var]['shape']
+            units = phase.state_options[var]['units']
+            solve_segments = phase.state_options[var]['solve_segments']
+            connected_initial = phase.state_options[var]['connected_initial']
+            if not solve_segments and not connected_initial:
+                linear = True
+            elif solve_segments in {True, 'forward'} and not connected_initial and loc == 'initial':
+                linear = True
+            elif solve_segments == 'backward' and loc == 'final':
+                linear = True
+            else:
+                linear = False
+            constraint_path = f'states:{var}'
+        elif var_type in 'indep_control':
+            shape = phase.control_options[var]['shape']
+            units = phase.control_options[var]['units']
+            linear = True
+            constraint_path = f'control_values:{var}'
+        elif var_type == 'input_control':
+            shape = phase.control_options[var]['shape']
+            units = phase.control_options[var]['units']
+            linear = False
+            constraint_path = f'control_values:{var}'
+        elif var_type in 'indep_polynomial_control':
+            shape = phase.polynomial_control_options[var]['shape']
+            units = phase.polynomial_control_options[var]['units']
+            linear = True
+            constraint_path = f'polynomial_control_values:{var}'
+        elif var_type == 'input_polynomial_control':
+            shape = phase.polynomial_control_options[var]['shape']
+            units = phase.polynomial_control_options[var]['units']
+            linear = False
+            constraint_path = f'polynomial_control_values:{var}'
+        elif var_type == 'parameter':
+            shape = phase.parameter_options[var]['shape']
+            units = phase.parameter_options[var]['units']
+            linear = True
+            constraint_path = f'parameters:{var}'
+        elif var_type in ('control_rate', 'control_rate2'):
+            control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
+            shape = phase.control_options[control_var]['shape']
+            control_units = phase.control_options[control_var]['units']
+            d = 2 if var_type == 'control_rate2' else 1
+            control_rate_units = get_rate_units(control_units, time_units, deriv=d)
+            units = control_rate_units
+            linear = False
+            constraint_path = 'control_rates:{0}'.format(var)
+        elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
+            control_var = var[:-5]
+            shape = phase.polynomial_control_options[control_var]['shape']
+            control_units = phase.polynomial_control_options[control_var]['units']
+            d = 2 if var_type == 'polynomial_control_rate2' else 1
+            control_rate_units = get_rate_units(control_units, time_units, deriv=d)
+            units = control_rate_units
+            linear = False
+            constraint_path = f'polynomial_control_rates:{var}'
+        else:
+            # Failed to find variable, assume it is in the ODE. This requires introspection.
+            raise NotImplementedError('cannot yet constrain/optimize an ODE output using explicit shooting')
+            constraint_path = f'{self._rhs_source}.{var}'
+            ode = phase._get_subsystem(self._rhs_source)
+            shape, units = get_source_metadata(ode, var, user_units=None, user_shape=None)
+            linear = False
+
+        return constraint_path, shape, units, linear
 
     def get_rate_source_path(self, state_var, phase):
         """
