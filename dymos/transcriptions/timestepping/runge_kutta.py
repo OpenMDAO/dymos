@@ -98,9 +98,9 @@ rkck = {'a': np.array([[0,  0,  0,  0,  0],
                       [3/10, -9/10, 6/5, 0, 0],
                       [-11/54, 5/2, -70/27, 35/27, 0],
                       [1631/55296, 175/512, 575/13828, 44275/110592, 253/4096]]),
-       'c': np.array([0, 1/5, 3/10, 3/5, 1, 7/8]),
-       'b': np.array([2825/27648, 0, 18575/48384, 13525/55296, 277/14336, 1/4]),
-       'b_star': np.array([37/378, 0, 250/621, 125/594, 512/1771, 0])}
+        'c': np.array([0, 1/5, 3/10, 3/5, 1, 7/8]),
+        'b': np.array([2825/27648, 0, 18575/48384, 13525/55296, 277/14336, 1/4]),
+        'b_star': np.array([37/378, 0, 250/621, 125/594, 512/1771, 0])}
 
 dopri = {'a': np.array([[0,  0,  0,  0,  0, 0],
                         [1/5, 0, 0, 0, 0, 0],
@@ -146,12 +146,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         self.options.declare('tableau', default=rk4, types=dict,
                              desc='Dictionary containing parameters for the Runge Kutta tableau.')
 
-        # self.options.declare('h', default=0.5, types=float,
-        #                      desc='stepsize for the integration.  this is only the initial '
-        #                           'stepsize if a variable step method is used.')
-
         self.options.declare('num_steps', default=10, types=int, desc='number of fixed steps')
-
 
     def _setup_subprob(self):
         self.prob = p = om.Problem(comm=self.comm)
@@ -260,8 +255,6 @@ class RKIntegrationComp(om.ExplicitComponent):
         -------
 
         """
-        #todo: Remove instantiation of numpy arrays from this method and use pre-created ones instead.
-
         a = self.options['tableau']['a']
         b = self.options['tableau']['b']
         b_star = self.options['tableau'].get('b_star', None)

@@ -2,7 +2,6 @@ import numpy as np
 import openmdao.api as om
 
 from ...utils.lgl import lgl
-from ...utils.misc import CoerceDesvar
 
 
 class ControlInterpolationComp(om.ExplicitComponent):
@@ -196,7 +195,7 @@ class ControlInterpolationComp(om.ExplicitComponent):
 
                 da_duhat = self._V_u_inv[seg_order] @ L_seg
 
-                partials[output_name, input_name] = 0.0
+                partials[output_name, input_name][...] = 0.0
                 partials[output_name, input_name][..., u_idxs] = pu_pa.real @ da_duhat.real
 
                 u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
@@ -214,7 +213,7 @@ class ControlInterpolationComp(om.ExplicitComponent):
             pu_pa = ptau_array
             da_duhat = self._V_pc_inv[order]
 
-            partials[output_name, input_name] = 0.0
+            partials[output_name, input_name][...] = 0.0
             partials[output_name, input_name][...] = pu_pa @ da_duhat
 
             u_hat = inputs[input_name]
@@ -223,4 +222,3 @@ class ControlInterpolationComp(om.ExplicitComponent):
             dptau_array_dptau = np.atleast_2d(np.power(ptau, dir_exponents))
 
             partials[output_name, 'ptau'] = exponents[:-1] * dptau_array_dptau @ a[:len(exponents)-1]
-

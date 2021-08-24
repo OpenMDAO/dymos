@@ -9,6 +9,7 @@ from ...utils.introspection import get_targets, configure_controls_introspection
     configure_time_introspection, configure_parameters_introspection, \
     configure_states_discovery, configure_states_introspection
 
+
 class ODEEvaluationGroup(om.Group):
     """
     A special group whose purpose is to evaluate the ODE and return the computed
@@ -36,7 +37,7 @@ class ODEEvaluationGroup(om.Group):
     def setup(self):
         gd = self.grid_data
 
-        ### All states, controls, parameters, and polyomial controls need to exist
+        # All states, controls, parameters, and polyomial controls need to exist
         # in the ODE evaluation group regardless of whether or not they have targets in the ODE.
         # This makes taking the derivatives more consistent without Exceptions.
         self._ivc = self.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
@@ -50,6 +51,7 @@ class ODEEvaluationGroup(om.Group):
                                                    time_units=self.time_options['units']),
                                promotes_inputs=['time', 't_initial', 't_duration'],
                                promotes_outputs=['stau', 'ptau', 'time_phase', 'segment_index'])
+
             # Add control interpolant
             self._control_comp = self.add_subsystem('control_interp',
                                                     ControlInterpolationComp(grid_data=gd,

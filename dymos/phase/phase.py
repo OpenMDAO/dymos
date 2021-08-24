@@ -1552,7 +1552,6 @@ class Phase(om.Group):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        #TODO: use the one in utils.introspection
         transcription = self.options['transcription']
         state_options = self.state_options
         ode = transcription._get_ode(self)

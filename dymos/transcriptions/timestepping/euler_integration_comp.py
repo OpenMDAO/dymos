@@ -286,7 +286,8 @@ class EulerIntegrationComp(om.ExplicitComponent):
 
         # pack the resulting array
         for state_name in self.state_options:
-            self._f[self.state_idxs[state_name]] = self._prob.get_val(f'state_rate_collector.state_rates:{state_name}_rate').ravel()
+            self._f[self.state_idxs[state_name]] = \
+                self._prob.get_val(f'state_rate_collector.state_rates:{state_name}_rate').ravel()
 
         return self._f
 
@@ -344,28 +345,34 @@ class EulerIntegrationComp(om.ExplicitComponent):
 
         for state_name in self.state_options:
             idxs = self.state_idxs[state_name]
-            self._f_t[self.state_idxs[state_name]] = self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
-                                                                               wrt='time', return_format='array', use_abs_names=False)
+            self._f_t[self.state_idxs[state_name]] = \
+                self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
+                                          wrt='time', return_format='array', use_abs_names=False)
 
             for state_name_wrt in self.state_options:
                 idxs_wrt = self.state_idxs[state_name_wrt]
 
-                px_px = self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
-                                                 wrt=f'states:{state_name_wrt}', return_format='array', use_abs_names=False)
+                px_px = \
+                    self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
+                                              wrt=f'states:{state_name_wrt}', return_format='array',
+                                              use_abs_names=False)
 
                 self._f_x[idxs, idxs_wrt] = px_px.ravel()
 
-            self._f_p[idxs, 0] = self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
-                                                           wrt='t_initial', return_format='array', use_abs_names=False)
+            self._f_p[idxs, 0] = \
+                self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
+                                          wrt='t_initial', return_format='array', use_abs_names=False)
 
-            self._f_p[idxs, 1] = self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
-                                                           wrt='t_duration', return_format='array', use_abs_names=False)
+            self._f_p[idxs, 1] = \
+                self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
+                                          wrt='t_duration', return_format='array', use_abs_names=False)
 
             for param_name_wrt in self.parameter_options:
                 idxs_wrt = self.parameter_idxs[param_name_wrt]
 
                 px_pp = self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
-                                                 wrt=f'parameters:{param_name_wrt}', return_format='array', use_abs_names=False)
+                                                  wrt=f'parameters:{param_name_wrt}', return_format='array',
+                                                  use_abs_names=False)
 
                 self._f_p[idxs, idxs_wrt] = px_pp.ravel()
 
@@ -373,7 +380,8 @@ class EulerIntegrationComp(om.ExplicitComponent):
                 idxs_wrt = self.control_idxs[control_name_wrt]
 
                 px_pu = self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
-                                                 wrt=f'controls:{control_name_wrt}', return_format='array', use_abs_names=False)
+                                                  wrt=f'controls:{control_name_wrt}',
+                                                  return_format='array', use_abs_names=False)
 
                 self._f_p[idxs, idxs_wrt] = px_pu.ravel()
 
@@ -381,7 +389,8 @@ class EulerIntegrationComp(om.ExplicitComponent):
                 idxs_wrt = self.polynomial_control_idxs[pc_name_wrt]
 
                 px_pu = self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
-                                                 wrt=f'polynomial_controls:{pc_name_wrt}', return_format='array', use_abs_names=False)
+                                                  wrt=f'polynomial_controls:{pc_name_wrt}',
+                                                  return_format='array', use_abs_names=False)
 
                 self._f_p[idxs, idxs_wrt] = px_pu.ravel()
 
@@ -408,13 +417,9 @@ class EulerIntegrationComp(om.ExplicitComponent):
         """
         self.dx_dx0[...] = px_px @ self.dx_dx0
 
-        self.dx_dp[...] = px_px @ self.dx_dp + \
-                          px_pt @ self.dt_dp + \
-                          px_ph @ self.dh_dp + \
-                          px_pp
+        self.dx_dp[...] = px_px @ self.dx_dp + px_pt @ self.dt_dp + px_ph @ self.dh_dp + px_pp
 
-        self.dt_dp[...] = pt_pt @ self.dt_dp + \
-                          pt_ph @ self.dh_dp
+        self.dt_dp[...] = pt_pt @ self.dt_dp + pt_ph @ self.dh_dp
 
     def _update_derivs_rev(self, pt_pt, pt_ph, px_pt, px_px, px_ph, px_pp, px_pu):
         """
@@ -529,13 +534,6 @@ class EulerIntegrationComp(om.ExplicitComponent):
 
                 t = t + h
                 x = x + h * f
-
-                # # The ODE is not evaluated at the final time, so don't append its value here.
-                # if i < N - 1:
-                #     if state_stack:
-                #         state_stack.append(x)
-                #     if time_stack:
-                #         time_stack.append(t)
 
         # Unpack the final values
         if outputs:

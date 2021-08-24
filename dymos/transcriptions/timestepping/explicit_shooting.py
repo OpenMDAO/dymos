@@ -46,10 +46,10 @@ class ExplicitShooting(TranscriptionBase):
         Setup the GridData object for the Transcription.
         """
         self.grid_data = GridData(num_segments=self.options['num_segments'],
-                                   transcription=self.options['grid'],
-                                   transcription_order=self.options['order'],
-                                   segment_ends=self.options['segment_ends'],
-                                   compressed=self.options['compressed'])
+                                  transcription=self.options['grid'],
+                                  transcription_order=self.options['order'],
+                                  segment_ends=self.options['segment_ends'],
+                                  compressed=self.options['compressed'])
 
     def setup_time(self, phase):
         """

@@ -452,6 +452,7 @@ def configure_states_introspection(state_options, time_options, control_options,
         if need_units:
             options['units'] = time_units if rate_src_units is None else f'{rate_src_units}*{time_units}'
 
+
 def configure_states_discovery(state_options, ode):
     """
     Searches phase output metadata for any declared states and adds them.

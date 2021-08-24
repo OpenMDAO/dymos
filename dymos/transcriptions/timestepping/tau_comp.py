@@ -90,7 +90,6 @@ class TauComp(om.ExplicitComponent):
         outputs['stau'] = 2.0 * (ptau - ptau0_seg) / td_seg - 1.0
         outputs['time_phase'] = time - t_initial
 
-
     def compute_partials(self, inputs, partials):
         """
         Compute sub-jacobian parts. The model is assumed to be in an unscaled state.
