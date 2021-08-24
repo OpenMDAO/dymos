@@ -11,6 +11,7 @@ from .euler_integration_comp import EulerIntegrationComp
 from ..common import TimeComp
 from ...utils.misc import get_rate_units, get_target_metadata, get_source_metadata, \
     _unspecified, CoerceDesvar
+from ...utils.constants import INF_BOUND
 from ...utils.introspection import get_targets
 from ...utils.indexing import get_src_indices_by_row
 
@@ -73,6 +74,34 @@ class ExplicitShooting(TranscriptionBase):
         print('ExplicitShooting: configure time')
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp.configure_time_io()
+
+        time_options = phase.time_options
+
+        if not (time_options['input_initial'] or time_options['fix_initial']):
+            lb, ub = time_options['initial_bounds']
+            lb = -INF_BOUND if lb is None else lb
+            ub = INF_BOUND if ub is None else ub
+
+            phase.add_design_var('t_initial',
+                                 lower=lb,
+                                 upper=ub,
+                                 scaler=time_options['initial_scaler'],
+                                 adder=time_options['initial_adder'],
+                                 ref0=time_options['initial_ref0'],
+                                 ref=time_options['initial_ref'])
+
+        if not (time_options['input_duration'] or time_options['fix_duration']):
+            lb, ub = time_options['duration_bounds']
+            lb = -INF_BOUND if lb is None else lb
+            ub = INF_BOUND if ub is None else ub
+
+            phase.add_design_var('t_duration',
+                                 lower=lb,
+                                 upper=ub,
+                                 scaler=time_options['duration_scaler'],
+                                 adder=time_options['duration_adder'],
+                                 ref0=time_options['duration_ref0'],
+                                 ref=time_options['duration_ref'])
 
         # # The tuples here are (name, user_specified_targets, dynamic)
         # for name, usr_tgts, dynamic in [('time', options['targets'], True),
@@ -141,44 +170,19 @@ class ExplicitShooting(TranscriptionBase):
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp.configure_states_io()
 
-        # num_seg = self.grid_data.num_segments
-        #
-        # for state_name, options in phase.state_options.items():
-        #     phase.indep_states.add_output(f'initial_states:{state_name}',
-        #                                   val=np.ones(((1,) + options['shape'])),
-        #                                   units=options['units'])
-        #
-        # for state_name, options in phase.state_options.items():
-        #     # Connect the initial state to the first segment
-        #     src_idxs = get_src_indices_by_row([0], options['shape'])
-        #
-        #     phase.connect(f'initial_states:{state_name}',
-        #                   f'segment_0.initial_states:{state_name}',
-        #                   src_indices=src_idxs, flat_src_indices=True)
-        #
-        #     phase.connect(f'segment_0.states:{state_name}',
-        #                   f'state_mux_comp.segment_0_states:{state_name}')
-        #
-        #     targets = get_targets(ode=phase.ode, name=state_name, user_targets=options['targets'])
-        #
-        #     if targets:
-        #         phase.connect(f'state_mux_comp.states:{state_name}',
-        #                       [f'ode.{t}' for t in targets])
-        #
-        #     # Connect the final state in segment n to the initial state in segment n + 1
-        #     for i in range(1, num_seg):
-        #         if self.options['output_nodes_per_seg'] is None:
-        #             nnps_i = self.grid_data.subset_num_nodes_per_segment['all'][i]
-        #         else:
-        #             nnps_i = self.options['output_nodes_per_seg']
-        #
-        #         src_idxs = get_src_indices_by_row([nnps_i-1], shape=options['shape'])
-        #         phase.connect(f'segment_{i - 1}.states:{state_name}',
-        #                       f'segment_{i}.initial_states:{state_name}',
-        #                       src_indices=src_idxs, flat_src_indices=True)
-        #
-        #         phase.connect(f'segment_{i}.states:{state_name}',
-        #                       f'state_mux_comp.segment_{i}_states:{state_name}')
+        # Add the appropriate design parameters
+        for state_name, options in phase.state_options.items():
+            if options['fix_final']:
+                raise ValueError('fix_final is not a valid option for states when using the '
+                                 'ExplicitShooting transcription.')
+            if options['opt'] and not options['fix_initial']:
+                phase.add_design_var(name=f'states:{state_name}',
+                                     lower=options['lower'],
+                                     upper=options['upper'],
+                                     scaler=options['scaler'],
+                                     adder=options['adder'],
+                                     ref0=options['ref0'],
+                                     ref=options['ref'])
 
     def _get_ode(self, phase):
         integrator = phase._get_subsystem('integrator')
@@ -389,7 +393,7 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        super().setup_boundary_constraints(loc, phase)
 
     def configure_boundary_constraints(self, loc, phase):
         """
@@ -402,7 +406,7 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        super().configure_boundary_constraints(loc, phase)
 
     def setup_solvers(self, phase):
         """
@@ -696,17 +700,8 @@ class ExplicitShooting(TranscriptionBase):
         elif var_type == 'state':
             shape = phase.state_options[var]['shape']
             units = phase.state_options[var]['units']
-            solve_segments = phase.state_options[var]['solve_segments']
-            connected_initial = phase.state_options[var]['connected_initial']
-            if not solve_segments and not connected_initial:
-                linear = True
-            elif solve_segments in {True, 'forward'} and not connected_initial and loc == 'initial':
-                linear = True
-            elif solve_segments == 'backward' and loc == 'final':
-                linear = True
-            else:
-                linear = False
-            constraint_path = f'states:{var}'
+            linear = loc == 'initial'
+            constraint_path = f'integrator.states_out:{var}'
         elif var_type in 'indep_control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']

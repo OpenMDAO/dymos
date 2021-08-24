@@ -459,7 +459,6 @@ class EulerIntegrationComp(om.ExplicitComponent):
             A stack into which the state vector at each evaluation should be stored. This stack is
             cleared by this method before any values are added.
         """
-        print('propagating')
         gd = self.grid_data
         N = self.options['num_steps_per_segment']
 
@@ -495,13 +494,6 @@ class EulerIntegrationComp(om.ExplicitComponent):
             pt_pt = np.ones((1, 1), dtype=self._TYPE)
             pt_ph = np.ones((1, 1), dtype=self._TYPE)
             px_ph = np.ones((self.x_size, 1), dtype=self._TYPE)
-
-        # if state_stack is not None:
-        #     state_stack.clear()
-        #     state_stack.append(x)
-        # if time_stack is not None:
-        #     time_stack.clear()
-        #     time_stack.append(t)
 
         seg_durations = t_duration * np.diff(gd.segment_ends) / 2.0
 

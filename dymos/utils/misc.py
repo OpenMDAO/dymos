@@ -366,7 +366,7 @@ class CoerceDesvar(object):
 
         if option == 'upper':
             ub = np.zeros_like(self.desvar_indices, dtype=float)
-            ub[:] = INF_BOUND if self.options['upper'] is None else self.val
+            ub[:] = INF_BOUND if self.options['upper'] is None else val
             return ub
 
         if val is None or np.isscalar(val):
