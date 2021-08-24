@@ -209,7 +209,7 @@ class ExplicitShooting(TranscriptionBase):
                                                grid_data=self.grid_data,
                                                ode_init_kwargs=phase.options['ode_init_kwargs'],
                                                standalone_mode=False,
-                                               complex_step_mode=True)
+                                               complex_step_mode=False)
 
         phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'])
 

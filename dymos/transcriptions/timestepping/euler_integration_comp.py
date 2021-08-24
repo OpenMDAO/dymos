@@ -324,6 +324,9 @@ class EulerIntegrationComp(om.ExplicitComponent):
             A matrix of the derivatives of each element of the interpolated state values `u` wrt `time`.
 
         """
+        of_names = []
+        wrt_names = ['time', 't_initial', 't_duration']
+
         # transcribe time
         self._prob.set_val('time', t, units=self.time_options['units'])
         self._prob.set_val('t_initial', p[0], units=self.time_options['units'])
@@ -333,64 +336,63 @@ class EulerIntegrationComp(om.ExplicitComponent):
         for state_name in self.state_options:
             self._prob.set_val(f'states:{state_name}', x[self.state_idxs[state_name]])
 
+            of_names.append(f'state_rate_collector.state_rates:{state_name}_rate')
+            wrt_names.append(f'states:{state_name}')
+
         # transcribe parameters
         for param_name in self.parameter_options:
             self._prob.set_val(f'parameters:{param_name}', p[self.parameter_idxs[param_name]])
+
+            wrt_names.append(f'parameters:{param_name}')
 
         # transcribe controls
         for control_name in self.control_options:
             self._prob.set_val(f'controls:{control_name}', p[self.control_idxs[control_name]])
 
+            wrt_names.append(f'controls:{control_name}')
+
+        for pc_name_wrt in self.polynomial_control_options:
+            wrt_names.append(f'polynomial_controls:{pc_name_wrt}')
+
+        # Re-run in case the inputs have changed.
         self._prob.run_model()
 
+        totals = self._prob.compute_totals(of=of_names, wrt=wrt_names, use_abs_names=False)
+
         for state_name in self.state_options:
+            of_name = f'state_rate_collector.state_rates:{state_name}_rate'
             idxs = self.state_idxs[state_name]
-            self._f_t[self.state_idxs[state_name]] = \
-                self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
-                                          wrt='time', return_format='array', use_abs_names=False)
+            self._f_t[self.state_idxs[state_name]] = totals[of_name, 'time']
 
             for state_name_wrt in self.state_options:
                 idxs_wrt = self.state_idxs[state_name_wrt]
 
-                px_px = \
-                    self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
-                                              wrt=f'states:{state_name_wrt}', return_format='array',
-                                              use_abs_names=False)
+                px_px = totals[of_name, f'states:{state_name_wrt}']
 
                 self._f_x[idxs, idxs_wrt] = px_px.ravel()
 
-            self._f_p[idxs, 0] = \
-                self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
-                                          wrt='t_initial', return_format='array', use_abs_names=False)
+            self._f_p[idxs, 0] = totals[of_name, 't_initial']
 
-            self._f_p[idxs, 1] = \
-                self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
-                                          wrt='t_duration', return_format='array', use_abs_names=False)
+            self._f_p[idxs, 1] = totals[of_name, 't_duration']
 
             for param_name_wrt in self.parameter_options:
                 idxs_wrt = self.parameter_idxs[param_name_wrt]
 
-                px_pp = self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
-                                                  wrt=f'parameters:{param_name_wrt}', return_format='array',
-                                                  use_abs_names=False)
+                px_pp = totals[of_name, f'parameters:{param_name_wrt}']
 
                 self._f_p[idxs, idxs_wrt] = px_pp.ravel()
 
             for control_name_wrt in self.control_options:
                 idxs_wrt = self.control_idxs[control_name_wrt]
 
-                px_pu = self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
-                                                  wrt=f'controls:{control_name_wrt}',
-                                                  return_format='array', use_abs_names=False)
+                px_pu = totals[of_name, f'controls:{control_name_wrt}']
 
                 self._f_p[idxs, idxs_wrt] = px_pu.ravel()
 
             for pc_name_wrt in self.polynomial_control_options:
                 idxs_wrt = self.polynomial_control_idxs[pc_name_wrt]
 
-                px_pu = self._prob.compute_totals(of=f'state_rate_collector.state_rates:{state_name}_rate',
-                                                  wrt=f'polynomial_controls:{pc_name_wrt}',
-                                                  return_format='array', use_abs_names=False)
+                px_pu = totals[of_name, f'polynomial_controls:{pc_name_wrt}']
 
                 self._f_p[idxs, idxs_wrt] = px_pu.ravel()
 
