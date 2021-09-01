@@ -213,7 +213,8 @@ class PseudospectralBase(TranscriptionBase):
                                          adder=coerce_desvar_option('adder'),
                                          ref0=coerce_desvar_option('ref0'),
                                          ref=coerce_desvar_option('ref'),
-                                         indices=desvar_indices)
+                                         indices=desvar_indices,
+                                         flat_indices=True)
 
         if isinstance(indep, StateIndependentsComp):
             indep.configure_io(self.state_idx_map)
@@ -258,7 +259,7 @@ class PseudospectralBase(TranscriptionBase):
         phase.state_interp.configure_io()
 
         phase.connect('dt_dstau', 'state_interp.dt_dstau',
-                      src_indices=grid_data.subset_node_indices['col'])
+                      src_indices=grid_data.subset_node_indices['col'], flat_src_indices=True)
 
         for name, options in phase.state_options.items():
             size = np.prod(options['shape'])
@@ -381,7 +382,7 @@ class PseudospectralBase(TranscriptionBase):
         num_seg = grid_data.num_segments
 
         phase.connect('dt_dstau', ('collocation_constraint.dt_dstau'),
-                      src_indices=grid_data.subset_node_indices['col'])
+                      src_indices=grid_data.subset_node_indices['col'], flat_src_indices=True)
 
         phase.collocation_constraint.configure_io()
 

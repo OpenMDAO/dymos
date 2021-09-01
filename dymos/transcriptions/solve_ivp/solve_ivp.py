@@ -123,8 +123,9 @@ class SolveIVP(TranscriptionBase):
             else:
                 src_idxs = np.arange(i * output_nodes_per_seg, output_nodes_per_seg * (i + 1),
                                      dtype=int)
-            phase.connect('time', f'segment_{i}.time', src_indices=src_idxs)
-            phase.connect('time_phase', f'segment_{i}.time_phase', src_indices=src_idxs)
+            phase.connect('time', f'segment_{i}.time', src_indices=src_idxs, flat_src_indices=True)
+            phase.connect('time_phase', f'segment_{i}.time_phase', src_indices=src_idxs,
+                          flat_src_indices=True)
 
         options = phase.time_options
 

@@ -347,7 +347,8 @@ class ControlGroup(om.Group):
                                         adder=coerce_desvar_option('adder'),
                                         ref0=coerce_desvar_option('ref0'),
                                         ref=coerce_desvar_option('ref'),
-                                        indices=desvar_indices)
+                                        indices=desvar_indices,
+                                        flat_indices=True)
 
                 default_val = reshape_val(options['val'], shape, num_input_nodes)
 
