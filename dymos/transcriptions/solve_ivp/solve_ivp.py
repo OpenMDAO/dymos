@@ -708,9 +708,9 @@ class SolveIVP(TranscriptionBase):
             wildcard_units = options.get('wildcard_units', None)
 
             if '*' in var:  # match outputs from the ODE
-                ode_outputs = {opts['prom_name']: opts for (k, opts) in
-                               phase.ode.get_io_metadata(iotypes=('output',)).items()}
-                matches = filter(list(ode_outputs.keys()), var)
+                ode_outputs = {opts['prom_name']: opts for opts in
+                               phase.ode.get_io_metadata(iotypes=('output',)).values()}
+                matches = filter(ode_outputs.keys(), var)
             else:
                 matches = [var]
 
