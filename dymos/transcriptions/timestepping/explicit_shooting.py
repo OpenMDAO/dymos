@@ -1,19 +1,8 @@
-from fnmatch import filter
-import warnings
-
-import numpy as np
-
-import openmdao.api as om
-
 from ..transcription_base import TranscriptionBase
 from ..grid_data import GridData
-from .euler_integration_comp import EulerIntegrationComp
-from ..common import TimeComp
-from ...utils.misc import get_rate_units, get_target_metadata, get_source_metadata, \
-    _unspecified, CoerceDesvar
+from .rk_integration_comp import RKIntegrationComp, rk_methods
+from ...utils.misc import get_rate_units, get_source_metadata, CoerceDesvar
 from ...utils.constants import INF_BOUND
-from ...utils.introspection import get_targets
-from ...utils.indexing import get_src_indices_by_row
 
 
 class ExplicitShooting(TranscriptionBase):
@@ -38,6 +27,9 @@ class ExplicitShooting(TranscriptionBase):
         self.options.declare('grid', values=['radau-ps', 'gauss-lobatto'],
                              default='gauss-lobatto', desc='The type of transcription used to layout'
                              ' the segments and control discretization nodes.')
+        self.options.declare('method', types=(str,), default='rk4',
+                             desc='The explicit Runge-Kutta scheme to use. One of' +
+                                  str(list(rk_methods.keys())))
         self.options.declare('num_steps_per_segment', types=int,
                              default=10, desc='Number of integration steps in each segment')
 
@@ -199,19 +191,32 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        integrator_comp = EulerIntegrationComp(ode_class=phase.options['ode_class'],
-                                               time_options=phase.time_options,
-                                               state_options=phase.state_options,
-                                               parameter_options=phase.parameter_options,
-                                               control_options=phase.control_options,
-                                               polynomial_control_options=phase.polynomial_control_options,
-                                               num_steps_per_segment=self.options['num_steps_per_segment'],
-                                               grid_data=self.grid_data,
-                                               ode_init_kwargs=phase.options['ode_init_kwargs'],
-                                               standalone_mode=False,
-                                               complex_step_mode=False)
+        # integrator_comp = EulerIntegrationComp(ode_class=phase.options['ode_class'],
+        #                                        time_options=phase.time_options,
+        #                                        state_options=phase.state_options,
+        #                                        parameter_options=phase.parameter_options,
+        #                                        control_options=phase.control_options,
+        #                                        polynomial_control_options=phase.polynomial_control_options,
+        #                                        num_steps_per_segment=self.options['num_steps_per_segment'],
+        #                                        grid_data=self.grid_data,
+        #                                        ode_init_kwargs=phase.options['ode_init_kwargs'],
+        #                                        standalone_mode=False,
+        #                                        complex_step_mode=False)
+        integrator_comp = RKIntegrationComp(ode_class=phase.options['ode_class'],
+                                            time_options=phase.time_options,
+                                            state_options=phase.state_options,
+                                            parameter_options=phase.parameter_options,
+                                            control_options=phase.control_options,
+                                            polynomial_control_options=phase.polynomial_control_options,
+                                            method=self.options['method'],
+                                            num_steps_per_segment=self.options['num_steps_per_segment'],
+                                            grid_data=self.grid_data,
+                                            ode_init_kwargs=phase.options['ode_init_kwargs'],
+                                            standalone_mode=False,
+                                            complex_step_mode=False)
 
-        phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'])
+        phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'],
+                            promotes_outputs=['states_out:*', 't_final'])
 
     def configure_ode(self, phase):
         """

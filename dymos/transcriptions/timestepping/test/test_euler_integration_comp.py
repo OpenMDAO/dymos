@@ -169,19 +169,27 @@ class TestEulerIntegrationComp(unittest.TestCase):
 
         p = om.Problem()
 
+        gd = dm.transcriptions.grid_data.GridData(num_segments=1,
+                                                  transcription='gauss-lobatto',
+                                                  transcription_order=3,
+                                                  compressed=True)
+
         p.model.add_subsystem('fixed_step_integrator', EulerIntegrationComp(SimpleODE, time_options, state_options,
                                                                             param_options, control_options,
-                                                                            polynomial_control_options, mode='fwd',
-                                                                            num_steps=1000,
+                                                                            polynomial_control_options,
+                                                                            grid_data=gd,
+                                                                            num_steps_per_segment=40,
                                                                             ode_init_kwargs=None))
         p.setup(mode='fwd', force_alloc_complex=True)
 
-        p.set_val('fixed_step_integrator.state_initial_values:x', 0.5)
+        p.set_val('fixed_step_integrator.states:x', 0.5)
         p.set_val('fixed_step_integrator.t_initial', 0.0)
         p.set_val('fixed_step_integrator.t_duration', 2.0)
         p.set_val('fixed_step_integrator.parameters:p', 1.0)
 
         p.run_model()
+
+        p.model.list_outputs()
 
         cpd = p.check_partials(method='fd', form='central', compact_print=True)
         assert_check_partials(cpd)

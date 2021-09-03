@@ -384,7 +384,7 @@ def configure_states_introspection(state_options, time_options, control_options,
 
         # 1. No introspection necessary
         if not(need_shape or need_units):
-            return
+            continue
 
         # 2. Attempt target introspection
         if options['targets']:
@@ -393,7 +393,7 @@ def configure_states_introspection(state_options, time_options, control_options,
                                                                  options['units'], options['shape'])
                 options['shape'] = tgt_shape
                 options['units'] = tgt_units
-                return
+                continue
             except ValueError:
                 pass
 
