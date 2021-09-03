@@ -215,8 +215,7 @@ class ExplicitShooting(TranscriptionBase):
                                             standalone_mode=False,
                                             complex_step_mode=False)
 
-        phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'],
-                            promotes_outputs=['states_out:*', 't_final'])
+        phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'])
 
     def configure_ode(self, phase):
         """

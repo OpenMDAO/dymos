@@ -130,9 +130,9 @@ class TestExplicitShooting(unittest.TestCase):
 
         prob.run_model()
 
-        # t_f = prob.get_val('phase0.t_final')
-        x_f = prob.get_val('phase0.states_out:x')
-        y_f = prob.get_val('phase0.states_out:y')
+        t_f = prob.get_val('phase0.integrator.t_final')
+        x_f = prob.get_val('phase0.integrator.states_out:x')
+        y_f = prob.get_val('phase0.integrator.states_out:y')
 
         with np.printoptions(linewidth=1024):
             cpd = prob.check_partials(compact_print=True, method='cs')
@@ -188,9 +188,9 @@ class TestExplicitShooting(unittest.TestCase):
         # assert_near_equal(y_f, 5.0, tolerance=1.0E-5)
         # assert_near_equal(t_f, 1.8016, tolerance=5.0E-3)
 
-        # with np.printoptions(linewidth=1024):
-        #     cpd = prob.check_partials(compact_print=True, method='fd')
-        #     assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
+        with np.printoptions(linewidth=1024):
+            cpd = prob.check_partials(compact_print=True, method='fd')
+            assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
         #
         # prob.model.list_outputs(print_arrays=True)
         #
@@ -262,8 +262,8 @@ if __name__ == '__main__':
     prob.driver.opt_settings['Verify level'] = 3
     prob.driver.opt_settings['iSumm'] = 6
 
-    tx = dm.transcriptions.ExplicitShooting(num_segments=5, grid='gauss-lobatto',
-                                            order=3, num_steps_per_segment=20, compressed=True)
+    tx = dm.transcriptions.ExplicitShooting(num_segments=1, grid='gauss-lobatto',
+                                            order=3, num_steps_per_segment=10, compressed=True)
 
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
 
