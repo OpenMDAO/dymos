@@ -546,11 +546,6 @@ class RKIntegrationComp(om.ExplicitComponent):
         if derivs:
             # Initialize the total derivatives
             self._reset_derivs()
-            # From the time update equation, the partial of the new time wrt the previous time and
-            # the partial wrt the stepsize are both [1].
-            pt_pt = np.ones((1, 1), dtype=self._TYPE)
-            pt_ph = np.ones((1, 1), dtype=self._TYPE)
-            px_ph = np.ones((self.x_size, 1), dtype=self._TYPE)
 
         seg_durations = t_duration * np.diff(gd.segment_ends) / 2.0
 

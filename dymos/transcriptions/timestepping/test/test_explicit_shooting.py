@@ -204,8 +204,8 @@ class TestExplicitShooting(unittest.TestCase):
         prob.driver.opt_settings['Verify level'] = 3
         prob.driver.opt_settings['iSumm'] = 6
 
-        tx = dm.transcriptions.ExplicitShooting(num_segments=5, grid='gauss-lobatto',
-                                                order=3, num_steps_per_segment=20, compressed=True)
+        tx = dm.transcriptions.ExplicitShooting(num_segments=5, grid='gauss-lobatto', method='rk4',
+                                                order=3, num_steps_per_segment=10, compressed=True)
 
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
 
