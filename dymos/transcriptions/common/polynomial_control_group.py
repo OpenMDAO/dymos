@@ -274,11 +274,11 @@ class PolynomialControlGroup(om.Group):
                                                           val=default_val,
                                                           units=options['units'])
 
-                desvar_indices = list(range(num_input_nodes))
+                desvar_indices = np.arange(num_input_nodes, dtype=int)
                 if options['fix_initial']:
-                    desvar_indices.pop(0)
+                    desvar_indices = desvar_indices[1:]
                 if options['fix_final']:
-                    desvar_indices.pop()
+                    desvar_indices = desvar_indices[:-1]
 
                 lb = -INF_BOUND if options['lower'] is None else options['lower']
                 ub = INF_BOUND if options['upper'] is None else options['upper']

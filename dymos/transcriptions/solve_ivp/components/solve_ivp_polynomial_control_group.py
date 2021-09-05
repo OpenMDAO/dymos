@@ -134,7 +134,7 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
                                   wrt=self._input_names[name],
                                   rows=rs, cols=cs, val=self.val_jacs[name][rs, cs])
 
-            rs = np.concatenate([np.arange(0, num_nodes * size, size, dtype=int) + i
+            rs = np.concatenate([np.arange(i, num_nodes * size + i, size, dtype=int)
                                  for i in range(size)])
 
             self.declare_partials(of=self._output_rate_names[name],
