@@ -22,8 +22,44 @@ rk_methods = {'rk4': {'a': np.array([[0.0, 0.0, 0.0, 0.0],
 
               'euler': {'a': np.array([[0.0]]),
                         'b': np.array([1.0]),
-                        'c': np.array([0.0])}
+                        'c': np.array([0.0])},
+
+              'ralston': {'a': np.array([[0, 0], [2/3, 0]]),
+                          'c': np.array([0, 2/3]),
+                          'b': np.array([1/4, 3/4])},
+
+              'rkf': {'a': np.array([[0,  0,  0,  0,  0],
+                                     [1/4, 0, 0, 0, 0],
+                                     [3/32, 9/32, 0, 0, 0],
+                                     [1932/2197, -7200/2197, 7296/2197, 0, 0],
+                                     [439/216, -8, 3680/513, -845/4104, 0],
+                                     [-8/27, 2, -3544/2565, 1859/4104, -11/40]]),
+                      'c': np.array([0, 1/4, 3/8, 12/13, 1, 1/2]),
+                      'b': np.array([16/135, 0, 6656/12825, 28561/56430, -9/50, 2/55]),
+                      'b_star': np.array([25/216, 0, 1408/2565, 2197/4104, -1/5, 0])},
+
+              'rkck': {'a': np.array([[0,  0,  0,  0,  0],
+                                      [1/5, 0, 0, 0, 0],
+                                      [3/40, 9/40, 0, 0, 0],
+                                      [3/10, -9/10, 6/5, 0, 0],
+                                      [-11/54, 5/2, -70/27, 35/27, 0],
+                                      [1631/55296, 175/512, 575/13828, 44275/110592, 253/4096]]),
+                       'c': np.array([0, 1/5, 3/10, 3/5, 1, 7/8]),
+                       'b': np.array([2825/27648, 0, 18575/48384, 13525/55296, 277/14336, 1/4]),
+                       'b_star': np.array([37/378, 0, 250/621, 125/594, 512/1771, 0])},
+
+              'dopri': {'a': np.array([[0,  0,  0,  0,  0, 0],
+                                       [1/5, 0, 0, 0, 0, 0],
+                                       [3/40, 9/40, 0, 0, 0, 0],
+                                       [44/45, -56/15, 32/9, 0, 0, 0],
+                                       [19372/6561, -25360/2187, 64448/6561, -212/729, 0, 0],
+                                       [9017/3168, -355/33, 46732/5247, 49/176, -5103/18656, 0],
+                                       [35/384, 0, 500/1113, 125/192, -2187/6784, 11/84]]),
+                        'c': np.array([0, 1/5, 3/10, 4/5, 8/9, 1, 1]),
+                        'b': np.array([35/384, 0, 500/1113, 125/192, -2187/6784, 11/84, 0]),
+                        'b_star': np.array([5179/57600, 0, 7571/16695, 393/640, -92097/339200, 187/2100, 1/40])}
               }
+
 
 class RKIntegrationComp(om.ExplicitComponent):
     """
@@ -455,34 +491,25 @@ class RKIntegrationComp(om.ExplicitComponent):
 
             for state_name_wrt in self.state_options:
                 idxs_wrt = self.state_idxs[state_name_wrt]
-
                 px_px = totals[of_name, f'states:{state_name_wrt}']
-
                 self._f_x[idxs, idxs_wrt] = px_px.ravel()
 
             self._f_phi[idxs, 0] = totals[of_name, 't_initial']
-
             self._f_phi[idxs, 1] = totals[of_name, 't_duration']
 
             for param_name_wrt in self.parameter_options:
                 idxs_wrt = self._parameter_idxs_in_phi[param_name_wrt]
-
                 px_pp = totals[of_name, f'parameters:{param_name_wrt}']
-
                 self._f_phi[idxs, idxs_wrt] = px_pp.ravel()
 
             for control_name_wrt in self.control_options:
                 idxs_wrt = self._control_idxs_in_phi[control_name_wrt]
-
                 px_pu = totals[of_name, f'controls:{control_name_wrt}']
-
                 self._f_phi[idxs, idxs_wrt] = px_pu.ravel()
 
             for pc_name_wrt in self.polynomial_control_options:
                 idxs_wrt = self.polynomial_control_idxs[pc_name_wrt]
-
                 px_pu = totals[of_name, f'polynomial_controls:{pc_name_wrt}']
-
                 self._f_phi[idxs, idxs_wrt] = px_pu.ravel()
 
         return self._f_x, self._f_t, self._f_phi
@@ -527,7 +554,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         # Initialize time
         phi = self._phi
 
-        t = inputs['t_initial'].copy()
+        t = np.asarray(inputs['t_initial'], dtype=self._TYPE)
         t_initial = inputs['t_initial'].copy()
         t_duration = inputs['t_duration'].copy()
 
@@ -552,9 +579,9 @@ class RKIntegrationComp(om.ExplicitComponent):
         for seg_i in range(gd.num_segments):
 
             if N > 0:
-                h = seg_durations[seg_i] / N
+                h = np.asarray(seg_durations[seg_i] / N, dtype=self._TYPE)
             else:
-                h = 0
+                h = np.zeros(1, dtype=self._TYPE)
 
             # On each segment, the total derivative of the stepsize h is a function of
             # the duration of the phase (the second element of the parameter vector)
@@ -572,43 +599,29 @@ class RKIntegrationComp(om.ExplicitComponent):
 
                 for i in range(1, num_stages):
                     T_i = t + c[i] * h
-                    a_dot_k = np.tensordot(a[i, :i], self._k_q[:i, ...], axes=(0, 0))
-                    X_i = x + h * a_dot_k
+                    # a_dot_k = np.tensordot(a[i, :i], self._k_q[:i, ...], axes=(0, 0))
+                    a_tdot_k = np.einsum('i,ijk->jk', a[i, :i], self._k_q[:i, ...])
+                    X_i = x + h * a_tdot_k
                     self._k_q[i, ...] = self.eval_f(X_i, T_i, phi)
 
                     if derivs:
                         f_x, f_t, f_phi = self.eval_f_derivs(X_i, T_i, phi)
                         self._dTi_dZ[...] = self._dt_dZ + c[i] * self._dh_dZ
-                        self._dXi_dZ[...] = self._dx_dZ + a_dot_k @ self._dh_dZ \
-                                            + h * np.tensordot(a[i, :i],
-                                                               self._dkq_dZ[:i, ...],
-                                                               axes=(0, 0))
+                        # a_tdot_dkqdz = np.tensordot(a[i, :i], self._dkq_dZ[:i, ...], axes=(0, 0))
+                        a_tdot_dkqdz = np.einsum('i,ijk->jk', a[i, :i], self._dkq_dZ[:i, ...])
+                        self._dXi_dZ[...] = self._dx_dZ + a_tdot_k @ self._dh_dZ + h * a_tdot_dkqdz
                         self._dkq_dZ[i, ...] = f_t @ self._dTi_dZ + f_x @ self._dXi_dZ + f_phi @ self._dphi_dZ
 
-                b_tdot_kq = px_ph = np.tensordot(b, self._k_q, axes=(0, 0))
-                x += h * b_tdot_kq
-                t += h
-
-                # print('t')
-                # print(t)
-                # print('x, y')
-                # print(x)
-                # print()
+                # b_tdot_kq = px_ph = np.tensordot(b, self._k_q, axes=(0, 0))
+                b_tdot_kq = np.einsum('i,ijk->jk', b, self._k_q)
+                x = x + h * b_tdot_kq
+                t = t + h
 
                 if derivs:
-                    self._dx_dZ[...] = self._dx_dZ \
-                                       + px_ph @ self._dh_dZ \
-                                       + h * np.tensordot(b, self._dkq_dZ, axes=(0, 0))
+                    # b_tdot_dkqdz = np.tensordot(b, self._dkq_dZ, axes=(0, 0))
+                    b_tdot_dkqdz = np.einsum('i,ijk->jk', b, self._dkq_dZ)
+                    self._dx_dZ[...] = self._dx_dZ + b_tdot_kq @ self._dh_dZ + h * b_tdot_dkqdz
                     self._dt_dZ[...] = self._dt_dZ + self._dh_dZ
-
-                    # with np.printoptions(linewidth=1024):
-                    #     print(self._dx_dZ)
-                    #     print(self._dt_dZ)
-                    #     print(self._dh_dZ)
-                    #     print(self._dkq_dZ)
-                    #     print(self._dphi_dZ)
-                    #     print(f_phi)
-                    # exit(0)
 
         # Unpack the final values
         if outputs:

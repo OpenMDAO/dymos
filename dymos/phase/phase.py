@@ -1671,6 +1671,26 @@ class Phase(om.Group):
                 self.control_options[name]['rate_continuity'] = False
                 self.control_options[name]['rate2_continuity'] = False
 
+    def _check_polynomial_control_options(self):
+        """
+        Check that polynomial control options are valid and issue warnings if invalid options are provided.
+
+        Warns
+        -----
+        RuntimeWarning
+            RuntimeWarning is issued in the case of one or more invalid time options.
+        """
+        for name, options in self.control_options.items():
+            if not options['opt']:
+                invalid_options = []
+                for opt in 'lower', 'upper', 'scaler', 'adder', 'ref', 'ref0':
+                    if options[opt] is not None:
+                        invalid_options.append(opt)
+                if invalid_options:
+                    warnings.warn('Invalid options for non-optimal polynoimal control  \'{0}\' in'
+                                  ' phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
+                                  RuntimeWarning)
+
     def _check_parameter_options(self):
         """
         Check that parameter options are valid and issue warnings if invalid

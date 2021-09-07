@@ -9,6 +9,9 @@ class ExplicitShooting(TranscriptionBase):
     """
     The Transcription class for explicit shooting methods.
 
+    This transcription uses an explicit general Runge-Kutta method to propagate the states using
+    the given ODE.
+
     Parameters
     ----------
     grid_data : GridData
@@ -94,47 +97,6 @@ class ExplicitShooting(TranscriptionBase):
                                  adder=time_options['duration_adder'],
                                  ref0=time_options['duration_ref0'],
                                  ref=time_options['duration_ref'])
-
-        # # The tuples here are (name, user_specified_targets, dynamic)
-        # for name, usr_tgts, dynamic in [('time', options['targets'], True),
-        #                                 ('time_phase', options['time_phase_targets'], True),
-        #                                 ('t_initial', options['t_initial_targets'], False),
-        #                                 ('t_duration', options['t_duration_targets'], False)]:
-        #
-        #     targets = get_targets(phase.ode, name=name, user_targets=usr_tgts)
-        #     if targets:
-        #         phase.connect(name, [f'ode.{t}' for t in targets])
-
-        # super(ExplicitShooting, self).configure_time(phase)
-        # num_seg = self.grid_data.num_segments
-        # grid_data = self.grid_data
-        # output_nodes_per_seg = self.options['output_nodes_per_seg']
-        #
-        # phase.time.configure_io()
-        #
-        # for i in range(num_seg):
-        #     phase.connect('t_initial', f'segment_{i}.t_initial')
-        #     phase.connect('t_duration', f'segment_{i}.t_duration')
-        #     if output_nodes_per_seg is None:
-        #         i1, i2 = grid_data.subset_segment_indices['all'][i, :]
-        #         src_idxs = grid_data.subset_node_indices['all'][i1:i2]
-        #     else:
-        #         src_idxs = np.arange(i * output_nodes_per_seg, output_nodes_per_seg * (i + 1),
-        #                              dtype=int)
-        #     phase.connect('time', f'segment_{i}.time', src_indices=src_idxs)
-        #     phase.connect('time_phase', f'segment_{i}.time_phase', src_indices=src_idxs)
-        #
-        # options = phase.time_options
-        #
-        # # The tuples here are (name, user_specified_targets, dynamic)
-        # for name, usr_tgts, dynamic in [('time', options['targets'], True),
-        #                                 ('time_phase', options['time_phase_targets'], True),
-        #                                 ('t_initial', options['t_initial_targets'], False),
-        #                                 ('t_duration', options['t_duration_targets'], False)]:
-        #
-        #     targets = get_targets(phase.ode, name=name, user_targets=usr_tgts)
-        #     if targets:
-        #         phase.connect(name, [f'ode.{t}' for t in targets])
 
     def setup_states(self, phase):
         """
@@ -278,7 +240,7 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        phase._check_polynomial_control_options()
 
     def configure_polynomial_controls(self, phase):
         """
@@ -291,32 +253,24 @@ class ExplicitShooting(TranscriptionBase):
         """
         print('ExplicitShooting: configure polynomial controls')
         super(ExplicitShooting, self).configure_polynomial_controls(phase)
-        # # In transcription_base, we get the control units/shape from the target, and then call
-        # # configure on the control_group.
-        # super(SolveIVP, self).configure_polynomial_controls(phase)
-        #
-        # # Additional connections.
-        # for name, options in phase.polynomial_control_options.items():
-        #
-        #     for iseg in range(self.grid_data.num_segments):
-        #         phase.connect(src_name=f'polynomial_controls:{name}',
-        #                       tgt_name=f'segment_{iseg}.polynomial_controls:{name}')
-        #
-        #     targets = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
-        #     if targets:
-        #         phase.connect(f'polynomial_control_values:{name}', [f'ode.{t}' for t in targets])
-        #
-        #     targets = get_targets(ode=phase.ode, name=f'{name}_rate',
-        #                           user_targets=options['rate_targets'])
-        #     if targets:
-        #         phase.connect(f'polynomial_control_rates:{name}_rate',
-        #                       [f'ode.{t}' for t in targets])
-        #
-        #     targets = get_targets(ode=phase.ode, name=f'{name}_rate2',
-        #                           user_targets=options['rate2_targets'])
-        #     if targets:
-        #         phase.connect(f'polynomial_control_rates:{name}_rate2',
-        #                       [f'ode.{t}' for t in targets])
+
+        integrator_comp = phase._get_subsystem('integrator')
+        integrator_comp.configure_controls_io()
+
+        # Add the appropriate design parameters
+        for control_name, options in phase.control_options.items():
+            ncin = options['order'] + 1
+            if options['opt']:
+                coerce_desvar_option = CoerceDesvar(num_input_nodes=ncin, options=options)
+
+                phase.add_design_var(name=f'polynomial_controls:{control_name}',
+                                     lower=coerce_desvar_option('lower'),
+                                     upper=coerce_desvar_option('upper'),
+                                     scaler=coerce_desvar_option('scaler'),
+                                     adder=coerce_desvar_option('adder'),
+                                     ref0=coerce_desvar_option('ref0'),
+                                     ref=coerce_desvar_option('ref'),
+                                     indices=coerce_desvar_option.desvar_indices)
 
     def configure_parameters(self, phase):
         """
@@ -330,7 +284,7 @@ class ExplicitShooting(TranscriptionBase):
         print('ExplicitShooting: configure parameters')
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp.configure_parameters_io()
-
+        
     def setup_defects(self, phase):
         """
         Not used in ExplicitShooting

@@ -60,10 +60,6 @@ class ODEEvaluationGroup(om.Group):
                                                                              time_units=self.time_options['units']),
                                                     promotes_inputs=['ptau', 'stau', 'segment_index'])
 
-        if self.polynomial_control_options:
-            # Add polynomial control interpolant
-            raise NotImplementedError('polynomial controls not yet implemented')
-
         self.add_subsystem('ode', self.ode_class(num_nodes=1, **self.ode_init_kwargs))
 
         self.add_subsystem('state_rate_collector',
