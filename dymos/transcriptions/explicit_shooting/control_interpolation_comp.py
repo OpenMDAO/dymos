@@ -19,11 +19,12 @@ class ControlInterpolationComp(om.ExplicitComponent):
 
     """
     def __init__(self, grid_data, control_options=None, polynomial_control_options=None,
-                 time_units=None, **kwargs):
+                 time_units=None, standalone_mode=False, **kwargs):
         self._grid_data = grid_data
         self._control_options = {} if control_options is None else control_options
         self._polynomial_control_options = {} if polynomial_control_options is None else polynomial_control_options
         self._time_units = time_units
+        self._standalone_mode = standalone_mode
 
         # Storage for the Vandermonde matrix and its inverse for each segment
         self._V_u = None
@@ -47,7 +48,7 @@ class ControlInterpolationComp(om.ExplicitComponent):
         super().__init__(**kwargs)
 
     def initialize(self):
-        self.options.declare('segment_index', types=int, default=0)
+        pass
 
     def _configure_controls(self):
         gd = self._grid_data
@@ -126,7 +127,8 @@ class ControlInterpolationComp(om.ExplicitComponent):
                 self._u_exponents[order] = np.arange(order + 1, dtype=int)[::-1]
 
     def setup(self):
-        pass
+        if self._standalone_mode:
+            self.configure_io()
 
     def configure_io(self):
         self._V_u = []

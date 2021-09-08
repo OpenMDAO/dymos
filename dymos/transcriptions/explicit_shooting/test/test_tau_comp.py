@@ -3,11 +3,10 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
+from openmdao.utils.assert_utils import assert_check_partials
 import dymos as dm
 
-from dymos.transcriptions.timestepping.test.test_euler_integration_comp import SimpleODE
-from dymos.transcriptions.timestepping.tau_comp import TauComp
+from dymos.transcriptions.explicit_shooting.tau_comp import TauComp
 
 
 class TestTauComp(unittest.TestCase):

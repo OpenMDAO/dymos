@@ -153,17 +153,6 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        # integrator_comp = EulerIntegrationComp(ode_class=phase.options['ode_class'],
-        #                                        time_options=phase.time_options,
-        #                                        state_options=phase.state_options,
-        #                                        parameter_options=phase.parameter_options,
-        #                                        control_options=phase.control_options,
-        #                                        polynomial_control_options=phase.polynomial_control_options,
-        #                                        num_steps_per_segment=self.options['num_steps_per_segment'],
-        #                                        grid_data=self.grid_data,
-        #                                        ode_init_kwargs=phase.options['ode_init_kwargs'],
-        #                                        standalone_mode=False,
-        #                                        complex_step_mode=False)
         integrator_comp = RKIntegrationComp(ode_class=phase.options['ode_class'],
                                             time_options=phase.time_options,
                                             state_options=phase.state_options,
@@ -175,7 +164,7 @@ class ExplicitShooting(TranscriptionBase):
                                             grid_data=self.grid_data,
                                             ode_init_kwargs=phase.options['ode_init_kwargs'],
                                             standalone_mode=False,
-                                            complex_step_mode=False)
+                                            complex_step_mode=True)
 
         phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'])
 
@@ -398,13 +387,6 @@ class ExplicitShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         pass
-        # gd = self.grid_data
-        #
-        # timeseries_comp = \
-        #     SolveIVPTimeseriesOutputComp(input_grid_data=gd,
-        #                                  output_nodes_per_seg=self.options['output_nodes_per_seg'])
-        #
-        # phase.add_subsystem('timeseries', subsys=timeseries_comp)
 
     def configure_timeseries_outputs(self, phase):
         """
@@ -416,183 +398,6 @@ class ExplicitShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         pass
-        # gd = self.grid_data
-        # num_seg = gd.num_segments
-        # output_nodes_per_seg = self.options['output_nodes_per_seg']
-        # time_units = phase.time_options['units']
-        #
-        # timeseries_name = 'timeseries'
-        # timeseries_comp = phase._get_subsystem(timeseries_name)
-        #
-        # timeseries_comp._add_output_configure('time', shape=(1,), units=time_units, desc='time')
-        # timeseries_comp._add_output_configure('time_phase', shape=(1,), units=time_units,
-        #                                       desc='elapsed phase time')
-        #
-        # phase.connect(src_name='time', tgt_name='timeseries.all_values:time')
-        #
-        # phase.connect(src_name='time_phase', tgt_name='timeseries.all_values:time_phase')
-        #
-        # for name, options in phase.state_options.items():
-        #
-        #     timeseries_comp._add_output_configure(f'states:{name}',
-        #                                           shape=options['shape'],
-        #                                           units=options['units'],
-        #                                           desc=options['desc'])
-        #
-        #     timeseries_comp._add_output_configure(f'state_rates:{name}',
-        #                                           shape=options['shape'],
-        #                                           units=get_rate_units(options['units'],
-        #                                                                time_units, deriv=1),
-        #                                           desc=f'first time-derivative of state {name}')
-        #
-        #     phase.connect(src_name=f'state_mux_comp.states:{name}',
-        #                   tgt_name=f'timeseries.all_values:states:{name}')
-        #
-        #     rate_src = phase.state_options[name]['rate_source']
-        #     if rate_src in phase.parameter_options:
-        #         nn = num_seg * output_nodes_per_seg
-        #         shape = phase.parameter_options[rate_src]['shape']
-        #         param_size = np.prod(shape)
-        #         src_idxs = np.tile(np.arange(0, param_size, dtype=int), nn)
-        #         src_idxs = np.reshape(src_idxs, (nn,) + shape)
-        #         phase.promotes('timeseries', inputs=[(f'all_values:state_rates:{name}',
-        #                                               f'parameters:{rate_src}')],
-        #                        src_indices=src_idxs, src_shape=shape)
-        #     else:
-        #         phase.connect(src_name=self.get_rate_source_path(name, phase),
-        #                       tgt_name=f'timeseries.all_values:state_rates:{name}')
-        #
-        # for name, options in phase.control_options.items():
-        #     control_units = options['units']
-        #
-        #     timeseries_comp._add_output_configure(f'controls:{name}',
-        #                                           shape=options['shape'],
-        #                                           units=control_units,
-        #                                           desc=options['desc'])
-        #
-        #     phase.connect(src_name=f'control_values:{name}',
-        #                   tgt_name=f'timeseries.all_values:controls:{name}')
-        #
-        #     # Control rates
-        #     timeseries_comp._add_output_configure(f'control_rates:{name}_rate',
-        #                                           shape=options['shape'],
-        #                                           units=get_rate_units(control_units, time_units,
-        #                                                                deriv=1),
-        #                                           desc=f'first time-derivative of control {name}')
-        #
-        #     phase.connect(src_name=f'control_rates:{name}_rate',
-        #                   tgt_name=f'timeseries.all_values:control_rates:{name}_rate')
-        #
-        #     # Control second derivatives
-        #     timeseries_comp._add_output_configure(f'control_rates:{name}_rate2',
-        #                                           shape=options['shape'],
-        #                                           units=get_rate_units(control_units, time_units,
-        #                                                                deriv=2),
-        #                                           desc=f'first time-derivative of control {name}')
-        #
-        #     phase.connect(src_name=f'control_rates:{name}_rate2',
-        #                   tgt_name=f'timeseries.all_values:control_rates:{name}_rate2')
-        #
-        # for name, options in phase.polynomial_control_options.items():
-        #     control_units = options['units']
-        #     timeseries_comp._add_output_configure(f'polynomial_controls:{name}',
-        #                                           shape=options['shape'],
-        #                                           units=control_units,
-        #                                           desc=options['desc'])
-        #
-        #     phase.connect(src_name=f'polynomial_control_values:{name}',
-        #                   tgt_name=f'timeseries.all_values:polynomial_controls:{name}')
-        #
-        #     # Polynomial control rates
-        #     timeseries_comp._add_output_configure(f'polynomial_control_rates:{name}_rate',
-        #                                           shape=options['shape'],
-        #                                           units=get_rate_units(control_units, time_units,
-        #                                                                deriv=1),
-        #                                           desc=f'first time-derivative of control {name}')
-        #
-        #     phase.connect(src_name=f'polynomial_control_rates:{name}_rate',
-        #                   tgt_name=f'timeseries.all_values:polynomial_control_rates:{name}_rate')
-        #
-        #     # Polynomial control second derivatives
-        #     timeseries_comp._add_output_configure(f'polynomial_control_rates:{name}_rate2',
-        #                                           shape=options['shape'],
-        #                                           units=get_rate_units(control_units, time_units,
-        #                                                                deriv=2),
-        #                                           desc=f'second time-derivative of control {name}')
-        #
-        #     phase.connect(src_name=f'polynomial_control_rates:{name}_rate2',
-        #                   tgt_name=f'timeseries.all_values:polynomial_control_rates:{name}_rate2')
-        #
-        # for name, options in phase.parameter_options.items():
-        #     prom_name = f'parameters:{name}'
-        #
-        #     if options['include_timeseries']:
-        #         phase.timeseries._add_output_configure(prom_name,
-        #                                                desc='',
-        #                                                shape=options['shape'],
-        #                                                units=options['units'])
-        #
-        #         if output_nodes_per_seg is None:
-        #             src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-        #         else:
-        #             src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
-        #         src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-        #
-        #         tgt_name = f'all_values:parameters:{name}'
-        #         phase.promotes('timeseries', inputs=[(tgt_name, prom_name)],
-        #                        src_indices=src_idxs, flat_src_indices=True)
-        #
-        # for var, options in phase._timeseries['timeseries']['outputs'].items():
-        #     output_name = options['output_name']
-        #     units = options.get('units', None)
-        #     wildcard_units = options.get('wildcard_units', None)
-        #
-        #     if '*' in var:  # match outputs from the ODE
-        #         ode_outputs = {opts['prom_name']: opts for (k, opts) in
-        #                        phase.ode.get_io_metadata(iotypes=('output',)).items()}
-        #         matches = filter(list(ode_outputs.keys()), var)
-        #     else:
-        #         matches = [var]
-        #
-        #     for v in matches:
-        #         if '*' in var:
-        #             output_name = v.split('.')[-1]
-        #             units = ode_outputs[v]['units']
-        #             # check for wildcard_units override of ODE units
-        #             if v in wildcard_units:
-        #                 units = wildcard_units[v]
-        #
-        #         # Determine the path to the variable which we will be constraining
-        #         # This is more complicated for path constraints since, for instance,
-        #         # a single state variable has two sources which must be connected to
-        #         # the path component.
-        #         var_type = phase.classify_var(v)
-        #
-        #         # Ignore any variables that we've already added (states, times, controls, etc)
-        #         if var_type != 'ode':
-        #             continue
-        #
-        #         # Skip the timeseries output if it does not appear to be shaped as a dynamic variable
-        #         # If the full shape does not start with num_nodes, skip this variable.
-        #         if self.is_static_ode_output(v, phase, self.num_output_nodes):
-        #             warnings.warn(f'Cannot add ODE output {v} to the timeseries output. It is '
-        #                           f'sized such that its first dimension != num_nodes.')
-        #             continue
-        #
-        #         shape, units = get_source_metadata(phase.ode, src=v, user_shape=options['shape'],
-        #                                            user_units=units)
-        #
-        #         try:
-        #             timeseries_comp._add_output_configure(output_name, shape=shape, units=units, desc='')
-        #         except ValueError as e:  # OK if it already exists
-        #             if 'already exists' in str(e):
-        #                 continue
-        #             else:
-        #                 raise e
-        #
-        #         # Failed to find variable, assume it is in the RHS
-        #         phase.connect(src_name=f'ode.{v}',
-        #                       tgt_name=f'timeseries.all_values:{output_name}')
 
     def get_parameter_connections(self, name, phase):
         """
@@ -612,7 +417,6 @@ class ExplicitShooting(TranscriptionBase):
             given design variable is to be connected.
         """
         connection_info = []
-        # connection_info.append(([f'parameters:{name}'], None))
         return connection_info
 
     def _get_boundary_constraint_src(self, var, loc, phase):

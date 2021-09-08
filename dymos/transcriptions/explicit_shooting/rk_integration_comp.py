@@ -88,6 +88,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         self.x_size = 0
         self.p_size = 0
         self.u_size = 0
+        self.up_size = 0
         self.phi_size = 0
         self.Z_size = 0
 
@@ -271,7 +272,6 @@ class RKIntegrationComp(om.ExplicitComponent):
 
     def _configure_storage(self):
         control_input_node_ptau = self.grid_data.node_ptau[self.grid_data.subset_node_indices['control_input']]
-        N = self.options['num_steps_per_segment']
         rk = rk_methods[self.options['method']]
         num_stages = len(rk['b'])
 
@@ -280,9 +280,6 @@ class RKIntegrationComp(om.ExplicitComponent):
 
         # allocate the integration parameter vector
         self.Z_size = self.x_size + self.phi_size + self.up_size
-
-        phi_idx = np.arange(self.phi_size, dtype=int)
-        z_idxs = np.arange(self.Z_size, dtype=int)
 
         start_Z = 0
         for state_name, options in self.state_options.items():
@@ -390,7 +387,6 @@ class RKIntegrationComp(om.ExplicitComponent):
         Reset the value of total derivatives prior to propagation.
         """
         N = self.options['num_steps_per_segment']
-        rk = rk_methods[self.options['method']]
         num_x = self.x_size
         num_phi = self.phi_size
 
@@ -570,40 +566,6 @@ class RKIntegrationComp(om.ExplicitComponent):
                 px_pu = totals[of_name, f'polynomial_controls:{pc_name_wrt}']
                 self._f_phi[idxs, idxs_wrt] = px_pu.ravel()
 
-        # self._dy_dt[...] = 0.0
-        # self._dy_dx[...] = 0.0
-        # self._dy_dphi[...] = 0.0
-        #
-        # if compute_timeseries:
-        #     for ts_name, options in self.timeseries_options:
-        #         of_name = f'ode.{ts_name}'
-        #
-        #         idxs = self.timeseries_idxs[ts_name]
-        #         self._dy_dt[idxs] = totals[of_name, 'time']
-        #
-        #         for state_name_wrt in self.state_options:
-        #             idxs_wrt = self.state_idxs[state_name_wrt]
-        #             px_px = totals[of_name, f'states:{state_name_wrt}']
-        #             self._dy_dx[idxs, idxs_wrt] = px_px.ravel()
-        #
-        #         self._dy_dphi[idxs, 0] = totals[of_name, 't_initial']
-        #         self._dy_dphi[idxs, 1] = totals[of_name, 't_duration']
-        #
-        #         for param_name_wrt in self.parameter_options:
-        #             idxs_wrt = self._parameter_idxs_in_phi[param_name_wrt]
-        #             px_pp = totals[of_name, f'parameters:{param_name_wrt}']
-        #             self._dy_dphi[idxs, idxs_wrt] = px_pp.ravel()
-        #
-        #         for control_name_wrt in self.control_options:
-        #             idxs_wrt = self._control_idxs_in_phi[control_name_wrt]
-        #             px_pu = totals[of_name, f'controls:{control_name_wrt}']
-        #             self._dy_dphi[idxs, idxs_wrt] = px_pu.ravel()
-        #
-        #         for pc_name_wrt in self.polynomial_control_options:
-        #             idxs_wrt = self._polynomial_control_idxs_in_phi[pc_name_wrt]
-        #             px_pu = totals[of_name, f'polynomial_controls:{pc_name_wrt}']
-        #             self._dy_dphi[idxs, idxs_wrt] = px_pu.ravel()
-
         return self._f_x, self._f_t, self._f_phi
 
     def _propagate(self, inputs, outputs, derivs=None):
@@ -698,19 +660,19 @@ class RKIntegrationComp(om.ExplicitComponent):
                     if derivs:
                         f_x, f_t, f_phi = self.eval_f_derivs(X_i, T_i, phi)
                         self._dTi_dZ[...] = self._dt_dZ + c[i] * self._dh_dZ
-                        # a_tdot_dkqdz = np.tensordot(a[i, :i], self._dkq_dZ[:i, ...], axes=(0, 0))
-                        a_tdot_dkqdz = np.einsum('i,ijk->jk', a[i, :i], self._dkq_dZ[:i, ...])
+                        a_tdot_dkqdz = np.tensordot(a[i, :i], self._dkq_dZ[:i, ...], axes=(0, 0))
+                        # a_tdot_dkqdz = np.einsum('i,ijk->jk', a[i, :i], self._dkq_dZ[:i, ...])
                         self._dXi_dZ[...] = self._dx_dZ + a_tdot_k @ self._dh_dZ + h * a_tdot_dkqdz
                         self._dkq_dZ[i, ...] = f_t @ self._dTi_dZ + f_x @ self._dXi_dZ + f_phi @ self._dphi_dZ
 
-                # b_tdot_kq = px_ph = np.tensordot(b, self._k_q, axes=(0, 0))
-                b_tdot_kq = np.einsum('i,ijk->jk', b, self._k_q)
+                b_tdot_kq = px_ph = np.tensordot(b, self._k_q, axes=(0, 0))
+                # b_tdot_kq = np.einsum('i,ijk->jk', b, self._k_q)
                 x = x + h * b_tdot_kq
                 t = t + h
 
                 if derivs:
-                    # b_tdot_dkqdz = np.tensordot(b, self._dkq_dZ, axes=(0, 0))
-                    b_tdot_dkqdz = np.einsum('i,ijk->jk', b, self._dkq_dZ)
+                    b_tdot_dkqdz = np.tensordot(b, self._dkq_dZ, axes=(0, 0))
+                    # b_tdot_dkqdz = np.einsum('i,ijk->jk', b, self._dkq_dZ)
                     self._dx_dZ[...] = self._dx_dZ + b_tdot_kq @ self._dh_dZ + h * b_tdot_dkqdz
                     self._dt_dZ[...] = self._dt_dZ + self._dh_dZ
 

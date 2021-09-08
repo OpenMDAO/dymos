@@ -5,8 +5,8 @@ import openmdao.api as om
 import dymos as dm
 
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
-from dymos.transcriptions.timestepping.euler_integration_comp import EulerIntegrationComp
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+from dymos.transcriptions.explicit_shooting.rk_integration_comp import RKIntegrationComp
 
 
 class SimpleODE(om.ExplicitComponent):
@@ -40,9 +40,12 @@ class SimpleODE(om.ExplicitComponent):
         partials['x_dot', 't'] = -2*t
 
 
-class TestEulerIntegrationComp(unittest.TestCase):
+class TestRKIntegrationComp(unittest.TestCase):
 
     def test_eval_f_scalar(self):
+        gd = dm.transcriptions.grid_data.GridData(num_segments=10, transcription='gauss-lobatto',
+                                                  transcription_order=3)
+
         time_options = dm.phase.options.TimeOptionsDictionary()
 
         time_options['targets'] = 't'
@@ -67,25 +70,25 @@ class TestEulerIntegrationComp(unittest.TestCase):
         prob = om.Problem()
 
         prob.model.add_subsystem('fixed_step_integrator',
-                                 EulerIntegrationComp(SimpleODE, time_options, state_options,
-                                                      param_options, control_options,
-                                                      polynomial_control_options, mode='fwd',
-                                                      num_steps=100, ode_init_kwargs=None))
+                                 RKIntegrationComp(SimpleODE, time_options, state_options,
+                                                   param_options, control_options,
+                                                   polynomial_control_options,
+                                                   grid_data=gd,
+                                                   num_steps_per_segment=100))
         prob.setup(mode='fwd', force_alloc_complex=True)
 
-        prob.set_val('fixed_step_integrator.state_initial_values:x', 0.5)
+        prob.set_val('fixed_step_integrator.states:x', 0.5)
         prob.set_val('fixed_step_integrator.t_initial', 0.0)
         prob.set_val('fixed_step_integrator.t_duration', 2.0)
         prob.set_val('fixed_step_integrator.parameters:p', 1.0)
 
-        x = np.array([0.5])
-        t = np.array([0.0])
-        p = np.array([1.0])
-        u = np.empty((0,))
+        x = np.array([[0.5]])
+        t = np.array([[0.0]])
+        phi = np.array([[0.0, 2.0, 1.0]]).T
 
-        f = prob.model.fixed_step_integrator.eval_f(x, t, p, u)
+        f = prob.model.fixed_step_integrator.eval_f(x, t, phi)
 
-        assert_near_equal(f, x - t**2 + p)
+        assert_near_equal(f, x - t**2 + phi[2, 0])
 
     def test_eval_f_derivs_scalar(self):
         time_options = dm.phase.options.TimeOptionsDictionary()
@@ -112,11 +115,11 @@ class TestEulerIntegrationComp(unittest.TestCase):
         prob = om.Problem()
 
         prob.model.add_subsystem('fixed_step_integrator',
-                                 EulerIntegrationComp(SimpleODE, time_options, state_options,
-                                                      param_options, control_options,
-                                                      polynomial_control_options, mode='fwd',
-                                                      num_steps=100, complex_step_mode=True,
-                                                      ode_init_kwargs=None))
+                                 RKIntegrationComp(SimpleODE, time_options, state_options,
+                                                   param_options, control_options,
+                                                   polynomial_control_options,
+                                                   num_steps_per_segment=100,
+                                                   complex_step_mode=True))
         prob.setup(mode='fwd', force_alloc_complex=True)
 
         prob.set_val('fixed_step_integrator.state_initial_values:x', 0.5)
@@ -174,12 +177,12 @@ class TestEulerIntegrationComp(unittest.TestCase):
                                                   transcription_order=3,
                                                   compressed=True)
 
-        p.model.add_subsystem('fixed_step_integrator', EulerIntegrationComp(SimpleODE, time_options, state_options,
-                                                                            param_options, control_options,
-                                                                            polynomial_control_options,
-                                                                            grid_data=gd,
-                                                                            num_steps_per_segment=40,
-                                                                            ode_init_kwargs=None))
+        p.model.add_subsystem('fixed_step_integrator', RKIntegrationComp(SimpleODE, time_options, state_options,
+                                                                         param_options, control_options,
+                                                                         polynomial_control_options,
+                                                                         grid_data=gd,
+                                                                         num_steps_per_segment=40,
+                                                                         ode_init_kwargs=None))
         p.setup(mode='fwd', force_alloc_complex=True)
 
         p.set_val('fixed_step_integrator.states:x', 0.5)
@@ -192,44 +195,6 @@ class TestEulerIntegrationComp(unittest.TestCase):
         p.model.list_outputs()
 
         cpd = p.check_partials(method='fd', form='central', compact_print=True)
-        assert_check_partials(cpd)
-
-    @unittest.skip('Not implemented')
-    def test_rev(self):
-        ode_class = SimpleODE
-        time_options = dm.phase.options.TimeOptionsDictionary()
-
-        time_options['targets'] = 't'
-        time_options['units'] = 's'
-
-        state_options = {'x': dm.phase.options.StateOptionsDictionary()}
-
-        state_options['x']['shape'] = (1,)
-        state_options['x']['units'] = 's**2'
-        state_options['x']['rate_source'] = 'x_dot'
-        state_options['x']['targets'] = ['x']
-
-        control_options = {}
-        polynomial_control_options = {}
-        parameter_options = {}
-
-        p = om.Problem()
-
-        p.model.add_subsystem('fixed_step_integrator', EulerIntegrationComp(ode_class, time_options, state_options,
-                                                                            parameter_options, control_options,
-                                                                            polynomial_control_options, mode='rev',
-                                                                            num_steps=10,
-                                                                            ode_init_kwargs=None))
-        p.setup(mode='rev', force_alloc_complex=True)
-
-        p.set_val('fixed_step_integrator.state_initial_values:x', 0.5)
-        p.set_val('fixed_step_integrator.t_initial', 0.0)
-        p.set_val('fixed_step_integrator.t_duration', 2.0)
-
-        p.run_model()
-
-        cpd = p.check_partials(method='fd', form='central', compact_print=True)
-
         assert_check_partials(cpd)
 
     def test_fwd_parameters_controls(self):
@@ -275,16 +240,17 @@ class TestEulerIntegrationComp(unittest.TestCase):
 
         p = om.Problem()
 
-        p.model.add_subsystem('fixed_step_integrator', EulerIntegrationComp(ode_class=BrachistochroneODE,
-                                                                            time_options=time_options,
-                                                                            state_options=state_options,
-                                                                            parameter_options=param_options,
-                                                                            control_options=control_options,
-                                                                            polynomial_control_options=polynomial_control_options,
-                                                                            num_steps_per_segment=10,
-                                                                            grid_data=gd,
-                                                                            ode_init_kwargs=None,
-                                                                            complex_step_mode=True))
+        p.model.add_subsystem('fixed_step_integrator',
+                              RKIntegrationComp(ode_class=BrachistochroneODE,
+                                                time_options=time_options,
+                                                state_options=state_options,
+                                                parameter_options=param_options,
+                                                control_options=control_options,
+                                                polynomial_control_options=polynomial_control_options,
+                                                num_steps_per_segment=10,
+                                                grid_data=gd,
+                                                ode_init_kwargs=None,
+                                                complex_step_mode=True))
         p.setup(mode='fwd', force_alloc_complex=True)
 
         p.set_val('fixed_step_integrator.states:x', 0.0)
