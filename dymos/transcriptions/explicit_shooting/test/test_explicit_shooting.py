@@ -240,7 +240,7 @@ class TestExplicitShooting(unittest.TestCase):
 
         prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
 
-        tx = dm.transcriptions.ExplicitShooting(num_segments=1, grid='radau-ps', method='rk4',
+        tx = dm.transcriptions.ExplicitShooting(num_segments=3, grid='radau-ps', method='rk4',
                                                 order=3, num_steps_per_segment=10, compressed=True)
 
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
@@ -253,7 +253,7 @@ class TestExplicitShooting(unittest.TestCase):
         phase.set_state_options('v', fix_initial=True)
 
         phase.add_parameter('g', val=1.0, units='m/s**2', opt=True, lower=1, upper=9.80665)
-        phase.add_polynomial_control('theta', order=3, val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9)
+        phase.add_polynomial_control('theta', order=9, val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9)
 
         phase.add_boundary_constraint('x', loc='final', equals=10.0)
         phase.add_boundary_constraint('y', loc='final', equals=5.0)
@@ -285,10 +285,6 @@ class TestExplicitShooting(unittest.TestCase):
         with np.printoptions(linewidth=1024):
             cpd = prob.check_partials(compact_print=True, method='fd')
             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
-
-        prob.model.list_outputs(print_arrays=True)
-
-        prob.list_problem_vars()
 
 
 if __name__ == '__main__':

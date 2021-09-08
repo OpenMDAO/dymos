@@ -252,18 +252,18 @@ class ExplicitShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         print('ExplicitShooting: configure polynomial controls')
-        super(ExplicitShooting, self).configure_polynomial_controls(phase)
+        super().configure_controls(phase)
 
         integrator_comp = phase._get_subsystem('integrator')
-        integrator_comp.configure_controls_io()
+        integrator_comp.configure_polynomial_controls_io()
 
         # Add the appropriate design parameters
-        for control_name, options in phase.control_options.items():
-            ncin = options['order'] + 1
+        for name, options in phase.polynomial_control_options.items():
             if options['opt']:
+                ncin = options['order'] + 1
                 coerce_desvar_option = CoerceDesvar(num_input_nodes=ncin, options=options)
 
-                phase.add_design_var(name=f'polynomial_controls:{control_name}',
+                phase.add_design_var(name=f'polynomial_controls:{name}',
                                      lower=coerce_desvar_option('lower'),
                                      upper=coerce_desvar_option('upper'),
                                      scaler=coerce_desvar_option('scaler'),
@@ -284,7 +284,7 @@ class ExplicitShooting(TranscriptionBase):
         print('ExplicitShooting: configure parameters')
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp.configure_parameters_io()
-        
+
     def setup_defects(self, phase):
         """
         Not used in ExplicitShooting

@@ -70,12 +70,22 @@ class ODEEvaluationGroup(om.Group):
         # In dymos, this system sits within a subproblem and therefore isn't in the standard
         # configuration chain.  We need to perform all of the introspection of the ODE here.
         ode = self._get_subsystem('ode')
+
         configure_time_introspection(self.time_options, ode)
         self._configure_time()
+
         configure_parameters_introspection(self.parameter_options, ode)
         self._configure_params()
-        self._configure_controls()
+
         configure_controls_introspection(self.control_options, ode)
+        self._configure_controls()
+
+        configure_controls_introspection(self.polynomial_control_options, ode)
+        self._configure_polynomial_controls()
+
+        if self.control_options or self.polynomial_control_options:
+            self._get_subsystem('control_interp').configure_io()
+
         configure_states_discovery(self.state_options, ode)
         configure_states_introspection(self.state_options, self.time_options, self.control_options,
                                        self.parameter_options,
@@ -163,10 +173,7 @@ class ODEEvaluationGroup(om.Group):
                 raise ValueError('ODEEvaluationGroup was provided with control options but '
                                  'a GridData object was not provided.')
 
-            self._get_subsystem('control_interp').configure_io()
-
             num_control_input_nodes = gd.subset_num_nodes['control_input']
-            # num_control_disc_nodes = gd.subset_num_nodes['control_disc']
 
             for name, options in self.control_options.items():
                 shape = options['shape']
@@ -174,6 +181,38 @@ class ODEEvaluationGroup(om.Group):
                 targets = options['targets']
                 uhat_name = f'controls:{name}'
                 u_name = f'control_values:{name}'
+
+                self._ivc.add_output(uhat_name, shape=(num_control_input_nodes,) + shape, units=units)
+                self.add_design_var(uhat_name)
+
+                self.promotes('control_interp', inputs=[uhat_name], outputs=[u_name])
+
+                # Promote targets from the ODE
+                for tgt in targets:
+                    self.promotes('ode', inputs=[(tgt, u_name)])
+                if targets:
+                    self.set_input_defaults(name=u_name,
+                                            val=np.ones(shape),
+                                            units=options['units'])
+
+    def _configure_polynomial_controls(self):
+        print('ODEEvaluationGroup: _configure_polynomial_controls')
+        configure_controls_introspection(self.polynomial_control_options, self.ode)
+
+        if self.polynomial_control_options:
+            gd = self.grid_data
+
+            if gd is None:
+                raise ValueError('ODEEvaluationGroup was provided with control options but '
+                                 'a GridData object was not provided.')
+
+            for name, options in self.polynomial_control_options.items():
+                shape = options['shape']
+                units = options['units']
+                targets = options['targets']
+                num_control_input_nodes = options['order'] + 1
+                uhat_name = f'polynomial_controls:{name}'
+                u_name = f'polynomial_control_values:{name}'
 
                 self._ivc.add_output(uhat_name, shape=(num_control_input_nodes,) + shape, units=units)
                 self.add_design_var(uhat_name)
