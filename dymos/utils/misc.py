@@ -311,9 +311,9 @@ class CoerceDesvar(object):
         fix_final = options['fix_final']
 
         if desvar_indices is not None:
-            raise om.issue_warning('option desvar_indices of CoerceDesvar is deprecated. '
-                                   'CoerceDesvar will now resolve desvar_indices internally '
-                                   'and store them as an attribute.')
+            om.issue_warning('option desvar_indices of CoerceDesvar is deprecated. '
+                             'CoerceDesvar will now resolve desvar_indices internally '
+                             'and store them as an attribute.')
 
         else:
             desvar_indices = list(range(size * num_input_nodes))
@@ -361,7 +361,7 @@ class CoerceDesvar(object):
         val = self.options[option]
         if option == 'lower':
             lb = np.zeros_like(self.desvar_indices, dtype=float)
-            lb[:] = INF_BOUND if self.options['lower'] is None else val
+            lb[:] = -INF_BOUND if self.options['lower'] is None else val
             return lb
 
         if option == 'upper':

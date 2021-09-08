@@ -61,7 +61,8 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         # Initialize the Problem and the optimization driver
         #
         p = om.Problem(model=om.Group())
-        p.driver = om.ScipyOptimizeDriver()
+        p.driver = om.pyOptSparseDriver(optimizer='SNOPT')
+        p.driver.opt_settings['iSumm'] = 6
         p.driver.declare_coloring()
 
         #
