@@ -4,8 +4,8 @@ import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 import dymos as dm
 
-from dymos.transcriptions.timestepping.test.test_euler_integration_comp import SimpleODE
-from dymos.transcriptions.timestepping.ode_evaluation_group import ODEEvaluationGroup
+from dymos.transcriptions.explicit_shooting.test.test_rk_integration_comp import SimpleODE
+from dymos.transcriptions.explicit_shooting.ode_evaluation_group import ODEEvaluationGroup
 
 
 class TestODEEvaluationGroup(unittest.TestCase):
