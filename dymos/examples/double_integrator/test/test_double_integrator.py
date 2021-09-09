@@ -4,12 +4,13 @@ import unittest
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 
 
+@require_pyoptsparse(optimizer='SLSQP')
 def double_integrator_direct_collocation(transcription='gauss-lobatto', compressed=True):
 
     p = om.Problem(model=om.Group())
@@ -129,6 +130,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         assert_near_equal(v[0], 0.0, tolerance=1.0E-4)
         assert_near_equal(v[-1], 0.0, tolerance=1.0E-4)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_ex_double_integrator_input_times_uncompressed(self):
         """
         Tests that externally connected t_initial and t_duration function as expected.
@@ -178,6 +180,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         exp_out = phase.simulate()
         self._assert_results(exp_out, traj=False, tol=1.0E-2)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_ex_double_integrator_input_times_compressed(self):
         """
         Tests that externally connected t_initial and t_duration function as expected.

@@ -2,7 +2,7 @@ import unittest
 
 from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import openmdao.api as om
 from dymos.models.atmosphere import USatm1976Comp
@@ -47,6 +47,7 @@ class _TestODE(om.Group):
         self.add_subsystem('testcomp', om.ExecComp('testout=test', shape=40), promotes=['*'])
 
 
+@require_pyoptsparse(optimizer='SLSQP')
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                    transcription_order=3, force_alloc_complex=False):
 

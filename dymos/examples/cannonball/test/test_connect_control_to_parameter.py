@@ -5,7 +5,7 @@ import numpy as np
 import openmdao
 import openmdao.api as om
 
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 from dymos.examples.cannonball.cannonball_ode import rho_interp
 
@@ -82,6 +82,7 @@ class TestConnectControlToParameter(unittest.TestCase):
 
     @unittest.skipIf(om_version < (3, 4, 1) or (om_version == (3, 4, 1) and om_dev_version),
                      'test requires OpenMDAO >= 3.4.1')
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_connect_control_to_parameter(self):
         """ Test that the final value of a control in one phase can be connected as the value
         of a parameter in a subsequent phase. """

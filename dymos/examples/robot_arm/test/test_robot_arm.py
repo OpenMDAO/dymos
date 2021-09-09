@@ -18,6 +18,7 @@ show_plots = True
 
 
 @use_tempdirs
+@require_pyoptsparse(optimizer='SLSQP')
 class TestRobotArm(unittest.TestCase):
 
     def tearDown(self):
@@ -25,6 +26,7 @@ class TestRobotArm(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def make_problem(self, transcription=Radau, optimizer='SLSQP', numseg=30):
         p = Problem(model=Group())
         p.driver = pyOptSparseDriver()

@@ -6,13 +6,14 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
 from dymos.utils.doc_utils import save_for_docs
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
 @use_tempdirs
 class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
 
     @save_for_docs
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_doc_ssto_linear_tangent_guidance(self):
         import numpy as np
         import matplotlib.pyplot as plt

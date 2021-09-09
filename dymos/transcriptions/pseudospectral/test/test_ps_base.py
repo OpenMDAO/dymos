@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos import Trajectory, GaussLobatto, Phase, Radau
@@ -38,6 +38,7 @@ class crtbp_ode(om.ExplicitComponent):
         self.add_output('vz_dot', val=np.ones(nn), desc='computed acceleration in the rotating frame')
 
 
+@require_pyoptsparse(optimizer='SLSQP')
 def make_problem(transcription=GaussLobatto, num_segments=10, order=3, compressed=True):
     p = om.Problem(model=om.Group())
     p.driver = om.pyOptSparseDriver()

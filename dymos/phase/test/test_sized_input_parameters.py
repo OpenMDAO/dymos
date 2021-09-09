@@ -4,7 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos.utils.lgl import lgl
@@ -14,6 +14,7 @@ from dymos.models.eom import FlightPathEOM2D
 @use_tempdirs
 class TestParameterConnections(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_dynamic_parameter_connections_radau(self):
 
         class TrajectoryODE(om.Group):
@@ -79,6 +80,7 @@ class TestParameterConnections(unittest.TestCase):
                                    (p.model.phase0.options['transcription'].grid_data.num_nodes, 2, 2))
         assert_near_equal(p.get_val('phase0.rhs_all.sum.m'), expected)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_static_parameter_connections_radau(self):
 
         class TrajectoryODE(om.Group):
@@ -139,6 +141,7 @@ class TestParameterConnections(unittest.TestCase):
         expected = np.array([[1, 2], [3, 4]])
         assert_near_equal(p.get_val('phase0.rhs_all.sum.m'), expected)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_dynamic_parameter_connections_gl(self):
 
         class TrajectoryODE(om.Group):
@@ -206,6 +209,7 @@ class TestParameterConnections(unittest.TestCase):
                                    (gd.subset_num_nodes['col'], 2, 2))
         assert_near_equal(p.get_val('phase0.rhs_col.sum.m'), expected)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_static_parameter_connections_gl(self):
 
         class TrajectoryODE(om.Group):

@@ -93,9 +93,9 @@ class TestMinTimeClimbSimulateFailure(unittest.TestCase):
 
         with self.assertRaises(om.AnalysisError) as e:
             dm.run_problem(p, run_driver=False, simulate=True)
-        expected = '\'traj.phases.phase0.segments.segment_2\' <class SegmentSimulationComp>: ' \
+        expected = '\'traj.phases.phase0.segments.segment_1\' <class SegmentSimulationComp>: ' \
                    'Error calling compute(), solve_ivp failed: Required step size is less than ' \
-                   'spacing between numbers.'
+                   'spacing between numbers. Dynamics changing too dramatically'
         self.assertEqual(str(e.exception), expected)
 
 

@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
@@ -53,6 +53,7 @@ class BrachistochroneVectorStatesODE(om.ExplicitComponent):
 @use_tempdirs
 class TestAddBoundaryConstraint(unittest.TestCase):
 
+    @require_pyoptsparse
     def test_simple_no_exception(self):
         p = om.Problem(model=om.Group())
 

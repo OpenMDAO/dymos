@@ -10,7 +10,7 @@ matplotlib.use('Agg')
 plt.style.use('ggplot')
 
 from dymos.utils.doc_utils import save_for_docs
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
 tf = np.float128(10)
@@ -39,6 +39,7 @@ class TestHyperSensitive(unittest.TestCase):
                 os.remove(filename)
 
     @save_for_docs
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_hyper_sensitive_for_docs(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal

@@ -1,7 +1,7 @@
 import unittest
 
 import openmdao.api as om
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
 
@@ -9,6 +9,7 @@ import dymos as dm
 @use_tempdirs
 class TestTimeseriesUnits(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def _make_problem(self, transcription='gauss-lobatto', num_segments=8, transcription_order=3,
                       compressed=True, optimizer='SLSQP', run_driver=True, force_alloc_complex=False,
                       solve_segments=False):

@@ -4,7 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -68,6 +68,7 @@ def make_brachistochrone_phase(transcription='gauss-lobatto', num_segments=8, tr
 
 
 @use_tempdirs
+@require_pyoptsparse(optimizer='SLSQP')
 class TestTandemPhases(unittest.TestCase):
 
     def _run_transcription(self, transcription):

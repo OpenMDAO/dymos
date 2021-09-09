@@ -45,7 +45,7 @@ parts:
   - file: features/trajectories/trajectories
   - file: features/exploiting_sparsity
   - file: features/plotting
-- caption: Frequentsly Asked Questions
+- caption: Frequently Asked Questions
   chapters:
   - file: faq/faq
     sections:

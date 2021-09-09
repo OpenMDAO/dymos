@@ -4,12 +4,13 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
 @use_tempdirs
 class TestSSTOSimulateRootTrajectory(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_ssto_simulate_root_trajectory(self):
         """
         Tests that we can properly simulate a trajectory even if the trajectory is the root

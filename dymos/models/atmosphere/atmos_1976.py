@@ -6,6 +6,7 @@ from collections import namedtuple
 
 import numpy as np
 from scipy.interpolate import Akima1DInterpolator as Akima
+from openmdao.components.interp_util.interp import InterpND
 
 import openmdao.api as om
 
@@ -43,7 +44,7 @@ USatm1976Data.alt = np.array([-1000, 0, 1000, 2000, 3000, 4000, 5000, 6000, 7000
                               81000, 82000, 83000, 84000, 85000, 86000, 87000, 88000, 89000, 90000,
                               91000, 92000, 93000, 94000, 95000, 96000, 97000, 98000, 99000, 100000,
                               105000, 110000, 115000, 120000, 125000, 130000, 135000, 140000,
-                              145000, 150000])
+                              145000, 150000], dtype=float)
 
 # units='degR'
 USatm1976Data.T = np.array([522.236, 518.67, 515.104, 511.538, 507.972, 504.405, 500.839, 497.273,
@@ -141,16 +142,13 @@ USatm1976Data.viscosity = np.array([3.81E-07, 3.78E-07, 3.76E-07, 3.74E-07, 3.72
                                     3.13E-07, 3.18E-07, 3.23E-07, 3.28E-07, 3.33E-07, 3.37E-07,
                                     3.42E-07, 3.47E-07, 3.51E-07, 3.56E-07])
 
-T_interp = Akima(USatm1976Data.alt, USatm1976Data.T)
-P_interp = Akima(USatm1976Data.alt, USatm1976Data.P)
-rho_interp = Akima(USatm1976Data.alt, USatm1976Data.rho)
-visc_interp = Akima(USatm1976Data.alt, USatm1976Data.viscosity)
+T_interp = InterpND(method='akima', points=USatm1976Data.alt, values=USatm1976Data.T, extrapolate=True)
+P_interp = InterpND(method='akima', points=USatm1976Data.alt, values=USatm1976Data.P, extrapolate=True)
+rho_interp = InterpND(method='akima', points=USatm1976Data.alt, values=USatm1976Data.rho, extrapolate=True)
+visc_interp = InterpND(method='akima', points=USatm1976Data.alt, values=USatm1976Data.viscosity, extrapolate=True)
 
-T_interp_deriv = T_interp.derivative(1)
-P_interp_deriv = P_interp.derivative(1)
-rho_interp_deriv = rho_interp.derivative(1)
-visc_interp_deriv = visc_interp.derivative(1)
-drho_dh_interp_deriv = rho_interp_deriv.derivative(1)
+_, _drho_dh = rho_interp.interpolate(USatm1976Data.alt, compute_derivative=True)
+drho_dh_interp = InterpND(method='akima', points=USatm1976Data.alt, values=_drho_dh.ravel(), extrapolate=True)
 
 
 class USatm1976Comp(om.ExplicitComponent):
@@ -204,11 +202,10 @@ class USatm1976Comp(om.ExplicitComponent):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        outputs['temp'] = T_interp(inputs['h'], extrapolate=True)
-        outputs['pres'] = P_interp(inputs['h'], extrapolate=True)
-        outputs['rho'] = rho_interp(inputs['h'], extrapolate=True)
-        outputs['viscosity'] = visc_interp(inputs['h'], extrapolate=True)
-        outputs['drhos_dh'] = rho_interp_deriv(inputs['h'], extrapolate=True)
+        outputs['temp'] = T_interp.interpolate(inputs['h'], compute_derivative=False)
+        outputs['pres'] = P_interp.interpolate(inputs['h'], compute_derivative=False)
+        outputs['rho'], outputs['drhos_dh'] = rho_interp.interpolate(inputs['h'], compute_derivative=True)
+        outputs['viscosity'] = visc_interp.interpolate(inputs['h'], compute_derivative=False)
         outputs['sos'] = np.sqrt(self._K*outputs['temp'])
 
     def compute_partials(self, inputs, partials):
@@ -222,12 +219,15 @@ class USatm1976Comp(om.ExplicitComponent):
         partials : Jacobian
             Subjac components written to partials[output_name, input_name].
         """
-        H = inputs['h']
-        partials['temp', 'h'] = T_interp_deriv(H, extrapolate=True)
-        partials['pres', 'h'] = P_interp_deriv(H, extrapolate=True)
-        partials['rho', 'h'] = rho_interp_deriv(H, extrapolate=True)
-        partials['viscosity', 'h'] = visc_interp_deriv(H, extrapolate=True)
-        partials['drhos_dh', 'h'] = drho_dh_interp_deriv(H, extrapolate=True)
+        T, dT_dh = T_interp.interpolate(inputs['h'], compute_derivative=True)
+        _, dP_dh = P_interp.interpolate(inputs['h'], compute_derivative=True)
+        _, drho_dh = rho_interp.interpolate(inputs['h'], compute_derivative=True)
+        _, dvisc_dh = visc_interp.interpolate(inputs['h'], compute_derivative=True)
+        _, d2rho_dh2 = drho_dh_interp.interpolate(inputs['h'], compute_derivative=True)
 
-        T = T_interp(H, extrapolate=True)
-        partials['sos', 'h'] = 0.5/np.sqrt(self._K*T)*partials['temp', 'h'] * self._K
+        partials['temp', 'h'] = dT_dh.ravel()
+        partials['pres', 'h'] = dP_dh.ravel()
+        partials['rho', 'h'] = drho_dh.ravel()
+        partials['viscosity', 'h'] = dvisc_dh.ravel()
+        partials['drhos_dh', 'h'] = d2rho_dh2.ravel()
+        partials['sos', 'h'][...] = 0.5/np.sqrt(self._K*T)*partials['temp', 'h'] * self._K

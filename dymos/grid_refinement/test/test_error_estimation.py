@@ -4,7 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -17,6 +17,7 @@ OPT, OPTIMIZER = set_pyoptsparse_opt('SLSQP', fallback=True)
 @use_tempdirs
 class TestBrachistochroneExample(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def _run_brachistochrone(self, transcription_class=dm.Radau, control_type='control', g=9.80665):
         p = om.Problem(model=om.Group())
 

@@ -4,7 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from dymos.utils.testing_utils import assert_check_partials
 
 import dymos as dm
@@ -21,6 +21,7 @@ class _CannonballODE(FlightPathEOM2D):
 @use_tempdirs
 class TestFlightPathEOM2D(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def setUp(self):
         self.p = om.Problem(model=om.Group())
 

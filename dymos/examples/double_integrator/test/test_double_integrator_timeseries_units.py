@@ -4,13 +4,14 @@ import unittest
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 from dymos.utils.testing_utils import assert_timeseries_near_equal
 
 
+@require_pyoptsparse(optimizer='SLSQP')
 def double_integrator_direct_collocation(transcription=dm.GaussLobatto, compressed=True):
 
     p = om.Problem(model=om.Group())

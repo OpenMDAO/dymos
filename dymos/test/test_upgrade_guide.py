@@ -6,12 +6,13 @@ import openmdao.api as om
 import dymos as dm
 
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
 @use_tempdirs
 class TestUpgrade_0_16_0(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_parameters(self):
         """
         # upgrade_doc: begin set_val
@@ -261,6 +262,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_glob_timeseries_outputs(self):
         """
         # upgrade_doc: begin glob_timeseries_outputs
@@ -363,6 +365,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
                             ('f_drag', 'N')]:
             self.assertEqual(op_dict[f'traj.phase0.timeseries.{name}'], units)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_sequence_timeseries_outputs(self):
         """
         # upgrade_doc: begin sequence_timeseries_outputs
@@ -654,6 +657,7 @@ class TestUpgrade_0_19_0(unittest.TestCase):
         if os.path.exists('dymos_simulation.db'):
             os.remove('dymos_simulation.db')
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def _make_problem(self, transcription='gauss-lobatto', num_segments=8, transcription_order=3,
                       compressed=True, optimizer='SLSQP', run_driver=True,
                       force_alloc_complex=False,

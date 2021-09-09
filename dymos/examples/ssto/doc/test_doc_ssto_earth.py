@@ -3,7 +3,7 @@ import unittest
 import matplotlib.pyplot as plt
 
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from dymos.utils.doc_utils import save_for_docs
 
 
@@ -11,6 +11,7 @@ from dymos.utils.doc_utils import save_for_docs
 class TestDocSSTOEarth(unittest.TestCase):
 
     @save_for_docs
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_doc_ssto_earth(self):
         import matplotlib.pyplot as plt
         import openmdao.api as om

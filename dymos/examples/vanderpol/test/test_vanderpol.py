@@ -16,6 +16,13 @@ class TestVanderpolExample(unittest.TestCase):
         p = vanderpol(transcription='gauss-lobatto', num_segments=75)
         p.run_model()
 
+    def test_vanderpol_simulate_true(self):
+        # simulate true
+        p = vanderpol(transcription='radau-ps', num_segments=30, transcription_order=3,
+                      compressed=True, optimizer='SLSQP', delay=0.005, distrib=True, use_pyoptsparse=True)
+
+        dm.run_problem(p, run_driver=True, simulate=True)
+
     def test_vanderpol_optimal(self):
         p = vanderpol(transcription='gauss-lobatto', num_segments=75)
         dm.run_problem(p)  # find optimal control solution to stop oscillation
