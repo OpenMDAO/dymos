@@ -1,12 +1,16 @@
 import numpy as np
 import openmdao.api as om
 
+from ...phase.options import ControlOptionsDictionary, PolynomialControlOptionsDictionary
+from ...transcriptions.grid_data import GridData
 from ...utils.lgl import lgl
 
 
 class ControlInterpolationComp(om.ExplicitComponent):
     """
-    A component which takes training values for control variables at given _input_ nodes,
+    A component which interpolates control values in 1D using Vandermonde interpolation.
+
+    Takes training values for control variables at given _input_ nodes,
     broadcaasts them to _discretization_ nodes, and then interpolates the discretization values
     to provide a control variable at a given segment tau or phase tau.
 
@@ -17,6 +21,22 @@ class ControlInterpolationComp(om.ExplicitComponent):
     size of the control input nodes when we evaluate different segments. Instead, this component
     will take in the control values of all segments and internally use the appropriate one.
 
+    Parameters
+    ----------
+    grid_data : GridData
+        A GridData instance that details information on how the control input and discretization
+        nodes are layed out.
+    control_options : dict of {str: ControlOptionsDictionary}
+        A mapping that maps the name of each control to a ControlOptionsDictionary of its options.
+    polynomial_control_options : dict of {str: PolynomialControlOptionsDictionary}
+        A mapping that maps the name of each polynomial control to an OptionsDictionary of its options.
+    time_units : str
+        The time units pertaining to the control rates.
+    standalone_mode : bool
+        If True, this component runs its configuration steps during setup. This is useful for
+        unittests in which the component does not exist in a larger group.
+    **kwargs
+        Keyword arguments passed to ExplicitComponent.
     """
     def __init__(self, grid_data, control_options=None, polynomial_control_options=None,
                  time_units=None, standalone_mode=False, **kwargs):
@@ -48,6 +68,9 @@ class ControlInterpolationComp(om.ExplicitComponent):
         super().__init__(**kwargs)
 
     def initialize(self):
+        """
+        Declare component options.
+        """
         pass
 
     def _configure_controls(self):
@@ -127,10 +150,16 @@ class ControlInterpolationComp(om.ExplicitComponent):
                 self._u_exponents[order] = np.arange(order + 1, dtype=int)[::-1]
 
     def setup(self):
+        """
+        Perform the I/O creation if operating in standalone_mode.
+        """
         if self._standalone_mode:
             self.configure_io()
 
     def configure_io(self):
+        """
+        I/O creation is delayed until configure so we can determine shape and units for the controls.
+        """
         self._V_u = []
         self._V_u_inv = []
 
@@ -145,6 +174,20 @@ class ControlInterpolationComp(om.ExplicitComponent):
         self._configure_polynomial_controls()
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+        """
+        Compute interpolated control values and rates.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        discrete_inputs : `Vector`
+            `Vector` containing discrete_inputs.
+        discrete_outputs : `Vector`
+            `Vector` containing discrete_outputs.
+        """
         seg_idx = int(discrete_inputs['segment_index'])
         stau = inputs['stau']
         ptau = inputs['ptau']
@@ -174,6 +217,18 @@ class ControlInterpolationComp(om.ExplicitComponent):
             outputs[output_name] = ptau_array @ a
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
+        """
+        Compute derivatives interpolated control values and rates wrt the inputs.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        partials : Jacobian
+            Subjac components written to partials[output_name, input_name].
+        discrete_inputs : Vector
+            Unscaled, discrete input variables keyed by variable name.
+        """
         seg_idx = int(discrete_inputs['segment_index'])
         stau = inputs['stau']
         ptau = inputs['ptau']

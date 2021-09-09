@@ -14,10 +14,8 @@ class ExplicitShooting(TranscriptionBase):
 
     Parameters
     ----------
-    grid_data : GridData
-        Grid data for this phases.
     **kwargs : dict
-        Dictionary of optional arguments.
+        Dictionary of arguments.
     """
     def __init__(self, **kwargs):
         super(ExplicitShooting, self).__init__(**kwargs)
@@ -68,7 +66,7 @@ class ExplicitShooting(TranscriptionBase):
         """
         print('ExplicitShooting: configure time')
         integrator_comp = phase._get_subsystem('integrator')
-        integrator_comp.configure_time_io()
+        integrator_comp._configure_time_io()
 
         time_options = phase.time_options
 
@@ -122,7 +120,7 @@ class ExplicitShooting(TranscriptionBase):
         """
         print('ExplicitShooting: configure states')
         integrator_comp = phase._get_subsystem('integrator')
-        integrator_comp.configure_states_io()
+        integrator_comp._configure_states_io()
 
         # Add the appropriate design parameters
         for state_name, options in phase.state_options.items():
@@ -203,7 +201,7 @@ class ExplicitShooting(TranscriptionBase):
         """
         super().configure_controls(phase)
         integrator_comp = phase._get_subsystem('integrator')
-        integrator_comp.configure_controls_io()
+        integrator_comp._configure_controls_io()
 
         # Add the appropriate design parameters
         ncin = self.grid_data.subset_num_nodes['control_input']
@@ -244,7 +242,7 @@ class ExplicitShooting(TranscriptionBase):
         super().configure_controls(phase)
 
         integrator_comp = phase._get_subsystem('integrator')
-        integrator_comp.configure_polynomial_controls_io()
+        integrator_comp._configure_polynomial_controls_io()
 
         # Add the appropriate design parameters
         for name, options in phase.polynomial_control_options.items():
@@ -272,11 +270,11 @@ class ExplicitShooting(TranscriptionBase):
         """
         print('ExplicitShooting: configure parameters')
         integrator_comp = phase._get_subsystem('integrator')
-        integrator_comp.configure_parameters_io()
+        integrator_comp._configure_parameters_io()
 
     def setup_defects(self, phase):
         """
-        Not used in ExplicitShooting
+        Not used in ExplicitShooting.
 
         Parameters
         ----------
@@ -309,7 +307,7 @@ class ExplicitShooting(TranscriptionBase):
 
     def setup_path_constraints(self, phase):
         """
-        Not used in SolveIVP.
+        Not used in ExplicitShooting.
 
         Parameters
         ----------
@@ -320,7 +318,7 @@ class ExplicitShooting(TranscriptionBase):
 
     def configure_path_constraints(self, phase):
         """
-        Not used in SolveIVP.
+        Not used in ExplicitShooting.
 
         Parameters
         ----------
@@ -331,7 +329,7 @@ class ExplicitShooting(TranscriptionBase):
 
     def setup_boundary_constraints(self, loc, phase):
         """
-        Not used in SolveIVP.
+        Add necessary structure to support boundary constraints to the given phase.
 
         Parameters
         ----------
@@ -344,7 +342,7 @@ class ExplicitShooting(TranscriptionBase):
 
     def configure_boundary_constraints(self, loc, phase):
         """
-        Not used in SolveIVP.
+        Configure I/O necessary for boundary constraints in the given phase.
 
         Parameters
         ----------
@@ -357,7 +355,7 @@ class ExplicitShooting(TranscriptionBase):
 
     def setup_solvers(self, phase):
         """
-        Not used in SolveIVP.
+        Not used in ExplicitShooting.
 
         Parameters
         ----------
@@ -368,7 +366,7 @@ class ExplicitShooting(TranscriptionBase):
 
     def configure_solvers(self, phase):
         """
-        Not used in SolveIVP.
+        Not used in ExplicitShooting.
 
         Parameters
         ----------

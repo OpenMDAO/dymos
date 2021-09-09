@@ -1546,11 +1546,6 @@ class Phase(om.Group):
     def configure_state_discovery(self):
         """
         Searches phase output metadata for any declared states and adds them.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
         """
         transcription = self.options['transcription']
         state_options = self.state_options

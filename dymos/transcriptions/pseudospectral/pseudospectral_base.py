@@ -104,6 +104,14 @@ class PseudospectralBase(TranscriptionBase):
                             promotes_outputs=['*'])
 
     def configure_controls(self, phase):
+        """
+        Configure control I/O for the phase.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super().configure_controls(phase)
 
         if phase.control_options:

@@ -7,13 +7,14 @@ from ...options import options as dymos_options
 
 class TauComp(om.ExplicitComponent):
     """
-    Class definition of the TauComp, which computes the nondimensional phase time (ptau),
-    nondimensional segment time (stau) and the current segment index (segment_index).
+    Component that computes the phase tau, segment tau, and current segment index based on time.
 
     Note that stau is differentiable within a segment but non-differentiable at the segment bounds.
 
     Parameters
     ----------
+    grid_data : GridData
+        The GridData object which provides the dicretization of the Phase.
     **kwargs : dict
         Dictionary of optional arguments.
     """

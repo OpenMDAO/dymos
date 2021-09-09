@@ -35,9 +35,9 @@ class TestODEEvaluationGroup(unittest.TestCase):
 
         p = om.Problem()
         p.model.add_subsystem('ode_eval', ODEEvaluationGroup(ode_class, time_options, state_options,
-                                                             control_options,
+                                                             param_options, control_options,
                                                              polynomial_control_options,
-                                                             param_options, ode_init_kwargs=None))
+                                                             ode_init_kwargs=None))
         p.setup(force_alloc_complex=True)
 
         p.set_val('ode_eval.states:x', [1.25])

@@ -91,6 +91,9 @@ class TestRKIntegrationComp(unittest.TestCase):
         assert_near_equal(f, x - t**2 + phi[2, 0])
 
     def test_eval_f_derivs_scalar(self):
+        gd = dm.transcriptions.grid_data.GridData(num_segments=10, transcription='gauss-lobatto',
+                                                  transcription_order=3)
+
         time_options = dm.phase.options.TimeOptionsDictionary()
 
         time_options['targets'] = 't'
@@ -118,35 +121,36 @@ class TestRKIntegrationComp(unittest.TestCase):
                                  RKIntegrationComp(SimpleODE, time_options, state_options,
                                                    param_options, control_options,
                                                    polynomial_control_options,
+                                                   grid_data=gd,
                                                    num_steps_per_segment=100,
                                                    complex_step_mode=True))
         prob.setup(mode='fwd', force_alloc_complex=True)
 
-        prob.set_val('fixed_step_integrator.state_initial_values:x', 0.5)
+        prob.set_val('fixed_step_integrator.states:x', 0.5)
         prob.set_val('fixed_step_integrator.t_initial', 0.0)
         prob.set_val('fixed_step_integrator.t_duration', 2.0)
         prob.set_val('fixed_step_integrator.parameters:p', 1.0)
 
-        x = np.array([0.5], dtype=complex)
-        t = np.array([0.0], dtype=complex)
-        p = np.array([1.0], dtype=complex)
-        u = np.empty((0,), dtype=complex)
+        x = np.array([[0.5]], dtype=complex)
+        t = np.array([[0.0]], dtype=complex)
+        phi = np.array([[0, 2.0, 1.0]], dtype=complex).T
 
-        f_x, f_t, f_p, f_u, pu_pt = prob.model.fixed_step_integrator.eval_f_derivs(x, t, p, u)
+        f_x, f_t, f_phi = prob.model.fixed_step_integrator.eval_f_derivs(x, t, phi)
 
         step = 1.0E-20
 
-        f_x_cs = prob.model.fixed_step_integrator.eval_f(x + step * 1.0j, t, p, u).imag / step
+        f_x_cs = prob.model.fixed_step_integrator.eval_f(x + step * 1.0j, t, phi).imag / step
 
         assert_near_equal(f_x.real, np.atleast_2d(f_x_cs))
 
-        f_t_cs = prob.model.fixed_step_integrator.eval_f(x, t + step * 1.0j, p, u).imag / step
+        f_t_cs = prob.model.fixed_step_integrator.eval_f(x, t + step * 1.0j, phi).imag / step
 
         assert_near_equal(f_t.real, np.atleast_2d(f_t_cs))
 
-        f_p_cs = prob.model.fixed_step_integrator.eval_f(x, t, p + step * 1.0j, u).imag / step
+        phi[2] = phi[2] + step * 1.0j
 
-        assert_near_equal(f_p.real, np.atleast_2d(f_p_cs))
+        f_phi_cs = prob.model.fixed_step_integrator.eval_f(x, t, phi).imag / step
+        assert_near_equal(f_phi.real[0, 2], f_phi_cs[0, 0])
 
     def test_fwd_parameters(self):
         time_options = dm.phase.options.TimeOptionsDictionary()

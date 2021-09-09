@@ -39,9 +39,6 @@ class StateRateCollectorComp(om.ExplicitComponent):
             'time_units', default=None, allow_none=True, types=str,
             desc='Units of time')
 
-    def setup(self):
-        pass
-
     def configure_io(self):
         """
         Create inputs/outputs on this component.
@@ -78,7 +75,7 @@ class StateRateCollectorComp(om.ExplicitComponent):
             `Vector` containing outputs.
         discrete_inputs : `Vector`
             `Vector` containing discrete inputs.
-        discrete_inputs : `Vector`
+        discrete_outputs : `Vector`
             `Vector` containing discrete outputs.
         """
         state_options = self.options['state_options']

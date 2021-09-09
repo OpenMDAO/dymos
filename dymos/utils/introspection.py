@@ -17,6 +17,14 @@ def classify_var(var, state_options, parameter_options, control_options, polynom
     ----------
     var : str
         The name of the variable to be classified.
+    state_options : dict of {str: OptionsDictionary}
+        For each state variable, a dictionary of its options, keyed by name.
+    parameter_options : dict of {str: OptionsDictionary}
+        For each parameter, a dictionary of its options, keyed by name.
+    control_options : dict of {str: OptionsDictionary}
+        For each control variable, a dictionary of its options, keyed by name.
+    polynomial_control_options : dict of {str: OptionsDictionary}
+        For each polynomial variable, a dictionary of its options, keyed by name.
 
     Returns
     -------
@@ -74,14 +82,16 @@ def get_targets(ode, name, user_targets, control_rates=False):
         The OpenMDAO system which serves as the ODE for dymos.  This system should already have
         had its setup and configure methods called.
     name : str
-        The name of the state variable whose targets are desired.
+        The name of the variable whose targets are desired.
     user_targets : str or None or Sequence or _unspecified
         Targets for the variable as given by the user.
+    control_rates : bool
+        If True, search for the rates of the variable of the given name.
 
     Returns
     -------
     list
-        The target inputs of the state variable in the ODE, as a list.
+        The target inputs of the variable in the ODE, as a list.
 
     Notes
     -----
@@ -202,10 +212,6 @@ def configure_controls_introspection(control_options, ode):
     ode : om.System
         An instantiated System that serves as the ODE to which the controls should be applied.
 
-    Returns
-    -------
-    None
-
     Raises
     ------
     ValueError
@@ -260,10 +266,6 @@ def configure_parameters_introspection(parameter_options, ode):
         to the ODE.
     ode : om.System
         An instantiated System that serves as the ODE to which the paremeters should be applied.
-
-    Returns
-    -------
-    None
     """
     for name, options in parameter_options.items():
         options['targets'] = get_targets(ode, name, options['targets'])
@@ -288,10 +290,6 @@ def configure_time_introspection(time_options, ode):
         to the ODE.
     ode : om.System
         An instantiated System that serves as the ODE to which the controls should be applied.
-
-    Returns
-    -------
-    None
 
     Raises
     ------
@@ -459,8 +457,10 @@ def configure_states_discovery(state_options, ode):
 
     Parameters
     ----------
-    phase : dymos.Phase
-        The phase object to which this transcription instance applies.
+    state_options : dict
+        The dictionary of options for each state in the phase.
+    ode : System
+        The System instance providing the ODE for the phase.
     """
     out_meta = ode.get_io_metadata(iotypes='output', metadata_keys=['tags'],
                                    get_remote=True)

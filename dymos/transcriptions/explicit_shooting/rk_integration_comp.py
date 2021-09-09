@@ -68,6 +68,30 @@ class RKIntegrationComp(om.ExplicitComponent):
     This component contains a sub-Problem with a component that will be solved over num_nodes
     points instead of creating num_nodes instances of that same component and connecting them
     together.
+
+    Parameters
+    ----------
+    ode_class : class
+        The class of the OpenMDAO system to be used to evaluate the ODE in this Group.
+    time_options : OptionsDictionary
+        OptionsDictionary of time options.
+    state_options : dict of {str: OptionsDictionary}
+        For each state variable, a dictionary of its options, keyed by name.
+    parameter_options : dict of {str: OptionsDictionary}
+        For each parameter, a dictionary of its options, keyed by name.
+    control_options : dict of {str: OptionsDictionary}
+        For each control variable, a dictionary of its options, keyed by name.
+    polynomial_control_options : dict of {str: OptionsDictionary}
+        For each polynomial variable, a dictionary of its options, keyed by name.
+    complex_step_mode : bool
+        If True, allocate internal memory as complex to support complex-step differentiation.
+    grid_data : GridData
+        The GridData instance pertaining to the phase to which this ODEEvaluationGroup belongs.
+    standalone_mode : bool
+        When True, this component will perform its configuration during setup. This is useful
+        for unittesting this component when not embedded in a larger system.
+    **kwargs : dict
+        Additional keyword arguments passed to Group.
     """
     def __init__(self, ode_class, time_options=None,
                  state_options=None, parameter_options=None, control_options=None,
@@ -98,6 +122,9 @@ class RKIntegrationComp(om.ExplicitComponent):
         self.standalone_mode = standalone_mode
 
     def initialize(self):
+        """
+        Declare options for the RKIntegrationComp.
+        """
         self.options.declare('method', types=(str,), default='rk4',
                              desc='The explicit Runge-Kutta scheme to use. One of' +
                                   str(list(rk_methods.keys())))
@@ -109,9 +136,10 @@ class RKIntegrationComp(om.ExplicitComponent):
         self._prob = p = om.Problem(comm=self.comm)
         p.model.add_subsystem('ode_eval',
                               ODEEvaluationGroup(self.ode_class, self.time_options,
-                                                 self.state_options, self.control_options,
-                                                 self.polynomial_control_options,
+                                                 self.state_options,
                                                  self.parameter_options,
+                                                 self.control_options,
+                                                 self.polynomial_control_options,
                                                  ode_init_kwargs=self.options['ode_init_kwargs'],
                                                  grid_data=self.grid_data),
                               promotes_inputs=['*'],
@@ -123,10 +151,9 @@ class RKIntegrationComp(om.ExplicitComponent):
 
     def _setup_time(self):
         if self.standalone_mode:
-            self.configure_time_io()
+            self._configure_time_io()
 
-    def configure_time_io(self):
-        print('RK integrator: configure time io')
+    def _configure_time_io(self):
         self.add_input('t_initial', shape=(1,), units=self.time_options['units'])
         self.add_input('t_duration', shape=(1,), units=self.time_options['units'])
         self.add_output('t_final', shape=(1,), units=self.time_options['units'])
@@ -136,10 +163,10 @@ class RKIntegrationComp(om.ExplicitComponent):
 
     def _setup_states(self):
         if self.standalone_mode:
-            self.configure_states_io()
+            self._configure_states_io()
 
-    def configure_states_io(self):
-        print('RKIntegrationComp: configure_states_io')
+    def _configure_states_io(self):
+        print('RKIntegrationComp: _configure_states_io')
         # The total size of the entire state vector
         self.x_size = 0
 
@@ -192,10 +219,10 @@ class RKIntegrationComp(om.ExplicitComponent):
 
     def _setup_parameters(self):
         if self.standalone_mode:
-            self.configure_parameters_io()
+            self._configure_parameters_io()
 
-    def configure_parameters_io(self):
-        print('RKIntegrationComp: configure_parameters_io')
+    def _configure_parameters_io(self):
+        print('RKIntegrationComp: _configure_parameters_io')
         # The indices of each parameter in p
         self.p_size = 0
         self.parameter_idxs = {}
@@ -217,11 +244,9 @@ class RKIntegrationComp(om.ExplicitComponent):
 
     def _setup_controls(self):
         if self.standalone_mode:
-            self.configure_controls_io()
+            self._configure_controls_io()
 
-    def configure_controls_io(self):
-        print('RK integration comp: configure controls io')
-        # The indices of each control
+    def _configure_controls_io(self):
         self.u_size = 0
         self.control_idxs = {}
         self._control_idxs_in_phi = {}
@@ -244,9 +269,7 @@ class RKIntegrationComp(om.ExplicitComponent):
             self.control_idxs[control_name] = np.s_[self.u_size:self.u_size+control_param_size]
             self.u_size += control_param_size
 
-    def configure_polynomial_controls_io(self):
-        print('RK integration comp: configure polynomial controls io')
-        # The indices of each control
+    def _configure_polynomial_controls_io(self):
         self.up_size = 0
         self.polynomial_control_idxs = {}
         self._polynomial_control_idxs_in_phi = {}
@@ -375,6 +398,9 @@ class RKIntegrationComp(om.ExplicitComponent):
         self._dphi_dZ[:, num_x:] = np.eye(num_phi, dtype=self._TYPE)
 
     def setup(self):
+        """
+        Add the necessary I/O and storage for the RKIntegrationComp.
+        """
         self._setup_subprob()
         self._setup_time()
         self._setup_parameters()
@@ -403,7 +429,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         self._dphi_dZ[...] = 0.0  # np.zeros((num_phi, num_z), dtype=self._TYPE)
         self._dphi_dZ[:, num_x:] = np.eye(num_phi, dtype=self._TYPE)
 
-    def eval_f(self, x, t, phi, compute_timeseries=False):
+    def eval_f(self, x, t, phi):
         """
         Evaluate the ODE which provides the state rates for integration.
 
@@ -415,17 +441,11 @@ class RKIntegrationComp(om.ExplicitComponent):
             The current time of the integration.
         phi : np.ndarray
             A flattened, contiguous vector of the ODE parameter values.
-        compute_timeseries : bool
-            If True, return the auxiliary outputs of the ODE specified in the timeseries attribute,
-            otherwise, return None as the second return value.
 
         Returns
         -------
-        f : np.ndarray
+        np.ndarray
             A flattened, contiguous vector of the state rates.
-        timeseries : np.ndarray or None
-            A flattened, contiguous vector of the timeseries outputs.
-
         """
         # transcribe time
         self._prob.set_val('time', t, units=self.time_options['units'])
@@ -456,16 +476,17 @@ class RKIntegrationComp(om.ExplicitComponent):
             self._f[self.state_idxs[name]] = \
                 self._prob.get_val(f'state_rate_collector.state_rates:{name}_rate').ravel()
 
-        # pack the timeseries outputs
-        if compute_timeseries:
-            for name, options in self.timeseries_options:
-                self._y[self.timeseries_idxs[name]] = self._prob.get_val(f'ode.{name}').ravel()
-
         return self._f
 
-    def eval_f_derivs(self, x, t, phi, compute_timeseries=False):
+    def eval_f_derivs(self, x, t, phi):
         """
         Evaluate the derivative of the ODE output rates wrt the inputs.
+
+        Note that the control parameterization `u` undergoes an interpolation to provide the
+        control values at any given time.  The ODE is then a function of these interpolated control
+        values, we'll call them `u_hat`.  Technically, the derivatives wrt to `u` need to be chained
+        together, but in this implementation the interpolation is part of the execution of the ODE
+        and the chained derivatives are captured correctly there.
 
         Parameters
         ----------
@@ -475,15 +496,6 @@ class RKIntegrationComp(om.ExplicitComponent):
             The current time of the integration.
         phi : np.ndarray
             A flattened, contiguous vector of the ODE parameter values.
-        compute_timeseries : bool
-            If True, return the auxiliary outputs of the ODE specified in the timeseries attribute,
-            otherwise, return None as the second return value.
-
-        Note that the control parameterization `u` undergoes an interpolation to provide the
-        control values at any given time.  The ODE is then a function of these interpolated control
-        values, we'll call them `u_hat`.  Technically, the derivatives wrt to `u` need to be chained
-        together, but in this implementation the interpolation is part of the execution of the ODE
-        and the chained derivatives are captured correctly there.
 
         Returns
         -------
@@ -493,13 +505,6 @@ class RKIntegrationComp(om.ExplicitComponent):
             A matrix of the derivatives of each element of the rates `f` wrt `time`.
         f_phi : np.ndarray
             A matrix of the derivatives of each element of the rates `f` wrt the parameters `phi`.
-        dy_dx : np.ndarray or None
-            A matrix of the derivatives of each element of the outputs `y` wrt the states `x`.
-        dy_dt : np.ndarray or None
-            A matrix of the derivatives of each element of the outputs `y` wrt `time`.
-        dy_dphi : np.ndarray or None
-            A matrix of the derivatives of each element of the outputs `y` wrt the parameters `phi`.
-
         """
         of_names = []
         wrt_names = ['time', 't_initial', 't_duration']
@@ -718,7 +723,27 @@ class RKIntegrationComp(om.ExplicitComponent):
                     derivs[of, wrt] = self._dx_dZ[of_rows, wrt_cols]
 
     def compute(self, inputs, outputs):
+        """
+        Compute propagated state values.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        """
         self._propagate(inputs, outputs)
 
     def compute_partials(self, inputs, partials):
+        """
+        Compute derivatives of propagated states wrt the inputs.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        partials : Jacobian
+            Subjac components written to partials[output_name, input_name].
+        """
         self._propagate(inputs, outputs=False, derivs=partials)

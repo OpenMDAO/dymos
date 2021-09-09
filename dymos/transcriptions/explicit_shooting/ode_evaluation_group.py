@@ -12,22 +12,42 @@ from ...utils.introspection import get_targets, configure_controls_introspection
 
 class ODEEvaluationGroup(om.Group):
     """
-    A special group whose purpose is to evaluate the ODE and return the computed
-    state weights.
+    A group whose purpose is to evaluate the ODE and output the computed state rates.
+
+    Parameters
+    ----------
+    ode_class : class
+        The class of the OpenMDAO system to be used to evaluate the ODE in this Group.
+    time_options : OptionsDictionary
+        OptionsDictionary of time options.
+    state_options : dict of {str: OptionsDictionary}
+        For each state variable, a dictionary of its options, keyed by name.
+    parameter_options : dict of {str: OptionsDictionary}
+        For each parameter, a dictionary of its options, keyed by name.
+    control_options : dict of {str: OptionsDictionary}
+        For each control variable, a dictionary of its options, keyed by name.
+    polynomial_control_options : dict of {str: OptionsDictionary}
+        For each polynomial variable, a dictionary of its options, keyed by name.
+    ode_init_kwargs : dict
+        A dictionary of keyword arguments to be passed to the instantiation of the ODE.
+    grid_data : GridData
+        The GridData instance pertaining to the phase to which this ODEEvaluationGroup belongs.
+    **kwargs : dict
+        Additional keyword arguments passed to Group.
     """
 
-    def __init__(self, ode_class, time_options, state_options, control_options,
-                 polynomial_control_options, parameter_options, ode_init_kwargs=None,
+    def __init__(self, ode_class, time_options, state_options, parameter_options, control_options,
+                 polynomial_control_options, ode_init_kwargs=None,
                  grid_data=None, **kwargs):
         super().__init__(**kwargs)
 
         # Get the state vector.  This isn't necessarily ordered
         # so just pick the default ordering and go with it.
         self.state_options = state_options
+        self.parameter_options = parameter_options
         self.time_options = time_options
         self.control_options = control_options
         self.polynomial_control_options = polynomial_control_options
-        self.parameter_options = parameter_options
         self.control_interpolants = {}
         self.polynomial_control_interpolants = {}
         self.ode_class = ode_class
@@ -35,6 +55,9 @@ class ODEEvaluationGroup(om.Group):
         self.ode_init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
 
     def setup(self):
+        """
+        Define the structure of the ODEEvaluationGroup.
+        """
         gd = self.grid_data
 
         # All states, controls, parameters, and polyomial controls need to exist
@@ -67,8 +90,12 @@ class ODEEvaluationGroup(om.Group):
                                                   time_units=self.time_options['units']))
 
     def configure(self):
-        # In dymos, this system sits within a subproblem and therefore isn't in the standard
-        # configuration chain.  We need to perform all of the introspection of the ODE here.
+        """
+        Perform I/O creation for this group's underlying members.
+
+        In dymos, this system sits within a subproblem and therefore isn't in the standard
+        configuration chain.  We need to perform all of the introspection of the ODE here.
+        """
         ode = self._get_subsystem('ode')
 
         configure_time_introspection(self.time_options, ode)
