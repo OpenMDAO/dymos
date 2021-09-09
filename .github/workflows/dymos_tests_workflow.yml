@@ -40,7 +40,7 @@ jobs:
             PYOPTSPARSE: 'v2.1.5'
             SNOPT: 7.7
             MBI: 1
-            OPENMDAO: 'latest'
+            OPENMDAO: 'dev'
             OPTIONAL: '[test]'
             DOCS: 0
 
@@ -169,9 +169,10 @@ jobs:
           echo "============================================================="
           echo "Install OpenMDAO"
           echo "============================================================="
-          if [[ "${{ matrix.OPENMDAO }}" == "latest" ]]; then
-            git clone -q https://github.com/OpenMDAO/OpenMDAO
-            pip install OpenMDAO
+          if [[ "${{ matrix.OPENMDAO }}" == "dev" ]]; then
+            pip install git+https://github.com/OpenMDAO/OpenMDAO
+          elif [[ "${{ matrix.OPENMDAO }}" == "latest" ]]; then
+            pip install openmdao
           else
             pip install openmdao==${{ matrix.OPENMDAO }}
           fi
