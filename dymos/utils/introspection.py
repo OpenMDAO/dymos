@@ -85,8 +85,10 @@ def get_targets(ode, name, user_targets, control_rates=False):
         The name of the variable whose targets are desired.
     user_targets : str or None or Sequence or _unspecified
         Targets for the variable as given by the user.
-    control_rates : bool
-        If True, search for the rates of the variable of the given name.
+    control_rates : bool or int
+        If True, search for the target of the variable with the given name.  If 1, search for
+        the first rate of the variable '{control_name}_rate', and if 2, search for the second
+        derivative of the variable '{control_name}_rate2'.
 
     Returns
     -------
@@ -105,9 +107,9 @@ def get_targets(ode, name, user_targets, control_rates=False):
     if user_targets is _unspecified:
         if name in ode_inputs:
             targets = [name]
-        elif control_rates and f'{name}_rate' in ode_inputs:
+        elif control_rates == 1 and f'{name}_rate' in ode_inputs:
             targets = [f'{name}_rate']
-        elif control_rates and f'{name}_rate2' in ode_inputs:
+        elif control_rates == 2 and f'{name}_rate2' in ode_inputs:
             targets = [f'{name}_rate2']
         else:
             targets = []
@@ -200,7 +202,7 @@ def get_state_target_metadata(ode, name, targets=_unspecified, user_units=_unspe
     return shape, units
 
 
-def configure_controls_introspection(control_options, ode):
+def configure_controls_introspection(control_options, ode, time_units='s'):
     """
     Modify control options in-place using introspection of the user-provided ODE.
 
@@ -211,6 +213,8 @@ def configure_controls_introspection(control_options, ode):
         to the ODE.
     ode : om.System
         An instantiated System that serves as the ODE to which the controls should be applied.
+    time_units : str
+        The units of time for the Phase.
 
     Raises
     ------
@@ -219,40 +223,51 @@ def configure_controls_introspection(control_options, ode):
         within the ODE.
     """
     for name, options in control_options.items():
-        options['targets'] = get_targets(ode, name, options['targets'], control_rates=True)
+        options['targets'] = get_targets(ode, name, options['targets'], control_rates=False)
 
-        shape, units, static_target = get_target_metadata(ode, name=name,
-                                                          user_targets=options['targets'],
-                                                          user_units=options['units'],
-                                                          user_shape=options['shape'],
-                                                          control_rate=True)
+        if options['targets']:
+            shape, units, static_target = get_target_metadata(ode, name=name,
+                                                              user_targets=options['targets'],
+                                                              user_units=options['units'],
+                                                              user_shape=options['shape'],
+                                                              control_rate=True)
+            options['units'] = units
+            options['shape'] = shape
 
-        options['units'] = units
-        options['shape'] = shape
-
-        if static_target:
-            raise ValueError(f"Control '{name}' cannot be connected to its targets because one "
-                             f"or more targets are tagged with 'dymos.static_target'.")
+            if static_target:
+                raise ValueError(f"Control '{name}' cannot be connected to its targets because one "
+                                 f"or more targets are tagged with 'dymos.static_target'.")
 
         # Now check rate targets
-        _, _, static_target = get_target_metadata(ode, name=name,
-                                                  user_targets=options['rate_targets'],
-                                                  user_units=options['units'],
-                                                  user_shape=options['shape'],
-                                                  control_rate=True)
-        if static_target:
-            raise ValueError(f"Control rate of '{name}' cannot be connected to its targets "
-                             f"because one or more targets are tagged with 'dymos.static_target'.")
+        options['rate_targets'] = get_targets(ode, name, options['rate_targets'], control_rates=1)
+
+        if options['rate_targets']:
+            shape, units, static_target = get_target_metadata(ode, name=name,
+                                                              user_targets=options['rate_targets'],
+                                                              user_units=options['units'],
+                                                              user_shape=options['shape'],
+                                                              control_rate=1)
+            if options['units'] in (None, _unspecified):
+                options['units'] = f'{units}*{time_units}'
+            options['shape'] = shape
+            if static_target:
+                raise ValueError(f"Control rate of '{name}' cannot be connected to its targets "
+                                 f"because one or more targets are tagged with 'dymos.static_target'.")
 
         # Now check rate2 targets
-        _, _, static_target = get_target_metadata(ode, name=name,
-                                                  user_targets=options['rate2_targets'],
-                                                  user_units=options['units'],
-                                                  user_shape=options['shape'],
-                                                  control_rate=True)
-        if static_target:
-            raise ValueError(f"Control rate2 of '{name}' cannot be connected to its targets "
-                             f"because one or more targets are tagged with 'dymos.static_target'.")
+        options['rate2_targets'] = get_targets(ode, name, options['rate2_targets'], control_rates=2)
+        if options['rate2_targets']:
+            shape, units, static_target = get_target_metadata(ode, name=name,
+                                                              user_targets=options['rate2_targets'],
+                                                              user_units=options['units'],
+                                                              user_shape=options['shape'],
+                                                              control_rate=2)
+            if options['units'] in (None, _unspecified):
+                options['units'] = f'{units}*{time_units}**2'
+            options['shape'] = shape
+            if static_target:
+                raise ValueError(f"Control rate2 of '{name}' cannot be connected to its targets "
+                                 f"because one or more targets are tagged with 'dymos.static_target'.")
 
 
 def configure_parameters_introspection(parameter_options, ode):

@@ -6,8 +6,9 @@ import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 import dymos as dm
 
-from dymos.utils.lgl import lgl
 from dymos.transcriptions.explicit_shooting.control_interpolation_comp import ControlInterpolationComp
+
+_TOL = 1.0E-8
 
 
 class TestControlInterpolationComp(unittest.TestCase):
@@ -37,36 +38,36 @@ class TestControlInterpolationComp(unittest.TestCase):
 
         p.set_val('interp.stau', -1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0)
+        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0, tolerance=_TOL)
 
         p.set_val('interp.stau', 0.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), 3.0)
+        assert_near_equal(p.get_val('interp.control_values:u1'), 3.0, tolerance=_TOL)
 
         p.set_val('interp.stau', 1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), 3.0)
+        assert_near_equal(p.get_val('interp.control_values:u1'), 3.0, tolerance=_TOL)
 
         p.set_val('interp.segment_index', 0)
 
         p.set_val('interp.stau', -1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0)
+        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0, tolerance=_TOL)
 
         p.set_val('interp.stau', 0.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), 3.0)
+        assert_near_equal(p.get_val('interp.control_values:u1'), 3.0, tolerance=_TOL)
 
         p.set_val('interp.stau', 1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0)
+        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0, tolerance=_TOL)
 
         p.set_val('interp.stau', 0.54262)
         p.run_model()
 
         with np.printoptions(linewidth=1024):
             cpd = p.check_partials(compact_print=False, method='cs')
-            assert_check_partials(cpd)
+            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
 
     def test_eval_control_radau_compressed(self):
         grid_data = dm.transcriptions.grid_data.GridData(num_segments=2, transcription='radau-ps',
@@ -93,7 +94,7 @@ class TestControlInterpolationComp(unittest.TestCase):
 
         p.set_val('interp.stau', -1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0)
+        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0, tolerance=_TOL)
 
         p.set_val('interp.stau', -0.72048)
         p.run_model()
@@ -157,36 +158,36 @@ class TestControlInterpolationComp(unittest.TestCase):
 
         p.set_val('interp.stau', -1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0)
+        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0, tolerance=_TOL)
 
         p.set_val('interp.stau', 0.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), 3.0)
+        assert_near_equal(p.get_val('interp.control_values:u1'), 3.0, tolerance=_TOL)
 
         p.set_val('interp.stau', 1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), 3.0)
+        assert_near_equal(p.get_val('interp.control_values:u1'), 3.0, tolerance=_TOL)
 
         p.set_val('interp.segment_index', 0)
 
         p.set_val('interp.stau', -1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0)
+        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0, tolerance=_TOL)
 
         p.set_val('interp.stau', 0.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), 3.0)
+        assert_near_equal(p.get_val('interp.control_values:u1'), 3.0, tolerance=_TOL)
 
         p.set_val('interp.stau', 1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0)
+        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0, tolerance=_TOL)
 
         p.set_val('interp.stau', 0.54262)
         p.run_model()
 
         with np.printoptions(linewidth=1024):
             cpd = p.check_partials(compact_print=False, method='cs')
-            assert_check_partials(cpd)
+            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
 
     def test_eval_control_radau_uncompressed(self):
         grid_data = dm.transcriptions.grid_data.GridData(num_segments=2, transcription='radau-ps',
@@ -213,7 +214,7 @@ class TestControlInterpolationComp(unittest.TestCase):
 
         p.set_val('interp.stau', -1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0)
+        assert_near_equal(p.get_val('interp.control_values:u1'), 0.0, tolerance=_TOL)
 
         p.set_val('interp.stau', -0.72048)
         p.run_model()
@@ -250,7 +251,7 @@ class TestControlInterpolationComp(unittest.TestCase):
 
         with np.printoptions(linewidth=1024):
             cpd = p.check_partials(compact_print=False, method='cs')
-            assert_check_partials(cpd)
+            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
 
 
 class TestPolynomialControlInterpolation(unittest.TestCase):
@@ -281,36 +282,36 @@ class TestPolynomialControlInterpolation(unittest.TestCase):
 
         p.set_val('interp.ptau', -1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 0.0)
+        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 0.0, tolerance=_TOL)
 
         p.set_val('interp.ptau', 0.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 1.5)
+        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 1.5, tolerance=_TOL)
 
         p.set_val('interp.ptau', 1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 4.0)
+        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 4.0, tolerance=_TOL)
 
         p.set_val('interp.segment_index', 0)
 
         p.set_val('interp.ptau', -1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 0.0)
+        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 0.0, tolerance=_TOL)
 
         p.set_val('interp.ptau', 0.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 1.5)
+        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 1.5, tolerance=_TOL)
 
         p.set_val('interp.ptau', 1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 4.0)
+        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 4.0, tolerance=_TOL)
 
         p.set_val('interp.ptau', 0.54262)
         p.run_model()
 
         with np.printoptions(linewidth=1024):
             cpd = p.check_partials(compact_print=False, method='cs')
-            assert_check_partials(cpd)
+            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
 
     def test_eval_polycontrol_radau_compressed(self):
         grid_data = dm.transcriptions.grid_data.GridData(num_segments=2, transcription='radau-ps',
@@ -338,36 +339,37 @@ class TestPolynomialControlInterpolation(unittest.TestCase):
 
         p.set_val('interp.ptau', -1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 0.0)
+        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 0.0, tolerance=_TOL)
 
         p.set_val('interp.ptau', 0.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 1.5)
+        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 1.5, tolerance=_TOL)
 
         p.set_val('interp.ptau', 1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 4.0)
+        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 4.0, tolerance=_TOL)
 
         p.set_val('interp.segment_index', 0)
 
         p.set_val('interp.ptau', -1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 0.0)
+        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 0.0, tolerance=_TOL)
 
         p.set_val('interp.ptau', 0.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 1.5)
+        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 1.5, tolerance=_TOL)
 
         p.set_val('interp.ptau', 1.0)
         p.run_model()
-        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 4.0)
+        assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 4.0, tolerance=_TOL)
 
         p.set_val('interp.ptau', 0.54262)
         p.run_model()
 
         with np.printoptions(linewidth=1024):
             cpd = p.check_partials(compact_print=False, method='cs')
-            assert_check_partials(cpd)
+            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

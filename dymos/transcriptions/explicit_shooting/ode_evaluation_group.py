@@ -104,10 +104,12 @@ class ODEEvaluationGroup(om.Group):
         configure_parameters_introspection(self.parameter_options, ode)
         self._configure_params()
 
-        configure_controls_introspection(self.control_options, ode)
+        configure_controls_introspection(self.control_options, ode,
+                                         time_units=self.time_options['units'])
         self._configure_controls()
 
-        configure_controls_introspection(self.polynomial_control_options, ode)
+        configure_controls_introspection(self.polynomial_control_options, ode,
+                                         time_units=self.time_options['units'])
         self._configure_polynomial_controls()
 
         if self.control_options or self.polynomial_control_options:

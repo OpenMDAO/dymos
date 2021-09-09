@@ -1517,11 +1517,13 @@ class Phase(om.Group):
 
         # The control interpolation comp to which we'll connect controls
         if self.control_options:
-            configure_controls_introspection(self.control_options, ode)
+            configure_controls_introspection(self.control_options, ode,
+                                             time_units=self.time_options['units'])
             transcription.configure_controls(self)
 
         if self.polynomial_control_options:
-            configure_controls_introspection(self.polynomial_control_options, ode)
+            configure_controls_introspection(self.polynomial_control_options, ode,
+                                             time_units=self.time_options['units'])
             transcription.configure_polynomial_controls(self)
 
         if self.parameter_options:

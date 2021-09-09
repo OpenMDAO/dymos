@@ -278,8 +278,7 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        ode = self._get_ode(phase)
-        configure_controls_introspection(phase.control_options, ode)
+        pass
 
     def setup_polynomial_controls(self, phase):
         """
@@ -306,46 +305,6 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        ode = phase._get_subsystem(self._rhs_source)
-
-        # Interrogate shapes and units.
-        for name, options in phase.polynomial_control_options.items():
-
-            shape, units, static_target = get_target_metadata(ode, name=name,
-                                                              user_targets=options['targets'],
-                                                              user_units=options['units'],
-                                                              user_shape=options['shape'],
-                                                              control_rate=True)
-
-            options['units'] = units
-            options['shape'] = shape
-
-            if static_target:
-                raise ValueError(f"Polynomial control '{name}' cannot be connected to its targets "
-                                 f"because one or more targets are tagged with 'dymos.static_target'.")
-
-            # Now check rate targets
-            _, _, static_target = get_target_metadata(ode, name=name,
-                                                      user_targets=options['rate_targets'],
-                                                      user_units=options['units'],
-                                                      user_shape=options['shape'],
-                                                      control_rate=True)
-            if static_target:
-                raise ValueError(f"Rate of polynomial control '{name}' cannot be connected to its "
-                                 f"targets because one or more targets are tagged with "
-                                 f"'dymos.static_target'.")
-
-            # Now check rate2 targets
-            _, _, static_target = get_target_metadata(ode, name=name,
-                                                      user_targets=options['rate2_targets'],
-                                                      user_units=options['units'],
-                                                      user_shape=options['shape'],
-                                                      control_rate=True)
-            if static_target:
-                raise ValueError(f"Rate2 of polynomial control '{name}' cannot be connected to its "
-                                 f"targets because one or more targets are tagged with "
-                                 f"'dymos.static_target'.")
-
         if phase.polynomial_control_options:
             phase.polynomial_control_group.configure_io()
 
