@@ -105,7 +105,7 @@ def get_targets(ode, name, user_targets, control_rates=False):
                   ode.get_io_metadata(iotypes=('input',), get_remote=True).items()}
 
     if user_targets is _unspecified:
-        if name in ode_inputs:
+        if control_rates not in (1, 2) and name in ode_inputs:
             targets = [name]
         elif control_rates == 1 and f'{name}_rate' in ode_inputs:
             targets = [f'{name}_rate']

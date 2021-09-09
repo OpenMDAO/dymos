@@ -113,7 +113,8 @@ class GaussLobatto(PseudospectralBase):
                               src_indices=col_src_idxs, flat_src_indices=True)
 
             # Rate targets
-            targets = get_targets(phase.rhs_disc, f'{name}_rate', options['rate_targets'])
+            targets = get_targets(phase.rhs_disc, f'{name}_rate', options['rate_targets'],
+                                  control_rates=1)
             if targets:
                 phase.connect(f'control_rates:{name}_rate',
                               [f'rhs_disc.{t}' for t in targets],
@@ -124,7 +125,8 @@ class GaussLobatto(PseudospectralBase):
                               src_indices=col_src_idxs, flat_src_indices=True)
 
             # Second time derivative targets must be specified explicitly
-            targets = get_targets(phase.rhs_disc, f'{name}_rate2', options['rate2_targets'])
+            targets = get_targets(phase.rhs_disc, f'{name}_rate2', options['rate2_targets'],
+                                  control_rates=2)
             if targets:
                 phase.connect(f'control_rates:{name}_rate2',
                               [f'rhs_disc.{t}' for t in targets],
