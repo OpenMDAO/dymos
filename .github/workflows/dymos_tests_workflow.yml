@@ -170,8 +170,7 @@ jobs:
           echo "Install OpenMDAO"
           echo "============================================================="
           if [[ "${{ matrix.OPENMDAO }}" == "dev" ]]; then
-            git clone -q https://github.com/OpenMDAO/OpenMDAO
-            pip install ./OpenMDAO
+            pip install git+https://github.com/OpenMDAO/OpenMDAO
           elif [[ "${{ matrix.OPENMDAO }}" == "latest" ]]; then
             pip install openmdao
           else
