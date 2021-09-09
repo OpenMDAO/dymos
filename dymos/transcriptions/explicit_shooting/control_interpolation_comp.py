@@ -151,7 +151,7 @@ class ControlInterpolationComp(om.ExplicitComponent):
 
     def setup(self):
         """
-        Perform the I/O creation if operating in standalone_mode.
+        Perform the I/O creation if operating in _standalone_mode.
         """
         if self._standalone_mode:
             self.configure_io()

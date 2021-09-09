@@ -106,7 +106,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         self.polynomial_control_options = polynomial_control_options
         self._prob = None
         self._complex_step_mode = complex_step_mode
-        self.grid_data = grid_data
+        self._grid_data = grid_data
         self._TYPE = complex if complex_step_mode else float
 
         self.x_size = 0
@@ -116,10 +116,10 @@ class RKIntegrationComp(om.ExplicitComponent):
         self.phi_size = 0
         self.Z_size = 0
 
-        # If standalone_mode is True, this component will fully perform all of its setup at setup
+        # If _standalone_mode is True, this component will fully perform all of its setup at setup
         # time.  If False, it will need to have configure_io called on it to properly finish its
         # setup.
-        self.standalone_mode = standalone_mode
+        self._standalone_mode = standalone_mode
 
     def initialize(self):
         """
@@ -141,7 +141,7 @@ class RKIntegrationComp(om.ExplicitComponent):
                                                  self.control_options,
                                                  self.polynomial_control_options,
                                                  ode_init_kwargs=self.options['ode_init_kwargs'],
-                                                 grid_data=self.grid_data),
+                                                 grid_data=self._grid_data),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -150,7 +150,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         self._prob.set_complex_step_mode(self._complex_step_mode)
 
     def _setup_time(self):
-        if self.standalone_mode:
+        if self._standalone_mode:
             self._configure_time_io()
 
     def _configure_time_io(self):
@@ -162,7 +162,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         self.declare_partials('t_final', 't_duration', val=1.0)
 
     def _setup_states(self):
-        if self.standalone_mode:
+        if self._standalone_mode:
             self._configure_states_io()
 
     def _configure_states_io(self):
@@ -218,7 +218,7 @@ class RKIntegrationComp(om.ExplicitComponent):
                                       wrt=f'polynomial_controls:{control_name_wrt}')
 
     def _setup_parameters(self):
-        if self.standalone_mode:
+        if self._standalone_mode:
             self._configure_parameters_io()
 
     def _configure_parameters_io(self):
@@ -243,7 +243,7 @@ class RKIntegrationComp(om.ExplicitComponent):
             self.p_size += param_size
 
     def _setup_controls(self):
-        if self.standalone_mode:
+        if self._standalone_mode:
             self._configure_controls_io()
 
     def _configure_controls_io(self):
@@ -254,8 +254,8 @@ class RKIntegrationComp(om.ExplicitComponent):
         self._control_input_names = {}
 
         if self.control_options:
-            control_input_node_ptau = self.grid_data.node_ptau[
-                self.grid_data.subset_node_indices['control_input']]
+            control_input_node_ptau = self._grid_data.node_ptau[
+                self._grid_data.subset_node_indices['control_input']]
 
         for control_name, options in self.control_options.items():
             control_param_shape = (len(control_input_node_ptau),) + options['shape']
@@ -290,11 +290,11 @@ class RKIntegrationComp(om.ExplicitComponent):
             self.up_size += control_param_size
 
     def _setup_storage(self):
-        if self.standalone_mode:
+        if self._standalone_mode:
             self._configure_storage()
 
     def _configure_storage(self):
-        control_input_node_ptau = self.grid_data.node_ptau[self.grid_data.subset_node_indices['control_input']]
+        control_input_node_ptau = self._grid_data.node_ptau[self._grid_data.subset_node_indices['control_input']]
         rk = rk_methods[self.options['method']]
         num_stages = len(rk['b'])
 
@@ -589,7 +589,7 @@ class RKIntegrationComp(om.ExplicitComponent):
             from the compute_partials call to this component.  If derivatives are not to be
             computed, this should be None.
         """
-        gd = self.grid_data
+        gd = self._grid_data
         N = self.options['num_steps_per_segment']
 
         # RK Constants
