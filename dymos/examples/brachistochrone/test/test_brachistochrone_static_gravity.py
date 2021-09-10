@@ -162,7 +162,7 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             p.setup()
 
-        expected_msg = "Polynomial control 'g' cannot be connected to its targets because one or " \
+        expected_msg = "Control 'g' cannot be connected to its targets because one or " \
                        "more targets are tagged with 'dymos.static_target'."
 
         self.assertEqual(expected_msg, str(e.exception))
@@ -175,7 +175,7 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             p.setup()
 
-        expected_msg = "Polynomial control 'g' cannot be connected to its targets because one or " \
+        expected_msg = "Control 'g' cannot be connected to its targets because one or " \
                        "more targets are tagged with 'dymos.static_target'."
 
         self.assertEqual(expected_msg, str(e.exception))
@@ -189,8 +189,8 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             p.setup()
 
-        expected_msg = "Rate of polynomial control 'foo' cannot be connected to its targets " \
-                       "because one or more targets are tagged with 'dymos.static_target'."
+        expected_msg = "Control rate of 'foo' cannot be connected to its targets because one or " \
+                       "more targets are tagged with 'dymos.static_target'."
 
         self.assertEqual(expected_msg, str(e.exception))
 
@@ -203,8 +203,8 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             p.setup()
 
-        expected_msg = "Rate of polynomial control 'foo' cannot be connected to its targets " \
-                       "because one or more targets are tagged with 'dymos.static_target'."
+        expected_msg = "Control rate of 'foo' cannot be connected to its targets because one or " \
+                       "more targets are tagged with 'dymos.static_target'."
 
         self.assertEqual(expected_msg, str(e.exception))
 
@@ -217,8 +217,8 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             p.setup()
 
-        expected_msg = "Rate2 of polynomial control 'foo' cannot be connected to its targets " \
-                       "because one or more targets are tagged with 'dymos.static_target'."
+        expected_msg = "Control rate2 of 'foo' cannot be connected to its targets because one or " \
+                       "more targets are tagged with 'dymos.static_target'."
 
         self.assertEqual(expected_msg, str(e.exception))
 
@@ -231,8 +231,8 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             p.setup()
 
-        expected_msg = "Rate2 of polynomial control 'foo' cannot be connected to its targets " \
-                       "because one or more targets are tagged with 'dymos.static_target'."
+        expected_msg = "Control rate2 of 'foo' cannot be connected to its targets because one or " \
+                       "more targets are tagged with 'dymos.static_target'."
 
         self.assertEqual(expected_msg, str(e.exception))
 

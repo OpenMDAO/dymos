@@ -17,6 +17,8 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
+from ..utils.introspection import configure_time_introspection, configure_controls_introspection, \
+    configure_parameters_introspection, configure_states_introspection
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
 
@@ -1509,19 +1511,30 @@ class Phase(om.Group):
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']
+        ode = transcription._get_ode(self)
+
+        configure_time_introspection(self.time_options, ode)
         transcription.configure_time(self)
 
         # The control interpolation comp to which we'll connect controls
         if self.control_options:
+            configure_controls_introspection(self.control_options, ode,
+                                             time_units=self.time_options['units'])
             transcription.configure_controls(self)
 
         if self.polynomial_control_options:
+            configure_controls_introspection(self.polynomial_control_options, ode,
+                                             time_units=self.time_options['units'])
             transcription.configure_polynomial_controls(self)
 
         if self.parameter_options:
+            configure_parameters_introspection(self.parameter_options, ode)
             transcription.configure_parameters(self)
 
-        transcription.configure_state_discovery(self)
+        self.configure_state_discovery()
+        configure_states_introspection(self.state_options, self.time_options, self.control_options,
+                                       self.parameter_options, self.polynomial_control_options,
+                                       ode)
         transcription.configure_states(self)
         transcription.configure_ode(self)
         transcription.configure_defects(self)
@@ -1532,6 +1545,58 @@ class Phase(om.Group):
         transcription.configure_objective(self)
         transcription.configure_timeseries_outputs(self)
         transcription.configure_solvers(self)
+
+    def configure_state_discovery(self):
+        """
+        Searches phase output metadata for any declared states and adds them.
+        """
+        transcription = self.options['transcription']
+        state_options = self.state_options
+        ode = transcription._get_ode(self)
+        out_meta = ode.get_io_metadata(iotypes='output', metadata_keys=['tags'],
+                                       get_remote=True)
+
+        for name, meta in out_meta.items():
+            tags = meta['tags']
+            prom_name = meta['prom_name']
+            state = None
+            for tag in sorted(tags):
+
+                # Declared as rate_source.
+                if tag.startswith('dymos.state_rate_source:') or tag.startswith('state_rate_source:'):
+                    state = tag.split(':')[-1]
+                    if tag.startswith('state_rate_source:'):
+                        msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
+                              f"dymos version 2.0.0. Use 'dymos.state_rate_source:{state}' instead."
+                        om.issue_warning(msg, category=om.OMDeprecationWarning)
+                    if state not in state_options:
+                        state_options[state] = StateOptionsDictionary()
+                        state_options[state]['name'] = state
+
+                    if state_options[state]['rate_source'] is not None:
+                        if state_options[state]['rate_source'] != prom_name:
+                            raise ValueError(f"rate_source has been declared twice for state "
+                                             f"'{state}' which is tagged on '{name}'.")
+
+                    state_options[state]['rate_source'] = prom_name
+
+                # Declares units for state.
+                if tag.startswith('dymos.state_units:') or tag.startswith('state_units:'):
+                    tagged_state_units = tag.split(':')[-1]
+                    if tag.startswith('state_units:'):
+                        msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
+                              f"dymos version 2.0.0. Use 'dymos.{tag}' instead."
+                        om.issue_warning(msg, category=om.OMDeprecationWarning)
+                    if state is None:
+                        raise ValueError(f"'{tag}' tag declared on '{prom_name}' also requires "
+                                         f"that the 'dymos.state_rate_source:{tagged_state_units}' "
+                                         f"tag be declared.")
+                    state_options[state]['units'] = tagged_state_units
+
+        # Check over all existing states and make sure we aren't missing any rate sources.
+        for name, options in state_options.items():
+            if options['rate_source'] is None:
+                raise ValueError(f"State '{name}' is missing a rate_source.")
 
     def check_time_options(self):
         """
@@ -1603,6 +1668,26 @@ class Phase(om.Group):
                 self.control_options[name]['continuity'] = False
                 self.control_options[name]['rate_continuity'] = False
                 self.control_options[name]['rate2_continuity'] = False
+
+    def _check_polynomial_control_options(self):
+        """
+        Check that polynomial control options are valid and issue warnings if invalid options are provided.
+
+        Warns
+        -----
+        RuntimeWarning
+            RuntimeWarning is issued in the case of one or more invalid time options.
+        """
+        for name, options in self.control_options.items():
+            if not options['opt']:
+                invalid_options = []
+                for opt in 'lower', 'upper', 'scaler', 'adder', 'ref', 'ref0':
+                    if options[opt] is not None:
+                        invalid_options.append(opt)
+                if invalid_options:
+                    warnings.warn('Invalid options for non-optimal polynoimal control  \'{0}\' in'
+                                  ' phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
+                                  RuntimeWarning)
 
     def _check_parameter_options(self):
         """

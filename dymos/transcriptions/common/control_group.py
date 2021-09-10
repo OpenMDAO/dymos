@@ -87,8 +87,6 @@ class ControlInterpComp(om.ExplicitComponent):
             rate_units = get_rate_units(units, time_units)
             rate2_units = get_rate_units(units, time_units, deriv=2)
 
-            # self._dynamic_names.append(name)
-
             self.add_input(self._input_names[name], val=np.ones(input_shape), units=units)
 
             self.add_output(self._output_val_names[name], shape=output_shape, units=units)
