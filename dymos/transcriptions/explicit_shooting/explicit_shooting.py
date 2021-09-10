@@ -64,7 +64,6 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        print('ExplicitShooting: configure time')
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_time_io()
 
@@ -118,7 +117,6 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        print('ExplicitShooting: configure states')
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_states_io()
 
@@ -175,7 +173,6 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        print('ExplicitShooting: configure ode')
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_storage()
 
@@ -238,7 +235,6 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        print('ExplicitShooting: configure polynomial controls')
         super().configure_controls(phase)
 
         integrator_comp = phase._get_subsystem('integrator')
@@ -268,7 +264,6 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        print('ExplicitShooting: configure parameters')
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_parameters_io()
 

@@ -124,7 +124,6 @@ class ODEEvaluationGroup(om.Group):
         self.state_rate_collector.configure_io()
 
     def _configure_time(self):
-        print('ODEEvaluationGroup: _configure_time')
         targets = self.time_options['targets']
         time_phase_targets = self.time_options['time_phase_targets']
         t_initial_targets = self.time_options['t_initial_targets']
@@ -143,7 +142,6 @@ class ODEEvaluationGroup(om.Group):
                                         units=units)
 
     def _configure_states(self):
-        print('ODEEvaluationGroup: _configure_states')
         for name, options in self.state_options.items():
             shape = options['shape']
             units = options['units']
@@ -173,7 +171,6 @@ class ODEEvaluationGroup(om.Group):
             self.add_constraint(f'state_rate_collector.state_rates:{name}_rate')
 
     def _configure_params(self):
-        print('ODEEvaluationGroup: _configure_params')
         for name, options in self.parameter_options.items():
             shape = options['shape']
             targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
@@ -192,7 +189,6 @@ class ODEEvaluationGroup(om.Group):
                                         units=options['units'])
 
     def _configure_controls(self):
-        print('ODEEvaluationGroup: _configure_controls')
         configure_controls_introspection(self.control_options, self.ode)
 
         if self.control_options:
@@ -225,7 +221,6 @@ class ODEEvaluationGroup(om.Group):
                                             units=options['units'])
 
     def _configure_polynomial_controls(self):
-        print('ODEEvaluationGroup: _configure_polynomial_controls')
         configure_controls_introspection(self.polynomial_control_options, self.ode)
 
         if self.polynomial_control_options:

@@ -132,7 +132,6 @@ class RKIntegrationComp(om.ExplicitComponent):
         self.options.declare('ode_init_kwargs', types=dict, allow_none=True, default=None)
 
     def _setup_subprob(self):
-        print('RKIntegrtionComp: setup_subprob')
         self._prob = p = om.Problem(comm=self.comm)
         p.model.add_subsystem('ode_eval',
                               ODEEvaluationGroup(self.ode_class, self.time_options,
@@ -166,7 +165,6 @@ class RKIntegrationComp(om.ExplicitComponent):
             self._configure_states_io()
 
     def _configure_states_io(self):
-        print('RKIntegrationComp: _configure_states_io')
         # The total size of the entire state vector
         self.x_size = 0
 
@@ -222,7 +220,6 @@ class RKIntegrationComp(om.ExplicitComponent):
             self._configure_parameters_io()
 
     def _configure_parameters_io(self):
-        print('RKIntegrationComp: _configure_parameters_io')
         # The indices of each parameter in p
         self.p_size = 0
         self.parameter_idxs = {}
