@@ -81,19 +81,19 @@ class Radau(PseudospectralBase):
         if phase.control_options:
             for name, options in phase.control_options.items():
                 targets = get_targets(ode=phase.rhs_all, name=name,
-                                      user_targets=options['targets'])
+                                      user_targets=options['targets'], control_rates=False)
                 if targets:
                     phase.connect(f'control_values:{name}',
                                   [f'rhs_all.{t}' for t in targets])
 
                 targets = get_targets(ode=phase.rhs_all, name=f'{name}_rate',
-                                      user_targets=options['rate_targets'])
+                                      user_targets=options['rate_targets'], control_rates=1)
                 if targets:
                     phase.connect(f'control_rates:{name}_rate',
                                   [f'rhs_all.{t}' for t in targets])
 
                 targets = get_targets(ode=phase.rhs_all, name=f'{name}_rate2',
-                                      user_targets=options['rate2_targets'])
+                                      user_targets=options['rate2_targets'], control_rates=2)
                 if targets:
                     phase.connect(f'control_rates:{name}_rate2',
                                   [f'rhs_all.{t}' for t in targets])

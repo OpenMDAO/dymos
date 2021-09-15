@@ -1,4 +1,9 @@
+from collections import Iterable
+
 import numpy as np
+import openmdao.api as om
+
+from .constants import INF_BOUND
 
 
 class _ReprClass(object):
@@ -130,6 +135,9 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
             targets = [name]
         elif control_rate and f'{name}_rate' in ode_inputs:
             targets = [f'{name}_rate']
+            rate_src = True
+        elif control_rate and f'{name}_rate2' in ode_inputs:
+            targets = [f'{name}_rate2']
             rate_src = True
         else:
             targets = []
@@ -295,8 +303,37 @@ class CoerceDesvar(object):
     options : dict
         Variable options dictionary, should contain "shape".
     """
-    def __init__(self, num_input_nodes, desvar_indices, options):
+    def __init__(self, num_input_nodes, desvar_indices=None, options=None):
         self.num_input_nodes = num_input_nodes
+        shape = options['shape']
+        size = np.prod(shape, dtype=int)
+        fix_initial = options['fix_initial']
+        fix_final = options['fix_final']
+
+        if desvar_indices is not None:
+            om.issue_warning('option desvar_indices of CoerceDesvar is deprecated. '
+                             'CoerceDesvar will now resolve desvar_indices internally '
+                             'and store them as an attribute.')
+
+        else:
+            desvar_indices = list(range(size * num_input_nodes))
+
+            if fix_initial:
+                if isinstance(fix_initial, Iterable):
+                    idxs_to_fix = np.where(np.asarray(fix_initial))[0]
+                    for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                        del desvar_indices[idx_to_fix]
+                else:
+                    del desvar_indices[:size]
+
+            if fix_final:
+                if isinstance(fix_final, Iterable):
+                    idxs_to_fix = np.where(np.asarray(fix_final))[0]
+                    for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                        del desvar_indices[-size + idx_to_fix]
+                else:
+                    del desvar_indices[-size:]
+
         self.desvar_indices = desvar_indices
         self.options = options
 
@@ -322,6 +359,16 @@ class CoerceDesvar(object):
 
         """
         val = self.options[option]
+        if option == 'lower':
+            lb = np.zeros_like(self.desvar_indices, dtype=float)
+            lb[:] = -INF_BOUND if self.options['lower'] is None else val
+            return lb
+
+        if option == 'upper':
+            ub = np.zeros_like(self.desvar_indices, dtype=float)
+            ub[:] = INF_BOUND if self.options['upper'] is None else val
+            return ub
+
         if val is None or np.isscalar(val):
             return val
         # Handle value for vector/matrix valued variables
@@ -332,6 +379,45 @@ class CoerceDesvar(object):
         else:
             raise ValueError('array-valued option {0} must have same shape '
                              'as states ({1})'.format(option, self.options['shape']))
+
+
+# def get_desvar_(options, num_input_nodes):
+#     shape = options['shape']
+#     fix_initial = options['fix_initial']
+#     fix_final = options['fix_final']
+#     size = np.prod(shape)
+#
+#     # num_input_nodes = gd.subset_num_nodes['control_input']
+#     desvar_indices = list(range(size * num_input_nodes))
+#
+#     if fix_initial:
+#         if isinstance(fix_initial, Iterable):
+#             idxs_to_fix = np.where(np.asarray(fix_initial))[0]
+#             for idx_to_fix in reversed(sorted(idxs_to_fix)):
+#                 del desvar_indices[idx_to_fix]
+#         else:
+#             del desvar_indices[:size]
+#
+#     if fix_final:
+#         if isinstance(fix_final, Iterable):
+#             idxs_to_fix = np.where(np.asarray(fix_final))[0]
+#             for idx_to_fix in reversed(sorted(idxs_to_fix)):
+#                 del desvar_indices[-size + idx_to_fix]
+#         else:
+#             del desvar_indices[-size:]
+#
+#     if len(desvar_indices) > 0:
+#         coerce_desvar_option = CoerceDesvar(num_input_nodes, desvar_indices, options)
+#
+#         lb = np.zeros_like(desvar_indices, dtype=float)
+#         lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+#             coerce_desvar_option('lower')
+#
+#         ub = np.zeros_like(desvar_indices, dtype=float)
+#         ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+#             coerce_desvar_option('upper')
+#
+#         return desvar_indices, coerce_desvar_option
 
 
 def CompWrapperConfig(comp_class):
