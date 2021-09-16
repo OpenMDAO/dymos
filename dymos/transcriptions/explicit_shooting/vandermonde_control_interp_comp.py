@@ -1,12 +1,11 @@
 import numpy as np
 import openmdao.api as om
 
-from ...phase.options import ControlOptionsDictionary, PolynomialControlOptionsDictionary
 from ...transcriptions.grid_data import GridData
 from ...utils.lgl import lgl
 
 
-class ControlInterpolationComp(om.ExplicitComponent):
+class VandermondeControlInterpComp(om.ExplicitComponent):
     """
     A component which interpolates control values in 1D using Vandermonde interpolation.
 
@@ -47,8 +46,8 @@ class ControlInterpolationComp(om.ExplicitComponent):
         self._standalone_mode = standalone_mode
 
         # Storage for the Vandermonde matrix and its inverse for each segment
-        self._V_u = None
-        self._V_u_inv = None
+        self._V_pc = None
+        self._V_pc_inv = None
 
         # Storage for the Vandermonde matrix and its inverse for each polynomial control
         self._V_pc = {}
@@ -76,11 +75,10 @@ class ControlInterpolationComp(om.ExplicitComponent):
     def _configure_controls(self):
         gd = self._grid_data
 
-        self._V_u = {}
-        self._V_u_inv = {}
+        self._V_pc = {}
+        self._V_pc_inv = {}
         self._disc_node_idxs_by_segment = []
         self._input_node_idxs_by_segment = []
-        self._u_exponents = {}
 
         if not self._control_options:
             return
@@ -111,10 +109,13 @@ class ControlInterpolationComp(om.ExplicitComponent):
                                                       control_disc_seg_idxs[1]]
 
             seg_control_order = gd.transcription_order[seg_idx] - 1
-            if seg_control_order not in self._V_u:
-                self._V_u[seg_control_order] = np.vander(control_disc_seg_stau)
-                self._V_u_inv[seg_control_order] = np.linalg.inv(self._V_u[seg_control_order])
-                self._u_exponents[seg_control_order] = np.arange(seg_control_order + 1, dtype=int)[::-1]
+            if seg_control_order not in self._V_pc:
+                self._V_pc[seg_control_order] = np.vander(control_disc_seg_stau, increasing=True)
+                self._V_pc_inv[seg_control_order] = np.linalg.inv(self._V_pc[seg_control_order])
+                self._k[seg_control_order] = np.atleast_2d(np.arange(seg_control_order + 1, dtype=int)).T
+                self._k1[seg_control_order] = self._k[seg_control_order] + 1
+                self._k2[seg_control_order] = self._k1[seg_control_order] * (self._k[seg_control_order] + 2)
+                self._k3[seg_control_order] = self._k2[seg_control_order] * (self._k[seg_control_order] + 3)
 
         num_uhat_nodes = gd.subset_num_nodes['control_input']
         for control_name, options in self._control_options.items():
@@ -122,12 +123,22 @@ class ControlInterpolationComp(om.ExplicitComponent):
             units = options['units']
             input_name = f'controls:{control_name}'
             output_name = f'control_values:{control_name}'
+            rate_name = f'control_rates:{control_name}_rate'
+            rate2_name = f'control_rates:{control_name}_rate2'
             uhat_shape = (num_uhat_nodes,) + shape
             self.add_input(input_name, shape=uhat_shape, units=units)
             self.add_output(output_name, shape=shape, units=units)
-            self._control_io_names[control_name] = (input_name, output_name)
+            self.add_output(rate_name, shape=shape, units=units)
+            self.add_output(rate2_name, shape=shape, units=units)
+            self._control_io_names[control_name] = (input_name, output_name, rate_name, rate2_name)
             self.declare_partials(of=output_name, wrt=input_name, val=1.0)
             self.declare_partials(of=output_name, wrt='stau', val=1.0)
+            self.declare_partials(of=rate_name, wrt=input_name, val=1.0)
+            self.declare_partials(of=rate_name, wrt='stau', val=1.0)
+            self.declare_partials(of=rate_name, wrt='dstau_dt', val=1.0)
+            self.declare_partials(of=rate2_name, wrt=input_name, val=1.0)
+            self.declare_partials(of=rate2_name, wrt='stau', val=1.0)
+            self.declare_partials(of=rate2_name, wrt='dstau_dt', val=1.0)
 
     def _configure_polynomial_controls(self):
         for pc_name, options in self._polynomial_control_options.items():
@@ -136,18 +147,31 @@ class ControlInterpolationComp(om.ExplicitComponent):
             units = options['units']
             input_name = f'polynomial_controls:{pc_name}'
             output_name = f'polynomial_control_values:{pc_name}'
+            rate_name = f'polynomial_control_rates:{pc_name}_rate'
+            rate2_name = f'polynomial_control_rates:{pc_name}_rate2'
             input_shape = (order + 1,) + shape
             self.add_input(input_name, shape=input_shape, units=units)
             self.add_output(output_name, shape=shape, units=units)
-            self._control_io_names[pc_name] = (input_name, output_name)
+            self.add_output(rate_name, shape=shape, units=units)
+            self.add_output(rate2_name, shape=shape, units=units)
+            self._control_io_names[pc_name] = (input_name, output_name, rate_name, rate2_name)
             self.declare_partials(of=output_name, wrt=input_name, val=1.0)
             self.declare_partials(of=output_name, wrt='ptau', val=1.0)
+            self.declare_partials(of=rate_name, wrt=input_name, val=1.0)
+            self.declare_partials(of=rate_name, wrt='ptau', val=1.0)
+            self.declare_partials(of=rate_name, wrt='t_duration', val=1.0)
+            self.declare_partials(of=rate2_name, wrt=input_name, val=1.0)
+            self.declare_partials(of=rate2_name, wrt='ptau', val=1.0)
+            self.declare_partials(of=rate2_name, wrt='t_duration', val=1.0)
 
             if order not in self._V_pc:
                 pc_disc_seg_ptau, _ = lgl(order + 1)
-                self._V_pc[order] = np.vander(pc_disc_seg_ptau)
+                self._V_pc[order] = np.vander(pc_disc_seg_ptau, increasing=True)
                 self._V_pc_inv[order] = np.linalg.inv(self._V_pc[order])
-                self._u_exponents[order] = np.arange(order + 1, dtype=int)[::-1]
+                self._k[order] = np.atleast_2d(np.arange(order + 1, dtype=int)).T
+                self._k1[order] = self._k[order] + 1
+                self._k2[order] = self._k1[order] * (self._k[order] + 2)
+                self._k3[order] = self._k2[order] * (self._k[order] + 3)
 
     def setup(self):
         """
@@ -160,14 +184,21 @@ class ControlInterpolationComp(om.ExplicitComponent):
         """
         I/O creation is delayed until configure so we can determine shape and units for the controls.
         """
-        self._V_u = []
-        self._V_u_inv = []
+        self._V_pc = []
+        self._V_pc_inv = []
 
         self._V_pc = {}
         self._V_pc_inv = {}
 
+        self._k = {}
+        self._k1 = {}
+        self._k2 = {}
+        self._k3 = {}
+
         self.add_discrete_input('segment_index', val=0, desc='index of the segment')
         self.add_input('stau', val=0.0, units=None)
+        self.add_input('dstau_dt', val=1.0, units=f'1/{self._time_units}')
+        self.add_input('t_duration', val=1.0, units=self._time_units)
         self.add_input('ptau', val=0.0, units=None)
 
         self._configure_controls()
@@ -190,31 +221,41 @@ class ControlInterpolationComp(om.ExplicitComponent):
         """
         seg_idx = int(discrete_inputs['segment_index'])
         stau = inputs['stau']
+        dstau_dt = inputs['dstau_dt']
         ptau = inputs['ptau']
+        dptau_dt = 2 / inputs['t_duration']
 
         if self._control_options:
             seg_order = self._grid_data.transcription_order[seg_idx] - 1
             disc_node_idxs = self._disc_node_idxs_by_segment[seg_idx]
             input_node_idxs = self._input_node_idxs_by_segment[seg_idx]
-            exponents = self._u_exponents[seg_order]
-            stau_array = np.power(stau, exponents)
+            k = self._k[seg_order]
+            k1 = self._k1[seg_order]
+            k2 = self._k2[seg_order]
+            stau_vec = np.power(stau, k)
 
             L_seg = self._L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
                                input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
 
             for control_name, options in self._control_options.items():
-                input_name, output_name = self._control_io_names[control_name]
+                input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
                 u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
-                a = self._V_u_inv[seg_order] @ u_hat
-                outputs[output_name] = stau_array @ a
+                a = np.atleast_2d(self._V_pc_inv[seg_order] @ u_hat)
+                outputs[output_name] = a.T @ stau_vec
+                outputs[rate_name] = dstau_dt * (a.T[..., 1:] @ (k1[:-1] * stau_vec[:-1]))
+                outputs[rate2_name] = dstau_dt**2 * (a.T[..., 2:] @ (k2[:-2] * stau_vec[:-2]))
 
         for pc_name, options in self._polynomial_control_options.items():
-            input_name, output_name = self._control_io_names[pc_name]
+            input_name, output_name, rate_name, rate2_name = self._control_io_names[pc_name]
             order = options['order']
-            exponents = self._u_exponents[order]
-            ptau_array = np.power(ptau, exponents)
-            a = self._V_pc_inv[order] @ inputs[input_name]
-            outputs[output_name] = ptau_array @ a
+            k = self._k[order]
+            k1 = self._k1[order]
+            k2 = self._k2[order]
+            ptau_vec = np.power(ptau, k)
+            a = np.atleast_2d(self._V_pc_inv[order] @ inputs[input_name])
+            outputs[output_name] = a.T @ ptau_vec
+            outputs[rate_name] = dptau_dt * (a.T[..., 1:] @ (k1[:-1] * ptau_vec[:-1]))
+            outputs[rate2_name] = dptau_dt**2 * (a.T[..., 2:] @ (k2[:-2] * ptau_vec[:-2]))
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
         """
@@ -230,17 +271,22 @@ class ControlInterpolationComp(om.ExplicitComponent):
             Unscaled, discrete input variables keyed by variable name.
         """
         seg_idx = int(discrete_inputs['segment_index'])
-        stau = inputs['stau']
-        ptau = inputs['ptau']
+        stau = inputs['stau'].real
+        dstau_dt = inputs['dstau_dt'].real
+        ptau = inputs['ptau'].real
+        t_duration = inputs['t_duration'].real
+        dptau_dt = 2.0 / t_duration
 
         if self._control_options:
             u_idxs = self._input_node_idxs_by_segment[seg_idx]
             seg_order = self._grid_data.transcription_order[seg_idx] - 1
-            exponents = self._u_exponents[seg_order]
-            dir_exponents = (exponents-1)[:len(exponents)-1]
-            stau_array = np.power(stau, exponents)
-            dstau_array_dstau = np.atleast_2d(np.power(stau, dir_exponents))
-            pu_pa = stau_array
+
+            k = self._k[seg_order]
+            k1 = self._k1[seg_order]
+            k2 = self._k2[seg_order]
+            k3 = self._k3[seg_order]
+            stau_vec = np.power(stau, k)
+
             disc_node_idxs = self._disc_node_idxs_by_segment[seg_idx]
             input_node_idxs = self._input_node_idxs_by_segment[seg_idx]
 
@@ -248,34 +294,53 @@ class ControlInterpolationComp(om.ExplicitComponent):
                                input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
 
             for control_name, options in self._control_options.items():
-                input_name, output_name = self._control_io_names[control_name]
+                input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
 
-                da_duhat = self._V_u_inv[seg_order] @ L_seg
+                u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs].real)
+                a = self._V_pc_inv[seg_order] @ u_hat
+
+                da_duhat = self._V_pc_inv[seg_order] @ L_seg
 
                 partials[output_name, input_name][...] = 0.0
-                partials[output_name, input_name][..., u_idxs] = pu_pa.real @ da_duhat.real
+                partials[output_name, input_name][..., u_idxs] = stau_vec.T @ da_duhat
+                partials[output_name, 'stau'] = a.T[..., 1:] @ (k1[:-1] * stau_vec[:-1])
 
-                u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
-                a = self._V_u_inv[seg_order] @ u_hat
+                pudot_pa = (k1[:-1] * stau_vec[:-1])
+                partials[rate_name, input_name][...] = 0.0
+                partials[rate_name, input_name][..., u_idxs] = dstau_dt * (pudot_pa.T @ self._V_pc_inv[seg_order][1:, :])
+                partials[rate_name, 'dstau_dt'][...] = partials[output_name, 'stau']
+                partials[rate_name, 'stau'][...] = dstau_dt * (a.T[..., 2:] @ (k2[:-2] * stau_vec[:-2]))
 
-                partials[output_name, 'stau'] = exponents[:-1] * dstau_array_dstau @ a[:len(exponents)-1]
+                pudotdot_pa = (k2[:-2] * stau_vec[:-2])
+                partials[rate2_name, input_name][...] = 0.0
+                partials[rate2_name, input_name][..., u_idxs] = dstau_dt**2 * (pudotdot_pa.T @ self._V_pc_inv[seg_order][2:, :])
+                partials[rate2_name, 'stau'][...] = dstau_dt**2 * (a.T[..., 3:] @ (k3[:-3] * stau_vec[:-3]))
+                partials[rate2_name, 'dstau_dt'][...] = 2 * dstau_dt * (a.T[..., 2:] @ (k2[:-2] * stau_vec[:-2]))
 
         for pc_name, options in self._polynomial_control_options.items():
-            input_name, output_name = self._control_io_names[pc_name]
+            input_name, output_name, rate_name, rate2_name = self._control_io_names[pc_name]
             order = options['order']
-            exponents = self._u_exponents[order]
-            dir_exponents = (exponents-1)[:len(exponents)-1]
 
-            ptau_array = np.power(ptau, exponents)
-            pu_pa = ptau_array
-            da_duhat = self._V_pc_inv[order]
-
-            partials[output_name, input_name][...] = 0.0
-            partials[output_name, input_name][...] = pu_pa @ da_duhat
+            k = self._k[order]
+            k1 = self._k1[order]
+            k2 = self._k2[order]
+            k3 = self._k3[order]
+            ptau_vec = np.power(ptau, k)
 
             u_hat = inputs[input_name]
             a = self._V_pc_inv[order] @ u_hat
 
-            dptau_array_dptau = np.atleast_2d(np.power(ptau, dir_exponents))
+            da_duhat = self._V_pc_inv[order]
 
-            partials[output_name, 'ptau'] = exponents[:-1] * dptau_array_dptau @ a[:len(exponents)-1]
+            partials[output_name, input_name][...] = ptau_vec.T.real @ da_duhat.real
+            partials[output_name, 'ptau'][...] = a.T[..., 1:] @ (k1[:-1] * ptau_vec[:-1])
+
+            pudot_pa = (k1[:-1] * ptau_vec[:-1])
+            partials[rate_name, input_name][...] = dptau_dt * (pudot_pa.T @ self._V_pc_inv[order][1:, :])
+            partials[rate_name, 'ptau'][...] = dptau_dt * a.T[..., 2:] @ (k2[:-2] * ptau_vec[:-2])
+            partials[rate_name, 't_duration'][...] = -2 * (a.T[..., 1:] @ (k1[:-1] * ptau_vec[:-1])) / t_duration**2
+
+            pudotdot_pa = (k2[:-2] * ptau_vec[:-2])
+            partials[rate2_name, input_name][...] = dptau_dt**2 * (pudotdot_pa.T @ self._V_pc_inv[order][2:, :])
+            partials[rate2_name, 'ptau'] = dptau_dt**2 * a.T[..., 3:] @ (k3[:-3] * ptau_vec[:-3])
+            partials[rate2_name, 't_duration'] = -8 * (a.T[..., 2:] @ (k2[:-2] * ptau_vec[:-2])) / t_duration**3
