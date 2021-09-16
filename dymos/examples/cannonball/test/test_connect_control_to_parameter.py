@@ -172,7 +172,7 @@ class TestConnectControlToParameter(unittest.TestCase):
         p.model.connect('size_comp.mass', 'traj.parameters:m')
         p.model.connect('size_comp.S', 'traj.parameters:S')
 
-        traj.connect('ascent.timeseries.controls:CD', 'descent.parameters:CD', src_indices=[-1])
+        traj.connect('ascent.timeseries.controls:CD', 'descent.parameters:CD', src_indices=[-1], flat_src_indices=True)
 
         # A linear solver at the top level can improve performance.
         p.model.linear_solver = om.DirectSolver()

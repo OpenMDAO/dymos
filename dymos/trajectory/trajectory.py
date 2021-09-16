@@ -614,7 +614,7 @@ class Trajectory(om.Group):
                     if phase_b.classify_var(var_b) == 'time':
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.t_initial',
-                                     src_indices=[-1])
+                                     src_indices=[-1], flat_src_indices=True)
                     elif phase_b.classify_var(var_b) == 'state':
                         tgt_b = f'initial_states:{var_b}'
                         self.connect(f'{phase_name_a}.{src_a}',
