@@ -1,7 +1,7 @@
 import numpy as np
 import openmdao.api as om
 
-from .control_interpolation_comp import ControlInterpolationComp
+from .vandermonde_control_interp_comp import VandermondeControlInterpComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from .tau_comp import TauComp
 
@@ -73,15 +73,15 @@ class ODEEvaluationGroup(om.Group):
             self.add_subsystem('tau_comp', TauComp(grid_data=self.grid_data,
                                                    time_units=self.time_options['units']),
                                promotes_inputs=['time', 't_initial', 't_duration'],
-                               promotes_outputs=['stau', 'ptau', 'time_phase', 'segment_index'])
+                               promotes_outputs=['stau', 'ptau', 'dstau_dt', 'time_phase', 'segment_index'])
 
             # Add control interpolant
             self._control_comp = self.add_subsystem('control_interp',
-                                                    ControlInterpolationComp(grid_data=gd,
-                                                                             control_options=c_options,
-                                                                             polynomial_control_options=pc_options,
-                                                                             time_units=self.time_options['units']),
-                                                    promotes_inputs=['ptau', 'stau', 'segment_index'])
+                                                    VandermondeControlInterpComp(grid_data=gd,
+                                                                                 control_options=c_options,
+                                                                                 polynomial_control_options=pc_options,
+                                                                                 time_units=self.time_options['units']),
+                                                    promotes_inputs=['ptau', 'stau', 'dstau_dt', 'segment_index'])
 
         self.add_subsystem('ode', self.ode_class(num_nodes=1, **self.ode_init_kwargs))
 

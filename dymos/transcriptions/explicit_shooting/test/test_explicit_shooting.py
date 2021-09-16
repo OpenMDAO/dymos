@@ -156,7 +156,7 @@ class TestExplicitShooting(unittest.TestCase):
         prob.driver.opt_settings['iSumm'] = 6
 
         tx = dm.transcriptions.ExplicitShooting(num_segments=5, grid='gauss-lobatto',
-                                                order=3, num_steps_per_segment=10, compressed=True)
+                                                order=5, num_steps_per_segment=10, compressed=True)
 
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
 
@@ -193,6 +193,11 @@ class TestExplicitShooting(unittest.TestCase):
             cpd = prob.check_partials(compact_print=True, method='fd')
             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
+            subprob = prob.model._get_subsystem('phase0.integrator')._prob
+            with np.printoptions(linewidth=1024):
+                cpd = subprob.check_partials(compact_print=True, method='cs')
+            assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
+
     def test_brachistochrone_explicit_shooting(self):
 
         for method in ['rk4', 'ralston']:
@@ -223,7 +228,7 @@ class TestExplicitShooting(unittest.TestCase):
 
                 phase.add_objective('time', loc='final')
 
-                prob.setup(force_alloc_complex=False)
+                prob.setup(force_alloc_complex=True)
 
                 prob.set_val('phase0.t_initial', 0.0)
                 prob.set_val('phase0.t_duration', 2)
@@ -274,7 +279,7 @@ class TestExplicitShooting(unittest.TestCase):
 
         phase.add_objective('time', loc='final')
 
-        prob.setup(force_alloc_complex=False)
+        prob.setup(force_alloc_complex=True)
 
         prob.set_val('phase0.t_initial', 0.0)
         prob.set_val('phase0.t_duration', 2)
@@ -295,5 +300,5 @@ class TestExplicitShooting(unittest.TestCase):
         assert_near_equal(t_f, 1.8016, tolerance=5.0E-3)
 
         with np.printoptions(linewidth=1024):
-            cpd = prob.check_partials(compact_print=True, method='fd')
+            cpd = prob.check_partials(compact_print=True, method='cs', out_stream=None)
             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)

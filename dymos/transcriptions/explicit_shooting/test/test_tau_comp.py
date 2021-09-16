@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials
+from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 import dymos as dm
 
 from dymos.transcriptions.explicit_shooting.tau_comp import TauComp
@@ -20,19 +20,18 @@ class TestTauComp(unittest.TestCase):
         p.setup(force_alloc_complex=True)
 
         p.set_val('tau_comp.t_initial', 0)
-        p.set_val('tau_comp.t_duration', 10)
-
-        t = np.linspace(0, 10, 500)
-        ptau = np.zeros_like(t)
-        stau = np.zeros_like(t)
-
-        for i, time in enumerate(t):
-            p.set_val('tau_comp.time', time)
-            p.run_model()
-            ptau[i] = p.get_val('tau_comp.ptau')
-            stau[i] = p.get_val('tau_comp.stau')
+        p.set_val('tau_comp.t_duration', 15)
 
         p.set_val('tau_comp.time', 1.5)
         p.run_model()
+
+        frac = 0.1
+        ptau_expected = -1 + 2 * frac
+        assert_near_equal(p.get_val('tau_comp.ptau'), ptau_expected)
+
+        frac = 1.5/5.0
+        stau_expected = -1 + 2 * frac
+        assert_near_equal(p.get_val('tau_comp.stau'), stau_expected)
+
         cpd = p.check_partials(method='cs')
         assert_check_partials(cpd)
