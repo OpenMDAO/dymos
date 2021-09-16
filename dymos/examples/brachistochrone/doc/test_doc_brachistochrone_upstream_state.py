@@ -37,7 +37,7 @@ class TestBrachistochroneUpstreamState(unittest.TestCase):
         # Connect x0 to the state error component so we can constrain the given value of x0
         # to be equal to the value chosen in the phase.
         p.model.connect('x0', 'state_error_comp.x0_target')
-        p.model.connect('traj.phase0.timeseries.states:x', 'state_error_comp.x0_actual', src_indices=[0])
+        p.model.connect('traj.phase0.timeseries.states:x', 'state_error_comp.x0_actual', src_indices=[0], flat_src_indices=True)
 
         #
         # Define a Trajectory object

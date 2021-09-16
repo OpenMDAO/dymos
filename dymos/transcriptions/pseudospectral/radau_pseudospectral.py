@@ -64,7 +64,8 @@ class Radau(PseudospectralBase):
             targets = get_targets(phase.rhs_all, name=name, user_targets=usr_tgts)
             if targets:
                 src_idxs = self.grid_data.subset_node_indices['all'] if dynamic else None
-                phase.connect(name, [f'rhs_all.{t}' for t in targets], src_indices=src_idxs)
+                phase.connect(name, [f'rhs_all.{t}' for t in targets], src_indices=src_idxs,
+                              flat_src_indices=True if dynamic else None)
 
     def configure_controls(self, phase):
         """
@@ -374,7 +375,7 @@ class Radau(PseudospectralBase):
                         phase.promotes(f'{timeseries_name}',
                                        inputs=[(f'input_values:state_rates:{state_name}',
                                                 f'parameters:{rate_src}')],
-                                       src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
+                                       src_indices=src_idxs, src_shape=shape)
 
                 else:
                     rate_src_path, src_idxs = self.get_rate_source_path(state_name, 'all', phase)

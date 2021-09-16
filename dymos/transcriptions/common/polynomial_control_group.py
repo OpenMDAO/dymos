@@ -290,4 +290,5 @@ class PolynomialControlGroup(om.Group):
                                     ref0=options['ref0'],
                                     adder=options['adder'],
                                     scaler=options['scaler'],
-                                    indices=desvar_indices)
+                                    indices=desvar_indices,
+                                    flat_indices=True)

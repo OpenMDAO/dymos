@@ -71,10 +71,10 @@ class GaussLobatto(PseudospectralBase):
                     disc_src_idxs = col_src_idxs = None
                 phase.connect(name,
                               [f'rhs_col.{t}' for t in targets],
-                              src_indices=col_src_idxs)
+                              src_indices=col_src_idxs, flat_src_indices=True)
                 phase.connect(name,
                               [f'rhs_disc.{t}' for t in targets],
-                              src_indices=disc_src_idxs)
+                              src_indices=disc_src_idxs, flat_src_indices=True)
 
     def configure_controls(self, phase):
         """
