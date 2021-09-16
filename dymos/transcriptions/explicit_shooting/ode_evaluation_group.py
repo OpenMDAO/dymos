@@ -8,6 +8,7 @@ from .tau_comp import TauComp
 from ...utils.introspection import get_targets, configure_controls_introspection,\
     configure_time_introspection, configure_parameters_introspection, \
     configure_states_discovery, configure_states_introspection
+from ...utils.misc import get_rate_units
 
 
 class ODEEvaluationGroup(om.Group):
@@ -190,6 +191,7 @@ class ODEEvaluationGroup(om.Group):
 
     def _configure_controls(self):
         configure_controls_introspection(self.control_options, self.ode)
+        time_units = self.time_options['units']
 
         if self.control_options:
             gd = self.grid_data
@@ -203,14 +205,21 @@ class ODEEvaluationGroup(om.Group):
             for name, options in self.control_options.items():
                 shape = options['shape']
                 units = options['units']
+                rate_units = get_rate_units(units, time_units, deriv=1)
+                rate2_units = get_rate_units(units, time_units, deriv=2)
                 targets = options['targets']
+                rate_targets = options['rate_targets']
+                rate2_targets = options['rate2_targets']
                 uhat_name = f'controls:{name}'
                 u_name = f'control_values:{name}'
+                u_rate_name = f'control_rates:{name}_rate'
+                u_rate2_name = f'control_rates:{name}_rate2'
 
                 self._ivc.add_output(uhat_name, shape=(num_control_input_nodes,) + shape, units=units)
                 self.add_design_var(uhat_name)
 
-                self.promotes('control_interp', inputs=[uhat_name], outputs=[u_name])
+                self.promotes('control_interp', inputs=[uhat_name],
+                              outputs=[u_name, u_rate_name, u_rate2_name])
 
                 # Promote targets from the ODE
                 for tgt in targets:
@@ -220,10 +229,27 @@ class ODEEvaluationGroup(om.Group):
                                             val=np.ones(shape),
                                             units=options['units'])
 
+                # Promote rate targets from the ODE
+                for tgt in rate_targets:
+                    self.promotes('ode', inputs=[(tgt, u_rate_name)])
+                if rate_targets:
+                    self.set_input_defaults(name=u_rate_name,
+                                            val=np.ones(shape),
+                                            units=rate_units)
+
+                # Promote rate2 targets from the ODE
+                for tgt in rate2_targets:
+                    self.promotes('ode', inputs=[(tgt, u_rate2_name)])
+                if rate2_targets:
+                    self.set_input_defaults(name=u_rate2_name,
+                                            val=np.ones(shape),
+                                            units=rate2_units)
+
     def _configure_polynomial_controls(self):
         configure_controls_introspection(self.polynomial_control_options, self.ode)
 
         if self.polynomial_control_options:
+            time_units = self.time_options['units']
             gd = self.grid_data
 
             if gd is None:
@@ -233,15 +259,22 @@ class ODEEvaluationGroup(om.Group):
             for name, options in self.polynomial_control_options.items():
                 shape = options['shape']
                 units = options['units']
+                rate_units = get_rate_units(units, time_units, deriv=1)
+                rate2_units = get_rate_units(units, time_units, deriv=2)
                 targets = options['targets']
+                rate_targets = options['rate_targets']
+                rate2_targets = options['rate2_targets']
                 num_control_input_nodes = options['order'] + 1
                 uhat_name = f'polynomial_controls:{name}'
                 u_name = f'polynomial_control_values:{name}'
+                u_rate_name = f'polynomial_control_rates:{name}_rate'
+                u_rate2_name = f'polynomial_control_rates:{name}_rate2'
 
                 self._ivc.add_output(uhat_name, shape=(num_control_input_nodes,) + shape, units=units)
                 self.add_design_var(uhat_name)
 
-                self.promotes('control_interp', inputs=[uhat_name], outputs=[u_name])
+                self.promotes('control_interp', inputs=[uhat_name],
+                              outputs=[u_name, u_rate_name, u_rate2_name])
 
                 # Promote targets from the ODE
                 for tgt in targets:
@@ -250,6 +283,21 @@ class ODEEvaluationGroup(om.Group):
                     self.set_input_defaults(name=u_name,
                                             val=np.ones(shape),
                                             units=options['units'])
+                # Promote rate targets from the ODE
+                for tgt in rate_targets:
+                    self.promotes('ode', inputs=[(tgt, u_rate_name)])
+                if rate_targets:
+                    self.set_input_defaults(name=u_rate_name,
+                                            val=np.ones(shape),
+                                            units=rate_units)
+
+                # Promote rate2 targets from the ODE
+                for tgt in rate2_targets:
+                    self.promotes('ode', inputs=[(tgt, u_rate2_name)])
+                if rate2_targets:
+                    self.set_input_defaults(name=u_rate2_name,
+                                            val=np.ones(shape),
+                                            units=rate2_units)
 
     def _get_rate_source_path(self, state_var):
         """
