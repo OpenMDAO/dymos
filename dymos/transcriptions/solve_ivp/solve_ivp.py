@@ -123,8 +123,9 @@ class SolveIVP(TranscriptionBase):
             else:
                 src_idxs = np.arange(i * output_nodes_per_seg, output_nodes_per_seg * (i + 1),
                                      dtype=int)
-            phase.connect('time', f'segment_{i}.time', src_indices=src_idxs)
-            phase.connect('time_phase', f'segment_{i}.time_phase', src_indices=src_idxs)
+            phase.connect('time', f'segment_{i}.time', src_indices=src_idxs, flat_src_indices=True)
+            phase.connect('time_phase', f'segment_{i}.time_phase', src_indices=src_idxs,
+                          flat_src_indices=True)
 
         options = phase.time_options
 
@@ -620,7 +621,8 @@ class SolveIVP(TranscriptionBase):
                                src_indices=src_idxs, src_shape=shape)
             else:
                 phase.connect(src_name=self.get_rate_source_path(name, phase),
-                              tgt_name=f'timeseries.all_values:state_rates:{name}', src_indices=om.slicer[:])
+                              tgt_name=f'timeseries.all_values:state_rates:{name}',
+                              src_indices=om.slicer[:], flat_src_indices=True)
 
         for name, options in phase.control_options.items():
             control_units = options['units']

@@ -97,7 +97,8 @@ class PathConstraintComp(om.ExplicitComponent):
         indices = np.nonzero(template)[0]
 
         self.add_constraint(output_name, lower=lower, upper=upper, equals=equals, ref0=ref0,
-                            ref=ref, scaler=scaler, adder=adder, indices=indices, linear=linear)
+                            ref=ref, scaler=scaler, adder=adder, indices=indices, flat_indices=True,
+                            linear=linear)
 
         self._vars.append((input_name, output_name, shape))
 

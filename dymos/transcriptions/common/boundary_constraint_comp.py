@@ -51,7 +51,7 @@ class BoundaryConstraintComp(om.ExplicitComponent):
 
             constraint_kwargs = {k: kwargs.get(k, None)
                                  for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
-                                           'scaler', 'indices', 'linear')}
+                                           'scaler', 'indices', 'flat_indices', 'linear')}
             self.add_constraint(output_name, **constraint_kwargs)
 
         # Setup partials

@@ -726,7 +726,7 @@ class TranscriptionBase(object):
 
             from ..phase import Phase
             super(Phase, phase).add_objective(obj_path, ref=options['ref'], ref0=options['ref0'],
-                                              index=obj_index, adder=options['adder'],
+                                              index=obj_index, flat_indices=True, adder=options['adder'],
                                               scaler=options['scaler'],
                                               parallel_deriv_color=options['parallel_deriv_color'])
 
