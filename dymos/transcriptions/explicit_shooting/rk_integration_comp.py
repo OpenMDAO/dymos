@@ -260,6 +260,9 @@ class RKIntegrationComp(om.ExplicitComponent):
         self.control_idxs = {}
         self._control_idxs_in_phi = {}
         self._control_idxs_in_Z = {}
+        self._control_idxs_in_y = {}
+        self._control_rate_idxs_in_y = {}
+        self._control_rate2_idxs_in_y = {}
         self._control_input_names = {}
         self._control_output_names = {}
         self._control_rate_names = {}
@@ -288,17 +291,17 @@ class RKIntegrationComp(om.ExplicitComponent):
                            desc=f'values for control {control_name} at input nodes')
 
             self.add_output(self._control_output_names[control_name],
-                            shape=(num_rows,) + control_param_shape,
+                            shape=(num_rows,) + options['shape'],
                             units=options['units'],
                             desc=f'values for control {control_name} at output nodes')
 
             self.add_output(self._control_rate_names[control_name],
-                            shape=(num_rows,) + control_param_shape,
+                            shape=(num_rows,) + options['shape'],
                             units=get_rate_units(options['units'], time_units, deriv=1),
                             desc=f'values for rate of control {control_name} at input nodes')
 
             self.add_output(self._control_rate2_names[control_name],
-                            shape=(num_rows,) + control_param_shape,
+                            shape=(num_rows,) + options['shape'],
                             units=get_rate_units(options['units'], time_units, deriv=2),
                             desc=f'values for second derivative rate of control {control_name} at input nodes')
 
@@ -323,19 +326,34 @@ class RKIntegrationComp(om.ExplicitComponent):
         self._polynomial_control_idxs_in_phi = {}
         self._polynomial_control_idxs_in_Z = {}
         self._polynomial_control_input_names = {}
+        self._polynomial_control_output_names = {}
+        self._polynomial_control_rate_names = {}
+        self._polynomial_control_rate2_names = {}
+        self._polynomial_control_idxs_in_y = {}
+        self._polynomial_control_rate_idxs_in_y = {}
+        self._polynomial_control_rate2_idxs_in_y = {}
 
         for name, options in self.polynomial_control_options.items():
             num_input_nodes = options['order'] + 1
             control_param_shape = (num_input_nodes,) + options['shape']
             control_param_size = np.prod(control_param_shape, dtype=int)
             self._polynomial_control_input_names[name] = f'polynomial_controls:{name}'
+            self._polynomial_control_output_names[name] = f'polynomial_control_values:{name}'
+            self._polynomial_control_rate_names[name] = f'polynomial_control_rates:{name}_rate'
+            self._polynomial_control_rate2_names[name] = f'polynomial_control_rates:{name}_rate2'
             self.add_input(self._polynomial_control_input_names[name],
                            shape=control_param_shape,
                            units=options['units'],
                            desc=f'values for control {name} at input nodes')
-
             self.polynomial_control_idxs[name] = np.s_[self.up_size:self.up_size+control_param_size]
             self.up_size += control_param_size
+
+    def _setup_timeseries(self):
+        if self._standalone_mode:
+            self._configure_timeseries()
+
+    def _configure_timeseries(self):
+        pass
 
     def _setup_storage(self):
         if self._standalone_mode:
@@ -350,7 +368,10 @@ class RKIntegrationComp(om.ExplicitComponent):
         self.phi_size = 2 + self.p_size + self.u_size + self.up_size
 
         # allocate the integration parameter vector
-        self.Z_size = self.x_size + self.phi_size + self.up_size
+        self.Z_size = self.x_size + self.phi_size
+
+        # allocate the algebraic outputs vector
+        self.y_size = 3 * self.u_size
 
         start_Z = 0
         for state_name, options in self.state_options.items():
@@ -369,22 +390,37 @@ class RKIntegrationComp(om.ExplicitComponent):
 
         start_Z = self.x_size + 2 + self.p_size
         start_phi = 2 + self.p_size
+        start_y = 0
         for control_name, options in self.control_options.items():
+            control_size = np.prod(options['shape'], dtype=int)
             control_param_shape = (len(control_input_node_ptau),) + options['shape']
             control_param_size = np.prod(control_param_shape, dtype=int)
             self._control_idxs_in_Z[control_name] = np.s_[start_Z:start_Z+control_param_size]
             self._control_idxs_in_phi[control_name] = np.s_[start_phi:start_phi+control_param_size]
+            self._control_idxs_in_y[control_name] = np.s_[start_y:start_y+control_size]
+            start_y += control_size
+            self._control_rate_idxs_in_y[control_name] = np.s_[start_y:start_y+control_size]
+            start_y += control_size
+            self._control_rate2_idxs_in_y[control_name] = np.s_[start_y:start_y+control_size]
+            start_y += control_size
             start_Z += control_param_size
             start_phi += control_param_size
 
         start_Z = self.x_size + 2 + self.p_size + self.u_size
         start_phi = 2 + self.p_size + self.u_size
         for name, options in self.polynomial_control_options.items():
+            control_size = np.prod(options['shape'], dtype=int)
             num_input_nodes = options['order'] + 1
             control_param_shape = (num_input_nodes,) + options['shape']
             control_param_size = np.prod(control_param_shape, dtype=int)
             self._polynomial_control_idxs_in_Z[name] = np.s_[start_Z:start_Z+control_param_size]
             self._polynomial_control_idxs_in_phi[name] = np.s_[start_phi:start_phi+control_param_size]
+            self._polynomial_control_idxs_in_y[name] = np.s_[start_y:start_y+control_size]
+            start_y += control_size
+            self._polynomial_control_rate_idxs_in_y[name] = np.s_[start_y:start_y+control_size]
+            start_y += control_size
+            self._polynomial_control_rate2_idxs_in_y[name] = np.s_[start_y:start_y+control_size]
+            start_y += control_size
             start_Z += control_param_size
             start_phi += control_param_size
 
@@ -395,6 +431,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         num_x = self.x_size
         num_phi = self.phi_size
         num_z = num_x + num_phi
+        num_y = self.y_size = start_y
 
         # The contiguous vector of state values
         self._x = np.zeros((num_rows, self.x_size, 1), dtype=self._TYPE)
@@ -407,6 +444,9 @@ class RKIntegrationComp(om.ExplicitComponent):
 
         # The contiguous vector of state rates
         self._f = np.zeros((self.x_size, 1), dtype=self._TYPE)
+
+        # The contiguous vector of ODE algebraic outputs
+        self._y = np.zeros((num_rows, num_y, 1), dtype=self._TYPE)
 
         # The derivatives of the state rates wrt the current time
         self._f_t = np.zeros((self.x_size, 1), dtype=self._TYPE)
@@ -454,6 +494,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         self._setup_parameters()
         self._setup_controls()
         self._setup_states()
+        self._setup_timeseries()
         self._setup_storage()
 
     def _reset_derivs(self):
@@ -461,7 +502,6 @@ class RKIntegrationComp(om.ExplicitComponent):
         Reset the value of total derivatives prior to propagation.
         """
         N = self.options['num_steps_per_segment']
-        num_steps = N * self._grid_data.num_segments
         num_x = self.x_size
         num_phi = self.phi_size
 
@@ -477,6 +517,41 @@ class RKIntegrationComp(om.ExplicitComponent):
         self._dkq_dZ[...] = 0.0  # np.zeros((num_stages, num_x, num_z), dtype=self._TYPE)
         self._dphi_dZ[...] = 0.0  # np.zeros((num_phi, num_z), dtype=self._TYPE)
         self._dphi_dZ[:, num_x:] = np.eye(num_phi, dtype=self._TYPE)
+
+    def _initialize_segment(self, row, inputs=None, derivs=False):
+        """
+        Set the derivatives at the current row to those of the previous row.\
+
+        This is used to continue the value of derivatives over a segment boundary.
+        """
+        if row == 0:
+            # start x, t, and h
+            for state_name in self.state_options:
+                i_name = self._state_input_names[state_name]
+                self._x[0, self.state_idxs[state_name], 0] = inputs[i_name].ravel()
+            self._t[0, 0] = inputs['t_initial'].copy()
+
+            if derivs:
+                self._reset_derivs()
+        else:
+            # copy last x, t, h
+            self._x[row, ...] = self._x[row-1, ...]
+            self._t[row, ...] = self._t[row-1, ...]
+
+            if derivs:
+                # The 3 arrays of propagated derivatives need to copy over previous values
+                self._dx_dZ[row, ...] = self._dx_dZ[row-1, ...]
+                self._dt_dZ[row, ...] = self._dt_dZ[row-1, ...]
+                self._dh_dZ[row, ...] = self._dh_dZ[row-1, ...]
+
+                # Derivatives of the internal calls are just reset
+                self._dTi_dZ[...] = 0.0  # np.zeros((1, num_z), dtype=self._TYPE)
+                self._dXi_dZ[...] = 0.0  # np.zeros((num_x, num_z), dtype=self._TYPE)
+                self._dkq_dZ[...] = 0.0  # np.zeros((num_stages, num_x, num_z), dtype=self._TYPE)
+
+                # dphi_dZ remains constant across segments
+                # self._dphi_dZ[...] = 0.0  # np.zeros((num_phi, num_z), dtype=self._TYPE)
+                # self._dphi_dZ[:, num_x:] = np.eye(num_phi, dtype=self._TYPE)
 
     def eval_f(self, x, t, phi, f, y=None):
         """
@@ -505,19 +580,20 @@ class RKIntegrationComp(om.ExplicitComponent):
 
         # transcribe states
         for name in self.state_options:
-            self._prob.set_val(f'states:{name}', x[self.state_idxs[name], 0])
+            self._prob.set_val(self._state_input_names[name], x[self.state_idxs[name], 0])
 
         # transcribe parameters
         for name in self.parameter_options:
-            self._prob.set_val(f'parameters:{name}', phi[self._parameter_idxs_in_phi[name]])
+            self._prob.set_val(self._param_input_names[name], phi[self._parameter_idxs_in_phi[name]])
 
         # transcribe controls
         for name in self.control_options:
-            self._prob.set_val(f'controls:{name}', phi[self._control_idxs_in_phi[name]])
+            self._prob.set_val(self._control_input_names[name], phi[self._control_idxs_in_phi[name]])
 
         # transcribe polynomial controls
         for name in self.polynomial_control_options:
-            self._prob.set_val(f'polynomial_controls:{name}', phi[self._polynomial_control_idxs_in_phi[name]])
+            self._prob.set_val(self._polynomial_control_input_names[name],
+                               phi[self._polynomial_control_idxs_in_phi[name]])
 
         # execute the ODE
         self._prob.run_model()
@@ -525,6 +601,24 @@ class RKIntegrationComp(om.ExplicitComponent):
         # pack the resulting array
         for name in self.state_options:
             f[self.state_idxs[name]] = self._prob.get_val(f'state_rate_collector.state_rates:{name}_rate').ravel()
+
+        # pack any control values into y
+        if y is not None:
+            for name in self.control_options:
+                output_name = self._control_output_names[name]
+                rate_name = self._control_rate_names[name]
+                rate2_name = self._control_rate2_names[name]
+                y[self._control_idxs_in_y[name]] = self._prob.get_val(output_name).ravel()
+                y[self._control_rate_idxs_in_y[name]] = self._prob.get_val(rate_name).ravel()
+                y[self._control_rate2_idxs_in_y[name]] = self._prob.get_val(rate2_name).ravel()
+
+            for name in self.polynomial_control_options:
+                output_name = self._polynomial_control_output_names[name]
+                rate_name = self._polynomial_control_rate_names[name]
+                rate2_name = self._polynomial_control_rate2_names[name]
+                y[self._polynomial_control_idxs_in_y[name]] = self._prob.get_val(output_name).ravel()
+                y[self._polynomial_control_rate_idxs_in_y[name]] = self._prob.get_val(rate_name).ravel()
+                y[self._polynomial_control_rate2_idxs_in_y[name]] = self._prob.get_val(rate2_name).ravel()
 
     def eval_f_derivs(self, x, t, phi, f_x, f_t, f_phi):
         """
@@ -561,25 +655,25 @@ class RKIntegrationComp(om.ExplicitComponent):
 
         # transcribe states
         for name in self.state_options:
-            input_name = f'states:{name}'
+            input_name = self._state_input_names[name]
             self._prob.set_val(input_name, x[self.state_idxs[name], 0])
             of_names.append(f'state_rate_collector.state_rates:{name}_rate')
             wrt_names.append(input_name)
 
         # transcribe parameters
         for name in self.parameter_options:
-            input_name = f'parameters:{name}'
+            input_name = self._param_input_names[name]
             self._prob.set_val(input_name, phi[self._parameter_idxs_in_phi[name], 0])
             wrt_names.append(input_name)
 
         # transcribe controls
         for name in self.control_options:
-            input_name = f'controls:{name}'
+            input_name = self._control_input_names[name]
             self._prob.set_val(input_name, phi[self._control_idxs_in_phi[name], 0])
             wrt_names.append(input_name)
 
         for name in self.polynomial_control_options:
-            input_name = f'polynomial_controls:{name}'
+            input_name = self._polynomial_control_input_names[name]
             self._prob.set_val(input_name, phi[self._polynomial_control_idxs_in_phi[name], 0])
             wrt_names.append(input_name)
 
@@ -595,7 +689,7 @@ class RKIntegrationComp(om.ExplicitComponent):
 
             for state_name_wrt in self.state_options:
                 idxs_wrt = self.state_idxs[state_name_wrt]
-                px_px = totals[of_name, f'states:{state_name_wrt}']
+                px_px = totals[of_name, self._state_input_names[state_name_wrt]]
                 f_x[idxs, idxs_wrt] = px_px.ravel()
 
             f_phi[idxs, 0] = totals[of_name, 't_initial']
@@ -603,17 +697,17 @@ class RKIntegrationComp(om.ExplicitComponent):
 
             for param_name_wrt in self.parameter_options:
                 idxs_wrt = self._parameter_idxs_in_phi[param_name_wrt]
-                px_pp = totals[of_name, f'parameters:{param_name_wrt}']
+                px_pp = totals[of_name, self._param_input_names[param_name_wrt]]
                 f_phi[idxs, idxs_wrt] = px_pp.ravel()
 
             for control_name_wrt in self.control_options:
                 idxs_wrt = self._control_idxs_in_phi[control_name_wrt]
-                px_pu = totals[of_name, f'controls:{control_name_wrt}']
+                px_pu = totals[of_name, self._control_input_names[control_name_wrt]]
                 f_phi[idxs, idxs_wrt] = px_pu.ravel()
 
             for pc_name_wrt in self.polynomial_control_options:
                 idxs_wrt = self._polynomial_control_idxs_in_phi[pc_name_wrt]
-                px_pu = totals[of_name, f'polynomial_controls:{pc_name_wrt}']
+                px_pu = totals[of_name, self._polynomial_control_input_names[pc_name_wrt]]
                 f_phi[idxs, idxs_wrt] = px_pu.ravel()
 
     def _propagate(self, inputs, outputs, derivs=None):
@@ -644,20 +738,12 @@ class RKIntegrationComp(om.ExplicitComponent):
 
         # Initialize states
         x = self._x
-        for state_name in self.state_options:
-            x[0, self.state_idxs[state_name], 0] = inputs[f'states:{state_name}'].ravel()
-
-        # Initialize time
+        t = self._t
         phi = self._phi
 
-        t = self._t
-        t_initial = inputs['t_initial'].copy()
-        t_duration = inputs['t_duration'].copy()
-        t[0, 0] = t_initial
-
-        # Make t_initial and t_duration the first two elements of the parameter vector.
-        phi[0] = t_initial
-        phi[1] = t_duration
+        # Make t_initial and t_duration the first two elements of the ODE parameter vector.
+        phi[0] = inputs['t_initial'].copy()
+        phi[1] = inputs['t_duration'].copy()
 
         f_x = self._f_x
         f_t = self._f_t
@@ -676,35 +762,31 @@ class RKIntegrationComp(om.ExplicitComponent):
             phi[self._polynomial_control_idxs_in_phi[name], 0] = \
                 inputs[f'polynomial_controls:{name}'].ravel()
 
-        if derivs:
-            # Initialize the total derivatives
-            self._reset_derivs()
+        # if derivs:
+        #     # Initialize the total derivatives
+        #     self._reset_derivs()
 
-        seg_durations = t_duration * np.diff(gd.segment_ends) / 2.0
+        seg_durations = phi[1] * np.diff(gd.segment_ends) / 2.0
 
         # step counter
-        row = 1
+        row = 0
 
         for seg_i in range(gd.num_segments):
-            if N > 0:
-                h = np.asarray(seg_durations[seg_i] / N, dtype=self._TYPE)
-            else:
-                h = np.zeros(1, dtype=self._TYPE)
 
-            # To start the segment, copy the previous row of x and t into the current row
-            if seg_i > 0:
-                x[row, ...] = x[row-1, ...]
-                t[row, 0] = t[row-1, ...]
-                row = row + 1
+            # Initialize, t, x, h, and derivatives for the start of the current segment
+            self._initialize_segment(row, inputs, derivs=derivs)
 
+            h = np.asarray(seg_durations[seg_i] / N, dtype=self._TYPE)
             # On each segment, the total derivative of the stepsize h is a function of
-            # the duration of the phase (the second element of the parameter vector)
+            # the duration of the phase (the second element of the parameter vector after states)
             if derivs:
-                self._dh_dZ[row, 0, self.x_size+1] = np.diff(gd.segment_ends)[seg_i] / 2.0 / N
+                self._dh_dZ[row:row+N+1, 0, self.x_size+1] = seg_durations[seg_i] / phi[1] / N
+
+            row = row + 1
 
             for q in range(N):
-                # Compute the state rates and their partials
-                self.eval_f(x[row-1, ...], t[row-1, 0], phi, self._k_q[0, ...])
+                # Compute the state rates and their partials at the start of the step
+                self.eval_f(x[row-1, ...], t[row-1, 0], phi, self._k_q[0, ...], y=self._y[row-1, ...])
 
                 if derivs:
                     # Compute the state rate derivatives
@@ -737,30 +819,36 @@ class RKIntegrationComp(om.ExplicitComponent):
                     b_tdot_dkqdz = np.tensordot(b, self._dkq_dZ, axes=(0, 0))
                     # b_tdot_dkqdz = np.einsum('i,ijk->jk', b, self._dkq_dZ)
                     self._dx_dZ[row, ...] = \
-                        self._dx_dZ[row - 1, ...] + b_tdot_kq @ self._dh_dZ[row, ...] + h * b_tdot_dkqdz
-                    self._dt_dZ[row, ...] = \
-                        self._dt_dZ[row - 1, ...] + self._dh_dZ[row, ...]
+                        self._dx_dZ[row-1, ...] + b_tdot_kq @ self._dh_dZ[row-1, ...] + h * b_tdot_dkqdz
+                    self._dt_dZ[row, ...] = self._dt_dZ[row-1, ...] + self._dh_dZ[row-1, ...]
 
                 row = row + 1
 
-        # Unpack the final values
+            # Evaluate the ODE at the last point in the segment (with the final times and states)
+            self.eval_f(x[row - 1, ...], t[row - 1, 0], phi, self._k_q[0, ...], y=self._y[row - 1, ...])
+
+        # Unpack the outputs
         if outputs:
             outputs['t_final'] = t[-1, ...]
 
+            # Extract time
             outputs['time'] = t
 
+            # Extract the state values
             for state_name, options in self.state_options.items():
                 of = self._state_output_names[state_name]
                 outputs[of] = x[:, self.state_idxs[state_name]]
 
+            # Extract the control values and rates
             for control_name, options in self.control_options.items():
-                of = self._control_output_names[control_name]
-                outputs[of] = x[:, self.state_idxs[state_name]]
+                oname = self._control_output_names[control_name]
+                rate_name = self._control_rate_names[control_name]
+                rate2_name = self._control_rate2_names[control_name]
+                outputs[oname] = self._y[:, self._control_idxs_in_y[control_name]]
+                outputs[rate_name] = self._y[:, self._control_rate_idxs_in_y[control_name]]
+                outputs[rate2_name] = self._y[:, self._control_rate2_idxs_in_y[control_name]]
 
         if derivs:
-            # derivs['t_final', 't_initial'] = self._dt_dZ[-1, 0, self.x_size]
-            # derivs['t_final', 't_duration'] = self._dt_dZ[-1, 0, self.x_size+1]
-
             derivs['time', 't_duration'] = self._dt_dZ[:, 0, self.x_size+1]
 
             for state_name in self.state_options:

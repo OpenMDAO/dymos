@@ -164,6 +164,13 @@ class ExplicitShooting(TranscriptionBase):
 
         phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'])
 
+        # The integrator subsystem only generates time and state values at desired output nodes.
+        # Since this integrator doesn't necessarily evaluate the ODE at our output nodes, we have
+        # to evaluate some points (the end of each step, in particular).  It's simpler and more
+        # performant to just reevaluate the controls and ODE outputs in one vectorized ODE call.
+
+
+
     def configure_ode(self, phase):
         """
         Create connections to the introspected states.

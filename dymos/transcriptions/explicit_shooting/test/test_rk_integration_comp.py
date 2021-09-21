@@ -186,7 +186,7 @@ class TestRKIntegrationComp(unittest.TestCase):
 
         p = om.Problem()
 
-        gd = dm.transcriptions.grid_data.GridData(num_segments=1,
+        gd = dm.transcriptions.grid_data.GridData(num_segments=10,
                                                   transcription='gauss-lobatto',
                                                   transcription_order=3,
                                                   compressed=True)
@@ -195,7 +195,7 @@ class TestRKIntegrationComp(unittest.TestCase):
                                                                          param_options, control_options,
                                                                          polynomial_control_options,
                                                                          grid_data=gd,
-                                                                         num_steps_per_segment=10,
+                                                                         num_steps_per_segment=4,
                                                                          ode_init_kwargs=None))
         p.setup(mode='fwd', force_alloc_complex=True)
 
@@ -214,8 +214,8 @@ class TestRKIntegrationComp(unittest.TestCase):
             assert_check_partials(cpd)
 
     def test_fwd_parameters_controls(self):
-        gd = dm.transcriptions.grid_data.GridData(num_segments=1, transcription='gauss-lobatto',
-                                                  transcription_order=3)
+        gd = dm.transcriptions.grid_data.GridData(num_segments=4, transcription='gauss-lobatto',
+                                                  transcription_order=3, compressed=True)
 
         time_options = dm.phase.options.TimeOptionsDictionary()
 
@@ -263,7 +263,7 @@ class TestRKIntegrationComp(unittest.TestCase):
                                                 parameter_options=param_options,
                                                 control_options=control_options,
                                                 polynomial_control_options=polynomial_control_options,
-                                                num_steps_per_segment=40,
+                                                num_steps_per_segment=10,
                                                 grid_data=gd,
                                                 ode_init_kwargs=None,
                                                 complex_step_mode=True))
@@ -275,7 +275,8 @@ class TestRKIntegrationComp(unittest.TestCase):
         p.set_val('fixed_step_integrator.t_initial', 0.0)
         p.set_val('fixed_step_integrator.t_duration', 1.8016)
         p.set_val('fixed_step_integrator.parameters:g', 9.80665)
-        p.set_val('fixed_step_integrator.controls:theta', np.linspace(1.0, 100.0, 3), units='deg')
+
+        p.set_val('fixed_step_integrator.controls:theta', np.linspace(1.0, 100.0, 9), units='deg')
 
         p.run_model()
 
@@ -288,13 +289,21 @@ class TestRKIntegrationComp(unittest.TestCase):
         assert_near_equal(y[-1, ...], 5.0, tolerance=0.1)
         assert_near_equal(v[-1, ...], 9.9, tolerance=0.1)
 
+        t = p.get_val('fixed_step_integrator.time')
+        theta = p.get_val('fixed_step_integrator.control_values:theta')
+        import matplotlib.pyplot as plt
+        fig, axes = plt.subplots(2, 1)
+        axes[0].plot(t, 'k.')
+        axes[1].plot(theta, 'k.')
+        plt.show()
+
         with np.printoptions(linewidth=1024):
             cpd = p.check_partials(compact_print=False, method='cs')
             assert_check_partials(cpd)
 
 
 if __name__ == '__main__':  # pragma: no cover
-    gd = dm.transcriptions.grid_data.GridData(num_segments=10, transcription='gauss-lobatto',
+    gd = dm.transcriptions.grid_data.GridData(num_segments=2, transcription='gauss-lobatto',
                                               transcription_order=3)
 
     time_options = dm.phase.options.TimeOptionsDictionary()
@@ -343,7 +352,7 @@ if __name__ == '__main__':  # pragma: no cover
                                             parameter_options=param_options,
                                             control_options=control_options,
                                             polynomial_control_options=polynomial_control_options,
-                                            num_steps_per_segment=10,
+                                            num_steps_per_segment=5,
                                             grid_data=gd,
                                             ode_init_kwargs=None,
                                             complex_step_mode=True))
