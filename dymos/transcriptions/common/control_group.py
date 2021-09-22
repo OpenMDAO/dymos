@@ -75,10 +75,10 @@ class ControlInterpComp(om.ExplicitComponent):
         time_units = self.options['time_units']
 
         for name, options in control_options.items():
-            self._input_names[name] = 'controls:{0}'.format(name)
-            self._output_val_names[name] = 'control_values:{0}'.format(name)
-            self._output_rate_names[name] = 'control_rates:{0}_rate'.format(name)
-            self._output_rate2_names[name] = 'control_rates:{0}_rate2'.format(name)
+            self._input_names[name] = f'controls:{name}'
+            self._output_val_names[name] = f'control_values:{name}'
+            self._output_rate_names[name] = f'control_rates:{name}_rate'
+            self._output_rate2_names[name] = f'control_rates:{name}_rate2'
             shape = options['shape']
             input_shape = (num_control_input_nodes,) + shape
             output_shape = (num_nodes,) + shape

@@ -317,6 +317,18 @@ class RKIntegrationComp(om.ExplicitComponent):
                                   wrt=self._control_input_names[control_name],
                                   val=1.0)
 
+            self.declare_partials(of=self._control_output_names[control_name],
+                                  wrt='t_duration',
+                                  val=1.0)
+
+            self.declare_partials(of=self._control_rate_names[control_name],
+                                  wrt='t_duration',
+                                  val=1.0)
+
+            self.declare_partials(of=self._control_rate2_names[control_name],
+                                  wrt='t_duration',
+                                  val=1.0)
+
             self.control_idxs[control_name] = np.s_[self.u_size:self.u_size+control_param_size]
             self.u_size += control_param_size
 
@@ -669,7 +681,13 @@ class RKIntegrationComp(om.ExplicitComponent):
         # transcribe controls
         for name in self.control_options:
             input_name = self._control_input_names[name]
+            output_name = self._control_output_names[name]
+            rate_name = self._control_rate_names[name]
+            rate2_name = self._control_rate2_names[name]
             self._prob.set_val(input_name, phi[self._control_idxs_in_phi[name], 0])
+            of_names.append(output_name)
+            # of_names.append(rate_name)
+            # of_names.append(rate2_name)
             wrt_names.append(input_name)
 
         for name in self.polynomial_control_options:
@@ -879,6 +897,35 @@ class RKIntegrationComp(om.ExplicitComponent):
                     wrt = self._polynomial_control_input_names[wrt_pc_name]
                     wrt_cols = self._polynomial_control_idxs_in_Z[wrt_pc_name]
                     derivs[of, wrt] = self._dx_dZ[:, of_rows, wrt_cols]
+
+            for control_name in self.control_options:
+                of = self._control_output_names[control_name]
+
+                # Unpack the derivatives
+                of_rows = self.control_idxs[control_name]
+
+                # derivs[of, 't_initial'] = self._dx_dZ[:, of_rows, self.x_size]
+                derivs[of, 't_duration'] = self._dy_dZ[:, of_rows, self.x_size+1]
+
+                # for wrt_state_name in self.state_options:
+                #     wrt = self._state_input_names[wrt_state_name]
+                #     wrt_cols = self._state_idxs_in_Z[wrt_state_name]
+                #     derivs[of, wrt] = self._dx_dZ[:, of_rows, wrt_cols]
+                #
+                # for wrt_param_name in self.parameter_options:
+                #     wrt = self._param_input_names[wrt_param_name]
+                #     wrt_cols = self._parameter_idxs_in_Z[wrt_param_name]
+                #     derivs[of, wrt] = self._dx_dZ[:, of_rows, wrt_cols]
+
+                for wrt_control_name in self.control_options:
+                    wrt = self._control_input_names[wrt_control_name]
+                    wrt_cols = self._control_idxs_in_Z[wrt_control_name]
+                    derivs[of, wrt] = self._dx_dZ[:, of_rows, wrt_cols]
+
+                # for wrt_pc_name in self.polynomial_control_options:
+                #     wrt = self._polynomial_control_input_names[wrt_pc_name]
+                #     wrt_cols = self._polynomial_control_idxs_in_Z[wrt_pc_name]
+                #     derivs[of, wrt] = self._dx_dZ[:, of_rows, wrt_cols]
 
     def compute(self, inputs, outputs):
         """
