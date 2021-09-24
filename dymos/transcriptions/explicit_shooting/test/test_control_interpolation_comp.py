@@ -27,13 +27,15 @@ class TestControlInterpolationComp(unittest.TestCase):
         control_options['u1']['units'] = 'rad'
 
         p = om.Problem()
-        p.model.add_subsystem('interp', VandermondeControlInterpComp(grid_data=grid_data,
-                                                                     control_options=control_options,
-                                                                     standalone_mode=True,
-                                                                     time_units='s'))
+        interp_comp = p.model.add_subsystem('interp',
+                                            VandermondeControlInterpComp(grid_data=grid_data,
+                                                                         control_options=control_options,
+                                                                         standalone_mode=True,
+                                                                         time_units='s'))
         p.setup(force_alloc_complex=True)
 
-        p.set_val('interp.segment_index', 1)
+        interp_comp.options['segment_index'] = 1
+
         p.set_val('interp.controls:u1', [0.0, 3.0, 0.0, 4.0, 3.0, 4.0, 3.0])
 
         p.set_val('interp.stau', -1.0)
@@ -58,7 +60,7 @@ class TestControlInterpolationComp(unittest.TestCase):
             cpd = p.check_partials(compact_print=True, method='cs')
             assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
 
-        p.set_val('interp.segment_index', 0)
+        interp_comp.options['segment_index'] = 0
 
         p.set_val('interp.stau', -1.0)
         p.run_model()
@@ -101,13 +103,14 @@ class TestControlInterpolationComp(unittest.TestCase):
         control_options['u1']['units'] = 'rad'
 
         p = om.Problem()
-        p.model.add_subsystem('interp', VandermondeControlInterpComp(grid_data=grid_data,
-                                                                     control_options=control_options,
-                                                                     standalone_mode=True,
-                                                                     time_units='s'))
+        interp_comp = p.model.add_subsystem('interp',
+                                            VandermondeControlInterpComp(grid_data=grid_data,
+                                                                         control_options=control_options,
+                                                                         standalone_mode=True,
+                                                                         time_units='s'))
         p.setup(force_alloc_complex=True)
 
-        p.set_val('interp.segment_index', 1)
+        interp_comp.options['segment_index'] = 1
         p.set_val('interp.controls:u1', [0.0, 3.0, 1.5, 0.0, 4.0, 3.0, 4.0, 3.0])
 
         p.set_val('interp.stau', -1.0)
@@ -130,7 +133,7 @@ class TestControlInterpolationComp(unittest.TestCase):
         p.run_model()
         assert_near_equal(p.get_val('interp.control_values:u1'), 3.0, tolerance=1.0E-5)
 
-        p.set_val('interp.segment_index', 0)
+        interp_comp.options['segment_index'] = 0
 
         p.set_val('interp.stau', -1.0)
         p.run_model()
@@ -165,13 +168,14 @@ class TestControlInterpolationComp(unittest.TestCase):
         control_options['u1']['units'] = 'rad'
 
         p = om.Problem()
-        p.model.add_subsystem('interp', VandermondeControlInterpComp(grid_data=grid_data,
-                                                                     control_options=control_options,
-                                                                     standalone_mode=True,
-                                                                     time_units='s'))
+        interp_comp = p.model.add_subsystem('interp',
+                                            VandermondeControlInterpComp(grid_data=grid_data,
+                                                                         control_options=control_options,
+                                                                         standalone_mode=True,
+                                                                         time_units='s'))
         p.setup(force_alloc_complex=True)
 
-        p.set_val('interp.segment_index', 1)
+        interp_comp.options['segment_index'] = 1
         p.set_val('interp.controls:u1', [0.0, 3.0, 0.0, 0.0, 4.0, 3.0, 4.0, 3.0])
 
         p.set_val('interp.stau', -1.0)
@@ -186,7 +190,7 @@ class TestControlInterpolationComp(unittest.TestCase):
         p.run_model()
         assert_near_equal(p.get_val('interp.control_values:u1'), 3.0, tolerance=_TOL)
 
-        p.set_val('interp.segment_index', 0)
+        interp_comp.options['segment_index'] = 0
 
         p.set_val('interp.stau', -1.0)
         p.run_model()
@@ -221,13 +225,14 @@ class TestControlInterpolationComp(unittest.TestCase):
         control_options['u1']['units'] = 'rad'
 
         p = om.Problem()
-        p.model.add_subsystem('interp', VandermondeControlInterpComp(grid_data=grid_data,
-                                                                     control_options=control_options,
-                                                                     standalone_mode=True,
-                                                                     time_units='s'))
+        interp_comp = p.model.add_subsystem('interp',
+                                            VandermondeControlInterpComp(grid_data=grid_data,
+                                                                         control_options=control_options,
+                                                                         standalone_mode=True,
+                                                                         time_units='s'))
         p.setup(force_alloc_complex=True)
 
-        p.set_val('interp.segment_index', 1)
+        interp_comp.options['segment_index'] = 1
         p.set_val('interp.controls:u1', [0.0, 3.0, 1.5, 0.0, 4.0, 3.0, 4.0, 3.0])
 
         p.set_val('interp.stau', -1.0)
@@ -250,7 +255,7 @@ class TestControlInterpolationComp(unittest.TestCase):
         p.run_model()
         assert_near_equal(p.get_val('interp.control_values:u1'), 3.0, tolerance=1.0E-5)
 
-        p.set_val('interp.segment_index', 0)
+        interp_comp.options['segment_index'] = 0
 
         p.set_val('interp.stau', -1.0)
         p.run_model()
@@ -289,13 +294,14 @@ class TestPolynomialControlInterpolation(unittest.TestCase):
         pc_options['u1']['order'] = 6
 
         p = om.Problem()
-        p.model.add_subsystem('interp', VandermondeControlInterpComp(grid_data=grid_data,
-                                                                     polynomial_control_options=pc_options,
-                                                                     standalone_mode=True,
-                                                                     time_units='s'))
+        interp_comp = p.model.add_subsystem('interp',
+                                            VandermondeControlInterpComp(grid_data=grid_data,
+                                                                         polynomial_control_options=pc_options,
+                                                                         standalone_mode=True,
+                                                                         time_units='s'))
         p.setup(force_alloc_complex=True)
 
-        p.set_val('interp.segment_index', 1)
+        interp_comp.options['segment_index'] = 1
         p.set_val('interp.t_duration', 12.2352)
         p.set_val('interp.dstau_dt', .3526)
         p.set_val('interp.polynomial_controls:u1', [0.0, 3.0, 0.0, 1.5, 4.0, 3.0, 4.0])
@@ -312,7 +318,7 @@ class TestPolynomialControlInterpolation(unittest.TestCase):
         p.run_model()
         assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 4.0, tolerance=_TOL)
 
-        p.set_val('interp.segment_index', 0)
+        interp_comp.options['segment_index'] = 0
 
         p.set_val('interp.ptau', -1.0)
         p.run_model()
@@ -348,14 +354,15 @@ class TestPolynomialControlInterpolation(unittest.TestCase):
         pc_options['u1']['order'] = 6
 
         p = om.Problem()
-        p.model.add_subsystem('interp', VandermondeControlInterpComp(grid_data=grid_data,
-                                                                     polynomial_control_options=pc_options,
-                                                                     standalone_mode=True,
-                                                                     time_units='s'))
+        interp_comp = p.model.add_subsystem('interp',
+                                            VandermondeControlInterpComp(grid_data=grid_data,
+                                                                         polynomial_control_options=pc_options,
+                                                                         standalone_mode=True,
+                                                                         time_units='s'))
         p.setup(force_alloc_complex=True)
 
         p.set_val('interp.t_duration', 12.252)
-        p.set_val('interp.segment_index', 1)
+        interp_comp.options['segment_index'] = 1
         p.set_val('interp.polynomial_controls:u1', [0.0, 3.0, 0.0, 1.5, 4.0, 3.0, 4.0])
 
         p.set_val('interp.ptau', -1.0)
@@ -370,7 +377,7 @@ class TestPolynomialControlInterpolation(unittest.TestCase):
         p.run_model()
         assert_near_equal(p.get_val('interp.polynomial_control_values:u1'), 4.0, tolerance=_TOL)
 
-        p.set_val('interp.segment_index', 0)
+        interp_comp.options['segment_index'] = 0
 
         p.set_val('interp.ptau', -1.0)
         p.run_model()

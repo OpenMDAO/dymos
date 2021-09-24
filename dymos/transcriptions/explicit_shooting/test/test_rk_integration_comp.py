@@ -214,8 +214,8 @@ class TestRKIntegrationComp(unittest.TestCase):
             assert_check_partials(cpd)
 
     def test_fwd_parameters_controls(self):
-        gd = dm.transcriptions.grid_data.GridData(num_segments=4, transcription='gauss-lobatto',
-                                                  transcription_order=3, compressed=True)
+        gd = dm.transcriptions.grid_data.GridData(num_segments=10, transcription='gauss-lobatto',
+                                                  transcription_order=5, compressed=True)
 
         time_options = dm.phase.options.TimeOptionsDictionary()
 
@@ -263,119 +263,65 @@ class TestRKIntegrationComp(unittest.TestCase):
                                                 parameter_options=param_options,
                                                 control_options=control_options,
                                                 polynomial_control_options=polynomial_control_options,
-                                                num_steps_per_segment=10,
+                                                num_steps_per_segment=20,
                                                 grid_data=gd,
                                                 ode_init_kwargs=None,
                                                 complex_step_mode=True))
+
         p.setup(mode='fwd', force_alloc_complex=True)
 
         p.set_val('fixed_step_integrator.states:x', 0.0)
         p.set_val('fixed_step_integrator.states:y', 10.0)
         p.set_val('fixed_step_integrator.states:v', 0.0)
         p.set_val('fixed_step_integrator.t_initial', 0.0)
-        p.set_val('fixed_step_integrator.t_duration', 1.8016)
+        p.set_val('fixed_step_integrator.t_duration', 10)
         p.set_val('fixed_step_integrator.parameters:g', 9.80665)
 
-        p.set_val('fixed_step_integrator.controls:theta', np.linspace(1.0, 100.0, 9), units='deg')
+        p.set_val('fixed_step_integrator.controls:theta', np.linspace(0, 2.0, 41), units='rad')
+
+        # print(p.get_val('fixed_step_integrator.t_duration'))
+        # print(p.get_val('fixed_step_integrator.t_duration'))
 
         p.run_model()
+
+        # print(p.get_val('fixed_step_integrator.t_duration'))
+        #
+        # om.n2(p.model)
+
+        # exit(0)
 
         x = p.get_val('fixed_step_integrator.states_out:x')
         y = p.get_val('fixed_step_integrator.states_out:y')
         v = p.get_val('fixed_step_integrator.states_out:v')
+        theta = p.get_val('fixed_step_integrator.control_values:theta')
 
         # These tolerances are loose since theta is not properly spaced along the lgl nodes.
-        assert_near_equal(x[-1, ...], 10.0, tolerance=0.1)
-        assert_near_equal(y[-1, ...], 5.0, tolerance=0.1)
-        assert_near_equal(v[-1, ...], 9.9, tolerance=0.1)
+        # assert_near_equal(x[-1, ...], 10.0, tolerance=0.1)
+        # assert_near_equal(y[-1, ...], 5.0, tolerance=0.1)
+        # assert_near_equal(v[-1, ...], 9.9, tolerance=0.1)
 
         t = p.get_val('fixed_step_integrator.time')
         theta = p.get_val('fixed_step_integrator.control_values:theta')
+        intg = p.model._get_subsystem('fixed_step_integrator')
         import matplotlib.pyplot as plt
         fig, axes = plt.subplots(2, 1)
         axes[0].plot(t, 'k.')
-        axes[1].plot(theta, 'k.')
-        plt.show()
+        # axes[1].plot(t, theta, 'k.')
+        axes[1].plot(t, intg._dx_dZ[:, 2, ...])
+        # intg = p.model._get_subsystem('fixed_step_integrator')
+        # print(tj)
+        # print(intg._y)
+        # plt.show()
+
+        # intg._prob.list_problem_vars()
+
+        # om.n2(intg._prob)
+        # intg._prob.check_totals(compact_print=False, method='fd')
 
         with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=False, method='cs')
+            cpd = p.check_partials(compact_print=True, method='cs', show_only_incorrect=True)
             assert_check_partials(cpd)
 
 
 if __name__ == '__main__':  # pragma: no cover
-    gd = dm.transcriptions.grid_data.GridData(num_segments=2, transcription='gauss-lobatto',
-                                              transcription_order=3)
-
-    time_options = dm.phase.options.TimeOptionsDictionary()
-
-    time_options['units'] = 's'
-
-    state_options = {'x': dm.phase.options.StateOptionsDictionary(),
-                     'y': dm.phase.options.StateOptionsDictionary(),
-                     'v': dm.phase.options.StateOptionsDictionary()}
-
-    state_options['x']['shape'] = (1,)
-    state_options['x']['units'] = 'm'
-    state_options['x']['rate_source'] = 'xdot'
-    state_options['x']['targets'] = []
-
-    state_options['y']['shape'] = (1,)
-    state_options['y']['units'] = 'm'
-    state_options['y']['rate_source'] = 'ydot'
-    state_options['y']['targets'] = []
-
-    state_options['v']['shape'] = (1,)
-    state_options['v']['units'] = 'm/s'
-    state_options['v']['rate_source'] = 'vdot'
-    state_options['v']['targets'] = ['v']
-
-    param_options = {'g': dm.phase.options.ParameterOptionsDictionary()}
-
-    param_options['g']['shape'] = (1,)
-    param_options['g']['units'] = 'm/s**2'
-    param_options['g']['targets'] = ['g']
-
-    control_options = {'theta': dm.phase.options.ControlOptionsDictionary()}
-
-    control_options['theta']['shape'] = (1,)
-    control_options['theta']['units'] = 'rad'
-    control_options['theta']['targets'] = ['theta']
-
-    polynomial_control_options = {}
-
-    p = om.Problem()
-
-    p.model.add_subsystem('fixed_step_integrator',
-                          RKIntegrationComp(ode_class=BrachistochroneODE,
-                                            time_options=time_options,
-                                            state_options=state_options,
-                                            parameter_options=param_options,
-                                            control_options=control_options,
-                                            polynomial_control_options=polynomial_control_options,
-                                            num_steps_per_segment=5,
-                                            grid_data=gd,
-                                            ode_init_kwargs=None,
-                                            complex_step_mode=True))
-    p.setup(mode='fwd', force_alloc_complex=True)
-
-    p.set_val('fixed_step_integrator.states:x', 0.0)
-    p.set_val('fixed_step_integrator.states:y', 10.0)
-    p.set_val('fixed_step_integrator.states:v', 0.0)
-    p.set_val('fixed_step_integrator.t_initial', 0.0)
-    p.set_val('fixed_step_integrator.t_duration', 1.8016)
-    p.set_val('fixed_step_integrator.parameters:g', 9.80665)
-    p.set_val('fixed_step_integrator.controls:theta', np.linspace(1.0, 100.0, 30), units='deg')
-
-    p.run_model()
-
-    x = p.get_val('fixed_step_integrator.states_out:x')
-    y = p.get_val('fixed_step_integrator.states_out:y')
-    v = p.get_val('fixed_step_integrator.states_out:v')
-
-    # These tolerances are loose since theta is not properly spaced along the lgl nodes.
-    assert_near_equal(x[-1, ...], 10.0, tolerance=0.1)
-    assert_near_equal(y[-1, ...], 5.0, tolerance=0.1)
-    assert_near_equal(v[-1, ...], 9.9, tolerance=0.1)
-
-    with np.printoptions(linewidth=1024):
-        cpd = p.check_partials(compact_print=True, method='cs', out_stream=None)
+    unittest.main()

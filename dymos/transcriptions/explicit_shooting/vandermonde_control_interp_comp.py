@@ -70,7 +70,7 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         """
         Declare component options.
         """
-        pass
+        self.options.declare('segment_index', types=int, desc='index of the current segment')
 
     def _configure_controls(self):
         gd = self._grid_data
@@ -195,7 +195,7 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         self._k2 = {}
         self._k3 = {}
 
-        self.add_discrete_input('segment_index', val=0, desc='index of the segment')
+        # self.add_discrete_input('segment_index', val=0, desc='index of the segment')
         self.add_input('stau', val=0.0, units=None)
         self.add_input('dstau_dt', val=1.0, units=f'1/{self._time_units}')
         self.add_input('t_duration', val=1.0, units=self._time_units)
@@ -219,7 +219,8 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         discrete_outputs : `Vector`
             `Vector` containing discrete_outputs.
         """
-        seg_idx = int(discrete_inputs['segment_index'])
+        # seg_idx = int(discrete_inputs['segment_index'])
+        seg_idx = self.options['segment_index']
         stau = inputs['stau']
         dstau_dt = inputs['dstau_dt']
         ptau = inputs['ptau']
@@ -270,7 +271,8 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         discrete_inputs : Vector
             Unscaled, discrete input variables keyed by variable name.
         """
-        seg_idx = int(discrete_inputs['segment_index'])
+        # seg_idx = int(discrete_inputs['segment_index'])
+        seg_idx = self.options['segment_index']
         stau = inputs['stau'].real
         dstau_dt = inputs['dstau_dt'].real
         ptau = inputs['ptau'].real
