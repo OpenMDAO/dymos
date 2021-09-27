@@ -827,8 +827,8 @@ class GaussLobatto(PseudospectralBase):
                     col_src_idxs = col_src_idxs.ravel()
             else:
                 inds = get_src_indices_by_row([0], shape)
-                disc_src_idxs = inds  # np.squeeze(get_src_indices_by_row([0], shape), axis=0)
-                col_src_idxs = inds  # np.squeeze(get_src_indices_by_row([0], shape), axis=0)
+                disc_src_idxs = inds
+                col_src_idxs = inds
 
             rhs_disc_tgts = [f'rhs_disc.{t}' for t in targets]
             connection_info.append((rhs_disc_tgts, disc_src_idxs))

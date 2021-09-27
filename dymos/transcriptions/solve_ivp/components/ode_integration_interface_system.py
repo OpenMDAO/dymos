@@ -107,7 +107,7 @@ class ODEIntegrationInterfaceSystem(om.Group):
             if targets:
                 for tgt in targets:
                     self.connect(f'states:{name}', f'ode.{tgt}',
-                                 src_indices=np.arange(size, dtype=int), flat_src_indices=True)
+                                 src_indices=slice(size), flat_src_indices=True)
 
         # Configure controls
         if self.options['control_options']:
