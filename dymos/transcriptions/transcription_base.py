@@ -534,9 +534,9 @@ class TranscriptionBase(object):
 
             # Build the correct src_indices regardless of shape
             if loc == 'initial':
-                src_idxs = np.arange(size, dtype=int)
+                src_idxs = slice(size)
             else:
-                src_idxs = np.arange(-size, 0, dtype=int)
+                src_idxs = slice(-size, None)
 
             if 'parameters:' in src:
                 sys_name = '{0}_boundary_constraints'.format(loc)
@@ -545,10 +545,8 @@ class TranscriptionBase(object):
                                src_indices=src_idxs, flat_src_indices=True)
 
             else:
-                phase.connect(src,
-                              f'{loc}_boundary_constraints.{loc}_value_in:{con_name}',
-                              src_indices=src_idxs,
-                              flat_src_indices=True)
+                phase.connect(src, f'{loc}_boundary_constraints.{loc}_value_in:{con_name}',
+                              src_indices=src_idxs, flat_src_indices=True)
 
     def setup_path_constraints(self, phase):
         """

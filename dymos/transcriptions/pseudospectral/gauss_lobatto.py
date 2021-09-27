@@ -250,7 +250,6 @@ class GaussLobatto(PseudospectralBase):
                 shape = phase.parameter_options[rate_src]['shape']
                 param_size = np.prod(shape)
                 ndn = self.grid_data.subset_num_nodes['state_disc']
-                ncn = self.grid_data.subset_num_nodes['col']
                 src_idxs = np.tile(np.arange(0, param_size, dtype=int), ndn)
                 phase.promotes('state_interp',
                                inputs=[(f'staterate_disc:{name}', f'parameters:{rate_src}')],

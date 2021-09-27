@@ -279,9 +279,7 @@ class PseudospectralBase(TranscriptionBase):
         phase.connect('dt_dstau', 'state_interp.dt_dstau',
                       src_indices=grid_data.subset_node_indices['col'], flat_src_indices=True)
 
-        for name, options in phase.state_options.items():
-            size = np.prod(options['shape'])
-
+        for name, _ in phase.state_options.items():
             phase.connect('states:{0}'.format(name),
                           'state_interp.state_disc:{0}'.format(name),
                           src_indices=om.slicer[map_input_indices_to_disc, ...])
