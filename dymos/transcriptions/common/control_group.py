@@ -327,8 +327,7 @@ class ControlGroup(om.Group):
                         del desvar_indices[-size:]
 
                 if len(desvar_indices) > 0:
-                    coerce_desvar_option = CoerceDesvar(num_input_nodes, desvar_indices,
-                                                        options)
+                    coerce_desvar_option = CoerceDesvar(num_input_nodes, options=options)
 
                     lb = np.zeros_like(desvar_indices, dtype=float)
                     lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
