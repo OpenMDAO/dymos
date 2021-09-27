@@ -252,7 +252,6 @@ class GaussLobatto(PseudospectralBase):
                 ndn = self.grid_data.subset_num_nodes['state_disc']
                 ncn = self.grid_data.subset_num_nodes['col']
                 src_idxs = np.tile(np.arange(0, param_size, dtype=int), ndn)
-                src_idxs = np.reshape(src_idxs, (ndn,) + shape)
                 phase.promotes('state_interp',
                                inputs=[(f'staterate_disc:{name}', f'parameters:{rate_src}')],
                                src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
@@ -321,12 +320,10 @@ class GaussLobatto(PseudospectralBase):
                     ndn = self.grid_data.subset_num_nodes['state_disc']
                     ncn = self.grid_data.subset_num_nodes['col']
                     src_idxs = np.tile(np.arange(0, param_size, dtype=int), ndn)
-                    src_idxs = np.reshape(src_idxs, (ndn,) + shape)
                     phase.promotes('interleave_comp',
                                    inputs=[(f'disc_values:state_rates:{state_name}', f'parameters:{rate_src}')],
                                    src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
                     src_idxs = np.tile(np.arange(0, param_size, dtype=int), ncn)
-                    src_idxs = np.reshape(src_idxs, (ncn,) + shape)
                     phase.promotes('interleave_comp',
                                    inputs=[(f'col_values:state_rates:{state_name}', f'parameters:{rate_src}')],
                                    src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
@@ -393,7 +390,6 @@ class GaussLobatto(PseudospectralBase):
                 param_size = np.prod(shape)
                 ncn = self.grid_data.subset_num_nodes['col']
                 src_idxs = np.tile(np.arange(0, param_size, dtype=int), ncn)
-                src_idxs = np.reshape(src_idxs, (ncn,) + shape)
                 phase.promotes('collocation_constraint',
                                inputs=[(f'f_computed:{name}', f'parameters:{rate_src}')],
                                src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
@@ -831,8 +827,9 @@ class GaussLobatto(PseudospectralBase):
                     disc_src_idxs = disc_src_idxs.ravel()
                     col_src_idxs = col_src_idxs.ravel()
             else:
-                disc_src_idxs = np.squeeze(get_src_indices_by_row([0], shape), axis=0)
-                col_src_idxs = np.squeeze(get_src_indices_by_row([0], shape), axis=0)
+                inds = get_src_indices_by_row([0], shape)
+                disc_src_idxs = inds  # np.squeeze(get_src_indices_by_row([0], shape), axis=0)
+                col_src_idxs = inds  # np.squeeze(get_src_indices_by_row([0], shape), axis=0)
 
             rhs_disc_tgts = [f'rhs_disc.{t}' for t in targets]
             connection_info.append((rhs_disc_tgts, disc_src_idxs))

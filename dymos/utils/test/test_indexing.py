@@ -12,8 +12,7 @@ class TestIndexing(unittest.TestCase):
         row_idxs = (0, 1, 2)
         shape = (5,)
         idxs = get_src_indices_by_row(row_idxs, shape, flat=True)
-        expected = np.reshape(np.arange(15, dtype=int), (3, 5))
-        assert_array_equal(idxs, expected)
+        assert_array_equal(idxs, np.arange(15, dtype=int))
 
     def test_get_src_indices_by_row_matrix_target(self):
         row_idxs = (0, 2, 4)
@@ -25,7 +24,7 @@ class TestIndexing(unittest.TestCase):
         expected[1, ...] = expected[0, ...] + 20
         expected[2, ...] = expected[0, ...] + 40
 
-        assert_array_equal(idxs, expected)
+        assert_array_equal(idxs, expected.flat[:])
 
     def test_get_src_indices_by_row_raises_if_not_flat(self):
 

@@ -33,4 +33,6 @@ def get_src_indices_by_row(row_idxs, shape, flat=True):
     ixgrid = np.ix_(row_idxs, *other_idxs)
     a = np.reshape(np.arange(np.prod(src_shape), dtype=int), newshape=src_shape)
     src_idxs = a[ixgrid]
+    if flat:
+        return src_idxs.flat[:]
     return src_idxs

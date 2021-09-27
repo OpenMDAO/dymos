@@ -615,7 +615,6 @@ class SolveIVP(TranscriptionBase):
                 shape = phase.parameter_options[rate_src]['shape']
                 param_size = np.prod(shape)
                 src_idxs = np.tile(np.arange(0, param_size, dtype=int), nn)
-                src_idxs = np.reshape(src_idxs, (nn,) + shape)
                 phase.promotes('timeseries', inputs=[(f'all_values:state_rates:{name}',
                                                       f'parameters:{rate_src}')],
                                src_indices=src_idxs, src_shape=shape)
@@ -795,7 +794,6 @@ class SolveIVP(TranscriptionBase):
             else:
                 src_idxs_raw = np.zeros(1, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
-                src_idxs = np.squeeze(src_idxs, axis=0)
 
             connection_info.append(([f'ode.{tgt}' for tgt in ode_tgts], src_idxs))
 

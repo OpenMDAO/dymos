@@ -215,7 +215,6 @@ class Radau(PseudospectralBase):
                 param_size = np.prod(shape)
                 ncn = self.grid_data.subset_num_nodes['col']
                 src_idxs = np.tile(np.arange(0, param_size, dtype=int), ncn)
-                src_idxs = np.reshape(src_idxs, (ncn,) + shape)
                 phase.promotes('collocation_constraint', inputs=[(f'f_computed:{name}', f'parameters:{rate_src}')],
                                src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
             else:
@@ -360,7 +359,6 @@ class Radau(PseudospectralBase):
                     shape = phase.parameter_options[rate_src]['shape']
                     param_size = np.prod(shape)
                     src_idxs = np.tile(np.arange(0, param_size, dtype=int), nn)
-                    src_idxs = np.reshape(src_idxs, (nn,) + shape)
                     rate_src_path = f'parameters:{rate_src}'
 
                     added_src = timeseries_comp._add_output_configure(f'state_rates:{state_name}',
@@ -694,7 +692,6 @@ class Radau(PseudospectralBase):
             else:
                 src_idxs_raw = np.zeros(1, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
-                src_idxs = np.squeeze(src_idxs, axis=0)
 
             rhs_all_tgts = [f'rhs_all.{t}' for t in targets]
             connection_info.append((rhs_all_tgts, src_idxs))

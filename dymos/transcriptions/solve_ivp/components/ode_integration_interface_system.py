@@ -106,13 +106,8 @@ class ODEIntegrationInterfaceSystem(om.Group):
             targets = get_targets(ode=ode, name=name, user_targets=options['targets'])
             if targets:
                 for tgt in targets:
-                    tgt_shape, _, _ = get_target_metadata(ode=ode, name=name, user_targets=tgt)
-                    if len(tgt_shape) == 1 and tgt_shape[0] == 1:
-                        src_idxs = np.arange(size, dtype=int).reshape(tgt_shape)
-                    else:
-                        src_idxs = np.arange(size, dtype=int).reshape((1,) + tgt_shape)
                     self.connect(f'states:{name}', f'ode.{tgt}',
-                                 src_indices=src_idxs, flat_src_indices=True)
+                                 src_indices=np.arange(size, dtype=int), flat_src_indices=True)
 
         # Configure controls
         if self.options['control_options']:

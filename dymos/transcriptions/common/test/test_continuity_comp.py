@@ -93,9 +93,7 @@ class TestContinuityComp(unittest.TestCase):
 
                 self.p.model.add_subsystem('cnty_comp', subsys=cnty_comp)
                 # The sub-indices of state_disc indices that are segment ends
-                num_seg_ends = gd.subset_num_nodes['segment_ends']
-                segment_end_idxs = np.reshape(gd.subset_node_indices['segment_ends'],
-                                              newshape=(num_seg_ends, 1))
+                segment_end_idxs = gd.subset_node_indices['segment_ends']
 
                 if compressed != 'compressed':
                     self.p.model.connect('x', 'cnty_comp.states:x', src_indices=segment_end_idxs)
@@ -105,11 +103,11 @@ class TestContinuityComp(unittest.TestCase):
 
                 size_u = nn * np.prod(control_options['u']['shape'])
                 src_idxs_u = np.arange(size_u).reshape((nn,) + control_options['u']['shape'])
-                src_idxs_u = src_idxs_u[gd.subset_node_indices['segment_ends'], ...]
+                src_idxs_u = src_idxs_u[gd.subset_node_indices['segment_ends'], ...].flat[:]
 
                 size_v = nn * np.prod(control_options['v']['shape'])
                 src_idxs_v = np.arange(size_v).reshape((nn,) + control_options['v']['shape'])
-                src_idxs_v = src_idxs_v[gd.subset_node_indices['segment_ends'], ...]
+                src_idxs_v = src_idxs_v[gd.subset_node_indices['segment_ends'], ...].flat[:]
 
                 # if transcription =='radau-ps' or compressed != 'compressed':
                 self.p.model.connect('u', 'cnty_comp.controls:u', src_indices=src_idxs_u,
