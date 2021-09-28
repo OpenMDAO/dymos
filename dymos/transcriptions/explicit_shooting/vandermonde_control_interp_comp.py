@@ -219,7 +219,6 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         discrete_outputs : `Vector`
             `Vector` containing discrete_outputs.
         """
-        # seg_idx = int(discrete_inputs['segment_index'])
         seg_idx = self.options['segment_index']
         stau = inputs['stau']
         dstau_dt = inputs['dstau_dt']
@@ -271,7 +270,6 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         discrete_inputs : Vector
             Unscaled, discrete input variables keyed by variable name.
         """
-        # seg_idx = int(discrete_inputs['segment_index'])
         seg_idx = self.options['segment_index']
         stau = inputs['stau'].real
         dstau_dt = inputs['dstau_dt'].real
@@ -329,7 +327,7 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             k3 = self._k3[order]
             ptau_vec = np.power(ptau, k)
 
-            u_hat = inputs[input_name]
+            u_hat = inputs[input_name].real
             a = self._V_pc_inv[order] @ u_hat
 
             da_duhat = self._V_pc_inv[order]

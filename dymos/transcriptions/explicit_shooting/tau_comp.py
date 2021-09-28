@@ -21,7 +21,7 @@ class TauComp(om.ExplicitComponent):
     def __init__(self, grid_data=None, **kwargs):
         super().__init__(**kwargs)
         self._grid_data = grid_data
-        # self._no_check_partials = not dymos_options['include_check_partials']
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
         """
@@ -82,13 +82,7 @@ class TauComp(om.ExplicitComponent):
         t_initial = inputs['t_initial'].copy()
         t_duration = inputs['t_duration'].copy()
 
-        # print(f'tau_comp t_duration = {t_duration}')
-
         outputs['ptau'] = ptau = 2.0 * (time - t_initial) / t_duration - 1.0
-
-        # seg_idx = np.digitize(ptau.real, gd.segment_ends, right=False) - 1
-        # seg_idx = np.clip(seg_idx, 0, gd.num_segments-1)
-        # discrete_outputs['segment_index'] = seg_idx
 
         ptau0_seg = gd.segment_ends[seg_idx]
         ptauf_seg = gd.segment_ends[seg_idx + 1]
@@ -96,9 +90,6 @@ class TauComp(om.ExplicitComponent):
         td_seg = ptauf_seg - ptau0_seg
 
         outputs['stau'] = 2.0 * (ptau - ptau0_seg) / td_seg - 1.0
-
-        # print(outputs['stau'])
-
         outputs['dstau_dt'] = 4 / (t_duration * td_seg)
         outputs['time_phase'] = time - t_initial
 
