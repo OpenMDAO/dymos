@@ -1,7 +1,3 @@
-### Summary of Issue
-
-<A brief summary of the issue>
-
 ### Issue Type
 
 - [x] Bug
