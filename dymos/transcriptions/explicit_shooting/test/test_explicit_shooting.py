@@ -246,13 +246,15 @@ class TestExplicitShooting(unittest.TestCase):
 
         prob.run_driver()
 
-        x_f = prob.get_val('phase0.integrator.states_out:x')
-        y_f = prob.get_val('phase0.integrator.states_out:y')
-        t_f = prob.get_val('phase0.integrator.t_final')
+        x = prob.get_val('phase0.timeseries.states:x')
+        y = prob.get_val('phase0.timeseries.states:y')
+        t = prob.get_val('phase0.timeseries.time')
+        tp = prob.get_val('phase0.timeseries.time_phase')
 
-        assert_near_equal(x_f, 10.0, tolerance=1.0E-5)
-        assert_near_equal(y_f, 5.0, tolerance=1.0E-5)
-        assert_near_equal(t_f, 1.8016, tolerance=5.0E-3)
+        assert_near_equal(x[-1, ...], 10.0, tolerance=1.0E-5)
+        assert_near_equal(y[-1, ...], 5.0, tolerance=1.0E-5)
+        assert_near_equal(t[-1, ...], 1.8016, tolerance=5.0E-3)
+        assert_near_equal(tp[-1, ...], 1.8016, tolerance=5.0E-3)
 
         with np.printoptions(linewidth=1024):
             cpd = prob.check_partials(compact_print=True, method='cs', out_stream=None)
