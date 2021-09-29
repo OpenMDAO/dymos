@@ -34,12 +34,17 @@ class TestODEEvaluationGroup(unittest.TestCase):
         polynomial_control_options = {}
 
         p = om.Problem()
+
+        tx = dm.GaussLobatto(num_segments=1, order=3)
+
         p.model.add_subsystem('ode_eval', ODEEvaluationGroup(ode_class, time_options, state_options,
                                                              param_options, control_options,
                                                              polynomial_control_options,
+                                                             grid_data=tx.grid_data,
                                                              ode_init_kwargs=None))
         p.setup(force_alloc_complex=True)
 
+        p.model.ode_eval.set_segment_index(0)
         p.set_val('ode_eval.states:x', [1.25])
         p.set_val('ode_eval.time', [2.2])
         p.set_val('ode_eval.parameters:p', [1.0])
@@ -52,7 +57,7 @@ class TestODEEvaluationGroup(unittest.TestCase):
 
         assert_near_equal(p.get_val('ode_eval.state_rate_collector.state_rates:x_rate'), xdot_check)
 
-        cpd = p.check_partials(method='cs')
+        cpd = p.check_partials(compact_print=True, method='cs')
         assert_check_partials(cpd)
 
 

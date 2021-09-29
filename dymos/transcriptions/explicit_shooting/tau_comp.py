@@ -21,12 +21,13 @@ class TauComp(om.ExplicitComponent):
     def __init__(self, grid_data=None, **kwargs):
         super().__init__(**kwargs)
         self._grid_data = grid_data
-        # self._no_check_partials = not dymos_options['include_check_partials']
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
         """
         Declare component options.
         """
+        self.options.declare('segment_index', types=int, desc='index of the current segment')
         self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of time (or the integration variable)')
 
@@ -43,7 +44,7 @@ class TauComp(om.ExplicitComponent):
         self.add_output('stau', units=None, val=1.0)
         self.add_output('dstau_dt', units=f'1/{time_units}', val=1.0)
         self.add_output('time_phase', units=time_units, val=1.0)
-        self.add_discrete_output('segment_index', val=0)
+        # self.add_discrete_output('segment_index', val=0)
 
         # Setup partials
         self.declare_partials(of='ptau', wrt='t_initial', val=1.0)
@@ -75,16 +76,13 @@ class TauComp(om.ExplicitComponent):
             `Vector` containing discrete outputs.
         """
         gd = self._grid_data
+        seg_idx = self.options['segment_index']
 
         time = inputs['time']
-        t_initial = inputs['t_initial']
-        t_duration = inputs['t_duration']
+        t_initial = inputs['t_initial'].copy()
+        t_duration = inputs['t_duration'].copy()
 
         outputs['ptau'] = ptau = 2.0 * (time - t_initial) / t_duration - 1.0
-
-        seg_idx = np.digitize(ptau.real, gd.segment_ends, right=False) - 1
-        seg_idx = np.clip(seg_idx, 0, gd.num_segments-1)
-        discrete_outputs['segment_index'] = seg_idx
 
         ptau0_seg = gd.segment_ends[seg_idx]
         ptauf_seg = gd.segment_ends[seg_idx + 1]
@@ -107,15 +105,16 @@ class TauComp(om.ExplicitComponent):
             Subjac components written to partials[output_name, input_name].
         """
         gd = self._grid_data
+        seg_idx = self.options['segment_index']
 
         time = inputs['time']
         t_initial = inputs['t_initial']
         t_duration = inputs['t_duration']
 
-        ptau = 2.0 * (time - t_initial) / t_duration - 1.0
+        # ptau = 2.0 * (time - t_initial) / t_duration - 1.0
 
-        seg_idx = np.digitize(ptau.real, gd.segment_ends, right=False) - 1
-        seg_idx = np.clip(seg_idx, 0, gd.num_segments-1)
+        # seg_idx = np.digitize(ptau.real, gd.segment_ends, right=False) - 1
+        # seg_idx = np.clip(seg_idx, 0, gd.num_segments-1)
 
         ptau0_seg = gd.segment_ends[seg_idx]
         ptauf_seg = gd.segment_ends[seg_idx + 1]

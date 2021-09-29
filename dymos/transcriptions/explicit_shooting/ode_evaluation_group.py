@@ -55,6 +55,21 @@ class ODEEvaluationGroup(om.Group):
         self.grid_data = grid_data
         self.ode_init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
 
+    def set_segment_index(self, seg_idx):
+        """
+        Set the segment_index option on those subsystems which require it.
+
+        Parameters
+        ----------
+        seg_idx : int
+            The index of the current segment.
+        """
+        self._get_subsystem('tau_comp').options['segment_index'] = seg_idx
+
+        control_interp_comp = self._get_subsystem('control_interp')
+        if control_interp_comp:
+            control_interp_comp.options['segment_index'] = seg_idx
+
     def setup(self):
         """
         Define the structure of the ODEEvaluationGroup.
@@ -66,15 +81,15 @@ class ODEEvaluationGroup(om.Group):
         # This makes taking the derivatives more consistent without Exceptions.
         self._ivc = self.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
+        # Add a component to compute the current non-dimensional phase time.
+        self.add_subsystem('tau_comp', TauComp(grid_data=self.grid_data,
+                                               time_units=self.time_options['units']),
+                           promotes_inputs=['time', 't_initial', 't_duration'],
+                           promotes_outputs=['stau', 'ptau', 'dstau_dt', 'time_phase'])
+
         if self.control_options or self.polynomial_control_options:
             c_options = self.control_options
             pc_options = self.polynomial_control_options
-
-            # Add a component to compute the current non-dimensional phase time.
-            self.add_subsystem('tau_comp', TauComp(grid_data=self.grid_data,
-                                                   time_units=self.time_options['units']),
-                               promotes_inputs=['time', 't_initial', 't_duration'],
-                               promotes_outputs=['stau', 'ptau', 'dstau_dt', 'time_phase', 'segment_index'])
 
             # Add control interpolant
             self._control_comp = self.add_subsystem('control_interp',
@@ -82,7 +97,7 @@ class ODEEvaluationGroup(om.Group):
                                                                                  control_options=c_options,
                                                                                  polynomial_control_options=pc_options,
                                                                                  time_units=self.time_options['units']),
-                                                    promotes_inputs=['ptau', 'stau', 'dstau_dt', 'segment_index'])
+                                                    promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
 
         self.add_subsystem('ode', self.ode_class(num_nodes=1, **self.ode_init_kwargs))
 
@@ -217,6 +232,9 @@ class ODEEvaluationGroup(om.Group):
 
                 self._ivc.add_output(uhat_name, shape=(num_control_input_nodes,) + shape, units=units)
                 self.add_design_var(uhat_name)
+                self.add_constraint(u_name)
+                self.add_constraint(u_rate_name)
+                self.add_constraint(u_rate2_name)
 
                 self.promotes('control_interp', inputs=[uhat_name],
                               outputs=[u_name, u_rate_name, u_rate2_name])
@@ -272,6 +290,9 @@ class ODEEvaluationGroup(om.Group):
 
                 self._ivc.add_output(uhat_name, shape=(num_control_input_nodes,) + shape, units=units)
                 self.add_design_var(uhat_name)
+                self.add_constraint(u_name)
+                self.add_constraint(u_rate_name)
+                self.add_constraint(u_rate2_name)
 
                 self.promotes('control_interp', inputs=[uhat_name],
                               outputs=[u_name, u_rate_name, u_rate2_name])
