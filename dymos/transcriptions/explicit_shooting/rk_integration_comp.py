@@ -5,6 +5,7 @@ from ...options import options as dymos_options
 
 from .ode_evaluation_group import ODEEvaluationGroup
 from ...utils.misc import get_rate_units
+from ...utils.introspection import filter_outputs, classify_var
 
 
 rk_methods = {'rk4': {'a': np.array([[0.0, 0.0, 0.0, 0.0],
@@ -385,10 +386,50 @@ class RKIntegrationComp(om.ExplicitComponent):
 
     def _setup_timeseries(self):
         if self._standalone_mode:
-            self._configure_timeseries()
+            self._configure_timeseries_outputs()
 
-    def _configure_timeseries(self):
-        pass
+    def _configure_timeseries_outputs(self):
+        """
+        Creates a mapping of {output_name : {'ode_path': str, 'units': str, 'shape': tuple, 'idxs_in_y': numpy.Indexer}.
+
+        This mapping is used to determine which variables of the ODE need to be saved in the
+        algebratic outputs (y) due to being requested as timeseries outputs.
+        """
+        ode_eval = self._prob.model._get_subsystem('ode_eval')
+        patterns = list(self.timeseries_options['timeseries']['outputs'].keys())
+        matching_outputs = filter_outputs(patterns, ode_eval)
+
+        timeseries_output_names = []
+
+        for var, options in matching_outputs.items():
+            if var in self.timeseries_options['timeseries']['outputs']:
+                var_options = self.timeseries_options['timeseries']['outputs'][var]
+                # var explicitly matched
+                output_name = var_options['output_name'] if var_options['output_name'] else var.split('.')[-1]
+                units = var_options.get('units', '') or options.get('units', None)
+                shape = options['shape']
+            else:
+                # var matched via wildcard
+                output_name = var.split('.')[-1]
+                units = options['units']
+                shape = options['shape']
+
+            if output_name in timeseries_output_names:
+                raise ValueError(f"Requested timeseries output {var} matches multiple output names "
+                                 f"within the ODE. Use `<phase>.add_timeseries_output({var}, "
+                                 f"output_name=<new_name>)' to disambiguate the timeseries name.")
+
+            timeseries_output_names.append(output_name)
+            size = np.prod(shape)
+
+
+
+
+
+            simple_warning(f"The timeseries variable name {output_name} is "
+                           f"duplicated in these variables: {var_list_as_string}. "
+                           "Disambiguate by using the add_timeseries_output "
+                           "output_name option.")
 
     def _setup_storage(self):
         if self._standalone_mode:
@@ -457,6 +498,9 @@ class RKIntegrationComp(om.ExplicitComponent):
             start_y += control_size
             start_Z += control_param_size
             start_theta += control_param_size
+
+        for name, options in self._timeseries_options.items():
+            self._control_idxs_in_y[control_name] = np.s_[start_y:start_y+control_size]
 
         N = self.options['num_steps_per_segment']
         rk = rk_methods[self.options['method']]
@@ -660,8 +704,8 @@ class RKIntegrationComp(om.ExplicitComponent):
         for name in self.state_options:
             f[self.state_idxs[name]] = self._prob.get_val(f'state_rate_collector.state_rates:{name}_rate').ravel()
 
-        # pack any control values into y
         if y is not None:
+            # pack any control values and rates into y
             for name in self.control_options:
                 output_name = self._control_output_names[name]
                 rate_name = self._control_rate_names[name]
@@ -669,6 +713,17 @@ class RKIntegrationComp(om.ExplicitComponent):
                 y[self._control_idxs_in_y[name]] = self._prob.get_val(output_name).ravel()
                 y[self._control_rate_idxs_in_y[name]] = self._prob.get_val(rate_name).ravel()
                 y[self._control_rate2_idxs_in_y[name]] = self._prob.get_val(rate2_name).ravel()
+
+            # pack any polynomial control values and rates into y
+            for name in self.polynomial_control_options:
+                output_name = self._polynomial_control_output_names[name]
+                rate_name = self._polynomial_control_rate_names[name]
+                rate2_name = self._polynomial_control_rate2_names[name]
+                y[self._polynomial_control_idxs_in_y[name]] = self._prob.get_val(output_name).ravel()
+                y[self._polynomial_control_rate_idxs_in_y[name]] = self._prob.get_val(rate_name).ravel()
+                y[self._polynomial_control_rate2_idxs_in_y[name]] = self._prob.get_val(rate2_name).ravel()
+
+            # pack any polynomial control values and rates into y
 
             for name in self.polynomial_control_options:
                 output_name = self._polynomial_control_output_names[name]
