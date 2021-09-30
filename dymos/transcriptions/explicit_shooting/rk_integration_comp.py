@@ -123,6 +123,9 @@ class RKIntegrationComp(om.ExplicitComponent):
         self.theta_size = 0
         self.Z_size = 0
 
+        self._totals_of_names = []
+        self._totals_wrt_names = []
+
         # If _standalone_mode is True, this component will fully perform all of its setup at setup
         # time.  If False, it will need to have configure_io called on it to properly finish its
         # setup.
@@ -161,9 +164,10 @@ class RKIntegrationComp(om.ExplicitComponent):
             self._configure_time_io()
 
     def _configure_time_io(self):
-        gd = self._grid_data
-        N = self.options['num_steps_per_segment']
         num_output_rows = self._num_output_rows
+
+        self._totals_of_names.append('time')
+        self._totals_wrt_names.extend(['time', 't_initial', 't_duration'])
 
         self.add_input('t_initial', shape=(1,), units=self.time_options['units'])
         self.add_input('t_duration', shape=(1,), units=self.time_options['units'])
@@ -199,6 +203,10 @@ class RKIntegrationComp(om.ExplicitComponent):
         for state_name, options in self.state_options.items():
             self._state_input_names[state_name] = f'states:{state_name}'
             self._state_output_names[state_name] = f'states_out:{state_name}'
+
+            self._totals_of_names.append(f'state_rate_collector.state_rates:{state_name}_rate')
+            self._totals_wrt_names.append(self._state_input_names[state_name])
+
             self.add_input(self._state_input_names[state_name],
                            shape=options['shape'],
                            units=options['units'],
@@ -250,6 +258,8 @@ class RKIntegrationComp(om.ExplicitComponent):
 
         for param_name, options in self.parameter_options.items():
             self._param_input_names[param_name] = f'parameters:{param_name}'
+            self._totals_wrt_names.append(self._param_input_names[param_name])
+
             self.add_input(self._param_input_names[param_name],
                            shape=options['shape'],
                            val=options['val'],
@@ -291,6 +301,11 @@ class RKIntegrationComp(om.ExplicitComponent):
             self._control_output_names[control_name] = f'control_values:{control_name}'
             self._control_rate_names[control_name] = f'control_rates:{control_name}_rate'
             self._control_rate2_names[control_name] = f'control_rates:{control_name}_rate2'
+
+            self._totals_wrt_names.append(self._control_input_names[control_name])
+            self._totals_of_names.append(self._control_output_names[control_name])
+            self._totals_of_names.append(self._control_rate_names[control_name])
+            self._totals_of_names.append(self._control_rate2_names[control_name])
 
             self.add_input(self._control_input_names[control_name],
                            shape=control_param_shape,
@@ -361,6 +376,11 @@ class RKIntegrationComp(om.ExplicitComponent):
             self._polynomial_control_rate_names[name] = f'polynomial_control_rates:{name}_rate'
             self._polynomial_control_rate2_names[name] = f'polynomial_control_rates:{name}_rate2'
 
+            self._totals_wrt_names.append(self._polynomial_control_input_names[name])
+            self._totals_of_names.append(self._polynomial_control_output_names[name])
+            self._totals_of_names.append(self._polynomial_control_rate_names[name])
+            self._totals_of_names.append(self._polynomial_control_rate2_names[name])
+
             self.add_input(self._polynomial_control_input_names[name],
                            shape=control_param_shape,
                            units=options['units'],
@@ -406,9 +426,20 @@ class RKIntegrationComp(om.ExplicitComponent):
             patterns = list(ts_opts['outputs'].keys())
             matching_outputs = filter_outputs(patterns, ode_eval)
 
+            explicit_requests = set([key for key in
+                                     self.timeseries_options[ts_name]['outputs'].keys()
+                                     if '*' not in key])
+
+            unmatched_requests = sorted(list(set(explicit_requests) - set(matching_outputs.keys())))
+
+            if unmatched_requests:
+                om.issue_warning(msg='The following timeseries outputs were requested but '
+                                     f'not found in the ODE: {", ".join(unmatched_requests)}',
+                                 category=om.OpenMDAOWarning)
+
             for var, var_meta in matching_outputs.items():
-                if var in self.timeseries_options['timeseries']['outputs']:
-                    ts_var_options = self.timeseries_options['timeseries']['outputs'][var]
+                if var in self.timeseries_options[ts_name]['outputs']:
+                    ts_var_options = self.timeseries_options[ts_name]['outputs'][var]
                     # var explicitly matched
                     output_name = ts_var_options['output_name'] if ts_var_options['output_name'] else var.split('.')[-1]
                     units = ts_var_options.get('units', None) or var_meta.get('units', None)
@@ -431,6 +462,8 @@ class RKIntegrationComp(om.ExplicitComponent):
                 ode_eval.add_constraint(var)
 
                 self._timeseries_output_names[output_name] = f'timeseries:{output_name}'
+                self._totals_of_names.append(self._filtered_timeseries_outputs[output_name]['path'])
+
                 self.add_output(self._timeseries_output_names[output_name],
                                 shape=(num_output_rows,) + shape,
                                 units=units,
@@ -620,6 +653,9 @@ class RKIntegrationComp(om.ExplicitComponent):
         self._num_output_rows = gd.num_segments * 2
         self._num_rows = gd.num_segments * (N + 1)
 
+        self._totals_of_names = []
+        self._totals_wrt_names = []
+
         self._setup_subprob()
         self._setup_time()
         self._setup_parameters()
@@ -789,9 +825,6 @@ class RKIntegrationComp(om.ExplicitComponent):
         y_theta : np.ndarray
             A matrix of the derivatives of each element of the rates `y` wrt the parameters `theta`.
         """
-        of_names = []
-        wrt_names = ['time', 't_initial', 't_duration']
-
         # transcribe time
         self._prob.set_val('time', t, units=self.time_options['units'])
         self._prob.set_val('t_initial', theta[0, 0], units=self.time_options['units'])
@@ -801,39 +834,26 @@ class RKIntegrationComp(om.ExplicitComponent):
         for name in self.state_options:
             input_name = self._state_input_names[name]
             self._prob.set_val(input_name, x[self.state_idxs[name], 0])
-            of_names.append(f'state_rate_collector.state_rates:{name}_rate')
-            wrt_names.append(input_name)
 
         # transcribe parameters
         for name in self.parameter_options:
             input_name = self._param_input_names[name]
             self._prob.set_val(input_name, theta[self._parameter_idxs_in_theta[name], 0])
-            wrt_names.append(input_name)
 
         # transcribe controls
         for name in self.control_options:
             input_name = self._control_input_names[name]
-            output_name = self._control_output_names[name]
-            rate_name = self._control_rate_names[name]
-            rate2_name = self._control_rate2_names[name]
             self._prob.set_val(input_name, theta[self._control_idxs_in_theta[name], 0])
-            of_names.append(output_name)
-            of_names.append(rate_name)
-            of_names.append(rate2_name)
-            wrt_names.append(input_name)
 
         for name in self.polynomial_control_options:
             input_name = self._polynomial_control_input_names[name]
             self._prob.set_val(input_name, theta[self._polynomial_control_idxs_in_theta[name], 0])
-            wrt_names.append(input_name)
-
-        for name, options in self._filtered_timeseries_outputs.items():
-            of_names.append(self._filtered_timeseries_outputs[name]['path'])
 
         # Re-run in case the inputs have changed.
         self._prob.run_model()
 
-        totals = self._prob.compute_totals(of=of_names, wrt=wrt_names, use_abs_names=False)
+        totals = self._prob.compute_totals(of=self._totals_of_names, wrt=self._totals_wrt_names,
+                                           use_abs_names=False)
 
         for state_name in self.state_options:
             of_name = f'state_rate_collector.state_rates:{state_name}_rate'
