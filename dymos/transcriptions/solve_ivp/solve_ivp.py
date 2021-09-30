@@ -173,7 +173,7 @@ class SolveIVP(TranscriptionBase):
 
             phase.connect(f'initial_states:{state_name}',
                           f'segment_0.initial_states:{state_name}',
-                          src_indices=src_idxs, flat_src_indices=True)
+                          src_indices=(src_idxs,), flat_src_indices=True)
 
             phase.connect(f'segment_0.states:{state_name}',
                           f'state_mux_comp.segment_0_states:{state_name}')
@@ -194,7 +194,7 @@ class SolveIVP(TranscriptionBase):
                 src_idxs = get_src_indices_by_row([nnps_i-1], shape=options['shape'])
                 phase.connect(f'segment_{i - 1}.states:{state_name}',
                               f'segment_{i}.initial_states:{state_name}',
-                              src_indices=src_idxs, flat_src_indices=True)
+                              src_indices=(src_idxs,), flat_src_indices=True)
 
                 phase.connect(f'segment_{i}.states:{state_name}',
                               f'state_mux_comp.segment_{i}_states:{state_name}')
@@ -346,7 +346,7 @@ class SolveIVP(TranscriptionBase):
                 src_idxs = get_src_indices_by_row(row_idxs=seg_idxs, shape=options['shape'])
                 phase.connect(src_name=f'control_values_all:{name}',
                               tgt_name=f'segment_{i}.controls:{name}',
-                              src_indices=src_idxs, flat_src_indices=True)
+                              src_indices=(src_idxs,), flat_src_indices=True)
 
             targets = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
             if targets:
@@ -615,9 +615,10 @@ class SolveIVP(TranscriptionBase):
                 shape = phase.parameter_options[rate_src]['shape']
                 param_size = np.prod(shape)
                 src_idxs = np.tile(np.arange(0, param_size, dtype=int), nn)
+                src_idxs = np.reshape(src_idxs, (nn,) + shape)
                 phase.promotes('timeseries', inputs=[(f'all_values:state_rates:{name}',
                                                       f'parameters:{rate_src}')],
-                               src_indices=src_idxs, src_shape=shape)
+                               src_indices=(src_idxs,), src_shape=shape)
             else:
                 phase.connect(src_name=self.get_rate_source_path(name, phase),
                               tgt_name=f'timeseries.all_values:state_rates:{name}',
@@ -701,7 +702,7 @@ class SolveIVP(TranscriptionBase):
 
                 tgt_name = f'all_values:parameters:{name}'
                 phase.promotes('timeseries', inputs=[(tgt_name, prom_name)],
-                               src_indices=src_idxs, flat_src_indices=True)
+                               src_indices=(src_idxs,), flat_src_indices=True)
 
         for var, options in phase._timeseries['timeseries']['outputs'].items():
             output_name = options['output_name']
@@ -794,8 +795,9 @@ class SolveIVP(TranscriptionBase):
             else:
                 src_idxs_raw = np.zeros(1, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                src_idxs = np.squeeze(src_idxs, axis=0)
 
-            connection_info.append(([f'ode.{tgt}' for tgt in ode_tgts], src_idxs))
+            connection_info.append(([f'ode.{tgt}' for tgt in ode_tgts], (src_idxs,)))
 
         return connection_info
 

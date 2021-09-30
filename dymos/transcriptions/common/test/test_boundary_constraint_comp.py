@@ -176,9 +176,9 @@ class TestMatrixInitialBoundaryValue(unittest.TestCase):
         bv_comp = self.p.model.add_subsystem('bv_comp', BoundaryConstraintComp(loc='initial'))
         bv_comp._add_constraint(name='M', shape=(3, 3))
 
-        src_idxs = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]).flat[:]
+        src_idxs = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
 
-        self.p.model.connect('M', 'bv_comp.initial_value_in:M', src_indices=src_idxs,
+        self.p.model.connect('M', 'bv_comp.initial_value_in:M', src_indices=(src_idxs,),
                              flat_src_indices=True)
 
         self.p.setup(force_alloc_complex=True)
@@ -225,9 +225,9 @@ class TestMatrixFinalBoundaryValue(unittest.TestCase):
         bv_comp = self.p.model.add_subsystem('bv_comp', BoundaryConstraintComp(loc='final'))
         bv_comp._add_constraint(name='M', shape=(3, 3))
 
-        src_idxs = np.array([[-9, -8, -7], [-6, -5, -4], [-3, -2, -1]]).flat[:]
+        src_idxs = np.array([[-9, -8, -7], [-6, -5, -4], [-3, -2, -1]])
 
-        self.p.model.connect('M', 'bv_comp.final_value_in:M', src_indices=src_idxs,
+        self.p.model.connect('M', 'bv_comp.final_value_in:M', src_indices=(src_idxs,),
                              flat_src_indices=True)
 
         self.p.setup(force_alloc_complex=True)
@@ -281,22 +281,22 @@ class TestMultipleConstraints(unittest.TestCase):
         M_shape = (3, 3)
         M_size = np.prod(M_shape)
         bv_comp._add_constraint(name='M', shape=M_shape)
-        src_idxs = np.arange(M_size, dtype=int)
-        self.p.model.connect('M', 'bv_comp.initial_value_in:M', src_indices=src_idxs,
+        src_idxs = np.arange(M_size, dtype=int).reshape(M_shape)
+        self.p.model.connect('M', 'bv_comp.initial_value_in:M', src_indices=(src_idxs,),
                              flat_src_indices=True)
 
         pos_shape = (3,)
         pos_size = np.prod(pos_shape)
         bv_comp._add_constraint(name='pos', shape=pos_shape)
         src_idxs = np.arange(pos_size, dtype=int).reshape(pos_shape)
-        self.p.model.connect('pos', 'bv_comp.initial_value_in:pos', src_indices=src_idxs,
+        self.p.model.connect('pos', 'bv_comp.initial_value_in:pos', src_indices=(src_idxs,),
                              flat_src_indices=True)
 
         x_shape = (1,)
         x_size = np.prod(x_shape)
         bv_comp._add_constraint(name='x', shape=x_shape)
         src_idxs = np.arange(x_size, dtype=int).reshape(x_shape)
-        self.p.model.connect('x', 'bv_comp.initial_value_in:x', src_indices=src_idxs,
+        self.p.model.connect('x', 'bv_comp.initial_value_in:x', src_indices=(src_idxs,),
                              flat_src_indices=True)
 
         self.p.setup(force_alloc_complex=True)

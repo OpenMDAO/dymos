@@ -534,9 +534,11 @@ class TranscriptionBase(object):
 
             # Build the correct src_indices regardless of shape
             if loc == 'initial':
-                src_idxs = slice(size)
+                src_idxs = np.arange(size, dtype=int).reshape(shape)
             else:
-                src_idxs = slice(-size, None)
+                src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
+
+            src_idxs = (src_idxs,)
 
             if 'parameters:' in src:
                 sys_name = '{0}_boundary_constraints'.format(loc)
