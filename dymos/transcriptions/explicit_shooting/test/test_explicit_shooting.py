@@ -268,7 +268,7 @@ class TestExplicitShooting(unittest.TestCase):
 
                 prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
 
-                tx = dm.transcriptions.ExplicitShooting(num_segments=10, grid='gauss-lobatto', method=method,
+                tx = dm.transcriptions.ExplicitShooting(num_segments=3, grid='gauss-lobatto', method=method,
                                                         order=3, num_steps_per_segment=5, compressed=True)
 
                 phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
@@ -303,15 +303,21 @@ class TestExplicitShooting(unittest.TestCase):
                 prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 90]), units='deg')
 
                 prob.run_model()
-                #
-                # x = prob.get_val('phase0.timeseries.states:x')
-                # y = prob.get_val('phase0.timeseries.states:y')
-                # t = prob.get_val('phase0.timeseries.time')
-                #
+
+                x = prob.get_val('phase0.timeseries.states:x')
+                y = prob.get_val('phase0.timeseries.states:y')
+
+                # xdot = prob.get_val('phase0.timeseries.states:y')
+                # ydot = prob.get_val('phase0.timeseries.states:y')
+                # check = prob.get_val('phase0.timeseries.states:y')
+                t = prob.get_val('phase0.timeseries.time')
+
                 # assert_near_equal(x[-1, ...], 10.0, tolerance=1.0E-3)
                 # assert_near_equal(y[-1, ...], 5.0, tolerance=1.0E-3)
                 # assert_near_equal(t[-1, ...], 1.8016, tolerance=1.0E-2)
 
+                prob.model.list_outputs()
+
                 with np.printoptions(linewidth=1024):
-                    cpd = prob.check_partials(compact_print=True, method='cs', out_stream=None)
+                    cpd = prob.check_partials(compact_print=False, method='cs', show_only_incorrect=True)#, out_stream=None)
                     assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)

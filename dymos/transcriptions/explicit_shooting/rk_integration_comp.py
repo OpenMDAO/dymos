@@ -110,7 +110,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         self.parameter_options = parameter_options
         self.control_options = control_options
         self.polynomial_control_options = polynomial_control_options
-        self.timeseries_options = None
+        self.timeseries_options = timeseries_options
         self._prob = None
         self._complex_step_mode = complex_step_mode
         self._grid_data = grid_data
@@ -390,46 +390,73 @@ class RKIntegrationComp(om.ExplicitComponent):
 
     def _configure_timeseries_outputs(self):
         """
-        Creates a mapping of {output_name : {'ode_path': str, 'units': str, 'shape': tuple, 'idxs_in_y': numpy.Indexer}.
+        Creates a mapping of {output_name : {'path': str, 'units': str, 'shape': tuple, 'idxs_in_y': numpy.Indexer}.
 
         This mapping is used to determine which variables of the ODE need to be saved in the
         algebratic outputs (y) due to being requested as timeseries outputs.
         """
-        ode_eval = self._prob.model._get_subsystem('ode_eval')
-        patterns = list(self.timeseries_options['timeseries']['outputs'].keys())
-        matching_outputs = filter_outputs(patterns, ode_eval)
+        num_output_rows = self._num_output_rows
+        ode_eval = self._prob.model._get_subsystem('ode_eval.ode')
 
-        timeseries_output_names = []
+        self._timeseries_output_names = {}
+        self._timeseries_idxs_in_y = {}
+        self._filtered_timeseries_outputs = {}
 
-        for var, options in matching_outputs.items():
-            if var in self.timeseries_options['timeseries']['outputs']:
-                var_options = self.timeseries_options['timeseries']['outputs'][var]
-                # var explicitly matched
-                output_name = var_options['output_name'] if var_options['output_name'] else var.split('.')[-1]
-                units = var_options.get('units', '') or options.get('units', None)
-                shape = options['shape']
-            else:
-                # var matched via wildcard
-                output_name = var.split('.')[-1]
-                units = options['units']
-                shape = options['shape']
+        for ts_name, ts_opts in self.timeseries_options.items():
+            patterns = list(ts_opts['outputs'].keys())
+            matching_outputs = filter_outputs(patterns, ode_eval)
 
-            if output_name in timeseries_output_names:
-                raise ValueError(f"Requested timeseries output {var} matches multiple output names "
-                                 f"within the ODE. Use `<phase>.add_timeseries_output({var}, "
-                                 f"output_name=<new_name>)' to disambiguate the timeseries name.")
+            for var, var_meta in matching_outputs.items():
+                if var in self.timeseries_options['timeseries']['outputs']:
+                    ts_var_options = self.timeseries_options['timeseries']['outputs'][var]
+                    # var explicitly matched
+                    output_name = ts_var_options['output_name'] if ts_var_options['output_name'] else var.split('.')[-1]
+                    units = ts_var_options.get('units', None) or var_meta.get('units', None)
+                    shape = var_meta['shape']
+                else:
+                    # var matched via wildcard
+                    output_name = var.split('.')[-1]
+                    units = var_meta['units']
+                    shape = var_meta['shape']
 
-            timeseries_output_names.append(output_name)
-            size = np.prod(shape)
+                if output_name in self._filtered_timeseries_outputs:
+                    raise ValueError(f"Requested timeseries output {var} matches multiple output names "
+                                     f"within the ODE. Use `<phase>.add_timeseries_output({var}, "
+                                     f"output_name=<new_name>)' to disambiguate the timeseries name.")
 
+                self._filtered_timeseries_outputs[output_name] = {'path': f'ode_eval.ode.{var}',
+                                                                  'units': units,
+                                                                  'shape': shape}
 
+                ode_eval.add_constraint(var)
 
+                self._timeseries_output_names[output_name] = f'timeseries:{output_name}'
+                self.add_output(self._timeseries_output_names[output_name],
+                                shape=(num_output_rows,) + shape,
+                                units=units,
+                                desc=f'values for timeseries output {output_name} at output nodes')
 
+                self.declare_partials(of=self._timeseries_output_names[output_name],
+                                      wrt='t_initial')
 
-            simple_warning(f"The timeseries variable name {output_name} is "
-                           f"duplicated in these variables: {var_list_as_string}. "
-                           "Disambiguate by using the add_timeseries_output "
-                           "output_name option.")
+                self.declare_partials(of=self._timeseries_output_names[output_name],
+                                      wrt='t_duration')
+
+                for state_name_wrt in self.state_options:
+                    self.declare_partials(of=self._timeseries_output_names[output_name],
+                                          wrt=self._state_input_names[state_name_wrt])
+
+                for param_name_wrt in self.parameter_options:
+                    self.declare_partials(of=self._timeseries_output_names[output_name],
+                                          wrt=self._param_input_names[param_name_wrt])
+
+                for control_name_wrt in self.control_options:
+                    self.declare_partials(of=self._timeseries_output_names[output_name],
+                                          wrt=self._control_input_names[control_name_wrt])
+
+                for control_name_wrt in self.polynomial_control_options:
+                    self.declare_partials(of=self._timeseries_output_names[output_name],
+                                          wrt=self._polynomial_control_input_names[control_name_wrt])
 
     def _setup_storage(self):
         if self._standalone_mode:
@@ -499,8 +526,10 @@ class RKIntegrationComp(om.ExplicitComponent):
             start_Z += control_param_size
             start_theta += control_param_size
 
-        for name, options in self._timeseries_options.items():
-            self._control_idxs_in_y[control_name] = np.s_[start_y:start_y+control_size]
+        for output_name, options in self._filtered_timeseries_outputs.items():
+            size = np.prod(options['shape'], dtype=int)
+            self._timeseries_idxs_in_y[output_name] = np.s_[start_y:start_y+size]
+            start_y += size
 
         N = self.options['num_steps_per_segment']
         rk = rk_methods[self.options['method']]
@@ -725,13 +754,9 @@ class RKIntegrationComp(om.ExplicitComponent):
 
             # pack any polynomial control values and rates into y
 
-            for name in self.polynomial_control_options:
-                output_name = self._polynomial_control_output_names[name]
-                rate_name = self._polynomial_control_rate_names[name]
-                rate2_name = self._polynomial_control_rate2_names[name]
-                y[self._polynomial_control_idxs_in_y[name]] = self._prob.get_val(output_name).ravel()
-                y[self._polynomial_control_rate_idxs_in_y[name]] = self._prob.get_val(rate_name).ravel()
-                y[self._polynomial_control_rate2_idxs_in_y[name]] = self._prob.get_val(rate2_name).ravel()
+            for output_name, options in self._filtered_timeseries_outputs.items():
+                path = options['path']
+                y[self._timeseries_idxs_in_y[output_name]] = self._prob.get_val(path).ravel()
 
     def eval_f_derivs(self, x, t, theta, f_x, f_t, f_theta, y_x=None, y_t=None, y_theta=None):
         """
@@ -802,6 +827,9 @@ class RKIntegrationComp(om.ExplicitComponent):
             self._prob.set_val(input_name, theta[self._polynomial_control_idxs_in_theta[name], 0])
             wrt_names.append(input_name)
 
+        for name, options in self._filtered_timeseries_outputs.items():
+            of_names.append(self._filtered_timeseries_outputs[name]['path'])
+
         # Re-run in case the inputs have changed.
         self._prob.run_model()
 
@@ -854,6 +882,36 @@ class RKIntegrationComp(om.ExplicitComponent):
                 y_theta[self._control_idxs_in_y[control_name], idxs_wrt] = totals[of_name, wrt_name]
                 y_theta[self._control_rate_idxs_in_y[control_name], idxs_wrt] = totals[of_rate_name, wrt_name]
                 y_theta[self._control_rate2_idxs_in_y[control_name], idxs_wrt] = totals[of_rate2_name, wrt_name]
+
+            for name, options in self._filtered_timeseries_outputs.items():
+                idxs_of = self._timeseries_idxs_in_y[name]
+                of_name = options['path']
+
+                y_t[idxs_of, 0] = totals[options['path'], 'time']
+
+                y_theta[idxs_of, 0] = totals[of_name, 't_initial']
+                y_theta[idxs_of, 1] = totals[of_name, 't_duration']
+
+                for state_name_wrt in self.state_options:
+                    idxs_wrt = self.state_idxs[state_name_wrt]
+                    py_px = totals[of_name, self._state_input_names[state_name_wrt]]
+                    y_x[idxs_of, idxs_wrt] = py_px.ravel()
+
+                for param_name_wrt in self.parameter_options:
+                    idxs_wrt = self._parameter_idxs_in_theta[param_name_wrt]
+                    py_pp = totals[of_name, self._param_input_names[param_name_wrt]]
+                    y_theta[idxs_of, idxs_wrt] = py_pp.ravel()
+
+                for control_name_wrt in self.control_options:
+                    idxs_wrt = self._control_idxs_in_theta[control_name_wrt]
+                    py_puhat = totals[of_name, self._control_input_names[control_name_wrt]]
+                    y_theta[idxs_of, idxs_wrt] = py_puhat.ravel()
+
+                for pc_name_wrt in self.polynomial_control_options:
+                    idxs_wrt = self._polynomial_control_idxs_in_theta[pc_name_wrt]
+                    py_puhat = totals[of_name, self._polynomial_control_input_names[pc_name_wrt]]
+                    y_theta[idxs_of, idxs_wrt] = py_puhat.ravel()
+
 
     def _propagate(self, inputs, outputs, derivs=None):
         """
@@ -1008,6 +1066,19 @@ class RKIntegrationComp(om.ExplicitComponent):
                 outputs[rate_name] = self._y[idxs, self._control_rate_idxs_in_y[control_name]]
                 outputs[rate2_name] = self._y[idxs, self._control_rate2_idxs_in_y[control_name]]
 
+            # Extract the control values and rates
+            for control_name, options in self.polynomial_control_options.items():
+                oname = self._polynomial_control_output_names[control_name]
+                rate_name = self._polynomoial_control_rate_names[control_name]
+                rate2_name = self._polynomial_control_rate2_names[control_name]
+                outputs[oname] = self._y[idxs, self._control_idxs_in_y[control_name]]
+                outputs[rate_name] = self._y[idxs, self._control_rate_idxs_in_y[control_name]]
+                outputs[rate2_name] = self._y[idxs, self._control_rate2_idxs_in_y[control_name]]
+
+            for name, options in self._filtered_timeseries_outputs.items():
+                oname = self._timeseries_output_names[name]
+                outputs[oname] = self._y[idxs, self._timeseries_idxs_in_y[name]]
+
         if derivs:
             idxs = self._output_src_idxs
             derivs['time', 't_duration'] = self._dt_dZ[idxs, 0, self.x_size+1]
@@ -1062,6 +1133,34 @@ class RKIntegrationComp(om.ExplicitComponent):
                     derivs[of, wrt] = self._dy_dZ[idxs, of_rows, wrt_cols]
                     derivs[of_rate, wrt] = self._dy_dZ[idxs, of_rate_rows, wrt_cols]
                     derivs[of_rate2, wrt] = self._dy_dZ[idxs, of_rate2_rows, wrt_cols]
+
+            for name, options in self._filtered_timeseries_outputs.items():
+                of = self._timeseries_output_names[name]
+                of_rows = self._timeseries_idxs_in_y[name]
+
+                derivs[of, 't_initial'] = self._dy_dZ[idxs, of_rows, self.x_size]
+                derivs[of, 't_duration'] = self._dy_dZ[idxs, of_rows, self.x_size+1]
+
+                for wrt_state_name in self.state_options:
+                    wrt = self._state_input_names[wrt_state_name]
+                    wrt_cols = self._state_idxs_in_Z[wrt_state_name]
+                    derivs[of, wrt] = self._dy_dZ[idxs, of_rows, wrt_cols]
+
+                for wrt_param_name in self.parameter_options:
+                    wrt = self._param_input_names[wrt_param_name]
+                    wrt_cols = self._parameter_idxs_in_Z[wrt_param_name]
+                    derivs[of, wrt] = self._dy_dZ[idxs, of_rows, wrt_cols]
+
+                for wrt_control_name in self.control_options:
+                    wrt = self._control_input_names[wrt_control_name]
+                    wrt_cols = self._control_idxs_in_Z[wrt_control_name]
+                    derivs[of, wrt] = self._dy_dZ[idxs, of_rows, wrt_cols]
+
+                for wrt_pc_name in self.polynomial_control_options:
+                    wrt = self._polynomial_control_input_names[wrt_pc_name]
+                    wrt_cols = self._polynomial_control_idxs_in_Z[wrt_pc_name]
+                    derivs[of, wrt] = self._dy_dZ[idxs, of_rows, wrt_cols]
+
 
     def compute(self, inputs, outputs):
         """
