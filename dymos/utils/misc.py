@@ -1,7 +1,6 @@
-from collections import Iterable
+from collections.abc import Iterable
 
 import numpy as np
-import openmdao.api as om
 
 from .constants import INF_BOUND
 

@@ -1,3 +1,5 @@
+import fnmatch
+
 import openmdao.api as om
 from dymos.utils.misc import _unspecified
 from ..phase.options import StateOptionsDictionary
@@ -521,3 +523,37 @@ def configure_states_discovery(state_options, ode):
     for name, options in state_options.items():
         if options['rate_source'] is None:
             raise ValueError(f"State '{name}' is missing a rate_source.")
+
+
+def filter_outputs(patterns, sys):
+    """
+    Find all outputs of the given system that match one or more of the strings given in patterns.
+
+    Parameters
+    ----------
+    patterns : str or Sequence
+        A string or sequence of strings to be matched in the outputs of the given system.  These
+        may include glob patterns.
+    sys : System
+        The OpenMDAO system whose outputs are to be filtered.
+
+    Returns
+    -------
+    dict of {str: dict}
+        A dictionary where the matching output names are the keys and the associated dict provides
+        the 'units' and 'shapes' metadata.
+    """
+    outputs = {opts['prom_name']: opts for (k, opts) in
+               sys.get_io_metadata(iotypes=('output',), metadata_keys=['shape', 'units']).items()}
+    output_names = list(outputs.keys())
+    filtered = []
+    results = {}
+
+    for pattern in patterns:
+        filtered.extend(fnmatch.filter(output_names, pattern))
+    filtered = list(set(filtered))  # de-dupe
+
+    for var in filtered:
+        results[var] = {'units': outputs[var]['units'], 'shape': outputs[var]['shape']}
+
+    return results
