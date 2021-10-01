@@ -258,7 +258,7 @@ class TestExplicitShooting(unittest.TestCase):
         assert_near_equal(tp[-1, ...], 1.8016, tolerance=5.0E-3)
 
         with np.printoptions(linewidth=1024):
-            cpd = prob.check_partials(compact_print=True, method='cs', out_stream=None)
+            cpd = prob.check_partials(compact_print=False, method='cs', out_stream=None)
             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
     def test_explicit_shooting_timeseries_ode_output(self):

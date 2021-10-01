@@ -487,9 +487,8 @@ class ExplicitShooting(TranscriptionBase):
                                                       desc=options['desc'],
                                                       src=f'polynomial_control_values:{control_name}')
 
-                if added_src:
-                    phase.connect(src_name=f'integrator.polynomial_control_values:{control_name}',
-                                  tgt_name=f'{timeseries_name}.input_values:polynomial_controls:{control_name}')
+                phase.connect(src_name=f'integrator.polynomial_control_values:{control_name}',
+                              tgt_name=f'{timeseries_name}.input_values:polynomial_controls:{control_name}')
 
                 # Control rates
                 timeseries_comp._add_output_configure(f'polynomial_control_rates:{control_name}_rate',

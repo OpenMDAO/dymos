@@ -107,10 +107,10 @@ class RKIntegrationComp(om.ExplicitComponent):
         self.ode_class = ode_class
         self.time_options = time_options
         self.state_options = state_options
-        self.parameter_options = parameter_options
-        self.control_options = control_options
-        self.polynomial_control_options = polynomial_control_options
-        self.timeseries_options = timeseries_options
+        self.parameter_options = parameter_options or {}
+        self.control_options = control_options or {}
+        self.polynomial_control_options = polynomial_control_options or {}
+        self.timeseries_options = timeseries_options or {}
         self._prob = None
         self._complex_step_mode = complex_step_mode
         self._grid_data = grid_data
@@ -400,6 +400,26 @@ class RKIntegrationComp(om.ExplicitComponent):
                             shape=(num_output_rows,) + options['shape'],
                             units=get_rate_units(options['units'], time_units, deriv=2),
                             desc=f'values for second derivative rate of control {name} at output nodes')
+
+            self.declare_partials(of=self._polynomial_control_output_names[name],
+                                  wrt=self._polynomial_control_input_names[name],
+                                  val=1.0)
+
+            self.declare_partials(of=self._polynomial_control_rate_names[name],
+                                  wrt=self._polynomial_control_input_names[name],
+                                  val=1.0)
+
+            self.declare_partials(of=self._polynomial_control_rate2_names[name],
+                                  wrt=self._polynomial_control_input_names[name],
+                                  val=1.0)
+
+            self.declare_partials(of=self._polynomial_control_rate_names[name],
+                                  wrt='t_duration',
+                                  val=1.0)
+
+            self.declare_partials(of=self._polynomial_control_rate2_names[name],
+                                  wrt='t_duration',
+                                  val=1.0)
 
             self.polynomial_control_idxs[name] = np.s_[self.up_size:self.up_size+control_param_size]
             self.up_size += control_param_size
@@ -891,17 +911,44 @@ class RKIntegrationComp(om.ExplicitComponent):
                 of_rate_name = self._control_rate_names[control_name]
                 of_rate2_name = self._control_rate2_names[control_name]
 
-                y_t[self._control_idxs_in_y[control_name], 0] = totals[of_name, 'time']
-                y_t[self._control_rate_idxs_in_y[control_name], 0] = totals[of_rate_name, 'time']
-                y_t[self._control_rate2_idxs_in_y[control_name], 0] = totals[of_rate2_name, 'time']
+                of_idxs = self._control_idxs_in_y[control_name]
+                of_rate_idxs = self._control_rate_idxs_in_y[control_name]
+                of_rate2_idxs = self._control_rate2_idxs_in_y[control_name]
 
-                y_theta[self._control_idxs_in_y[control_name], 1] = totals[of_name, 't_duration']
-                y_theta[self._control_rate_idxs_in_y[control_name], 1] = totals[of_rate_name, 't_duration']
-                y_theta[self._control_rate2_idxs_in_y[control_name], 1] = totals[of_rate2_name, 't_duration']
+                y_t[of_idxs, 0] = totals[of_name, 'time']
+                y_t[of_rate_idxs, 0] = totals[of_rate_name, 'time']
+                y_t[of_rate2_idxs, 0] = totals[of_rate2_name, 'time']
 
-                y_theta[self._control_idxs_in_y[control_name], idxs_wrt] = totals[of_name, wrt_name]
-                y_theta[self._control_rate_idxs_in_y[control_name], idxs_wrt] = totals[of_rate_name, wrt_name]
-                y_theta[self._control_rate2_idxs_in_y[control_name], idxs_wrt] = totals[of_rate2_name, wrt_name]
+                y_theta[of_idxs, 1] = totals[of_name, 't_duration']
+                y_theta[of_rate_idxs, 1] = totals[of_rate_name, 't_duration']
+                y_theta[of_rate2_idxs, 1] = totals[of_rate2_name, 't_duration']
+
+                y_theta[of_idxs, idxs_wrt] = totals[of_name, wrt_name]
+                y_theta[of_rate_idxs, idxs_wrt] = totals[of_rate_name, wrt_name]
+                y_theta[of_rate2_idxs, idxs_wrt] = totals[of_rate2_name, wrt_name]
+
+            for polynomial_control_name in self.polynomial_control_options:
+                wrt_name = self._polynomial_control_input_names[polynomial_control_name]
+                idxs_wrt = self._polynomial_control_idxs_in_theta[polynomial_control_name]
+                of_name = self._polynomial_control_output_names[polynomial_control_name]
+                of_rate_name = self._polynomial_control_rate_names[polynomial_control_name]
+                of_rate2_name = self._polynomial_control_rate2_names[polynomial_control_name]
+
+                of_idxs = self._polynomial_control_idxs_in_y[polynomial_control_name]
+                of_rate_idxs = self._polynomial_control_rate_idxs_in_y[polynomial_control_name]
+                of_rate2_idxs = self._polynomial_control_rate2_idxs_in_y[polynomial_control_name]
+
+                y_t[of_idxs, 0] = totals[of_name, 'time']
+                y_t[of_rate_idxs, 0] = totals[of_rate_name, 'time']
+                y_t[of_rate2_idxs, 0] = totals[of_rate2_name, 'time']
+
+                y_theta[of_idxs, 1] = totals[of_name, 't_duration']
+                y_theta[of_rate_idxs, 1] = totals[of_rate_name, 't_duration']
+                y_theta[of_rate2_idxs, 1] = totals[of_rate2_name, 't_duration']
+
+                y_theta[of_idxs, idxs_wrt] = totals[of_name, wrt_name]
+                y_theta[of_rate_idxs, idxs_wrt] = totals[of_rate_name, wrt_name]
+                y_theta[of_rate2_idxs, idxs_wrt] = totals[of_rate2_name, wrt_name]
 
             for name, options in self._filtered_timeseries_outputs.items():
                 idxs_of = self._timeseries_idxs_in_y[name]
@@ -1100,11 +1147,11 @@ class RKIntegrationComp(om.ExplicitComponent):
         # Extract the control values and rates
         for control_name, options in self.polynomial_control_options.items():
             oname = self._polynomial_control_output_names[control_name]
-            rate_name = self._polynomoial_control_rate_names[control_name]
+            rate_name = self._polynomial_control_rate_names[control_name]
             rate2_name = self._polynomial_control_rate2_names[control_name]
-            outputs[oname] = self._y[idxs, self._control_idxs_in_y[control_name]]
-            outputs[rate_name] = self._y[idxs, self._control_rate_idxs_in_y[control_name]]
-            outputs[rate2_name] = self._y[idxs, self._control_rate2_idxs_in_y[control_name]]
+            outputs[oname] = self._y[idxs, self._polynomial_control_idxs_in_y[control_name]]
+            outputs[rate_name] = self._y[idxs, self._polynomial_control_rate_idxs_in_y[control_name]]
+            outputs[rate2_name] = self._y[idxs, self._polynomial_control_rate2_idxs_in_y[control_name]]
 
         # Extract the timeseries outputs
         for name, options in self._filtered_timeseries_outputs.items():
@@ -1174,6 +1221,27 @@ class RKIntegrationComp(om.ExplicitComponent):
             for wrt_control_name in self.control_options:
                 wrt = self._control_input_names[wrt_control_name]
                 wrt_cols = self._control_idxs_in_Z[wrt_control_name]
+                partials[of, wrt] = self._dy_dZ[idxs, of_rows, wrt_cols]
+                partials[of_rate, wrt] = self._dy_dZ[idxs, of_rate_rows, wrt_cols]
+                partials[of_rate2, wrt] = self._dy_dZ[idxs, of_rate2_rows, wrt_cols]
+
+        for name in self.polynomial_control_options:
+            of = self._polynomial_control_output_names[name]
+            of_rate = self._polynomial_control_rate_names[name]
+            of_rate2 = self._polynomial_control_rate2_names[name]
+
+            # Unpack the derivatives
+            of_rows = self._polynomial_control_idxs_in_y[name]
+            of_rate_rows = self._polynomial_control_rate_idxs_in_y[name]
+            of_rate2_rows = self._polynomial_control_rate2_idxs_in_y[name]
+
+            wrt_cols = self.x_size + 1
+            partials[of_rate, 't_duration'] = self._dy_dZ[idxs, of_rate_rows, wrt_cols]
+            partials[of_rate2, 't_duration'] = self._dy_dZ[idxs, of_rate2_rows, wrt_cols]
+
+            for wrt_control_name in self.polynomial_control_options:
+                wrt = self._polynomial_control_input_names[wrt_control_name]
+                wrt_cols = self._polynomial_control_idxs_in_Z[wrt_control_name]
                 partials[of, wrt] = self._dy_dZ[idxs, of_rows, wrt_cols]
                 partials[of_rate, wrt] = self._dy_dZ[idxs, of_rate_rows, wrt_cols]
                 partials[of_rate2, wrt] = self._dy_dZ[idxs, of_rate2_rows, wrt_cols]
