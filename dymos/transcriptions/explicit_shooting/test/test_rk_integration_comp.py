@@ -84,11 +84,14 @@ class TestRKIntegrationComp(unittest.TestCase):
 
         x = np.array([[0.5]])
         t = np.array([[0.0]])
-        phi = np.array([[0.0, 2.0, 1.0]]).T
+        theta = np.array([[0.0, 2.0, 1.0]]).T
+        f = np.zeros_like(x)
 
-        f = prob.model.fixed_step_integrator.eval_f(x, t, phi)
+        intg = prob.model.fixed_step_integrator
+        intg._prob.model.ode_eval.set_segment_index(9)
+        intg.eval_f(x, t, theta, f)
 
-        assert_near_equal(f, x - t**2 + phi[2, 0])
+        assert_near_equal(f, x - t**2 + theta[2, 0])
 
     def test_eval_f_derivs_scalar(self):
         gd = dm.transcriptions.grid_data.GridData(num_segments=10, transcription='gauss-lobatto',
@@ -133,24 +136,34 @@ class TestRKIntegrationComp(unittest.TestCase):
 
         x = np.array([[0.5]], dtype=complex)
         t = np.array([[0.0]], dtype=complex)
-        phi = np.array([[0, 2.0, 1.0]], dtype=complex).T
+        theta = np.array([[0, 2.0, 1.0]], dtype=complex).T
 
-        f_x, f_t, f_phi = prob.model.fixed_step_integrator.eval_f_derivs(x, t, phi)
+        f_x_cs = np.zeros_like(x, dtype=complex)
+        f_t_cs = np.zeros_like(x, dtype=complex)
+        f_theta_cs = np.zeros_like(x, dtype=complex)
+
+        intg = prob.model.fixed_step_integrator
+        f_x = intg._f_x
+        f_t = intg._f_t
+        f_theta = intg._f_theta
+
+        intg._prob.model.ode_eval.set_segment_index(9)
+        intg.eval_f_derivs(x, t, theta, f_x, f_t, f_theta)
 
         step = 1.0E-20
 
-        f_x_cs = prob.model.fixed_step_integrator.eval_f(x + step * 1.0j, t, phi).imag / step
+        intg.eval_f(x + step * 1.0j, t, theta, f_x_cs)
 
-        assert_near_equal(f_x.real, np.atleast_2d(f_x_cs))
+        assert_near_equal(f_x.real, np.atleast_2d(f_x_cs.imag / step))
 
-        f_t_cs = prob.model.fixed_step_integrator.eval_f(x, t + step * 1.0j, phi).imag / step
+        intg.eval_f(x, t + step * 1.0j, theta, f_t_cs)
 
-        assert_near_equal(f_t.real, np.atleast_2d(f_t_cs))
+        assert_near_equal(f_t.real, np.atleast_2d(f_t_cs.imag / step))
 
-        phi[2] = phi[2] + step * 1.0j
+        theta[2] = theta[2] + step * 1.0j
 
-        f_phi_cs = prob.model.fixed_step_integrator.eval_f(x, t, phi).imag / step
-        assert_near_equal(f_phi.real[0, 2], f_phi_cs[0, 0])
+        prob.model.fixed_step_integrator.eval_f(x, t, theta, f_theta_cs)
+        assert_near_equal(f_theta.real[0, 2], f_theta_cs[0, 0].imag / step)
 
     def test_fwd_parameters(self):
         time_options = dm.phase.options.TimeOptionsDictionary()
@@ -176,7 +189,7 @@ class TestRKIntegrationComp(unittest.TestCase):
 
         p = om.Problem()
 
-        gd = dm.transcriptions.grid_data.GridData(num_segments=1,
+        gd = dm.transcriptions.grid_data.GridData(num_segments=10,
                                                   transcription='gauss-lobatto',
                                                   transcription_order=3,
                                                   compressed=True)
@@ -185,7 +198,8 @@ class TestRKIntegrationComp(unittest.TestCase):
                                                                          param_options, control_options,
                                                                          polynomial_control_options,
                                                                          grid_data=gd,
-                                                                         num_steps_per_segment=40,
+                                                                         num_steps_per_segment=10,
+                                                                         complex_step_mode=True,
                                                                          ode_init_kwargs=None))
         p.setup(mode='fwd', force_alloc_complex=True)
 
@@ -196,14 +210,19 @@ class TestRKIntegrationComp(unittest.TestCase):
 
         p.run_model()
 
-        p.model.list_outputs()
+        t = p.get_val('fixed_step_integrator.time')
+        x = p.get_val('fixed_step_integrator.states_out:x')
 
-        cpd = p.check_partials(method='fd', form='central', compact_print=True)
-        assert_check_partials(cpd)
+        assert_near_equal(t[-1, ...], 2)
+        assert_near_equal(x[-1, ...], 5.305471950534675, tolerance=1.0E-7)
+
+        with np.printoptions(linewidth=1024):
+            cpd = p.check_partials(method='cs', compact_print=True)
+            assert_check_partials(cpd)
 
     def test_fwd_parameters_controls(self):
-        gd = dm.transcriptions.grid_data.GridData(num_segments=10, transcription='gauss-lobatto',
-                                                  transcription_order=3)
+        gd = dm.transcriptions.grid_data.GridData(num_segments=5, transcription='gauss-lobatto',
+                                                  transcription_order=5, compressed=True)
 
         time_options = dm.phase.options.TimeOptionsDictionary()
 
@@ -255,6 +274,7 @@ class TestRKIntegrationComp(unittest.TestCase):
                                                 grid_data=gd,
                                                 ode_init_kwargs=None,
                                                 complex_step_mode=True))
+
         p.setup(mode='fwd', force_alloc_complex=True)
 
         p.set_val('fixed_step_integrator.states:x', 0.0)
@@ -263,21 +283,24 @@ class TestRKIntegrationComp(unittest.TestCase):
         p.set_val('fixed_step_integrator.t_initial', 0.0)
         p.set_val('fixed_step_integrator.t_duration', 1.8016)
         p.set_val('fixed_step_integrator.parameters:g', 9.80665)
-        p.set_val('fixed_step_integrator.controls:theta', np.linspace(1.0, 100.0, 30), units='deg')
+
+        p.set_val('fixed_step_integrator.controls:theta', np.linspace(0.01, 100.0, 21), units='deg')
 
         p.run_model()
 
-        x_f = p.get_val('fixed_step_integrator.states_out:x')
-        y_f = p.get_val('fixed_step_integrator.states_out:y')
-        v_f = p.get_val('fixed_step_integrator.states_out:v')
+        x = p.get_val('fixed_step_integrator.states_out:x')
+        y = p.get_val('fixed_step_integrator.states_out:y')
+        v = p.get_val('fixed_step_integrator.states_out:v')
+        theta = p.get_val('fixed_step_integrator.control_values:theta')
 
         # These tolerances are loose since theta is not properly spaced along the lgl nodes.
-        assert_near_equal(x_f, 10.0, tolerance=0.1)
-        assert_near_equal(y_f, 5.0, tolerance=0.1)
-        assert_near_equal(v_f, 9.9, tolerance=0.1)
+        assert_near_equal(x[-1, ...], 10.0, tolerance=0.1)
+        assert_near_equal(y[-1, ...], 5.0, tolerance=0.1)
+        assert_near_equal(v[-1, ...], 9.9, tolerance=0.1)
 
         with np.printoptions(linewidth=1024):
-            p.check_partials(compact_print=False, method='cs')
+            cpd = p.check_partials(compact_print=True, method='cs', show_only_incorrect=True)
+            assert_check_partials(cpd)
 
 
 if __name__ == '__main__':  # pragma: no cover

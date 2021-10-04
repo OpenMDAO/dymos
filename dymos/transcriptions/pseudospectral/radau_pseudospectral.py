@@ -337,7 +337,7 @@ class Radau(PseudospectralBase):
                                                   shape=(1,),
                                                   units=time_units,
                                                   desc='',
-                                                  src='time_pahse')
+                                                  src='time_phase')
 
             phase.connect(src_name='time', tgt_name=f'{timeseries_name}.input_values:time')
 
