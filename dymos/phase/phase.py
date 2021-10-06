@@ -1607,7 +1607,9 @@ class Phase(om.Group):
         RuntimeWarning
             RuntimeWarning is issued in the case of one or more invalid time options.
         """
-        if self.time_options['fix_initial'] or self.time_options['input_initial']:
+        phase_name = self.pathname
+
+        if self.time_options['fix_initial']:
             invalid_options = []
             init_bounds = self.time_options['initial_bounds']
             if init_bounds is not None and init_bounds != (None, None):
@@ -1616,17 +1618,11 @@ class Phase(om.Group):
                 if self.time_options[opt] is not None:
                     invalid_options.append(opt)
             if invalid_options:
-                warnings.warn('Phase time options have no effect because fix_initial=True or '
-                              'input_initial=True for '
-                              'phase \'{0}\': {1}'.format(self.name, ', '.join(invalid_options)),
-                              RuntimeWarning)
+                str_invalid_opts = ', '.join(invalid_options)
+                warnings.warn(f'Phase time options have no effect because fix_initial=True '
+                              f'for phase \'{phase_name}\': {str_invalid_opts}')
 
-        if self.time_options['fix_initial'] and self.time_options['input_initial']:
-            warnings.warn('Phase \'{0}\' initial time is an externally-connected input, '
-                          'therefore fix_initial has no effect.'.format(self.name),
-                          RuntimeWarning)
-
-        if self.time_options['fix_duration'] or self.time_options['input_duration']:
+        if self.time_options['fix_duration']:
             invalid_options = []
             duration_bounds = self.time_options['duration_bounds']
             if duration_bounds is not None and duration_bounds != (None, None):
@@ -1635,14 +1631,9 @@ class Phase(om.Group):
                 if self.time_options[opt] is not None:
                     invalid_options.append(opt)
             if invalid_options:
-                warnings.warn('Phase time options have no effect because fix_duration=True or '
-                              'input_duration=True for '
-                              'phase \'{0}\': {1}'.format(self.name, ', '.join(invalid_options)))
-
-        if self.time_options['fix_duration'] and self.time_options['input_duration']:
-            warnings.warn('Phase \'{0}\' time duration is an externally-connected input, '
-                          'therefore fix_duration has no effect.'.format(self.name),
-                          RuntimeWarning)
+                str_invalid_opts = ', '.join(invalid_options)
+                warnings.warn(f'Phase time options have no effect because fix_duration=True '
+                              f'for phase \'{phase_name}\': {str_invalid_opts}')
 
     def _check_control_options(self):
         """

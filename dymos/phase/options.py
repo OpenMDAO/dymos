@@ -478,11 +478,17 @@ class TimeOptionsDictionary(om.OptionsDictionary):
         self.declare(name='fix_duration', types=bool, default=False,
                      desc='If True, the  phase duration is not a design variable.')
 
-        self.declare(name='input_initial', types=bool, default=False,
+        self.declare(name='input_initial', types=bool, default=True,
+                     deprecation='input_initial is deprecated.  Variable \'t_initial\' is now always'
+                                 'an input and provided through an AutoIVC if not explicitly targeted'
+                                 'for a connection by the user.',
                      desc='If True, the initial value of time (t_initial) is expected to be '
                           'connected to an external output source.')
 
-        self.declare(name='input_duration', types=bool, default=False,
+        self.declare(name='input_duration', types=bool, default=True,
+                     deprecation='input_duration is deprecated.  Variable \'t_duration\' is now always'
+                                 'an input and provided through an AutoIVC if not explicitly targeted'
+                                 'for a connection by the user.',
                      desc='If True, the phase duration (t_duration) is expected to be '
                           'connected to an external output source.')
 

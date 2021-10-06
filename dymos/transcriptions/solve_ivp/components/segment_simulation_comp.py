@@ -62,7 +62,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
                                   'parent Phase.')
 
         self.options.declare('ode_integration_interface', default=None, allow_none=True,
-                             types=ODEIntegrationInterface,
+                             types=ODEIntegrationInterface, recordable=False,
                              desc='The instance of the ODE integration interface used to provide '
                                   'the ODE to scipy.integrate.solve_ivp in the segment.  If None,'
                                   ' a new one will be instantiated for this segment.')
