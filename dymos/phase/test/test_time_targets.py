@@ -220,8 +220,6 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         assert_near_equal(p['phase0.rhs_all.time'], time_all)
 
-        return
-
         exp_out = p.model.phase0.simulate()
 
         for iseg in range(num_seg):

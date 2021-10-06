@@ -323,18 +323,17 @@ class Phase(om.Group):
             Raised if the parameter of the given name is previously assigned or
             incompatible with the type of control to which it is assigned.
         """
-        # ode_params = None if self.ode_options is None else self.ode_options._parameters
         if name in ['time', 'time_phase', 't_initial', 't_duration']:
-            raise ValueError('The name {0} is reserved for the independent variable of integration'
+            raise ValueError(f'The name {name} is reserved for the independent variable of integration'
                              ' in Dymos and may not be used as a state, control, or parameter name')
         elif name in self.state_options:
-            raise ValueError('{0} has already been added as a state.'.format(name))
+            raise ValueError(f'{name} has already been added as a state.')
         elif name in self.control_options:
-            raise ValueError('{0} has already been added as a control.'.format(name))
+            raise ValueError(f'{name} has already been added as a control.')
         elif name in self.parameter_options:
-            raise ValueError('{0} has already been added as a parameter.'.format(name))
+            raise ValueError(f'{name} has already been added as a parameter.')
         elif name in self.polynomial_control_options:
-            raise ValueError('{0} has already been added as a polynomial control.'.format(name))
+            raise ValueError(f'{name} has already been added as a polynomial control.')
 
     def add_control(self, name, units=_unspecified, desc=_unspecified, opt=_unspecified,
                     fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
@@ -1331,10 +1330,14 @@ class Phase(om.Group):
             self.time_options['fix_duration'] = fix_duration
 
         if input_initial is not _unspecified:
-            self.time_options['input_initial'] = input_initial
+            om.issue_warning('Time option \'input_initial\' is no longer necessary. Variable '
+                             '`t_initial` will be provided by AutoIVC if not explicitly targeted '
+                             'for connection by the user.', category=om.OMDeprecationWarning)
 
         if input_duration is not _unspecified:
-            self.time_options['input_duration'] = input_duration
+            om.issue_warning('Time option \'input_duration\' is no longer necessary. Variable '
+                             '`t_duration` will be provided by AutoIVC if not explicitly targeted '
+                             'for connection by the user.', category=om.OMDeprecationWarning)
 
         if initial_val is not _unspecified:
             self.time_options['initial_val'] = initial_val
@@ -1938,33 +1941,33 @@ class Phase(om.Group):
 
         # Set the integration times
         op = op_dict['timeseries.time']
-        prob.set_val(f'{self_path}t_initial', op['value'][0, ...])
-        prob.set_val(f'{self_path}t_duration', op['value'][-1, ...] - op['value'][0, ...])
+        prob.set_val(f'{self_path}t_initial', op['val'][0, ...])
+        prob.set_val(f'{self_path}t_duration', op['val'][-1, ...] - op['val'][0, ...])
 
         # Assign initial state values
         for name in phs.state_options:
             op = op_dict[f'timeseries.states:{name}']
-            prob[f'{self_path}initial_states:{name}'][...] = op['value'][0, ...]
+            prob[f'{self_path}initial_states:{name}'][...] = op['val'][0, ...]
 
         # Assign control values
         for name, options in phs.control_options.items():
             if options['opt']:
                 op = op_dict[f'control_group.indep_controls.controls:{name}']
-                prob[f'{self_path}controls:{name}'][...] = op['value']
+                prob[f'{self_path}controls:{name}'][...] = op['val']
             else:
                 ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
-                prob['{0}controls:{1}'.format(self_path, name)][...] = ip['value']
+                prob[f'{self_path}controls:{name}'][...] = ip['val']
 
         # Assign polynomial control values
         for name, options in phs.polynomial_control_options.items():
             if options['opt']:
                 op = op_dict[f'polynomial_control_group.indep_polynomial_controls.'
                              f'polynomial_controls:{name}']
-                prob[f'{self_path}polynomial_controls:{name}'][...] = op['value']
+                prob[f'{self_path}polynomial_controls:{name}'][...] = op['val']
             else:
                 ip = ip_dict[f'{phs_path}polynomial_control_group.interp_comp.'
                              f'polynomial_controls:{name}']
-                prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
+                prob[f'{self_path}polynomial_controls:{name}'][...] = ip['val']
 
         # Assign parameter values
         for name in phs.parameter_options:
@@ -1980,9 +1983,9 @@ class Phase(om.Group):
                 val = phs.get_val(f'parameters:{name}')
 
             if phase_path:
-                prob_path = '{0}.{1}.parameters:{2}'.format(phase_path, self.name, name)
+                prob_path = f'{phase_path}.{self.name}.parameters:{name}'
             else:
-                prob_path = '{0}.parameters:{1}'.format(self.name, name)
+                prob_path = f'{self.name}.parameters:{name}'
             prob[prob_path][...] = val
 
     def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
@@ -2031,9 +2034,10 @@ class Phase(om.Group):
         sim_prob.setup(check=True)
         sim_phase.initialize_values_from_phase(sim_prob, self)
 
-        print('\nSimulating phase {0}'.format(self.pathname))
+        print(f'\nSimulating phase {self.pathname}')
         sim_prob.run_model()
-        print('Done simulating phase {0}'.format(self.pathname))
+        om.n2(sim_prob.model, outfile='/Users/rfalck/Downloads/temp_n2.html', show_browser=False)
+        print(f'Done simulating phase {self.pathname}')
         sim_prob.record('final')
 
         sim_prob.cleanup()

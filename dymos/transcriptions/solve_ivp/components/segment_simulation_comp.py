@@ -210,11 +210,11 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         # Set the values of t_initial and t_duration
         iface_prob.set_val('t_initial',
-                           value=inputs['t_initial'],
+                           val=inputs['t_initial'],
                            units=self.options['time_options']['units'])
 
         iface_prob.set_val('t_duration',
-                           value=inputs['t_duration'],
+                           val=inputs['t_duration'],
                            units=self.options['time_options']['units'])
 
         # Set the values of the phase parameters
@@ -222,7 +222,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
             for param_name, options in self.options['parameter_options'].items():
                 val = inputs['parameters:{0}'.format(param_name)]
                 iface_prob.set_val('parameters:{0}'.format(param_name),
-                                   value=val,
+                                   val=val,
                                    units=options['units'])
 
         # Setup the evaluation times.
