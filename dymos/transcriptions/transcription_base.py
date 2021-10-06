@@ -75,10 +75,6 @@ class TranscriptionBase(object):
         # Warn about invalid options
         phase.check_time_options()
 
-        # if not time_options['input_initial'] or not time_options['input_duration']:
-        #     phase.add_subsystem('time_extents', om.IndepVarComp(),
-        #                         promotes_outputs=['*'])
-
     def configure_time(self, phase):
         """
         Configure the inputs/outputs on the time component.

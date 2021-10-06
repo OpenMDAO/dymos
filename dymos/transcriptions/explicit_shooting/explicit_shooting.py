@@ -77,7 +77,7 @@ class ExplicitShooting(TranscriptionBase):
 
         time_options = phase.time_options
 
-        if not (time_options['input_initial'] or time_options['fix_initial']):
+        if not time_options['fix_initial']:
             lb, ub = time_options['initial_bounds']
             lb = -INF_BOUND if lb is None else lb
             ub = INF_BOUND if ub is None else ub

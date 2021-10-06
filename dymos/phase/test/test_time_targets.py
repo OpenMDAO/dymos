@@ -142,7 +142,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
     def test_gauss_lobatto(self):
         num_seg = 20
-        p = self._make_problem('gauss-lobatto', num_seg, input_initial=True, input_duration=True)
+        p = self._make_problem('gauss-lobatto', num_seg)
 
         # Solve for the optimal trajectory
         p.run_driver()

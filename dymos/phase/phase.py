@@ -2125,23 +2125,15 @@ class Phase(om.Group):
         """
         fix_initial = self.time_options['fix_initial']
         fix_duration = self.time_options['fix_duration']
-        input_initial = self.time_options['input_initial']
-        input_duration = self.time_options['input_duration']
         initial_bounds = self.time_options['initial_bounds']
         duration_bounds = self.time_options['duration_bounds']
 
         if loc == 'initial':
-            if input_initial:
-                res = False
-            else:
-                res = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0.0)
+            res = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0.0)
         elif loc == 'final':
-            if input_initial or input_duration:
-                res = False
-            else:
-                initial_fixed = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0)
-                duration_fixed = fix_duration or (duration_bounds != (None, None) and np.diff(duration_bounds)[0] == 0)
-                res = initial_fixed and duration_fixed
+            initial_fixed = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0)
+            duration_fixed = fix_duration or (duration_bounds != (None, None) and np.diff(duration_bounds)[0] == 0)
+            res = initial_fixed and duration_fixed
         else:
             raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
                              f'"final" but got {loc}')
