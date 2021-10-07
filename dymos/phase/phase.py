@@ -2040,7 +2040,6 @@ class Phase(om.Group):
 
         print(f'\nSimulating phase {self.pathname}')
         sim_prob.run_model()
-        om.n2(sim_prob.model, outfile='/Users/rfalck/Downloads/temp_n2.html', show_browser=False)
         print(f'Done simulating phase {self.pathname}')
         sim_prob.record('final')
 
