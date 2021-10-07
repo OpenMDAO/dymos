@@ -201,7 +201,6 @@ class TestPhaseTimeTargets(unittest.TestCase):
         num_seg = 20
         p = self._make_problem('radau-ps', num_seg)
 
-        # om.n2(p.model)
         # Solve for the optimal trajectory
         p.run_driver()
 
