@@ -8,8 +8,8 @@ from openmdao.utils.general_utils import simple_warning
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import RadauPSContinuityComp
-from ...utils.misc import get_rate_units, get_source_metadata
-from ...utils.introspection import get_targets
+from ...utils.misc import get_rate_units, _unspecified
+from ...utils.introspection import get_targets, get_source_metadata, get_target_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 
@@ -54,18 +54,43 @@ class Radau(PseudospectralBase):
         """
         super(Radau, self).configure_time(phase)
         options = phase.time_options
+        ode = phase._get_subsystem(self._rhs_source)
 
         # The tuples here are (name, user_specified_targets, dynamic)
         for name, usr_tgts, dynamic in [('time', options['targets'], True),
-                                        ('time_phase', options['time_phase_targets'], True),
-                                        ('t_initial', options['t_initial_targets'], False),
-                                        ('t_duration', options['t_duration_targets'], False)]:
-
-            targets = get_targets(phase.rhs_all, name=name, user_targets=usr_tgts)
+                                        ('time_phase', options['time_phase_targets'], True)]:
+            targets = get_targets(ode, name=name, user_targets=usr_tgts)
             if targets:
                 src_idxs = self.grid_data.subset_node_indices['all'] if dynamic else None
                 phase.connect(name, [f'rhs_all.{t}' for t in targets], src_indices=src_idxs,
                               flat_src_indices=True if dynamic else None)
+
+        for name, usr_tgts, dynamic in [('t_initial', options['t_initial_targets'], False),
+                                        ('t_duration', options['t_duration_targets'], False)]:
+
+            targets = get_targets(ode, name=name, user_targets=usr_tgts)
+
+            shape, units, static_target = get_target_metadata(ode, name=name,
+                                                              user_targets=targets,
+                                                              user_units=options['units'],
+                                                              user_shape=(1,))
+
+            if shape == (1,):
+                src_idxs = None
+                flat_src_idxs = None
+                src_shape = None
+            else:
+                src_idxs = np.zeros(self.grid_data.subset_num_nodes['all'])
+                flat_src_idxs = True
+                src_shape = (1,)
+
+            for t in targets:
+                phase.promotes('rhs_all', inputs=[(t, name)], src_indices=src_idxs,
+                               flat_src_indices=flat_src_idxs, src_shape=src_shape)
+            if targets:
+                phase.set_input_defaults(name=name,
+                                         val=np.ones((1,)),
+                                         units=options['units'])
 
     def configure_controls(self, phase):
         """

@@ -9,9 +9,8 @@ from ..transcription_base import TranscriptionBase
 from .components import SegmentSimulationComp, SegmentStateMuxComp, \
     SolveIVPControlGroup, SolveIVPPolynomialControlGroup, SolveIVPTimeseriesOutputComp
 from ..common import TimeComp
-from ...utils.misc import get_rate_units, get_target_metadata, get_source_metadata, \
-    _unspecified
-from ...utils.introspection import get_targets
+from ...utils.misc import get_rate_units, _unspecified
+from ...utils.introspection import get_targets, get_target_metadata, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 
 
@@ -69,9 +68,6 @@ class SolveIVP(TranscriptionBase):
         grid_data = self.grid_data
         output_nodes_per_seg = self.options['output_nodes_per_seg']
 
-        time_options['input_initial'] = False  # True can break simulation
-        time_options['input_duration'] = False
-
         super(SolveIVP, self).setup_time(phase)
 
         if output_nodes_per_seg is None:
@@ -111,12 +107,11 @@ class SolveIVP(TranscriptionBase):
         num_seg = self.grid_data.num_segments
         grid_data = self.grid_data
         output_nodes_per_seg = self.options['output_nodes_per_seg']
+        ode = phase._get_subsystem('ode')
 
         phase.time.configure_io()
 
         for i in range(num_seg):
-            phase.connect('t_initial', f'segment_{i}.t_initial')
-            phase.connect('t_duration', f'segment_{i}.t_duration')
             if output_nodes_per_seg is None:
                 i1, i2 = grid_data.subset_segment_indices['all'][i, :]
                 src_idxs = grid_data.subset_node_indices['all'][i1:i2]
@@ -127,17 +122,43 @@ class SolveIVP(TranscriptionBase):
             phase.connect('time_phase', f'segment_{i}.time_phase', src_indices=src_idxs,
                           flat_src_indices=True)
 
+            phase.segments.promotes(f'segment_{i}', inputs=['t_initial', 't_duration'])
+
         options = phase.time_options
 
         # The tuples here are (name, user_specified_targets, dynamic)
         for name, usr_tgts, dynamic in [('time', options['targets'], True),
-                                        ('time_phase', options['time_phase_targets'], True),
-                                        ('t_initial', options['t_initial_targets'], False),
-                                        ('t_duration', options['t_duration_targets'], False)]:
+                                        ('time_phase', options['time_phase_targets'], True)]:
 
             targets = get_targets(phase.ode, name=name, user_targets=usr_tgts)
             if targets:
                 phase.connect(name, [f'ode.{t}' for t in targets])
+
+        for name, usr_tgts, dynamic in [('t_initial', options['t_initial_targets'], False),
+                                        ('t_duration', options['t_duration_targets'], False)]:
+
+            targets = get_targets(ode, name=name, user_targets=usr_tgts)
+
+            shape, units, static_target = get_target_metadata(ode, name=name,
+                                                              user_targets=targets,
+                                                              user_units=options['units'],
+                                                              user_shape=(1,))
+            if shape == (1,):
+                src_idxs = None
+                flat_src_idxs = None
+                src_shape = None
+            else:
+                src_idxs = np.zeros(self.grid_data.subset_num_nodes['all'])
+                flat_src_idxs = True
+                src_shape = (1,)
+
+            for t in targets:
+                phase.promotes('ode', inputs=[(t, name)], src_indices=src_idxs,
+                               flat_src_indices=flat_src_idxs, src_shape=src_shape)
+            if targets:
+                phase.set_input_defaults(name=name,
+                                         val=np.ones((1,)),
+                                         units=options['units'])
 
     def setup_states(self, phase):
         """

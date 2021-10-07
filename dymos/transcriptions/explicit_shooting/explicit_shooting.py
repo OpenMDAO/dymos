@@ -8,7 +8,8 @@ from .explicit_timeseries_comp import ExplicitTimeseriesComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import GridData
 from .rk_integration_comp import RKIntegrationComp, rk_methods
-from ...utils.misc import get_rate_units, get_source_metadata, CoerceDesvar
+from ...utils.misc import get_rate_units, CoerceDesvar
+from ...utils.introspection import get_source_metadata
 from ...utils.constants import INF_BOUND
 
 
@@ -76,7 +77,7 @@ class ExplicitShooting(TranscriptionBase):
 
         time_options = phase.time_options
 
-        if not (time_options['input_initial'] or time_options['fix_initial']):
+        if not time_options['fix_initial']:
             lb, ub = time_options['initial_bounds']
             lb = -INF_BOUND if lb is None else lb
             ub = INF_BOUND if ub is None else ub

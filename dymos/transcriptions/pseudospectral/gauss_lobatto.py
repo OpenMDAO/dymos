@@ -8,8 +8,8 @@ from openmdao.utils.general_utils import simple_warning
 from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
 from ..common import GaussLobattoContinuityComp
-from ...utils.misc import get_rate_units, get_source_metadata
-from ...utils.introspection import get_targets
+from ...utils.misc import get_rate_units, _unspecified
+from ...utils.introspection import get_targets, get_source_metadata, get_target_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData, make_subset_map
 from fnmatch import filter
@@ -58,9 +58,7 @@ class GaussLobatto(PseudospectralBase):
 
         # The tuples here are (name, user_specified_targets, dynamic)
         for name, usr_tgts, dynamic in [('time', options['targets'], True),
-                                        ('time_phase', options['time_phase_targets'], True),
-                                        ('t_initial', options['t_initial_targets'], False),
-                                        ('t_duration', options['t_duration_targets'], False)]:
+                                        ('time_phase', options['time_phase_targets'], True)]:
 
             targets = get_targets(phase.rhs_disc, name=name, user_targets=usr_tgts)
             if targets:
@@ -75,6 +73,34 @@ class GaussLobatto(PseudospectralBase):
                 phase.connect(name,
                               [f'rhs_disc.{t}' for t in targets],
                               src_indices=disc_src_idxs, flat_src_indices=True)
+
+        for name, usr_tgts, dynamic in [('t_initial', options['t_initial_targets'], False),
+                                        ('t_duration', options['t_duration_targets'], False)]:
+            targets = get_targets(phase.rhs_disc, name=name, user_targets=usr_tgts)
+            shape, units, static_target = get_target_metadata(phase.rhs_disc, name=name,
+                                                              user_targets=targets,
+                                                              user_units=options['units'],
+                                                              user_shape=(1,))
+            if shape == (1,):
+                disc_src_idxs = None
+                col_src_idxs = None
+                flat_src_idxs = None
+                src_shape = None
+            else:
+                disc_src_idxs = self.grid_data.subset_node_indices['state_disc']
+                col_src_idxs = self.grid_data.subset_node_indices['col']
+                flat_src_idxs = True
+                src_shape = (1,)
+
+            for t in targets:
+                phase.promotes('rhs_disc', inputs=[(t, name)], src_indices=disc_src_idxs,
+                               flat_src_indices=flat_src_idxs, src_shape=src_shape)
+                phase.promotes('rhs_col', inputs=[(t, name)], src_indices=col_src_idxs,
+                               flat_src_indices=flat_src_idxs, src_shape=src_shape)
+            if targets:
+                phase.set_input_defaults(name=name,
+                                         val=np.ones((1,)),
+                                         units=options['units'])
 
     def configure_controls(self, phase):
         """

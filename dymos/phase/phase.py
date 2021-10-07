@@ -323,18 +323,17 @@ class Phase(om.Group):
             Raised if the parameter of the given name is previously assigned or
             incompatible with the type of control to which it is assigned.
         """
-        # ode_params = None if self.ode_options is None else self.ode_options._parameters
         if name in ['time', 'time_phase', 't_initial', 't_duration']:
-            raise ValueError('The name {0} is reserved for the independent variable of integration'
+            raise ValueError(f'The name {name} is reserved for the independent variable of integration'
                              ' in Dymos and may not be used as a state, control, or parameter name')
         elif name in self.state_options:
-            raise ValueError('{0} has already been added as a state.'.format(name))
+            raise ValueError(f'{name} has already been added as a state.')
         elif name in self.control_options:
-            raise ValueError('{0} has already been added as a control.'.format(name))
+            raise ValueError(f'{name} has already been added as a control.')
         elif name in self.parameter_options:
-            raise ValueError('{0} has already been added as a parameter.'.format(name))
+            raise ValueError(f'{name} has already been added as a parameter.')
         elif name in self.polynomial_control_options:
-            raise ValueError('{0} has already been added as a polynomial control.'.format(name))
+            raise ValueError(f'{name} has already been added as a polynomial control.')
 
     def add_control(self, name, units=_unspecified, desc=_unspecified, opt=_unspecified,
                     fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
@@ -1607,6 +1606,8 @@ class Phase(om.Group):
         RuntimeWarning
             RuntimeWarning is issued in the case of one or more invalid time options.
         """
+        phase_name = self.pathname
+
         if self.time_options['fix_initial'] or self.time_options['input_initial']:
             invalid_options = []
             init_bounds = self.time_options['initial_bounds']
@@ -1616,17 +1617,15 @@ class Phase(om.Group):
                 if self.time_options[opt] is not None:
                     invalid_options.append(opt)
             if invalid_options:
-                warnings.warn('Phase time options have no effect because fix_initial=True or '
-                              'input_initial=True for '
-                              'phase \'{0}\': {1}'.format(self.name, ', '.join(invalid_options)),
-                              RuntimeWarning)
+                str_invalid_opts = ', '.join(invalid_options)
+                warnings.warn(f'Phase time options have no effect because fix_initial=True '
+                              f'or input_initial=True for phase \'{phase_name}\': {str_invalid_opts}')
 
-        if self.time_options['fix_initial'] and self.time_options['input_initial']:
-            warnings.warn('Phase \'{0}\' initial time is an externally-connected input, '
-                          'therefore fix_initial has no effect.'.format(self.name),
-                          RuntimeWarning)
+        if self.time_options['input_initial']:
+            warnings.warn(f'Phase \'{self.name}\' initial time is an externally-connected input, '
+                          'therefore fix_initial has no effect.', RuntimeWarning)
 
-        if self.time_options['fix_duration'] or self.time_options['input_duration']:
+        if self.time_options['fix_duration'] or self.time_options['input_initial']:
             invalid_options = []
             duration_bounds = self.time_options['duration_bounds']
             if duration_bounds is not None and duration_bounds != (None, None):
@@ -1635,14 +1634,13 @@ class Phase(om.Group):
                 if self.time_options[opt] is not None:
                     invalid_options.append(opt)
             if invalid_options:
-                warnings.warn('Phase time options have no effect because fix_duration=True or '
-                              'input_duration=True for '
-                              'phase \'{0}\': {1}'.format(self.name, ', '.join(invalid_options)))
+                str_invalid_opts = ', '.join(invalid_options)
+                warnings.warn(f'Phase time options have no effect because fix_duration=True '
+                              f'or input_duration=True for phase \'{phase_name}\': {str_invalid_opts}')
 
-        if self.time_options['fix_duration'] and self.time_options['input_duration']:
-            warnings.warn('Phase \'{0}\' time duration is an externally-connected input, '
-                          'therefore fix_duration has no effect.'.format(self.name),
-                          RuntimeWarning)
+        if self.time_options['input_duration']:
+            warnings.warn(f'Phase \'{self.name}\' time duration is an externally-connected input, '
+                          'therefore fix_duration has no effect.', RuntimeWarning)
 
     def _check_control_options(self):
         """
@@ -1947,33 +1945,33 @@ class Phase(om.Group):
 
         # Set the integration times
         op = op_dict['timeseries.time']
-        prob.set_val(f'{self_path}t_initial', op['value'][0, ...])
-        prob.set_val(f'{self_path}t_duration', op['value'][-1, ...] - op['value'][0, ...])
+        prob.set_val(f'{self_path}t_initial', op['val'][0, ...])
+        prob.set_val(f'{self_path}t_duration', op['val'][-1, ...] - op['val'][0, ...])
 
         # Assign initial state values
         for name in phs.state_options:
             op = op_dict[f'timeseries.states:{name}']
-            prob[f'{self_path}initial_states:{name}'][...] = op['value'][0, ...]
+            prob[f'{self_path}initial_states:{name}'][...] = op['val'][0, ...]
 
         # Assign control values
         for name, options in phs.control_options.items():
             if options['opt']:
                 op = op_dict[f'control_group.indep_controls.controls:{name}']
-                prob[f'{self_path}controls:{name}'][...] = op['value']
+                prob[f'{self_path}controls:{name}'][...] = op['val']
             else:
                 ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
-                prob['{0}controls:{1}'.format(self_path, name)][...] = ip['value']
+                prob[f'{self_path}controls:{name}'][...] = ip['val']
 
         # Assign polynomial control values
         for name, options in phs.polynomial_control_options.items():
             if options['opt']:
                 op = op_dict[f'polynomial_control_group.indep_polynomial_controls.'
                              f'polynomial_controls:{name}']
-                prob[f'{self_path}polynomial_controls:{name}'][...] = op['value']
+                prob[f'{self_path}polynomial_controls:{name}'][...] = op['val']
             else:
                 ip = ip_dict[f'{phs_path}polynomial_control_group.interp_comp.'
                              f'polynomial_controls:{name}']
-                prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
+                prob[f'{self_path}polynomial_controls:{name}'][...] = ip['val']
 
         # Assign parameter values
         for name in phs.parameter_options:
@@ -1989,9 +1987,9 @@ class Phase(om.Group):
                 val = phs.get_val(f'parameters:{name}')
 
             if phase_path:
-                prob_path = '{0}.{1}.parameters:{2}'.format(phase_path, self.name, name)
+                prob_path = f'{phase_path}.{self.name}.parameters:{name}'
             else:
-                prob_path = '{0}.parameters:{1}'.format(self.name, name)
+                prob_path = f'{self.name}.parameters:{name}'
             prob[prob_path][...] = val
 
     def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
@@ -2040,9 +2038,9 @@ class Phase(om.Group):
         sim_prob.setup(check=True)
         sim_phase.initialize_values_from_phase(sim_prob, self)
 
-        print('\nSimulating phase {0}'.format(self.pathname))
+        print(f'\nSimulating phase {self.pathname}')
         sim_prob.run_model()
-        print('Done simulating phase {0}'.format(self.pathname))
+        print(f'Done simulating phase {self.pathname}')
         sim_prob.record('final')
 
         sim_prob.cleanup()
@@ -2130,23 +2128,15 @@ class Phase(om.Group):
         """
         fix_initial = self.time_options['fix_initial']
         fix_duration = self.time_options['fix_duration']
-        input_initial = self.time_options['input_initial']
-        input_duration = self.time_options['input_duration']
         initial_bounds = self.time_options['initial_bounds']
         duration_bounds = self.time_options['duration_bounds']
 
         if loc == 'initial':
-            if input_initial:
-                res = False
-            else:
-                res = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0.0)
+            res = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0.0)
         elif loc == 'final':
-            if input_initial or input_duration:
-                res = False
-            else:
-                initial_fixed = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0)
-                duration_fixed = fix_duration or (duration_bounds != (None, None) and np.diff(duration_bounds)[0] == 0)
-                res = initial_fixed and duration_fixed
+            initial_fixed = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0)
+            duration_fixed = fix_duration or (duration_bounds != (None, None) and np.diff(duration_bounds)[0] == 0)
+            res = initial_fixed and duration_fixed
         else:
             raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
                              f'"final" but got {loc}')
