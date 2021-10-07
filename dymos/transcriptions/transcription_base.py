@@ -72,8 +72,14 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        time_options = phase.time_options
+
         # Warn about invalid options
         phase.check_time_options()
+
+        if not time_options['input_initial'] or not time_options['input_duration']:
+            phase.add_subsystem('time_extents', om.IndepVarComp(),
+                                promotes_outputs=['*'])
 
     def configure_time(self, phase):
         """
@@ -96,7 +102,21 @@ class TranscriptionBase(object):
                                                                user_units=time_options['units'],
                                                                user_shape='')
 
-        if not time_options['fix_initial']:
+        time_units = time_options['units']
+        indeps = []
+        default_vals = {'t_initial': phase.time_options['initial_val'],
+                        't_duration': phase.time_options['duration_val']}
+
+        if not time_options['input_initial']:
+            indeps.append('t_initial')
+
+        if not time_options['input_duration']:
+            indeps.append('t_duration')
+
+        for var in indeps:
+            phase.time_extents.add_output(var, val=default_vals[var], units=time_units)
+
+        if not (time_options['input_initial'] or time_options['fix_initial']):
             lb, ub = time_options['initial_bounds']
             lb = -INF_BOUND if lb is None else lb
             ub = INF_BOUND if ub is None else ub
@@ -109,7 +129,7 @@ class TranscriptionBase(object):
                                  ref0=time_options['initial_ref0'],
                                  ref=time_options['initial_ref'])
 
-        if not time_options['fix_duration']:
+        if not (time_options['input_duration'] or time_options['fix_duration']):
             lb, ub = time_options['duration_bounds']
             lb = -INF_BOUND if lb is None else lb
             ub = INF_BOUND if ub is None else ub

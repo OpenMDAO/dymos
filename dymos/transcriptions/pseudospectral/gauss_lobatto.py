@@ -79,8 +79,8 @@ class GaussLobatto(PseudospectralBase):
             targets = get_targets(phase.rhs_disc, name=name, user_targets=usr_tgts)
             shape, units, static_target = get_target_metadata(phase.rhs_disc, name=name,
                                                               user_targets=targets,
-                                                              user_units=_unspecified,
-                                                              user_shape=_unspecified)
+                                                              user_units=options['units'],
+                                                              user_shape=(1,))
             if shape == (1,):
                 disc_src_idxs = None
                 col_src_idxs = None

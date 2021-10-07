@@ -1330,14 +1330,10 @@ class Phase(om.Group):
             self.time_options['fix_duration'] = fix_duration
 
         if input_initial is not _unspecified:
-            om.issue_warning('Time option \'input_initial\' is no longer necessary. Variable '
-                             '`t_initial` will be provided by AutoIVC if not explicitly targeted '
-                             'for connection by the user.', category=om.OMDeprecationWarning)
+            self.time_options['input_initial'] = input_initial
 
         if input_duration is not _unspecified:
-            om.issue_warning('Time option \'input_duration\' is no longer necessary. Variable '
-                             '`t_duration` will be provided by AutoIVC if not explicitly targeted '
-                             'for connection by the user.', category=om.OMDeprecationWarning)
+            self.time_options['input_duration'] = input_duration
 
         if initial_val is not _unspecified:
             self.time_options['initial_val'] = initial_val
@@ -1623,7 +1619,7 @@ class Phase(om.Group):
             if invalid_options:
                 str_invalid_opts = ', '.join(invalid_options)
                 warnings.warn(f'Phase time options have no effect because fix_initial=True '
-                              f'for phase \'{phase_name}\': {str_invalid_opts}')
+                              f'or input_initial=True for phase \'{phase_name}\': {str_invalid_opts}')
 
         if self.time_options['fix_duration']:
             invalid_options = []
@@ -1636,7 +1632,7 @@ class Phase(om.Group):
             if invalid_options:
                 str_invalid_opts = ', '.join(invalid_options)
                 warnings.warn(f'Phase time options have no effect because fix_duration=True '
-                              f'for phase \'{phase_name}\': {str_invalid_opts}')
+                              f'or input_duration=True for phase \'{phase_name}\': {str_invalid_opts}')
 
     def _check_control_options(self):
         """

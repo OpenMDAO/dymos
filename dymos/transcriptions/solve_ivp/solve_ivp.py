@@ -134,14 +134,6 @@ class SolveIVP(TranscriptionBase):
             if targets:
                 phase.connect(name, [f'ode.{t}' for t in targets])
 
-        # for name, usr_tgts, dynamic in [('t_initial', options['t_initial_targets'], False),
-        #                                 ('t_duration', options['t_duration_targets'], False)]:
-        #
-        #     targets = get_targets(phase.ode, name=name,
-        #                           user_targets=usr_tgts)
-        #     if targets:
-        #         phase.connect(name, [f'ode.{t}' for t in targets])
-
         for name, usr_tgts, dynamic in [('t_initial', options['t_initial_targets'], False),
                                         ('t_duration', options['t_duration_targets'], False)]:
 
@@ -149,8 +141,8 @@ class SolveIVP(TranscriptionBase):
 
             shape, units, static_target = get_target_metadata(ode, name=name,
                                                               user_targets=targets,
-                                                              user_units=_unspecified,
-                                                              user_shape=_unspecified)
+                                                              user_units=options['units'],
+                                                              user_shape=(1,))
             if shape == (1,):
                 src_idxs = None
                 flat_src_idxs = None

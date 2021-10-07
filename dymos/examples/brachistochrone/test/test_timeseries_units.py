@@ -32,18 +32,18 @@ class TestTimeseriesUnits(unittest.TestCase):
         ode = lambda num_nodes: om.ExecComp(['vdot = g * cos(theta)',
                                              'xdot = v * sin(theta)',
                                              'ydot = -v * cos(theta)'],
-                                            g={'value': 9.80665, 'units': 'm/s**2'},
+                                            g={'val': 9.80665, 'units': 'm/s**2'},
                                             v={'shape': (num_nodes,), 'units': 'm/s'},
                                             theta={'shape': (num_nodes,), 'units': 'rad'},
                                             vdot={'shape': (num_nodes,),
                                                   'units': 'm/s**2',
-                                                  'tags': ['state_rate_source:v']},
+                                                  'tags': ['dymos.state_rate_source:v']},
                                             xdot={'shape': (num_nodes,),
                                                   'units': 'degR',
-                                                  'tags': ['state_rate_source:x']},
+                                                  'tags': ['dymos.state_rate_source:x']},
                                             ydot={'shape': (num_nodes,),
                                                   'units': 'degK',
-                                                  'tags': ['state_rate_source:y']},
+                                                  'tags': ['dymos.state_rate_source:y']},
                                             has_diag_partials=True)
 
         traj = dm.Trajectory()

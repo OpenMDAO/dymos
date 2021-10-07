@@ -72,8 +72,8 @@ class Radau(PseudospectralBase):
 
             shape, units, static_target = get_target_metadata(ode, name=name,
                                                               user_targets=targets,
-                                                              user_units=_unspecified,
-                                                              user_shape=_unspecified)
+                                                              user_units=options['units'],
+                                                              user_shape=(1,))
 
             if shape == (1,):
                 src_idxs = None
