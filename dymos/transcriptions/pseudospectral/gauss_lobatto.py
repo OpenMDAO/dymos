@@ -100,6 +100,10 @@ class GaussLobatto(PseudospectralBase):
                 disc_src_idxs = disc_src_idxs.ravel()
                 col_src_idxs = col_src_idxs.ravel()
 
+            # enclose indices in tuple to ensure shaping of indices works
+            disc_src_idxs = (disc_src_idxs,)
+            col_src_idxs = (col_src_idxs,)
+
             # Control targets are detected automatically
             targets = get_targets(phase.rhs_disc, name, options['targets'])
 
@@ -158,6 +162,10 @@ class GaussLobatto(PseudospectralBase):
             if options['shape'] == (1,):
                 disc_src_idxs = disc_src_idxs.ravel()
                 col_src_idxs = col_src_idxs.ravel()
+
+            # enclose indices in tuple to ensure shaping of indices works
+            disc_src_idxs = (disc_src_idxs,)
+            col_src_idxs = (col_src_idxs,)
 
             targets = get_targets(ode=phase.rhs_disc, name=name, user_targets=options['targets'])
             if targets:
@@ -250,12 +258,11 @@ class GaussLobatto(PseudospectralBase):
                 shape = phase.parameter_options[rate_src]['shape']
                 param_size = np.prod(shape)
                 ndn = self.grid_data.subset_num_nodes['state_disc']
-                ncn = self.grid_data.subset_num_nodes['col']
                 src_idxs = np.tile(np.arange(0, param_size, dtype=int), ndn)
                 src_idxs = np.reshape(src_idxs, (ndn,) + shape)
                 phase.promotes('state_interp',
                                inputs=[(f'staterate_disc:{name}', f'parameters:{rate_src}')],
-                               src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
+                               src_indices=(src_idxs,), flat_src_indices=True, src_shape=shape)
             else:
                 rate_path, disc_src_idxs = self.get_rate_source_path(name, nodes='state_disc',
                                                                      phase=phase)
@@ -324,12 +331,12 @@ class GaussLobatto(PseudospectralBase):
                     src_idxs = np.reshape(src_idxs, (ndn,) + shape)
                     phase.promotes('interleave_comp',
                                    inputs=[(f'disc_values:state_rates:{state_name}', f'parameters:{rate_src}')],
-                                   src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
+                                   src_indices=(src_idxs,), flat_src_indices=True, src_shape=shape)
                     src_idxs = np.tile(np.arange(0, param_size, dtype=int), ncn)
                     src_idxs = np.reshape(src_idxs, (ncn,) + shape)
                     phase.promotes('interleave_comp',
                                    inputs=[(f'col_values:state_rates:{state_name}', f'parameters:{rate_src}')],
-                                   src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
+                                   src_indices=(src_idxs,), flat_src_indices=True, src_shape=shape)
                 else:
                     rate_path_disc, disc_src_idxs = self.get_rate_source_path(state_name,
                                                                               nodes='state_disc',
@@ -396,7 +403,7 @@ class GaussLobatto(PseudospectralBase):
                 src_idxs = np.reshape(src_idxs, (ncn,) + shape)
                 phase.promotes('collocation_constraint',
                                inputs=[(f'f_computed:{name}', f'parameters:{rate_src}')],
-                               src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
+                               src_indices=(src_idxs,), flat_src_indices=True, src_shape=shape)
             else:
                 rate_path, src_idxs = self.get_rate_source_path(name, nodes='col', phase=phase)
                 phase.connect(rate_path,
@@ -621,7 +628,7 @@ class GaussLobatto(PseudospectralBase):
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
                     phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
-                                   src_indices=src_idxs, flat_src_indices=True)
+                                   src_indices=(src_idxs,), flat_src_indices=True)
 
             for var, options in phase._timeseries[timeseries_name]['outputs'].items():
                 output_name = options['output_name']
@@ -831,8 +838,13 @@ class GaussLobatto(PseudospectralBase):
                     disc_src_idxs = disc_src_idxs.ravel()
                     col_src_idxs = col_src_idxs.ravel()
             else:
-                disc_src_idxs = np.squeeze(get_src_indices_by_row([0], shape), axis=0)
-                col_src_idxs = np.squeeze(get_src_indices_by_row([0], shape), axis=0)
+                inds = np.squeeze(get_src_indices_by_row([0], shape), axis=0)
+                disc_src_idxs = inds
+                col_src_idxs = inds
+
+            # enclose indices in tuple to ensure shaping of indices works
+            disc_src_idxs = (disc_src_idxs,)
+            col_src_idxs = (col_src_idxs,)
 
             rhs_disc_tgts = [f'rhs_disc.{t}' for t in targets]
             connection_info.append((rhs_disc_tgts, disc_src_idxs))

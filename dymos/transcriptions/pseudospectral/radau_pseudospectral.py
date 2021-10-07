@@ -217,7 +217,7 @@ class Radau(PseudospectralBase):
                 src_idxs = np.tile(np.arange(0, param_size, dtype=int), ncn)
                 src_idxs = np.reshape(src_idxs, (ncn,) + shape)
                 phase.promotes('collocation_constraint', inputs=[(f'f_computed:{name}', f'parameters:{rate_src}')],
-                               src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
+                               src_indices=(src_idxs,), flat_src_indices=True, src_shape=shape)
             else:
                 rate_src_path, src_idxs = self.get_rate_source_path(name, 'col', phase)
                 phase.connect(rate_src_path,
@@ -305,6 +305,10 @@ class Radau(PseudospectralBase):
                 src = f'rhs_all.{var}'
                 tgt = f'path_constraints.all_values:{con_name}'
 
+            if src_idxs is not None:
+                # enclose indices in tuple to ensure shaping of indices works
+                src_idxs = (src_idxs,)
+
             phase.connect(src_name=src, tgt_name=tgt,
                           src_indices=src_idxs, flat_src_indices=flat_src_idxs)
 
@@ -354,13 +358,6 @@ class Radau(PseudospectralBase):
 
                 rate_src = options['rate_source']
                 if rate_src in phase.parameter_options:
-                    # If the rate source is a parameter, which is an input, we need to promote
-                    # the state rates input value to the parameter name instead of connecting to it.
-                    nn = self.grid_data.subset_num_nodes['all']
-                    shape = phase.parameter_options[rate_src]['shape']
-                    param_size = np.prod(shape)
-                    src_idxs = np.tile(np.arange(0, param_size, dtype=int), nn)
-                    src_idxs = np.reshape(src_idxs, (nn,) + shape)
                     rate_src_path = f'parameters:{rate_src}'
 
                     added_src = timeseries_comp._add_output_configure(f'state_rates:{state_name}',
@@ -372,10 +369,17 @@ class Radau(PseudospectralBase):
                                                                       src=rate_src_path)
 
                     if added_src:
+                        # If the rate source is a parameter, which is an input, we need to promote
+                        # the state rates input value to the parameter name instead of connecting to it.
+                        nn = self.grid_data.subset_num_nodes['all']
+                        shape = phase.parameter_options[rate_src]['shape']
+                        param_size = np.prod(shape)
+                        src_idxs = np.tile(np.arange(0, param_size, dtype=int), nn)
+                        src_idxs = np.reshape(src_idxs, (nn,) + shape)
                         phase.promotes(f'{timeseries_name}',
                                        inputs=[(f'input_values:state_rates:{state_name}',
                                                 f'parameters:{rate_src}')],
-                                       src_indices=src_idxs, src_shape=shape)
+                                       src_indices=(src_idxs,), src_shape=shape)
 
                 else:
                     rate_src_path, src_idxs = self.get_rate_source_path(state_name, 'all', phase)
@@ -395,7 +399,6 @@ class Radau(PseudospectralBase):
             for control_name, options in phase.control_options.items():
                 control_units = options['units']
                 src_rows = gd.subset_node_indices['all']
-                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
 
                 added_src = timeseries_comp._add_output_configure(f'controls:{control_name}',
                                                                   shape=options['shape'],
@@ -403,9 +406,10 @@ class Radau(PseudospectralBase):
                                                                   desc=options['desc'],
                                                                   src=f'control_values:{control_name}')
                 if added_src:
+                    src_idxs = get_src_indices_by_row(src_rows, options['shape'])
                     phase.connect(src_name=f'control_values:{control_name}',
                                   tgt_name=f'{timeseries_name}.input_values:controls:{control_name}',
-                                  src_indices=src_idxs, flat_src_indices=True)
+                                  src_indices=(src_idxs,), flat_src_indices=True)
 
                 # Control rates
                 added_src = timeseries_comp._add_output_configure(f'control_rates:{control_name}_rate',
@@ -432,7 +436,6 @@ class Radau(PseudospectralBase):
 
             for control_name, options in phase.polynomial_control_options.items():
                 src_rows = gd.subset_node_indices['all']
-                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
                 control_units = options['units']
 
                 # Control values
@@ -443,9 +446,10 @@ class Radau(PseudospectralBase):
                                                                   src=f'polynomial_control_values:{control_name}')
 
                 if added_src:
+                    src_idxs = get_src_indices_by_row(src_rows, options['shape'])
                     phase.connect(src_name=f'polynomial_control_values:{control_name}',
                                   tgt_name=f'{timeseries_name}.input_values:polynomial_controls:{control_name}',
-                                  src_indices=src_idxs, flat_src_indices=True)
+                                  src_indices=(src_idxs,), flat_src_indices=True)
 
                 # Control rates
                 added_src = timeseries_comp._add_output_configure(f'polynomial_control_rates:{control_name}_rate',
@@ -486,7 +490,7 @@ class Radau(PseudospectralBase):
                         src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
                         phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
-                                       src_indices=src_idxs, flat_src_indices=True)
+                                       src_indices=(src_idxs,), flat_src_indices=True)
 
             for var, options in phase._timeseries[timeseries_name]['outputs'].items():
                 output_name = options['output_name']
@@ -697,6 +701,6 @@ class Radau(PseudospectralBase):
                 src_idxs = np.squeeze(src_idxs, axis=0)
 
             rhs_all_tgts = [f'rhs_all.{t}' for t in targets]
-            connection_info.append((rhs_all_tgts, src_idxs))
+            connection_info.append((rhs_all_tgts, (src_idxs,)))
 
         return connection_info

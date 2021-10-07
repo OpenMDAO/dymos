@@ -279,9 +279,7 @@ class PseudospectralBase(TranscriptionBase):
         phase.connect('dt_dstau', 'state_interp.dt_dstau',
                       src_indices=grid_data.subset_node_indices['col'], flat_src_indices=True)
 
-        for name, options in phase.state_options.items():
-            size = np.prod(options['shape'])
-
+        for name, _ in phase.state_options.items():
             phase.connect('states:{0}'.format(name),
                           'state_interp.state_disc:{0}'.format(name),
                           src_indices=om.slicer[map_input_indices_to_disc, ...])
@@ -418,7 +416,7 @@ class PseudospectralBase(TranscriptionBase):
                                                                 flat=True)
                     phase.connect('states:{0}'.format(name),
                                   'continuity_comp.states:{}'.format(name),
-                                  src_indices=flattened_src_idxs, flat_src_indices=True)
+                                  src_indices=(flattened_src_idxs,), flat_src_indices=True)
 
             for name, options in phase.control_options.items():
                 control_src_name = 'control_values:{0}'.format(name)
@@ -426,6 +424,9 @@ class PseudospectralBase(TranscriptionBase):
                 # The sub-indices of control_disc indices that are segment ends
                 segment_end_idxs = grid_data.subset_node_indices['segment_ends']
                 src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
+
+                # enclose indices in tuple to ensure shaping of indices works
+                src_idxs = (src_idxs,)
 
                 phase.connect(control_src_name,
                               'continuity_comp.controls:{0}'.format(name),

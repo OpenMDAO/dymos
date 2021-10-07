@@ -112,7 +112,7 @@ class ODEIntegrationInterfaceSystem(om.Group):
                     else:
                         src_idxs = np.arange(size, dtype=int).reshape((1,) + tgt_shape)
                     self.connect(f'states:{name}', f'ode.{tgt}',
-                                 src_indices=src_idxs, flat_src_indices=True)
+                                 src_indices=(src_idxs,), flat_src_indices=True)
 
         # Configure controls
         if self.options['control_options']:
