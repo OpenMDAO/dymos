@@ -17,11 +17,10 @@ to Dymos, those capabilities are not fully filled out as of this release.
 
 ## Enhancements
 
-* Changed USatm1976Comp to use OpenMDAO's complex-safe Akima interpolation. [#633](https://github.com/OpenMDAO/dymos/pull/633)
 * Update run_problem.py to return success state [#634](https://github.com/OpenMDAO/dymos/pull/634)
 * Added an experimental explicit shooting transcription to dymos [#637](https://github.com/OpenMDAO/dymos/pull/637)
 * Added control rates and their derivatives when using ExplicitShooting. [#645](https://github.com/OpenMDAO/dymos/pull/645)
-* Rewrite of the USatm1976Comp to use pre-computed akima coefficients for interpolation. This allows a fully vectorized implementation with significant speed-up. [#652](https://github.com/OpenMDAO/dymos/pull/652)
+* Rewrite of the USatm1976Comp to use pre-computed akima coefficients for interpolation. It is now complex-safe and considerably faster. [#652](https://github.com/OpenMDAO/dymos/pull/652)
 * Allow addition of ODE outputs to ExplicitShooting timeseries [#654](https://github.com/OpenMDAO/dymos/pull/654)
 
 ## Bug Fixes
