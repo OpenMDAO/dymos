@@ -1,4 +1,43 @@
 *******************************
+# Release Notes for Dymos 1.2.0
+
+October 12, 2021
+
+This is version 1.2.0 of Dymos.
+
+The release provides compatibility with OpenMDAO >=3.13.0 and adds
+some performance improvements.
+
+While we are beginning to bring a true explicit shooting capability
+to Dymos, those capabilities are not fully filled out as of this release.
+
+## Backwards Incompatible API Changes & Deprecations
+
+* Dymos 1.2.0 requires OpenMDAO >= 3.13.0, due to changes in the way indices are specified in OpenMDAO.
+
+## Enhancements
+
+* Changed USatm1976Comp to use OpenMDAO's complex-safe Akima interpolation. [#633](https://github.com/OpenMDAO/dymos/pull/633)
+* Update run_problem.py to return success state [#634](https://github.com/OpenMDAO/dymos/pull/634)
+* Added an experimental explicit shooting transcription to dymos [#637](https://github.com/OpenMDAO/dymos/pull/637)
+* Added control rates and their derivatives when using ExplicitShooting. [#645](https://github.com/OpenMDAO/dymos/pull/645)
+* Rewrite of the USatm1976Comp to use pre-computed akima coefficients for interpolation. This allows a fully vectorized implementation with significant speed-up. [#652](https://github.com/OpenMDAO/dymos/pull/652)
+* Allow addition of ODE outputs to ExplicitShooting timeseries [#654](https://github.com/OpenMDAO/dymos/pull/654)
+
+## Bug Fixes
+
+* Fixed an issue where simulation was not working when running under MPI in run_problem [#628](https://github.com/OpenMDAO/dymos/pull/628)
+* Added a better error message when simulate fails due to the inability to find a good step size. [#630](https://github.com/OpenMDAO/dymos/pull/630)
+* Fixes a bug where t_initial_targets and t_duration_targets would not work if input_initial or input_duration were True, respectively. [#656](https://github.com/OpenMDAO/dymos/pull/656)
+* Fix to eliminate warning messages related to the recent indexing update to OpenMDAO. [Requires OpenMDAO >= 3.12.0] [#636](https://github.com/OpenMDAO/dymos/pull/636)
+* Removed exceptions introduced in OpenMDAO PR [#2279](https://github.com/OpenMDAO/OpenMDAO/pull/2279). [#653](https://github.com/OpenMDAO/dymos/pull/653)
+
+## Miscellaneous
+
+* Fixed issue in executable notebooks. [#631](https://github.com/OpenMDAO/dymos/pull/631)
+* Updated CI matrix to test against latest release and development versions of OpenMDAO. [#638](https://github.com/OpenMDAO/dymos/pull/638)
+
+*******************************
 # Release Notes for Dymos 1.1.0
 
 July 22, 2021
