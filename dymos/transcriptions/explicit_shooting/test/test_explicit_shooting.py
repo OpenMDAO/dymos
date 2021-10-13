@@ -156,7 +156,7 @@ class TestExplicitShooting(unittest.TestCase):
 
     def test_brachistochrone_explicit_shooting(self):
 
-        for method in ['rk4', 'ralston']:
+        for method in ['rk4']:#, 'ralston']:
             with self.subTest(f"test brachistochrone explicit shooting with method '{method}'"):
                 prob = om.Problem()
 
@@ -175,7 +175,8 @@ class TestExplicitShooting(unittest.TestCase):
                 phase.set_state_options('v', fix_initial=True)
 
                 phase.add_parameter('g', val=1.0, units='m/s**2', opt=True, lower=1, upper=9.80665)
-                phase.add_control('theta', val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9)
+                phase.add_control('theta', val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9,
+                                  continuity=True, rate_continuity=False, rate2_continuity=False)
 
                 phase.add_boundary_constraint('x', loc='final', equals=10.0)
                 phase.add_boundary_constraint('y', loc='final', equals=5.0)

@@ -5,11 +5,9 @@ import numpy as np
 import openmdao.api as om
 
 from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp
-from ..phase.options import StateOptionsDictionary
 from ..utils.constants import INF_BOUND
 from ..utils.misc import get_rate_units, _unspecified
-from ..utils.introspection import configure_controls_introspection, get_target_metadata, \
-    get_source_metadata
+from ..utils.introspection import get_target_metadata, get_source_metadata
 
 
 class TranscriptionBase(object):

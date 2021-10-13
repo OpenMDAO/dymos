@@ -1495,18 +1495,19 @@ class Phase(om.Group):
         transcription.setup_states(self)
         self._check_ode()
         transcription.setup_ode(self)
-        transcription.setup_defects(self)
 
         transcription.setup_boundary_constraints('initial', self)
         transcription.setup_boundary_constraints('final', self)
         transcription.setup_path_constraints(self)
         transcription.setup_timeseries_outputs(self)
+        transcription.setup_defects(self)
         transcription.setup_solvers(self)
 
     def configure(self):
         """
         Finalize connections after sizes are known.
         """
+        print('phase configure')
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']

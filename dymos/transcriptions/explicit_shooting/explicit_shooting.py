@@ -1,10 +1,9 @@
-from collections import defaultdict
-
 import numpy as np
 
 import openmdao.api as om
 
 from .explicit_timeseries_comp import ExplicitTimeseriesComp
+from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import GridData
 from .rk_integration_comp import RKIntegrationComp, rk_methods
@@ -281,14 +280,26 @@ class ExplicitShooting(TranscriptionBase):
 
     def setup_defects(self, phase):
         """
-        Not used in ExplicitShooting.
+        Create the continuity_comp to house the defects.
 
         Parameters
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        grid_data = self.grid_data
+
+        any_control_continuity = any([opts['continuity'] for opts in phase.control_options.values()])
+        any_rate_continuity = any([opts['rate_continuity'] or opts['rate2_continuity']
+                                   for opts in phase.control_options.values()])
+
+        if grid_data.num_segments > 1 and (any_control_continuity or any_rate_continuity):
+            phase.add_subsystem('continuity_comp',
+                                ExplicitShootingContinuityComp(grid_data=grid_data,
+                                                               state_options=phase.state_options,
+                                                               control_options=phase.control_options,
+                                                               time_units=phase.time_options[
+                                                               'units']))
 
     def configure_defects(self, phase):
         """
@@ -299,7 +310,23 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        grid_data = self.grid_data
+        any_control_continuity = any([opts['continuity'] for opts in phase.control_options.values()])
+        any_rate_continuity = any([opts['rate_continuity'] or opts['rate2_continuity']
+                                   for opts in phase.control_options.values()])
+
+        if grid_data.num_segments > 1 and (any_control_continuity or any_rate_continuity):
+            phase.continuity_comp.configure_io()
+
+        for control_name, options in phase.control_options.items():
+            if options['continuity']:
+                phase.connect(f'timeseries.controls:{control_name}',
+                              f'continuity_comp.controls:{control_name}')
+
+        if any_rate_continuity:
+            print('promoting t_duration')
+            phase.promotes('continuity_comp', inputs=['t_duration'])
+
 
     def configure_objective(self, phase):
         """

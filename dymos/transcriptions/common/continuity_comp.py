@@ -52,19 +52,17 @@ class ContinuityCompBase(om.ExplicitComponent):
             self.name_maps[state_name] = {}
 
             self.name_maps[state_name]['value_names'] = \
-                ('states:{0}'.format(state_name),
-                 'defect_states:{0}'.format(state_name))
+                (f'states:{state_name}', f'defect_states:{state_name}')
 
-            self.add_input(name='states:{0}'.format(state_name),
+            self.add_input(name=f'states:{state_name}',
                            shape=(num_segend_nodes,) + shape,
-                           desc='Values of state {0} at discretization nodes'.format(
-                               state_name),
+                           desc=f'Values of state {state_name} at segment endpoint nodes',
                            units=units)
 
             self.add_output(
-                name='defect_states:{0}'.format(state_name),
+                name=f'defect_states:{state_name}',
                 shape=(num_segments - 1,) + shape,
-                desc='Consistency constraint values for state {0}'.format(state_name),
+                desc=f'Consistency constraint values for state {state_name}',
                 units=units)
 
             rs_size1 = np.repeat(np.arange(num_segments - 1, dtype=int), 2)
@@ -79,13 +77,12 @@ class ContinuityCompBase(om.ExplicitComponent):
             vals[0::2] = -1.0
             vals[1::2] = 1.0
 
-            self.declare_partials(
-                'defect_states:{0}'.format(state_name),
-                'states:{0}'.format(state_name),
-                val=vals, rows=rs, cols=cs,
+            self.declare_partials(f'defect_states:{state_name}', f'states:{state_name}',
+                                  val=vals, rows=rs, cols=cs,
             )
 
     def _configure_control_continuity(self):
+        print('configure base control continuity')
         control_options = self.options['control_options']
         num_segend_nodes = self.options['grid_data'].subset_num_nodes['segment_ends']
         num_segments = self.options['grid_data'].num_segments
@@ -97,6 +94,8 @@ class ContinuityCompBase(om.ExplicitComponent):
 
         self.add_input('t_duration', units=time_units, val=1.0,
                        desc='time duration of the phase')
+
+        print('added input t_duration')
 
         for control_name, options in control_options.items():
             shape = options['shape']
@@ -124,93 +123,87 @@ class ContinuityCompBase(om.ExplicitComponent):
             #
             self.name_maps[control_name] = {}
 
-            self.name_maps[control_name]['value_names'] = \
-                ('controls:{0}'.format(control_name),
-                 'defect_controls:{0}'.format(control_name))
+            if options['continuity']:
+                self.name_maps[control_name]['value_names'] = \
+                    (f'controls:{control_name}',
+                     f'defect_controls:{control_name}')
 
-            self.name_maps[control_name]['rate_names'] = \
-                ('control_rates:{0}_rate'.format(control_name),
-                 'defect_control_rates:{0}_rate'.format(control_name))
+                self.add_input(
+                    name=f'controls:{control_name}',
+                    shape=(num_segend_nodes,) + shape,
+                    desc=f'Values of control {control_name} at segment endpoint nodes',
+                    units=units)
 
-            self.name_maps[control_name]['rate2_names'] = \
-                ('control_rates:{0}_rate2'.format(control_name),
-                 'defect_control_rates:{0}_rate2'.format(control_name))
+                self.add_output(
+                    name=f'defect_controls:{control_name}',
+                    val=5*np.ones((num_segments - 1,) + shape),
+                    desc=f'Continuity constraint values for control {control_name}',
+                    units=units)
 
-            self.add_input(
-                name='controls:{0}'.format(control_name),
-                shape=(num_segend_nodes,) + shape,
-                desc='Values of control {0} at discretization nodes'.format(control_name),
-                units=units)
+                self.declare_partials(
+                    f'defect_controls:{control_name}',
+                    f'controls:{control_name}',
+                    val=vals, rows=rs, cols=cs,
+                )
 
-            self.add_output(
-                name='defect_controls:{0}'.format(control_name),
-                val=5*np.ones((num_segments - 1,) + shape),
-                desc='Continuity constraint values for control {0}'.format(control_name),
-                units=units)
+            if options['rate_continuity']:
+                self.name_maps[control_name]['rate_names'] = \
+                    (f'control_rates:{control_name}_rate',
+                     f'defect_control_rates:{control_name}_rate')
 
-            self.declare_partials(
-                'defect_controls:{0}'.format(control_name),
-                'controls:{0}'.format(control_name),
-                val=vals, rows=rs, cols=cs,
-            )
+                self.add_input(
+                    name=f'control_rates:{control_name}_rate',
+                    shape=(num_segend_nodes,) + shape,
+                    desc=f'Values of control {control_name} derivative at segment endpoint nodes',
+                    units=rate_units)
 
-            #
-            # Setup first derivative continuity
-            #
+                self.add_output(
+                    name=f'defect_control_rates:{control_name}_rate',
+                    shape=(num_segments - 1,) + shape,
+                    desc=f'Consistency constraint values for control {control_name} derivative',
+                    units=rate_units)
 
-            self.add_input(
-                name='control_rates:{0}_rate'.format(control_name),
-                shape=(num_segend_nodes,) + shape,
-                desc='Values of control {0} derivative at '
-                     'discretization nodes'.format(control_name),
-                units=rate_units)
+                self.declare_partials(
+                    f'defect_control_rates:{control_name}_rate',
+                    f'control_rates:{control_name}_rate',
+                    rows=rs, cols=cs,
+                )
 
-            self.add_output(
-                name='defect_control_rates:{0}_rate'.format(control_name),
-                shape=(num_segments - 1,) + shape,
-                desc='Consistency constraint values for '
-                     'control {0} derivative'.format(control_name),
-                units=rate_units)
+                self.declare_partials(
+                    f'defect_control_rates:{control_name}_rate',
+                    't_duration', dependent=True,
+                )
 
-            self.declare_partials(
-                'defect_control_rates:{0}_rate'.format(control_name),
-                'control_rates:{0}_rate'.format(control_name),
-                rows=rs, cols=cs,
-            )
+            if options['rate2_continuity']:
+                self.name_maps[control_name]['rate2_names'] = \
+                    (f'control_rates:{control_name}_rate2',
+                     f'defect_control_rates:{control_name}_rate2')
 
-            self.declare_partials(
-                'defect_control_rates:{0}_rate'.format(control_name),
-                't_duration', dependent=True,
-            )
+                self.add_input(
+                    name=f'control_rates:{control_name}_rate2',
+                    shape=(num_segend_nodes,) + shape,
+                    desc=f'Values of control {control_name} second derivative '
+                         'at discretization nodes',
+                    units=rate2_units)
 
-            #
-            # Setup second derivative continuity
-            #
+                self.add_output(
+                    name='defect_control_rates:{control_name}_rate2',
+                    shape=(num_segments - 1,) + shape,
+                    desc='Consistency constraint values for control '
+                         f'{control_name} second derivative',
+                    units=rate2_units)
 
-            self.add_input(
-                name='control_rates:{0}_rate2'.format(control_name),
-                shape=(num_segend_nodes,) + shape,
-                desc='Values of control {0} second derivative '
-                     'at discretization nodes'.format(control_name),
-                units=rate2_units)
+                self.declare_partials(
+                    f'defect_control_rates:{control_name}_rate2',
+                    f'control_rates:{control_name}_rate2',
+                    rows=rs, cols=cs,
+                )
 
-            self.add_output(
-                name='defect_control_rates:{0}_rate2'.format(control_name),
-                shape=(num_segments - 1,) + shape,
-                desc='Consistency constraint values for control '
-                     '{0} second derivative'.format(control_name),
-                units=rate2_units)
+                self.declare_partials(
+                    f'defect_control_rates:{control_name}_rate2',
+                    't_duration', dependent=True
+                )
 
-            self.declare_partials(
-                'defect_control_rates:{0}_rate2'.format(control_name),
-                'control_rates:{0}_rate2'.format(control_name),
-                rows=rs, cols=cs,
-            )
-
-            self.declare_partials(
-                'defect_control_rates:{0}_rate2'.format(control_name),
-                't_duration', dependent=True
-            )
 
     def configure_io(self):
         """
@@ -245,20 +238,23 @@ class ContinuityCompBase(om.ExplicitComponent):
         dt_dptau = inputs['t_duration'] / 2.0
 
         for name, options in control_options.items():
-            input_name, output_name = self.name_maps[name]['value_names']
-            end_vals = inputs[input_name][1:-1:2, ...]
-            start_vals = inputs[input_name][2:-1:2, ...]
-            outputs[output_name] = start_vals - end_vals
+            if options['continuity']:
+                input_name, output_name = self.name_maps[name]['value_names']
+                end_vals = inputs[input_name][1:-1:2, ...]
+                start_vals = inputs[input_name][2:-1:2, ...]
+                outputs[output_name] = start_vals - end_vals
 
-            input_name, output_name = self.name_maps[name]['rate_names']
-            end_vals = inputs[input_name][1:-1:2, ...]
-            start_vals = inputs[input_name][2:-1:2, ...]
-            outputs[output_name] = (start_vals - end_vals) * dt_dptau
+            if options['rate_continuity']:
+                input_name, output_name = self.name_maps[name]['rate_names']
+                end_vals = inputs[input_name][1:-1:2, ...]
+                start_vals = inputs[input_name][2:-1:2, ...]
+                outputs[output_name] = (start_vals - end_vals) * dt_dptau
 
-            input_name, output_name = self.name_maps[name]['rate2_names']
-            end_vals = inputs[input_name][1:-1:2, ...]
-            start_vals = inputs[input_name][2:-1:2, ...]
-            outputs[output_name] = (start_vals - end_vals) * dt_dptau ** 2
+            if options['rate2_continuity']:
+                input_name, output_name = self.name_maps[name]['rate2_names']
+                end_vals = inputs[input_name][1:-1:2, ...]
+                start_vals = inputs[input_name][2:-1:2, ...]
+                outputs[output_name] = (start_vals - end_vals) * dt_dptau ** 2
 
     def compute(self, inputs, outputs):
         """
@@ -289,23 +285,25 @@ class ContinuityCompBase(om.ExplicitComponent):
         dt_dptau = 0.5 * inputs['t_duration']
 
         for control_name, options in control_options.items():
-            input_name, output_name = self.name_maps[control_name]['rate_names']
-            val = self.rate_jac_templates[control_name]
-            partials[output_name, input_name] = val * dt_dptau
+            if options['rate_continuity']:
+                input_name, output_name = self.name_maps[control_name]['rate_names']
+                val = self.rate_jac_templates[control_name]
+                partials[output_name, input_name] = val * dt_dptau
 
-            end_vals = inputs[input_name][1:-1:2, ...]
-            start_vals = inputs[input_name][2:-1:2, ...]
+                end_vals = inputs[input_name][1:-1:2, ...]
+                start_vals = inputs[input_name][2:-1:2, ...]
 
-            partials[output_name, 't_duration'] = 0.5 * (start_vals - end_vals)
+                partials[output_name, 't_duration'] = 0.5 * (start_vals - end_vals)
 
-            input_name, output_name = self.name_maps[control_name]['rate2_names']
-            val = self.rate_jac_templates[control_name]
-            partials[output_name, input_name] = val * dt_dptau**2
+            if options['rate2_continuity']:
+                input_name, output_name = self.name_maps[control_name]['rate2_names']
+                val = self.rate_jac_templates[control_name]
+                partials[output_name, input_name] = val * dt_dptau**2
 
-            end_vals = inputs[input_name][1:-1:2, ...]
-            start_vals = inputs[input_name][2:-1:2, ...]
+                end_vals = inputs[input_name][1:-1:2, ...]
+                start_vals = inputs[input_name][2:-1:2, ...]
 
-            partials[output_name, 't_duration'] = (start_vals - end_vals) * dt_dptau
+                partials[output_name, 't_duration'] = (start_vals - end_vals) * dt_dptau
 
 
 class GaussLobattoContinuityComp(ContinuityCompBase):
