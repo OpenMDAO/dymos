@@ -503,7 +503,7 @@ class TestExplicitShooting(unittest.TestCase):
                 phase.add_objective('time', loc='final')
 
                 msg = "The following timeseries outputs were requested but not found in the " \
-                      "ODE: foo, x, y"
+                      "ODE: foo"
 
                 with warnings.catch_warnings(record=True) as ctx:
                     warnings.simplefilter('always')
