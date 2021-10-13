@@ -462,7 +462,7 @@ class ExplicitShooting(TranscriptionBase):
             constraint_kwargs.pop('constraint_name', None)
             constraint_kwargs.pop('shape', None)
 
-            if constraint_name != var and ode is None:
+            if con_name != var and ode is None:
                 om.issue_warning(f"Option 'constraint_name' on path constraint {var} is only "
                                  f"valid for ODE outputs. The option is being ignored.")
 

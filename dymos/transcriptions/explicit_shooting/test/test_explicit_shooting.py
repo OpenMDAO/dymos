@@ -233,7 +233,6 @@ class TestExplicitShooting(unittest.TestCase):
 
                 phase.add_boundary_constraint('x', loc='final', equals=10.0)
                 phase.add_boundary_constraint('y', loc='final', equals=5.0)
-                phase.add_path_constraint('y', lower=5.0)
                 phase.add_path_constraint('ydot', lower=-100, upper=0)
 
                 prob.model.add_subsystem('phase0', phase)
@@ -253,10 +252,10 @@ class TestExplicitShooting(unittest.TestCase):
 
                 x = prob.get_val('phase0.timeseries.states:x')
                 y = prob.get_val('phase0.timeseries.states:y')
-                t = prob.get_val('phase0.timeseries.time')
+                ydot = prob.get_val('phase0.timeseries.ydot')
 
                 assert_near_equal(x[-1, ...], 10.0, tolerance=1.0E-3)
-                np.testing.assert_array_less(5.0, y)
+                self.assertTrue(np.all(ydot < 1.0E-6), msg='Not all elements of path constraint satisfied')
                 assert_near_equal(y[-1, ...], 5.0, tolerance=1.0E-3)
 
                 with np.printoptions(linewidth=1024):
@@ -307,10 +306,10 @@ class TestExplicitShooting(unittest.TestCase):
 
                 x = prob.get_val('phase0.timeseries.states:x')
                 y = prob.get_val('phase0.timeseries.states:y')
-                t = prob.get_val('phase0.timeseries.time')
+                ydot = prob.get_val('phase0.timeseries.foo')
 
                 assert_near_equal(x[-1, ...], 10.0, tolerance=1.0E-3)
-                np.testing.assert_array_less(5.0, y)
+                self.assertTrue(np.all(ydot <= 1.0E-6), msg='Not all elements of path constraint satisfied')
                 assert_near_equal(y[-1, ...], 5.0, tolerance=1.0E-3)
 
                 with np.printoptions(linewidth=1024):
