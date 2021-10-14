@@ -402,7 +402,7 @@ class PseudospectralBase(TranscriptionBase):
 
         phase.collocation_constraint.configure_io()
 
-        any_state_cnty, any_control_cnty, any_control_rate_cnty = self.requires_continuity_constraints(phase)
+        any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
 
         if not any((any_state_cnty, any_control_cnty, any_control_rate_cnty)):
             return

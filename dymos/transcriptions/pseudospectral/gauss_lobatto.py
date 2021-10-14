@@ -389,7 +389,7 @@ class GaussLobatto(PseudospectralBase):
         """
         super(GaussLobatto, self).setup_defects(phase)
 
-        if any(self.requires_continuity_constraints(phase)):
+        if any(self._requires_continuity_constraints(phase)):
             phase.add_subsystem('continuity_comp',
                                 GaussLobattoContinuityComp(grid_data=self.grid_data,
                                                            state_options=phase.state_options,
@@ -407,7 +407,7 @@ class GaussLobatto(PseudospectralBase):
         """
         super(GaussLobatto, self).configure_defects(phase)
 
-        any_state_cnty, any_control_cnty, any_control_rate_cnty = self.requires_continuity_constraints(phase)
+        any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
 
         if any_control_rate_cnty:
             phase.promotes('continuity_comp', inputs=['t_duration'])
@@ -881,7 +881,7 @@ class GaussLobatto(PseudospectralBase):
 
         return connection_info
 
-    def requires_continuity_constraints(self, phase):
+    def _requires_continuity_constraints(self, phase):
         """
         Tests whether state and/or control and/or control rate continuity are required.
 

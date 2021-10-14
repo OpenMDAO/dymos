@@ -287,7 +287,7 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        state_cont, control_cont, rate_cont = self.requires_continuity_constraints(phase)
+        state_cont, control_cont, rate_cont = self._requires_continuity_constraints(phase)
 
         if state_cont or control_cont or rate_cont:
             phase.add_subsystem('continuity_comp',
@@ -305,7 +305,7 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        any_state_cnty, any_control_cnty, any_rate_cnty = self.requires_continuity_constraints(phase)
+        any_state_cnty, any_control_cnty, any_rate_cnty = self._requires_continuity_constraints(phase)
 
         if any((any_state_cnty, any_control_cnty, any_rate_cnty)):
             phase.continuity_comp.configure_io()
@@ -833,7 +833,7 @@ class ExplicitShooting(TranscriptionBase):
 
         return rate_path
 
-    def requires_continuity_constraints(self, phase):
+    def _requires_continuity_constraints(self, phase):
         """
         Tests whether state and/or control and/or control rate continuity are required.
 
