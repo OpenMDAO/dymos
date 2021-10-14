@@ -1,10 +1,9 @@
-from collections import defaultdict
-
 import numpy as np
 
 import openmdao.api as om
 
 from .explicit_timeseries_comp import ExplicitTimeseriesComp
+from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import GridData
 from .rk_integration_comp import RKIntegrationComp, rk_methods
@@ -281,14 +280,21 @@ class ExplicitShooting(TranscriptionBase):
 
     def setup_defects(self, phase):
         """
-        Not used in ExplicitShooting.
+        Create the continuity_comp to house the defects.
 
         Parameters
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        state_cont, control_cont, rate_cont = self._requires_continuity_constraints(phase)
+
+        if state_cont or control_cont or rate_cont:
+            phase.add_subsystem('continuity_comp',
+                                ExplicitShootingContinuityComp(grid_data=self.grid_data,
+                                                               state_options=phase.state_options,
+                                                               control_options=phase.control_options,
+                                                               time_units=phase.time_options['units']))
 
     def configure_defects(self, phase):
         """
@@ -299,7 +305,24 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        any_state_cnty, any_control_cnty, any_rate_cnty = self._requires_continuity_constraints(phase)
+
+        if any((any_state_cnty, any_control_cnty, any_rate_cnty)):
+            phase.continuity_comp.configure_io()
+
+        for control_name, options in phase.control_options.items():
+            if options['continuity']:
+                phase.connect(f'timeseries.controls:{control_name}',
+                              f'continuity_comp.controls:{control_name}')
+            if options['rate_continuity']:
+                phase.connect(f'timeseries.control_rates:{control_name}_rate',
+                              f'continuity_comp.control_rates:{control_name}_rate')
+            if options['rate2_continuity']:
+                phase.connect(f'timeseries.control_rates:{control_name}_rate2',
+                              f'continuity_comp.control_rates:{control_name}_rate2')
+
+        if any_rate_cnty:
+            phase.promotes('continuity_comp', inputs=['t_duration'])
 
     def configure_objective(self, phase):
         """
@@ -809,3 +832,33 @@ class ExplicitShooting(TranscriptionBase):
             rate_path = f'ode.{var}'
 
         return rate_path
+
+    def _requires_continuity_constraints(self, phase):
+        """
+        Tests whether state and/or control and/or control rate continuity are required.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase to which this transcription applies.
+
+        Returns
+        -------
+        state_continuity : bool
+            True if any state continuity is required to be enforced.
+        control_continuity : bool
+            True if any control value continuity is required to be enforced.
+        control_rate_continuity : bool
+            True if any control rate continuity is required to be enforced.
+        """
+        num_seg = self.grid_data.num_segments
+        compressed = self.grid_data.compressed
+
+        state_continuity = False
+        any_control_continuity = any([opts['continuity'] for opts in phase.control_options.values()])
+        any_control_continuity = any_control_continuity and num_seg > 1 and not compressed
+        any_rate_continuity = any([opts['rate_continuity'] or opts['rate2_continuity']
+                                   for opts in phase.control_options.values()])
+        any_rate_continuity = any_rate_continuity and num_seg > 1
+
+        return state_continuity, any_control_continuity, any_rate_continuity

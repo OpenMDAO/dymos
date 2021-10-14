@@ -396,49 +396,58 @@ class PseudospectralBase(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
-        num_seg = grid_data.num_segments
 
         phase.connect('dt_dstau', ('collocation_constraint.dt_dstau'),
                       src_indices=grid_data.subset_node_indices['col'], flat_src_indices=True)
 
         phase.collocation_constraint.configure_io()
 
+        any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
+
+        if not any((any_state_cnty, any_control_cnty, any_control_rate_cnty)):
+            return
+
         # Add the continuity constraint component if necessary
-        if num_seg > 1:
+        segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+        state_disc_idxs = grid_data.subset_node_indices['state_disc']
+
+        if any_state_cnty:
+            state_input_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
+
+            for name, options in phase.state_options.items():
+                shape = options['shape']
+                flattened_src_idxs = get_src_indices_by_row(state_input_subidxs, shape=shape,
+                                                            flat=True)
+                phase.connect(f'states:{name}',
+                              f'continuity_comp.states:{name}',
+                              src_indices=(flattened_src_idxs,), flat_src_indices=True)
+
+        if any_control_rate_cnty:
+            phase.promotes('continuity_comp', inputs=['t_duration'])
+
+        for name, options in phase.control_options.items():
+            control_src_name = f'control_values:{name}'
+
+            # The sub-indices of control_disc indices that are segment ends
             segment_end_idxs = grid_data.subset_node_indices['segment_ends']
-            state_disc_idxs = grid_data.subset_node_indices['state_disc']
+            src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
 
-            if not self.options['compressed']:
-                state_input_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
+            # enclose indices in tuple to ensure shaping of indices works
+            src_idxs = (src_idxs,)
 
-                for name, options in phase.state_options.items():
-                    shape = options['shape']
-                    flattened_src_idxs = get_src_indices_by_row(state_input_subidxs, shape=shape,
-                                                                flat=True)
-                    phase.connect('states:{0}'.format(name),
-                                  'continuity_comp.states:{}'.format(name),
-                                  src_indices=(flattened_src_idxs,), flat_src_indices=True)
-
-            for name, options in phase.control_options.items():
-                control_src_name = 'control_values:{0}'.format(name)
-
-                # The sub-indices of control_disc indices that are segment ends
-                segment_end_idxs = grid_data.subset_node_indices['segment_ends']
-                src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
-
-                # enclose indices in tuple to ensure shaping of indices works
-                src_idxs = (src_idxs,)
-
+            if options['continuity']:
                 phase.connect(control_src_name,
-                              'continuity_comp.controls:{0}'.format(name),
+                              f'continuity_comp.controls:{name}',
                               src_indices=src_idxs, flat_src_indices=True)
 
-                phase.connect('control_rates:{0}_rate'.format(name),
-                              'continuity_comp.control_rates:{}_rate'.format(name),
+            if options['rate_continuity']:
+                phase.connect(f'control_rates:{name}_rate',
+                              f'continuity_comp.control_rates:{name}_rate',
                               src_indices=src_idxs, flat_src_indices=True)
 
-                phase.connect('control_rates:{0}_rate2'.format(name),
-                              'continuity_comp.control_rates:{}_rate2'.format(name),
+            if options['rate2_continuity']:
+                phase.connect(f'control_rates:{name}_rate2',
+                              f'continuity_comp.control_rates:{name}_rate2',
                               src_indices=src_idxs, flat_src_indices=True)
 
     def setup_solvers(self, phase):

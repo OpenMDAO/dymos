@@ -204,14 +204,12 @@ class Radau(PseudospectralBase):
         """
         super(Radau, self).setup_defects(phase)
 
-        grid_data = self.grid_data
-        if grid_data.num_segments > 1:
+        if any(self._requires_continuity_constraints(phase)):
             phase.add_subsystem('continuity_comp',
-                                RadauPSContinuityComp(grid_data=grid_data,
+                                RadauPSContinuityComp(grid_data=self.grid_data,
                                                       state_options=phase.state_options,
                                                       control_options=phase.control_options,
-                                                      time_units=phase.time_options['units']),
-                                promotes_inputs=['t_duration'])
+                                                      time_units=phase.time_options['units']))
 
     def configure_defects(self, phase):
         """
@@ -223,10 +221,6 @@ class Radau(PseudospectralBase):
             The phase object to which this transcription instance applies.
         """
         super(Radau, self).configure_defects(phase)
-
-        grid_data = self.grid_data
-        if grid_data.num_segments > 1:
-            phase.continuity_comp.configure_io()
 
         for name, options in phase.state_options.items():
             phase.connect('state_interp.staterate_col:{0}'.format(name),
@@ -248,6 +242,14 @@ class Radau(PseudospectralBase):
                 phase.connect(rate_src_path,
                               'collocation_constraint.f_computed:{0}'.format(name),
                               src_indices=src_idxs)
+
+        any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
+
+        if any_control_rate_cnty:
+            phase.promotes('continuity_comp', inputs=['t_duration'])
+
+        if any((any_state_cnty, any_control_cnty, any_control_rate_cnty)):
+            phase._get_subsystem('continuity_comp').configure_io()
 
     def configure_path_constraints(self, phase):
         """
@@ -729,3 +731,33 @@ class Radau(PseudospectralBase):
             connection_info.append((rhs_all_tgts, (src_idxs,)))
 
         return connection_info
+
+    def _requires_continuity_constraints(self, phase):
+        """
+        Tests whether state and/or control and/or control rate continuity are required.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase to which this transcription applies.
+
+        Returns
+        -------
+        any_state_continuity : bool
+            True if any state continuity is required to be enforced.
+        any_control_continuity : bool
+            True if any control value continuity is required to be enforced.
+        any_control_rate_continuity : bool
+            True if any control rate continuity is required to be enforced.
+        """
+        num_seg = self.grid_data.num_segments
+        compressed = self.grid_data.compressed
+
+        any_state_continuity = num_seg > 1 and not compressed
+        any_control_continuity = any([opts['continuity'] for opts in phase.control_options.values()])
+        any_control_continuity = any_control_continuity and num_seg > 1
+        any_rate_continuity = any([opts['rate_continuity'] or opts['rate2_continuity']
+                                   for opts in phase.control_options.values()])
+        any_rate_continuity = any_rate_continuity and num_seg > 1
+
+        return any_state_continuity, any_control_continuity, any_rate_continuity
