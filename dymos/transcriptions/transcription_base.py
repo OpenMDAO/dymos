@@ -805,3 +805,24 @@ class TranscriptionBase(object):
                        ode.get_io_metadata(iotypes=('output',), get_remote=True).items()}
         ode_shape = ode_outputs[var]['shape']
         return ode_shape[0] != num_nodes
+
+    def requires_continuity_constraints(self, phase):
+        """
+        Tests whether state and/or control and/or control rate continuity are required.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase to which this transcription applies.
+
+        Returns
+        -------
+        state_continuity : bool
+            True if any state continuity is required to be enforced.
+        control_continuity : bool
+            True if any control value continuity is required to be enforced.
+        control_rate_continuity : bool
+            True if any control rate continuity is required to be enforced.
+        """
+        raise NotImplementedError(f'The transcription {self.__class__} does not provide an '
+                                  f'implementation of requires_continuity_constraints')

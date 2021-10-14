@@ -78,11 +78,9 @@ class ContinuityCompBase(om.ExplicitComponent):
             vals[1::2] = 1.0
 
             self.declare_partials(f'defect_states:{state_name}', f'states:{state_name}',
-                                  val=vals, rows=rs, cols=cs,
-            )
+                                  val=vals, rows=rs, cols=cs)
 
     def _configure_control_continuity(self):
-        print('configure base control continuity')
         control_options = self.options['control_options']
         num_segend_nodes = self.options['grid_data'].subset_num_nodes['segment_ends']
         num_segments = self.options['grid_data'].num_segments
@@ -92,10 +90,7 @@ class ContinuityCompBase(om.ExplicitComponent):
             # Control value and rate continuity is enforced even with compressed transcription
             return
 
-        self.add_input('t_duration', units=time_units, val=1.0,
-                       desc='time duration of the phase')
-
-        print('added input t_duration')
+        any_rate_continuity = False
 
         for control_name, options in control_options.items():
             shape = options['shape']
@@ -147,6 +142,8 @@ class ContinuityCompBase(om.ExplicitComponent):
                 )
 
             if options['rate_continuity']:
+                any_rate_continuity = True
+
                 self.name_maps[control_name]['rate_names'] = \
                     (f'control_rates:{control_name}_rate',
                      f'defect_control_rates:{control_name}_rate')
@@ -175,6 +172,8 @@ class ContinuityCompBase(om.ExplicitComponent):
                 )
 
             if options['rate2_continuity']:
+                any_rate_continuity = True
+
                 self.name_maps[control_name]['rate2_names'] = \
                     (f'control_rates:{control_name}_rate2',
                      f'defect_control_rates:{control_name}_rate2')
@@ -187,7 +186,7 @@ class ContinuityCompBase(om.ExplicitComponent):
                     units=rate2_units)
 
                 self.add_output(
-                    name='defect_control_rates:{control_name}_rate2',
+                    name=f'defect_control_rates:{control_name}_rate2',
                     shape=(num_segments - 1,) + shape,
                     desc='Consistency constraint values for control '
                          f'{control_name} second derivative',
@@ -204,6 +203,8 @@ class ContinuityCompBase(om.ExplicitComponent):
                     't_duration', dependent=True
                 )
 
+        if any_rate_continuity:
+            self.add_input('t_duration', units=time_units, val=1.0, desc='time duration of the phase')
 
     def configure_io(self):
         """
@@ -235,7 +236,8 @@ class ContinuityCompBase(om.ExplicitComponent):
     def _compute_control_continuity(self, inputs, outputs):
         control_options = self.options['control_options']
 
-        dt_dptau = inputs['t_duration'] / 2.0
+        if any([options['rate_continuity'] or options['rate2_continuity'] for options in control_options.values()]):
+            dt_dptau = inputs['t_duration'] / 2.0
 
         for name, options in control_options.items():
             if options['continuity']:
@@ -282,6 +284,10 @@ class ContinuityCompBase(om.ExplicitComponent):
             Subjac components written to partials[output_name, input_name].
         """
         control_options = self.options['control_options']
+
+        if not any([options['rate_continuity'] or options['rate2_continuity'] for options in control_options.values()]):
+            return
+
         dt_dptau = 0.5 * inputs['t_duration']
 
         for control_name, options in control_options.items():
@@ -331,7 +337,7 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
                 # linear if states are optimized, because they are dvs.
                 # but nonlinear if solve_segments, because its like multiple shooting
                 is_linear = not options['solve_segments']
-                self.add_constraint(name='defect_states:{0}'.format(state_name),
+                self.add_constraint(name=f'defect_states:{state_name}',
                                     equals=0.0, scaler=1.0, linear=is_linear)
 
     def _configure_control_continuity(self):
@@ -348,7 +354,7 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
         for control_name, options in control_options.items():
 
             if options['continuity'] and not compressed:
-                self.add_constraint(name='defect_controls:{0}'.format(control_name),
+                self.add_constraint(name=f'defect_controls:{control_name}',
                                     equals=0.0, scaler=1.0, linear=True)
 
             #
@@ -356,7 +362,7 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
             #
 
             if options['rate_continuity']:
-                self.add_constraint(name='defect_control_rates:{0}_rate'.format(control_name),
+                self.add_constraint(name=f'defect_control_rates:{control_name}_rate',
                                     equals=0.0, scaler=options['rate_continuity_scaler'],
                                     linear=False)
 
@@ -365,7 +371,7 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
             #
 
             if options['rate2_continuity']:
-                self.add_constraint(name='defect_control_rates:{0}_rate2'.format(control_name),
+                self.add_constraint(name=f'defect_control_rates:{control_name}_rate2',
                                     equals=0.0, scaler=options['rate2_continuity_scaler'],
                                     linear=False)
 
@@ -395,7 +401,7 @@ class RadauPSContinuityComp(ContinuityCompBase):
                 # but nonlinear if solve_segments, because its like multiple shooting
                 is_linear = not options['solve_segments']
 
-                self.add_constraint(name='defect_states:{0}'.format(state_name),
+                self.add_constraint(name=f'defect_states:{state_name}',
                                     equals=0.0, scaler=1.0, linear=is_linear)
 
     def _configure_control_continuity(self):
@@ -410,7 +416,7 @@ class RadauPSContinuityComp(ContinuityCompBase):
 
         for control_name, options in control_options.items():
             if options['continuity']:
-                self.add_constraint(name='defect_controls:{0}'.format(control_name),
+                self.add_constraint(name=f'defect_controls:{control_name}',
                                     equals=0.0, scaler=1.0, linear=False)
 
             #
@@ -418,7 +424,7 @@ class RadauPSContinuityComp(ContinuityCompBase):
             #
 
             if options['rate_continuity']:
-                self.add_constraint(name='defect_control_rates:{0}_rate'.format(control_name),
+                self.add_constraint(name=f'defect_control_rates:{control_name}_rate',
                                     equals=0.0, scaler=options['rate_continuity_scaler'],
                                     linear=False)
 
@@ -427,6 +433,6 @@ class RadauPSContinuityComp(ContinuityCompBase):
             #
 
             if options['rate2_continuity']:
-                self.add_constraint(name='defect_control_rates:{0}_rate2'.format(control_name),
+                self.add_constraint(name=f'defect_control_rates:{control_name}_rate2',
                                     equals=0.0, scaler=options['rate2_continuity_scaler'],
                                     linear=False)

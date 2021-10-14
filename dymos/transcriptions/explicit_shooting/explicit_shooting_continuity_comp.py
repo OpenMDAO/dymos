@@ -31,10 +31,10 @@ class ExplicitShootingContinuityComp(ContinuityCompBase):
 
     def _configure_control_continuity(self):
         super()._configure_control_continuity()
-        print('configure explicit shooting control continuity')
         control_options = self.options['control_options']
         num_segments = self.options['grid_data'].num_segments
         compressed = self.options['grid_data'].compressed
+        grid_tx = self.options['grid_data'].transcription
 
         if num_segments <= 1:
             # Control value and rate continuity is enforced even with compressed transcription
@@ -42,8 +42,9 @@ class ExplicitShootingContinuityComp(ContinuityCompBase):
 
         for control_name, options in control_options.items():
             if options['continuity'] and not compressed:
+                linear_cnty = grid_tx == 'gauss-lobatto'
                 self.add_constraint(name=f'defect_controls:{control_name}',
-                                    equals=0.0, scaler=1.0, linear=True)
+                                    equals=0.0, scaler=1.0, linear=linear_cnty)
 
             #
             # Setup first derivative continuity
@@ -62,3 +63,6 @@ class ExplicitShootingContinuityComp(ContinuityCompBase):
                 self.add_constraint(name=f'defect_control_rates:{control_name}_rate2',
                                     equals=0.0, scaler=options['rate2_continuity_scaler'],
                                     linear=False)
+
+    def _compute_state_continuity(self, inputs, outputs):
+        pass

@@ -1514,7 +1514,6 @@ class Phase(om.Group):
         """
         Finalize connections after sizes are known.
         """
-        print('phase configure')
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']
