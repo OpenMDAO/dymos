@@ -82,7 +82,7 @@ class TestContinuityComp(unittest.TestCase):
 
                 control_options['u']['rate_continuity'] = True
                 control_options['v']['rate_continuity'] = True
-                
+
                 control_options['u']['rate2_continuity'] = True
                 control_options['v']['rate2_continuity'] = True
 
