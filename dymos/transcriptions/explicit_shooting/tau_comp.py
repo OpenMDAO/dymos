@@ -27,6 +27,7 @@ class TauComp(om.ExplicitComponent):
         """
         Declare component options.
         """
+        self.options.declare('num_nodes', types=int, default=1, desc='number of nodes at which to compute time')
         self.options.declare('segment_index', types=int, desc='index of the current segment')
         self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of time (or the integration variable)')
@@ -35,27 +36,29 @@ class TauComp(om.ExplicitComponent):
         """
         I/O creation is delayed until configure so we can determine variable shape and units.
         """
+        nn = self.options['num_nodes']
         time_units = self.options['time_units']
 
         self.add_input('t_initial', val=0.0, units=time_units)
         self.add_input('t_duration', val=1.0, units=time_units)
-        self.add_input('time', val=1.0, units=time_units)
-        self.add_output('ptau', units=None, val=0.5)
-        self.add_output('stau', units=None, val=1.0)
+        self.add_input('time', shape=(nn,), units=time_units)
+        self.add_output('ptau', units=None, shape=(nn,))
+        self.add_output('stau', units=None, shape=(nn,))
         self.add_output('dstau_dt', units=f'1/{time_units}', val=1.0)
-        self.add_output('time_phase', units=time_units, val=1.0)
+        self.add_output('time_phase', units=time_units, shape=(nn,))
         # self.add_discrete_output('segment_index', val=0)
 
         # Setup partials
-        self.declare_partials(of='ptau', wrt='t_initial', val=1.0)
-        self.declare_partials(of='ptau', wrt='t_duration', val=1.0)
-        self.declare_partials(of='ptau', wrt='time', val=1.0)
+        ar = np.arange(nn, dtype=int)
+        self.declare_partials(of='ptau', wrt='t_initial')
+        self.declare_partials(of='ptau', wrt='t_duration')
+        self.declare_partials(of='ptau', wrt='time', rows=ar, cols=ar)
 
-        self.declare_partials(of='stau', wrt='t_initial', val=1.0)
-        self.declare_partials(of='stau', wrt='t_duration', val=1.0)
-        self.declare_partials(of='stau', wrt='time', val=1.0)
+        self.declare_partials(of='stau', wrt='t_initial')
+        self.declare_partials(of='stau', wrt='t_duration')
+        self.declare_partials(of='stau', wrt='time', rows=ar, cols=ar)
 
-        self.declare_partials(of='time_phase', wrt='time', val=1.0)
+        self.declare_partials(of='time_phase', wrt='time', rows=ar, cols=ar, val=1.0)
         self.declare_partials(of='time_phase', wrt='t_initial', val=-1.0)
 
         self.declare_partials(of='dstau_dt', wrt='t_duration', val=1.0)
@@ -110,11 +113,6 @@ class TauComp(om.ExplicitComponent):
         time = inputs['time']
         t_initial = inputs['t_initial']
         t_duration = inputs['t_duration']
-
-        # ptau = 2.0 * (time - t_initial) / t_duration - 1.0
-
-        # seg_idx = np.digitize(ptau.real, gd.segment_ends, right=False) - 1
-        # seg_idx = np.clip(seg_idx, 0, gd.num_segments-1)
 
         ptau0_seg = gd.segment_ends[seg_idx]
         ptauf_seg = gd.segment_ends[seg_idx + 1]
