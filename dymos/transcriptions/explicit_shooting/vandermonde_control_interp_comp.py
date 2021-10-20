@@ -5,42 +5,6 @@ from ...transcriptions.grid_data import GridData
 from ...utils.lgl import lgl
 
 
-def _dvander(v):
-    """
-    Return the derivative of a Vandermonde matrix wrt the independent variable _in increasing order_.
-
-    Parameters
-    ----------
-    v : np.array
-        The Vandermonde matrix for which the derivatives are requested.
-
-    Returns
-    -------
-    dV : np.array
-        The derivative of v with respect to the independent variable.
-    dv2 : np.array
-        The second derivative of v wrt the independent variable.
-    dv3 : np.array
-        The third derivative of v wrt the independent variable.
-    """
-    p, n = v.shape
-    dv = np.zeros_like(v)
-    dv2 = dv.copy()
-    dv3 = dv.copy()
-    dv[:, 1:] = v[:, :-1]
-    dv2[:, 2:] = v[:, :-2]
-    dv3[:, 3:] = v[:, :-3]
-
-    fac = np.arange(n, dtype=int)
-    fac2 = fac[:-1]
-    fac3 = fac[:-2]
-
-    dv[:, :] = dv * fac[np.newaxis, :]
-    dv2[:, 1:] = dv2[:, 1:] * fac2[np.newaxis, :] * fac[np.newaxis, 1:]
-    dv3[:, 2:] = dv3[:, 2:] * fac3[np.newaxis, :] * fac2[np.newaxis, 1:] * fac[np.newaxis, 2:]
-    return dv, dv2, dv3
-
-
 class VandermondeControlInterpComp(om.ExplicitComponent):
     """
     A component which interpolates control values in 1D using Vandermonde interpolation.
@@ -84,6 +48,9 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         # Storage for the Vandermonde matrix and its inverse for each control
         self._V_hat = {}
         self._V_hat_inv = {}
+
+        # Storage for factors used in the derivatives of Vandermonde matrices.
+        self._fac = {}
 
         # Cache formatted strings: { control_name : (input_name, output_name) }
         self._control_io_names = {}
@@ -148,6 +115,8 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             if seg_control_order not in self._V_hat:
                 self._V_hat[seg_control_order] = np.vander(control_disc_seg_stau, increasing=True)
                 self._V_hat_inv[seg_control_order] = np.linalg.inv(self._V_hat[seg_control_order])
+            if seg_control_order + 1 not in self._fac:
+                self._fac[seg_control_order + 1] = np.arange(seg_control_order + 1, dtype=int)
 
         num_uhat_nodes = gd.subset_num_nodes['control_input']
         ar = np.arange(vec_size, dtype=int)
@@ -176,6 +145,7 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
 
     def _configure_polynomial_controls(self):
         vec_size = self.options['vec_size']
+        ar = np.arange(vec_size, dtype=int)
 
         for pc_name, options in self._polynomial_control_options.items():
             order = options['order']
@@ -193,18 +163,20 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             self.add_output(rate2_name, shape=output_shape, units=units)
             self._control_io_names[pc_name] = (input_name, output_name, rate_name, rate2_name)
             self.declare_partials(of=output_name, wrt=input_name)
-            self.declare_partials(of=output_name, wrt='ptau')
+            self.declare_partials(of=output_name, wrt='ptau', rows=ar, cols=ar)
             self.declare_partials(of=rate_name, wrt=input_name)
-            self.declare_partials(of=rate_name, wrt='ptau')
+            self.declare_partials(of=rate_name, wrt='ptau', rows=ar, cols=ar)
             self.declare_partials(of=rate_name, wrt='t_duration')
             self.declare_partials(of=rate2_name, wrt=input_name)
-            self.declare_partials(of=rate2_name, wrt='ptau')
+            self.declare_partials(of=rate2_name, wrt='ptau', rows=ar, cols=ar)
             self.declare_partials(of=rate2_name, wrt='t_duration')
 
             if order not in self._V_hat:
                 pc_disc_seg_ptau, _ = lgl(order + 1)
                 self._V_hat[order] = np.vander(pc_disc_seg_ptau, increasing=True)
                 self._V_hat_inv[order] = np.linalg.inv(self._V_hat[order])
+            if order + 1 not in self._fac:
+                self._fac[order + 1] = np.arange(order + 1, dtype=int)
 
     def setup(self):
         """
@@ -230,6 +202,41 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
 
         self._configure_controls()
         self._configure_polynomial_controls()
+
+    def _dvander(self, v):
+        """
+        Return the derivative of a Vandermonde matrix wrt the independent variable _in increasing order_.
+
+        Parameters
+        ----------
+        v : np.array
+            The Vandermonde matrix for which the derivatives are requested.
+
+        Returns
+        -------
+        dV : np.array
+            The derivative of v with respect to the independent variable.
+        dv2 : np.array
+            The second derivative of v wrt the independent variable.
+        dv3 : np.array
+            The third derivative of v wrt the independent variable.
+        """
+        p, n = v.shape
+        dv = np.zeros_like(v)
+        dv2 = dv.copy()
+        dv3 = dv.copy()
+        dv[:, 1:] = v[:, :-1]
+        dv2[:, 2:] = v[:, :-2]
+        dv3[:, 3:] = v[:, :-3]
+
+        fac = self._fac[n]
+        fac2 = fac[:-1]
+        fac3 = fac[:-2]
+
+        dv[:, :] = dv * fac[np.newaxis, :]
+        dv2[:, 1:] = dv2[:, 1:] * fac2[np.newaxis, :] * fac[np.newaxis, 1:]
+        dv3[:, 2:] = dv3[:, 2:] * fac3[np.newaxis, :] * fac2[np.newaxis, 1:] * fac[np.newaxis, 2:]
+        return dv, dv2, dv3
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """
@@ -258,7 +265,7 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             disc_node_idxs = self._disc_node_idxs_by_segment[seg_idx]
             input_node_idxs = self._input_node_idxs_by_segment[seg_idx]
             V_stau = np.vander(stau, N=n, increasing=True)
-            dV_stau, dV2_stau, _ = _dvander(V_stau)
+            dV_stau, dV2_stau, _ = self._dvander(V_stau)
 
             L_seg = self._L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
                                input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
@@ -275,7 +282,7 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             input_name, output_name, rate_name, rate2_name = self._control_io_names[pc_name]
             order = options['order']
             V_ptau = np.vander(ptau, N=order+1, increasing=True)
-            dV_ptau, dV2_ptau, _ = _dvander(V_ptau)
+            dV_ptau, dV2_ptau, _ = self._dvander(V_ptau)
             a = np.atleast_2d(self._V_hat_inv[order] @ inputs[input_name])
             outputs[output_name] = V_ptau @ a
             outputs[rate_name] = dptau_dt * (dV_ptau @ a)
@@ -308,7 +315,7 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             seg_order = self._grid_data.transcription_order[seg_idx] - 1
 
             V_stau = np.vander(stau, N=n, increasing=True)
-            dV_stau, dV2_stau, dV3_stau = _dvander(V_stau)
+            dV_stau, dV2_stau, dV3_stau = self._dvander(V_stau)
 
             disc_node_idxs = self._disc_node_idxs_by_segment[seg_idx]
             input_node_idxs = self._input_node_idxs_by_segment[seg_idx]
@@ -349,7 +356,7 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             order = options['order']
 
             V_ptau = np.vander(ptau, N=order+1, increasing=True)
-            dV_ptau, dV2_ptau, dV3_ptau = _dvander(V_ptau)
+            dV_ptau, dV2_ptau, dV3_ptau = self._dvander(V_ptau)
 
             u_hat = inputs[input_name].real
             a = self._V_hat_inv[order] @ u_hat
