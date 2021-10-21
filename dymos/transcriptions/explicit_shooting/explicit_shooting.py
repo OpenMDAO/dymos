@@ -143,7 +143,7 @@ class ExplicitShooting(TranscriptionBase):
 
     def _get_ode(self, phase):
         integrator = phase._get_subsystem('integrator')
-        subprob = integrator._prob
+        subprob = integrator._eval_subprob
         ode = subprob.model._get_subsystem('ode_eval.ode')
         return ode
 

@@ -27,7 +27,7 @@ class TauComp(om.ExplicitComponent):
         """
         Declare component options.
         """
-        self.options.declare('num_nodes', types=int, default=1, desc='number of nodes at which to compute time')
+        self.options.declare('vec_size', types=int, default=1, desc='number of nodes at which to compute time')
         self.options.declare('segment_index', types=int, desc='index of the current segment')
         self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of time (or the integration variable)')
@@ -36,20 +36,20 @@ class TauComp(om.ExplicitComponent):
         """
         I/O creation is delayed until configure so we can determine variable shape and units.
         """
-        nn = self.options['num_nodes']
+        vec_size = self.options['vec_size']
         time_units = self.options['time_units']
 
         self.add_input('t_initial', val=0.0, units=time_units)
         self.add_input('t_duration', val=1.0, units=time_units)
-        self.add_input('time', shape=(nn,), units=time_units)
-        self.add_output('ptau', units=None, shape=(nn,))
-        self.add_output('stau', units=None, shape=(nn,))
+        self.add_input('time', shape=(vec_size,), units=time_units)
+        self.add_output('ptau', units=None, shape=(vec_size,))
+        self.add_output('stau', units=None, shape=(vec_size,))
         self.add_output('dstau_dt', units=f'1/{time_units}', val=1.0)
-        self.add_output('time_phase', units=time_units, shape=(nn,))
+        self.add_output('time_phase', units=time_units, shape=(vec_size,))
         # self.add_discrete_output('segment_index', val=0)
 
         # Setup partials
-        ar = np.arange(nn, dtype=int)
+        ar = np.arange(vec_size, dtype=int)
         self.declare_partials(of='ptau', wrt='t_initial')
         self.declare_partials(of='ptau', wrt='t_duration')
         self.declare_partials(of='ptau', wrt='time', rows=ar, cols=ar)

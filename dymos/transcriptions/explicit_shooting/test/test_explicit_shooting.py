@@ -156,12 +156,13 @@ class TestExplicitShooting(unittest.TestCase):
 
     def test_brachistochrone_explicit_shooting(self):
 
-        for method in ['rk4', 'ralston']:
-            for compressed in [True, False]:
+        for method in ['rk4']:#, 'ralston']:
+            for compressed in [True]:#, False]:
                 with self.subTest(f"test brachistochrone explicit shooting with method '{method}'"):
                     prob = om.Problem()
 
-                    prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+                    prob.driver = om.pyOptSparseDriver(optimizer='SNOPT')
+                    prob.driver.opt_settings['iSumm'] = 6
 
                     tx = dm.transcriptions.ExplicitShooting(num_segments=5, grid='gauss-lobatto',
                                                             method=method, order=5,

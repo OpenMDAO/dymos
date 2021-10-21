@@ -33,13 +33,17 @@ class ODEEvaluationGroup(om.Group):
         A dictionary of keyword arguments to be passed to the instantiation of the ODE.
     grid_data : GridData
         The GridData instance pertaining to the phase to which this ODEEvaluationGroup belongs.
+    vec_size : int
+        The number of nodes at which the ODE is simultaneously evaluated. This is related to the
+        number of stages in the chosen shooting method and not associated with the number of
+        nodes in the GridData.
     **kwargs : dict
         Additional keyword arguments passed to Group.
     """
 
     def __init__(self, ode_class, time_options, state_options, parameter_options, control_options,
                  polynomial_control_options, ode_init_kwargs=None,
-                 grid_data=None, **kwargs):
+                 grid_data=None, vec_size=1, **kwargs):
         super().__init__(**kwargs)
 
         # Get the state vector.  This isn't necessarily ordered
@@ -53,6 +57,7 @@ class ODEEvaluationGroup(om.Group):
         self.polynomial_control_interpolants = {}
         self.ode_class = ode_class
         self.grid_data = grid_data
+        self.vec_size = vec_size
         self.ode_init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
 
     def set_segment_index(self, seg_idx):
@@ -83,6 +88,7 @@ class ODEEvaluationGroup(om.Group):
 
         # Add a component to compute the current non-dimensional phase time.
         self.add_subsystem('tau_comp', TauComp(grid_data=self.grid_data,
+                                               vec_size=self.vec_size,
                                                time_units=self.time_options['units']),
                            promotes_inputs=['time', 't_initial', 't_duration'],
                            promotes_outputs=['stau', 'ptau', 'dstau_dt', 'time_phase'])
@@ -94,16 +100,18 @@ class ODEEvaluationGroup(om.Group):
             # Add control interpolant
             self._control_comp = self.add_subsystem('control_interp',
                                                     VandermondeControlInterpComp(grid_data=gd,
+                                                                                 vec_size=self.vec_size,
                                                                                  control_options=c_options,
                                                                                  polynomial_control_options=pc_options,
                                                                                  time_units=self.time_options['units']),
                                                     promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
 
-        self.add_subsystem('ode', self.ode_class(num_nodes=1, **self.ode_init_kwargs))
+        self.add_subsystem('ode', self.ode_class(num_nodes=self.vec_size, **self.ode_init_kwargs))
 
         self.add_subsystem('state_rate_collector',
                            StateRateCollectorComp(state_options=self.state_options,
-                                                  time_units=self.time_options['units']))
+                                                  time_units=self.time_options['units'],
+                                                  vec_size=self.vec_size))
 
     def configure(self):
         """
@@ -140,16 +148,19 @@ class ODEEvaluationGroup(om.Group):
         self.state_rate_collector.configure_io()
 
     def _configure_time(self):
+        vec_size = self.vec_size
         targets = self.time_options['targets']
         time_phase_targets = self.time_options['time_phase_targets']
         t_initial_targets = self.time_options['t_initial_targets']
         t_duration_targets = self.time_options['t_duration_targets']
         units = self.time_options['units']
 
+        self._ivc.add_output('time', shape=(vec_size,), units=units)
+        self._ivc.add_output('t_initial', shape=(1,), units=units)
+        self._ivc.add_output('t_duration', shape=(1,), units=units)
+
         for tgts, var in [(targets, 'time'), (time_phase_targets, 'time_phase'),
                           (t_initial_targets, 't_initial'), (t_duration_targets, 't_duration')]:
-            if var != 'time_phase':
-                self._ivc.add_output(var, shape=(1,), units=units)
             for t in tgts:
                 self.promotes('ode', inputs=[(t, var)])
             if tgts:
@@ -158,6 +169,8 @@ class ODEEvaluationGroup(om.Group):
                                         units=units)
 
     def _configure_states(self):
+        vec_size = self.vec_size
+
         for name, options in self.state_options.items():
             shape = options['shape']
             units = options['units']
@@ -165,7 +178,7 @@ class ODEEvaluationGroup(om.Group):
             rate_path, rate_io = self._get_rate_source_path(name)
             var_name = f'states:{name}'
 
-            self._ivc.add_output(var_name, shape=shape, units=units)
+            self._ivc.add_output(var_name, shape=(vec_size,) + shape, units=units)
             self.add_design_var(var_name)
 
             # Promote targets from the ODE
@@ -187,6 +200,9 @@ class ODEEvaluationGroup(om.Group):
             self.add_constraint(f'state_rate_collector.state_rates:{name}_rate')
 
     def _configure_params(self):
+        vec_size = self.vec_size
+        src_rows = np.zeros(vec_size, dtype=int)
+
         for name, options in self.parameter_options.items():
             shape = options['shape']
             targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
@@ -198,7 +214,8 @@ class ODEEvaluationGroup(om.Group):
 
             # Promote targets from the ODE
             for tgt in targets:
-                self.promotes('ode', inputs=[(tgt, var_name)])
+                self.promotes('ode', inputs=[(tgt, var_name)], src_indices=om.slicer[src_rows, ...],
+                              src_shape=options['shape'])
             if targets:
                 self.set_input_defaults(name=var_name,
                                         val=np.ones(shape),

@@ -88,7 +88,7 @@ class TestRKIntegrationComp(unittest.TestCase):
         f = np.zeros_like(x)
 
         intg = prob.model.fixed_step_integrator
-        intg._prob.model.ode_eval.set_segment_index(9)
+        intg._eval_subprob.model.ode_eval.set_segment_index(9)
         intg.eval_f(x, t, theta, f)
 
         assert_near_equal(f, x - t**2 + theta[2, 0])
@@ -147,7 +147,7 @@ class TestRKIntegrationComp(unittest.TestCase):
         f_t = intg._f_t
         f_theta = intg._f_theta
 
-        intg._prob.model.ode_eval.set_segment_index(9)
+        intg._eval_subprob.model.ode_eval.set_segment_index(9)
         intg.eval_f_derivs(x, t, theta, f_x, f_t, f_theta)
 
         step = 1.0E-20
