@@ -1049,7 +1049,7 @@ class RKIntegrationComp(om.ExplicitComponent):
         # transcribe states
         for name in self.state_options:
             input_name = self._state_input_names[name]
-            self._deriv_subprob.set_val(input_name, x[self.state_idxs[name], 0])
+            self._deriv_subprob.set_val(input_name, x[:, self.state_idxs[name], :])
 
         # transcribe parameters
         for name in self.parameter_options:
@@ -1439,6 +1439,7 @@ class RKIntegrationComp(om.ExplicitComponent):
                         self._dkq_dZ[i, ...] = f_t @ self._dTi_dZ + f_x @ self._dXi_dZ + f_theta @ self._dtheta_dZ
 
                 if derivs:
+                    print(X_eval)
                     self.eval_f_derivs_vectorized(X_eval, T_eval, theta, f_x_vec, f_t_vec, f_theta_vec)
 
                 b_tdot_kq = np.tensordot(b, self._k_q, axes=(0, 0))
@@ -1523,7 +1524,8 @@ class RKIntegrationComp(om.ExplicitComponent):
         partials : Jacobian
             Subjac components written to partials[output_name, input_name].
         """
-        self._propagate(inputs, outputs=False, derivs=True)
+        # self._propagate(inputs, outputs=False, derivs=True)
+        self._propagate_vectorized_derivs(inputs, outputs=False, derivs=True)
 
         idxs = self._output_src_idxs
         partials['time', 't_duration'] = self._dt_dZ[idxs, 0, self.x_size+1]

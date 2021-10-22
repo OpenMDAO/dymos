@@ -198,7 +198,12 @@ class TestExplicitShooting(unittest.TestCase):
                     prob.set_val('phase0.parameters:g', 1.0, units='m/s**2')
                     prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 90]), units='deg')
 
-                    prob.run_driver()
+                    prob.run_model()
+
+                    with np.printoptions(linewidth=1024):
+                        prob.check_partials(method='cs', includes='phase0.integrator')
+
+                    return
 
                     x = prob.get_val('phase0.timeseries.states:x')
                     y = prob.get_val('phase0.timeseries.states:y')
