@@ -311,13 +311,13 @@ class ExplicitShooting(TranscriptionBase):
             phase.continuity_comp.configure_io()
 
         for control_name, options in phase.control_options.items():
-            if options['continuity']:
+            if options['continuity'] and any_control_cnty:
                 phase.connect(f'timeseries.controls:{control_name}',
                               f'continuity_comp.controls:{control_name}')
-            if options['rate_continuity']:
+            if options['rate_continuity'] and any_rate_cnty:
                 phase.connect(f'timeseries.control_rates:{control_name}_rate',
                               f'continuity_comp.control_rates:{control_name}_rate')
-            if options['rate2_continuity']:
+            if options['rate2_continuity'] and any_rate_cnty:
                 phase.connect(f'timeseries.control_rates:{control_name}_rate2',
                               f'continuity_comp.control_rates:{control_name}_rate2')
 

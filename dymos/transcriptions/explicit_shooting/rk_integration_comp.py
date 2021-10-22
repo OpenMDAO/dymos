@@ -5,7 +5,7 @@ from ...options import options as dymos_options
 
 from .ode_evaluation_group import ODEEvaluationGroup
 from ...utils.misc import get_rate_units
-from ...utils.introspection import filter_outputs, classify_var
+from ...utils.introspection import filter_outputs
 
 
 rk_methods = {'rk4': {'a': np.array([[0.0, 0.0, 0.0, 0.0],
