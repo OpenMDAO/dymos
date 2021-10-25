@@ -58,7 +58,6 @@ class TestWaterRocketForDocs(unittest.TestCase):
         assert_near_equal(summary['Maximum height'].value, 54.133184, 1e-3)
         assert_near_equal(summary['Maximum velocity'].value, 47.320298, 1e-3)
 
-    @save_for_docs
     def test_water_rocket_range_for_docs(self):
         p = om.Problem(model=om.Group())
 

@@ -45,7 +45,6 @@ def _view_coloring(coloring_file, show_sparsity_text=False, show_sparsity=True,
 class TestMinTimeClimbForDocs(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
-    @save_for_docs
     def test_min_time_climb_for_docs_partial_coloring(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal

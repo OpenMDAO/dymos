@@ -37,7 +37,6 @@ class TestHyperSensitive(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @save_for_docs
     @require_pyoptsparse(optimizer='SLSQP')
     def test_hyper_sensitive_for_docs(self):
         import openmdao.api as om
