@@ -1,12 +1,10 @@
 import unittest
-from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs
 
 
 @use_tempdirs
 class TestDocOscillator(unittest.TestCase):
 
-    @save_for_docs
     def test_ivp(self):
         import openmdao.api as om
         import dymos as dm

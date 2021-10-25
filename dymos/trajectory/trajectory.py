@@ -594,17 +594,21 @@ class Trajectory(om.Group):
             phase_name_a, phase_name_b = phase_pair
             print(f'{indent}--- {phase_name_a} - {phase_name_b} ---')
 
+            phase_a = self._get_subsystem(f'phases.{phase_name_a}')
             phase_b = self._get_subsystem(f'phases.{phase_name_b}')
 
             # Pull out the maximum variable name length of all variables to make the print nicer.
             var_len = [(len(var_pair[0]), len(var_pair[1])) for var_pair in var_dict]
             max_varname_length = max(itertools.chain(*var_len))
-            padding = max_varname_length + 1
+            padding = max_varname_length + 2
 
             for var_pair, options in var_dict.items():
                 var_a, var_b = var_pair
                 loc_a = options['loc_a']
                 loc_b = options['loc_b']
+
+                class_a = phase_a.classify_var(var_a)
+                class_b = phase_b.classify_var(var_b)
 
                 self._update_linkage_options_configure(options)
 
@@ -612,16 +616,23 @@ class Trajectory(om.Group):
                 src_b = options._src_b
 
                 if options['connected']:
-                    if phase_b.classify_var(var_b) == 'time':
+                    if phase_b.is_time(var_b):
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.t_initial',
                                      src_indices=[-1], flat_src_indices=True)
-                    elif phase_b.classify_var(var_b) == 'state':
+                    elif phase_b.is_state(var_b):
                         tgt_b = f'initial_states:{var_b}'
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.{tgt_b}',
                                      src_indices=om.slicer[-1, ...])
-                    print(f'{indent * 2}{var_a:<{padding}s}[{loc_a}]  ->  {var_b:<{padding}s}[{loc_b}]')
+                    else:
+                        msg = f'Could not create connection linkage from phase `{phase_name_a}` ' \
+                              f'variable `{var_a}` to phase `{phase_name_b}` variable `{var_b}`. ' \
+                              f'For direct connections, the target variable must be `time` or a ' \
+                              f'state in the phase.\nEither remove the linkage or specify ' \
+                              f'`connected=False` to enforce it via an optimization constraint.'
+                        raise om.OpenMDAOWarning(msg)
+                    print(f'{indent * 2}{var_a:<{padding}s} [{loc_a}] ->  {indent * 2}{var_a:<{padding}s} [{loc_a}]')
                 else:
                     is_valid, msg = self._is_valid_linkage(phase_name_a, phase_name_b,
                                                            loc_a, loc_b, var_a, var_b)
@@ -643,9 +654,34 @@ class Trajectory(om.Group):
                                      src_indices=om.slicer[[0, -1], ...])
                         connected_linkage_inputs.append(options._input_b)
 
-                    print(f'{indent * 2}{var_a:<{padding}s}[{loc_a}]  ==  {var_b:<{padding}s}[{loc_b}]')
+                    if class_a == 'time':
+                        fixed_a = phase_a.is_time_fixed(loc_a)
+                    elif class_a == 'state':
+                        fixed_a = phase_a.is_state_fixed(var_a, loc_a)
+                    elif class_a == 'control':
+                        fixed_a = phase_a.is_control_fixed(var_a, loc_a)
+                    elif class_a == 'polynomial_control':
+                        fixed_a = phase_a.is_polynomial_control_fixed(var_a, loc_a)
+                    else:
+                        fixed_a = True
 
-            print('----------------------------')
+                    if class_b == 'time':
+                        fixed_b = phase_b.is_time_fixed(loc_b)
+                    elif class_b == 'state':
+                        fixed_b = phase_b.is_state_fixed(var_b, loc_b)
+                    elif class_b == 'control':
+                        fixed_b = phase_b.is_control_fixed(var_b, loc_b)
+                    elif class_b == 'polynomial_control':
+                        fixed_b = phase_b.is_polynomial_control_fixed(var_b, loc_b)
+                    else:
+                        fixed_b = True
+
+                    str_fixed_a = '*' if fixed_a else ''
+                    str_fixed_b = '*' if fixed_b else ''
+
+                    print(f'{indent * 2}{var_a:<{padding}s} [{loc_a}{str_fixed_a}] == {var_a:<{padding}s} [{loc_a}{str_fixed_b}]')
+
+        print('\n* : This quantity is fixed.\n')
 
     def configure(self):
         """

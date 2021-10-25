@@ -1,7 +1,6 @@
 import os
 import unittest
 
-from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.mpi import MPI
 
@@ -13,7 +12,6 @@ class TestVanderpolForDocs(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @save_for_docs
     def test_vanderpol_for_docs_simulation(self):
         import dymos as dm
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol

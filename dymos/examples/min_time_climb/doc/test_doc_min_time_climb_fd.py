@@ -11,8 +11,6 @@ plt.style.use('ggplot')
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.coloring import Coloring
 
-from dymos.utils.doc_utils import save_for_docs
-
 
 def _view_coloring(coloring_file, show_sparsity_text=False, show_sparsity=True,
                    subjac_sparsity=False, color_var=None, show_meta=False):

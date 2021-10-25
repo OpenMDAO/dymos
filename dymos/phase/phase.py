@@ -18,7 +18,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.introspection import configure_time_introspection, configure_controls_introspection, \
-    configure_parameters_introspection, configure_states_introspection
+    configure_parameters_introspection, configure_states_introspection, classify_var
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
 
@@ -1420,39 +1420,135 @@ class Phase(om.Group):
         -------
         str
             The classification of the given variable, which is one of
-            'time', 'time_phase', 'state', 'input_control', 'indep_control', 'control_rate',
-            'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
+            'time', 'time_phase', 'state', 'control', 'control_rate',
+            'control_rate2', 'polynomial_control',
             'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
             or 'ode'.
         """
-        if var == 'time':
-            return 'time'
-        elif var == 'time_phase':
-            return 'time_phase'
-        elif var in self.state_options:
-            return 'state'
-        elif var in self.control_options:
-            if self.control_options[var]['opt']:
-                return 'indep_control'
-            else:
-                return 'input_control'
-        elif var in self.polynomial_control_options:
-            if self.polynomial_control_options[var]['opt']:
-                return 'indep_polynomial_control'
-            else:
-                return 'input_polynomial_control'
-        elif var in self.parameter_options:
-            return 'parameter'
-        elif var.endswith('_rate') and var[:-5] in self.control_options:
-            return 'control_rate'
-        elif var.endswith('_rate2') and var[:-6] in self.control_options:
-            return 'control_rate2'
-        elif var.endswith('_rate') and var[:-5] in self.polynomial_control_options:
-            return 'polynomial_control_rate'
-        elif var.endswith('_rate2') and var[:-6] in self.polynomial_control_options:
-            return 'polynomial_control_rate2'
-        else:
-            return 'ode'
+        return classify_var(var, state_options=self.state_options,
+                            parameter_options=self.parameter_options,
+                            control_options=self.control_options,
+                            polynomial_control_options=self.polynomial_control_options)
+
+    def is_time(self, var):
+        """
+        Returns True if the requested variable is the time variable for the phase.
+
+        Parameters
+        ----------
+        var : str
+            The variable in question.
+
+        Returns
+        -------
+            True if the requested variable is the time variable of the phase, else False.
+        """
+        return var == 'time'
+
+    def is_time_phase(self, var):
+        """
+        Returns True if the requested variable is the elapsed time variable for the phase.
+
+        Parameters
+        ----------
+        var : str
+            The variable in question.
+
+        Returns
+        -------
+            True if the requested variable is the elapsed time variable of the phase, else False.
+        """
+        return var == 'time_phase'
+
+    def is_state(self, var):
+        """
+        Returns True if the requested variable is a state variable for the phase.
+
+        Parameters
+        ----------
+        var : str
+            The variable in question.
+
+        Returns
+        -------
+            True if the requested variable is a state variable of the phase, else False.
+        """
+        return var in self.state_options
+
+    def is_control(self, var):
+        """
+        Returns True if the requested variable is a control variable for the phase.
+
+        Parameters
+        ----------
+        var : str
+            The variable in question.
+
+        Returns
+        -------
+            True if the requested variable is a control variable of the phase, else False.
+        """
+        return var in self.control_options
+
+    def is_control_rate(self, var):
+        """
+        Returns True if the requested variable is a control rate for the phase.
+
+        Parameters
+        ----------
+        var : str
+            The variable in question.
+
+        Returns
+        -------
+            True if the requested variable is a control rate of the phase, else False.
+        """
+        return classify_var(var) in {'control_rate', 'control_rate2'}
+
+    def is_polynomial_control(self, var):
+        """
+        Returns True if the requested variable is a polynomial control variable for the phase.
+
+        Parameters
+        ----------
+        var : str
+            The variable in question.
+
+        Returns
+        -------
+            True if the requested variable is a polynomial control variable of the phase, else False.
+        """
+        return var in self.polynomial_control_options
+
+    def is_polynomial_control_rate(self, var):
+        """
+        Returns True if the requested variable is a polynomial control rate for the phase.
+
+        Parameters
+        ----------
+        var : str
+            The variable in question.
+
+        Returns
+        -------
+            True if the requested variable is a polynomial control rate of the phase, else False.
+        """
+        return classify_var(var) in {'polynomial_control_rate', 'polynomial_control_rate2'}
+
+    def is_ode_output(self, var):
+        """
+        Returns True if the requested variable is an output of the ODE for the phase.
+
+        Parameters
+        ----------
+        var : str
+            The variable in question.
+
+        Returns
+        -------
+            True if the requested variable is an output of the ODE for the phase, else False.
+        """
+        return classify_var(var) == 'ode'
 
     def _check_ode(self):
         """
@@ -2169,6 +2265,162 @@ class Phase(om.Group):
             res = self.state_options[name]['fix_initial']
         elif loc == 'final':
             res = self.state_options[name]['fix_final']
+        else:
+            raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
+                             f'"final" but got {loc}')
+        return res
+
+    def _configure_linkages(self):
+        connected_linkage_inputs = []
+
+        # First, if the user requested all states and time be continuous ('*', '*'), then
+        # expand it out.
+        self._expand_star_linkage_configure()
+
+        print(f'--- Linkage Report [{self.pathname}] ---')
+
+        indent = '    '
+
+        linkage_comp = self._get_subsystem('linkages')
+
+        for phase_pair, var_dict in self._linkages.items():
+            phase_name_a, phase_name_b = phase_pair
+            print(f'{indent}--- {phase_name_a} - {phase_name_b} ---')
+
+            phase_a = self._get_subsystem(f'phases.{phase_name_a}')
+            phase_b = self._get_subsystem(f'phases.{phase_name_b}')
+
+            # Pull out the maximum variable name length of all variables to make the print nicer.
+            var_len = [(len(var_pair[0]), len(var_pair[1])) for var_pair in var_dict]
+            max_varname_length = max(itertools.chain(*var_len))
+            padding = max_varname_length + 2
+
+            for var_pair, options in var_dict.items():
+                var_a, var_b = var_pair
+                loc_a = options['loc_a']
+                loc_b = options['loc_b']
+
+                class_a = phase_a.classify_var(var_a)
+                class_b = phase_b.classify_var(var_b)
+
+                self._update_linkage_options_configure(options)
+
+                src_a = options._src_a
+                src_b = options._src_b
+
+                if options['connected']:
+                    if phase_b.is_time(var_b):
+                        self.connect(f'{phase_name_a}.{src_a}',
+                                     f'{phase_name_b}.t_initial',
+                                     src_indices=[-1], flat_src_indices=True)
+                    elif phase_b.is_state(var_b):
+                        tgt_b = f'initial_states:{var_b}'
+                        self.connect(f'{phase_name_a}.{src_a}',
+                                     f'{phase_name_b}.{tgt_b}',
+                                     src_indices=om.slicer[-1, ...])
+                    else:
+                        msg = f'Could not create connection linkage from phase `{phase_name_a}` ' \
+                              f'variable `{var_a}` to phase `{phase_name_b}` variable `{var_b}`. ' \
+                              f'For direct connections, the target variable must be `time` or a ' \
+                              f'state in the phase.\nEither remove the linkage or specify ' \
+                              f'`connected=False` to enforce it via an optimization constraint.'
+                        raise om.OpenMDAOWarning(msg)
+                    print(f'{indent * 2}{var_a:<{padding}s} [{loc_a}] ->  {indent * 2}{var_a:<{padding}s} [{loc_a}]')
+                else:
+                    is_valid, msg = self._is_valid_linkage(phase_name_a, phase_name_b,
+                                                           loc_a, loc_b, var_a, var_b)
+
+                    if not is_valid:
+                        raise ValueError(f'Invalid linkage in Trajectory {self.pathname}: {msg}')
+
+                    linkage_comp.add_linkage_configure(options)
+
+                    if options._input_a not in connected_linkage_inputs:
+                        self.connect(f'{phase_name_a}.{src_a}',
+                                     f'linkages.{options._input_a}',
+                                     src_indices=om.slicer[[0, -1], ...])
+                        connected_linkage_inputs.append(options._input_a)
+
+                    if options._input_b not in connected_linkage_inputs:
+                        self.connect(f'{phase_name_b}.{src_b}',
+                                     f'linkages.{options._input_b}',
+                                     src_indices=om.slicer[[0, -1], ...])
+                        connected_linkage_inputs.append(options._input_b)
+
+                    if class_a == 'time':
+                        fixed_a = phase_a.is_time_fixed(loc_a)
+                    elif class_a == 'state':
+                        fixed_a = phase_a.is_state_fixed(var_a, loc_a)
+                    elif class_a == 'control':
+                        fixed_a = phase_a.is_control_fixed(var_a, loc_a)
+                    elif class_a == 'polynomial_control':
+                        fixed_a = phase_a.is_polynomial_control_fixed(var_a, loc_a)
+                    else:
+                        fixed_a = True
+
+                    if class_b == 'time':
+                        fixed_b = phase_b.is_time_fixed(loc_b)
+                    elif class_b == 'state':
+                        fixed_b = phase_b.is_state_fixed(var_b, loc_b)
+                    elif class_b == 'control':
+                        fixed_b = phase_b.is_control_fixed(var_b, loc_b)
+                    elif class_b == 'polynomial_control':
+                        fixed_b = phase_b.is_polynomial_control_fixed(var_b, loc_b)
+                    else:
+                        fixed_b = True
+
+                    str_fixed_a = '*' if fixed_a else ''
+                    str_fixed_b = '*' if fixed_b else ''
+
+                    print(f'{indent * 2}{var_a:<{padding}s} [{loc_a}{str_fixed_a}] == {var_a:<{padding}s} [{loc_a}{str_fixed_b}]')
+
+        print('\n* : This quantity is fixed')
+
+    def is_control_fixed(self, name, loc):
+        """
+        Test if the control of the given name is guaranteed to be fixed at the initial or final time.
+
+        Parameters
+        ----------
+        name : str
+            The name of the control to be tested.
+        loc : str
+            The location of time to be tested: either 'initial' or 'final'.
+
+        Returns
+        -------
+        bool
+            True if the state of the given name is guaranteed to be fixed at the given location.
+        """
+        if loc == 'initial':
+            res = self.control_options[name]['fix_initial']
+        elif loc == 'final':
+            res = self.control_options[name]['fix_final']
+        else:
+            raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
+                             f'"final" but got {loc}')
+        return res
+
+    def is_polynomial_control_fixed(self, name, loc):
+        """
+        Test if the polynomial control of the given name is guaranteed to be fixed at the initial or final time.
+
+        Parameters
+        ----------
+        name : str
+            The name of the polynomial control to be tested.
+        loc : str
+            The location of time to be tested: either 'initial' or 'final'.
+
+        Returns
+        -------
+        bool
+            True if the state of the given name is guaranteed to be fixed at the given location.
+        """
+        if loc == 'initial':
+            res = self.polynomial_control_options[name]['fix_initial']
+        elif loc == 'final':
+            res = self.polynomial_control_options[name]['fix_final']
         else:
             raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
                              f'"final" but got {loc}')
