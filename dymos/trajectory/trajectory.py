@@ -951,6 +951,7 @@ class Trajectory(om.Group):
         units_fmt = f'<{max_unit_len}s'
 
         def _print_constraints(phs):
+            return
             ds = {'initial': phs._initial_boundary_constraints,
                   'final': phs._final_boundary_constraints,
                   'path': phs._path_constraints}
