@@ -615,12 +615,37 @@ class Trajectory(om.Group):
                 src_a = options._src_a
                 src_b = options._src_b
 
+                if class_a == 'time':
+                    fixed_a = phase_a.is_time_fixed(loc_a)
+                elif class_a == 'state':
+                    fixed_a = phase_a.is_state_fixed(var_a, loc_a)
+                elif class_a == 'control':
+                    fixed_a = phase_a.is_control_fixed(var_a, loc_a)
+                elif class_a == 'polynomial_control':
+                    fixed_a = phase_a.is_polynomial_control_fixed(var_a, loc_a)
+                else:
+                    fixed_a = True
+
+                if class_b == 'time':
+                    fixed_b = phase_b.is_time_fixed(loc_b)
+                elif class_b == 'state':
+                    fixed_b = phase_b.is_state_fixed(var_b, loc_b)
+                elif class_b == 'control':
+                    fixed_b = phase_b.is_control_fixed(var_b, loc_b)
+                elif class_b == 'polynomial_control':
+                    fixed_b = phase_b.is_polynomial_control_fixed(var_b, loc_b)
+                else:
+                    fixed_b = True
+
+                str_fixed_a = '*' if fixed_a else ''
+                str_fixed_b = '*' if fixed_b else ''
+
                 if options['connected']:
-                    if phase_b.is_time(var_b):
+                    if class_b == 'time':
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.t_initial',
                                      src_indices=[-1], flat_src_indices=True)
-                    elif phase_b.is_state(var_b):
+                    elif class_b == 'state':
                         tgt_b = f'initial_states:{var_b}'
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.{tgt_b}',
@@ -632,7 +657,7 @@ class Trajectory(om.Group):
                               f'state in the phase.\nEither remove the linkage or specify ' \
                               f'`connected=False` to enforce it via an optimization constraint.'
                         raise om.OpenMDAOWarning(msg)
-                    print(f'{indent * 2}{var_a:<{padding}s} [{loc_a}] ->  {indent * 2}{var_a:<{padding}s} [{loc_a}]')
+                    print(f'{indent * 2}{var_a:<{padding}s} [{loc_a}{str_fixed_a}] ->  {indent * 2}{var_a:<{padding}s} [{loc_a}{str_fixed_b}]')
                 else:
                     is_valid, msg = self._is_valid_linkage(phase_name_a, phase_name_b,
                                                            loc_a, loc_b, var_a, var_b)
@@ -653,31 +678,6 @@ class Trajectory(om.Group):
                                      f'linkages.{options._input_b}',
                                      src_indices=om.slicer[[0, -1], ...])
                         connected_linkage_inputs.append(options._input_b)
-
-                    if class_a == 'time':
-                        fixed_a = phase_a.is_time_fixed(loc_a)
-                    elif class_a == 'state':
-                        fixed_a = phase_a.is_state_fixed(var_a, loc_a)
-                    elif class_a == 'control':
-                        fixed_a = phase_a.is_control_fixed(var_a, loc_a)
-                    elif class_a == 'polynomial_control':
-                        fixed_a = phase_a.is_polynomial_control_fixed(var_a, loc_a)
-                    else:
-                        fixed_a = True
-
-                    if class_b == 'time':
-                        fixed_b = phase_b.is_time_fixed(loc_b)
-                    elif class_b == 'state':
-                        fixed_b = phase_b.is_state_fixed(var_b, loc_b)
-                    elif class_b == 'control':
-                        fixed_b = phase_b.is_control_fixed(var_b, loc_b)
-                    elif class_b == 'polynomial_control':
-                        fixed_b = phase_b.is_polynomial_control_fixed(var_b, loc_b)
-                    else:
-                        fixed_b = True
-
-                    str_fixed_a = '*' if fixed_a else ''
-                    str_fixed_b = '*' if fixed_b else ''
 
                     print(f'{indent * 2}{var_a:<{padding}s} [{loc_a}{str_fixed_a}] == {var_a:<{padding}s} [{loc_a}{str_fixed_b}]')
 
