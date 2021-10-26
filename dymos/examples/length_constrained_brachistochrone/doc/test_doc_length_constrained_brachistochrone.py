@@ -2,6 +2,8 @@ from __future__ import print_function, division, absolute_import
 
 import unittest
 
+from openmdao.utils.testing_utils import use_tempdirs
+
 import matplotlib
 matplotlib.use('Agg')
 
