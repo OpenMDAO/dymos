@@ -8,8 +8,6 @@ plt.style.use('ggplot')
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
-from dymos.utils.doc_utils import save_for_docs
-
 
 @use_tempdirs
 class TestBrachistochroneForDocs(unittest.TestCase):
@@ -19,7 +17,6 @@ class TestBrachistochroneForDocs(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @save_for_docs
     def test_brachistochrone_partials(self):
         import numpy as np
         import openmdao.api as om
@@ -48,7 +45,6 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         cpd = p.check_partials(method='cs', compact_print=True)
         assert_check_partials(cpd)
 
-    @save_for_docs
     def test_brachistochrone_for_docs_gauss_lobatto(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
@@ -131,7 +127,6 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
         plt.show()
 
-    @save_for_docs
     def test_brachistochrone_for_docs_radau(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal

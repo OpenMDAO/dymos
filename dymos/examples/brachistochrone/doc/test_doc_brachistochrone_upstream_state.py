@@ -2,13 +2,10 @@ import unittest
 
 from openmdao.utils.testing_utils import use_tempdirs
 
-from dymos.utils.doc_utils import save_for_docs
-
 
 @use_tempdirs
 class TestBrachistochroneUpstreamState(unittest.TestCase):
 
-    @save_for_docs
     def test_brachistochrone_upstream_state(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal

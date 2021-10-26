@@ -580,6 +580,24 @@ class Trajectory(om.Group):
     def _configure_linkages(self):
         connected_linkage_inputs = []
 
+        def _get_prefixed_var(var, phase):
+            class_var = phase.classify_var(var)
+            prefixes = {'time': '',
+                        'time_phase': '',
+                        'state': 'states:',
+                        'parameter': 'parameters:',
+                        'input_control': 'controls:',
+                        'indep_control': 'controls:',
+                        'control_rate': 'control_rates:',
+                        'control_rate2': 'control_rates:',
+                        'input_polynomial_control': 'polynomial_controls:',
+                        'indep_polynomial_control': 'polynomial_controls:',
+                        'polynomial_control_rate': 'polynomial_control_rates:',
+                        'polynomial_control_rate2': 'polynomial_control_rates:',
+                        'ode': ''
+                        }
+            return f'{prefixes[class_var]}{var}'
+
         # First, if the user requested all states and time be continuous ('*', '*'), then
         # expand it out.
         self._expand_star_linkage_configure()
@@ -594,34 +612,75 @@ class Trajectory(om.Group):
             phase_name_a, phase_name_b = phase_pair
             print(f'{indent}--- {phase_name_a} - {phase_name_b} ---')
 
+            phase_a = self._get_subsystem(f'phases.{phase_name_a}')
             phase_b = self._get_subsystem(f'phases.{phase_name_b}')
 
             # Pull out the maximum variable name length of all variables to make the print nicer.
-            var_len = [(len(var_pair[0]), len(var_pair[1])) for var_pair in var_dict]
-            max_varname_length = max(itertools.chain(*var_len))
-            padding = max_varname_length + 1
+            var_len_a = [len(_get_prefixed_var(var_pair[0], phase_a)) for var_pair in var_dict]
+            var_len_b = [len(_get_prefixed_var(var_pair[1], phase_b)) for var_pair in var_dict]
+            padding_a = max(var_len_a) + 2
+            padding_b = max(var_len_b) + 2
 
             for var_pair, options in var_dict.items():
                 var_a, var_b = var_pair
                 loc_a = options['loc_a']
                 loc_b = options['loc_b']
 
+                class_a = phase_a.classify_var(var_a)
+                class_b = phase_b.classify_var(var_b)
+
                 self._update_linkage_options_configure(options)
 
                 src_a = options._src_a
                 src_b = options._src_b
 
+                if class_a == 'time':
+                    fixed_a = phase_a.is_time_fixed(loc_a)
+                elif class_a == 'state':
+                    fixed_a = phase_a.is_state_fixed(var_a, loc_a)
+                elif class_a in {'input_control', 'indep_control'}:
+                    fixed_a = phase_a.is_control_fixed(var_a, loc_a)
+                elif class_a in {'input_polynomial_control', 'indep_polynomial_control'}:
+                    fixed_a = phase_a.is_polynomial_control_fixed(var_a, loc_a)
+                else:
+                    fixed_a = True
+
+                if class_b == 'time':
+                    fixed_b = phase_b.is_time_fixed(loc_b)
+                elif class_b == 'state':
+                    fixed_b = phase_b.is_state_fixed(var_b, loc_b)
+                elif class_b in {'input_control', 'indep_control'}:
+                    fixed_b = phase_b.is_control_fixed(var_b, loc_b)
+                elif class_b in {'input_polynomial_control', 'indep_polynomial_control'}:
+                    fixed_b = phase_b.is_polynomial_control_fixed(var_b, loc_b)
+                else:
+                    fixed_b = True
+
+                prefixed_a = _get_prefixed_var(var_a, phase_a)
+                prefixed_b = _get_prefixed_var(var_b, phase_b)
+
+                str_fixed_a = '*' if fixed_a else ''
+                str_fixed_b = '*' if fixed_b else ''
+
                 if options['connected']:
-                    if phase_b.classify_var(var_b) == 'time':
+                    if class_b == 'time':
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.t_initial',
                                      src_indices=[-1], flat_src_indices=True)
-                    elif phase_b.classify_var(var_b) == 'state':
+                    elif class_b == 'state':
                         tgt_b = f'initial_states:{var_b}'
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.{tgt_b}',
                                      src_indices=om.slicer[-1, ...])
-                    print(f'{indent * 2}{var_a:<{padding}s}[{loc_a}]  ->  {var_b:<{padding}s}[{loc_b}]')
+                    else:
+                        msg = f'Could not create connection linkage from phase `{phase_name_a}` ' \
+                              f'variable `{var_a}` to phase `{phase_name_b}` variable `{var_b}`. ' \
+                              f'For direct connections, the target variable must be `time` or a ' \
+                              f'state in the phase.\nEither remove the linkage or specify ' \
+                              f'`connected=False` to enforce it via an optimization constraint.'
+                        raise om.OpenMDAOWarning(msg)
+                    print(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ->  '
+                          f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
                 else:
                     is_valid, msg = self._is_valid_linkage(phase_name_a, phase_name_b,
                                                            loc_a, loc_b, var_a, var_b)
@@ -643,9 +702,10 @@ class Trajectory(om.Group):
                                      src_indices=om.slicer[[0, -1], ...])
                         connected_linkage_inputs.append(options._input_b)
 
-                    print(f'{indent * 2}{var_a:<{padding}s}[{loc_a}]  ==  {var_b:<{padding}s}[{loc_b}]')
+                    print(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ==  '
+                          f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
 
-            print('----------------------------')
+        print('\n* : This quantity is fixed or is an input.\n')
 
     def configure(self):
         """
