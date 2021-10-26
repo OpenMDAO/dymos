@@ -129,5 +129,5 @@ class TestVanderpolDelayMPI(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase0.states:x0')[-1, ...], 0.0)
         assert_near_equal(p.get_val('traj.phase0.states:x1')[-1, ...], 0.0)
-        assert_near_equal(p.get_val('traj.phase0.states:J')[-1, ...], 5.2808, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('traj.phase0.states:J')[-1, ...], 5.2808, tolerance=0.0025)
         assert_near_equal(p.get_val('traj.phase0.controls:u')[-1, ...], 0.0, tolerance=1.0E-3)
