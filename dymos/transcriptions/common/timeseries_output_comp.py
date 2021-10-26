@@ -227,5 +227,9 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         """
         for (input_name, output_name, _) in self._vars.values():
             scale, offset = self._conversion_factors[output_name]
-            interp_vals = np.tensordot(self.interpolation_matrix, inputs[input_name], axes=(1, 0))
+            inp = inputs[input_name]
+            if len(inp.shape) > 2:
+                interp_vals = self.interpolation_matrix.dot(inp.swapaxes(0, 1))
+            else:
+                interp_vals = self.interpolation_matrix.dot(inp)
             outputs[output_name] = scale * (interp_vals + offset)
