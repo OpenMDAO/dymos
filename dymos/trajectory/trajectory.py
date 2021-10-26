@@ -580,6 +580,24 @@ class Trajectory(om.Group):
     def _configure_linkages(self):
         connected_linkage_inputs = []
 
+        def _get_prefixed_var(var, phase):
+            class_var = phase.classify_var(var)
+            prefixes = {'time': '',
+                        'time_phase': '',
+                        'state': 'states:',
+                        'parameter': 'parameters:',
+                        'input_control': 'controls:',
+                        'indep_control': 'controls:',
+                        'control_rate': 'control_rates:',
+                        'control_rate2': 'control_rates:',
+                        'input_polynomial_control': 'polynomial_controls:',
+                        'indep_polynomial_control': 'polynomial_controls:',
+                        'polynomial_control_rate': 'polynomial_control_rates:',
+                        'polynomial_control_rate2': 'polynomial_control_rates:',
+                        'ode': ''
+                        }
+            return f'{prefixes[class_var]}{var}'
+
         # First, if the user requested all states and time be continuous ('*', '*'), then
         # expand it out.
         self._expand_star_linkage_configure()
@@ -598,7 +616,8 @@ class Trajectory(om.Group):
             phase_b = self._get_subsystem(f'phases.{phase_name_b}')
 
             # Pull out the maximum variable name length of all variables to make the print nicer.
-            var_len = [(len(var_pair[0]), len(var_pair[1])) for var_pair in var_dict]
+            var_len = [(len(_get_prefixed_var(var_pair[0], phase_a)),
+                        len(_get_prefixed_var(var_pair[1], phase_b))) for var_pair in var_dict]
             max_varname_length = max(itertools.chain(*var_len))
             padding = max_varname_length + 2
 
@@ -637,6 +656,9 @@ class Trajectory(om.Group):
                 else:
                     fixed_b = True
 
+                prefixed_a = _get_prefixed_var(var_a, phase_a)
+                prefixed_b = _get_prefixed_var(var_b, phase_b)
+
                 str_fixed_a = '*' if fixed_a else ''
                 str_fixed_b = '*' if fixed_b else ''
 
@@ -657,7 +679,8 @@ class Trajectory(om.Group):
                               f'state in the phase.\nEither remove the linkage or specify ' \
                               f'`connected=False` to enforce it via an optimization constraint.'
                         raise om.OpenMDAOWarning(msg)
-                    print(f'{indent * 2}{var_a:<{padding}s} [{loc_a}{str_fixed_a}] ->  {indent * 2}{var_a:<{padding}s} [{loc_a}{str_fixed_b}]')
+                    print(f'{indent * 2}{prefixed_a:<{padding}s} [{loc_a}{str_fixed_a}] ->  '
+                          f'{prefixed_b:<{padding}s} [{loc_b}{str_fixed_b}]')
                 else:
                     is_valid, msg = self._is_valid_linkage(phase_name_a, phase_name_b,
                                                            loc_a, loc_b, var_a, var_b)
@@ -679,7 +702,8 @@ class Trajectory(om.Group):
                                      src_indices=om.slicer[[0, -1], ...])
                         connected_linkage_inputs.append(options._input_b)
 
-                    print(f'{indent * 2}{var_a:<{padding}s} [{loc_a}{str_fixed_a}] == {var_a:<{padding}s} [{loc_a}{str_fixed_b}]')
+                    print(f'{indent * 2}{prefixed_a:<{padding}s} [{loc_a}{str_fixed_a}] ==  '
+                          f'{prefixed_b:<{padding}s} [{loc_b}{str_fixed_b}]')
 
         print('\n* : This quantity is fixed.\n')
 
