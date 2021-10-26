@@ -638,9 +638,9 @@ class Trajectory(om.Group):
                     fixed_a = phase_a.is_time_fixed(loc_a)
                 elif class_a == 'state':
                     fixed_a = phase_a.is_state_fixed(var_a, loc_a)
-                elif class_a == 'control':
+                elif class_a in {'input_control', 'indep_control'}:
                     fixed_a = phase_a.is_control_fixed(var_a, loc_a)
-                elif class_a == 'polynomial_control':
+                elif class_a in {'input_polynomial_control', 'indep_polynomial_control'}:
                     fixed_a = phase_a.is_polynomial_control_fixed(var_a, loc_a)
                 else:
                     fixed_a = True
@@ -649,9 +649,9 @@ class Trajectory(om.Group):
                     fixed_b = phase_b.is_time_fixed(loc_b)
                 elif class_b == 'state':
                     fixed_b = phase_b.is_state_fixed(var_b, loc_b)
-                elif class_b == 'control':
+                elif class_b in {'input_control', 'indep_control'}:
                     fixed_b = phase_b.is_control_fixed(var_b, loc_b)
-                elif class_b == 'polynomial_control':
+                elif class_b in {'input_polynomial_control', 'indep_polynomial_control'}:
                     fixed_b = phase_b.is_polynomial_control_fixed(var_b, loc_b)
                 else:
                     fixed_b = True
@@ -705,7 +705,7 @@ class Trajectory(om.Group):
                     print(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ==  '
                           f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
 
-        print('\n* : This quantity is fixed.\n')
+        print('\n* : This quantity is fixed or is an input.\n')
 
     def configure(self):
         """
