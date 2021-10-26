@@ -510,6 +510,7 @@ class TranscriptionBase(object):
             # Constraint options are a copy of options with constraint_name key removed.
             con_options = options.copy()
             con_options.pop('constraint_name')
+            con_options.pop('loc')
 
             # By now, all possible constraint target shapes should have been introspected.
             con_options['shape'] = options['shape'] = shape

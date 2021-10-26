@@ -1032,6 +1032,7 @@ class Phase(om.Group):
         bc_dict[name]['ref'] = ref
         bc_dict[name]['linear'] = linear
         bc_dict[name]['units'] = units
+        bc_dict[name]['loc'] = loc
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
