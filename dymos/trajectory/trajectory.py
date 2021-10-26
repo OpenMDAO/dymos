@@ -951,10 +951,14 @@ class Trajectory(om.Group):
         units_fmt = f'<{max_unit_len}s'
 
         def _print_constraints(phs):
-            return
             ds = {'initial': phs._initial_boundary_constraints,
                   'final': phs._final_boundary_constraints,
                   'path': phs._path_constraints}
+
+            if not phs._initial_boundary_constraints and \
+                    not phs._final_boundary_constraints and \
+                    not phs._path_constraints:
+                print(f'{2 * indent}None')
 
             for loc, d in ds.items():
                 str_loc = f'[{loc}]'
