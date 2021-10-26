@@ -616,10 +616,10 @@ class Trajectory(om.Group):
             phase_b = self._get_subsystem(f'phases.{phase_name_b}')
 
             # Pull out the maximum variable name length of all variables to make the print nicer.
-            var_len = [(len(_get_prefixed_var(var_pair[0], phase_a)),
-                        len(_get_prefixed_var(var_pair[1], phase_b))) for var_pair in var_dict]
-            max_varname_length = max(itertools.chain(*var_len))
-            padding = max_varname_length + 2
+            var_len_a = [len(_get_prefixed_var(var_pair[0], phase_a)) for var_pair in var_dict]
+            var_len_b = [len(_get_prefixed_var(var_pair[1], phase_b)) for var_pair in var_dict]
+            padding_a = max(var_len_a) + 2
+            padding_b = max(var_len_b) + 2
 
             for var_pair, options in var_dict.items():
                 var_a, var_b = var_pair
@@ -679,8 +679,8 @@ class Trajectory(om.Group):
                               f'state in the phase.\nEither remove the linkage or specify ' \
                               f'`connected=False` to enforce it via an optimization constraint.'
                         raise om.OpenMDAOWarning(msg)
-                    print(f'{indent * 2}{prefixed_a:<{padding}s} [{loc_a}{str_fixed_a}] ->  '
-                          f'{prefixed_b:<{padding}s} [{loc_b}{str_fixed_b}]')
+                    print(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ->  '
+                          f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
                 else:
                     is_valid, msg = self._is_valid_linkage(phase_name_a, phase_name_b,
                                                            loc_a, loc_b, var_a, var_b)
@@ -702,8 +702,8 @@ class Trajectory(om.Group):
                                      src_indices=om.slicer[[0, -1], ...])
                         connected_linkage_inputs.append(options._input_b)
 
-                    print(f'{indent * 2}{prefixed_a:<{padding}s} [{loc_a}{str_fixed_a}] ==  '
-                          f'{prefixed_b:<{padding}s} [{loc_b}{str_fixed_b}]')
+                    print(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ==  '
+                          f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
 
         print('\n* : This quantity is fixed.\n')
 
