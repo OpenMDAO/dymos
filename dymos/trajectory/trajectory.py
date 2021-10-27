@@ -931,6 +931,9 @@ class Trajectory(om.Group):
                                             connected=connected)
 
     def _constraint_report(self, outstream=sys.stdout):
+        if self.options['sim_mode']:
+            return
+
         float_fmt = '6.4e'
         print(f'--- Constraint Report [{self.pathname}] ---')
         indent = '    '
@@ -955,9 +958,7 @@ class Trajectory(om.Group):
                   'final': phs._final_boundary_constraints,
                   'path': phs._path_constraints}
 
-            if not phs._initial_boundary_constraints and \
-                    not phs._final_boundary_constraints and \
-                    not phs._path_constraints:
+            if not (phs._initial_boundary_constraints or phs._final_boundary_constraints or phs._path_constraints):
                 print(f'{2 * indent}None')
 
             for loc, d in ds.items():
@@ -971,7 +972,7 @@ class Trajectory(om.Group):
 
                     if eq_constraint:
                         print(
-                            f'{2 * indent}{str_loc:<8s}{lower:{float_fmt}} {units if units is not None else "":{units_fmt}} == {expr} ')
+                            f'{2 * indent}{str_loc:<10s}{lower:{float_fmt}} {units if units is not None else "":{units_fmt}} == {expr} ')
                     else:
                         str_lower = f'{lower if lower is not None else 0:{float_fmt}} {units if units is not None else "":{units_fmt}} <='
                         if lower is None:
@@ -979,7 +980,7 @@ class Trajectory(om.Group):
                         str_upper = f'<= {upper if upper is not None else 0:{float_fmt}} {units if units is not None else "":{units_fmt}}'
                         if upper is None:
                             str_upper = len(str_upper) * ' '
-                        print(f'{2 * indent}{str_loc:<8s}{str_lower} {expr:<{max_len}s} {str_upper}')
+                        print(f'{2 * indent}{str_loc:<10s}{str_lower} {expr:<{max_len}s} {str_upper}')
 
         for phase_name in self._phases:
             print(f'{indent}--- {phase_name} ---', file=outstream)
@@ -988,8 +989,6 @@ class Trajectory(om.Group):
             _print_constraints(phs)
 
         print('', file=outstream)
-
-
 
     def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None):
