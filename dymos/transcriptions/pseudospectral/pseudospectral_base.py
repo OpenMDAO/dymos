@@ -480,6 +480,8 @@ class PseudospectralBase(TranscriptionBase):
                 newton.options['stall_limit'] = 3
                 newton.linesearch = om.BoundsEnforceLS()
 
+        # even though you don't need a nl_solver for connections, you still ln_solver since its implicit
+        if self.any_solved_segs or self.any_connected_opt_segs: 
             if isinstance(phase.linear_solver, om.LinearRunOnce):
                 phase.linear_solver = om.DirectSolver()
 
