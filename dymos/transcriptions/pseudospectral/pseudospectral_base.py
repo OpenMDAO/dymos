@@ -479,7 +479,7 @@ class PseudospectralBase(TranscriptionBase):
                 newton.options['iprint'] = 2
                 newton.options['stall_limit'] = 3
                 newton.linesearch = om.BoundsEnforceLS()
-                
+
             if isinstance(phase.linear_solver, om.LinearRunOnce):
                 phase.linear_solver = om.DirectSolver()
 
