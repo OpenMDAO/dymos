@@ -2,6 +2,7 @@ from collections import OrderedDict
 from collections.abc import Sequence
 from copy import deepcopy
 import itertools
+import sys
 import warnings
 try:
     from itertools import izip
@@ -721,6 +722,7 @@ class Trajectory(om.Group):
             if MPI:
                 self._configure_phase_options_dicts()
             self._configure_linkages()
+        self._constraint_report(outstream=sys.stdout)
         # promote everything else out of phases that wasn't promoted as a parameter
         phases_group = self._get_subsystem('phases')
         inputs_set = {opts['prom_name'] for (k, opts) in
@@ -927,6 +929,85 @@ class Trajectory(om.Group):
                 self.add_linkage_constraint(phase_a=phase_name_a, phase_b=phase_name_b,
                                             var_a=var, var_b=var, loc_a=loc_a, loc_b=loc_b,
                                             connected=connected)
+
+    def _constraint_report(self, outstream=sys.stdout):
+        if self.options['sim_mode']:
+            return
+
+        float_fmt = '6.4e'
+        print(f'\n--- Constraint Report [{self.pathname}] ---')
+        indent = '    '
+
+        # Find the longest expression
+        max_len = 0
+        max_unit_len = 0
+        for phase_name in self._phases:
+            phs = self._get_subsystem(f'phases.{phase_name}')
+            d = phs._initial_boundary_constraints.copy()
+            d.update(phs._final_boundary_constraints)
+            d.update(phs._path_constraints)
+
+            if d:
+                max_len = max(max_len, *[len(key) for key in d.keys()])
+                max_unit_len = max(max_unit_len,
+                                   *[len(str(options['units'])) for options in d.values()])
+
+        units_fmt = f'<{max_unit_len}s'
+
+        def _print_constraints(phs, outstream):
+            ds = {'initial': phs._initial_boundary_constraints,
+                  'final': phs._final_boundary_constraints,
+                  'path': phs._path_constraints}
+
+            if not (
+                    phs._initial_boundary_constraints or phs._final_boundary_constraints or phs._path_constraints):
+                print(f'{2 * indent}None', file=outstream)
+
+            for loc, d in ds.items():
+                str_loc = f'[{loc}]'
+                for expr, options in d.items():
+                    _, shape, units, linear = phs.options[
+                        'transcription']._get_boundary_constraint_src(expr, loc, phs)
+
+                    equals = options['equals']
+                    lower = options['lower']
+                    upper = options['upper']
+                    str_units = f'{units if units is not None else "":{units_fmt}}'
+
+                    if equals is not None and np.prod(np.asarray(equals).shape) != 1:
+                        str_equals = f'array<{"x".join([str(i) for i in np.asarray(equals).shape])}> {str_units}'
+                    elif equals is not None:
+                        str_equals = f'{equals:{float_fmt}} {str_units}'
+
+                    if lower is not None and np.prod(np.asarray(lower).shape) != 1:
+                        str_lower = f'array<{"x".join([str(i) for i in np.asarray(lower).shape])}> {str_units} <='
+                    elif lower is not None:
+                        str_lower = f'{lower:{float_fmt}} {str_units} <='
+                    else:
+                        str_lower = 12 * ''
+
+                    if upper is not None and np.prod(np.asarray(upper).shape) != 1:
+                        str_upper = f'>= array<{"x".join([str(i) for i in np.asarray(upper).shape])}> {str_units}'
+                    elif upper is not None:
+                        str_upper = f'>= {upper:{float_fmt}} {str_units}'
+                    else:
+                        str_upper = ''
+
+                    if equals is not None:
+                        print(f'{2 * indent}{str_loc:<10s}{str_equals} == {expr}',
+                              file=outstream)
+                    else:
+                        print(
+                            f'{2 * indent}{str_loc:<10s}{str_lower} {expr:<{max_len}s} {str_upper}{str_units}',
+                            file=outstream)
+
+        for phase_name in self._phases:
+            print(f'{indent}--- {phase_name} ---', file=outstream)
+            phs = self._get_subsystem(f'phases.{phase_name}')
+
+            _print_constraints(phs, outstream)
+
+        print('', file=outstream)
 
     def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None):
