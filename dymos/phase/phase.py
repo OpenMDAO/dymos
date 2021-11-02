@@ -18,7 +18,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.introspection import configure_time_introspection, configure_controls_introspection, \
-    configure_parameters_introspection, configure_states_introspection
+    configure_parameters_introspection, configure_states_introspection, classify_var
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
 
@@ -1420,39 +1420,15 @@ class Phase(om.Group):
         -------
         str
             The classification of the given variable, which is one of
-            'time', 'time_phase', 'state', 'input_control', 'indep_control', 'control_rate',
-            'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
+            'time', 'time_phase', 'state', 'control', 'control_rate',
+            'control_rate2', 'polynomial_control',
             'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
             or 'ode'.
         """
-        if var == 'time':
-            return 'time'
-        elif var == 'time_phase':
-            return 'time_phase'
-        elif var in self.state_options:
-            return 'state'
-        elif var in self.control_options:
-            if self.control_options[var]['opt']:
-                return 'indep_control'
-            else:
-                return 'input_control'
-        elif var in self.polynomial_control_options:
-            if self.polynomial_control_options[var]['opt']:
-                return 'indep_polynomial_control'
-            else:
-                return 'input_polynomial_control'
-        elif var in self.parameter_options:
-            return 'parameter'
-        elif var.endswith('_rate') and var[:-5] in self.control_options:
-            return 'control_rate'
-        elif var.endswith('_rate2') and var[:-6] in self.control_options:
-            return 'control_rate2'
-        elif var.endswith('_rate') and var[:-5] in self.polynomial_control_options:
-            return 'polynomial_control_rate'
-        elif var.endswith('_rate2') and var[:-6] in self.polynomial_control_options:
-            return 'polynomial_control_rate2'
-        else:
-            return 'ode'
+        return classify_var(var, state_options=self.state_options,
+                            parameter_options=self.parameter_options,
+                            control_options=self.control_options,
+                            polynomial_control_options=self.polynomial_control_options)
 
     def _check_ode(self):
         """
@@ -2169,6 +2145,56 @@ class Phase(om.Group):
             res = self.state_options[name]['fix_initial']
         elif loc == 'final':
             res = self.state_options[name]['fix_final']
+        else:
+            raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
+                             f'"final" but got {loc}')
+        return res
+
+    def is_control_fixed(self, name, loc):
+        """
+        Test if the control of the given name is guaranteed to be fixed at the initial or final time.
+
+        Parameters
+        ----------
+        name : str
+            The name of the control to be tested.
+        loc : str
+            The location of time to be tested: either 'initial' or 'final'.
+
+        Returns
+        -------
+        bool
+            True if the state of the given name is guaranteed to be fixed at the given location.
+        """
+        if loc == 'initial':
+            res = self.control_options[name]['fix_initial']
+        elif loc == 'final':
+            res = self.control_options[name]['fix_final']
+        else:
+            raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
+                             f'"final" but got {loc}')
+        return res
+
+    def is_polynomial_control_fixed(self, name, loc):
+        """
+        Test if the polynomial control of the given name is guaranteed to be fixed at the initial or final time.
+
+        Parameters
+        ----------
+        name : str
+            The name of the polynomial control to be tested.
+        loc : str
+            The location of time to be tested: either 'initial' or 'final'.
+
+        Returns
+        -------
+        bool
+            True if the state of the given name is guaranteed to be fixed at the given location.
+        """
+        if loc == 'initial':
+            res = self.polynomial_control_options[name]['fix_initial']
+        elif loc == 'final':
+            res = self.polynomial_control_options[name]['fix_final']
         else:
             raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
                              f'"final" but got {loc}')

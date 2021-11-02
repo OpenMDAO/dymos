@@ -6,14 +6,11 @@ plt.style.use('ggplot')
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
-from dymos.utils.doc_utils import save_for_docs
-
 
 @use_tempdirs
 class TestFiniteBurnOrbitRaise(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
-    @save_for_docs
     def test_finite_burn_orbit_raise(self):
         import numpy as np
         import matplotlib.pyplot as plt

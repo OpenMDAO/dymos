@@ -12,14 +12,11 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from dymos.examples.water_rocket.phases import (new_water_rocket_trajectory,
                                                 set_sane_initial_guesses)
 
-from dymos.utils.doc_utils import save_for_docs
-
 
 @require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
 class TestWaterRocketForDocs(unittest.TestCase):
 
-    @save_for_docs
     def test_water_rocket_height_for_docs(self):
         p = om.Problem(model=om.Group())
 
@@ -61,7 +58,6 @@ class TestWaterRocketForDocs(unittest.TestCase):
         assert_near_equal(summary['Maximum height'].value, 54.133184, 1e-3)
         assert_near_equal(summary['Maximum velocity'].value, 47.320298, 1e-3)
 
-    @save_for_docs
     def test_water_rocket_range_for_docs(self):
         p = om.Problem(model=om.Group())
 
