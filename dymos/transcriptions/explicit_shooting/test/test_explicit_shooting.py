@@ -104,6 +104,11 @@ class TestExplicitShooting(unittest.TestCase):
 
         prob.run_model()
 
+        with np.printoptions(linewidth=1024):
+            cpd = prob.check_partials(compact_print=True)
+
+        assert_check_partials(cpd, rtol=1.0E-5)
+
     def test_2_states_run_model(self):
 
         for method in ['rk4', 'euler', '3/8', 'ralston', 'rkf', 'rkck', 'dopri']:
@@ -156,17 +161,18 @@ class TestExplicitShooting(unittest.TestCase):
 
     def test_brachistochrone_explicit_shooting(self):
 
-        for method in ['ralston']:#, 'rk4']:
-            for compressed in [True]:#, False]:
+        for method in ['rk4', 'ralston']:
+            for compressed in [True, False]:
                 with self.subTest(f"test brachistochrone explicit shooting with method '{method}'"):
                     prob = om.Problem()
 
-                    prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+                    prob.driver = om.pyOptSparseDriver(optimizer='SNOPT')
+                    prob.driver.opt_settings['iSumm'] = 6
 
-                    tx = dm.transcriptions.ExplicitShooting(num_segments=2, grid='gauss-lobatto',
-                                                            method=method, order=5,
-                                                            num_steps_per_segment=10,
-                                                            compressed=compressed)
+                    tx = dm.ExplicitShooting(num_segments=5, grid='gauss-lobatto',
+                                             method=method, order=5,
+                                             num_steps_per_segment=10,
+                                             compressed=compressed)
 
                     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
 
@@ -179,7 +185,7 @@ class TestExplicitShooting(unittest.TestCase):
 
                     phase.add_parameter('g', val=1.0, units='m/s**2', opt=True, lower=1, upper=9.80665)
                     phase.add_control('theta', val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9,
-                                      continuity=True, rate_continuity=True, rate2_continuity=True)
+                                      ref=90)
 
                     phase.add_boundary_constraint('x', loc='final', equals=10.0)
                     phase.add_boundary_constraint('y', loc='final', equals=5.0)
@@ -198,12 +204,7 @@ class TestExplicitShooting(unittest.TestCase):
                     prob.set_val('phase0.parameters:g', 1.0, units='m/s**2')
                     prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 90]), units='deg')
 
-                    prob.run_model()
-
-                    with np.printoptions(linewidth=1024):
-                        prob.check_partials(method='cs', includes='phase0.integrator')
-
-                    return
+                    prob.run_driver()
 
                     x = prob.get_val('phase0.timeseries.states:x')
                     y = prob.get_val('phase0.timeseries.states:y')
@@ -220,7 +221,7 @@ class TestExplicitShooting(unittest.TestCase):
                     tol = 1.0E-6
                     assert_near_equal(theta[1:-2:2, ...], theta[2::2, ...], tolerance=tol)
                     assert_near_equal(theta_rate[1:-2:2, ...], theta_rate[2::2, ...], tolerance=tol)
-                    assert_near_equal(theta_rate2[1:-2:2, ...], theta_rate2[2::2, ...], tolerance=tol)
+                    # assert_near_equal(theta_rate2[1:-2:2, ...], theta_rate2[2::2, ...], tolerance=tol)
 
                     with np.printoptions(linewidth=1024):
                         cpd = prob.check_partials(compact_print=True, method='cs', out_stream=None)

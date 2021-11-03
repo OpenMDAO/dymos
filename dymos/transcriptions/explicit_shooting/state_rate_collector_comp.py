@@ -61,7 +61,7 @@ class StateRateCollectorComp(om.ExplicitComponent):
             self.add_input(self._input_names[name], shape=(vec_size,) + shape, units=rate_units)
             self.add_output(self._output_names[name], shape=(vec_size,) + shape, units=rate_units)
 
-            ar = np.arange(size, dtype=int)
+            ar = np.arange(vec_size*size, dtype=int)
             self.declare_partials(of=self._output_names[name],
                                   wrt=self._input_names[name],
                                   rows=ar, cols=ar, val=1.0)
