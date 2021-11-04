@@ -167,8 +167,7 @@ class ExplicitShooting(TranscriptionBase):
                                             num_steps_per_segment=self.options['num_steps_per_segment'],
                                             grid_data=self.grid_data,
                                             ode_init_kwargs=phase.options['ode_init_kwargs'],
-                                            standalone_mode=False,
-                                            complex_step_mode=True)
+                                            standalone_mode=False)
 
         phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'])
 
