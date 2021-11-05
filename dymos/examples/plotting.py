@@ -31,18 +31,20 @@ def plot_results(axes, title, figsize=(10, 8), p_sol=None, p_sim=None):
         axs = [axs]
 
     for i, (x, y, xlabel, ylabel) in enumerate(axes):
-        axs[i].plot(p_sol.get_val(x),
-                    p_sol.get_val(y),
-                    marker='o',
-                    ms=4,
-                    linestyle='None',
-                    label='solution' if i == 0 else None)
+        if p_sol is not None:
+            axs[i].plot(p_sol.get_val(x),
+                        p_sol.get_val(y),
+                        marker='o',
+                        ms=4,
+                        linestyle='None',
+                        label='solution' if i == 0 else None)
 
-        axs[i].plot(p_sim.get_val(x),
-                    p_sim.get_val(y),
-                    marker=None,
-                    linestyle='-',
-                    label='simulation' if i == 0 else None)
+        if p_sim is not None:
+            axs[i].plot(p_sim.get_val(x),
+                        p_sim.get_val(y),
+                        marker=None,
+                        linestyle='-',
+                        label='simulation' if i == 0 else None)
 
         axs[i].set_xlabel(xlabel)
         axs[i].set_ylabel(ylabel)

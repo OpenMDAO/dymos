@@ -14,15 +14,19 @@ from ...utils.constants import INF_BOUND
 
 class ExplicitShooting(TranscriptionBase):
     """
-    The Transcription class for explicit shooting methods.
+    The Transcription class for single explicit shooting.
 
-    This transcription uses an explicit general Runge-Kutta method to propagate the states using
-    the given ODE.
+    This transcription uses an explicit Runge-Kutta method to propagate the states using the
+    given ODE through each segment of the phase.  The final value of the states in one
+    segment feeds the initial values in a subsequent segment.
 
     Parameters
     ----------
     **kwargs : dict
         Dictionary of arguments.
+
+    Options:
+
     """
     def __init__(self, **kwargs):
         super(ExplicitShooting, self).__init__(**kwargs)
