@@ -43,7 +43,7 @@ class TestTauComp(unittest.TestCase):
                                                          transcription_order=3)
 
         p = om.Problem()
-        tau_comp = p.model.add_subsystem('tau_comp', TauComp(num_nodes=4, grid_data=grid_data, time_units='s'))
+        tau_comp = p.model.add_subsystem('tau_comp', TauComp(vec_size=4, grid_data=grid_data, time_units='s'))
         p.setup(force_alloc_complex=True)
 
         tau_comp.options['segment_index'] = 0
