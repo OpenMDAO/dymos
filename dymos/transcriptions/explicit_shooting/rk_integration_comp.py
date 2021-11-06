@@ -89,8 +89,6 @@ class RKIntegrationComp(om.ExplicitComponent):
         The timeseries options associated with the parent phase. This is used to access
         requested timeseries outputs.  Some options regarding timeseries are not applicable
         to the RungeKutta integration.
-    complex_step_mode : bool
-        If True, allocate internal memory as complex to support complex-step differentiation.
     grid_data : GridData
         The GridData instance pertaining to the phase to which this ODEEvaluationGroup belongs.
     standalone_mode : bool
@@ -1101,115 +1099,121 @@ class RKIntegrationComp(om.ExplicitComponent):
 
         for state_name, options in self.state_options.items():
             size = np.prod(options['shape'])
-            of_name = f'state_rate_collector.state_rates:{state_name}_rate'
-            idxs = self.state_idxs[state_name]
-            f_t[:, idxs, 0] = np.diagonal(totals[of_name, 'time']).reshape((num_stages, size))
+            name_of = f'state_rate_collector.state_rates:{state_name}_rate'
+            idxs_of = self.state_idxs[state_name]
+            f_t[:, idxs_of, 0] = np.diagonal(totals[name_of, 'time']).reshape((num_stages, size))
 
             for state_name_wrt, options_wrt in self.state_options.items():
                 size_wrt = np.prod(options_wrt['shape'])
                 idxs_wrt = self.state_idxs[state_name_wrt]
-                px_px = totals[of_name, self._state_input_names[state_name_wrt]]
-                f_x[:, idxs, idxs_wrt] = np.diagonal(px_px).reshape((num_stages, size, size_wrt))
+                px_px = totals[name_of, self._state_input_names[state_name_wrt]]
+                f_x[:, idxs_of, idxs_wrt] = np.diagonal(px_px).reshape((num_stages, size, size_wrt))
 
-            f_θ[:, idxs, 0] = totals[of_name, 't_initial']
-            f_θ[:, idxs, 1] = totals[of_name, 't_duration']
+            f_θ[:, idxs_of, 0] = totals[name_of, 't_initial']
+            f_θ[:, idxs_of, 1] = totals[name_of, 't_duration']
 
             for param_name_wrt, options_wrt in self.parameter_options.items():
                 size_wrt = np.prod(options_wrt['shape'])
                 idxs_wrt = self._parameter_idxs_in_θ[param_name_wrt]
-                px_pp = totals[of_name, self._param_input_names[param_name_wrt]]
-                f_θ[:, idxs, idxs_wrt] = px_pp.reshape((num_stages, size, size_wrt))
+                px_pp = totals[name_of, self._param_input_names[param_name_wrt]]
+                f_θ[:, idxs_of, idxs_wrt] = px_pp.reshape((num_stages, size, size_wrt))
 
             for control_name_wrt, options_wrt in self.control_options.items():
                 size_wrt = np.prod(options_wrt['shape']) * ncin
                 idxs_wrt = self._control_idxs_in_θ[control_name_wrt]
-                px_pu = totals[of_name, self._control_input_names[control_name_wrt]]
-                f_θ[:, idxs, idxs_wrt] = px_pu.reshape((num_stages, size, size_wrt))
+                px_pu = totals[name_of, self._control_input_names[control_name_wrt]]
+                f_θ[:, idxs_of, idxs_wrt] = px_pu.reshape((num_stages, size, size_wrt))
 
             for pc_name_wrt, options_wrt in self.polynomial_control_options.items():
                 size_wrt = np.prod(options_wrt['shape']) * (options_wrt['order'] + 1)
                 idxs_wrt = self._polynomial_control_idxs_in_θ[pc_name_wrt]
-                px_pu = totals[of_name, self._polynomial_control_input_names[pc_name_wrt]]
-                f_θ[:, idxs, idxs_wrt] = px_pu.reshape((num_stages, size, size_wrt))
+                px_pu = totals[name_of, self._polynomial_control_input_names[pc_name_wrt]]
+                f_θ[:, idxs_of, idxs_wrt] = px_pu.reshape((num_stages, size, size_wrt))
 
         if y_x is not None and y_t is not None and y_θ is not None:
             for control_name, options in self.control_options.items():
                 wrt_name = self._control_input_names[control_name]
                 idxs_wrt = self._control_idxs_in_θ[control_name]
-                of_name = self._control_output_names[control_name]
+                name_of = self._control_output_names[control_name]
                 of_rate_name = self._control_rate_names[control_name]
                 of_rate2_name = self._control_rate2_names[control_name]
-                of_size = np.prod(options['shape'])
+                size_of = np.prod(options['shape'])
 
-                of_idxs = self._control_idxs_in_y[control_name]
-                of_rate_idxs = self._control_rate_idxs_in_y[control_name]
-                of_rate2_idxs = self._control_rate2_idxs_in_y[control_name]
+                idxs_of = self._control_idxs_in_y[control_name]
+                idxs_of_rate = self._control_rate_idxs_in_y[control_name]
+                idxs_of_rate2 = self._control_rate2_idxs_in_y[control_name]
 
-                y_t[:, of_idxs, 0] = np.diagonal(totals[of_name, 'time']).reshape((num_stages, of_size))
-                y_t[:, of_rate_idxs, 0] = np.diagonal(totals[of_rate_name, 'time']).reshape((num_stages, of_size))
-                y_t[:, of_rate2_idxs, 0] = np.diagonal(totals[of_rate2_name, 'time']).reshape((num_stages, of_size))
+                y_t[:, idxs_of, 0] = np.diagonal(totals[name_of, 'time']).reshape((num_stages, size_of))
+                y_t[:, idxs_of_rate, 0] = np.diagonal(totals[of_rate_name, 'time']).reshape((num_stages, size_of))
+                y_t[:, idxs_of_rate2, 0] = np.diagonal(totals[of_rate2_name, 'time']).reshape((num_stages, size_of))
 
-                y_θ[:, of_idxs, 1] = np.diagonal(totals[of_name, 't_duration'])
-                y_θ[:, of_rate_idxs, 1] = np.diagonal(totals[of_rate_name, 't_duration'])
-                y_θ[:, of_rate2_idxs, 1] = np.diagonal(totals[of_rate2_name, 't_duration'])
+                y_θ[:, idxs_of, 1] = np.diagonal(totals[name_of, 't_duration'])
+                y_θ[:, idxs_of_rate, 1] = np.diagonal(totals[of_rate_name, 't_duration'])
+                y_θ[:, idxs_of_rate2, 1] = np.diagonal(totals[of_rate2_name, 't_duration'])
 
-                y_θ[:, of_idxs, idxs_wrt] = totals[of_name, wrt_name].reshape((num_stages, of_size, ncin))
-                y_θ[:, of_rate_idxs, idxs_wrt] = totals[of_rate_name, wrt_name].reshape((num_stages, of_size, ncin))
-                y_θ[:, of_rate2_idxs, idxs_wrt] = totals[of_rate2_name, wrt_name].reshape((num_stages, of_size, ncin))
+                y_θ[:, idxs_of, idxs_wrt] = totals[name_of, wrt_name].reshape((num_stages, size_of, ncin))
+                y_θ[:, idxs_of_rate, idxs_wrt] = totals[of_rate_name, wrt_name].reshape((num_stages, size_of, ncin))
+                y_θ[:, idxs_of_rate2, idxs_wrt] = totals[of_rate2_name, wrt_name].reshape((num_stages, size_of, ncin))
 
             for polynomial_control_name, options in self.polynomial_control_options.items():
                 wrt_name = self._polynomial_control_input_names[polynomial_control_name]
                 idxs_wrt = self._polynomial_control_idxs_in_θ[polynomial_control_name]
-                of_name = self._polynomial_control_output_names[polynomial_control_name]
+                name_of = self._polynomial_control_output_names[polynomial_control_name]
                 of_rate_name = self._polynomial_control_rate_names[polynomial_control_name]
                 of_rate2_name = self._polynomial_control_rate2_names[polynomial_control_name]
-                of_size = np.prod(options['shape'])
+                size_of = np.prod(options['shape'])
                 order = options['order']
 
-                of_idxs = self._polynomial_control_idxs_in_y[polynomial_control_name]
-                of_rate_idxs = self._polynomial_control_rate_idxs_in_y[polynomial_control_name]
-                of_rate2_idxs = self._polynomial_control_rate2_idxs_in_y[polynomial_control_name]
+                idxs_of = self._polynomial_control_idxs_in_y[polynomial_control_name]
+                idxs_of_rate = self._polynomial_control_rate_idxs_in_y[polynomial_control_name]
+                idxs_of_rate2 = self._polynomial_control_rate2_idxs_in_y[polynomial_control_name]
 
-                y_t[:, of_idxs, 0] = np.diagonal(totals[of_name, 'time']).reshape((num_stages, of_size))
-                y_t[:, of_rate_idxs, 0] = np.diagonal(totals[of_rate_name, 'time']).reshape((num_stages, of_size))
-                y_t[:, of_rate2_idxs, 0] = np.diagonal(totals[of_rate2_name, 'time']).reshape((num_stages, of_size))
+                y_t[:, idxs_of, 0] = np.diagonal(totals[name_of, 'time']).reshape((num_stages, size_of))
+                y_t[:, idxs_of_rate, 0] = np.diagonal(totals[of_rate_name, 'time']).reshape((num_stages, size_of))
+                y_t[:, idxs_of_rate2, 0] = np.diagonal(totals[of_rate2_name, 'time']).reshape((num_stages, size_of))
 
-                y_θ[:, of_idxs, 1] = totals[of_name, 't_duration']
-                y_θ[:, of_rate_idxs, 1] = totals[of_rate_name, 't_duration']
-                y_θ[:, of_rate2_idxs, 1] = totals[of_rate2_name, 't_duration']
+                y_θ[:, idxs_of, 1] = totals[name_of, 't_duration']
+                y_θ[:, idxs_of_rate, 1] = totals[of_rate_name, 't_duration']
+                y_θ[:, idxs_of_rate2, 1] = totals[of_rate2_name, 't_duration']
 
-                y_θ[:, of_idxs, idxs_wrt] = totals[of_name, wrt_name].reshape((num_stages, of_size, order + 1))
-                y_θ[:, of_rate_idxs, idxs_wrt] = totals[of_rate_name, wrt_name].reshape((num_stages, of_size, order + 1))
-                y_θ[:, of_rate2_idxs, idxs_wrt] = totals[of_rate2_name, wrt_name].reshape((num_stages, of_size, order + 1))
+                y_θ[:, idxs_of, idxs_wrt] = totals[name_of, wrt_name].reshape((num_stages, size_of, order + 1))
+                y_θ[:, idxs_of_rate, idxs_wrt] = totals[of_rate_name, wrt_name].reshape((num_stages, size_of, order + 1))
+                y_θ[:, idxs_of_rate2, idxs_wrt] = totals[of_rate2_name, wrt_name].reshape((num_stages, size_of, order + 1))
 
             for name, options in self._filtered_timeseries_outputs.items():
                 idxs_of = self._timeseries_idxs_in_y[name]
-                of_name = options['path']
+                name_of = options['path']
+                size_of = np.prod(options['shape'], dtype=int)
 
-                y_t[:, idxs_of, 0] = totals[options['path'], 'time']
+                y_t[:, idxs_of, 0] = np.diagonal(totals[options['path'], 'time']).reshape((num_stages, size_of))
 
-                y_θ[:, idxs_of, 0] = totals[of_name, 't_initial']
-                y_θ[:, idxs_of, 1] = totals[of_name, 't_duration']
+                y_θ[:, idxs_of, 0] = totals[name_of, 't_initial']
+                y_θ[:, idxs_of, 1] = totals[name_of, 't_duration']
 
-                for state_name_wrt in self.state_options:
+                for state_name_wrt, wrt_options in self.state_options.items():
                     idxs_wrt = self.state_idxs[state_name_wrt]
-                    py_px = totals[of_name, self._state_input_names[state_name_wrt]]
-                    y_x[:, idxs_of, idxs_wrt] = py_px.ravel()
+                    size_wrt = np.prod(wrt_options['shape'], dtype=int)
+                    py_px = totals[name_of, self._state_input_names[state_name_wrt]]
+                    y_x[:, idxs_of, idxs_wrt] = np.diagonal(py_px).reshape((num_stages, size_of, size_wrt))
 
-                for param_name_wrt in self.parameter_options:
+                for param_name_wrt, wrt_options in self.parameter_options.items():
                     idxs_wrt = self._parameter_idxs_in_θ[param_name_wrt]
-                    py_pp = totals[of_name, self._param_input_names[param_name_wrt]]
-                    y_θ[:, idxs_of, idxs_wrt] = py_pp.ravel()
+                    size_wrt = np.prod(wrt_options['shape'], dtype=int)
+                    py_pp = totals[name_of, self._param_input_names[param_name_wrt]]
+                    y_θ[:, idxs_of, idxs_wrt] = py_pp.reshape((num_stages, size_of, size_wrt))
 
-                for control_name_wrt in self.control_options:
+                for control_name_wrt, wrt_options in self.control_options.items():
+                    size_wrt = np.prod(wrt_options['shape']) * ncin
                     idxs_wrt = self._control_idxs_in_θ[control_name_wrt]
-                    py_puhat = totals[of_name, self._control_input_names[control_name_wrt]]
-                    y_θ[:, idxs_of, idxs_wrt] = py_puhat.ravel()
+                    py_puhat = totals[name_of, self._control_input_names[control_name_wrt]]
+                    y_θ[:, idxs_of, idxs_wrt] = py_puhat.reshape((num_stages, size_of, size_wrt))
 
-                for pc_name_wrt in self.polynomial_control_options:
+                for pc_name_wrt, wrt_options in self.polynomial_control_options.items():
                     idxs_wrt = self._polynomial_control_idxs_in_θ[pc_name_wrt]
-                    py_puhat = totals[of_name, self._polynomial_control_input_names[pc_name_wrt]]
-                    y_θ[:, idxs_of, idxs_wrt] = py_puhat.ravel()
+                    order = wrt_options['order']
+                    size_wrt = np.prod(options_wrt['shape']) * (order + 1)
+                    py_puhat = totals[name_of, self._polynomial_control_input_names[pc_name_wrt]]
+                    y_θ[:, idxs_of, idxs_wrt] = py_puhat.reshape((num_stages, size_of, order + 1))
 
     def _propagate(self, inputs, derivs=None):
         """

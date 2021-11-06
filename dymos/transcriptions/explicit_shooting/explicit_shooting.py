@@ -24,9 +24,6 @@ class ExplicitShooting(TranscriptionBase):
     ----------
     **kwargs : dict
         Dictionary of arguments.
-
-    Options:
-
     """
     def __init__(self, **kwargs):
         super(ExplicitShooting, self).__init__(**kwargs)

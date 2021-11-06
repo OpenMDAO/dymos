@@ -16,6 +16,10 @@ class StateRateCollectorComp(om.ExplicitComponent):
 
     Parameters
     ----------
+    vec_size : int
+        The number of points in the first dimension of each input/output. This is typically called
+        num_nodes in Dymos, but in the case of ExplicitIntegration this vector size is related to
+        the number of stages in a step, and not the number of nodes in the transcription.
     **kwargs : dict
         Dictionary of optional arguments.
     """
