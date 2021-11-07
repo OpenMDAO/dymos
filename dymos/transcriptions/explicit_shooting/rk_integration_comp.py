@@ -71,6 +71,11 @@ class RKIntegrationComp(om.ExplicitComponent):
     points instead of creating num_nodes instances of that same component and connecting them
     together.
 
+    Notes
+    -----
+    This code includes the following unicode symbols:
+    θ:  U+03B8.
+
     Parameters
     ----------
     ode_class : class
@@ -1121,14 +1126,14 @@ class RKIntegrationComp(om.ExplicitComponent):
             for control_name_wrt, options_wrt in self.control_options.items():
                 size_wrt = np.prod(options_wrt['shape']) * ncin
                 idxs_wrt = self._control_idxs_in_θ[control_name_wrt]
-                px_pu = totals[name_of, self._control_input_names[control_name_wrt]]
-                f_θ[:, idxs_of, idxs_wrt] = px_pu.reshape((num_stages, size, size_wrt))
+                px_puhat = totals[name_of, self._control_input_names[control_name_wrt]]
+                f_θ[:, idxs_of, idxs_wrt] = px_puhat.reshape((num_stages, size, size_wrt))
 
             for pc_name_wrt, options_wrt in self.polynomial_control_options.items():
                 size_wrt = np.prod(options_wrt['shape']) * (options_wrt['order'] + 1)
                 idxs_wrt = self._polynomial_control_idxs_in_θ[pc_name_wrt]
-                px_pu = totals[name_of, self._polynomial_control_input_names[pc_name_wrt]]
-                f_θ[:, idxs_of, idxs_wrt] = px_pu.reshape((num_stages, size, size_wrt))
+                px_puhat = totals[name_of, self._polynomial_control_input_names[pc_name_wrt]]
+                f_θ[:, idxs_of, idxs_wrt] = px_puhat.reshape((num_stages, size, size_wrt))
 
         if y_x is not None and y_t is not None and y_θ is not None:
             for control_name, options in self.control_options.items():
