@@ -71,11 +71,6 @@ class RKIntegrationComp(om.ExplicitComponent):
     points instead of creating num_nodes instances of that same component and connecting them
     together.
 
-    Notes
-    -----
-    This code includes the following unicode symbols:
-    θ:  U+03B8.
-
     Parameters
     ----------
     ode_class : class
@@ -101,6 +96,11 @@ class RKIntegrationComp(om.ExplicitComponent):
         for unittesting this component when not embedded in a larger system.
     **kwargs : dict
         Additional keyword arguments passed to Group.
+
+    Notes
+    -----
+    This code includes the following unicode symbols:
+    θ:  U+03B8
     """
     def __init__(self, ode_class, time_options=None,
                  state_options=None, parameter_options=None, control_options=None,
