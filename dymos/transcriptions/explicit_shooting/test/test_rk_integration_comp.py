@@ -88,7 +88,7 @@ class TestRKIntegrationComp(unittest.TestCase):
         f = np.zeros_like(x)
 
         intg = prob.model.fixed_step_integrator
-        intg._prob.model.ode_eval.set_segment_index(9)
+        intg._eval_subprob.model.ode_eval.set_segment_index(9)
         intg.eval_f(x, t, theta, f)
 
         assert_near_equal(f, x - t**2 + theta[2, 0])
@@ -125,8 +125,7 @@ class TestRKIntegrationComp(unittest.TestCase):
                                                    param_options, control_options,
                                                    polynomial_control_options,
                                                    grid_data=gd,
-                                                   num_steps_per_segment=100,
-                                                   complex_step_mode=True))
+                                                   num_steps_per_segment=100))
         prob.setup(mode='fwd', force_alloc_complex=True)
 
         prob.set_val('fixed_step_integrator.states:x', 0.5)
@@ -134,36 +133,44 @@ class TestRKIntegrationComp(unittest.TestCase):
         prob.set_val('fixed_step_integrator.t_duration', 2.0)
         prob.set_val('fixed_step_integrator.parameters:p', 1.0)
 
-        x = np.array([[0.5]], dtype=complex)
-        t = np.array([[0.0]], dtype=complex)
-        theta = np.array([[0, 2.0, 1.0]], dtype=complex).T
+        prob.final_setup()
 
-        f_x_cs = np.zeros_like(x, dtype=complex)
-        f_t_cs = np.zeros_like(x, dtype=complex)
-        f_theta_cs = np.zeros_like(x, dtype=complex)
+        prob.run_model()
+
+        x = np.array([[0.5]])
+        t = np.array([[0.0]])
+        theta = np.array([[0, 2.0, 1.0]]).T
+
+        f_nom = np.zeros_like(x)
+
+        f_x_fd = np.zeros_like(x)
+        f_t_fd = np.zeros_like(x)
+        f_theta_fd = np.zeros_like(x)
 
         intg = prob.model.fixed_step_integrator
         f_x = intg._f_x
         f_t = intg._f_t
-        f_theta = intg._f_theta
+        f_theta = intg._f_θ
 
-        intg._prob.model.ode_eval.set_segment_index(9)
+        intg._eval_subprob.model.ode_eval.set_segment_index(9)
+
+        intg.eval_f(x, t, theta, f_nom)
         intg.eval_f_derivs(x, t, theta, f_x, f_t, f_theta)
 
-        step = 1.0E-20
+        step = 1.0E-8
 
-        intg.eval_f(x + step * 1.0j, t, theta, f_x_cs)
+        intg.eval_f(x + step, t, theta, f_x_fd)
+        f_x_fd = (f_x_fd - f_nom) / step
+        assert_near_equal(f_x, f_x_fd, tolerance=1.0E-6)
 
-        assert_near_equal(f_x.real, np.atleast_2d(f_x_cs.imag / step))
+        intg.eval_f(x, t + step, theta, f_t_fd)
+        f_t_fd = (f_t_fd - f_nom) / step
+        assert_near_equal(f_t, f_t_fd, tolerance=1.0E-6)
 
-        intg.eval_f(x, t + step * 1.0j, theta, f_t_cs)
-
-        assert_near_equal(f_t.real, np.atleast_2d(f_t_cs.imag / step))
-
-        theta[2] = theta[2] + step * 1.0j
-
-        prob.model.fixed_step_integrator.eval_f(x, t, theta, f_theta_cs)
-        assert_near_equal(f_theta.real[0, 2], f_theta_cs[0, 0].imag / step)
+        theta[2] = theta[2] + step
+        prob.model.fixed_step_integrator.eval_f(x, t, theta, f_theta_fd)
+        f_theta_fd = (f_theta_fd - f_nom) / step
+        assert_near_equal(f_theta.real[0, 2], f_theta_fd[0, 0], tolerance=1.0E-6)
 
     def test_fwd_parameters(self):
         time_options = dm.phase.options.TimeOptionsDictionary()
@@ -199,7 +206,6 @@ class TestRKIntegrationComp(unittest.TestCase):
                                                                          polynomial_control_options,
                                                                          grid_data=gd,
                                                                          num_steps_per_segment=10,
-                                                                         complex_step_mode=True,
                                                                          ode_init_kwargs=None))
         p.setup(mode='fwd', force_alloc_complex=True)
 
@@ -272,8 +278,7 @@ class TestRKIntegrationComp(unittest.TestCase):
                                                 polynomial_control_options=polynomial_control_options,
                                                 num_steps_per_segment=10,
                                                 grid_data=gd,
-                                                ode_init_kwargs=None,
-                                                complex_step_mode=True))
+                                                ode_init_kwargs=None))
 
         p.setup(mode='fwd', force_alloc_complex=True)
 

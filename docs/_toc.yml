@@ -6,9 +6,10 @@ parts:
   - file: installation
 - caption: Getting Started
   chapters:
-  - file: getting_started/collocation
-  - file: getting_started/defining_odes
   - file: getting_started/optimal_control
+  - file: getting_started/transcriptions
+  - file: getting_started/defining_odes
+  - file: getting_started/collocation
   - file: getting_started/intro_to_dymos/intro_ivp
   - file: getting_started/intro_to_dymos/intro_segments
 - caption: Examples and Tutorials
@@ -62,6 +63,7 @@ parts:
     sections:
     - file: api/run_problem
     - file: api/phase_api
+    - file: api/transcriptions_api
     - file: api/trajectory_api
 - caption: Contributing
   chapters:

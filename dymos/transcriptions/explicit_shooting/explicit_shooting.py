@@ -14,10 +14,11 @@ from ...utils.constants import INF_BOUND
 
 class ExplicitShooting(TranscriptionBase):
     """
-    The Transcription class for explicit shooting methods.
+    The Transcription class for single explicit shooting.
 
-    This transcription uses an explicit general Runge-Kutta method to propagate the states using
-    the given ODE.
+    This transcription uses an explicit Runge-Kutta method to propagate the states using the
+    given ODE through each segment of the phase.  The final value of the states in one
+    segment feeds the initial values in a subsequent segment.
 
     Parameters
     ----------
@@ -143,7 +144,7 @@ class ExplicitShooting(TranscriptionBase):
 
     def _get_ode(self, phase):
         integrator = phase._get_subsystem('integrator')
-        subprob = integrator._prob
+        subprob = integrator._eval_subprob
         ode = subprob.model._get_subsystem('ode_eval.ode')
         return ode
 
@@ -167,8 +168,7 @@ class ExplicitShooting(TranscriptionBase):
                                             num_steps_per_segment=self.options['num_steps_per_segment'],
                                             grid_data=self.grid_data,
                                             ode_init_kwargs=phase.options['ode_init_kwargs'],
-                                            standalone_mode=False,
-                                            complex_step_mode=True)
+                                            standalone_mode=False)
 
         phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'])
 
@@ -311,13 +311,13 @@ class ExplicitShooting(TranscriptionBase):
             phase.continuity_comp.configure_io()
 
         for control_name, options in phase.control_options.items():
-            if options['continuity']:
+            if options['continuity'] and any_control_cnty:
                 phase.connect(f'timeseries.controls:{control_name}',
                               f'continuity_comp.controls:{control_name}')
-            if options['rate_continuity']:
+            if options['rate_continuity'] and any_rate_cnty:
                 phase.connect(f'timeseries.control_rates:{control_name}_rate',
                               f'continuity_comp.control_rates:{control_name}_rate')
-            if options['rate2_continuity']:
+            if options['rate2_continuity'] and any_rate_cnty:
                 phase.connect(f'timeseries.control_rates:{control_name}_rate2',
                               f'continuity_comp.control_rates:{control_name}_rate2')
 
