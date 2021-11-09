@@ -7,6 +7,7 @@ import openmdao.api as om
 import dymos as dm
 
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -79,6 +80,7 @@ class Simple1StateODE(om.ExplicitComponent):
         partials['y_dot', 't'] = -np.exp(-2*t) * t**2 * (2 * t - 3)
 
 
+@use_tempdirs
 class TestExplicitShooting(unittest.TestCase):
 
     def test_1_state_run_model(self):
@@ -159,6 +161,7 @@ class TestExplicitShooting(unittest.TestCase):
                     cpd = prob.check_partials(compact_print=True, method='cs')
                     assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_explicit_shooting(self):
 
         for method in ['rk4', 'ralston']:
@@ -226,6 +229,7 @@ class TestExplicitShooting(unittest.TestCase):
                         cpd = prob.check_partials(compact_print=True, method='cs', out_stream=None)
                         assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_explicit_shooting_path_constraint(self):
 
         for method in ['rk4', 'ralston']:
@@ -280,6 +284,7 @@ class TestExplicitShooting(unittest.TestCase):
                     cpd = prob.check_partials(compact_print=False, method='cs', out_stream=None)
                     assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_explicit_shooting_path_constraint_polynomial_control(self):
         for method in ['euler', '3/8']:
             with self.subTest(f"test brachistochrone explicit shooting with method '{method}'"):
@@ -333,6 +338,7 @@ class TestExplicitShooting(unittest.TestCase):
                     cpd = prob.check_partials(compact_print=False, method='cs', out_stream=None)
                     assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_explicit_shooting_path_constraint_renamed(self):
 
         for method in ['rk4', 'ralston']:
@@ -387,8 +393,8 @@ class TestExplicitShooting(unittest.TestCase):
                     cpd = prob.check_partials(compact_print=True, method='cs', out_stream=None)
                     assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_explicit_shooting_path_constraint_invalid_renamed(self):
-
         for method in ['rk4', 'ralston']:
             with self.subTest(f"test brachistochrone explicit shooting with method '{method}'"):
                 prob = om.Problem()
@@ -425,6 +431,7 @@ class TestExplicitShooting(unittest.TestCase):
                 self.assertIn("Option 'constraint_name' on path constraint y is only valid for "
                               "ODE outputs. The option is being ignored.", [str(w.message) for w in ctx])
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_explicit_shooting_polynomial_control(self):
         prob = om.Problem()
 
@@ -478,6 +485,7 @@ class TestExplicitShooting(unittest.TestCase):
             cpd = prob.check_partials(compact_print=False, method='cs', out_stream=None)
             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_explicit_shooting_timeseries_ode_output(self):
 
         for method in ['rk4', 'ralston']:
@@ -538,6 +546,7 @@ class TestExplicitShooting(unittest.TestCase):
                     cpd = prob.check_partials(method='cs', out_stream=None)
                     assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_explicit_shooting_unknown_timeseries(self):
 
         for method in ['euler']:

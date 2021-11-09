@@ -74,7 +74,7 @@ class Trajectory(om.Group):
         self._phase_add_kwargs[name] = kwargs
         return phase
 
-    def add_parameter(self, name, units, val=_unspecified, desc=_unspecified, opt=False,
+    def add_parameter(self, name, units=_unspecified, val=_unspecified, desc=_unspecified, opt=False,
                       targets=_unspecified, lower=_unspecified, upper=_unspecified,
                       scaler=_unspecified, adder=_unspecified, ref0=_unspecified, ref=_unspecified,
                       shape=_unspecified, dynamic=_unspecified, static_target=_unspecified):
@@ -85,8 +85,8 @@ class Trajectory(om.Group):
         ----------
         name : str
             Name of the parameter.
-        units : str or None or 0
-            Units in which the parameter is defined.  If 0, use the units declared
+        units : str or None or _unspecified
+            Units in which the parameter is defined.  If _unspecified, use the units declared
             for the parameter in the ODE.
         val : float or ndarray
             Default value of the parameter at all nodes.
