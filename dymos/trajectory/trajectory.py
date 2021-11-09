@@ -333,8 +333,9 @@ class Trajectory(om.Group):
                 raise ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
                                  f'targets in multiple phases that have different shapes.')
 
-            if len(set(tgt_units.values())) != 1:
-                options['units'] = next(iter(tgt_units))
+            tgt_units_set = set(tgt_units.values())
+            if len(tgt_units_set) == 1:
+                options['units'] = list(tgt_units_set)[0]
             else:
                 ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
                            f'targets in multiple phases that have different units. You must '
