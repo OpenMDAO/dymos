@@ -285,6 +285,7 @@ class Trajectory(om.Group):
         for name, options in parameter_options.items():
             prom_name = f'parameters:{name}'
             targets = options['targets']
+            units = options['units']
 
             # For each phase, use introspection to get the units and shape.
             # If units do not match across all phases, require user to set them.
@@ -327,20 +328,22 @@ class Trajectory(om.Group):
                 promoted_inputs.append(tgt)
                 self.promotes('phases', inputs=[(tgt, prom_name)])
 
-            if len(set(tgt_shapes.values())) == 1:
-                options['shape'] = next(iter(tgt_shapes.values()))
-            else:
-                raise ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
-                                 f'targets in multiple phases that have different shapes.')
+            if options['shape'] is _unspecified:
+                if len(set(tgt_shapes.values())) == 1:
+                    options['shape'] = next(iter(tgt_shapes.values()))
+                else:
+                    raise ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
+                                     f'targets in multiple phases that have different shapes.')
 
-            tgt_units_set = set(tgt_units.values())
-            if len(tgt_units_set) == 1:
-                options['units'] = list(tgt_units_set)[0]
-            else:
-                ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
-                           f'targets in multiple phases that have different units. You must '
-                           f'explicitly provide units for the parameter since they cannot be '
-                           f'inferred.')
+            if options['units'] is _unspecified:
+                tgt_units_set = set(tgt_units.values())
+                if len(tgt_units_set) == 1:
+                    options['units'] = list(tgt_units_set)[0]
+                else:
+                    ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
+                               f'targets in multiple phases that have different units. You must '
+                               f'explicitly provide units for the parameter since they cannot be '
+                               f'inferred.')
 
             val = options['val']
             _shape = options['shape']
