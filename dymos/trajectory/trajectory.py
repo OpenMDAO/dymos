@@ -74,7 +74,7 @@ class Trajectory(om.Group):
         self._phase_add_kwargs[name] = kwargs
         return phase
 
-    def add_parameter(self, name, units, val=_unspecified, desc=_unspecified, opt=False,
+    def add_parameter(self, name, units=_unspecified, val=_unspecified, desc=_unspecified, opt=False,
                       targets=_unspecified, lower=_unspecified, upper=_unspecified,
                       scaler=_unspecified, adder=_unspecified, ref0=_unspecified, ref=_unspecified,
                       shape=_unspecified, dynamic=_unspecified, static_target=_unspecified):
@@ -85,8 +85,8 @@ class Trajectory(om.Group):
         ----------
         name : str
             Name of the parameter.
-        units : str or None or 0
-            Units in which the parameter is defined.  If 0, use the units declared
+        units : str or None or _unspecified
+            Units in which the parameter is defined.  If _unspecified, use the units declared
             for the parameter in the ODE.
         val : float or ndarray
             Default value of the parameter at all nodes.
@@ -285,6 +285,7 @@ class Trajectory(om.Group):
         for name, options in parameter_options.items():
             prom_name = f'parameters:{name}'
             targets = options['targets']
+            units = options['units']
 
             # For each phase, use introspection to get the units and shape.
             # If units do not match across all phases, require user to set them.
@@ -327,19 +328,22 @@ class Trajectory(om.Group):
                 promoted_inputs.append(tgt)
                 self.promotes('phases', inputs=[(tgt, prom_name)])
 
-            if len(set(tgt_shapes.values())) == 1:
-                options['shape'] = next(iter(tgt_shapes.values()))
-            else:
-                raise ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
-                                 f'targets in multiple phases that have different shapes.')
+            if options['shape'] is _unspecified:
+                if len(set(tgt_shapes.values())) == 1:
+                    options['shape'] = next(iter(tgt_shapes.values()))
+                else:
+                    raise ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
+                                     f'targets in multiple phases that have different shapes.')
 
-            if len(set(tgt_units.values())) != 1:
-                options['units'] = next(iter(tgt_units))
-            else:
-                ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
-                           f'targets in multiple phases that have different units. You must '
-                           f'explicitly provide units for the parameter since they cannot be '
-                           f'inferred.')
+            if options['units'] is _unspecified:
+                tgt_units_set = set(tgt_units.values())
+                if len(tgt_units_set) == 1:
+                    options['units'] = list(tgt_units_set)[0]
+                else:
+                    ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
+                               f'targets in multiple phases that have different units. You must '
+                               f'explicitly provide units for the parameter since they cannot be '
+                               f'inferred.')
 
             val = options['val']
             _shape = options['shape']
