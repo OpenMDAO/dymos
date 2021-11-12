@@ -31,6 +31,7 @@ parts:
     - file: examples/ssto_earth/ssto_earth
     - file: examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent
     - file: examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls
+    - file: examples/stiff_problem/stiff_problem
     - file: examples/water_rocket/water_rocket
 - caption: Feature Reference
   chapters:
