@@ -6,7 +6,6 @@ plt.switch_backend('Agg')
 plt.style.use('ggplot')
 import numpy as np
 
-from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
@@ -18,7 +17,6 @@ class TestReentryForDocs(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @save_for_docs
     @require_pyoptsparse(optimizer='SLSQP')
     def test_reentry(self):
         import openmdao.api as om

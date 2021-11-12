@@ -2,6 +2,7 @@ from collections import OrderedDict
 from collections.abc import Sequence
 from copy import deepcopy
 import itertools
+import sys
 import warnings
 try:
     from itertools import izip
@@ -73,7 +74,7 @@ class Trajectory(om.Group):
         self._phase_add_kwargs[name] = kwargs
         return phase
 
-    def add_parameter(self, name, units, val=_unspecified, desc=_unspecified, opt=False,
+    def add_parameter(self, name, units=_unspecified, val=_unspecified, desc=_unspecified, opt=False,
                       targets=_unspecified, lower=_unspecified, upper=_unspecified,
                       scaler=_unspecified, adder=_unspecified, ref0=_unspecified, ref=_unspecified,
                       shape=_unspecified, dynamic=_unspecified, static_target=_unspecified):
@@ -84,8 +85,8 @@ class Trajectory(om.Group):
         ----------
         name : str
             Name of the parameter.
-        units : str or None or 0
-            Units in which the parameter is defined.  If 0, use the units declared
+        units : str or None or _unspecified
+            Units in which the parameter is defined.  If _unspecified, use the units declared
             for the parameter in the ODE.
         val : float or ndarray
             Default value of the parameter at all nodes.
@@ -284,6 +285,7 @@ class Trajectory(om.Group):
         for name, options in parameter_options.items():
             prom_name = f'parameters:{name}'
             targets = options['targets']
+            units = options['units']
 
             # For each phase, use introspection to get the units and shape.
             # If units do not match across all phases, require user to set them.
@@ -326,19 +328,22 @@ class Trajectory(om.Group):
                 promoted_inputs.append(tgt)
                 self.promotes('phases', inputs=[(tgt, prom_name)])
 
-            if len(set(tgt_shapes.values())) == 1:
-                options['shape'] = next(iter(tgt_shapes.values()))
-            else:
-                raise ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
-                                 f'targets in multiple phases that have different shapes.')
+            if options['shape'] is _unspecified:
+                if len(set(tgt_shapes.values())) == 1:
+                    options['shape'] = next(iter(tgt_shapes.values()))
+                else:
+                    raise ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
+                                     f'targets in multiple phases that have different shapes.')
 
-            if len(set(tgt_units.values())) != 1:
-                options['units'] = next(iter(tgt_units))
-            else:
-                ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
-                           f'targets in multiple phases that have different units. You must '
-                           f'explicitly provide units for the parameter since they cannot be '
-                           f'inferred.')
+            if options['units'] is _unspecified:
+                tgt_units_set = set(tgt_units.values())
+                if len(tgt_units_set) == 1:
+                    options['units'] = list(tgt_units_set)[0]
+                else:
+                    ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
+                               f'targets in multiple phases that have different units. You must '
+                               f'explicitly provide units for the parameter since they cannot be '
+                               f'inferred.')
 
             val = options['val']
             _shape = options['shape']
@@ -580,6 +585,24 @@ class Trajectory(om.Group):
     def _configure_linkages(self):
         connected_linkage_inputs = []
 
+        def _get_prefixed_var(var, phase):
+            class_var = phase.classify_var(var)
+            prefixes = {'time': '',
+                        'time_phase': '',
+                        'state': 'states:',
+                        'parameter': 'parameters:',
+                        'input_control': 'controls:',
+                        'indep_control': 'controls:',
+                        'control_rate': 'control_rates:',
+                        'control_rate2': 'control_rates:',
+                        'input_polynomial_control': 'polynomial_controls:',
+                        'indep_polynomial_control': 'polynomial_controls:',
+                        'polynomial_control_rate': 'polynomial_control_rates:',
+                        'polynomial_control_rate2': 'polynomial_control_rates:',
+                        'ode': ''
+                        }
+            return f'{prefixes[class_var]}{var}'
+
         # First, if the user requested all states and time be continuous ('*', '*'), then
         # expand it out.
         self._expand_star_linkage_configure()
@@ -594,34 +617,75 @@ class Trajectory(om.Group):
             phase_name_a, phase_name_b = phase_pair
             print(f'{indent}--- {phase_name_a} - {phase_name_b} ---')
 
+            phase_a = self._get_subsystem(f'phases.{phase_name_a}')
             phase_b = self._get_subsystem(f'phases.{phase_name_b}')
 
             # Pull out the maximum variable name length of all variables to make the print nicer.
-            var_len = [(len(var_pair[0]), len(var_pair[1])) for var_pair in var_dict]
-            max_varname_length = max(itertools.chain(*var_len))
-            padding = max_varname_length + 1
+            var_len_a = [len(_get_prefixed_var(var_pair[0], phase_a)) for var_pair in var_dict]
+            var_len_b = [len(_get_prefixed_var(var_pair[1], phase_b)) for var_pair in var_dict]
+            padding_a = max(var_len_a) + 2
+            padding_b = max(var_len_b) + 2
 
             for var_pair, options in var_dict.items():
                 var_a, var_b = var_pair
                 loc_a = options['loc_a']
                 loc_b = options['loc_b']
 
+                class_a = phase_a.classify_var(var_a)
+                class_b = phase_b.classify_var(var_b)
+
                 self._update_linkage_options_configure(options)
 
                 src_a = options._src_a
                 src_b = options._src_b
 
+                if class_a == 'time':
+                    fixed_a = phase_a.is_time_fixed(loc_a)
+                elif class_a == 'state':
+                    fixed_a = phase_a.is_state_fixed(var_a, loc_a)
+                elif class_a in {'input_control', 'indep_control'}:
+                    fixed_a = phase_a.is_control_fixed(var_a, loc_a)
+                elif class_a in {'input_polynomial_control', 'indep_polynomial_control'}:
+                    fixed_a = phase_a.is_polynomial_control_fixed(var_a, loc_a)
+                else:
+                    fixed_a = True
+
+                if class_b == 'time':
+                    fixed_b = phase_b.is_time_fixed(loc_b)
+                elif class_b == 'state':
+                    fixed_b = phase_b.is_state_fixed(var_b, loc_b)
+                elif class_b in {'input_control', 'indep_control'}:
+                    fixed_b = phase_b.is_control_fixed(var_b, loc_b)
+                elif class_b in {'input_polynomial_control', 'indep_polynomial_control'}:
+                    fixed_b = phase_b.is_polynomial_control_fixed(var_b, loc_b)
+                else:
+                    fixed_b = True
+
+                prefixed_a = _get_prefixed_var(var_a, phase_a)
+                prefixed_b = _get_prefixed_var(var_b, phase_b)
+
+                str_fixed_a = '*' if fixed_a else ''
+                str_fixed_b = '*' if fixed_b else ''
+
                 if options['connected']:
-                    if phase_b.classify_var(var_b) == 'time':
+                    if class_b == 'time':
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.t_initial',
                                      src_indices=[-1], flat_src_indices=True)
-                    elif phase_b.classify_var(var_b) == 'state':
+                    elif class_b == 'state':
                         tgt_b = f'initial_states:{var_b}'
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.{tgt_b}',
                                      src_indices=om.slicer[-1, ...])
-                    print(f'{indent * 2}{var_a:<{padding}s}[{loc_a}]  ->  {var_b:<{padding}s}[{loc_b}]')
+                    else:
+                        msg = f'Could not create connection linkage from phase `{phase_name_a}` ' \
+                              f'variable `{var_a}` to phase `{phase_name_b}` variable `{var_b}`. ' \
+                              f'For direct connections, the target variable must be `time` or a ' \
+                              f'state in the phase.\nEither remove the linkage or specify ' \
+                              f'`connected=False` to enforce it via an optimization constraint.'
+                        raise om.OpenMDAOWarning(msg)
+                    print(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ->  '
+                          f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
                 else:
                     is_valid, msg = self._is_valid_linkage(phase_name_a, phase_name_b,
                                                            loc_a, loc_b, var_a, var_b)
@@ -643,9 +707,10 @@ class Trajectory(om.Group):
                                      src_indices=om.slicer[[0, -1], ...])
                         connected_linkage_inputs.append(options._input_b)
 
-                    print(f'{indent * 2}{var_a:<{padding}s}[{loc_a}]  ==  {var_b:<{padding}s}[{loc_b}]')
+                    print(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ==  '
+                          f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
 
-            print('----------------------------')
+        print('\n* : This quantity is fixed or is an input.\n')
 
     def configure(self):
         """
@@ -661,6 +726,7 @@ class Trajectory(om.Group):
             if MPI:
                 self._configure_phase_options_dicts()
             self._configure_linkages()
+        self._constraint_report(outstream=sys.stdout)
         # promote everything else out of phases that wasn't promoted as a parameter
         phases_group = self._get_subsystem('phases')
         inputs_set = {opts['prom_name'] for (k, opts) in
@@ -867,6 +933,85 @@ class Trajectory(om.Group):
                 self.add_linkage_constraint(phase_a=phase_name_a, phase_b=phase_name_b,
                                             var_a=var, var_b=var, loc_a=loc_a, loc_b=loc_b,
                                             connected=connected)
+
+    def _constraint_report(self, outstream=sys.stdout):
+        if self.options['sim_mode']:
+            return
+
+        float_fmt = '6.4e'
+        print(f'\n--- Constraint Report [{self.pathname}] ---')
+        indent = '    '
+
+        # Find the longest expression
+        max_len = 0
+        max_unit_len = 0
+        for phase_name in self._phases:
+            phs = self._get_subsystem(f'phases.{phase_name}')
+            d = phs._initial_boundary_constraints.copy()
+            d.update(phs._final_boundary_constraints)
+            d.update(phs._path_constraints)
+
+            if d:
+                max_len = max(max_len, *[len(key) for key in d.keys()])
+                max_unit_len = max(max_unit_len,
+                                   *[len(str(options['units'])) for options in d.values()])
+
+        units_fmt = f'<{max_unit_len}s'
+
+        def _print_constraints(phs, outstream):
+            ds = {'initial': phs._initial_boundary_constraints,
+                  'final': phs._final_boundary_constraints,
+                  'path': phs._path_constraints}
+
+            if not (
+                    phs._initial_boundary_constraints or phs._final_boundary_constraints or phs._path_constraints):
+                print(f'{2 * indent}None', file=outstream)
+
+            for loc, d in ds.items():
+                str_loc = f'[{loc}]'
+                for expr, options in d.items():
+                    _, shape, units, linear = phs.options[
+                        'transcription']._get_boundary_constraint_src(expr, loc, phs)
+
+                    equals = options['equals']
+                    lower = options['lower']
+                    upper = options['upper']
+                    str_units = f'{units if units is not None else "":{units_fmt}}'
+
+                    if equals is not None and np.prod(np.asarray(equals).shape) != 1:
+                        str_equals = f'array<{"x".join([str(i) for i in np.asarray(equals).shape])}> {str_units}'
+                    elif equals is not None:
+                        str_equals = f'{equals:{float_fmt}} {str_units}'
+
+                    if lower is not None and np.prod(np.asarray(lower).shape) != 1:
+                        str_lower = f'array<{"x".join([str(i) for i in np.asarray(lower).shape])}> {str_units} <='
+                    elif lower is not None:
+                        str_lower = f'{lower:{float_fmt}} {str_units} <='
+                    else:
+                        str_lower = 12 * ''
+
+                    if upper is not None and np.prod(np.asarray(upper).shape) != 1:
+                        str_upper = f'>= array<{"x".join([str(i) for i in np.asarray(upper).shape])}> {str_units}'
+                    elif upper is not None:
+                        str_upper = f'>= {upper:{float_fmt}} {str_units}'
+                    else:
+                        str_upper = ''
+
+                    if equals is not None:
+                        print(f'{2 * indent}{str_loc:<10s}{str_equals} == {expr}',
+                              file=outstream)
+                    else:
+                        print(
+                            f'{2 * indent}{str_loc:<10s}{str_lower} {expr:<{max_len}s} {str_upper}{str_units}',
+                            file=outstream)
+
+        for phase_name in self._phases:
+            print(f'{indent}--- {phase_name} ---', file=outstream)
+            phs = self._get_subsystem(f'phases.{phase_name}')
+
+            _print_constraints(phs, outstream)
+
+        print('', file=outstream)
 
     def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None):

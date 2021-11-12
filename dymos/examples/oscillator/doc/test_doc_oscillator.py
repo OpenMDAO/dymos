@@ -1,12 +1,10 @@
 import unittest
-from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs
 
 
 @use_tempdirs
 class TestDocOscillator(unittest.TestCase):
 
-    @save_for_docs
     def test_ivp(self):
         import openmdao.api as om
         import dymos as dm
@@ -72,7 +70,6 @@ class TestDocOscillator(unittest.TestCase):
         plt.tight_layout()
         plt.show()
 
-    @save_for_docs
     def test_ivp_solver(self):
         import openmdao.api as om
         import dymos as dm
@@ -137,7 +134,6 @@ class TestDocOscillator(unittest.TestCase):
         plt.tight_layout()
         plt.show()
 
-    @save_for_docs
     def test_ivp_driver(self):
         import openmdao.api as om
         import dymos as dm
@@ -213,7 +209,6 @@ class TestDocOscillator(unittest.TestCase):
         plt.tight_layout()
         plt.show()
 
-    @save_for_docs
     def test_ivp_driver_10_segs(self):
         import openmdao.api as om
         import dymos as dm
@@ -289,7 +284,6 @@ class TestDocOscillator(unittest.TestCase):
         plt.tight_layout()
         plt.show()
 
-    @save_for_docs
     def test_ivp_driver_4_segs_7_order(self):
         import openmdao.api as om
         import dymos as dm
@@ -365,7 +359,6 @@ class TestDocOscillator(unittest.TestCase):
         plt.tight_layout()
         plt.show()
 
-    @save_for_docs
     def test_ivp_driver_run_problem(self):
         import openmdao.api as om
         import dymos as dm

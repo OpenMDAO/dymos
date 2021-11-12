@@ -5,11 +5,9 @@ import numpy as np
 import openmdao.api as om
 
 from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp
-from ..phase.options import StateOptionsDictionary
 from ..utils.constants import INF_BOUND
 from ..utils.misc import get_rate_units, _unspecified
-from ..utils.introspection import configure_controls_introspection, get_target_metadata, \
-    get_source_metadata
+from ..utils.introspection import get_target_metadata, get_source_metadata
 
 
 class TranscriptionBase(object):
@@ -32,7 +30,8 @@ class TranscriptionBase(object):
                              allow_none=True, desc='Locations of segment ends or None for equally '
                              'spaced segments')
         self.options.declare('order', default=3, types=(int, Sequence, np.ndarray),
-                             desc='Order of the state transcription')
+                             desc='Order of the state transcription. The order of the control '
+                                  'transcription is `order - 1`.')
         self.options.declare('compressed', default=True, types=bool,
                              desc='Use compressed transcription, meaning state and control values'
                                   'at segment boundaries are not duplicated on input.  This '
@@ -807,3 +806,24 @@ class TranscriptionBase(object):
                        ode.get_io_metadata(iotypes=('output',), get_remote=True).items()}
         ode_shape = ode_outputs[var]['shape']
         return ode_shape[0] != num_nodes
+
+    def _requires_continuity_constraints(self, phase):
+        """
+        Tests whether state and/or control and/or control rate continuity are required.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase to which this transcription applies.
+
+        Returns
+        -------
+        state_continuity : bool
+            True if any state continuity is required to be enforced.
+        control_continuity : bool
+            True if any control value continuity is required to be enforced.
+        control_rate_continuity : bool
+            True if any control rate continuity is required to be enforced.
+        """
+        raise NotImplementedError(f'The transcription {self.__class__} does not provide an '
+                                  f'implementation of _requires_continuity_constraints')

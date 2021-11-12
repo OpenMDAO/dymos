@@ -2,7 +2,6 @@ import unittest
 
 import numpy as np
 import openmdao.api as om
-from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
@@ -47,7 +46,6 @@ class BrachistochroneArclengthODE(om.ExplicitComponent):
 @use_tempdirs
 class TestBrachistochroneTandemPhases(unittest.TestCase):
 
-    @save_for_docs
     @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_tandem_phases(self):
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE

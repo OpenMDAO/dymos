@@ -6,7 +6,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
-from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs
 
 
@@ -46,7 +45,6 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         cpd = p.check_partials(method='cs', compact_print=True)
         assert_check_partials(cpd)
 
-    @save_for_docs
     def test_brachistochrone_static_gravity(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal

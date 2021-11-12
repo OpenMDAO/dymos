@@ -1,10 +1,9 @@
-from collections import defaultdict
-
 import numpy as np
 
 import openmdao.api as om
 
 from .explicit_timeseries_comp import ExplicitTimeseriesComp
+from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import GridData
 from .rk_integration_comp import RKIntegrationComp, rk_methods
@@ -15,10 +14,11 @@ from ...utils.constants import INF_BOUND
 
 class ExplicitShooting(TranscriptionBase):
     """
-    The Transcription class for explicit shooting methods.
+    The Transcription class for single explicit shooting.
 
-    This transcription uses an explicit general Runge-Kutta method to propagate the states using
-    the given ODE.
+    This transcription uses an explicit Runge-Kutta method to propagate the states using the
+    given ODE through each segment of the phase.  The final value of the states in one
+    segment feeds the initial values in a subsequent segment.
 
     Parameters
     ----------
@@ -144,7 +144,7 @@ class ExplicitShooting(TranscriptionBase):
 
     def _get_ode(self, phase):
         integrator = phase._get_subsystem('integrator')
-        subprob = integrator._prob
+        subprob = integrator._eval_subprob
         ode = subprob.model._get_subsystem('ode_eval.ode')
         return ode
 
@@ -168,8 +168,7 @@ class ExplicitShooting(TranscriptionBase):
                                             num_steps_per_segment=self.options['num_steps_per_segment'],
                                             grid_data=self.grid_data,
                                             ode_init_kwargs=phase.options['ode_init_kwargs'],
-                                            standalone_mode=False,
-                                            complex_step_mode=True)
+                                            standalone_mode=False)
 
         phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'])
 
@@ -281,14 +280,21 @@ class ExplicitShooting(TranscriptionBase):
 
     def setup_defects(self, phase):
         """
-        Not used in ExplicitShooting.
+        Create the continuity_comp to house the defects.
 
         Parameters
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        state_cont, control_cont, rate_cont = self._requires_continuity_constraints(phase)
+
+        if state_cont or control_cont or rate_cont:
+            phase.add_subsystem('continuity_comp',
+                                ExplicitShootingContinuityComp(grid_data=self.grid_data,
+                                                               state_options=phase.state_options,
+                                                               control_options=phase.control_options,
+                                                               time_units=phase.time_options['units']))
 
     def configure_defects(self, phase):
         """
@@ -299,7 +305,24 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        any_state_cnty, any_control_cnty, any_rate_cnty = self._requires_continuity_constraints(phase)
+
+        if any((any_state_cnty, any_control_cnty, any_rate_cnty)):
+            phase.continuity_comp.configure_io()
+
+        for control_name, options in phase.control_options.items():
+            if options['continuity'] and any_control_cnty:
+                phase.connect(f'timeseries.controls:{control_name}',
+                              f'continuity_comp.controls:{control_name}')
+            if options['rate_continuity'] and any_rate_cnty:
+                phase.connect(f'timeseries.control_rates:{control_name}_rate',
+                              f'continuity_comp.control_rates:{control_name}_rate')
+            if options['rate2_continuity'] and any_rate_cnty:
+                phase.connect(f'timeseries.control_rates:{control_name}_rate2',
+                              f'continuity_comp.control_rates:{control_name}_rate2')
+
+        if any_rate_cnty:
+            phase.promotes('continuity_comp', inputs=['t_duration'])
 
     def configure_objective(self, phase):
         """
@@ -314,7 +337,13 @@ class ExplicitShooting(TranscriptionBase):
 
     def setup_path_constraints(self, phase):
         """
-        Not used in ExplicitShooting.
+        Adds any necessary subsystems to support path constraints.
+
+        In this case we're bypassing the TranscriptionBase class version, which adds
+        a special path constraint component.
+
+        ExplicitShooting will just apply path constraints to the default timeseries outputs
+        where appropriate.
 
         Parameters
         ----------
@@ -325,40 +354,143 @@ class ExplicitShooting(TranscriptionBase):
 
     def configure_path_constraints(self, phase):
         """
-        Not used in ExplicitShooting.
+        Configure path constraints for the ExplicitShooting transcription.
 
         Parameters
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        time_units = phase.time_options['units']
 
-    def setup_boundary_constraints(self, loc, phase):
-        """
-        Add necessary structure to support boundary constraints to the given phase.
+        for var, options in phase._path_constraints.items():
+            constraint_kwargs = options.copy()
+            con_units = constraint_kwargs['units'] = options.get('units', None)
+            con_name = constraint_kwargs.pop('constraint_name')
+            ode = None
 
-        Parameters
-        ----------
-        loc : str
-            The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        super().setup_boundary_constraints(loc, phase)
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = phase.classify_var(var)
 
-    def configure_boundary_constraints(self, loc, phase):
-        """
-        Configure I/O necessary for boundary constraints in the given phase.
+            if var_type == 'time':
+                constraint_name = 'time'
+                constraint_kwargs['shape'] = (1,)
+                constraint_kwargs['units'] = time_units if con_units is None else con_units
+                constraint_kwargs['linear'] = True
 
-        Parameters
-        ----------
-        loc : str
-            The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        super().configure_boundary_constraints(loc, phase)
+            elif var_type == 'time_phase':
+                constraint_name = 'time_phase'
+                constraint_kwargs['shape'] = (1,)
+                constraint_kwargs['units'] = time_units if con_units is None else con_units
+                constraint_kwargs['linear'] = True
+
+            elif var_type == 'state':
+                constraint_name = f'states:{var}'
+                state_shape = phase.state_options[var]['shape']
+                state_units = phase.state_options[var]['units']
+                constraint_kwargs['shape'] = state_shape
+                constraint_kwargs['units'] = state_units if con_units is None else con_units
+                constraint_kwargs['linear'] = False
+
+            elif var_type == 'indep_control':
+                constraint_name = f'controls:{var}'
+                control_shape = phase.control_options[var]['shape']
+                control_units = phase.control_options[var]['units']
+
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = control_units if con_units is None else con_units
+                constraint_kwargs['linear'] = True
+
+            elif var_type == 'input_control':
+                constraint_name = f'controls:{var}'
+                control_shape = phase.control_options[var]['shape']
+                control_units = phase.control_options[var]['units']
+
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = control_units if con_units is None else con_units
+                constraint_kwargs['linear'] = True
+
+            elif var_type == 'indep_polynomial_control':
+                constraint_name = f'polynomial_controls:{var}'
+                control_shape = phase.polynomial_control_options[var]['shape']
+                control_units = phase.polynomial_control_options[var]['units']
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = control_units if con_units is None else con_units
+                constraint_kwargs['linear'] = False
+
+            elif var_type == 'input_polynomial_control':
+                constraint_name = f'polynomial_controls:{var}'
+                control_shape = phase.polynomial_control_options[var]['shape']
+                control_units = phase.polynomial_control_options[var]['units']
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = control_units if con_units is None else con_units
+                constraint_kwargs['linear'] = False
+
+            elif var_type == 'control_rate':
+                control_name = var[:-5]
+                control_shape = phase.control_options[control_name]['shape']
+                control_units = phase.control_options[control_name]['units']
+                constraint_name = f'control_rates:{var}'
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=1) \
+                    if con_units is None else con_units
+
+            elif var_type == 'control_rate2':
+                control_name = var[:-6]
+                control_shape = phase.control_options[control_name]['shape']
+                control_units = phase.control_options[control_name]['units']
+                constraint_name = f'control_rates:{var}'
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=2) \
+                    if con_units is None else con_units
+
+            elif var_type == 'polynomial_control_rate':
+                control_name = var[:-5]
+                control_shape = phase.polynomial_control_options[control_name]['shape']
+                control_units = phase.polynomial_control_options[control_name]['units']
+                constraint_name = f'polynomial_control_rates:{var}'
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=1) \
+                    if con_units is None else con_units
+
+            elif var_type == 'polynomial_control_rate2':
+                control_name = var[:-6]
+                control_shape = phase.polynomial_control_options[control_name]['shape']
+                control_units = phase.polynomial_control_options[control_name]['units']
+                constraint_name = f'polynomial_control_rates:{var}'
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=2) \
+                    if con_units is None else con_units
+
+            else:
+                # Failed to find variable, assume it is in the ODE. This requires introspection.
+                ode = self._get_ode(phase)
+
+                shape, units = get_source_metadata(ode, src=var,
+                                                   user_units=options['units'],
+                                                   user_shape=options['shape'])
+
+                constraint_name = con_name
+                constraint_kwargs['linear'] = False
+                constraint_kwargs['shape'] = shape
+                constraint_kwargs['units'] = units
+
+            # Propagate the introspected shape back into the options dict.
+            # Some transcriptions use this later.
+            options['shape'] = constraint_kwargs['shape']
+
+            constraint_kwargs.pop('constraint_name', None)
+            constraint_kwargs.pop('shape', None)
+
+            if con_name != var and ode is None:
+                om.issue_warning(f"Option 'constraint_name' on path constraint {var} is only "
+                                 f"valid for ODE outputs. The option is being ignored.")
+
+            timeseries_comp = phase._get_subsystem('timeseries')
+            timeseries_comp.add_constraint(constraint_name, **constraint_kwargs)
 
     def setup_solvers(self, phase):
         """
@@ -700,3 +832,33 @@ class ExplicitShooting(TranscriptionBase):
             rate_path = f'ode.{var}'
 
         return rate_path
+
+    def _requires_continuity_constraints(self, phase):
+        """
+        Tests whether state and/or control and/or control rate continuity are required.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase to which this transcription applies.
+
+        Returns
+        -------
+        state_continuity : bool
+            True if any state continuity is required to be enforced.
+        control_continuity : bool
+            True if any control value continuity is required to be enforced.
+        control_rate_continuity : bool
+            True if any control rate continuity is required to be enforced.
+        """
+        num_seg = self.grid_data.num_segments
+        compressed = self.grid_data.compressed
+
+        state_continuity = False
+        any_control_continuity = any([opts['continuity'] for opts in phase.control_options.values()])
+        any_control_continuity = any_control_continuity and num_seg > 1 and not compressed
+        any_rate_continuity = any([opts['rate_continuity'] or opts['rate2_continuity']
+                                   for opts in phase.control_options.values()])
+        any_rate_continuity = any_rate_continuity and num_seg > 1
+
+        return state_continuity, any_control_continuity, any_rate_continuity

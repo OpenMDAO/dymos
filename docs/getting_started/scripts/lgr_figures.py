@@ -1,5 +1,4 @@
 import unittest
-from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.utils.interpolate import LagrangeBarycentricInterpolant

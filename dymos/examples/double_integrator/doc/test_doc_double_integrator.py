@@ -6,7 +6,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
-from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
@@ -19,7 +18,6 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @save_for_docs
     @require_pyoptsparse(optimizer='SLSQP')
     def test_double_integrator_for_docs(self):
         import matplotlib.pyplot as plt

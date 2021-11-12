@@ -1,7 +1,6 @@
 import os
 import unittest
 
-from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.mpi import MPI
 
@@ -13,7 +12,6 @@ class TestVanderpolForDocs(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @save_for_docs
     def test_vanderpol_for_docs_simulation(self):
         import dymos as dm
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
@@ -23,7 +21,6 @@ class TestVanderpolForDocs(unittest.TestCase):
 
         dm.run_problem(p, run_driver=False, simulate=True, make_plots=True)
 
-    @save_for_docs
     def test_vanderpol_for_docs_optimize(self):
         import dymos as dm
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
@@ -34,7 +31,6 @@ class TestVanderpolForDocs(unittest.TestCase):
 
         dm.run_problem(p, simulate=True, make_plots=True)
 
-    @save_for_docs
     def test_vanderpol_for_docs_optimize_refine(self):
         import dymos as dm
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
@@ -56,7 +52,6 @@ class TestVanderpolForDocs(unittest.TestCase):
 
 
 @unittest.skipUnless(MPI, "MPI is required.")
-@save_for_docs
 @use_tempdirs
 class TestVanderpolDelayMPI(unittest.TestCase):
     N_PROCS = 2
@@ -134,5 +129,5 @@ class TestVanderpolDelayMPI(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase0.states:x0')[-1, ...], 0.0)
         assert_near_equal(p.get_val('traj.phase0.states:x1')[-1, ...], 0.0)
-        assert_near_equal(p.get_val('traj.phase0.states:J')[-1, ...], 5.2808, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('traj.phase0.states:J')[-1, ...], 5.2808, tolerance=0.0025)
         assert_near_equal(p.get_val('traj.phase0.controls:u')[-1, ...], 0.0, tolerance=1.0E-3)

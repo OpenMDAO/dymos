@@ -45,13 +45,12 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         self._time_units = time_units
         self._standalone_mode = standalone_mode
 
-        # Storage for the Vandermonde matrix and its inverse for each segment
-        self._V_pc = None
-        self._V_pc_inv = None
+        # Storage for the Vandermonde matrix and its inverse for each control
+        self._V_hat = {}
+        self._V_hat_inv = {}
 
-        # Storage for the Vandermonde matrix and its inverse for each polynomial control
-        self._V_pc = {}
-        self._V_pc_inv = {}
+        # Storage for factors used in the derivatives of Vandermonde matrices.
+        self._fac = {}
 
         # Cache formatted strings: { control_name : (input_name, output_name) }
         self._control_io_names = {}
@@ -71,12 +70,16 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         Declare component options.
         """
         self.options.declare('segment_index', types=int, desc='index of the current segment')
+        self.options.declare('vec_size', types=int, default=1,
+                             desc='number of points at which the control will be evaluated. This is not'
+                                  'necessarily the same as the number of nodes in the GridData.')
 
     def _configure_controls(self):
+        vec_size = self.options['vec_size']
         gd = self._grid_data
 
-        self._V_pc = {}
-        self._V_pc_inv = {}
+        self._V_hat = {}
+        self._V_hat_inv = {}
         self._disc_node_idxs_by_segment = []
         self._input_node_idxs_by_segment = []
 
@@ -109,15 +112,14 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
                                                       control_disc_seg_idxs[1]]
 
             seg_control_order = gd.transcription_order[seg_idx] - 1
-            if seg_control_order not in self._V_pc:
-                self._V_pc[seg_control_order] = np.vander(control_disc_seg_stau, increasing=True)
-                self._V_pc_inv[seg_control_order] = np.linalg.inv(self._V_pc[seg_control_order])
-                self._k[seg_control_order] = np.atleast_2d(np.arange(seg_control_order + 1, dtype=int)).T
-                self._k1[seg_control_order] = self._k[seg_control_order] + 1
-                self._k2[seg_control_order] = self._k1[seg_control_order] * (self._k[seg_control_order] + 2)
-                self._k3[seg_control_order] = self._k2[seg_control_order] * (self._k[seg_control_order] + 3)
+            if seg_control_order not in self._V_hat:
+                self._V_hat[seg_control_order] = np.vander(control_disc_seg_stau, increasing=True)
+                self._V_hat_inv[seg_control_order] = np.linalg.inv(self._V_hat[seg_control_order])
+            if seg_control_order + 1 not in self._fac:
+                self._fac[seg_control_order + 1] = np.arange(seg_control_order + 1, dtype=int)
 
         num_uhat_nodes = gd.subset_num_nodes['control_input']
+        ar = np.arange(vec_size, dtype=int)
         for control_name, options in self._control_options.items():
             shape = options['shape']
             units = options['units']
@@ -126,21 +128,25 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             rate_name = f'control_rates:{control_name}_rate'
             rate2_name = f'control_rates:{control_name}_rate2'
             uhat_shape = (num_uhat_nodes,) + shape
+            output_shape = (vec_size,) + shape
             self.add_input(input_name, shape=uhat_shape, units=units)
-            self.add_output(output_name, shape=shape, units=units)
-            self.add_output(rate_name, shape=shape, units=units)
-            self.add_output(rate2_name, shape=shape, units=units)
+            self.add_output(output_name, shape=output_shape, units=units)
+            self.add_output(rate_name, shape=output_shape, units=units)
+            self.add_output(rate2_name, shape=output_shape, units=units)
             self._control_io_names[control_name] = (input_name, output_name, rate_name, rate2_name)
-            self.declare_partials(of=output_name, wrt=input_name, val=1.0)
-            self.declare_partials(of=output_name, wrt='stau', val=1.0)
-            self.declare_partials(of=rate_name, wrt=input_name, val=1.0)
-            self.declare_partials(of=rate_name, wrt='stau', val=1.0)
-            self.declare_partials(of=rate_name, wrt='dstau_dt', val=1.0)
-            self.declare_partials(of=rate2_name, wrt=input_name, val=1.0)
-            self.declare_partials(of=rate2_name, wrt='stau', val=1.0)
-            self.declare_partials(of=rate2_name, wrt='dstau_dt', val=1.0)
+            self.declare_partials(of=output_name, wrt=input_name)
+            self.declare_partials(of=output_name, wrt='stau', rows=ar, cols=ar)
+            self.declare_partials(of=rate_name, wrt=input_name)
+            self.declare_partials(of=rate_name, wrt='stau', rows=ar, cols=ar)
+            self.declare_partials(of=rate_name, wrt='dstau_dt')
+            self.declare_partials(of=rate2_name, wrt=input_name)
+            self.declare_partials(of=rate2_name, wrt='stau', rows=ar, cols=ar)
+            self.declare_partials(of=rate2_name, wrt='dstau_dt')
 
     def _configure_polynomial_controls(self):
+        vec_size = self.options['vec_size']
+        ar = np.arange(vec_size, dtype=int)
+
         for pc_name, options in self._polynomial_control_options.items():
             order = options['order']
             shape = options['shape']
@@ -150,28 +156,27 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             rate_name = f'polynomial_control_rates:{pc_name}_rate'
             rate2_name = f'polynomial_control_rates:{pc_name}_rate2'
             input_shape = (order + 1,) + shape
+            output_shape = (vec_size,) + shape
             self.add_input(input_name, shape=input_shape, units=units)
-            self.add_output(output_name, shape=shape, units=units)
-            self.add_output(rate_name, shape=shape, units=units)
-            self.add_output(rate2_name, shape=shape, units=units)
+            self.add_output(output_name, shape=output_shape, units=units)
+            self.add_output(rate_name, shape=output_shape, units=units)
+            self.add_output(rate2_name, shape=output_shape, units=units)
             self._control_io_names[pc_name] = (input_name, output_name, rate_name, rate2_name)
-            self.declare_partials(of=output_name, wrt=input_name, val=1.0)
-            self.declare_partials(of=output_name, wrt='ptau', val=1.0)
-            self.declare_partials(of=rate_name, wrt=input_name, val=1.0)
-            self.declare_partials(of=rate_name, wrt='ptau', val=1.0)
-            self.declare_partials(of=rate_name, wrt='t_duration', val=1.0)
-            self.declare_partials(of=rate2_name, wrt=input_name, val=1.0)
-            self.declare_partials(of=rate2_name, wrt='ptau', val=1.0)
-            self.declare_partials(of=rate2_name, wrt='t_duration', val=1.0)
+            self.declare_partials(of=output_name, wrt=input_name)
+            self.declare_partials(of=output_name, wrt='ptau', rows=ar, cols=ar)
+            self.declare_partials(of=rate_name, wrt=input_name)
+            self.declare_partials(of=rate_name, wrt='ptau', rows=ar, cols=ar)
+            self.declare_partials(of=rate_name, wrt='t_duration')
+            self.declare_partials(of=rate2_name, wrt=input_name)
+            self.declare_partials(of=rate2_name, wrt='ptau', rows=ar, cols=ar)
+            self.declare_partials(of=rate2_name, wrt='t_duration')
 
-            if order not in self._V_pc:
+            if order not in self._V_hat:
                 pc_disc_seg_ptau, _ = lgl(order + 1)
-                self._V_pc[order] = np.vander(pc_disc_seg_ptau, increasing=True)
-                self._V_pc_inv[order] = np.linalg.inv(self._V_pc[order])
-                self._k[order] = np.atleast_2d(np.arange(order + 1, dtype=int)).T
-                self._k1[order] = self._k[order] + 1
-                self._k2[order] = self._k1[order] * (self._k[order] + 2)
-                self._k3[order] = self._k2[order] * (self._k[order] + 3)
+                self._V_hat[order] = np.vander(pc_disc_seg_ptau, increasing=True)
+                self._V_hat_inv[order] = np.linalg.inv(self._V_hat[order])
+            if order + 1 not in self._fac:
+                self._fac[order + 1] = np.arange(order + 1, dtype=int)
 
     def setup(self):
         """
@@ -184,25 +189,54 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         """
         I/O creation is delayed until configure so we can determine shape and units for the controls.
         """
-        self._V_pc = []
-        self._V_pc_inv = []
+        vec_size = self.options['vec_size']
 
-        self._V_pc = {}
-        self._V_pc_inv = {}
-
-        self._k = {}
-        self._k1 = {}
-        self._k2 = {}
-        self._k3 = {}
+        self._V_hat = {}
+        self._V_hat_inv = {}
 
         # self.add_discrete_input('segment_index', val=0, desc='index of the segment')
-        self.add_input('stau', val=0.0, units=None)
+        self.add_input('stau', shape=(vec_size,), units=None)
         self.add_input('dstau_dt', val=1.0, units=f'1/{self._time_units}')
         self.add_input('t_duration', val=1.0, units=self._time_units)
-        self.add_input('ptau', val=0.0, units=None)
+        self.add_input('ptau', shape=(vec_size,), units=None)
 
         self._configure_controls()
         self._configure_polynomial_controls()
+
+    def _dvander(self, v):
+        """
+        Return the derivative of a Vandermonde matrix wrt the independent variable _in increasing order_.
+
+        Parameters
+        ----------
+        v : np.array
+            The Vandermonde matrix for which the derivatives are requested.
+
+        Returns
+        -------
+        dV : np.array
+            The derivative of v with respect to the independent variable.
+        dv2 : np.array
+            The second derivative of v wrt the independent variable.
+        dv3 : np.array
+            The third derivative of v wrt the independent variable.
+        """
+        p, n = v.shape
+        dv = np.zeros_like(v)
+        dv2 = dv.copy()
+        dv3 = dv.copy()
+        dv[:, 1:] = v[:, :-1]
+        dv2[:, 2:] = v[:, :-2]
+        dv3[:, 3:] = v[:, :-3]
+
+        fac = self._fac[n]
+        fac2 = fac[:-1]
+        fac3 = fac[:-2]
+
+        dv[:, :] = dv * fac[np.newaxis, :]
+        dv2[:, 1:] = dv2[:, 1:] * fac2[np.newaxis, :] * fac[np.newaxis, 1:]
+        dv3[:, 2:] = dv3[:, 2:] * fac3[np.newaxis, :] * fac2[np.newaxis, 1:] * fac[np.newaxis, 2:]
+        return dv, dv2, dv3
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """
@@ -220,19 +254,18 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             `Vector` containing discrete_outputs.
         """
         seg_idx = self.options['segment_index']
+        n = self._grid_data.transcription_order[seg_idx]
         stau = inputs['stau']
         dstau_dt = inputs['dstau_dt']
         ptau = inputs['ptau']
         dptau_dt = 2 / inputs['t_duration']
 
         if self._control_options:
-            seg_order = self._grid_data.transcription_order[seg_idx] - 1
+            seg_order = n - 1
             disc_node_idxs = self._disc_node_idxs_by_segment[seg_idx]
             input_node_idxs = self._input_node_idxs_by_segment[seg_idx]
-            k = self._k[seg_order]
-            k1 = self._k1[seg_order]
-            k2 = self._k2[seg_order]
-            stau_vec = np.power(stau, k)
+            V_stau = np.vander(stau, N=n, increasing=True)
+            dV_stau, dV2_stau, _ = self._dvander(V_stau)
 
             L_seg = self._L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
                                input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
@@ -240,22 +273,20 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             for control_name, options in self._control_options.items():
                 input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
                 u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
-                a = np.atleast_2d(self._V_pc_inv[seg_order] @ u_hat)
-                outputs[output_name] = a.T @ stau_vec
-                outputs[rate_name] = dstau_dt * (a.T[..., 1:] @ (k1[:-1] * stau_vec[:-1]))
-                outputs[rate2_name] = dstau_dt**2 * (a.T[..., 2:] @ (k2[:-2] * stau_vec[:-2]))
+                a = np.atleast_2d(self._V_hat_inv[seg_order] @ u_hat)
+                outputs[output_name] = V_stau @ a
+                outputs[rate_name] = dstau_dt * (dV_stau @ a)
+                outputs[rate2_name] = dstau_dt**2 * (dV2_stau @ a)
 
         for pc_name, options in self._polynomial_control_options.items():
             input_name, output_name, rate_name, rate2_name = self._control_io_names[pc_name]
             order = options['order']
-            k = self._k[order]
-            k1 = self._k1[order]
-            k2 = self._k2[order]
-            ptau_vec = np.power(ptau, k)
-            a = np.atleast_2d(self._V_pc_inv[order] @ inputs[input_name])
-            outputs[output_name] = a.T @ ptau_vec
-            outputs[rate_name] = dptau_dt * (a.T[..., 1:] @ (k1[:-1] * ptau_vec[:-1]))
-            outputs[rate2_name] = dptau_dt**2 * (a.T[..., 2:] @ (k2[:-2] * ptau_vec[:-2]))
+            V_ptau = np.vander(ptau, N=order+1, increasing=True)
+            dV_ptau, dV2_ptau, _ = self._dvander(V_ptau)
+            a = np.atleast_2d(self._V_hat_inv[order] @ inputs[input_name])
+            outputs[output_name] = V_ptau @ a
+            outputs[rate_name] = dptau_dt * (dV_ptau @ a)
+            outputs[rate2_name] = dptau_dt**2 * (dV2_ptau @ a)
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
         """
@@ -271,21 +302,20 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             Unscaled, discrete input variables keyed by variable name.
         """
         seg_idx = self.options['segment_index']
+        n = self._grid_data.transcription_order[seg_idx]
         stau = inputs['stau'].real
         dstau_dt = inputs['dstau_dt'].real
         ptau = inputs['ptau'].real
         t_duration = inputs['t_duration'].real
         dptau_dt = 2.0 / t_duration
+        ddptau_dt_dtduration = -2.0 / t_duration**2
 
         if self._control_options:
             u_idxs = self._input_node_idxs_by_segment[seg_idx]
             seg_order = self._grid_data.transcription_order[seg_idx] - 1
 
-            k = self._k[seg_order]
-            k1 = self._k1[seg_order]
-            k2 = self._k2[seg_order]
-            k3 = self._k3[seg_order]
-            stau_vec = np.power(stau, k)
+            V_stau = np.vander(stau, N=n, increasing=True)
+            dV_stau, dV2_stau, dV3_stau = self._dvander(V_stau)
 
             disc_node_idxs = self._disc_node_idxs_by_segment[seg_idx]
             input_node_idxs = self._input_node_idxs_by_segment[seg_idx]
@@ -297,50 +327,56 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
                 input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
 
                 u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs].real)
-                a = self._V_pc_inv[seg_order] @ u_hat
+                a = self._V_hat_inv[seg_order] @ u_hat
 
-                da_duhat = self._V_pc_inv[seg_order] @ L_seg
+                da_duhat = self._V_hat_inv[seg_order] @ L_seg
+                dV_a = dV_stau @ a
+                dV2_a = dV2_stau @ a
+                dV3_a = dV3_stau @ a
 
                 partials[output_name, input_name][...] = 0.0
-                partials[output_name, input_name][..., u_idxs] = stau_vec.T @ da_duhat
-                partials[output_name, 'stau'] = a.T[..., 1:] @ (k1[:-1] * stau_vec[:-1])
+                partials[output_name, input_name][..., u_idxs] = V_stau @ da_duhat
+                partials[output_name, 'stau'] = dV_a.ravel()
 
-                pudot_pa = (k1[:-1] * stau_vec[:-1])
+                pudot_pa = dstau_dt * dV_stau
+                pa_puhat = self._V_hat_inv[seg_order]
                 partials[rate_name, input_name][...] = 0.0
-                partials[rate_name, input_name][..., u_idxs] = dstau_dt * (pudot_pa.T @ self._V_pc_inv[seg_order][1:, :])
-                partials[rate_name, 'dstau_dt'][...] = partials[output_name, 'stau']
-                partials[rate_name, 'stau'][...] = dstau_dt * (a.T[..., 2:] @ (k2[:-2] * stau_vec[:-2]))
+                partials[rate_name, input_name][..., u_idxs] = pudot_pa @ pa_puhat
+                partials[rate_name, 'dstau_dt'][...] = dV_a
+                partials[rate_name, 'stau'][...] = dV2_a.ravel()
 
-                pudotdot_pa = (k2[:-2] * stau_vec[:-2])
+                pu2dot_pa = dstau_dt**2 * dV2_stau
                 partials[rate2_name, input_name][...] = 0.0
-                partials[rate2_name, input_name][..., u_idxs] = dstau_dt**2 * (pudotdot_pa.T @ self._V_pc_inv[seg_order][2:, :])
-                partials[rate2_name, 'stau'][...] = dstau_dt**2 * (a.T[..., 3:] @ (k3[:-3] * stau_vec[:-3]))
-                partials[rate2_name, 'dstau_dt'][...] = 2 * dstau_dt * (a.T[..., 2:] @ (k2[:-2] * stau_vec[:-2]))
+                partials[rate2_name, input_name][..., u_idxs] = pu2dot_pa @ pa_puhat
+                partials[rate2_name, 'dstau_dt'][...] = 2 * dstau_dt * dV2_a
+                partials[rate2_name, 'stau'][...] = dV3_a.ravel()
 
         for pc_name, options in self._polynomial_control_options.items():
             input_name, output_name, rate_name, rate2_name = self._control_io_names[pc_name]
             order = options['order']
 
-            k = self._k[order]
-            k1 = self._k1[order]
-            k2 = self._k2[order]
-            k3 = self._k3[order]
-            ptau_vec = np.power(ptau, k)
+            V_ptau = np.vander(ptau, N=order+1, increasing=True)
+            dV_ptau, dV2_ptau, dV3_ptau = self._dvander(V_ptau)
 
             u_hat = inputs[input_name].real
-            a = self._V_pc_inv[order] @ u_hat
+            a = self._V_hat_inv[order] @ u_hat
 
-            da_duhat = self._V_pc_inv[order]
+            dV_a = dV_ptau @ a
+            dV2_a = dV2_ptau @ a
+            dV3_a = dV3_ptau @ a
 
-            partials[output_name, input_name][...] = ptau_vec.T.real @ da_duhat.real
-            partials[output_name, 'ptau'][...] = a.T[..., 1:] @ (k1[:-1] * ptau_vec[:-1])
+            da_duhat = self._V_hat_inv[order]
 
-            pudot_pa = (k1[:-1] * ptau_vec[:-1])
-            partials[rate_name, input_name][...] = dptau_dt * (pudot_pa.T @ self._V_pc_inv[order][1:, :])
-            partials[rate_name, 'ptau'][...] = dptau_dt * a.T[..., 2:] @ (k2[:-2] * ptau_vec[:-2])
-            partials[rate_name, 't_duration'][...] = -2 * (a.T[..., 1:] @ (k1[:-1] * ptau_vec[:-1])) / t_duration**2
+            partials[output_name, input_name][...] = V_ptau @ da_duhat
+            partials[output_name, 'ptau'][...] = dV_a.ravel()
 
-            pudotdot_pa = (k2[:-2] * ptau_vec[:-2])
-            partials[rate2_name, input_name][...] = dptau_dt**2 * (pudotdot_pa.T @ self._V_pc_inv[order][2:, :])
-            partials[rate2_name, 'ptau'] = dptau_dt**2 * a.T[..., 3:] @ (k3[:-3] * ptau_vec[:-3])
-            partials[rate2_name, 't_duration'] = -8 * (a.T[..., 2:] @ (k2[:-2] * ptau_vec[:-2])) / t_duration**3
+            pudot_pa = dptau_dt * dV_ptau
+            pa_puhat = self._V_hat_inv[order]
+            partials[rate_name, input_name][...] = pudot_pa @ pa_puhat
+            partials[rate_name, 't_duration'][...] = ddptau_dt_dtduration * dV_a
+            partials[rate_name, 'ptau'][...] = dptau_dt * dV2_a.ravel()
+
+            pu2dot_pa = dptau_dt ** 2 * dV2_ptau
+            partials[rate2_name, input_name][...] = pu2dot_pa @ pa_puhat
+            partials[rate2_name, 't_duration'][...] = 2 * dptau_dt * ddptau_dt_dtduration * dV2_a
+            partials[rate2_name, 'ptau'][...] = dptau_dt**2 * dV3_a.ravel()
