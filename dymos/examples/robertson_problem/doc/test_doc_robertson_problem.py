@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
 from openmdao.utils.testing_utils import use_tempdirs
-from dymos.examples.stiff_problem.robertson_ode import RobertsonODE
+from dymos.examples.robertson_problem.robertson_ode import RobertsonODE
 
 @use_tempdirs
 class TestRobertsonProblemForDocs(unittest.TestCase):
