@@ -1,6 +1,7 @@
 import numpy as np
 import openmdao.api as om
 
+
 class RobertsonODE(om.ExplicitComponent):
     """example for a stiff ODE from Robertson.
     """
@@ -57,4 +58,3 @@ class RobertsonODE(om.ExplicitComponent):
 
         jacobian['zdot', 'x'] = 0.0
         jacobian['zdot', 'y'] = zdot_y
-        jacobian['zdot', 'z'] = 0.0

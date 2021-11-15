@@ -8,6 +8,7 @@ plt.style.use('ggplot')
 from openmdao.utils.testing_utils import use_tempdirs
 from dymos.examples.robertson_problem.doc.robertson_ode import RobertsonODE
 
+
 @use_tempdirs
 class TestRobertsonProblemForDocs(unittest.TestCase):
 
@@ -86,7 +87,7 @@ class TestRobertsonProblemForDocs(unittest.TestCase):
         assert_near_equal(p.get_val('zdot'), [3.0E7, 3.0E5, 3.0E3])
 
         # just set up the problem, test it elsewhere
-        p = self.robertson_problem(t_final = 40)
+        p = self.robertson_problem(t_final=40)
 
         p.run_model()
 
