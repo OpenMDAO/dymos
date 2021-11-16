@@ -201,7 +201,6 @@ class ODEEvaluationGroup(om.Group):
 
     def _configure_params(self):
         vec_size = self.vec_size
-        src_rows = np.zeros(vec_size, dtype=int)
 
         for name, options in self.parameter_options.items():
             shape = options['shape']
@@ -212,9 +211,15 @@ class ODEEvaluationGroup(om.Group):
             self._ivc.add_output(var_name, shape=shape, units=units)
             self.add_design_var(var_name)
 
+            if options['static_target']:
+                src_idxs = om.slicer[...]
+            else:
+                src_rows = np.zeros(vec_size, dtype=int)
+                src_idxs = om.slicer[src_rows, ...]
+
             # Promote targets from the ODE
             for tgt in targets:
-                self.promotes('ode', inputs=[(tgt, var_name)], src_indices=om.slicer[src_rows, ...],
+                self.promotes('ode', inputs=[(tgt, var_name)], src_indices=src_idxs,
                               src_shape=options['shape'])
             if targets:
                 self.set_input_defaults(name=var_name,
