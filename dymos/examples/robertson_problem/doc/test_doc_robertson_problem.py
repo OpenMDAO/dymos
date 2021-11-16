@@ -93,9 +93,9 @@ class TestRobertsonProblemForDocs(unittest.TestCase):
 
         p_sim = p.model.traj.simulate(method='LSODA')
 
-        assert_near_equal(p_sim.get_val('traj.phase0.timeseries.states:x0')[-1], 0.71583161, tolerance=1E-8)
-        assert_near_equal(p_sim.get_val('traj.phase0.timeseries.states:y0')[-1], 9.18571144e-06, tolerance=1E-9)
-        assert_near_equal(p_sim.get_val('traj.phase0.timeseries.states:z0')[-1], 0.2841592, tolerance=1E-9)
+        assert_near_equal(p_sim.get_val('traj.phase0.timeseries.states:x0')[-1], 0.71583161, tolerance=1E-5)
+        assert_near_equal(p_sim.get_val('traj.phase0.timeseries.states:y0')[-1], 9.18571144e-06, tolerance=1E-5)
+        assert_near_equal(p_sim.get_val('traj.phase0.timeseries.states:z0')[-1], 0.2841592, tolerance=1E-5)
 
         t_sim = p_sim.get_val('traj.phase0.timeseries.time')
 
