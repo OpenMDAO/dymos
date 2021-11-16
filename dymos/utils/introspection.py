@@ -598,6 +598,8 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
         The shape of the variable.  If not specified, shape is taken from the ODE targets.
     units : str
         The units of the variable.  If not specified, units are taken from the ODE targets.
+    static_target : bool
+        True if the target is static, otherwise False.
 
     Notes
     -----
