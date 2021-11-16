@@ -7,7 +7,7 @@ from .tau_comp import TauComp
 
 from ...utils.introspection import get_targets, configure_controls_introspection,\
     configure_time_introspection, configure_parameters_introspection, \
-    configure_states_discovery, configure_states_introspection
+    configure_states_discovery, configure_states_introspection, get_target_metadata
 from ...utils.misc import get_rate_units
 
 
@@ -201,20 +201,33 @@ class ODEEvaluationGroup(om.Group):
 
     def _configure_params(self):
         vec_size = self.vec_size
-        src_rows = np.zeros(vec_size, dtype=int)
 
         for name, options in self.parameter_options.items():
-            shape = options['shape']
-            targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
-            units = options['units']
             var_name = f'parameters:{name}'
+
+            targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
+
+            shape, units, static = get_target_metadata(self.ode, name=name,
+                                                       user_targets=targets,
+                                                       user_shape=options['shape'],
+                                                       user_units=options['units'],
+                                                       user_static_target=options['static_target'])
+            options['units'] = units
+            options['shape'] = shape
+            options['static_target'] = static
 
             self._ivc.add_output(var_name, shape=shape, units=units)
             self.add_design_var(var_name)
 
+            if options['static_target']:
+                src_idxs = None
+            else:
+                src_rows = np.zeros(vec_size, dtype=int)
+                src_idxs = om.slicer[src_rows, ...]
+
             # Promote targets from the ODE
             for tgt in targets:
-                self.promotes('ode', inputs=[(tgt, var_name)], src_indices=om.slicer[src_rows, ...],
+                self.promotes('ode', inputs=[(tgt, var_name)], src_indices=src_idxs,
                               src_shape=options['shape'])
             if targets:
                 self.set_input_defaults(name=var_name,

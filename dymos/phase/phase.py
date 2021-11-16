@@ -1816,7 +1816,12 @@ class Phase(om.Group):
                                  'variable to be interpolated was not provided.\nPlease specify '
                                  'the name of the interpolated variable or a node subset.')
             elif name in self.state_options:
-                node_locations = gd.node_ptau[gd.subset_node_indices['state_input']]
+                # For states in explicit shooting phases, interp should just return the initial
+                # value.
+                if isinstance(self.options['transcription'], dm.ExplicitShooting):
+                    node_locations = np.array([-1.0])
+                else:
+                    node_locations = gd.node_ptau[gd.subset_node_indices['state_input']]
             elif name in self.control_options:
                 node_locations = gd.node_ptau[gd.subset_node_indices['control_input']]
             elif name in self.polynomial_control_options:
