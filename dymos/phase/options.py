@@ -581,7 +581,7 @@ class SimulateOptionsDictionary(om.OptionsDictionary):
     def __init__(self, read_only=False):
         super(SimulateOptionsDictionary, self).__init__(read_only)
 
-        self.declare('method', values=('RK23', 'RK45', 'DOP853'), default='RK45',
+        self.declare('method', values=('RK23', 'RK45', 'DOP853', 'BDF', 'Radau', 'LSODA'), default='RK45',
                      desc='The method used by simulate to propagate the ODE.')
 
         self.declare(name='atol', types=(float, np.array), default=1.0E-6,
