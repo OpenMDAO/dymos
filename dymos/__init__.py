@@ -1,4 +1,4 @@
-__version__ = '1.2.1-dev'
+__version__ = '1.3.0'
 
 from .phase import Phase
 from .transcriptions import GaussLobatto, Radau, ExplicitShooting
