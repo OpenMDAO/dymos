@@ -942,22 +942,6 @@ class Trajectory(om.Group):
         print(f'\n--- Constraint Report [{self.pathname}] ---')
         indent = '    '
 
-        # Find the longest expression
-        max_len = 0
-        max_unit_len = 0
-        for phase_name in self._phases:
-            phs = self._get_subsystem(f'phases.{phase_name}')
-            d = phs._initial_boundary_constraints.copy()
-            d.update(phs._final_boundary_constraints)
-            d.update(phs._path_constraints)
-
-            if d:
-                max_len = max(max_len, *[len(key) for key in d.keys()])
-                max_unit_len = max(max_unit_len,
-                                   *[len(str(options['units'])) for options in d.values()])
-
-        units_fmt = f'<{max_unit_len}s'
-
         def _print_constraints(phs, outstream):
             ds = {'initial': phs._initial_boundary_constraints,
                   'final': phs._final_boundary_constraints,
@@ -970,39 +954,44 @@ class Trajectory(om.Group):
             for loc, d in ds.items():
                 str_loc = f'[{loc}]'
                 for expr, options in d.items():
-                    _, shape, units, linear = phs.options[
-                        'transcription']._get_boundary_constraint_src(expr, loc, phs)
+                    _, shape, units, linear = phs.options['transcription']._get_boundary_constraint_src(expr, loc, phs)
 
                     equals = options['equals']
                     lower = options['lower']
                     upper = options['upper']
-                    str_units = f'{units if units is not None else "":{units_fmt}}'
+
+                    if options['units']:
+                        str_units = options['units']
+                    elif units is not None:
+                        str_units = units
+                    else:
+                        str_units = 'None'
 
                     if equals is not None and np.prod(np.asarray(equals).shape) != 1:
-                        str_equals = f'array<{"x".join([str(i) for i in np.asarray(equals).shape])}> {str_units}'
+                        str_equals = f'array<{"x".join([str(i) for i in np.asarray(equals).shape])}>'
                     elif equals is not None:
-                        str_equals = f'{equals:{float_fmt}} {str_units}'
+                        str_equals = f'{equals:{float_fmt}}'
 
                     if lower is not None and np.prod(np.asarray(lower).shape) != 1:
-                        str_lower = f'array<{"x".join([str(i) for i in np.asarray(lower).shape])}> {str_units} <='
+                        str_lower = f'array<{"x".join([str(i) for i in np.asarray(lower).shape])}> <='
                     elif lower is not None:
-                        str_lower = f'{lower:{float_fmt}} {str_units} <='
+                        str_lower = f'{lower:{float_fmt}} <='
                     else:
                         str_lower = 12 * ''
 
                     if upper is not None and np.prod(np.asarray(upper).shape) != 1:
-                        str_upper = f'>= array<{"x".join([str(i) for i in np.asarray(upper).shape])}> {str_units}'
+                        str_upper = f'<= array<{"x".join([str(i) for i in np.asarray(upper).shape])}> '
                     elif upper is not None:
-                        str_upper = f'>= {upper:{float_fmt}} {str_units}'
+                        str_upper = f'<= {upper:{float_fmt}} '
                     else:
                         str_upper = ''
 
                     if equals is not None:
-                        print(f'{2 * indent}{str_loc:<10s}{str_equals} == {expr}',
+                        print(f'{2 * indent}{str_loc:<10s}{str_equals} == {expr} [{str_units}]',
                               file=outstream)
                     else:
                         print(
-                            f'{2 * indent}{str_loc:<10s}{str_lower} {expr:<{max_len}s} {str_upper}{str_units}',
+                            f'{2 * indent}{str_loc:<10s}{str_lower} {expr} {str_upper} [{str_units}]',
                             file=outstream)
 
         for phase_name in self._phases:
