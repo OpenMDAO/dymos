@@ -374,6 +374,9 @@ class TestCheckPartials(unittest.TestCase):
         Run check_partials on a series of dymos problems and verify that partials information
         is displayed for core Dymos components when DYMOS_CHECK_PARTIALS == 'True'.
         """
+        cp_save = dm.options['include_check_partials']
+        dm.options['include_check_partials'] = True
+
         cases = [self.brach_explicit_partials,
                  self.balanced_field_partials_radau,
                  self.min_time_climb_partials_gl]
@@ -381,6 +384,9 @@ class TestCheckPartials(unittest.TestCase):
         partials = {}
         for c in cases:
             partials.update(c())
+
+        dm.options['include_check_partials'] = cp_save
+
         assert(len(partials.keys()) > 0)
 
     def test_check_partials_no(self):
@@ -388,9 +394,8 @@ class TestCheckPartials(unittest.TestCase):
         Run check_partials on a series of dymos problems and verify that partials information
         is not displayed for core Dymos components when DYMOS_CHECK_PARTIALS == 'False'.
         """
-        from dymos.options import options as dmoptions
-
-        dmoptions['include_check_partials'] = False
+        cp_save = dm.options['include_check_partials']
+        dm.options['include_check_partials'] = False
 
         cases = [self.brach_explicit_partials,
                  self.balanced_field_partials_radau,
@@ -399,6 +404,8 @@ class TestCheckPartials(unittest.TestCase):
         partials = {}
         for c in cases:
             partials.update(c())
+
+        dm.options['include_check_partials'] = cp_save
 
         self.assertSetEqual(set(partials.keys()), set())
 
