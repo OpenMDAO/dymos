@@ -12,6 +12,9 @@ on:
 jobs:
 
   test_ubuntu:
+    env:
+      DYMOS_CHECK_PARTIALS: True
+
     runs-on: ubuntu-latest
 
     timeout-minutes: 90
