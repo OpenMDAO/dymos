@@ -1,28 +1,11 @@
-import contextlib
-import os
 import unittest
-
 import openmdao.api as om
-
-
-@contextlib.contextmanager
-def set_env(**environ):
-    """
-    Context manager to temporarily change environment variables
-    """
-    old_environ = dict(os.environ)
-    os.environ.update(environ)
-    try:
-        yield
-    finally:
-        os.environ.clear()
-        os.environ.update(old_environ)
+import dymos as dm
 
 
 class TestCheckPartials(unittest.TestCase):
 
     def brach_explicit_partials(self):
-        import dymos as dm
         from dymos.examples.brachistochrone import BrachistochroneODE
         prob = om.Problem()
 
@@ -31,7 +14,7 @@ class TestCheckPartials(unittest.TestCase):
         tx = dm.ExplicitShooting(num_segments=3, grid='gauss-lobatto',
                                  method='rk4', order=5,
                                  num_steps_per_segment=5,
-                                 compressed=True)
+                                 compressed=False)
 
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
 
@@ -69,13 +52,10 @@ class TestCheckPartials(unittest.TestCase):
 
         prob.run_model()
 
-        cpd = prob.check_partials(compact_print=True, method='cs', out_stream=None)
+        cpd = prob.check_partials(compact_print=True, method='fd', out_stream=None)
         return cpd
 
     def balanced_field_partials_radau(self):
-        import openmdao.api as om
-        from openmdao.utils.general_utils import set_pyoptsparse_opt
-        import dymos as dm
         from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
 
         p = om.Problem()
@@ -294,8 +274,6 @@ class TestCheckPartials(unittest.TestCase):
         return cpd
 
     def min_time_climb_partials_gl(self):
-        import openmdao.api as om
-        import dymos as dm
         from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 
         p = om.Problem(model=om.Group())
@@ -400,27 +378,30 @@ class TestCheckPartials(unittest.TestCase):
                  self.balanced_field_partials_radau,
                  self.min_time_climb_partials_gl]
 
-        with set_env(DYMOS_CHECK_PARTIALS='True'):
-            partials = {}
-            for c in cases:
-                partials.update(c())
-            assert(len(partials.keys()) > 0)
+        partials = {}
+        for c in cases:
+            partials.update(c())
+        assert(len(partials.keys()) > 0)
 
     def test_check_partials_no(self):
         """
         Run check_partials on a series of dymos problems and verify that partials information
         is not displayed for core Dymos components when DYMOS_CHECK_PARTIALS == 'False'.
         """
+        from dymos.options import options as dmoptions
+
+        dmoptions['include_check_partials'] = False
+
         cases = [self.brach_explicit_partials,
                  self.balanced_field_partials_radau,
                  self.min_time_climb_partials_gl]
 
-        with set_env(DYMOS_CHECK_PARTIALS='False'):
-            partials = {}
-            for c in cases:
-                partials.update(c())
-            self.assertSetEqual(set(partials.keys()), set())
+        partials = {}
+        for c in cases:
+            partials.update(c())
+
+        self.assertSetEqual(set(partials.keys()), set())
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

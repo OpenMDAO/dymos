@@ -211,8 +211,6 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
-
         p.setup(force_alloc_complex=True)
 
         p['t_initial'] = 0.0
@@ -620,8 +618,6 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
-
-        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
 
         p.setup(force_alloc_complex=True)
 

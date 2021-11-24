@@ -12,9 +12,6 @@ on:
 jobs:
 
   test_ubuntu:
-    env:
-      DYMOS_CHECK_PARTIALS: True
-
     runs-on: ubuntu-latest
 
     timeout-minutes: 90
@@ -204,10 +201,14 @@ jobs:
           conda list
 
       - name: Run tests
+        env:
+          DYMOS_CHECK_PARTIALS: True
         shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Run Tests"
+          echo "Environment:"
+          echo "   DYMOS_CHECK_PARTIALS: $DYMOS_CHECK_PARTIALS"
           echo "============================================================="
           testflo -n 1 docs/test --pre_announce
           testflo -n 1 joss/test --pre_announce
