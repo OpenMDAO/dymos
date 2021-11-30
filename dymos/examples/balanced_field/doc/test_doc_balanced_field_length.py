@@ -3,6 +3,9 @@ import unittest
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
+SHOW_PLOTS = False
+
+
 @use_tempdirs
 class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
@@ -272,4 +275,6 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
                          horizontalalignment='center', verticalalignment='top')
 
         plt.legend()
-        plt.show()
+
+        if SHOW_PLOTS:
+            plt.show()
