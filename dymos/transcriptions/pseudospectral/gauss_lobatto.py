@@ -409,9 +409,6 @@ class GaussLobatto(PseudospectralBase):
 
         any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
 
-        if any_control_rate_cnty:
-            phase.promotes('continuity_comp')
-
         if any((any_state_cnty, any_control_cnty, any_control_rate_cnty)):
             phase._get_subsystem('continuity_comp').configure_io()
 
