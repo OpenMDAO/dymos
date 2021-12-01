@@ -1,9 +1,5 @@
 import unittest
 
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-plt.style.use('ggplot')
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
@@ -20,7 +16,6 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
 
         import dymos as dm
         from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
-        from dymos.examples.plotting import plot_results
 
         #
         # Instantiate the problem and configure the optimization driver
@@ -112,26 +107,12 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         #
         # Solve for the optimal trajectory
         #
-        dm.run_problem(p)
+        dm.run_problem(p, simulate=True)
 
         #
         # Test the results
         #
         assert_near_equal(p.get_val('traj.phase0.t_duration'), 321.0, tolerance=1.0E-1)
-
-        #
-        # Get the explicitly simulated solution and plot the results
-        #
-        exp_out = traj.simulate()
-
-        plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.states:h',
-                       'time (s)', 'altitude (m)'),
-                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.controls:alpha',
-                       'time (s)', 'alpha (deg)')],
-                     title='Supersonic Minimum Time-to-Climb Solution',
-                     p_sol=p, p_sim=exp_out)
-
-        plt.show()
 
 
 if __name__ == '__main__':  # pragma: no cover

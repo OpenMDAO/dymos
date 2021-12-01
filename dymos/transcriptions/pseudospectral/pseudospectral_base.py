@@ -1,11 +1,10 @@
-from collections.abc import Iterable
-
 import numpy as np
 
 import openmdao.api as om
 from ..transcription_base import TranscriptionBase
-from ..common import TimeComp, PseudospectralTimeseriesOutputComp
-from .components import StateIndependentsComp, StateInterpComp, CollocationComp
+from ..common import TimeComp
+from .components import StateIndependentsComp, StateInterpComp, CollocationComp, \
+    PseudospectralTimeseriesOutputComp
 from ...utils.misc import CoerceDesvar, get_rate_units, reshape_val
 from ...utils.introspection import get_source_metadata
 from ...utils.constants import INF_BOUND
