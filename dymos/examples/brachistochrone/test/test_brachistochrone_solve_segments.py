@@ -1,11 +1,11 @@
 import unittest
-import numpy as np
+import warnings
+
 from numpy.testing import assert_almost_equal
 import openmdao.api as om
 import dymos as dm
 
 import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
-import dymos.examples.brachistochrone.test.ex_brachistochrone as ex_brachistochrone
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
@@ -16,8 +16,8 @@ OPT, OPTIMIZER = set_pyoptsparse_opt('SLSQP')
 
 @require_pyoptsparse(optimizer='SLSQP')
 def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
-                  compressed=True, optimizer='SLSQP', run_driver=True, force_alloc_complex=False,
-                  solve_segments=False):
+                  compressed=True, optimizer='SLSQP', force_alloc_complex=False,
+                  solve_segments=False, y_bounds=None):
     p = om.Problem(model=om.Group())
 
     p.driver = om.pyOptSparseDriver()
@@ -47,6 +47,9 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
 
     phase.add_state('x', fix_initial=False, fix_final=False, solve_segments=solve_segments)
     phase.add_state('y', fix_initial=False, fix_final=False, solve_segments=solve_segments)
+
+    if y_bounds is not None:
+        phase.set_state_options('y', lower=y_bounds[0], upper=y_bounds[1])
 
     # Note that by omitting the targets here Dymos will automatically attempt to connect
     # to a top-level input named 'v' in the ODE, and connect to nothing if it's not found.
@@ -247,3 +250,23 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                                           transcription_order=3)
                         dm.run_problem(p)
                         self.assert_results(p)
+
+    def test_brachistochrone_bounded_solve_segments(self):
+
+        expected_warning = '<class \'openmdao.utils.om_warnings.UnusedOptionWarning\'>: State y ' \
+                           'has bounds but they are not enforced when using ' \
+                           '`solve_segments.` Apply a path constraint to y to enforce bounds.'
+
+        # Setup the problem
+        with warnings.catch_warnings(record=True) as ctx:
+            p = _make_problem(transcription='radau-ps',
+                              compressed=True,
+                              optimizer='SLSQP',
+                              force_alloc_complex=True,
+                              solve_segments='forward',
+                              num_segments=20,
+                              transcription_order=3,
+                              y_bounds=(5, 10))
+
+            warnings.simplefilter('always')
+            self.assertIn(expected_warning, [str(w.message) for w in ctx])
