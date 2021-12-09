@@ -150,7 +150,7 @@ class CoerceDesvar(object):
                 else:
                     del desvar_indices[-size:]
 
-        self.desvar_indices = np.asarray(desvar_indices, dtype=int)
+        self.desvar_indices = desvar_indices
         self.options = options
 
     def __call__(self, option):
@@ -175,39 +175,14 @@ class CoerceDesvar(object):
 
         """
         val = self.options[option]
-        shape = self.options['shape']
-        num_desvar_nodes = self.desvar_indices.size // np.prod(shape)
-
         if option == 'lower':
             lb = np.zeros_like(self.desvar_indices, dtype=float)
-            if val is None:
-                lb[:] = -INF_BOUND
-            elif np.isscalar(val):
-                lb[:] = val * np.ones_like(self.desvar_indices, dtype=float)
-            else:
-                _val = np.asarray(val)
-                if val.shape == self.options['shape']:
-                    # lb[:] = np.tile(_val, int(len(self.desvar_indices) / _val.size))
-                    lb[:] = np.repeat(_val[np.newaxis, ...], num_desvar_nodes, axis=0).ravel()
-                else:
-                    raise ValueError(f'array-valued option {option} must have same shape '
-                                     f'as design variable ({shape})')
+            lb[:] = -INF_BOUND if self.options['lower'] is None else val
             return lb
 
         if option == 'upper':
             ub = np.zeros_like(self.desvar_indices, dtype=float)
-            if val is None:
-                ub[:] = INF_BOUND
-            elif np.isscalar(val):
-                ub[:] = val * np.ones_like(self.desvar_indices, dtype=float)
-            else:
-                _val = np.asarray(val)
-                if val.shape == self.options['shape']:
-                    # lb[:] = np.tile(_val, int(len(self.desvar_indices) / _val.size))
-                    ub[:] = np.repeat(_val[np.newaxis, ...], num_desvar_nodes, axis=0).ravel()
-                else:
-                    raise ValueError(f'array-valued option {option} must have same shape '
-                                     f'as design variable ({shape})')
+            ub[:] = INF_BOUND if self.options['upper'] is None else val
             return ub
 
         if val is None or np.isscalar(val):
@@ -218,8 +193,8 @@ class CoerceDesvar(object):
         if val.shape == self.options['shape']:
             return np.tile(val.flatten(), int(len(self.desvar_indices)/val.size))
         else:
-            raise ValueError(f'array-valued option {option} must have same shape '
-                             f'as design variable ({shape})')
+            raise ValueError('array-valued option {0} must have same shape '
+                             'as states ({1})'.format(option, self.options['shape']))
 
 
 def CompWrapperConfig(comp_class):
