@@ -21,7 +21,3 @@ These examples assume that the user has a working knowledge of the following:
 -   The matplotlib package for plotting results
 
 Some examples may require additional optional packages that are noted in those notebooks.
-
-```python
-
-```
