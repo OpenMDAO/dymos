@@ -55,14 +55,35 @@ class LintJupyterOutputsTestCase(unittest.TestCase):
         """
         Check Jupyter Notebooks for code cell installing openmdao.
         """
-        header = ['try:\n',
-                  '    import openmdao.api as om\n',
-                  '    import dymos as dm\n',
-                  'except ImportError:\n',
-                  '    !python -m pip install openmdao[notebooks]\n',
-                  '    !python -m pip install dymos\n',
-                  '    import openmdao.api as om\n',
-                  '    import dymos as dm']
+        header = ["# This cell is mandatory in all Dymos documentation notebooks.\n",
+                  "missing_packages = []\n",
+                  "try:\n",
+                  "    import openmdao.api as om\n",
+                  "except ImportError:\n",
+                  "    if 'google.colab' in str(get_ipython()):\n",
+                  "        !python -m pip install openmdao[notebooks]\n",
+                  "    else:\n",
+                  "        missing_packages.append('openmdao')\n",
+                  "try:\n",
+                  "    import dymos as dm\n",
+                  "except ImportError:\n",
+                  "    if 'google.colab' in str(get_ipython()):\n",
+                  "        !python -m pip install dymos\n",
+                  "    else:\n",
+                  "        missing_packages.append('dymos')\n",
+                  "try:\n",
+                  "    import pyoptsparse\n",
+                  "except ImportError:\n",
+                  "    if 'google.colab' in str(get_ipython()):\n",
+                  "        !pip install -q condacolab\n",
+                  "        import condacolab\n",
+                  "        condacolab.install_miniconda()\n",
+                  "        !conda install -c conda-forge pyoptsparse\n",
+                  "    else:\n",
+                  "        missing_packages.append('pyoptsparse')\n",
+                  "if missing_packages:\n",
+                  "    raise EnvironmentError('This notebook requires the following packages '\n",
+                  "                           'please install them and restart this notebook\\'s runtime: {\",\".join(missing_packages)}')"]
 
         mpi_header = ['%pylab inline\n',
                       'from ipyparallel import Client, error\n',
@@ -88,7 +109,7 @@ class LintJupyterOutputsTestCase(unittest.TestCase):
 
                 first_block = json_data['cells'][0]['source']
                 if first_block != header and first_block != mpi_header:
-                    header_text = '\n'.join(header)
+                    header_text = ''.join(header)
                     msg = f'required header not found in notebook {file}\n' \
                           f'All notebooks should contain the following block before ' \
                           f'any other code blocks:\n' \

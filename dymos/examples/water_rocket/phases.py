@@ -27,7 +27,7 @@ def new_propelled_ascent_phase(transcription):
                                lower=1.02)
     propelled_ascent.add_state('V_w', units='L', rate_source='water_engine.Vdot',
                                targets=['water_engine.V_w', 'mass_adder.V_w'],
-                               fix_initial=False, fix_final=True, ref=10, defect_ref=10)
+                               fix_initial=False, fix_final=True, ref=10, defect_ref=10, lower=0)
 
     propelled_ascent.add_parameter(
         'S', targets=['aero.S'], units='m**2')
@@ -109,7 +109,7 @@ def new_water_rocket_trajectory(objective):
     if objective == 'height':
         ballistic_ascent.add_objective('h', loc='final', ref=-1.0)
     elif objective == 'range':
-        descent.add_objective('r', loc='final', ref=-0.01)
+        descent.add_objective('r', loc='final', ref=-1.0)
     else:
         raise ValueError(f"objective='{objective}' is not defined. Try using 'height' or 'range'")
 
