@@ -340,7 +340,6 @@ class TestRunProblem(unittest.TestCase):
 @use_tempdirs
 @require_pyoptsparse(optimizer='SLSQP')
 class TestRunProblemPlotting(unittest.TestCase):
-    # @require_pyoptsparse(optimizer='SLSQP')
     def setUp(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()

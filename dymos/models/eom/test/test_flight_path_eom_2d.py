@@ -22,7 +22,6 @@ class _CannonballODE(FlightPathEOM2D):
 @require_pyoptsparse(optimizer='SLSQP')
 class TestFlightPathEOM2D(unittest.TestCase):
 
-    # @require_pyoptsparse(optimizer='SLSQP')
     def setUp(self):
         self.p = om.Problem(model=om.Group())
 

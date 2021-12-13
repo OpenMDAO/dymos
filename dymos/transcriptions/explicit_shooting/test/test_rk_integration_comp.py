@@ -8,7 +8,7 @@ from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from dymos.transcriptions.explicit_shooting.rk_integration_comp import RKIntegrationComp
 
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.testing_utils import require_pyoptsparse
 
 
 class SimpleODE(om.ExplicitComponent):
@@ -95,8 +95,6 @@ class TestRKIntegrationComp(unittest.TestCase):
         intg.eval_f(x, t, theta, f)
 
         assert_near_equal(f, x - t**2 + theta[2, 0])
-
-    from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
     @require_pyoptsparse(optimizer='SNOPT')
     def test_eval_f_derivs_scalar(self):

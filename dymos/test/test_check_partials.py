@@ -1,5 +1,6 @@
 import unittest
 import openmdao.api as om
+from openmdao.utils.testing_utils import require_pyoptsparse
 import dymos as dm
 
 
@@ -368,8 +369,6 @@ class TestCheckPartials(unittest.TestCase):
         cpd = {path: data for path, data in cpd.items() if 'rhs_disc' not in path and 'rhs_col' not in path}
 
         return cpd
-
-    from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
     @require_pyoptsparse(optimizer='SNOPT')
     def test_check_partials_yes(self):

@@ -1,6 +1,6 @@
 import unittest
 
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
 
 import openmdao.api as om
@@ -165,7 +165,6 @@ def _run_racecar_problem(transcription, timeseries=False):
     t = p.get_val('traj.phase0.timeseries.states:t')
     assert_near_equal(t[-1], 22.2657, tolerance=0.01)
 
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 @use_tempdirs
 @require_pyoptsparse(optimizer='IPOPT')
