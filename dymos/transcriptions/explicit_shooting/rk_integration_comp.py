@@ -169,7 +169,6 @@ class RKIntegrationComp(om.ExplicitComponent):
         p.final_setup()
 
         self._deriv_subprob = p = om.Problem(comm=self.comm)
-        p.driver = om.pyOptSparseDriver(optimizer='SNOPT')
         p.model.add_subsystem('ode_eval',
                               ODEEvaluationGroup(self.ode_class, self.time_options,
                                                  self.state_options,
