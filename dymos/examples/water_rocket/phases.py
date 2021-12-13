@@ -16,7 +16,7 @@ def new_propelled_ascent_phase(transcription):
     propelled_ascent.add_state('r', units='m', rate_source='eom.r_dot',
                                fix_initial=True, fix_final=False, ref=1.0, defect_ref=1.0)
     propelled_ascent.add_state('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
-                               fix_initial=True, fix_final=False, ref=1.0, defect_ref=1.0)
+                               fix_initial=True, fix_final=False, ref=1.0, defect_ref=1.0, lower=0)
     propelled_ascent.add_state('gam', units='deg', rate_source='eom.gam_dot', targets=['eom.gam'],
                                fix_initial=False, fix_final=False, lower=0, upper=85.0, ref=90)
     propelled_ascent.add_state('v', units='m/s', rate_source='eom.v_dot', targets=['dynamic_pressure.v', 'eom.v'],

@@ -46,7 +46,7 @@ class _WaterExhaustSpeed(om.ExplicitComponent):
         nn = self.options['num_nodes']
 
         self.add_input(name='rho_w', val=1e3*np.ones(nn), desc='water density', units='kg/m**3')
-        self.add_input(name='p', val=6.5e5*np.ones(nn), desc='air pressure', units='N/m**2')  # 5.5bar = 80 psi
+        self.add_input(name='p', val=6.5e5*np.ones(nn), desc='water pressure', units='N/m**2')  # 5.5bar = 80 psi
         self.add_input(name='p_a', val=1.01e5*np.ones(nn), desc='air pressure', units='N/m**2')
 
         self.add_output(name='v_out', shape=(nn,), desc='water exhaust speed', units='m/s')
@@ -71,7 +71,7 @@ class _WaterExhaustSpeed(om.ExplicitComponent):
 
         partials['v_out', 'p'] = 1/v_out/rho_w
         partials['v_out', 'p_a'] = -1/v_out/rho_w
-        partials['v_out', 'rho_w'] = dv_outdrho_w = 1/v_out*(-(p-p_a)/rho_w**2)
+        partials['v_out', 'rho_w'] = 1/v_out*(-(p-p_a)/rho_w**2)
 
 
 class _WaterFlowRate(om.ExplicitComponent):
