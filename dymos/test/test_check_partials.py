@@ -392,7 +392,6 @@ class TestCheckPartials(unittest.TestCase):
 
         assert(len(partials.keys()) > 0)
 
-
     @require_pyoptsparse(optimizer='SNOPT')
     def test_check_partials_no(self):
         """
