@@ -68,8 +68,10 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     return p
 
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 @use_tempdirs
+@require_pyoptsparse()
 class BenchmarkBrachistochrone(unittest.TestCase):
     """ Benchmarks for various permutations of the brachistochrone problem."""
 
