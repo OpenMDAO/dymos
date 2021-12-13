@@ -243,8 +243,10 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
     # Test this example in Dymos' continuous integration
     assert_near_equal(p.get_val('traj.rto.states:r')[-1], 2188.2, tolerance=0.01)
 
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 @use_tempdirs
+@require_pyoptsparse()
 class BenchmarkBalancedFieldLength(unittest.TestCase):
 
     def benchmark_gausslobatto_notimeseries_nosim_nosolveseg(self):
