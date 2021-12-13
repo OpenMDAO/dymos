@@ -369,6 +369,9 @@ class TestCheckPartials(unittest.TestCase):
 
         return cpd
 
+    from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+
+    @require_pyoptsparse(optimizer='SNOPT')
     def test_check_partials_yes(self):
         """
         Run check_partials on a series of dymos problems and verify that partials information
@@ -389,6 +392,8 @@ class TestCheckPartials(unittest.TestCase):
 
         assert(len(partials.keys()) > 0)
 
+
+    @require_pyoptsparse(optimizer='SNOPT')
     def test_check_partials_no(self):
         """
         Run check_partials on a series of dymos problems and verify that partials information
