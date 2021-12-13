@@ -24,11 +24,8 @@ class TestWaterRocketForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
-        # p.driver.opt_settings['iSumm'] = 6
-        # p.driver.opt_settings['Verify level'] = 3
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 4
         p.driver.opt_settings['max_iter'] = 1000
-        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.declare_coloring()
 
         # Finish Problem Setup
@@ -68,20 +65,17 @@ class TestWaterRocketForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 4
         p.driver.opt_settings['max_iter'] = 1000
-        # p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.declare_coloring(tol=1.0E-12)
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
         # p.driver.add_recorder(om.SqliteRecorder('ex_water_rocket.db'))
 
-        p.setup(force_alloc_complex=True)
+        p.setup()
         set_sane_initial_guesses(p, phases)
-
-        p.run_model()
-        p.check_partials(method='cs', compact_print=True)
 
         p.run_driver()
 
