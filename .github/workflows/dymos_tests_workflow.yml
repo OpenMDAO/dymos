@@ -5,7 +5,7 @@ name: Dymos Tests
 on:
   # Trigger on push or pull request events for the master branch
   push:
-    branches: [ master ]
+    branches: [ master, moved_decorator ]
   pull_request:
     branches: [ master ]
 
@@ -25,36 +25,36 @@ jobs:
             NUMPY: 1.18
             SCIPY: 1.4
             PETSc: 3.12
-            PYOPTSPARSE: 'v2.1.5'
+#            PYOPTSPARSE: 'v2.1.5'
             SNOPT: 7.7
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
             DOCS: 1
 
-          # try latest versions
-          - PY: 3
-            NUMPY: 1
-            SCIPY: 1
-            # PETSc: 3
-            PYOPTSPARSE: 'v2.1.5'
-            SNOPT: 7.7
-            MBI: 1
-            OPENMDAO: 'dev'
-            OPTIONAL: '[test]'
-            DOCS: 0
-
-          # oldest supported versions
-          - PY: 3.6
-            NUMPY: 1.16
-            SCIPY: 1.2
-            PETSc: 3.10.2
-            PYOPTSPARSE: 'v1.2'
-            SNOPT: 7.2
-            MBI: 1
-            OPENMDAO: 3.13.0
-            OPTIONAL: '[all]'
-            DOCS: 0
+#          # try latest versions
+#          - PY: 3
+#            NUMPY: 1
+#            SCIPY: 1
+#            # PETSc: 3
+#            PYOPTSPARSE: 'v2.1.5'
+#            SNOPT: 7.7
+#            MBI: 1
+#            OPENMDAO: 'dev'
+#            OPTIONAL: '[test]'
+#            DOCS: 0
+#
+#          # oldest supported versions
+#          - PY: 3.6
+#            NUMPY: 1.16
+#            SCIPY: 1.2
+#            PETSc: 3.10.2
+#            PYOPTSPARSE: 'v1.2'
+#            SNOPT: 7.2
+#            MBI: 1
+#            OPENMDAO: 3.13.0
+#            OPTIONAL: '[all]'
+#            DOCS: 0
 
     steps:
       - name: Display run details
