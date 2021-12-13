@@ -8,6 +8,8 @@ from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from dymos.transcriptions.explicit_shooting.rk_integration_comp import RKIntegrationComp
 
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+
 
 class SimpleODE(om.ExplicitComponent):
     """
@@ -39,7 +41,6 @@ class SimpleODE(om.ExplicitComponent):
         t = inputs['t']
         partials['x_dot', 't'] = -2*t
 
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 class TestRKIntegrationComp(unittest.TestCase):
 
