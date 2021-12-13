@@ -83,6 +83,7 @@ class Simple1StateODE(om.ExplicitComponent):
 @use_tempdirs
 class TestExplicitShooting(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='SNOPT')
     def test_1_state_run_model(self):
         prob = om.Problem()
 
@@ -111,6 +112,7 @@ class TestExplicitShooting(unittest.TestCase):
 
         assert_check_partials(cpd, rtol=1.0E-5)
 
+    @require_pyoptsparse(optimizer='SNOPT')
     def test_2_states_run_model(self):
 
         for method in ['rk4', 'euler', '3/8', 'ralston', 'rkf', 'rkck', 'dopri']:
@@ -589,6 +591,7 @@ class TestExplicitShooting(unittest.TestCase):
 
                 self.assertIn(msg, [str(w.message) for w in ctx])
 
+    @require_pyoptsparse(optimizer='SNOPT')
     def test_brachistochrone_static_gravity_explicit_shooting(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
