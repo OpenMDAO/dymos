@@ -5,7 +5,7 @@ name: Dymos Tests
 on:
   # Trigger on push or pull request events for the master branch
   push:
-    branches: [ master ]
+    branches: [ master, I682-add-dymos-ci-without-pyoptsparse ]
   pull_request:
     branches: [ master ]
 
@@ -20,17 +20,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # baseline versions
-          - PY: 3.8
-            NUMPY: 1.18
-            SCIPY: 1.4
-            PETSc: 3.12
-            PYOPTSPARSE: 'v2.1.5'
-            SNOPT: 7.7
-            MBI: 1
-            OPENMDAO: 'latest'
-            OPTIONAL: '[all]'
-            DOCS: 1
+#          # baseline versions
+#          - PY: 3.8
+#            NUMPY: 1.18
+#            SCIPY: 1.4
+#            PETSc: 3.12
+#            PYOPTSPARSE: 'v2.1.5'
+#            SNOPT: 7.7
+#            MBI: 1
+#            OPENMDAO: 'latest'
+#            OPTIONAL: '[all]'
+#            DOCS: 1
 
           # baseline versions except no pyoptsparse
           - PY: 3.8
