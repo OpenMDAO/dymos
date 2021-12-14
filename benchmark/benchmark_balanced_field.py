@@ -1,9 +1,9 @@
 import unittest
-from openmdao.utils.testing_utils import use_tempdirs
 
 import openmdao.api as om
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 import dymos as dm
 from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
 
@@ -245,6 +245,7 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
 
 
 @use_tempdirs
+@require_pyoptsparse()
 class BenchmarkBalancedFieldLength(unittest.TestCase):
 
     def benchmark_gausslobatto_notimeseries_nosim_nosolveseg(self):

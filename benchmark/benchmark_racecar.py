@@ -1,6 +1,6 @@
 import unittest
 
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
 
 import openmdao.api as om
@@ -167,6 +167,7 @@ def _run_racecar_problem(transcription, timeseries=False):
 
 
 @use_tempdirs
+@require_pyoptsparse(optimizer='IPOPT')
 class BenchmarkRacecar(unittest.TestCase):
     """ Benchmarks for various permutations of the racecar problem."""
 
