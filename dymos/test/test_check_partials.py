@@ -370,7 +370,7 @@ class TestCheckPartials(unittest.TestCase):
 
         return cpd
 
-    # @require_pyoptsparse(optimizer='SNOPT')
+    @require_pyoptsparse()
     def test_check_partials_yes(self):
         """
         Run check_partials on a series of dymos problems and verify that partials information
@@ -391,7 +391,7 @@ class TestCheckPartials(unittest.TestCase):
 
         assert(len(partials.keys()) > 0)
 
-    # @require_pyoptsparse(optimizer='SNOPT')
+    @require_pyoptsparse()
     def test_check_partials_no(self):
         """
         Run check_partials on a series of dymos problems and verify that partials information
