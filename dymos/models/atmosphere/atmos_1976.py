@@ -1549,7 +1549,7 @@ if __name__ == "__main__":
     np.set_printoptions(precision=18)
     for interp, coeff_array in zip(interps, coeff_arrays):
         _ = interp.interpolate(hbin, compute_derivative=False)
-        coeff_cache = interp.table.coeffs
+        coeff_cache = interp.table.vec_coeff
 
         for i in range(n):
             a, b, c, d = coeff_cache[i - 1]
