@@ -13,6 +13,11 @@ optional_dependencies = {
         'redbaron',
         'tabulate'
     ],
+    'notebooks': [
+        'notebook',
+        'tabulate',
+        'ipython'
+    ],
     'test': [
         'pep8',
         'testflo>=1.3.6',
