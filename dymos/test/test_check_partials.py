@@ -1,6 +1,5 @@
 import unittest
 import openmdao.api as om
-from openmdao.utils.testing_utils import require_pyoptsparse
 import dymos as dm
 
 
@@ -279,8 +278,7 @@ class TestCheckPartials(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.declare_coloring()
 
         #
@@ -370,7 +368,6 @@ class TestCheckPartials(unittest.TestCase):
 
         return cpd
 
-    @require_pyoptsparse()
     def test_check_partials_yes(self):
         """
         Run check_partials on a series of dymos problems and verify that partials information
@@ -391,7 +388,6 @@ class TestCheckPartials(unittest.TestCase):
 
         assert(len(partials.keys()) > 0)
 
-    @require_pyoptsparse()
     def test_check_partials_no(self):
         """
         Run check_partials on a series of dymos problems and verify that partials information
