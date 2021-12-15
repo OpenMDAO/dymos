@@ -253,7 +253,7 @@ jobs:
           cd jupyter-book
           pip install -e .
           cd ..
-          jupyter-book build docs/
+          jupyter-book build -W --keep-going docs/
 
       - name: Publish docs
         if: ${{ matrix.DOCS == '1' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}

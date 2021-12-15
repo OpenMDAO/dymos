@@ -8,7 +8,7 @@ from openmdao.utils.general_utils import simple_warning
 from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
 from ..common import GaussLobattoContinuityComp
-from ...utils.misc import get_rate_units, _unspecified
+from ...utils.misc import get_rate_units
 from ...utils.introspection import get_targets, get_source_metadata, get_target_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData, make_subset_map
