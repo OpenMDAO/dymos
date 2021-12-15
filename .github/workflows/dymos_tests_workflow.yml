@@ -220,7 +220,7 @@ jobs:
           echo "Environment:"
           echo "   DYMOS_CHECK_PARTIALS: $DYMOS_CHECK_PARTIALS"
           echo "============================================================="
-          testflo -n 1 docs/test --pre_announce
+          testflo -n 1 docs/dymos_book/test --pre_announce
           testflo -n 1 joss/test --pre_announce
           testflo -b benchmark --pre_announce
           cd $HOME
@@ -256,7 +256,7 @@ jobs:
       - name: Display doc build reports
         if: failure() && matrix.DOCS == '1' && steps.build_docs.outcome == 'failure'
         run: |
-          for f in /home/runner/work/OpenMDAO/OpenMDAO/openmdao/docs/openmdao_book/_build/html/reports/*; do
+          for f in /home/runner/work/OpenMDAO/dymos/docs/dymos_book/_build/html/reports/*; do
             echo "============================================================="
             echo $f
             echo "============================================================="
@@ -271,7 +271,7 @@ jobs:
           echo "Publishing Docs"
           echo "============================================================="
           pip install ghp-import
-          cd $HOME/work/dymos/dymos
+          cd $HOME/work/dymos
           pwd
           ghp-import -n -p -f docs/_build/html
 
