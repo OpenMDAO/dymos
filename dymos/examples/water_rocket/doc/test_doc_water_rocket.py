@@ -65,14 +65,13 @@ class TestWaterRocketForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
-        p.driver.opt_settings['print_level'] = 4
+        p.driver.opt_settings['print_level'] = 5
         p.driver.opt_settings['max_iter'] = 1000
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.declare_coloring(tol=1.0E-12)
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
-        # p.driver.add_recorder(om.SqliteRecorder('ex_water_rocket.db'))
 
         p.setup()
         set_sane_initial_guesses(p, phases)
