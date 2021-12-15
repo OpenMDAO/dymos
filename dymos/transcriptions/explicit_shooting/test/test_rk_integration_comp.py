@@ -8,6 +8,8 @@ from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from dymos.transcriptions.explicit_shooting.rk_integration_comp import RKIntegrationComp
 
+from openmdao.utils.testing_utils import require_pyoptsparse
+
 
 class SimpleODE(om.ExplicitComponent):
     """
@@ -42,6 +44,7 @@ class SimpleODE(om.ExplicitComponent):
 
 class TestRKIntegrationComp(unittest.TestCase):
 
+    # @require_pyoptsparse(optimizer='SNOPT')
     def test_eval_f_scalar(self):
         gd = dm.transcriptions.grid_data.GridData(num_segments=10, transcription='gauss-lobatto',
                                                   transcription_order=3)
@@ -93,6 +96,7 @@ class TestRKIntegrationComp(unittest.TestCase):
 
         assert_near_equal(f, x - t**2 + theta[2, 0])
 
+    # @require_pyoptsparse(optimizer='SNOPT')
     def test_eval_f_derivs_scalar(self):
         gd = dm.transcriptions.grid_data.GridData(num_segments=10, transcription='gauss-lobatto',
                                                   transcription_order=3)
@@ -172,6 +176,7 @@ class TestRKIntegrationComp(unittest.TestCase):
         f_theta_fd = (f_theta_fd - f_nom) / step
         assert_near_equal(f_theta.real[0, 2], f_theta_fd[0, 0], tolerance=1.0E-6)
 
+    # @require_pyoptsparse(optimizer='SNOPT')
     def test_fwd_parameters(self):
         time_options = dm.phase.options.TimeOptionsDictionary()
 
@@ -226,6 +231,7 @@ class TestRKIntegrationComp(unittest.TestCase):
             cpd = p.check_partials(method='cs', compact_print=True)
             assert_check_partials(cpd)
 
+    # @require_pyoptsparse(optimizer='SNOPT')
     def test_fwd_parameters_controls(self):
         gd = dm.transcriptions.grid_data.GridData(num_segments=5, transcription='gauss-lobatto',
                                                   transcription_order=5, compressed=True)

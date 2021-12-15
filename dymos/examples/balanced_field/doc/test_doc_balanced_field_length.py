@@ -3,7 +3,7 @@ import unittest
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
-SHOW_PLOTS = False
+SHOW_PLOTS = True
 
 
 @use_tempdirs
@@ -194,7 +194,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         climb.add_path_constraint('gam', lower=0, upper=5, ref=5, units='deg')
         climb.add_boundary_constraint('v_over_v_stall', loc='final', lower=1.25, ref=1.25)
 
-        rto.add_objective('r', loc='final', ref=1000.0)
+        rto.add_objective('r', loc='final', ref=1.0)
 
         #
         # Setup the problem and set the initial guess

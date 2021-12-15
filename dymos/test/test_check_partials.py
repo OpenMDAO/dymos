@@ -278,8 +278,7 @@ class TestCheckPartials(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.declare_coloring()
 
         #

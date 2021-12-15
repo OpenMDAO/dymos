@@ -82,9 +82,9 @@ class TestRaceCarForDocs(unittest.TestCase):
 
         # Define Controls
         phase.add_control(name='delta', units='rad', lower=None, upper=None, fix_initial=False,
-                          fix_final=False, targets=['delta'], ref=0.04)  # steering angle
+                          fix_final=False, targets=['delta'], ref=0.04, rate_continuity=True)  # steering angle
         phase.add_control(name='thrust', units=None, fix_initial=False, fix_final=False, targets=[
-            'thrust'])  # the thrust controls the longitudinal force of the rear tires and is
+            'thrust'], rate_continuity=True)  # the thrust controls the longitudinal force of the rear tires and is
         # positive while accelerating, negative while braking
 
         # Performance Constraints
