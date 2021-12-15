@@ -118,7 +118,7 @@ class TestRaceCarForDocs(unittest.TestCase):
 
         # Minimize final time.
         # note that we use the 'state' time instead of Dymos 'time'
-        phase.add_objective('t', loc='final')
+        phase.add_objective('t', loc='final', ref=100)
 
         # Add output timeseries
         phase.add_timeseries_output('*')
@@ -133,14 +133,14 @@ class TestRaceCarForDocs(unittest.TestCase):
 
         p.driver.opt_settings['mu_init'] = 1e-3
         p.driver.opt_settings['max_iter'] = 500
-        p.driver.opt_settings['acceptable_tol'] = 1e-3
-        p.driver.opt_settings['constr_viol_tol'] = 1e-3
-        p.driver.opt_settings['compl_inf_tol'] = 1e-3
+        p.driver.opt_settings['acceptable_tol'] = 1e-4
+        p.driver.opt_settings['constr_viol_tol'] = 1e-4
+        p.driver.opt_settings['compl_inf_tol'] = 1e-4
         p.driver.opt_settings['acceptable_iter'] = 0
-        p.driver.opt_settings['tol'] = 1e-3
-        p.driver.opt_settings['nlp_scaling_method'] = 'none'
+        p.driver.opt_settings['tol'] = 1e-4
         p.driver.opt_settings['print_level'] = 5
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
+        p.driver.opt_settings['mu_strategy'] = 'adaptive'
         p.driver.options['print_results'] = False
 
         # Allow OpenMDAO to automatically determine our sparsity pattern.
