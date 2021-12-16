@@ -18,14 +18,17 @@ from dymos.examples.water_rocket.phases import (new_water_rocket_trajectory,
 class TestWaterRocketForDocs(unittest.TestCase):
 
     def test_water_rocket_height_for_docs(self):
+        import dymos as dm
         p = om.Problem(model=om.Group())
 
         traj, phases = new_water_rocket_trajectory(objective='height')
         traj = p.model.add_subsystem('traj', traj)
 
-        p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
+        p.driver = om.pyOptSparseDriver(optimizer='IPOPT', print_results=False)
         p.driver.opt_settings['print_level'] = 4
+        p.driver.opt_settings['mu_strategy'] = 'monotone'
         p.driver.opt_settings['max_iter'] = 1000
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.declare_coloring()
 
         # Finish Problem Setup
@@ -34,20 +37,20 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.setup()
         set_sane_initial_guesses(p, phases)
 
-        p.run_driver()
+        dm.run_problem(p, run_driver=True, simulate=True)
 
         summary = summarize_results(p)
         for key, entry in summary.items():
             print(f'{key}: {entry.value:6.4f} {entry.unit}')
 
-        exp_out = traj.simulate(times_per_seg=200)
+        exp_out = traj.simulate(times_per_seg=10)
 
         # NOTE: only the last figure is shown in the generated docs
         plot_propelled_ascent(p, exp_out)
         plot_trajectory(p, exp_out)
         plot_states(p, exp_out)
 
-        plt.show()
+        # plt.show()
 
         # Check results (tolerance is relative unless value is zero)
         assert_near_equal(summary['Launch angle'].value, 85, .02)
@@ -65,8 +68,9 @@ class TestWaterRocketForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 4
         p.driver.opt_settings['max_iter'] = 1000
+        p.driver.opt_settings['mu_strategy'] = 'monotone'
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.declare_coloring(tol=1.0E-12)
 
@@ -82,14 +86,14 @@ class TestWaterRocketForDocs(unittest.TestCase):
         for key, entry in summary.items():
             print(f'{key}: {entry.value:6.4f} {entry.unit}')
 
-        exp_out = traj.simulate(times_per_seg=200)
+        exp_out = traj.simulate(times_per_seg=10)
 
         # NOTE: only the last figure is shown in the generated docs
         plot_propelled_ascent(p, exp_out)
         plot_trajectory(p, exp_out)
         plot_states(p, exp_out)
 
-        plt.show()
+        # plt.show()
 
         # Check results (tolerance is relative unless value is zero)
         assert_near_equal(summary['Launch angle'].value, 46, 0.02)
