@@ -18,7 +18,7 @@ class ODEComp(om.ExplicitComponent):
     def setup(self):
         nn = self.options['num_nodes']
         # z is the state vector, a nn x 2 x 2 in the form of [[x, y], [vx, vy]]
-        self.add_input('param', shape=3, units=None)
+        self.add_input('param', shape=(3,), units=None)
         self.add_input('z', shape=(nn, 2, 2), units=None)
         self.add_output('zdot', shape=(nn, 2, 2), units=None)
 
@@ -26,7 +26,6 @@ class ODEComp(om.ExplicitComponent):
         self.declare_coloring(wrt=['z'], method='cs', num_full_jacs=5, tol=1.0E-12)
 
     def compute(self, inputs, outputs):
-        print('param', inputs['param'])
         outputs['zdot'][:, 0, 0] = inputs['z'][:, 1, 0]
         outputs['zdot'][:, 0, 1] = inputs['z'][:, 1, 1]
         outputs['zdot'][:, 1, 0] = 0.0
@@ -56,7 +55,7 @@ def add_parameter_test(testShape=None):
     phase.add_boundary_constraint('z', loc='final', lower=0, upper=0, indices=[1])
     phase.add_objective('time', loc='final')
 
-    p.driver = om.pyOptSparseDriver()
+    p.driver = om.ScipyOptimizeDriver()
     p.driver.declare_coloring(tol=1.0E-12)
 
     p.setup()
@@ -71,7 +70,6 @@ def add_parameter_test(testShape=None):
 
 
 @use_tempdirs
-@unittest.skipIf(pyOptSparseDriver, "pyOptSparse is required.")
 class TestParameterTypes(unittest.TestCase):
     def test_tuple(self):
         add_parameter_test((3, ))

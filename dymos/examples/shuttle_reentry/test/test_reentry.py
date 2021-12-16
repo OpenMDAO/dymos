@@ -148,7 +148,7 @@ class TestReentry(unittest.TestCase):
         p.driver.declare_coloring(tol=1.0E-12)
         p.driver.options['optimizer'] = 'IPOPT'
         p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
-        p.driver.opt_settings['print_level'] = 4
+        p.driver.opt_settings['print_level'] = 5
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.opt_settings['mu_strategy'] = 'adaptive'
 
@@ -205,7 +205,7 @@ class TestReentry(unittest.TestCase):
                   phase0.interp('alpha', [17.4 * np.pi / 180, 17.4 * np.pi / 180]), units='rad')
         p.set_val('traj.phase0.polynomial_controls:beta', np.radians(-75))
 
-        run_problem(p, simulate=True, refine_method='ph', refine_iteration_limit=3)
+        run_problem(p, simulate=True)
 
         sol = om.CaseReader('dymos_solution.db').get_case('final')
         sim = om.CaseReader('dymos_simulation.db').get_case('final')
