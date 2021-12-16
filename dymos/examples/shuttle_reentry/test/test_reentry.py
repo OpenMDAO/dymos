@@ -150,12 +150,12 @@ class TestReentry(unittest.TestCase):
         p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
         p.driver.opt_settings['print_level'] = 5
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
-        p.driver.opt_settings['mu_strategy'] = 'adaptive'
+        p.driver.opt_settings['mu_strategy'] = 'monotone'
 
         traj = p.model.add_subsystem('traj', Trajectory())
         phase0 = traj.add_phase('phase0',
                                 Phase(ode_class=ShuttleODE,
-                                      transcription=Radau(num_segments=20, order=3)))
+                                      transcription=Radau(num_segments=30, order=3)))
 
         phase0.set_time_options(fix_initial=True, units='s', duration_ref=200)
         phase0.add_state('h', fix_initial=True, fix_final=True, units='ft', rate_source='hdot',
@@ -175,10 +175,11 @@ class TestReentry(unittest.TestCase):
                          rate_source='vdot', targets=['v'], lower=500, ref0=2500, ref=25000)
         phase0.add_control('alpha', units='rad', opt=True,
                            lower=-np.pi / 2, upper=np.pi / 2)
-        phase0.add_polynomial_control('beta', order=5, units='rad', opt=True,
+        phase0.add_polynomial_control('beta', order=9, units='rad', opt=True,
                                       lower=-89 * np.pi / 180, upper=1 * np.pi / 180)
 
-        phase0.add_objective('theta', loc='final', ref=-1)
+        phase0.add_objective('theta', loc='final', ref=-0.01)
+        phase0.add_path_constraint('q', lower=0, upper=70, ref=70)
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -202,8 +203,9 @@ class TestReentry(unittest.TestCase):
         p.set_val('traj.phase0.t_initial', 0, units='s')
         p.set_val('traj.phase0.t_duration', 2000, units='s')
         p.set_val('traj.phase0.controls:alpha',
-                  phase0.interp('alpha', [17.4 * np.pi / 180, 17.4 * np.pi / 180]), units='rad')
-        p.set_val('traj.phase0.polynomial_controls:beta', np.radians(-75))
+                  phase0.interp('alpha', [17.4, 17.4]), units='deg')
+        p.set_val('traj.phase0.polynomial_controls:beta',
+                  phase0.interp('beta', [-20, 0]), units='deg')
 
         run_problem(p, simulate=True)
 
@@ -213,17 +215,25 @@ class TestReentry(unittest.TestCase):
         from scipy.interpolate import interp1d
 
         t_sol = sol.get_val('traj.phase0.timeseries.time')
-        beta_sol = sol.get_val('traj.phase0.timeseries.polynomial_controls:beta')
+        beta_sol = sol.get_val('traj.phase0.timeseries.polynomial_controls:beta', units='deg')
 
         t_sim = sim.get_val('traj.phase0.timeseries.time')
-        beta_sim = sim.get_val('traj.phase0.timeseries.polynomial_controls:beta')
+        beta_sim = sim.get_val('traj.phase0.timeseries.polynomial_controls:beta', units='deg')
 
         sol_interp = interp1d(t_sol.ravel(), beta_sol.ravel())
         sim_interp = interp1d(t_sim.ravel(), beta_sim.ravel())
 
-        t = np.linspace(0, t_sol.ravel()[-1], 100)
+        t = np.linspace(0, t_sol.ravel()[-1], 1000)
 
-        assert_near_equal(sim_interp(t), sol_interp(t), tolerance=1.0E-3)
+        assert_near_equal(sim_interp(t), sol_interp(t), tolerance=0.01)
+
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
+                          expected_results['constrained']['time'],
+                          tolerance=1e-2)
+
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
+                          expected_results['constrained']['theta'],
+                          tolerance=1e-2)
 
 
 if __name__ == '___main__':
