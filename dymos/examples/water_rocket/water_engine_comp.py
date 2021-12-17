@@ -144,8 +144,8 @@ class _PressureRate(om.ExplicitComponent):
 
         partials['pdot', 'p'] = k*Vdot/(V_b-V_w)
         partials['pdot', 'k'] = p*Vdot/(V_b-V_w)
-        partials['pdot', 'V_b'] = -p*Vdot/(V_b-V_w)**2
-        partials['pdot', 'V_w'] = p*Vdot/(V_b-V_w)**2
+        partials['pdot', 'V_b'] = -p*k*Vdot/(V_b-V_w)**2
+        partials['pdot', 'V_w'] = p*k*Vdot/(V_b-V_w)**2
         partials['pdot', 'Vdot'] = p*k/(V_b-V_w)
 
 

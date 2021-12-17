@@ -84,7 +84,7 @@ fort.6
 # Examples
 dymos/examples/*/*/_output/
 docs/examples/*/*.db
-docs/examples/*/coloring_files/
+docs/dymos_book/examples/*/coloring_files/
 
 # Misc files
 docs/faq/*/*.pkl

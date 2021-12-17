@@ -165,7 +165,6 @@ def load_case(problem, previous_solution):
         # Set the timeseries parameter outputs from the previous solution as the parameter value
         for param_name, options in phase.parameter_options.items():
             prev_match = [s for s in prev_vars if s.endswith(f'{phase_name}.parameters:{param_name}')]
-            print(prev_match)
             if prev_match:
                 # In previous outputs
                 prev_data = prev_vars[prev_match[0]]

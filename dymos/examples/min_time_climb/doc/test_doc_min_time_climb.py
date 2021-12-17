@@ -23,7 +23,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver.options['optimizer'] = 'IPOPT'
         p.driver.declare_coloring()
 
         #

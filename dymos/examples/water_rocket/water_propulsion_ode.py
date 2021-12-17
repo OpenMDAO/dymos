@@ -23,10 +23,12 @@ class WaterPropulsionODE(om.Group):
 
         if not self.options['ballistic']:
             self.add_subsystem(name='water_engine',
-                               subsys=WaterEngine(num_nodes=nn))
+                               subsys=WaterEngine(num_nodes=nn),
+                               promotes_inputs=['rho_w'])
 
             self.add_subsystem(name='mass_adder',
-                               subsys=_MassAdder(num_nodes=nn))
+                               subsys=_MassAdder(num_nodes=nn),
+                               promotes_inputs=['rho_w'])
 
         self.add_subsystem(name='dynamic_pressure',
                            subsys=DynamicPressureComp(num_nodes=nn))

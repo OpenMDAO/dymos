@@ -290,7 +290,8 @@ def configure_parameters_introspection(parameter_options, ode):
         shape, units, static_target = get_target_metadata(ode, name=name,
                                                           user_targets=options['targets'],
                                                           user_units=options['units'],
-                                                          user_shape=options['shape'])
+                                                          user_shape=options['shape'],
+                                                          user_static_target=options['static_target'])
 
         options['units'] = units
         options['shape'] = shape

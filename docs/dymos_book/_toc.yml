@@ -17,6 +17,7 @@ parts:
   - file: examples/examples
     sections:
     - file: examples/brachistochrone/brachistochrone
+    - file: examples/brachistochrone/brachistochrone_upstream_init_duration_states
     - file: examples/vanderpol/vanderpol
     - file: examples/balanced_field/balanced_field
     - file: examples/commercial_aircraft/commercial_aircraft

@@ -14,20 +14,21 @@ def new_propelled_ascent_phase(transcription):
     propelled_ascent.set_time_options(
         fix_initial=True, duration_bounds=(0.001, 0.5), duration_ref=0.1, units='s')
     propelled_ascent.add_state('r', units='m', rate_source='eom.r_dot',
-                               fix_initial=True, fix_final=False, ref=1.0, defect_ref=1.0)
+                               fix_initial=True, fix_final=False, ref=100.0, defect_ref=100.0)
     propelled_ascent.add_state('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
-                               fix_initial=True, fix_final=False, ref=1.0, defect_ref=1.0)
+                               fix_initial=True, fix_final=False, ref=100.0, defect_ref=100.0)
     propelled_ascent.add_state('gam', units='deg', rate_source='eom.gam_dot', targets=['eom.gam'],
                                fix_initial=False, fix_final=False, lower=0, upper=85.0, ref=90)
     propelled_ascent.add_state('v', units='m/s', rate_source='eom.v_dot', targets=['dynamic_pressure.v', 'eom.v'],
-                               fix_initial=True, fix_final=False, ref=100, defect_ref=100)
+                               fix_initial=True, fix_final=False, ref=100, defect_ref=100, lower=0.01)
 
     propelled_ascent.add_state('p', units='bar', rate_source='water_engine.pdot',
                                targets=['water_engine.p'], fix_initial=True, fix_final=False,
                                lower=1.02)
     propelled_ascent.add_state('V_w', units='L', rate_source='water_engine.Vdot',
                                targets=['water_engine.V_w', 'mass_adder.V_w'],
-                               fix_initial=False, fix_final=True, ref=10, defect_ref=10)
+                               fix_initial=False, fix_final=True, ref=10, defect_ref=10,
+                               lower=0)
 
     propelled_ascent.add_parameter(
         'S', targets=['aero.S'], units='m**2')
@@ -52,14 +53,14 @@ def new_ballistic_ascent_phase(transcription):
         duration_ref=1, units='s')
 
     ballistic_ascent.add_state('r', units='m', rate_source='eom.r_dot', fix_initial=False,
-                               fix_final=False)
+                               fix_final=False, ref=100.0, defect_ref=100.0)
     ballistic_ascent.add_state('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
-                               fix_initial=False, fix_final=False)
+                               fix_initial=False, fix_final=False, ref=100.0, defect_ref=100.0)
     ballistic_ascent.add_state('gam', units='deg', rate_source='eom.gam_dot', targets=['eom.gam'],
-                               fix_initial=False, fix_final=True, upper=89)
+                               fix_initial=False, fix_final=True, upper=89, ref=90, defect_ref=90)
     ballistic_ascent.add_state('v', units='m/s', rate_source='eom.v_dot',
                                targets=['dynamic_pressure.v', 'eom.v'], fix_initial=False,
-                               fix_final=False)
+                               fix_final=False, ref=100, defect_ref=100)
 
     ballistic_ascent.add_parameter('S', targets=['aero.S'], units='m**2')
     ballistic_ascent.add_parameter('m_empty', targets=['eom.m'], units='kg')
@@ -82,7 +83,9 @@ def new_descent_phase(transcription):
     descent.add_state('gam', units='deg', rate_source='eom.gam_dot', targets=['eom.gam'],
                       fix_initial=False, fix_final=False)
     descent.add_state('v', units='m/s', rate_source='eom.v_dot',
-                      targets=['dynamic_pressure.v', 'eom.v'], fix_initial=False, fix_final=False)
+                      targets=['dynamic_pressure.v', 'eom.v'],
+                      fix_initial=False, fix_final=False,
+                      ref=100, defect_ref=100)
 
     descent.add_parameter('S', targets=['aero.S'], units='m**2')
     descent.add_parameter('mass', targets=['eom.m'], units='kg')
@@ -109,7 +112,7 @@ def new_water_rocket_trajectory(objective):
     if objective == 'height':
         ballistic_ascent.add_objective('h', loc='final', ref=-1.0)
     elif objective == 'range':
-        descent.add_objective('r', loc='final', ref=-0.01)
+        descent.add_objective('r', loc='final', ref=-100.0)
     else:
         raise ValueError(f"objective='{objective}' is not defined. Try using 'height' or 'range'")
 
@@ -138,7 +141,7 @@ def new_water_rocket_trajectory(objective):
                        targets={'propelled_ascent': 'm_empty',
                                 'ballistic_ascent': 'm_empty',
                                 'descent': 'mass'},
-                       lower=0, upper=1, ref=0.1,
+                       lower=0.001, upper=1, ref=0.1,
                        opt=True)
     traj.add_parameter('V_b', units='m**3', val=2e-3,
                        targets={'propelled_ascent': 'V_b'},
