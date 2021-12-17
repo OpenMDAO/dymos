@@ -40,6 +40,17 @@ jobs:
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
+            DOCS: 0
+
+          # baseline versions except with pyoptsparse but no SNOPT
+          # build docs to verify those that use pyoptsparse do not use SNOPT
+          - PY: 3.8
+            NUMPY: 1.18
+            SCIPY: 1.4
+            PETSc: 3.12
+            MBI: 1
+            OPENMDAO: 'latest'
+            OPTIONAL: '[all]'
             DOCS: 1
 
           # try latest versions
@@ -273,7 +284,7 @@ jobs:
           pip install ghp-import
           cd $HOME/work/dymos
           pwd
-          ghp-import -n -p -f docs/_build/html
+          ghp-import -n -p -f docs/dymos_book/_build/html
 
   coveralls:
     name: Finish coveralls
