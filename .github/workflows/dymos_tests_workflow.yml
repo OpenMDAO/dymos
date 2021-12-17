@@ -40,7 +40,7 @@ jobs:
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
-            DOCS: 1
+            DOCS: 0
 
           # try latest versions
           - PY: 3
@@ -273,7 +273,7 @@ jobs:
           pip install ghp-import
           cd $HOME/work/dymos
           pwd
-          ghp-import -n -p -f docs/_build/html
+          ghp-import -n -p -f docs/dymos_book/_build/html
 
   coveralls:
     name: Finish coveralls
