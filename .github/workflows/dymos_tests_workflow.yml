@@ -42,6 +42,17 @@ jobs:
             OPTIONAL: '[all]'
             DOCS: 0
 
+          # baseline versions except with pyoptsparse but no SNOPT
+          # build docs to verify those that use pyoptsparse do not use SNOPT
+          - PY: 3.8
+            NUMPY: 1.18
+            SCIPY: 1.4
+            PETSc: 3.12
+            MBI: 1
+            OPENMDAO: 'latest'
+            OPTIONAL: '[all]'
+            DOCS: 1
+
           # try latest versions
           - PY: 3
             NUMPY: 1
