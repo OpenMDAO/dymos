@@ -68,7 +68,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
-        p.driver.opt_settings['print_level'] = 4
+        p.driver.opt_settings['print_level'] = 5
         p.driver.opt_settings['max_iter'] = 1000
         p.driver.opt_settings['mu_strategy'] = 'monotone'
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
