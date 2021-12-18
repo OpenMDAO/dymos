@@ -48,6 +48,7 @@ jobs:
             NUMPY: 1.18
             SCIPY: 1.4
             PETSc: 3.12
+            PYOPTSPARSE: 'v2.1.5'
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
