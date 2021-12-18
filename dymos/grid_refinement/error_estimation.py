@@ -265,12 +265,12 @@ def eval_ode_on_grid(phase, transcription):
             src_units = phase.parameter_options[rate_source]['units']
             shape = phase.parameter_options[rate_source]['shape']
             f[name] = om.convert_units(param[rate_source], src_units, rate_units)
-            f[name] = np.broadcast_to(f[name], shape + (grid_data.num_nodes,))
+            f[name] = np.broadcast_to(f[name], (grid_data.num_nodes,) + shape)
         elif rate_source_class in {'ode'}:
-            f[name] = np.atleast_2d(p_refine.get_val(f'ode.{rate_source}', units=rate_units))
+            f[name] = p_refine.get_val(f'ode.{rate_source}', units=rate_units)
 
-        if options['shape'] == (1,):
-            f[name] = f[name].T
+        if len(f[name].shape) == 1:
+            f[name] = np.reshape(f[name], newshape=(f[name].shape[0], 1))
 
     return x, u, p, f
 
