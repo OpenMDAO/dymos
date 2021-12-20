@@ -32,22 +32,22 @@ The design variable vector can be considerably larger for the implicit collocati
 
 ### Constraints
 
-For implicit collocation techqniques the constraints include:
+For implicit collocation techniques, the constraints include:
 - the defect constraints for each state at various discrete points in time throughout the trajectory
-- continuity constraints that ensure the state values remain continuous (for _multiple shooting_)
-- continuity constraints on the control values and (optionally) their rates
+- continuity constraints that ensure the state values remain continuous (for `compressed=False`)
+- continuity constraints on the control values (for `compressed=False`) and (optionally) their rates
 - any other path or boundary constraints imposed
 
-For explicit shooting techqniques the constraints include:
+For explicit shooting techniques, the constraints include:
 - continuity constraints that ensure the state values remain continuous (assuming multiple integration intervals (_multiple shooting_))
-- continuity constraints on the control values and (optionally) their rates
+- continuity constraints on the control values (for `compressed=False`) and (optionally) their rates
 - any other path or boundary constraints imposed
 
 The constraint vector can be considerably larger for implicit collocation techniques.
 Again this depends on the size of the state vector and the number of points into which the trajectory has been discretized.
 
 We should also note that for the implicit collocation techniques, the state values at the start and the end of the trajectory are design variables.
-This means that these values can be trivally _fixed_ (removed from the design variable vector) or bound using simple bounds on the corresponding design variable.
+This means that these values can be trivially _fixed_ (removed from the design variable vector) or bound using simple bounds on the corresponding design variable.
 
 **The only way to impose a constraint on the path or the final value of a state in a shooting method is with a nonlinear path or boundary constraint.**
 
@@ -67,7 +67,7 @@ Consider a finite differencing technique.
 If we know that a state value in the first integration segment of a trajectory only impacts that segment, and there are 100 segments, then we can simultaneously perturb a state value in each of the 100 segments and compare the resulting defect vector to the nominal defect value to compute the sensitivity via finite difference.
 This is a massive performance gain that's not possible with a single shooting technique, though multiple shooting can help this.
 
-Second, some optimizers can capitalize on the sparsity of jacibian matrices to provide significantly improved performance vs those which operate only on dense matrices.
+Second, some optimizers can capitalize on the sparsity of jacobian matrices to provide significantly improved performance vs those which operate only on dense matrices.
 
 Because of these factors, **collocation techniques can be orders of magnitude faster than their explicit shooting counterparts**.
 
@@ -75,7 +75,7 @@ Because of these factors, **collocation techniques can be orders of magnitude fa
 
 While faster, implicit techniques impose far more defect constraints on the problem.
 In some cases, scaling the optimization problem can be a challenge and convergence is poor.
-For instance, if the thrust of a rocket engine is taken from experimental data it can be extremely noisy.
+For instance, if the thrust of a rocket engine is taken from experimental data, it can be extremely noisy.
 Without first smoothing the data, an implicit simulation of the resulting trajectory may be difficult.
 In this case, explicit intgration methods can power through and provide _an_ answer, even if it is subject to some amount of error.
 
@@ -88,15 +88,12 @@ The equations of motion used in this problem are singular in vertical flight - t
 It is relatively easy to prescribe a profile of the angle-of-attack history (the control) that sends the aircraft into vertical flight when the integration is required to follow it.
 
 Conversely, the collocation techniques decouple the proposed control history and the trajectory.
-Rather than being goverened by the control, the flight path angle at various times throughout the trajectory is itself a design variable, and can be bound to values such that avoid the singularities.
+Rather than being governed by the control, the flight path angle at various times throughout the trajectory is itself a design variable, and can be bound to values such that avoid the singularities.
 The optimizer will then work to make the control history compatible with the corresponding state trajectory, but the two are only compatible when the defect constraints are satisfied.
 
 **Collocation techniques are generally better at avoiding singularities in the dynamics**
 
-### Examples
-
-You can find examples of how to use Dymos to solve the brachistochrone optimal control problem using these two different transcriptions [here](examples:the_brachistochrone).
-
-```python
-
-```
+The minimum-time-climb problem is also a good demonstration of this.
+The equations of motion used by the minimum-time-climb problem are singular in vertical flight.
+It's also remarkably easy to specify a control profile for alpha that would result in explicit integration taking the aircraft into vertical flight.
+When using collocation techniques, on the other hand, the flight path angle history is a design variable, and can be limited with simple bounds and thus we guarantee that the equations of motion are evaluated with the aircraft in a vertical flight.
