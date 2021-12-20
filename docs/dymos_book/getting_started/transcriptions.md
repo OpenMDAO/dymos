@@ -90,10 +90,3 @@ It is relatively easy to prescribe a profile of the angle-of-attack history (the
 Conversely, the collocation techniques decouple the proposed control history and the trajectory.
 Rather than being governed by the control, the flight path angle at various times throughout the trajectory is itself a design variable, and can be bound to values such that avoid the singularities.
 The optimizer will then work to make the control history compatible with the corresponding state trajectory, but the two are only compatible when the defect constraints are satisfied.
-
-**Collocation techniques are generally better at avoiding singularities in the dynamics**
-
-The minimum-time-climb problem is also a good demonstration of this.
-The equations of motion used by the minimum-time-climb problem are singular in vertical flight.
-It's also remarkably easy to specify a control profile for alpha that would result in explicit integration taking the aircraft into vertical flight.
-When using collocation techniques, on the other hand, the flight path angle history is a design variable, and can be limited with simple bounds and thus we guarantee that the equations of motion are evaluated with the aircraft in a vertical flight.
