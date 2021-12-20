@@ -17,15 +17,15 @@ In explicit shooting, an explicit numerical integration technique is used to pro
 
 ### Design Variables
 
-The design variables for an explicit shooting problem include:
-- the initial state (assuming it's not fixed, and assuming a single integration interval (_single shooting_))
-- the initial state in each integraiton interval (for _multiple shooting_)
-- the control values at some set of discrete points in time
-- the elapsed time of the trajectory.
-
-The design variables for a collocation problem include:
+For implicit collocation techniques, the design variables include:
 - the states at some set of points along the trajectory (the initial and final ones may not be included if they're fixed)
 - the controls at discrete points in time
+- the elapsed time of the trajectory.
+
+For explicit shooting techniques, the design variables include:
+- the initial state (assuming it's not fixed, and assuming a single integration interval (_single shooting_))
+- the initial state in each integration interval (for _multiple shooting_)
+- the control values at some set of discrete points in time
 - the elapsed time of the trajectory.
 
 The design variable vector can be considerably larger for the implicit collocation techniques, depending on the size of the state vector and the number of discrete points in time.
