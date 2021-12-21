@@ -1,5 +1,8 @@
 # Run Tests
 
+# Matrix Options
+# DOCS: 2-Build and publish, 1-build only, 0-no docs
+
 name: Dymos Tests
 
 on:
@@ -30,7 +33,7 @@ jobs:
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
-            DOCS: 1
+            DOCS: 2
 
           # baseline versions except no pyoptsparse or SNOPT
           - PY: 3.8
@@ -254,7 +257,7 @@ jobs:
           coveralls --basedir $SITE_DIR
 
       - name: Build docs
-        if: ${{ matrix.DOCS == '1' }}
+        if: ${{ matrix.DOCS == '1' || matrix.DOCS == '2' }}
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -276,7 +279,7 @@ jobs:
           done
 
       - name: Publish docs
-        if: ${{ matrix.DOCS == '1' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ matrix.DOCS == '2' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -285,7 +288,7 @@ jobs:
           pip install ghp-import
           cd $HOME/work/dymos
           pwd
-          ghp-import -n -p -f docs/dymos_book/_build/html
+          ghp-import -n -p -f dymos/docs/dymos_book/_build/html
 
   coveralls:
     name: Finish coveralls
