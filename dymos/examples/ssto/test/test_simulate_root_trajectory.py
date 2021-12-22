@@ -163,9 +163,9 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
                 nn = self.options['num_nodes']
 
                 self.add_subsystem('guidance', om.ExecComp('theta=arctan(tan_theta)',
-                                                           theta={'value': np.ones(nn),
+                                                           theta={'val': np.ones(nn),
                                                                   'units': 'rad'},
-                                                           tan_theta={'value': np.ones(nn)}))
+                                                           tan_theta={'val': np.ones(nn)}))
 
                 self.add_subsystem('eom', LaunchVehicle2DEOM(num_nodes=nn))
 

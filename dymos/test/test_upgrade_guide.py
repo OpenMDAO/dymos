@@ -682,7 +682,7 @@ class TestUpgrade_0_19_0(unittest.TestCase):
         ode = lambda num_nodes: om.ExecComp(['vdot = g * cos(theta)',
                                              'xdot = v * sin(theta)',
                                              'ydot = -v * cos(theta)'],
-                                            g={'value': 9.80665, 'units': 'm/s**2'},
+                                            g={'val': 9.80665, 'units': 'm/s**2'},
                                             v={'shape': (num_nodes,), 'units': 'm/s'},
                                             theta={'shape': (num_nodes,), 'units': 'rad'},
                                             vdot={'shape': (num_nodes,), 'units': 'm/s**2'},
