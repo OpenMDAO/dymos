@@ -286,9 +286,9 @@ jobs:
           echo "Publishing Docs"
           echo "============================================================="
           pip install ghp-import
-          cd $HOME/work/dymos
+          cd $HOME/work/dymos/dymos
           pwd
-          ghp-import -n -p -f dymos/docs/dymos_book/_build/html
+          ghp-import -n -p -f docs/dymos_book/_build/html
 
   coveralls:
     name: Finish coveralls
