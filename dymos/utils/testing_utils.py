@@ -87,8 +87,8 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
     val_err_msg = '\nThe following variables contain different values:\nvar: error'
 
     for var in sorted(set(case1_vars.keys()).intersection(case2_vars.keys())):
-        a = case1_vars[var]['value']
-        b = case2_vars[var]['value']
+        a = case1_vars[var]['val']
+        b = case2_vars[var]['val']
         if a.shape != b.shape:
             shape_errors.add(var)
             shape_err_msg += f'\n{var} has shape {a.shape} in case1 but shape {b.shape} in case2'

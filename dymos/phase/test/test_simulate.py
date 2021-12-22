@@ -26,13 +26,13 @@ class TestODE(om.Group):
     def setup(self):
         nn = self.options['num_nodes']
         self.add_subsystem('Sink',
-                           om.ExecComp('sink = chord[0]', sink={'value': 0.0, 'units': None},
-                                       chord={'value': np.zeros(4), 'units': 'm'}),
+                           om.ExecComp('sink = chord[0]', sink={'val': 0.0, 'units': None},
+                                       chord={'val': np.zeros(4), 'units': 'm'}),
                            promotes_inputs=['chord'])
 
         self.add_subsystem('calc', om.ExecComp('Out = Thrust * 2',
-                                               Out={'value': np.zeros(nn), 'units': 'N'},
-                                               Thrust={'value': np.zeros(nn), 'units': 'N'}),
+                                               Out={'val': np.zeros(nn), 'units': 'N'},
+                                               Thrust={'val': np.zeros(nn), 'units': 'N'}),
                            promotes_inputs=['Thrust'],
                            promotes_outputs=['Out'])
 
