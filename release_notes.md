@@ -1,7 +1,7 @@
 *******************************
 # Release Notes for Dymos 1.4.0
 
-January 07, 2022
+January 05, 2022
 
 This is version 1.4.0 of Dymos.
 It includes a fix for grid refinement and simulation with parameters, some minor performance improvements, and various documentation updates.
