@@ -11,7 +11,9 @@ optional_dependencies = {
         'ipython',
         'numpydoc>=0.9.1',
         'redbaron',
-        'tabulate'
+        'tabulate',
+        'jaxlib',
+        'jax'
     ],
     'notebooks': [
         'notebook',
