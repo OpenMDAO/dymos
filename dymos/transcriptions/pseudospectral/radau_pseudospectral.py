@@ -9,7 +9,7 @@ from openmdao.utils.general_utils import simple_warning
 from .pseudospectral_base import PseudospectralBase
 from ..common import RadauPSContinuityComp
 from ...utils.misc import get_rate_units, _unspecified
-from ...utils.introspection import get_targets, get_source_metadata, get_target_metadata
+from ...utils.introspection import get_targets, get_source_metadata, get_targets_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 
@@ -47,6 +47,10 @@ class Radau(PseudospectralBase):
         """
         Configure the inputs/outputs on the time component.
 
+        This method assumes that target introspection has already been performed by the phase and thus
+        options['targets'], options['time_phase_targets'], options['t_initial_targets'],
+        and options['t_duration_targets'] are all correctly populated.
+
         Parameters
         ----------
         phase : dymos.Phase
@@ -57,23 +61,22 @@ class Radau(PseudospectralBase):
         ode = phase._get_subsystem(self._rhs_source)
 
         # The tuples here are (name, user_specified_targets, dynamic)
-        for name, usr_tgts, dynamic in [('time', options['targets'], True),
+        for name, targets, dynamic in [('time', options['targets'], True),
                                         ('time_phase', options['time_phase_targets'], True)]:
-            targets = get_targets(ode, name=name, user_targets=usr_tgts)
+            # targets = get_targets(ode, name=name, user_targets=usr_tgts)
             if targets:
                 src_idxs = self.grid_data.subset_node_indices['all'] if dynamic else None
                 phase.connect(name, [f'rhs_all.{t}' for t in targets], src_indices=src_idxs,
                               flat_src_indices=True if dynamic else None)
 
-        for name, usr_tgts, dynamic in [('t_initial', options['t_initial_targets'], False),
-                                        ('t_duration', options['t_duration_targets'], False)]:
+        ode_inputs = ode
 
-            targets = get_targets(ode, name=name, user_targets=usr_tgts)
-
-            shape, units, static_target = get_target_metadata(ode, name=name,
-                                                              user_targets=targets,
-                                                              user_units=options['units'],
-                                                              user_shape=(1,))
+        for name, targets in [('t_initial', options['t_initial_targets']),
+                              ('t_duration', options['t_duration_targets'])]:
+            targets, shape, units, static_target, ode_inputs = get_targets_metadata(ode_inputs, name=name,
+                                                                                    user_targets=targets,
+                                                                                    user_units=options['units'],
+                                                                                    user_shape=(1,))
 
             if shape == (1,):
                 src_idxs = None

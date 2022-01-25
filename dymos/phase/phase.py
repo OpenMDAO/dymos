@@ -1493,30 +1493,44 @@ class Phase(om.Group):
         transcription = self.options['transcription']
         ode = transcription._get_ode(self)
 
+        print('PHASE CONFIGURE CALLED')
+
         configure_time_introspection(self.time_options, ode)
+        print(1)
         transcription.configure_time(self)
+        print(2)
 
         # The control interpolation comp to which we'll connect controls
+        print('CONFIGURE CONTROLS')
         if self.control_options:
             configure_controls_introspection(self.control_options, ode,
                                              time_units=self.time_options['units'])
             transcription.configure_controls(self)
+
+        print('CONFIGURE POLYNOMIAL CONTROLS')
 
         if self.polynomial_control_options:
             configure_controls_introspection(self.polynomial_control_options, ode,
                                              time_units=self.time_options['units'])
             transcription.configure_polynomial_controls(self)
 
+        print('CONFIGURE PARAMETERS')
         if self.parameter_options:
             configure_parameters_introspection(self.parameter_options, ode)
             transcription.configure_parameters(self)
 
+        print('STATE DISCOVERY')
         self.configure_state_discovery()
+        print('CONFIGURE STATES')
         configure_states_introspection(self.state_options, self.time_options, self.control_options,
                                        self.parameter_options, self.polynomial_control_options,
                                        ode)
         transcription.configure_states(self)
+
+        print('CONFIGURE ODE')
         transcription.configure_ode(self)
+
+        print('CONFIGURE DEFECTS')
         transcription.configure_defects(self)
 
         transcription.configure_boundary_constraints('initial', self)
