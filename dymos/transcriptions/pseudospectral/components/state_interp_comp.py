@@ -81,35 +81,33 @@ class StateInterpComp(om.ExplicitComponent):
             rate_units = get_rate_units(units, time_units)
 
             self.add_input(
-                name='state_disc:{0}'.format(state_name),
+                name=f'state_disc:{state_name}',
                 shape=(num_disc_nodes,) + shape,
-                desc='Values of state {0} at discretization nodes'.format(state_name),
+                desc=f'Values of state {state_name} at discretization nodes',
                 units=units)
 
             if transcription == 'gauss-lobatto':
                 self.add_input(
-                    name='staterate_disc:{0}'.format(state_name),
+                    name=f'staterate_disc:{state_name}',
                     shape=(num_disc_nodes,) + shape,
                     units=rate_units,
-                    desc='EOM time derivative of state {0} at '
-                         'discretization nodes'.format(state_name))
+                    desc='EOM time derivative of state {state_name} at discretization nodes')
 
                 self.add_output(
-                    name='state_col:{0}'.format(state_name),
+                    name=f'state_col:{state_name}',
                     shape=(num_col_nodes,) + shape, units=units,
-                    desc='Interpolated values of state {0} at '
-                         'collocation nodes'.format(state_name))
+                    desc=f'Interpolated values of state {state_name} at collocation nodes')
 
             self.add_output(
                 name='staterate_col:{0}'.format(state_name),
                 shape=(num_col_nodes,) + shape,
                 units=rate_units,
-                desc='Interpolated rate of state {0} at collocation nodes'.format(state_name))
+                desc=f'Interpolated rate of state {state_name} at collocation nodes')
 
-            self.xd_str[state_name] = 'state_disc:{0}'.format(state_name)
-            self.fd_str[state_name] = 'staterate_disc:{0}'.format(state_name)
-            self.xc_str[state_name] = 'state_col:{0}'.format(state_name)
-            self.xdotc_str[state_name] = 'staterate_col:{0}'.format(state_name)
+            self.xd_str[state_name] = f'state_disc:{state_name}'
+            self.fd_str[state_name] = f'staterate_disc:{state_name}'
+            self.xc_str[state_name] = f'state_col:{state_name}'
+            self.xdotc_str[state_name] = f'staterate_col:{state_name}'
 
         if transcription == 'gauss-lobatto':
             Ai, Bi, Ad, Bd = self.options['grid_data'].phase_hermite_matrices('state_disc', 'col', sparse=True)
@@ -125,8 +123,6 @@ class StateInterpComp(om.ExplicitComponent):
         self.matrices = {'Ai': Ai, 'Bi': Bi, 'Ad': Ad, 'Bd': Bd}
         self.jacs = {'Ai': {}, 'Bi': {}, 'Ad': {}, 'Bd': {}}
         self.sizes = {}
-        # self.num_col_nodes = num_col_nodes
-        # self.num_disc_nodes = num_disc_nodes
 
         for name, options in state_options.items():
             shape = options['shape']

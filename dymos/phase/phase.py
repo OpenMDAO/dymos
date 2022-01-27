@@ -18,7 +18,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.introspection import configure_time_introspection, configure_controls_introspection, \
-    configure_parameters_introspection, configure_states_introspection, classify_var
+    configure_parameters_introspection, configure_states_introspection, classify_var, get_promoted_vars
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
 
@@ -1105,7 +1105,7 @@ class Phase(om.Group):
         if var_type == 'ode':
             self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
-    def add_timeseries_output(self, name, output_name=None, units=None, shape=None,
+    def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                               timeseries='timeseries'):
         r"""
         Add a variable to the timeseries outputs of the phase.
@@ -1120,12 +1120,12 @@ class Phase(om.Group):
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
             override the constraint name if splitting the path causes name collisions.
-        units : str or None
+        units : str or None or _unspecified
             The units to express the timeseries output.  If None, use the
             units associated with the target.  If provided, must be compatible with
             the target units.
             If a list of names is provided, units can be a matching list or dictionary.
-        shape : tuple
+        shape : tuple or _unspecified
             The shape of the timeseries output variable.  This must be provided (if not scalar)
             since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
         timeseries : str or None
@@ -1155,7 +1155,7 @@ class Phase(om.Group):
                                         shape=shape,
                                         timeseries=timeseries)
 
-    def _add_timeseries_output(self, name, output_name=None, units=None, shape=None,
+    def _add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                                timeseries='timeseries'):
         r"""
         Add a single variable to the timeseries outputs of the phase.
@@ -1186,7 +1186,7 @@ class Phase(om.Group):
             output_name = name.split('.')[-1]
 
         if timeseries not in self._timeseries:
-            raise ValueError('Timeseries {0} does not exist in phase {1}'.format(timeseries, self.pathname))
+            raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
         if name not in self._timeseries[timeseries]['outputs']:
             self._timeseries[timeseries]['outputs'][name] = {}
@@ -1455,10 +1455,26 @@ class Phase(om.Group):
         elif not issubclass(ode_class, System):
             raise ValueError('If given as a class, ode_class must be derived from openmdao.core.System.')
 
+    def _set_options_readonly(self, readonly=True):
+        """
+        Sets all the OptionsDictionary options as read-only to prevent changes, or as not read-only to allow introspection.
+
+        Parameters
+        ----------
+        readonly : bool
+            If True, make all Phase-associated options dictionaries read-only.
+        """
+        self.time_options._read_only = readonly
+
+        for d in self.state_options, self.control_options, self.polynomial_control_options, self.parameter_options:
+            for v in d.values():
+                v._read_only = readonly
+
     def setup(self):
         """
         Build the model hierarchy for a Dymos phase.
         """
+        # self._set_options_readonly(False)
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']
@@ -1493,51 +1509,47 @@ class Phase(om.Group):
         transcription = self.options['transcription']
         ode = transcription._get_ode(self)
 
-        print('PHASE CONFIGURE CALLED')
-
         configure_time_introspection(self.time_options, ode)
-        print(1)
-        transcription.configure_time(self)
-        print(2)
 
         # The control interpolation comp to which we'll connect controls
-        print('CONFIGURE CONTROLS')
         if self.control_options:
             configure_controls_introspection(self.control_options, ode,
                                              time_units=self.time_options['units'])
-            transcription.configure_controls(self)
-
-        print('CONFIGURE POLYNOMIAL CONTROLS')
 
         if self.polynomial_control_options:
             configure_controls_introspection(self.polynomial_control_options, ode,
                                              time_units=self.time_options['units'])
-            transcription.configure_polynomial_controls(self)
 
-        print('CONFIGURE PARAMETERS')
         if self.parameter_options:
             configure_parameters_introspection(self.parameter_options, ode)
-            transcription.configure_parameters(self)
 
-        print('STATE DISCOVERY')
         self.configure_state_discovery()
-        print('CONFIGURE STATES')
         configure_states_introspection(self.state_options, self.time_options, self.control_options,
                                        self.parameter_options, self.polynomial_control_options,
                                        ode)
+
+        # self._set_options_readonly(True)
+
+        transcription.configure_time(self)
+        transcription.configure_controls(self)
+        transcription.configure_polynomial_controls(self)
+        transcription.configure_parameters(self)
         transcription.configure_states(self)
 
-        print('CONFIGURE ODE')
         transcription.configure_ode(self)
 
-        print('CONFIGURE DEFECTS')
         transcription.configure_defects(self)
 
         transcription.configure_boundary_constraints('initial', self)
+
         transcription.configure_boundary_constraints('final', self)
+
         transcription.configure_path_constraints(self)
+
         transcription.configure_objective(self)
+
         transcription.configure_timeseries_outputs(self)
+
         transcription.configure_solvers(self)
 
     def configure_state_discovery(self):
@@ -1546,9 +1558,7 @@ class Phase(om.Group):
         """
         transcription = self.options['transcription']
         state_options = self.state_options
-        ode = transcription._get_ode(self)
-        out_meta = ode.get_io_metadata(iotypes='output', metadata_keys=['tags'],
-                                       get_remote=True)
+        out_meta = get_promoted_vars(transcription._get_ode(self), 'output')
 
         for name, meta in out_meta.items():
             tags = meta['tags']

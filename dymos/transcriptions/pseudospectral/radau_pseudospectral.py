@@ -9,7 +9,7 @@ from openmdao.utils.general_utils import simple_warning
 from .pseudospectral_base import PseudospectralBase
 from ..common import RadauPSContinuityComp
 from ...utils.misc import get_rate_units, _unspecified
-from ...utils.introspection import get_targets, get_source_metadata, get_targets_metadata
+from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata, get_targets_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 
@@ -59,6 +59,7 @@ class Radau(PseudospectralBase):
         super(Radau, self).configure_time(phase)
         options = phase.time_options
         ode = phase._get_subsystem(self._rhs_source)
+        ode_inputs = get_promoted_vars(ode, iotypes='input')
 
         # The tuples here are (name, user_specified_targets, dynamic)
         for name, targets, dynamic in [('time', options['targets'], True),
@@ -69,14 +70,13 @@ class Radau(PseudospectralBase):
                 phase.connect(name, [f'rhs_all.{t}' for t in targets], src_indices=src_idxs,
                               flat_src_indices=True if dynamic else None)
 
-        ode_inputs = ode
-
         for name, targets in [('t_initial', options['t_initial_targets']),
                               ('t_duration', options['t_duration_targets'])]:
-            targets, shape, units, static_target, ode_inputs = get_targets_metadata(ode_inputs, name=name,
-                                                                                    user_targets=targets,
-                                                                                    user_units=options['units'],
-                                                                                    user_shape=(1,))
+            targets, shape, units, static_target = get_targets_metadata(ode_inputs,
+                                                                        name=name,
+                                                                        user_targets=targets,
+                                                                        user_units=options['units'],
+                                                                        user_shape=(1,))
 
             if shape == (1,):
                 src_idxs = None
@@ -106,25 +106,17 @@ class Radau(PseudospectralBase):
         """
         super(Radau, self).configure_controls(phase)
 
-        if phase.control_options:
-            for name, options in phase.control_options.items():
-                targets = get_targets(ode=phase.rhs_all, name=name,
-                                      user_targets=options['targets'], control_rates=False)
-                if targets:
-                    phase.connect(f'control_values:{name}',
-                                  [f'rhs_all.{t}' for t in targets])
+        for name, options in phase.control_options.items():
+            if options['targets']:
+                phase.connect(f'control_values:{name}', [f'rhs_all.{t}' for t in options['targets']])
 
-                targets = get_targets(ode=phase.rhs_all, name=f'{name}_rate',
-                                      user_targets=options['rate_targets'], control_rates=1)
-                if targets:
-                    phase.connect(f'control_rates:{name}_rate',
-                                  [f'rhs_all.{t}' for t in targets])
+            if options['rate_targets']:
+                phase.connect(f'control_rates:{name}_rate',
+                              [f'rhs_all.{t}' for t in options['rate_targets']])
 
-                targets = get_targets(ode=phase.rhs_all, name=f'{name}_rate2',
-                                      user_targets=options['rate2_targets'], control_rates=2)
-                if targets:
-                    phase.connect(f'control_rates:{name}_rate2',
-                                  [f'rhs_all.{t}' for t in targets])
+            if options['rate2_targets']:
+                phase.connect(f'control_rates:{name}_rate2',
+                              [f'rhs_all.{t}' for t in options['rate2_targets']])
 
     def configure_polynomial_controls(self, phase):
         """
@@ -137,8 +129,10 @@ class Radau(PseudospectralBase):
         """
         super(Radau, self).configure_polynomial_controls(phase)
 
+        ode_inputs = get_promoted_vars(self._get_ode(phase), 'input')
+
         for name, options in phase.polynomial_control_options.items():
-            targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
+            targets = get_targets(ode=ode_inputs, name=name, user_targets=options['targets'])
             if targets:
                 phase.connect(f'polynomial_control_values:{name}',
                               [f'rhs_all.{t}' for t in targets])
@@ -187,13 +181,14 @@ class Radau(PseudospectralBase):
 
         grid_data = self.grid_data
         map_input_indices_to_disc = grid_data.input_maps['state_input_to_disc']
+        ode_inputs = get_promoted_vars(phase.rhs_all, 'input')
 
         for name, options in phase.state_options.items():
 
-            targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
+            targets = get_targets(ode_inputs, name=name, user_targets=options['targets'])
             if targets:
-                phase.connect('states:{0}'.format(name),
-                              ['rhs_all.{0}'.format(tgt) for tgt in targets],
+                phase.connect(f'states:{name}',
+                              [f'rhs_all.{tgt}' for tgt in targets],
                               src_indices=om.slicer[map_input_indices_to_disc, ...])
 
     def setup_defects(self, phase):
@@ -350,6 +345,8 @@ class Radau(PseudospectralBase):
         """
         gd = self.grid_data
         time_units = phase.time_options['units']
+
+        ode_outputs = get_promoted_vars(phase.rhs_all, iotypes='output')
 
         for timeseries_name in phase._timeseries:
             timeseries_comp = phase._get_subsystem(timeseries_name)
@@ -521,12 +518,10 @@ class Radau(PseudospectralBase):
 
             for var, options in phase._timeseries[timeseries_name]['outputs'].items():
                 output_name = options['output_name']
-                units = options.get('units', None)
-                wildcard_units = options.get('wildcard_units', None)
+                units = options['units']
+                wildcard_units = options['wildcard_units']
 
                 if '*' in var:  # match outputs from the ODE
-                    ode_outputs = {opts['prom_name']: opts for (k, opts) in
-                                   phase.rhs_all.get_io_metadata(iotypes=('output',)).items()}
                     matches = filter(list(ode_outputs.keys()), var)
 
                     # A nested ODE can have multiple outputs at different levels that share
@@ -570,15 +565,13 @@ class Radau(PseudospectralBase):
                         continue
 
                     # If the full shape does not start with num_nodes, skip this variable.
-                    if self.is_static_ode_output(v, phase, gd.subset_num_nodes['all']):
+                    if self.is_static_ode_output(v, ode_outputs, gd.subset_num_nodes['all']):
                         warnings.warn(f'Cannot add ODE output {v} to the timeseries output. It is '
                                       f'sized such that its first dimension != num_nodes.')
                         continue
 
                     try:
-                        shape, units = get_source_metadata(phase.rhs_all, src=v,
-                                                           user_units=units,
-                                                           user_shape=options['shape'])
+                        shape, units = get_source_metadata(ode_outputs, src=v,  user_units=units, user_shape=options['shape'])
                     except ValueError:
                         raise ValueError(f'Timeseries output {v} is not a known variable in'
                                          f' the phase {phase.pathname} nor is it a known output of '
@@ -712,22 +705,17 @@ class Radau(PseudospectralBase):
 
         if name in phase.parameter_options:
             options = phase.parameter_options[name]
-            targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
-
-            static = options['static_target']
-            shape = options['shape']
-
-            if not static:
+            if not options['static_target']:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
-                if shape == (1,):
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                if options['shape'] == (1,):
                     src_idxs = src_idxs.ravel()
             else:
                 src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
                 src_idxs = np.squeeze(src_idxs, axis=0)
 
-            rhs_all_tgts = [f'rhs_all.{t}' for t in targets]
+            rhs_all_tgts = [f'rhs_all.{t}' for t in options['targets']]
             connection_info.append((rhs_all_tgts, (src_idxs,)))
 
         return connection_info

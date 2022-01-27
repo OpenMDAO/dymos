@@ -595,3 +595,35 @@ class SimulateOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='max_step', types=float, default=np.inf,
                      desc='Maximum allowable step size')
+
+
+class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
+    """
+    An OptionsDictionary for timeseries outputs.
+
+    Parameters
+    ----------
+    read_only : bool
+        If True, setting (via __setitem__ or update) is not permitted.
+    """
+    def __init__(self, read_only=False):
+        super().__init__(read_only)
+
+        self.declare('output_name', allow_none=False,
+                     default=_unspecified, desc='The name of this variable in the timeseries, used for disambiguation.')
+
+        self.declare('units', allow_none=True,
+                     default=_unspecified, desc='Units for the timeseries output')
+
+        self.declare('wildcard_units', types=dict, allow_none=False,
+                     default={}, desc='A mapping of all possible units found when creating '
+                                      'timeseries outputs via glob patterns.')
+
+        self.declare(name='shape', allow_none=True, default=_unspecified,
+                     desc='shape of the state variable, as determined by introspection')
+
+        self.declare('source', allow_none=True,
+                     default=_unspecified, desc='Units for the timeseries output')
+
+        self.declare('timeseries', types=Iterable, default=['timeseries'],
+                     desc='The timeseries in which this output is listed.')
