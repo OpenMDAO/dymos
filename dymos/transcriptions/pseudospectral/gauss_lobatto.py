@@ -9,7 +9,7 @@ from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
 from ..common import GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units
-from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata, get_targets_metadata
+from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData, make_subset_map
 from fnmatch import filter
@@ -72,25 +72,21 @@ class GaussLobatto(PseudospectralBase):
                               [f'rhs_disc.{t}' for t in targets],
                               src_indices=disc_src_idxs, flat_src_indices=True)
 
-        for name, usr_tgts in [('t_initial', options['t_initial_targets']),
-                               ('t_duration', options['t_duration_targets'])]:
-            targets, shape, units, static_target = get_targets_metadata(ode_inputs, name=name,
-                                                                        user_targets=usr_tgts,
-                                                                        user_units=options['units'],
-                                                                        user_shape=(1,))
-
-            if shape == (1,):
-                disc_src_idxs = None
-                col_src_idxs = None
-                flat_src_idxs = None
-                src_shape = None
-            else:
-                disc_src_idxs = self.grid_data.subset_node_indices['state_disc']
-                col_src_idxs = self.grid_data.subset_node_indices['col']
-                flat_src_idxs = True
-                src_shape = (1,)
-
+        for name, targets in [('t_initial', options['t_initial_targets']),
+                              ('t_duration', options['t_duration_targets'])]:
             for t in targets:
+                shape = ode_inputs[t]['shape']
+                if shape == (1,):
+                    disc_src_idxs = None
+                    col_src_idxs = None
+                    flat_src_idxs = None
+                    src_shape = None
+                else:
+                    disc_src_idxs = self.grid_data.subset_node_indices['state_disc']
+                    col_src_idxs = self.grid_data.subset_node_indices['col']
+                    flat_src_idxs = True
+                    src_shape = (1,)
+
                 phase.promotes('rhs_disc', inputs=[(t, name)], src_indices=disc_src_idxs,
                                flat_src_indices=flat_src_idxs, src_shape=src_shape)
                 phase.promotes('rhs_col', inputs=[(t, name)], src_indices=col_src_idxs,

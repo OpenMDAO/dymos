@@ -251,12 +251,12 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
     ode_inputs = get_promoted_vars(ode, iotypes='input')
     for name, options in control_options.items():
 
-        targets, shape, units, static_target = get_targets_metadata(ode_inputs,
-                                                                    name=name,
-                                                                    user_targets=options['targets'],
-                                                                    user_units=options['units'],
-                                                                    user_shape=options['shape'],
-                                                                    control_rate=False)
+        targets, shape, units, static_target = _get_targets_metadata(ode_inputs,
+                                                                     name=name,
+                                                                     user_targets=options['targets'],
+                                                                     user_units=options['units'],
+                                                                     user_shape=options['shape'],
+                                                                     control_rate=False)
         options['targets'] = targets
         if targets:
             options['units'] = units
@@ -267,12 +267,12 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
                              f"or more targets are tagged with 'dymos.static_target'.")
 
         # Now check rate targets
-        rate_targets, shape, units, static_target = get_targets_metadata(ode_inputs,
-                                                                         name=name,
-                                                                         user_targets=options['rate_targets'],
-                                                                         user_units=options['units'],
-                                                                         user_shape=options['shape'],
-                                                                         control_rate=1)
+        rate_targets, shape, units, static_target = _get_targets_metadata(ode_inputs,
+                                                                          name=name,
+                                                                          user_targets=options['rate_targets'],
+                                                                          user_units=options['units'],
+                                                                          user_shape=options['shape'],
+                                                                          control_rate=1)
         options['rate_targets'] = rate_targets
         if options['units'] is _unspecified:
             options['units'] = time_units if units is None else f'{units}*{time_units}'
@@ -282,12 +282,12 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
                              f"because one or more targets are tagged with 'dymos.static_target'.")
 
         # Now check rate2 targets
-        rate2_targets, shape, units, static_target = get_targets_metadata(ode_inputs,
-                                                                          name=name,
-                                                                          user_targets=options['rate2_targets'],
-                                                                          user_units=options['units'],
-                                                                          user_shape=options['shape'],
-                                                                          control_rate=2)
+        rate2_targets, shape, units, static_target = _get_targets_metadata(ode_inputs,
+                                                                           name=name,
+                                                                           user_targets=options['rate2_targets'],
+                                                                           user_units=options['units'],
+                                                                           user_shape=options['shape'],
+                                                                           control_rate=2)
         options['rate2_targets'] = rate2_targets
         if options['units'] is _unspecified:
             options['units'] = time_units if units is None else f'{units}*{time_units}**2'
@@ -312,11 +312,11 @@ def configure_parameters_introspection(parameter_options, ode):
     ode_inputs = get_promoted_vars(ode, iotypes='input')
 
     for name, options in parameter_options.items():
-        targets, shape, units, static_target = get_targets_metadata(ode_inputs, name=name,
-                                                                    user_targets=options['targets'],
-                                                                    user_units=options['units'],
-                                                                    user_shape=options['shape'],
-                                                                    user_static_target=options['static_target'])
+        targets, shape, units, static_target = _get_targets_metadata(ode_inputs, name=name,
+                                                                     user_targets=options['targets'],
+                                                                     user_units=options['units'],
+                                                                     user_shape=options['shape'],
+                                                                     user_static_target=options['static_target'])
         options['targets'] = targets
         options['units'] = units
         options['shape'] = shape
@@ -343,11 +343,11 @@ def configure_time_introspection(time_options, ode):
     """
     ode_inputs = get_promoted_vars(ode, 'input')
     # time
-    targets, shape, units, static_target = get_targets_metadata(ode_inputs,
-                                                                name='time',
-                                                                user_targets=time_options['targets'],
-                                                                user_units=time_options['units'],
-                                                                user_shape=(1,))
+    targets, shape, units, static_target = _get_targets_metadata(ode_inputs,
+                                                                 name='time',
+                                                                 user_targets=time_options['targets'],
+                                                                 user_units=time_options['units'],
+                                                                 user_shape=(1,))
 
     time_options['targets'] = targets
     time_options['units'] = units
@@ -357,11 +357,11 @@ def configure_time_introspection(time_options, ode):
                          f"or more targets are tagged with 'dymos.static_target'.")
 
     # time_phase
-    targets, shape, units, static_target = get_targets_metadata(ode_inputs,
-                                                                name='time_phase',
-                                                                user_targets=time_options['time_phase_targets'],
-                                                                user_units=time_options['units'],
-                                                                user_shape=(1,))
+    targets, shape, units, static_target = _get_targets_metadata(ode_inputs,
+                                                                 name='time_phase',
+                                                                 user_targets=time_options['time_phase_targets'],
+                                                                 user_units=time_options['units'],
+                                                                 user_shape=(1,))
 
     time_options['time_phase_targets'] = targets
 
@@ -418,11 +418,11 @@ def configure_states_introspection(state_options, time_options, control_options,
 
     for state_name, options in state_options.items():
         # Automatically determine targets of state if left _unspecified
-        targets, tgt_shape, tgt_units, static_target = get_targets_metadata(ode_inputs,
-                                                                            state_name,
-                                                                            user_targets=options['targets'],
-                                                                            user_units=options['units'],
-                                                                            user_shape=options['shape'])
+        targets, tgt_shape, tgt_units, static_target = _get_targets_metadata(ode_inputs,
+                                                                             state_name,
+                                                                             user_targets=options['targets'],
+                                                                             user_units=options['units'],
+                                                                             user_shape=options['shape'])
 
         options['targets'] = targets
         if targets:
@@ -703,8 +703,8 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
     return shape, units, static_target
 
 
-def get_targets_metadata(ode, name, user_targets=_unspecified, user_units=_unspecified,
-                         user_shape=_unspecified, control_rate=False, user_static_target=_unspecified):
+def _get_targets_metadata(ode, name, user_targets=_unspecified, user_units=_unspecified,
+                          user_shape=_unspecified, control_rate=False, user_static_target=_unspecified):
     """
     Return the targets of a variable in a given ODE system and their metadata.
 
@@ -719,7 +719,7 @@ def get_targets_metadata(ode, name, user_targets=_unspecified, user_units=_unspe
     ----------
     ode : om.System or dict
         The OpenMDAO system which serves as the ODE for dymos, or a dictionary of the ODE inputs and their metadata
-        from a previous call to get_targets_metadata. If given as the ODE system, it should already have had its setup
+        from a previous call to _get_targets_metadata. If given as the ODE system, it should already have had its setup
         and configure methods called.
     name : str
         The name of the variable whose targets are desired.
