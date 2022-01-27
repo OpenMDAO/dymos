@@ -251,7 +251,6 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
     ode_inputs = get_promoted_vars(ode, iotypes='input')
     for name, options in control_options.items():
 
-        # if options['targets']:
         targets, shape, units, static_target = get_targets_metadata(ode_inputs,
                                                                     name=name,
                                                                     user_targets=options['targets'],
