@@ -129,14 +129,14 @@ class SolveIVP(TranscriptionBase):
 
         # The tuples here are (name, user_specified_targets, dynamic)
         for name, targets, dynamic in [('time', options['targets'], True),
-                                        ('time_phase', options['time_phase_targets'], True)]:
+                                       ('time_phase', options['time_phase_targets'], True)]:
 
             # targets = get_targets(phase.ode, name=name, user_targets=usr_tgts)
             if targets:
                 phase.connect(name, [f'ode.{t}' for t in targets])
 
         for name, targets, dynamic in [('t_initial', options['t_initial_targets'], False),
-                                        ('t_duration', options['t_duration_targets'], False)]:
+                                       ('t_duration', options['t_duration_targets'], False)]:
 
             shape, units, static_target = get_target_metadata(ode, name=name,
                                                               user_targets=targets,

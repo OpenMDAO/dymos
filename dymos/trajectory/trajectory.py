@@ -357,13 +357,14 @@ class Trajectory(om.Group):
 
     def _configure_phase_options_dicts(self):
         """
-        Called during configure if we are under MPI. Loops over all phases and broacasts the shape
+        Called during configure if we are under MPI. Loops over all phases and broadcasts the shape
         and units options to all procs for all dymos variables.
         """
         for name, phase in self._phases.items():
             all_dicts = [phase.state_options, phase.control_options, phase.parameter_options,
                          phase.polynomial_control_options]
 
+            phase._set_options_readonly(False)
             for opt_dict in all_dicts:
                 for options in opt_dict.values():
 
@@ -382,6 +383,7 @@ class Trajectory(om.Group):
                             break
                     else:
                         raise RuntimeError('Unexpectedly found no valid units.')
+            phase._set_options_readonly(True)
 
     def _update_linkage_options_configure(self, linkage_options):
         """
@@ -585,8 +587,7 @@ class Trajectory(om.Group):
     def _configure_linkages(self):
         connected_linkage_inputs = []
 
-
-        def print_on_rank(rank, *args, **kwargs):
+        def _print_on_rank(rank=0, *args, **kwargs):
             if self.comm.rank == rank:
                 print(*args, **kwargs)
 
@@ -612,7 +613,7 @@ class Trajectory(om.Group):
         # expand it out.
         self._expand_star_linkage_configure()
 
-        print_on_rank(0, f'--- Linkage Report [{self.pathname}] ---')
+        _print_on_rank(f'--- Linkage Report [{self.pathname}] ---')
 
         indent = '    '
 
@@ -620,7 +621,7 @@ class Trajectory(om.Group):
 
         for phase_pair, var_dict in self._linkages.items():
             phase_name_a, phase_name_b = phase_pair
-            print_on_rank(0, f'{indent}--- {phase_name_a} - {phase_name_b} ---')
+            _print_on_rank(f'{indent}--- {phase_name_a} - {phase_name_b} ---')
 
             phase_a = self._get_subsystem(f'phases.{phase_name_a}')
             phase_b = self._get_subsystem(f'phases.{phase_name_b}')
@@ -689,8 +690,8 @@ class Trajectory(om.Group):
                               f'state in the phase.\nEither remove the linkage or specify ' \
                               f'`connected=False` to enforce it via an optimization constraint.'
                         raise om.OpenMDAOWarning(msg)
-                    print_on_rank(0, f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ->  '
-                                  f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
+                    _print_on_rank(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ->  '
+                                   f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
                 else:
                     is_valid, msg = self._is_valid_linkage(phase_name_a, phase_name_b,
                                                            loc_a, loc_b, var_a, var_b)
@@ -712,10 +713,10 @@ class Trajectory(om.Group):
                                      src_indices=om.slicer[[0, -1], ...])
                         connected_linkage_inputs.append(options._input_b)
 
-                    print_on_rank(0, f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ==  '
-                                  f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
+                    _print_on_rank(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ==  '
+                                   f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
 
-        print_on_rank(0, '\n* : This quantity is fixed or is an input.\n')
+        _print_on_rank('\n* : This quantity is fixed or is an input.\n')
 
     def configure(self):
         """
@@ -944,8 +945,6 @@ class Trajectory(om.Group):
     def _constraint_report(self, outstream=sys.stdout):
         if self.options['sim_mode']:
             return
-
-
 
         float_fmt = '6.4e'
         print(f'\n--- Constraint Report [{self.pathname}] ---')

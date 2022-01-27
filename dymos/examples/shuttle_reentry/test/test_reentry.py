@@ -28,7 +28,8 @@ class TestReentry(unittest.TestCase):
             p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
             p.driver.opt_settings['print_level'] = 5
             p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
-            p.driver.opt_settings['mu_strategy'] = 'monotone'
+            p.driver.opt_settings['tol'] = 1.0E-5
+            p.driver.opt_settings['mu_strategy'] = 'adaptive'
 
         traj = p.model.add_subsystem('traj', Trajectory())
         phase0 = traj.add_phase('phase0',

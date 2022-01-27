@@ -63,7 +63,7 @@ class Radau(PseudospectralBase):
 
         # The tuples here are (name, user_specified_targets, dynamic)
         for name, targets, dynamic in [('time', options['targets'], True),
-                                        ('time_phase', options['time_phase_targets'], True)]:
+                                       ('time_phase', options['time_phase_targets'], True)]:
             # targets = get_targets(ode, name=name, user_targets=usr_tgts)
             if targets:
                 src_idxs = self.grid_data.subset_node_indices['all'] if dynamic else None

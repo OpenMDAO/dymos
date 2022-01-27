@@ -320,10 +320,6 @@ class PseudospectralBase(TranscriptionBase):
         num_state_input_nodes = self.grid_data.subset_num_nodes['state_input']
         compressed = self.options['compressed']
 
-        # Transcription solve_segments overrides state solve_segments if its not set
-        if options['solve_segments'] is None:
-            options['solve_segments'] = self.options['solve_segments']
-
         # Sanity-checks for solve segments
         # If solve_segments is used at all, we cannot fix the state at both ends of the phase.
         if options['solve_segments']:

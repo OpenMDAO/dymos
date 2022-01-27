@@ -1474,7 +1474,7 @@ class Phase(om.Group):
         """
         Build the model hierarchy for a Dymos phase.
         """
-        # self._set_options_readonly(False)
+        self._set_options_readonly(False)
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']
@@ -1528,7 +1528,7 @@ class Phase(om.Group):
                                        self.parameter_options, self.polynomial_control_options,
                                        ode)
 
-        # self._set_options_readonly(True)
+        self._set_options_readonly(True)
 
         transcription.configure_time(self)
         transcription.configure_controls(self)

@@ -75,14 +75,13 @@ def get_promoted_vars(ode, iotypes):
     ----------
     ode : openmdao.core.System
         The system from which the promoted inputs or outputs are being retrieved.
-    input_or_output : str or tuple
+    iotypes : str or tuple
         One of 'input' or 'output', or a tuple of both.
 
     Returns
     -------
     dict
         A dictionary mapping the promoted names of inputs in the system to their associated metadata.
-
     """
     _iotypes = (iotypes,) if isinstance(iotypes, str) else iotypes
     return {opts['prom_name']: opts for (k, opts) in ode.get_io_metadata(iotypes=_iotypes, get_remote=True).items()}
@@ -597,7 +596,7 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
 
     Parameters
     ----------
-    ode : om.System or dict.
+    ode : om.System or dict
         The OpenMDAO system which serves as the ODE for dymos, or a dictionary of inputs as returned by
         utils.introspection.get_promoted_vars.  If a system, it should already have had its setup and configure
         methods called.
