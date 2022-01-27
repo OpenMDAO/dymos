@@ -1455,26 +1455,10 @@ class Phase(om.Group):
         elif not issubclass(ode_class, System):
             raise ValueError('If given as a class, ode_class must be derived from openmdao.core.System.')
 
-    def _set_options_readonly(self, readonly=True):
-        """
-        Sets all the OptionsDictionary options as read-only to prevent changes, or as not read-only to allow introspection.
-
-        Parameters
-        ----------
-        readonly : bool
-            If True, make all Phase-associated options dictionaries read-only.
-        """
-        self.time_options._read_only = readonly
-
-        for d in self.state_options, self.control_options, self.polynomial_control_options, self.parameter_options:
-            for v in d.values():
-                v._read_only = readonly
-
     def setup(self):
         """
         Build the model hierarchy for a Dymos phase.
         """
-        self._set_options_readonly(False)
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']
@@ -1527,8 +1511,6 @@ class Phase(om.Group):
         configure_states_introspection(self.state_options, self.time_options, self.control_options,
                                        self.parameter_options, self.polynomial_control_options,
                                        ode)
-
-        self._set_options_readonly(True)
 
         transcription.configure_time(self)
         transcription.configure_controls(self)

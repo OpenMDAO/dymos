@@ -364,7 +364,6 @@ class Trajectory(om.Group):
             all_dicts = [phase.state_options, phase.control_options, phase.parameter_options,
                          phase.polynomial_control_options]
 
-            phase._set_options_readonly(False)
             for opt_dict in all_dicts:
                 for options in opt_dict.values():
 
@@ -383,7 +382,6 @@ class Trajectory(om.Group):
                             break
                     else:
                         raise RuntimeError('Unexpectedly found no valid units.')
-            phase._set_options_readonly(True)
 
     def _update_linkage_options_configure(self, linkage_options):
         """
