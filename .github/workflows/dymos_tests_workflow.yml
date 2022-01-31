@@ -270,7 +270,7 @@ jobs:
           python copy_build_artifacts.py
 
       - name: Display doc build reports
-        if: failure() && { matrix.DOCS == '1' || matrix.DOCS == '2' } && steps.build_docs.outcome == 'failure'
+        if: failure() && (matrix.DOCS == '1' || matrix.DOCS == '2') && steps.build_docs.outcome == 'failure'
         run: |
           for f in /home/runner/work/OpenMDAO/dymos/docs/dymos_book/_build/html/reports/*; do
             echo "============================================================="
