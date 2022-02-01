@@ -948,23 +948,23 @@ class Trajectory(om.Group):
         print(f'\n--- Constraint Report [{self.pathname}] ---')
         indent = '    '
 
-        def _print_constraints(phs, outstream):
-            tx = phs.options['transcription']
+        def _print_constraints(phase, outstream):
+            tx = phase.options['transcription']
 
-            ode_outputs = get_promoted_vars(tx._get_ode(phs), 'output')
+            ode_outputs = get_promoted_vars(tx._get_ode(phase), 'output')
 
-            ds = {'initial': phs._initial_boundary_constraints,
-                  'final': phs._final_boundary_constraints,
-                  'path': phs._path_constraints}
+            ds = {'initial': phase._initial_boundary_constraints,
+                  'final': phase._final_boundary_constraints,
+                  'path': phase._path_constraints}
 
             if not (
-                    phs._initial_boundary_constraints or phs._final_boundary_constraints or phs._path_constraints):
+                    phase._initial_boundary_constraints or phase._final_boundary_constraints or phase._path_constraints):
                 print(f'{2 * indent}None', file=outstream)
 
             for loc, d in ds.items():
                 str_loc = f'[{loc}]'
                 for expr, options in d.items():
-                    _, shape, units, linear = tx._get_boundary_constraint_src(expr, loc, phs, ode_outputs=ode_outputs)
+                    _, shape, units, linear = tx._get_boundary_constraint_src(expr, loc, phase, ode_outputs=ode_outputs)
 
                     equals = options['equals']
                     lower = options['lower']
@@ -1004,11 +1004,9 @@ class Trajectory(om.Group):
                             f'{2 * indent}{str_loc:<10s}{str_lower} {expr} {str_upper} [{str_units}]',
                             file=outstream)
 
-        for phase_name in self._phases:
+        for phase_name, phs in self._phases.items():
             print(f'{indent}--- {phase_name} ---', file=outstream)
-            phs = self._get_subsystem(f'phases.{phase_name}')
-
-            if phs in self.phases._subsystems_myproc:
+            if phs._is_local:
                 _print_constraints(phs, outstream)
 
         print('', file=outstream)

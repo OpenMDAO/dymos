@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 import fnmatch
 
 import openmdao.api as om
@@ -67,7 +68,7 @@ def classify_var(var, state_options, parameter_options, control_options, polynom
         return 'ode'
 
 
-def get_promoted_vars(ode, iotypes):
+def get_promoted_vars(ode, iotypes, metadata_keys=None, get_remote=True):
     """
     Returns a dictionary mapping the promoted names of all inputs in a system to their associated metadata.
 
@@ -77,6 +78,9 @@ def get_promoted_vars(ode, iotypes):
         The system from which the promoted inputs or outputs are being retrieved.
     iotypes : str or tuple
         One of 'input' or 'output', or a tuple of both.
+    metadata_keys : Iterable or None
+        Additional metadata requested for the variables. By default returns metadata available on 'allprocs'.  See
+        openmdao.core.System.get_io_metadata for more information.
 
     Returns
     -------
@@ -84,7 +88,8 @@ def get_promoted_vars(ode, iotypes):
         A dictionary mapping the promoted names of inputs in the system to their associated metadata.
     """
     _iotypes = (iotypes,) if isinstance(iotypes, str) else iotypes
-    return {opts['prom_name']: opts for (k, opts) in ode.get_io_metadata(iotypes=_iotypes, get_remote=True).items()}
+    return {opts['prom_name']: opts for (k, opts) in ode.get_io_metadata(iotypes=_iotypes, get_remote=get_remote,
+                                                                         metadata_keys=metadata_keys).items()}
 
 
 def get_targets(ode, name, user_targets, control_rates=False):
@@ -188,7 +193,12 @@ def get_state_target_metadata(ode, name, targets=_unspecified, user_units=_unspe
     this method should be called from configure of some parent Group, and the ODE should
     be a system within that Group.
     """
-    raise RuntimeError('foo')
+    msg = 'Introspection function get_state_target_metadata is deprecated and will be removed in a future version of ' \
+          'dymos.  State options dictionaries will contain the correct metadata after configure_states_introspection ' \
+          'is called. get_target_metadata can be used to retried metadata of individual targets.'
+
+    om.issue_warning(msg, category=om.OMDeprecationWarning)
+
     rate_src = False
     ode_inputs = {opts['prom_name']: opts for (k, opts) in
                   ode.get_io_metadata(iotypes=('input', 'output'), get_remote=True).items()}
@@ -196,7 +206,7 @@ def get_state_target_metadata(ode, name, targets=_unspecified, user_units=_unspe
     if user_units is _unspecified:
         target_units_set = {ode_inputs[tgt]['units'] for tgt in targets}
         if len(target_units_set) == 1:
-            units = next(iter(target_units_set))
+            units = target_units_set.pop()
             if rate_src:
                 units = f"{units}*s"
         else:
@@ -210,7 +220,7 @@ def get_state_target_metadata(ode, name, targets=_unspecified, user_units=_unspe
     if user_shape in {None, _unspecified}:
         target_shape_set = {ode_inputs[tgt]['shape'] for tgt in targets}
         if len(target_shape_set) == 1:
-            shape = next(iter(target_shape_set))
+            shape = target_shape_set.pop()
             if len(shape) == 1:
                 shape = (1,)
             else:
@@ -561,11 +571,7 @@ def filter_outputs(patterns, sys):
         A dictionary where the matching output names are the keys and the associated dict provides
         the 'units' and 'shapes' metadata.
     """
-    if isinstance(sys, dict):
-        outputs = sys
-    else:
-        outputs = {opts['prom_name']: opts for (k, opts) in
-                   sys.get_io_metadata(iotypes=('output',), metadata_keys=['shape', 'units']).items()}
+    outputs = sys if isinstance(sys, dict) else get_promoted_vars(sys, iotypes='output', metadata_keys=['shape', 'units'])
 
     output_names = list(outputs.keys())
     filtered = []
@@ -630,10 +636,7 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
     this method should be called from configure of some parent Group, and the ODE should
     be a system within that Group.
     """
-    if isinstance(ode, dict):
-        ode_inputs = ode
-    else:
-        ode_inputs = get_promoted_vars(ode, 'input')
+    ode_inputs = ode if isinstance(ode, dict) else get_promoted_vars(ode, iotypes='input')
 
     if user_targets is _unspecified:
         if name in ode_inputs:
@@ -754,11 +757,7 @@ def _get_targets_metadata(ode, name, user_targets=_unspecified, user_units=_unsp
     this method should be called from configure of some parent Group, and the ODE should
     be a system within that Group.
     """
-    if isinstance(ode, dict):
-        ode_inputs = ode
-    else:
-        ode_inputs = {opts['prom_name']: opts for (k, opts) in
-                      ode.get_io_metadata(iotypes=('input',), get_remote=True).items()}
+    ode_inputs = ode if isinstance(ode, dict) else get_promoted_vars(ode, iotypes='input')
 
     targets = get_targets(ode_inputs, name, user_targets=user_targets, control_rates=control_rate)
 
@@ -853,11 +852,7 @@ def get_source_metadata(ode, src, user_units, user_shape):
     this method should be called from configure of some parent Group, and the ODE should
     be a system within that Group.
     """
-    if isinstance(ode, dict):
-        ode_outputs = ode
-    else:
-        ode_outputs = {opts['prom_name']: opts for (k, opts) in
-                       ode.get_io_metadata(iotypes=('output',), get_remote=True).items()}
+    ode_outputs = ode if isinstance(ode, dict) else get_promoted_vars(ode, iotypes='output')
 
     if src not in ode_outputs:
         raise ValueError(f'Unable to find the source {src} in the ODE at {ode.pathname}.')
