@@ -11,7 +11,9 @@ optional_dependencies = {
         'ipython',
         'numpydoc>=0.9.1',
         'redbaron',
-        'tabulate'
+        'tabulate',
+        'jaxlib',
+        'jax'
     ],
     'notebooks': [
         'notebook',
@@ -61,7 +63,7 @@ The software has two primary objectives:
     ],
     license='Apache License',
     packages=find_packages(),
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     install_requires=[
         'openmdao>=3.13.0',
         'numpy>=1.14.1',
