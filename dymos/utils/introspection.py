@@ -81,6 +81,8 @@ def get_promoted_vars(ode, iotypes, metadata_keys=None, get_remote=True):
     metadata_keys : Iterable or None
         Additional metadata requested for the variables. By default returns metadata available on 'allprocs'.  See
         openmdao.core.System.get_io_metadata for more information.
+    get_remote : bool
+        If True, include IO not local to this proc.
 
     Returns
     -------
