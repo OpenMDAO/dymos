@@ -20,6 +20,7 @@ parts:
     - file: examples/brachistochrone/brachistochrone_upstream_init_duration_states
     - file: examples/vanderpol/vanderpol
     - file: examples/balanced_field/balanced_field
+    - file: examples/balanced_field/balanced_field_funccomp
     - file: examples/bryson_denham/bryson_denham
     - file: examples/commercial_aircraft/commercial_aircraft
     - file: examples/double_integrator/double_integrator
