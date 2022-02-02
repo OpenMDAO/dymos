@@ -688,7 +688,7 @@ class ExplicitShooting(TranscriptionBase):
         connection_info = []
         return connection_info
 
-    def _get_boundary_constraint_src(self, var, loc, phase):
+    def _get_boundary_constraint_src(self, var, loc, phase, ode_outputs=None):
         """
         Return the path to the variable that will be  constrained.
 
@@ -700,6 +700,8 @@ class ExplicitShooting(TranscriptionBase):
             The location of the boundary constraint ['intitial', 'final'].
         phase : dymos.Phase
             Phase object containing the rate source.
+        ode_outputs : dict or None
+            A dictionary of ODE outputs as returned by get_promoted_vars.
 
         Returns
         -------
@@ -780,7 +782,10 @@ class ExplicitShooting(TranscriptionBase):
             # Failed to find variable, assume it is in the ODE. This requires introspection.
             raise NotImplementedError('cannot yet constrain/optimize an ODE output using explicit shooting')
             constraint_path = f'{self._rhs_source}.{var}'
-            ode = phase._get_subsystem(self._rhs_source)
+            if ode_outputs is None:
+                ode = self._get_ode(phase)
+            else:
+                ode = ode_outputs
             shape, units = get_source_metadata(ode, var, user_units=None, user_shape=None)
             linear = False
 

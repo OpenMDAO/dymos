@@ -7,7 +7,7 @@ import openmdao.api as om
 from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp
 from ..utils.constants import INF_BOUND
 from ..utils.misc import get_rate_units, _unspecified
-from ..utils.introspection import get_target_metadata, get_source_metadata
+from ..utils.introspection import get_promoted_vars, get_source_metadata, get_target_metadata
 
 
 class TranscriptionBase(object):
@@ -160,115 +160,6 @@ class TranscriptionBase(object):
             phase.add_subsystem('control_group',
                                 subsys=control_group)
 
-    def _configure_state_introspection(self, state_name, options, phase):
-        """
-        Modifies state options in-place, automatically determining 'targets', 'units', and 'shape'
-        if necessary.
-
-        The precedence rules for the state shape and units are as follows:
-        1. If the user has specified units and shape in the state options, use those.
-        2a. If the user has not specified shape, and targets exist, then pull the shape from the targets.
-        2b. If the user has not specified shape and no targets exist, then pull the shape from the rate source.
-        2c. If shape cannot be inferred, assume (1,)
-        3a. If the user has not specified units, first try to pull units from a target
-        3b. If there are no targets, pull units from the rate source and multiply by time units.
-
-        Parameters
-        ----------
-        state_name : str
-            The name of the state variable of interest.
-        options : OptionsDictionary
-            The options dictionary for the state variable of interest.
-        phase : dymos.Phase
-            The phase associated with the transcription.
-        """
-        time_units = phase.time_options['units']
-        user_targets = options['targets']
-        user_units = options['units']
-        user_shape = options['shape']
-
-        need_units = user_units is _unspecified
-        need_shape = user_shape in {None, _unspecified}
-
-        ode = phase._get_subsystem(self._rhs_source)
-
-        # Automatically determine targets of state if left _unspecified
-        if user_targets is _unspecified:
-            from dymos.utils.introspection import get_targets
-            options['targets'] = get_targets(ode, state_name, user_targets)
-
-        # 1. No introspection necessary
-        if not(need_shape or need_units):
-            return
-
-        # 2. Attempt target introspection
-        if options['targets']:
-            try:
-                from dymos.utils.introspection import get_state_target_metadata
-                tgt_shape, tgt_units = get_state_target_metadata(ode, state_name, options['targets'],
-                                                                 options['units'], options['shape'])
-                options['shape'] = tgt_shape
-                options['units'] = tgt_units
-                return
-            except ValueError:
-                pass
-
-        # 3. Attempt rate-source introspection
-        rate_src = options['rate_source']
-        rate_src_type = phase.classify_var(rate_src)
-
-        if rate_src_type in ['time', 'time_phase']:
-            rate_src_units = phase.time_options['units']
-            rate_src_shape = (1,)
-        elif rate_src_type == 'state':
-            rate_src_units = phase.state_options[rate_src]['units']
-            rate_src_shape = phase.state_options[rate_src]['shape']
-        elif rate_src_type in ['input_control', 'indep_control']:
-            rate_src_units = phase.control_options[rate_src]['units']
-            rate_src_shape = phase.control_options[rate_src]['shape']
-        elif rate_src_type in ['input_polynomial_control', 'indep_polynomial_control']:
-            rate_src_units = phase.polynomial_control_options[rate_src]['units']
-            rate_src_shape = phase.polynomial_control_options[rate_src]['shape']
-        elif rate_src_type == 'parameter':
-            rate_src_units = phase.parameter_options[rate_src]['units']
-            rate_src_shape = phase.parameter_options[rate_src]['shape']
-        elif rate_src_type == 'control_rate':
-            control_name = rate_src[:-5]
-            control = phase.control_options[control_name]
-            rate_src_units = get_rate_units(control['units'], time_units, deriv=1)
-            rate_src_shape = control['shape']
-        elif rate_src_type == 'control_rate2':
-            control_name = rate_src[:-6]
-            control = phase.control_options[control_name]
-            rate_src_units = get_rate_units(control['units'], time_units, deriv=2)
-            rate_src_shape = control['shape']
-        elif rate_src_type == 'polynomial_control_rate':
-            control_name = rate_src[:-5]
-            control = phase.polynomial_control_options[control_name]
-            rate_src_units = get_rate_units(control['units'], time_units, deriv=1)
-            rate_src_shape = control['shape']
-        elif rate_src_type == 'polynomial_control_rate2':
-            control_name = rate_src[:-6]
-            control = phase.polynomial_control_options[control_name]
-            rate_src_units = get_rate_units(control['units'], time_units, deriv=2)
-            rate_src_shape = control['shape']
-        elif rate_src_type == 'ode':
-            rate_src_shape, rate_src_units = get_source_metadata(ode,
-                                                                 src=rate_src,
-                                                                 user_units=options['units'],
-                                                                 user_shape=options['shape'])
-        else:
-            rate_src_shape = (1,)
-            rate_src_units = None
-
-        if need_shape:
-            options['shape'] = rate_src_shape
-
-        if need_units:
-            options['units'] = time_units if rate_src_units is None else f'{rate_src_units}*{time_units}'
-
-        return
-
     def configure_controls(self, phase):
         """
         Configure the inputs/outputs for the controls.
@@ -339,6 +230,9 @@ class TranscriptionBase(object):
         """
         Configure parameter promotion.
 
+        This method assumes that utils.introspection.configure_parameters_introspection has already populated
+        the parameter options with the appropriate targets, units, shape, and static_target fields.
+
         Parameters
         ----------
         phase : dymos.Phase
@@ -349,16 +243,6 @@ class TranscriptionBase(object):
 
             for name, options in phase.parameter_options.items():
                 prom_name = f'parameters:{name}'
-
-                # Get units and shape from targets when needed.
-                shape, units, static = get_target_metadata(ode, name=name,
-                                                           user_targets=options['targets'],
-                                                           user_shape=options['shape'],
-                                                           user_units=options['units'],
-                                                           user_static_target=options['static_target'])
-                options['units'] = units
-                options['shape'] = shape
-                options['static_target'] = static
 
                 for tgts, src_idxs in self.get_parameter_connections(name, phase):
                     for pathname in tgts:
@@ -457,11 +341,12 @@ class TranscriptionBase(object):
 
         sys_name = f'{loc}_boundary_constraints'
         bc_comp = phase._get_subsystem(sys_name)
+        ode_outputs = get_promoted_vars(self._get_ode(phase), 'output')
 
         for var, options in bc_dict.items():
             con_name = options['constraint_name']
 
-            _, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase)
+            _, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase, ode_outputs=ode_outputs)
 
             if options['indices'] is not None:
                 # Sliced shape.
@@ -730,7 +615,7 @@ class TranscriptionBase(object):
                                               scaler=options['scaler'],
                                               parallel_deriv_color=options['parallel_deriv_color'])
 
-    def _get_boundary_constraint_src(self, name, loc, phase):
+    def _get_boundary_constraint_src(self, name, loc, phase, ode_outputs=None):
         raise NotImplementedError('Transcription {0} does not implement method'
                                   '_get_boundary_constraint_source.'.format(self.__class__.__name__))
 
@@ -786,8 +671,8 @@ class TranscriptionBase(object):
         ----------
         var : str
             The ode-relative path of the variable of interest.
-        phase : dymos.Phase
-            The phase to which this transcription applies.
+        phase : dymos.Phase or dict
+            The phase to which this transcription applies or a dict of the ODE outputs as returned by get_promoted_vars.
         num_nodes : int
             The number of nodes in the ODE.
 
@@ -801,9 +686,10 @@ class TranscriptionBase(object):
         KeyError
             KeyError is raised if the given variable isn't present in the ode outputs.
         """
-        ode = phase._get_subsystem(self._rhs_source)
-        ode_outputs = {opts['prom_name']: opts for (k, opts) in
-                       ode.get_io_metadata(iotypes=('output',), get_remote=True).items()}
+        if isinstance(phase, dict):
+            ode_outputs = phase
+        else:
+            ode_outputs = get_promoted_vars(self._get_ode(phase), 'output')
         ode_shape = ode_outputs[var]['shape']
         return ode_shape[0] != num_nodes
 

@@ -6,7 +6,7 @@ from ..common import TimeComp
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp, \
     PseudospectralTimeseriesOutputComp
 from ...utils.misc import CoerceDesvar, get_rate_units, reshape_val
-from ...utils.introspection import get_source_metadata
+from ...utils.introspection import get_promoted_vars, get_source_metadata
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 
@@ -141,7 +141,6 @@ class PseudospectralBase(TranscriptionBase):
         # add all the des-vars (either from the IndepVarComp or from the indep-var-like
         # outputs of the collocation comp)
         for name, options in phase.state_options.items():
-            self._configure_state_introspection(name, options, phase)
             self._configure_solve_segments(name, options, phase)
             shape = options['shape']
             # In certain cases, we put an output on the IVC.
@@ -280,8 +279,8 @@ class PseudospectralBase(TranscriptionBase):
                       src_indices=grid_data.subset_node_indices['col'], flat_src_indices=True)
 
         for name, _ in phase.state_options.items():
-            phase.connect('states:{0}'.format(name),
-                          'state_interp.state_disc:{0}'.format(name),
+            phase.connect(f'states:{name}',
+                          f'state_interp.state_disc:{name}',
                           src_indices=om.slicer[map_input_indices_to_disc, ...])
 
     def setup_defects(self, phase):
@@ -320,10 +319,6 @@ class PseudospectralBase(TranscriptionBase):
         state_input_idxs = self.grid_data.subset_node_indices['state_input']
         num_state_input_nodes = self.grid_data.subset_num_nodes['state_input']
         compressed = self.options['compressed']
-
-        # Transcription solve_segments overrides state solve_segments if its not set
-        if options['solve_segments'] is None:
-            options['solve_segments'] = self.options['solve_segments']
 
         # Sanity-checks for solve segments
         # If solve_segments is used at all, we cannot fix the state at both ends of the phase.
@@ -506,7 +501,7 @@ class PseudospectralBase(TranscriptionBase):
                                                                  output_subset=options['subset'])
             phase.add_subsystem(name, subsys=timeseries_comp)
 
-    def _get_boundary_constraint_src(self, var, loc, phase):
+    def _get_boundary_constraint_src(self, var, loc, phase, ode_outputs=None):
         """
         Return the path to the variable that will be  constrained.
 
@@ -518,6 +513,8 @@ class PseudospectralBase(TranscriptionBase):
             The location of the boundary constraint ['intitial', 'final'].
         phase : dymos.Phase
             Phase object containing the rate source.
+        ode_outputs : dict
+            A dictionary of the ODE outputs for the phase, as given by utils.introspection.get_promoted_vars.
 
         Returns
         -------
@@ -532,6 +529,9 @@ class PseudospectralBase(TranscriptionBase):
         """
         time_units = phase.time_options['units']
         var_type = phase.classify_var(var)
+
+        if ode_outputs is None:
+            ode_outputs = get_promoted_vars(phase._get_subsystem(self._rhs_source), 'output')
 
         if var_type == 'time':
             shape = (1,)
@@ -603,8 +603,7 @@ class PseudospectralBase(TranscriptionBase):
         else:
             # Failed to find variable, assume it is in the ODE. This requires introspection.
             constraint_path = f'{self._rhs_source}.{var}'
-            ode = phase._get_subsystem(self._rhs_source)
-            shape, units = get_source_metadata(ode, var, user_units=None, user_shape=None)
+            shape, units = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
             linear = False
 
         return constraint_path, shape, units, linear

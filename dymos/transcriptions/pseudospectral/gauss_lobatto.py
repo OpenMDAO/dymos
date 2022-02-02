@@ -9,7 +9,7 @@ from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
 from ..common import GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units
-from ...utils.introspection import get_targets, get_source_metadata, get_target_metadata
+from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData, make_subset_map
 from fnmatch import filter
@@ -55,18 +55,16 @@ class GaussLobatto(PseudospectralBase):
         """
         super(GaussLobatto, self).configure_time(phase)
         options = phase.time_options
+        ode_inputs = get_promoted_vars(self._get_ode(phase), 'input')
 
         # The tuples here are (name, user_specified_targets, dynamic)
-        for name, usr_tgts, dynamic in [('time', options['targets'], True),
-                                        ('time_phase', options['time_phase_targets'], True)]:
+        for name, usr_tgts in [('time', options['targets']),
+                               ('time_phase', options['time_phase_targets'])]:
 
-            targets = get_targets(phase.rhs_disc, name=name, user_targets=usr_tgts)
+            targets = get_targets(ode_inputs, name=name, user_targets=usr_tgts)
             if targets:
-                if dynamic:
-                    disc_src_idxs = self.grid_data.subset_node_indices['state_disc']
-                    col_src_idxs = self.grid_data.subset_node_indices['col']
-                else:
-                    disc_src_idxs = col_src_idxs = None
+                disc_src_idxs = self.grid_data.subset_node_indices['state_disc']
+                col_src_idxs = self.grid_data.subset_node_indices['col']
                 phase.connect(name,
                               [f'rhs_col.{t}' for t in targets],
                               src_indices=col_src_idxs, flat_src_indices=True)
@@ -74,25 +72,21 @@ class GaussLobatto(PseudospectralBase):
                               [f'rhs_disc.{t}' for t in targets],
                               src_indices=disc_src_idxs, flat_src_indices=True)
 
-        for name, usr_tgts, dynamic in [('t_initial', options['t_initial_targets'], False),
-                                        ('t_duration', options['t_duration_targets'], False)]:
-            targets = get_targets(phase.rhs_disc, name=name, user_targets=usr_tgts)
-            shape, units, static_target = get_target_metadata(phase.rhs_disc, name=name,
-                                                              user_targets=targets,
-                                                              user_units=options['units'],
-                                                              user_shape=(1,))
-            if shape == (1,):
-                disc_src_idxs = None
-                col_src_idxs = None
-                flat_src_idxs = None
-                src_shape = None
-            else:
-                disc_src_idxs = self.grid_data.subset_node_indices['state_disc']
-                col_src_idxs = self.grid_data.subset_node_indices['col']
-                flat_src_idxs = True
-                src_shape = (1,)
-
+        for name, targets in [('t_initial', options['t_initial_targets']),
+                              ('t_duration', options['t_duration_targets'])]:
             for t in targets:
+                shape = ode_inputs[t]['shape']
+                if shape == (1,):
+                    disc_src_idxs = None
+                    col_src_idxs = None
+                    flat_src_idxs = None
+                    src_shape = None
+                else:
+                    disc_src_idxs = self.grid_data.subset_node_indices['state_disc']
+                    col_src_idxs = self.grid_data.subset_node_indices['col']
+                    flat_src_idxs = True
+                    src_shape = (1,)
+
                 phase.promotes('rhs_disc', inputs=[(t, name)], src_indices=disc_src_idxs,
                                flat_src_indices=flat_src_idxs, src_shape=src_shape)
                 phase.promotes('rhs_col', inputs=[(t, name)], src_indices=col_src_idxs,
@@ -112,6 +106,7 @@ class GaussLobatto(PseudospectralBase):
             The phase object to which this transcription instance applies.
         """
         super(GaussLobatto, self).configure_controls(phase)
+        ode_inputs = get_promoted_vars(self._get_ode(phase), 'input')
 
         grid_data = self.grid_data
 
@@ -131,7 +126,7 @@ class GaussLobatto(PseudospectralBase):
             col_src_idxs = (col_src_idxs,)
 
             # Control targets are detected automatically
-            targets = get_targets(phase.rhs_disc, name, options['targets'])
+            targets = get_targets(ode_inputs, name, options['targets'])
 
             if targets:
                 phase.connect(f'control_values:{name}',
@@ -143,8 +138,8 @@ class GaussLobatto(PseudospectralBase):
                               src_indices=col_src_idxs, flat_src_indices=True)
 
             # Rate targets
-            targets = get_targets(phase.rhs_disc, f'{name}_rate', options['rate_targets'],
-                                  control_rates=1)
+            targets = get_targets(ode_inputs, name, options['rate_targets'], control_rates=1)
+
             if targets:
                 phase.connect(f'control_rates:{name}_rate',
                               [f'rhs_disc.{t}' for t in targets],
@@ -155,8 +150,7 @@ class GaussLobatto(PseudospectralBase):
                               src_indices=col_src_idxs, flat_src_indices=True)
 
             # Second time derivative targets must be specified explicitly
-            targets = get_targets(phase.rhs_disc, f'{name}_rate2', options['rate2_targets'],
-                                  control_rates=2)
+            targets = get_targets(ode_inputs, name, options['rate2_targets'], control_rates=2)
             if targets:
                 phase.connect(f'control_rates:{name}_rate2',
                               [f'rhs_disc.{t}' for t in targets],
@@ -176,6 +170,7 @@ class GaussLobatto(PseudospectralBase):
             The phase object to which this transcription instance applies.
         """
         super(GaussLobatto, self).configure_polynomial_controls(phase)
+        ode_inputs = get_promoted_vars(self._get_ode(phase), 'input')
         grid_data = self.grid_data
 
         for name, options in phase.polynomial_control_options.items():
@@ -193,7 +188,7 @@ class GaussLobatto(PseudospectralBase):
             disc_src_idxs = (disc_src_idxs,)
             col_src_idxs = (col_src_idxs,)
 
-            targets = get_targets(ode=phase.rhs_disc, name=name, user_targets=options['targets'])
+            targets = get_targets(ode=ode_inputs, name=name, user_targets=options['targets'])
             if targets:
                 phase.connect(f'polynomial_control_values:{name}',
                               [f'rhs_disc.{t}' for t in targets],
@@ -202,8 +197,7 @@ class GaussLobatto(PseudospectralBase):
                               [f'rhs_col.{t}' for t in targets],
                               src_indices=col_src_idxs, flat_src_indices=True)
 
-            targets = get_targets(ode=phase.rhs_disc, name=f'{name}_rate',
-                                  user_targets=options['rate_targets'])
+            targets = get_targets(ode=ode_inputs, name=name, user_targets=options['rate_targets'])
             if targets:
                 phase.connect(f'polynomial_control_rates:{name}_rate',
                               [f'rhs_disc.{t}' for t in targets],
@@ -213,8 +207,7 @@ class GaussLobatto(PseudospectralBase):
                               [f'rhs_col.{t}' for t in targets],
                               src_indices=col_src_idxs, flat_src_indices=True)
 
-            targets = get_targets(ode=phase.rhs_disc, name=f'{name}_rate2',
-                                  user_targets=options['rate2_targets'])
+            targets = get_targets(ode=ode_inputs, name=name, user_targets=options['rate2_targets'])
             if targets:
                 phase.connect(f'polynomial_control_rates:{name}_rate2',
                               [f'rhs_disc.{t}' for t in targets],
@@ -262,13 +255,12 @@ class GaussLobatto(PseudospectralBase):
         """
         super(GaussLobatto, self).configure_ode(phase)
 
+        ode_inputs = get_promoted_vars(self._get_ode(phase), 'input')
         map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
 
         for name, options in phase.state_options.items():
-
             src_idxs = om.slicer[map_input_indices_to_disc, ...]
-
-            targets = get_targets(ode=phase.rhs_disc, name=name, user_targets=options['targets'])
+            targets = get_targets(ode=ode_inputs, name=name, user_targets=options['targets'])
 
             if targets:
                 phase.connect(f'states:{name}',
@@ -444,6 +436,7 @@ class GaussLobatto(PseudospectralBase):
             The phase object to which this transcription instance applies.
         """
         super(GaussLobatto, self).configure_path_constraints(phase)
+        ode_outputs = get_promoted_vars(self._get_ode(phase), 'output')
 
         for var, options in phase._path_constraints.items():
             con_name = options['constraint_name']
@@ -501,9 +494,6 @@ class GaussLobatto(PseudospectralBase):
                 src = f'interleave_comp.all_values:{con_name}'
                 tgt = f'path_constraints.all_values:{con_name}'
 
-                ode_outputs = {opts['prom_name']: opts for (k, opts) in
-                               phase.rhs_disc.get_io_metadata(iotypes=('output',)).items()}
-
                 if var in ode_outputs:
                     shape = (1,) if len(ode_outputs[var]['shape']) == 1 else ode_outputs[var]['shape'][1:]
                     units = ode_outputs[var]['units'] if con_units is None else con_units
@@ -533,6 +523,8 @@ class GaussLobatto(PseudospectralBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        ode_outputs = get_promoted_vars(self._get_ode(phase), 'output')
+
         for timeseries_name, timeseries_options in phase._timeseries.items():
             timeseries_comp = phase._get_subsystem(timeseries_name)
             time_units = phase.time_options['units']
@@ -660,8 +652,6 @@ class GaussLobatto(PseudospectralBase):
                 wildcard_units = options.get('wildcard_units', None)
 
                 if '*' in var:  # match outputs from the ODE
-                    ode_outputs = {opts['prom_name']: opts for (k, opts) in
-                                   phase.rhs_disc.get_io_metadata(iotypes=('output',)).items()}
                     matches = filter(list(ode_outputs.keys()), var)
 
                     # A nested ODE can have multiple outputs at different levels that share
@@ -705,13 +695,13 @@ class GaussLobatto(PseudospectralBase):
                         continue
 
                     # If the full shape does not start with num_nodes, skip this variable.
-                    if self.is_static_ode_output(v, phase, self.grid_data.subset_num_nodes['state_disc']):
+                    if self.is_static_ode_output(v, ode_outputs, self.grid_data.subset_num_nodes['state_disc']):
                         warnings.warn(f'Cannot add ODE output {v} to the timeseries output. It is '
                                       f'sized such that its first dimension != num_nodes.')
                         continue
 
                     try:
-                        shape, units = get_source_metadata(phase.rhs_disc, src=v,
+                        shape, units = get_source_metadata(ode_outputs, src=v,
                                                            user_units=units,
                                                            user_shape=options['shape'])
                     except ValueError:
@@ -848,8 +838,7 @@ class GaussLobatto(PseudospectralBase):
 
         if name in phase.parameter_options:
             options = phase.parameter_options[name]
-            targets = get_targets(ode=phase.rhs_disc, name=name, user_targets=options['targets'])
-
+            targets = options['targets']
             static = options['static_target']
             shape = options['shape']
 

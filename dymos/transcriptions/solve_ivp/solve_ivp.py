@@ -9,8 +9,8 @@ from ..transcription_base import TranscriptionBase
 from .components import SegmentSimulationComp, SegmentStateMuxComp, \
     SolveIVPControlGroup, SolveIVPPolynomialControlGroup, SolveIVPTimeseriesOutputComp
 from ..common import TimeComp
-from ...utils.misc import get_rate_units, _unspecified
-from ...utils.introspection import get_targets, get_target_metadata, get_source_metadata
+from ...utils.misc import get_rate_units
+from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata, get_target_metadata
 from ...utils.indexing import get_src_indices_by_row
 
 
@@ -107,7 +107,8 @@ class SolveIVP(TranscriptionBase):
         num_seg = self.grid_data.num_segments
         grid_data = self.grid_data
         output_nodes_per_seg = self.options['output_nodes_per_seg']
-        ode = phase._get_subsystem('ode')
+        ode = self._get_ode(phase)
+        ode_inputs = get_promoted_vars(ode, 'input')
 
         phase.time.configure_io()
 
@@ -127,17 +128,13 @@ class SolveIVP(TranscriptionBase):
         options = phase.time_options
 
         # The tuples here are (name, user_specified_targets, dynamic)
-        for name, usr_tgts, dynamic in [('time', options['targets'], True),
-                                        ('time_phase', options['time_phase_targets'], True)]:
-
-            targets = get_targets(phase.ode, name=name, user_targets=usr_tgts)
+        for name, targets, dynamic in [('time', options['targets'], True),
+                                       ('time_phase', options['time_phase_targets'], True)]:
             if targets:
                 phase.connect(name, [f'ode.{t}' for t in targets])
 
-        for name, usr_tgts, dynamic in [('t_initial', options['t_initial_targets'], False),
-                                        ('t_duration', options['t_duration_targets'], False)]:
-
-            targets = get_targets(ode, name=name, user_targets=usr_tgts)
+        for name, targets, dynamic in [('t_initial', options['t_initial_targets'], False),
+                                       ('t_duration', options['t_duration_targets'], False)]:
 
             shape, units, static_target = get_target_metadata(ode, name=name,
                                                               user_targets=targets,
@@ -199,11 +196,9 @@ class SolveIVP(TranscriptionBase):
             phase.connect(f'segment_0.states:{state_name}',
                           f'state_mux_comp.segment_0_states:{state_name}')
 
-            targets = get_targets(ode=phase.ode, name=state_name, user_targets=options['targets'])
-
-            if targets:
+            if options['targets']:
                 phase.connect(f'state_mux_comp.states:{state_name}',
-                              [f'ode.{t}' for t in targets])
+                              [f'ode.{t}' for t in options['targets']])
 
             # Connect the final state in segment n to the initial state in segment n + 1
             for i in range(1, num_seg):
@@ -316,44 +311,6 @@ class SolveIVP(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        ode = phase._get_subsystem(self._rhs_source)
-
-        # Interrogate shapes and units.
-        for name, options in phase.control_options.items():
-
-            shape, units, static_target = get_target_metadata(ode, name=name,
-                                                              user_targets=options['targets'],
-                                                              user_units=options['units'],
-                                                              user_shape=options['shape'],
-                                                              control_rate=True)
-
-            options['units'] = units
-            options['shape'] = shape
-
-            if static_target:
-                raise ValueError(f"Control '{name}' cannot be connected to its targets because one"
-                                 f"or more targets are tagged with 'dymos.static_target'.")
-
-            # Now check rate targets
-            _, _, static_target = get_target_metadata(ode, name=name,
-                                                      user_targets=options['rate_targets'],
-                                                      user_units=options['units'],
-                                                      user_shape=options['shape'],
-                                                      control_rate=True)
-            if static_target:
-                raise ValueError(f"Control rate of '{name}' cannot be connected to its targets "
-                                 f"because one or more targets are tagged with 'dymos.static_target'.")
-
-            # Now check rate2 targets
-            _, _, static_target = get_target_metadata(ode, name=name,
-                                                      user_targets=options['rate2_targets'],
-                                                      user_units=options['units'],
-                                                      user_shape=options['shape'],
-                                                      control_rate=True)
-            if static_target:
-                raise ValueError(f"Control rate2 of '{name}' cannot be connected to its targets "
-                                 f"because one or more targets are tagged with 'dymos.static_target'.")
-
         grid_data = self.grid_data
 
         if phase.control_options:
@@ -369,21 +326,14 @@ class SolveIVP(TranscriptionBase):
                               tgt_name=f'segment_{i}.controls:{name}',
                               src_indices=(src_idxs,), flat_src_indices=True)
 
-            targets = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
-            if targets:
-                phase.connect(f'control_values:{name}', [f'ode.{t}' for t in targets])
+            if options['targets']:
+                phase.connect(f'control_values:{name}', [f'ode.{t}' for t in options['targets']])
 
-            targets = get_targets(ode=phase.ode, name=f'{name}_rate',
-                                  user_targets=options['rate_targets'])
-            if targets:
-                phase.connect(f'control_rates:{name}_rate',
-                              [f'ode.{t}' for t in targets])
+            if options['rate_targets']:
+                phase.connect(f'control_rates:{name}_rate', [f'ode.{t}' for t in options['rate_targets']])
 
-            targets = get_targets(ode=phase.ode, name=f'{name}_rate2',
-                                  user_targets=options['rate2_targets'])
-            if targets:
-                phase.connect(f'control_rates:{name}_rate2',
-                              [f'ode.{t}' for t in targets])
+            if options['rate2_targets']:
+                phase.connect(f'control_rates:{name}_rate2', [f'ode.{t}' for t in options['rate2_targets']])
 
     def setup_polynomial_controls(self, phase):
         """
@@ -417,24 +367,20 @@ class SolveIVP(TranscriptionBase):
 
         # Additional connections.
         for name, options in phase.polynomial_control_options.items():
+            targets = options['targets']
 
             for iseg in range(self.grid_data.num_segments):
                 phase.connect(src_name=f'polynomial_controls:{name}',
                               tgt_name=f'segment_{iseg}.polynomial_controls:{name}')
 
-            targets = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
-            if targets:
+            if options['targets']:
                 phase.connect(f'polynomial_control_values:{name}', [f'ode.{t}' for t in targets])
 
-            targets = get_targets(ode=phase.ode, name=f'{name}_rate',
-                                  user_targets=options['rate_targets'])
-            if targets:
+            if options['rate_targets']:
                 phase.connect(f'polynomial_control_rates:{name}_rate',
                               [f'ode.{t}' for t in targets])
 
-            targets = get_targets(ode=phase.ode, name=f'{name}_rate2',
-                                  user_targets=options['rate2_targets'])
-            if targets:
+            if options['rate2_targets']:
                 phase.connect(f'polynomial_control_rates:{name}_rate2',
                               [f'ode.{t}' for t in targets])
 
@@ -456,12 +402,8 @@ class SolveIVP(TranscriptionBase):
 
         for name, options in phase.parameter_options.items():
             prom_name = f'parameters:{name}'
-            shape, units, static_target = get_target_metadata(phase.ode, name=name,
-                                                              user_targets=options['targets'],
-                                                              user_shape=options['shape'],
-                                                              user_units=options['units'])
-            options['units'] = units
-            options['shape'] = shape
+            shape = options['shape']
+            units = options['units']
 
             for i in range(gd.num_segments):
                 seg_comp = segs._get_subsystem(f'segment_{i}')
@@ -602,6 +544,7 @@ class SolveIVP(TranscriptionBase):
         num_seg = gd.num_segments
         output_nodes_per_seg = self.options['output_nodes_per_seg']
         time_units = phase.time_options['units']
+        ode_outputs = get_promoted_vars(self._get_ode(phase), 'output')
 
         timeseries_name = 'timeseries'
         timeseries_comp = phase._get_subsystem(timeseries_name)
@@ -611,7 +554,6 @@ class SolveIVP(TranscriptionBase):
                                               desc='elapsed phase time')
 
         phase.connect(src_name='time', tgt_name='timeseries.all_values:time')
-
         phase.connect(src_name='time_phase', tgt_name='timeseries.all_values:time_phase')
 
         for name, options in phase.state_options.items():
@@ -731,8 +673,6 @@ class SolveIVP(TranscriptionBase):
             wildcard_units = options.get('wildcard_units', None)
 
             if '*' in var:  # match outputs from the ODE
-                ode_outputs = {opts['prom_name']: opts for (k, opts) in
-                               phase.ode.get_io_metadata(iotypes=('output',)).items()}
                 matches = filter(list(ode_outputs.keys()), var)
             else:
                 matches = [var]
@@ -757,12 +697,12 @@ class SolveIVP(TranscriptionBase):
 
                 # Skip the timeseries output if it does not appear to be shaped as a dynamic variable
                 # If the full shape does not start with num_nodes, skip this variable.
-                if self.is_static_ode_output(v, phase, self.num_output_nodes):
+                if self.is_static_ode_output(v, ode_outputs, self.num_output_nodes):
                     warnings.warn(f'Cannot add ODE output {v} to the timeseries output. It is '
                                   f'sized such that its first dimension != num_nodes.')
                     continue
 
-                shape, units = get_source_metadata(phase.ode, src=v, user_shape=options['shape'],
+                shape, units = get_source_metadata(ode_outputs, src=v, user_shape=options['shape'],
                                                    user_units=units)
 
                 try:

@@ -28,6 +28,7 @@ class TestReentry(unittest.TestCase):
             p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
             p.driver.opt_settings['print_level'] = 5
             p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+            p.driver.opt_settings['tol'] = 1.0E-7
             p.driver.opt_settings['mu_strategy'] = 'monotone'
 
         traj = p.model.add_subsystem('traj', Trajectory())
@@ -94,6 +95,7 @@ class TestReentry(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_constrained_radau(self):
         p = self.make_problem(constrained=True, transcription=Radau, optimizer='IPOPT')
+
         p.run_driver()
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
                           expected_results['constrained']['time'],
@@ -106,6 +108,7 @@ class TestReentry(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_constrained_gauss_lobatto(self):
         p = self.make_problem(constrained=True, transcription=GaussLobatto, optimizer='IPOPT')
+
         p.run_driver()
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
                           expected_results['constrained']['time'],
@@ -118,6 +121,7 @@ class TestReentry(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_unconstrained_radau(self):
         p = self.make_problem(constrained=False, transcription=Radau, optimizer='IPOPT')
+
         p.run_driver()
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
                           expected_results['unconstrained']['time'],

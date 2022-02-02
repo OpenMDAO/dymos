@@ -2,7 +2,7 @@ import numpy as np
 from .odeint_control_interpolation_comp import ODEIntControlInterpolationComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from ....phase.options import TimeOptionsDictionary
-from ....utils.introspection import get_targets, get_target_metadata
+from ....utils.introspection import get_promoted_vars
 import openmdao.api as om
 
 
@@ -85,14 +85,14 @@ class ODEIntegrationInterfaceSystem(om.Group):
 
     def configure(self):
         """
-        Issue connecctions after introspection.
+        Issue connections after introspection.
         """
         ivc = self._get_subsystem('ivc')
         ode = self._get_subsystem('ode')
+        ode_inputs = get_promoted_vars(ode, 'input')
 
         # Configure states
         for name, options in self.options['state_options'].items():
-            ndim = len(options['shape'])
             size = np.prod(options['shape'])
             ivc.add_output(f'states:{name}',
                            shape=(1, size),
@@ -102,10 +102,9 @@ class ODEIntegrationInterfaceSystem(om.Group):
 
             self.connect(rate_src, f'state_rate_collector.state_rates_in:{name}_rate')
 
-            targets = get_targets(ode=ode, name=name, user_targets=options['targets'])
-            if targets:
-                for tgt in targets:
-                    tgt_shape, _, _ = get_target_metadata(ode=ode, name=name, user_targets=tgt)
+            if options['targets']:
+                for tgt in options['targets']:
+                    tgt_shape = ode_inputs[tgt]['shape']
                     if len(tgt_shape) == 1 and tgt_shape[0] == 1:
                         src_idxs = np.arange(size, dtype=int).reshape(tgt_shape)
                     else:
@@ -116,53 +115,36 @@ class ODEIntegrationInterfaceSystem(om.Group):
         # Configure controls
         if self.options['control_options']:
             for name, options in self.options['control_options'].items():
-                targets = get_targets(ode=ode, name=name,
-                                      user_targets=options['targets'])
-                rate_targets = get_targets(ode=ode, name=f'{name}_rate',
-                                           user_targets=options['rate_targets'])
-                rate2_targets = get_targets(ode=ode, name=f'{name}_rate2',
-                                            user_targets=options['rate2_targets'])
-                if targets:
+                if options['targets']:
                     self.connect(f'controls:{name}',
-                                 [f'ode.{tgt}' for tgt in targets])
-                if rate_targets:
+                                 [f'ode.{tgt}' for tgt in options['targets']])
+                if options['rate_targets']:
                     self.connect(f'control_rates:{name}_rate',
-                                 [f'ode.{tgt}' for tgt in rate_targets])
-                if rate2_targets:
+                                 [f'ode.{tgt}' for tgt in options['rate_targets']])
+                if options['rate2_targets']:
                     self.connect(f'control_rates:{name}_rate2',
-                                 [f'ode.{tgt}' for tgt in rate2_targets])
+                                 [f'ode.{tgt}' for tgt in options['rate2_targets']])
 
         # Polynomial controls
         if self.options['polynomial_control_options']:
             for name, options in self.options['polynomial_control_options'].items():
-                targets = get_targets(ode=ode, name=name,
-                                      user_targets=options['targets'])
-                rate_targets = get_targets(ode=ode, name=f'{name}_rate',
-                                           user_targets=options['rate_targets'])
-                rate2_targets = get_targets(ode=ode, name=f'{name}_rate2',
-                                            user_targets=options['rate2_targets'])
-                if targets:
+                if options['targets']:
                     self.connect(f'polynomial_controls:{name}',
-                                 [f'ode.{tgt}' for tgt in targets])
-                if rate_targets:
+                                 [f'ode.{tgt}' for tgt in options['targets']])
+                if options['rate_targets']:
                     self.connect(f'polynomial_control_rates:{name}_rate',
-                                 [f'ode.{tgt}' for tgt in rate_targets])
-                if rate2_targets:
+                                 [f'ode.{tgt}' for tgt in options['rate_targets']])
+                if options['rate2_targets']:
                     self.connect(f'polynomial_control_rates:{name}_rate2',
-                                 [f'ode.{tgt}' for tgt in rate2_targets])
+                                 [f'ode.{tgt}' for tgt in options['rate2_targets']])
 
         # Parameters
         if self.options['parameter_options']:
             for name, options in self.options['parameter_options'].items():
-                targets = get_targets(ode=ode, name=name, user_targets=options['targets'])
-                shape, units, _ = get_target_metadata(ode=ode, name=name,
-                                                      user_targets=options['targets'],
-                                                      user_shape=options['shape'],
-                                                      user_units=options['units'])
-                ivc.add_output(f'parameters:{name}', shape=shape, units=units)
-                if targets:
+                ivc.add_output(f'parameters:{name}', shape=options['shape'], units=options['units'])
+                if options['targets']:
                     self.connect(f'parameters:{name}',
-                                 [f'ode.{tgt}' for tgt in targets])
+                                 [f'ode.{tgt}' for tgt in options['targets']])
 
     def _get_rate_source_path(self, state_var):
         var = self.options['state_options'][state_var]['rate_source']

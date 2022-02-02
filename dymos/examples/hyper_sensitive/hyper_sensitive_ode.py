@@ -3,10 +3,6 @@ import openmdao.api as om
 
 
 class HyperSensitiveODE(om.ExplicitComponent):
-    states = {'x': {'rate_source': 'x_dot'},
-              'xL': {'rate_source': 'L'}}
-
-    parameters = {'u': {'targets': 'u'}}
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)

@@ -20,7 +20,7 @@ from .options import LinkageOptionsDictionary
 from .phase_linkage_comp import PhaseLinkageComp
 from ..phase.options import TrajParameterOptionsDictionary
 from ..utils.misc import get_rate_units, _unspecified
-from ..utils.introspection import get_source_metadata
+from ..utils.introspection import get_promoted_vars, get_source_metadata
 
 
 class Trajectory(om.Group):
@@ -357,7 +357,7 @@ class Trajectory(om.Group):
 
     def _configure_phase_options_dicts(self):
         """
-        Called during configure if we are under MPI. Loops over all phases and broacasts the shape
+        Called during configure if we are under MPI. Loops over all phases and broadcasts the shape
         and units options to all procs for all dymos variables.
         """
         for name, phase in self._phases.items():
@@ -585,6 +585,10 @@ class Trajectory(om.Group):
     def _configure_linkages(self):
         connected_linkage_inputs = []
 
+        def _print_on_rank(rank=0, *args, **kwargs):
+            if self.comm.rank == rank:
+                print(*args, **kwargs)
+
         def _get_prefixed_var(var, phase):
             class_var = phase.classify_var(var)
             prefixes = {'time': '',
@@ -607,7 +611,7 @@ class Trajectory(om.Group):
         # expand it out.
         self._expand_star_linkage_configure()
 
-        print(f'--- Linkage Report [{self.pathname}] ---')
+        _print_on_rank(f'--- Linkage Report [{self.pathname}] ---')
 
         indent = '    '
 
@@ -615,7 +619,7 @@ class Trajectory(om.Group):
 
         for phase_pair, var_dict in self._linkages.items():
             phase_name_a, phase_name_b = phase_pair
-            print(f'{indent}--- {phase_name_a} - {phase_name_b} ---')
+            _print_on_rank(f'{indent}--- {phase_name_a} - {phase_name_b} ---')
 
             phase_a = self._get_subsystem(f'phases.{phase_name_a}')
             phase_b = self._get_subsystem(f'phases.{phase_name_b}')
@@ -684,8 +688,8 @@ class Trajectory(om.Group):
                               f'state in the phase.\nEither remove the linkage or specify ' \
                               f'`connected=False` to enforce it via an optimization constraint.'
                         raise om.OpenMDAOWarning(msg)
-                    print(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ->  '
-                          f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
+                    _print_on_rank(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ->  '
+                                   f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
                 else:
                     is_valid, msg = self._is_valid_linkage(phase_name_a, phase_name_b,
                                                            loc_a, loc_b, var_a, var_b)
@@ -707,10 +711,10 @@ class Trajectory(om.Group):
                                      src_indices=om.slicer[[0, -1], ...])
                         connected_linkage_inputs.append(options._input_b)
 
-                    print(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ==  '
-                          f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
+                    _print_on_rank(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ==  '
+                                   f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
 
-        print('\n* : This quantity is fixed or is an input.\n')
+        _print_on_rank('\n* : This quantity is fixed or is an input.\n')
 
     def configure(self):
         """
@@ -726,7 +730,9 @@ class Trajectory(om.Group):
             if MPI:
                 self._configure_phase_options_dicts()
             self._configure_linkages()
-        self._constraint_report(outstream=sys.stdout)
+
+        if self.comm.rank == 0:
+            self._constraint_report(outstream=sys.stdout)
         # promote everything else out of phases that wasn't promoted as a parameter
         phases_group = self._get_subsystem('phases')
         inputs_set = {opts['prom_name'] for (k, opts) in
@@ -942,19 +948,23 @@ class Trajectory(om.Group):
         print(f'\n--- Constraint Report [{self.pathname}] ---')
         indent = '    '
 
-        def _print_constraints(phs, outstream):
-            ds = {'initial': phs._initial_boundary_constraints,
-                  'final': phs._final_boundary_constraints,
-                  'path': phs._path_constraints}
+        def _print_constraints(phase, outstream):
+            tx = phase.options['transcription']
+
+            ode_outputs = get_promoted_vars(tx._get_ode(phase), 'output')
+
+            ds = {'initial': phase._initial_boundary_constraints,
+                  'final': phase._final_boundary_constraints,
+                  'path': phase._path_constraints}
 
             if not (
-                    phs._initial_boundary_constraints or phs._final_boundary_constraints or phs._path_constraints):
+                    phase._initial_boundary_constraints or phase._final_boundary_constraints or phase._path_constraints):
                 print(f'{2 * indent}None', file=outstream)
 
             for loc, d in ds.items():
                 str_loc = f'[{loc}]'
                 for expr, options in d.items():
-                    _, shape, units, linear = phs.options['transcription']._get_boundary_constraint_src(expr, loc, phs)
+                    _, shape, units, linear = tx._get_boundary_constraint_src(expr, loc, phase, ode_outputs=ode_outputs)
 
                     equals = options['equals']
                     lower = options['lower']
@@ -994,11 +1004,10 @@ class Trajectory(om.Group):
                             f'{2 * indent}{str_loc:<10s}{str_lower} {expr} {str_upper} [{str_units}]',
                             file=outstream)
 
-        for phase_name in self._phases:
+        for phase_name, phs in self._phases.items():
             print(f'{indent}--- {phase_name} ---', file=outstream)
-            phs = self._get_subsystem(f'phases.{phase_name}')
-
-            _print_constraints(phs, outstream)
+            if phs._is_local:
+                _print_constraints(phs, outstream)
 
         print('', file=outstream)
 

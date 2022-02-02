@@ -100,7 +100,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p['traj.phase0.states:m'] = phase.interp('m', [19030.468, 16841.431])
     p['traj.phase0.controls:alpha'] = phase.interp('alpha', [0.0, 0.0])
 
-    p.run_driver()
+    dm.run_problem(p, simulate=True)
 
     return p
 

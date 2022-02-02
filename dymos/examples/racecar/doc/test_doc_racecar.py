@@ -1,6 +1,7 @@
 import unittest
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.assert_utils import assert_near_equal
 
 
 @use_tempdirs
@@ -136,10 +137,11 @@ class TestRaceCarForDocs(unittest.TestCase):
         p.driver.opt_settings['compl_inf_tol'] = 1e-3
         p.driver.opt_settings['acceptable_iter'] = 0
         p.driver.opt_settings['tol'] = 1e-3
-        p.driver.opt_settings['nlp_scaling_method'] = 'none'
         p.driver.opt_settings['print_level'] = 5
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
-        p.driver.options['print_results'] = False
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+        p.driver.opt_settings['mu_strategy'] = 'monotone'
+        # p.driver.options['print_results'] = False
 
         # Allow OpenMDAO to automatically determine our sparsity pattern.
         # Doing so can significant speed up the execution of Dymos.
@@ -177,6 +179,8 @@ class TestRaceCarForDocs(unittest.TestCase):
         thrust = p.get_val('traj.phase0.timeseries.controls:thrust')
         delta = p.get_val('traj.phase0.timeseries.controls:delta')
         power = p.get_val('traj.phase0.timeseries.power', units='W')
+
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:t')[-1, ...], 22.2657, tolerance=1.0E-2)
 
         print("Plotting")
 
