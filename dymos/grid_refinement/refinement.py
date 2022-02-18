@@ -12,7 +12,7 @@ import numpy as np
 import sys
 
 
-def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp'):
+def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_prefix=None, reset_iter_counts=True):
     """
     This function performs grid refinement for a phases in which solve_segments is true.
 
@@ -24,16 +24,25 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp'):
         The choice of refinement algorithm to use for grid refinement
     refine_iteration_limit : int
         The number of passes through the grid refinement algorithm to be made.
+    case_prefix : str or None
+        Prefix to prepend to coordinates when recording.
+    reset_iter_counts : bool
+        If True and model has been run previously, reset all iteration counters.
     """
     phases = find_phases(problem.model)
     refinement_methods = {'hp': HPAdaptive, 'ph': PHAdaptive}
+    _case_prefix = '' if case_prefix is None else f'{case_prefix}_'
+
+    failed = problem.run_driver(case_prefix=f'{_case_prefix}{refine_method}_0_'
+                                if refine_iteration_limit > 0 else _case_prefix,
+                                reset_iter_counts=reset_iter_counts)
 
     if refine_iteration_limit > 0:
         out_file = 'grid_refinement.out'
 
         ref = refinement_methods[refine_method](phases)
         with open(out_file, 'w+') as f:
-            for i in range(refine_iteration_limit):
+            for i in range(1, refine_iteration_limit + 1):
                 refine_results = check_error(phases)
 
                 refined_phases = [phase_path for phase_path in refine_results if
@@ -58,11 +67,13 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp'):
 
                 load_case(problem, prev_soln)
 
-                problem.run_driver()
+                failed = problem.run_driver(case_prefix=f'{_case_prefix}{refine_method}_{i}_')
 
             for stream in [f, sys.stdout]:
                 if i == refine_iteration_limit-1:
                     print('Iteration limit exceeded. Unable to satisfy specified tolerance', file=stream)
+                    failed = True
                 else:
                     print('Successfully completed grid refinement.', file=stream)
             print(50 * '=')
+    return failed
