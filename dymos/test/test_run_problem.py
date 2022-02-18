@@ -200,6 +200,227 @@ class TestRunProblem(unittest.TestCase):
         assert_almost_equal(case.outputs['traj.phase0.timeseries.time'].max(), 1.8016, decimal=4)
 
     @require_pyoptsparse(optimizer='SLSQP')
+    def test_run_brachistochrone_problem(self):
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
+        p.driver.declare_coloring()
+        p.driver.options['optimizer'] = 'SLSQP'
+
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+        phase0 = traj.add_phase('phase0', dm.Phase(ode_class=BrachistochroneODE,
+                                                   transcription=dm.Radau(num_segments=2,
+                                                                          order=3)))
+        phase0.set_time_options(fix_initial=True, fix_duration=False)
+        phase0.add_state('x', fix_initial=True, fix_final=False)
+        phase0.add_state('y', fix_initial=True, fix_final=False)
+        phase0.add_state('v', fix_initial=True, fix_final=False)
+        phase0.add_control('theta', continuity=True, rate_continuity=True,
+                           units='deg', lower=0.01, upper=179.9)
+        phase0.add_parameter('g', units='m/s**2', val=9.80665)
+
+        phase0.add_boundary_constraint('x', loc='final', equals=10)
+        phase0.add_boundary_constraint('y', loc='final', equals=5)
+        # Minimize time at the end of the phase
+        phase0.add_objective('time_phase', loc='final', scaler=10)
+
+        phase0.set_refine_options(refine=True)
+
+        p.model.linear_solver = om.DirectSolver()
+        p.setup(check=True)
+
+        p.set_val('traj.phase0.t_initial', 0.0)
+        p.set_val('traj.phase0.t_duration', 2.0)
+
+        p.set_val('traj.phase0.states:x', phase0.interp('x', [0, 10]))
+        p.set_val('traj.phase0.states:y', phase0.interp('y', [10, 5]))
+        p.set_val('traj.phase0.states:v', phase0.interp('v', [0, 9.9]))
+        p.set_val('traj.phase0.controls:theta', phase0.interp('theta', [5, 100]))
+        p.set_val('traj.phase0.parameters:g', 9.80665)
+
+        dm.run_problem(p, simulate=True, simulate_kwargs={'times_per_seg': 100})
+
+        self.assertTrue(os.path.exists('dymos_solution.db'))
+        # Assert the results are what we expect.
+        sol_case = om.CaseReader('dymos_solution.db').get_case('final')
+        sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        sol_t = sol_case.get_val('traj.phase0.timeseries.time')
+        sim_t = sim_case.get_val('traj.phase0.timeseries.time')
+
+        assert_almost_equal(sol_case.get_val('traj.phase0.timeseries.time')[-1, ...], 1.8016, decimal=4)
+        assert_almost_equal(sim_case.get_val('traj.phase0.timeseries.time')[-1, ...], 1.8016, decimal=2)
+
+        # With two, 3rd-order Radau segments we expect 8 points total.
+        self.assertTupleEqual(sol_t.shape, (8, 1))
+
+        # Requested 100 output times per segment, so expect 200 points total
+        self.assertTupleEqual(sim_t.shape, (200, 1))
+
+    @require_pyoptsparse(optimizer='SLSQP')
+    def test_illegal_simulate_kwargs(self):
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
+        p.driver.declare_coloring()
+        p.driver.options['optimizer'] = 'SLSQP'
+
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+        phase0 = traj.add_phase('phase0', dm.Phase(ode_class=BrachistochroneODE,
+                                                   transcription=dm.Radau(num_segments=2,
+                                                                          order=3)))
+        phase0.set_time_options(fix_initial=True, fix_duration=False)
+        phase0.add_state('x', fix_initial=True, fix_final=False)
+        phase0.add_state('y', fix_initial=True, fix_final=False)
+        phase0.add_state('v', fix_initial=True, fix_final=False)
+        phase0.add_control('theta', continuity=True, rate_continuity=True,
+                           units='deg', lower=0.01, upper=179.9)
+        phase0.add_parameter('g', units='m/s**2', val=9.80665)
+
+        phase0.add_boundary_constraint('x', loc='final', equals=10)
+        phase0.add_boundary_constraint('y', loc='final', equals=5)
+        # Minimize time at the end of the phase
+        phase0.add_objective('time_phase', loc='final', scaler=10)
+
+        phase0.set_refine_options(refine=True)
+
+        p.model.linear_solver = om.DirectSolver()
+        p.setup(check=True)
+
+        p.set_val('traj.phase0.t_initial', 0.0)
+        p.set_val('traj.phase0.t_duration', 2.0)
+
+        p.set_val('traj.phase0.states:x', phase0.interp('x', [0, 10]))
+        p.set_val('traj.phase0.states:y', phase0.interp('y', [10, 5]))
+        p.set_val('traj.phase0.states:v', phase0.interp('v', [0, 9.9]))
+        p.set_val('traj.phase0.controls:theta', phase0.interp('theta', [5, 100]))
+        p.set_val('traj.phase0.parameters:g', 9.80665)
+
+        with self.assertRaises(ValueError) as e:
+            dm.run_problem(p, simulate=True, simulate_kwargs={'record_file': 'my_sim_file.db'})
+        self.assertEqual(str(e.exception),
+                         'Key "record_file" was found in simulate_kwargs but should instead by provided by '
+                         'the argument "simulation_record_file".')
+
+        with self.assertRaises(ValueError) as e:
+            dm.run_problem(p, simulate=True, simulate_kwargs={'case_prefix': 'foo'})
+        self.assertEqual(str(e.exception),
+                         'Key "case_prefix" was found in simulate_kwargs but should instead by provided by '
+                         'the argument "case_prefix", not part of the simulate_kwargs dictionary.')
+
+        with self.assertRaises(ValueError) as e:
+            dm.run_problem(p, simulate=True, simulate_kwargs={'case_prefix': 'foo'})
+        self.assertEqual(str(e.exception),
+                         'Key "case_prefix" was found in simulate_kwargs but should instead by provided by '
+                         'the argument "case_prefix", not part of the simulate_kwargs dictionary.')
+
+    @require_pyoptsparse(optimizer='SLSQP')
+    def test_run_brachistochrone_problem_refine_case_driver_case_prefix(self):
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
+        p.driver.declare_coloring()
+        p.driver.options['optimizer'] = 'SLSQP'
+
+        p.driver.add_recorder(om.SqliteRecorder('brach_driver_rec.db'))
+
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+        phase0 = traj.add_phase('phase0', dm.Phase(ode_class=BrachistochroneODE,
+                                                   transcription=dm.Radau(num_segments=5,
+                                                                          order=3)))
+        phase0.set_time_options(fix_initial=True, fix_duration=False)
+        phase0.add_state('x', fix_initial=True, fix_final=False)
+        phase0.add_state('y', fix_initial=True, fix_final=False)
+        phase0.add_state('v', fix_initial=True, fix_final=False)
+        phase0.add_control('theta', continuity=True, rate_continuity=True,
+                           units='deg', lower=0.01, upper=179.9)
+        phase0.add_parameter('g', units='m/s**2', val=9.80665)
+
+        phase0.add_boundary_constraint('x', loc='final', equals=10)
+        phase0.add_boundary_constraint('y', loc='final', equals=5)
+        # Minimize time at the end of the phase
+        phase0.add_objective('time_phase', loc='final', scaler=10)
+
+        phase0.set_refine_options(refine=True)
+
+        p.model.linear_solver = om.DirectSolver()
+        p.setup(check=True)
+
+        p.set_val('traj.phase0.t_initial', 0.0)
+        p.set_val('traj.phase0.t_duration', 2.0)
+
+        p.set_val('traj.phase0.states:x', phase0.interp('x', [0, 10]))
+        p.set_val('traj.phase0.states:y', phase0.interp('y', [10, 5]))
+        p.set_val('traj.phase0.states:v', phase0.interp('v', [0, 9.9]))
+        p.set_val('traj.phase0.controls:theta', phase0.interp('theta', [5, 100]))
+        p.set_val('traj.phase0.parameters:g', 9.80665)
+
+        dm.run_problem(p, refine_iteration_limit=20)
+
+        self.assertTrue(os.path.exists('dymos_solution.db'))
+        # Assert the results are what we expect.
+        cr = om.CaseReader('dymos_solution.db')
+        case = cr.get_case('final')
+        assert_almost_equal(case.outputs['traj.phase0.timeseries.time'].max(), 1.8016, decimal=4)
+
+        cr_opt = om.CaseReader('brach_driver_rec.db')
+        cases = cr_opt.list_cases(source='driver', out_stream=None)
+
+        for case in cases:
+            self.assertTrue(case.startswith('hp_') and 'pyOptSparse_SLSQP|' in case, msg=f'Unexpected case: {case}')
+
+    @require_pyoptsparse(optimizer='SLSQP')
+    def test_run_brachistochrone_problem_refine_case_prefix(self):
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
+        p.driver.declare_coloring()
+        p.driver.options['optimizer'] = 'SLSQP'
+
+        p.driver.add_recorder(om.SqliteRecorder('brach_driver_rec.db'))
+
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+        phase0 = traj.add_phase('phase0', dm.Phase(ode_class=BrachistochroneODE,
+                                                   transcription=dm.Radau(num_segments=5,
+                                                                          order=3)))
+        phase0.set_time_options(fix_initial=True, fix_duration=False)
+        phase0.add_state('x', fix_initial=True, fix_final=False)
+        phase0.add_state('y', fix_initial=True, fix_final=False)
+        phase0.add_state('v', fix_initial=True, fix_final=False)
+        phase0.add_control('theta', continuity=True, rate_continuity=True,
+                           units='deg', lower=0.01, upper=179.9)
+        phase0.add_parameter('g', units='m/s**2', val=9.80665)
+
+        phase0.add_boundary_constraint('x', loc='final', equals=10)
+        phase0.add_boundary_constraint('y', loc='final', equals=5)
+        # Minimize time at the end of the phase
+        phase0.add_objective('time_phase', loc='final', scaler=10)
+
+        phase0.set_refine_options(refine=True)
+
+        p.model.linear_solver = om.DirectSolver()
+        p.setup(check=True)
+
+        p.set_val('traj.phase0.t_initial', 0.0)
+        p.set_val('traj.phase0.t_duration', 2.0)
+
+        p.set_val('traj.phase0.states:x', phase0.interp('x', [0, 10]))
+        p.set_val('traj.phase0.states:y', phase0.interp('y', [10, 5]))
+        p.set_val('traj.phase0.states:v', phase0.interp('v', [0, 9.9]))
+        p.set_val('traj.phase0.controls:theta', phase0.interp('theta', [5, 100]))
+        p.set_val('traj.phase0.parameters:g', 9.80665)
+
+        dm.run_problem(p, refine_iteration_limit=20, case_prefix='brach_test')
+
+        self.assertTrue(os.path.exists('dymos_solution.db'))
+        # Assert the results are what we expect.
+        cr = om.CaseReader('dymos_solution.db')
+        case = cr.get_case('brach_test_final')
+        assert_almost_equal(case.outputs['traj.phase0.timeseries.time'].max(), 1.8016, decimal=4)
+
+        cr_opt = om.CaseReader('brach_driver_rec.db')
+        cases = cr_opt.list_cases(source='driver', out_stream=None)
+
+        for case in cases:
+            self.assertTrue(case.startswith('brach_test_hp_') and 'pyOptSparse_SLSQP|' in case, msg=f'Unexpected case: {case}')
+
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_run_brachistochrone_vector_states_problem(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()

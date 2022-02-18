@@ -1012,7 +1012,8 @@ class Trajectory(om.Group):
         print('', file=outstream)
 
     def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
-                 first_step=_unspecified, max_step=_unspecified, record_file=None):
+                 first_step=_unspecified, max_step=_unspecified, record_file=None, case_prefix=None,
+                 reset_iter_counts=True):
         """
         Simulate the Trajectory using scipy.integrate.solve_ivp.
 
@@ -1034,6 +1035,10 @@ class Trajectory(om.Group):
         record_file : str or None
             If a string, the file to which the result of the simulation will be saved.
             If None, no record of the simulation will be saved.
+        case_prefix : str or None
+            Prefix to prepend to coordinates when recording.
+        reset_iter_counts : bool
+            If True and model has been run previously, reset all iteration counters.
 
         Returns
         -------
@@ -1095,10 +1100,11 @@ class Trajectory(om.Group):
                                              skip_params=skip_params)
 
         print('\nSimulating trajectory {0}'.format(self.pathname))
-        sim_prob.run_model()
+        sim_prob.run_model(case_prefix=case_prefix, reset_iter_counts=reset_iter_counts)
         print('Done simulating trajectory {0}'.format(self.pathname))
         if record_file:
-            sim_prob.record('final')
+            _case_prefix = '' if case_prefix is None else f'{case_prefix}_'
+            sim_prob.record(f'{_case_prefix}final')
         sim_prob.cleanup()
 
         return sim_prob
