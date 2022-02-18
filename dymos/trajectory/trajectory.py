@@ -74,12 +74,12 @@ class Trajectory(om.Group):
         self._phase_add_kwargs[name] = kwargs
         return phase
 
-    def add_parameter(self, name, units=_unspecified, val=_unspecified, desc=_unspecified, opt=False,
-                      targets=_unspecified, lower=_unspecified, upper=_unspecified,
-                      scaler=_unspecified, adder=_unspecified, ref0=_unspecified, ref=_unspecified,
-                      shape=_unspecified, dynamic=_unspecified, static_target=_unspecified):
+    def set_parameter_options(self, name, units=_unspecified, val=_unspecified, desc=_unspecified, opt=False,
+                              targets=_unspecified, lower=_unspecified, upper=_unspecified,
+                              scaler=_unspecified, adder=_unspecified, ref0=_unspecified, ref=_unspecified,
+                              shape=_unspecified, dynamic=_unspecified, static_target=_unspecified):
         """
-        Add a parameter (static control) to the trajectory.
+        Set the options of an existing a parameter in the trajectory.
 
         Parameters
         ----------
@@ -117,7 +117,7 @@ class Trajectory(om.Group):
             The shape of the parameter.
         dynamic : bool
             True if the targets in the ODE may be dynamic (if the inputs are sized to the number
-            of nodes) else False.
+            of nodes) else False. This argument is deprecated in favor of static_target.
         static_target : bool or _unspecified
             True if the targets in the ODE are not shaped with num_nodes as the first dimension
             (meaning they cannot have a unique value at each node).  Otherwise False.
@@ -175,6 +175,65 @@ class Trajectory(om.Group):
                              f"specified for parameter '{name}'. "
                              f"Going forward, please use only option static_target.  Option "
                              f"'dynamic' will be removed in Dymos 2.0.0.")
+
+    def add_parameter(self, name, units=_unspecified, val=_unspecified, desc=_unspecified, opt=False,
+                      targets=_unspecified, lower=_unspecified, upper=_unspecified,
+                      scaler=_unspecified, adder=_unspecified, ref0=_unspecified, ref=_unspecified,
+                      shape=_unspecified, dynamic=_unspecified, static_target=_unspecified):
+        """
+        Add a parameter (static control) to the trajectory.
+
+        Parameters
+        ----------
+        name : str
+            Name of the parameter.
+        units : str or None or _unspecified
+            Units in which the parameter is defined.  If _unspecified, use the units declared
+            for the parameter in the ODE.
+        val : float or ndarray
+            Default value of the parameter at all nodes.
+        desc : str
+            A description of the parameter.
+        opt : bool
+            If True the value(s) of this parameter will be design variables in
+            the optimization problem. The default is False.
+        targets : dict or None
+            If None, then the parameter will be connected to the controllable parameter
+            in the ODE of each phase.  For each phase where no such controllable parameter exists,
+            a warning will be issued.  If targets is given as a dict, the dict should provide
+            the relevant phase names as keys, each associated with the respective controllable
+            parameter as a value.
+        lower : float or ndarray
+            The lower bound of the parameter value.
+        upper : float or ndarray
+            The upper bound of the parameter value.
+        scaler : float or ndarray
+            The scaler of the parameter value for the optimizer.
+        adder : float or ndarray
+            The adder of the parameter value for the optimizer.
+        ref0 : float or ndarray
+            The zero-reference value of the parameter for the optimizer.
+        ref : float or ndarray
+            The unit-reference value of the parameter for the optimizer.
+        shape : Sequence of int
+            The shape of the parameter.
+        dynamic : bool
+            True if the targets in the ODE may be dynamic (if the inputs are sized to the number
+            of nodes) else False. This argument is deprecated in favor of static_target.
+        static_target : bool or _unspecified
+            True if the targets in the ODE are not shaped with num_nodes as the first dimension
+            (meaning they cannot have a unique value at each node).  Otherwise False.
+        """
+        if name not in self.parameter_options:
+            self.parameter_options[name] = TrajParameterOptionsDictionary()
+            self.parameter_options[name]['name'] = name
+        else:
+            raise ValueError(f'Attempted to add parameter "{name}" to trajectory but trajectory already has a parameter'
+                             'of that name.')
+
+        self.set_parameter_options(name, units=units, val=val, desc=desc, opt=opt, targets=targets, lower=lower,
+                                   upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref, shape=shape,
+                                   dynamic=dynamic, static_target=static_target)
 
     def _setup_parameters(self):
         """
