@@ -19,6 +19,7 @@ from ..utils.constants import INF_BOUND
 from .options import LinkageOptionsDictionary
 from .phase_linkage_comp import PhaseLinkageComp
 from ..phase.options import TrajParameterOptionsDictionary
+from ..transcriptions.common import ParameterComp
 from ..utils.misc import get_rate_units, _unspecified
 from ..utils.introspection import get_promoted_vars, get_source_metadata
 
