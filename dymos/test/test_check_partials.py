@@ -50,6 +50,8 @@ class TestCheckPartials(unittest.TestCase):
         prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 90]),
                      units='deg')
 
+        om.n2(prob)
+
         prob.run_model()
 
         cpd = prob.check_partials(compact_print=True, method='fd', out_stream=None)

@@ -115,7 +115,7 @@ class ParameterComp(ExplicitComponent):
         output_meta : dict
             The metadata associated with the output.
         """
-        _out_name = output_name if output_name is not None else f'parameter_values:{name}'
+        _out_name = output_name if output_name is not None else f'parameter_vals:{name}'
 
         if shape in (None, _unspecified):
             _shape = (1,)

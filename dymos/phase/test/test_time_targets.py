@@ -90,7 +90,7 @@ class _BrachistochroneTestODE(om.ExplicitComponent):
         jacobian['check', 'theta'] = -v * cos_theta / sin_theta**2
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestPhaseTimeTargets(unittest.TestCase):
 
     def _make_problem(self, transcription, num_seg, transcription_order=3, input_initial=False,
@@ -103,7 +103,8 @@ class TestPhaseTimeTargets(unittest.TestCase):
         p.driver.declare_coloring()
 
         t = {'gauss-lobatto': dm.GaussLobatto(num_segments=num_seg, order=transcription_order),
-             'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order)}
+             'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order),
+             'explicit-shooting': dm.ExplicitShooting(num_segments=num_seg, grid='radau-ps', num_steps_per_segment=10)}
 
         phase = dm.Phase(ode_class=_BrachistochroneTestODE, transcription=t[transcription])
 
@@ -240,6 +241,48 @@ class TestPhaseTimeTargets(unittest.TestCase):
             assert_near_equal(t_duration_i, p['phase0.t_duration'])
             assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
             assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
+
+    def test_explicit_shooting(self):
+        num_seg = 5
+        p = self._make_problem('explicit-shooting', num_seg)
+
+        # Solve for the optimal trajectory
+        p.run_driver()
+
+        gd = p.model.phase0.options['transcription'].grid_data
+
+        time_all = p['phase0.timeseries.time']
+
+        time_phase_all = p['phase0.timeseries.time_phase']
+
+        om.n2(p)
+
+        assert_near_equal(p['phase0.integrator.time_phase'][-1], 1.8016, tolerance=1.0E-3)
+
+        assert_near_equal(p['phase0.integrator.t_initial'], p['phase0.t_initial'])
+
+        assert_near_equal(p['phase0.integrator.t_duration'], p['phase0.t_duration'])
+
+        assert_near_equal(p['phase0.integrator.time_phase'], time_phase_all)
+
+        assert_near_equal(p['phase0.integrator.time'], time_all)
+
+        # exp_out = p.model.phase0.simulate()
+
+        # for iseg in range(num_seg):
+        #     seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
+        #     iface = seg_comp_i.options['ode_integration_interface']
+        #     t_initial_i = iface.prob.get_val('ode.t_initial')
+        #     t_duration_i = iface.prob.get_val('ode.t_duration')
+        #     time_phase_i = iface.prob.get_val('ode.time_phase')
+        #     time_i = iface.prob.get_val('ode.time')
+        #
+        #     # Since the phase has simulated, all times should be equal to their respective value
+        #     # at the end of each segment.
+        #     assert_near_equal(t_initial_i, p['phase0.t_initial'])
+        #     assert_near_equal(t_duration_i, p['phase0.t_duration'])
+        #     assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
+        #     assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
 
     def test_gauss_lobatto_targets_are_inputs(self):
         num_seg = 20

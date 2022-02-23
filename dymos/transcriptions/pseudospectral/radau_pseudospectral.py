@@ -77,18 +77,12 @@ class Radau(PseudospectralBase):
                 if shape == (1,):
                     src_idxs = None
                     flat_src_idxs = None
-                    src_shape = None
                 else:
                     src_idxs = np.zeros(self.grid_data.subset_num_nodes['all'])
                     flat_src_idxs = True
-                    src_shape = (1,)
 
-                phase.promotes('rhs_all', inputs=[(t, name)], src_indices=src_idxs,
-                               flat_src_indices=flat_src_idxs, src_shape=src_shape)
-            if targets:
-                phase.set_input_defaults(name=name,
-                                         val=np.ones((1,)),
-                                         units=options['units'])
+                phase.connect(f'{name}_val', f'rhs_all.{t}',
+                              src_indices=src_idxs, flat_src_indices=flat_src_idxs)
 
     def configure_controls(self, phase):
         """
@@ -216,8 +210,8 @@ class Radau(PseudospectralBase):
         super(Radau, self).configure_defects(phase)
 
         for name, options in phase.state_options.items():
-            phase.connect('state_interp.staterate_col:{0}'.format(name),
-                          'collocation_constraint.f_approx:{0}'.format(name))
+            phase.connect(f'state_interp.staterate_col:{name}',
+                          f'collocation_constraint.f_approx:{name}')
 
             rate_src = options['rate_source']
             if rate_src in phase.parameter_options:
@@ -230,10 +224,11 @@ class Radau(PseudospectralBase):
                 src_idxs = np.reshape(src_idxs, (ncn,) + shape)
                 phase.promotes('collocation_constraint', inputs=[(f'f_computed:{name}', f'parameters:{rate_src}')],
                                src_indices=(src_idxs,), flat_src_indices=True, src_shape=shape)
+                phase.connect(f'parameter_vals:{rate_src}', f'collocation_constraint.f_computed{name}')
             else:
                 rate_src_path, src_idxs = self.get_rate_source_path(name, 'col', phase)
                 phase.connect(rate_src_path,
-                              'collocation_constraint.f_computed:{0}'.format(name),
+                              f'collocation_constraint.f_computed:{name}',
                               src_indices=src_idxs)
 
         any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
@@ -494,22 +489,25 @@ class Radau(PseudospectralBase):
 
             for param_name, options in phase.parameter_options.items():
                 if options['include_timeseries']:
-                    prom_name = f'parameters:{param_name}'
+                    var_name = f'parameters:{param_name}'
+                    src_name = f'parameter_vals:{param_name}'
                     tgt_name = f'input_values:parameters:{param_name}'
 
                     # Add output.
                     timeseries_comp = phase._get_subsystem(timeseries_name)
-                    added_src = timeseries_comp._add_output_configure(prom_name,
+                    added_src = timeseries_comp._add_output_configure(var_name,
                                                                       desc='',
                                                                       shape=options['shape'],
                                                                       units=options['units'],
-                                                                      src=prom_name)
+                                                                      src=src_name)
                     if added_src:
                         src_idxs_raw = np.zeros(gd.subset_num_nodes['all'], dtype=int)
                         src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
-                        phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
-                                       src_indices=(src_idxs,), flat_src_indices=True)
+                        phase.connect(src_name,
+                                      f'{timeseries_name}.{tgt_name}',
+                                      src_indices=(src_idxs,),
+                                      flat_src_indices=True)
 
             for var, options in phase._timeseries[timeseries_name]['outputs'].items():
                 output_name = options['output_name']

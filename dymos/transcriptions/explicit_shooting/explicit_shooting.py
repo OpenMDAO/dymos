@@ -112,8 +112,6 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        # phase.add_subsystem('indep_states', om.IndepVarComp(),
-        #                     promotes_outputs=['*'])
         pass
 
     def configure_states(self, phase):
@@ -170,7 +168,8 @@ class ExplicitShooting(TranscriptionBase):
                                             ode_init_kwargs=phase.options['ode_init_kwargs'],
                                             standalone_mode=False)
 
-        phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'])
+        phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'],
+                            promotes_outputs=['t_initial_val', 't_duration_val'])
 
     def configure_ode(self, phase):
         """
@@ -271,6 +270,8 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        super().configure_parameters(phase)
+
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_parameters_io()
 
@@ -322,7 +323,7 @@ class ExplicitShooting(TranscriptionBase):
                               f'continuity_comp.control_rates:{control_name}_rate2')
 
         if any_rate_cnty:
-            phase.promotes('continuity_comp', inputs=['t_duration'])
+            phase.connect('t_duration_val', 'continuity_comp.t_duration')
 
     def configure_objective(self, phase):
         """
@@ -656,8 +657,8 @@ class ExplicitShooting(TranscriptionBase):
                                                           units=options['units'], src=prom_name)
 
                     src_idxs = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
-                    phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
-                                   src_indices=om.slicer[src_idxs, ...], src_shape=options['shape'])
+                    phase.connect(f'parameter_vals:{param_name}', f'{timeseries_name}.{tgt_name}',
+                                  src_indices=om.slicer[src_idxs, ...])
 
             for var, options in integrator_comp._filtered_timeseries_outputs.items():
                 added_src = timeseries_comp._add_output_configure(var,

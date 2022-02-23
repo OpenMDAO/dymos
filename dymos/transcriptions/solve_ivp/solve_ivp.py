@@ -401,15 +401,15 @@ class SolveIVP(TranscriptionBase):
         segs = phase._get_subsystem('segments')
 
         for name, options in phase.parameter_options.items():
-            prom_name = f'parameters:{name}'
+            # prom_name = f'parameters:{name}'
             shape = options['shape']
             units = options['units']
 
             for i in range(gd.num_segments):
                 seg_comp = segs._get_subsystem(f'segment_{i}')
-                seg_comp.add_input(name=prom_name, val=np.ones(shape), units=units,
+                seg_comp.add_input(name=f'parameters:{name}', val=np.ones(shape), units=units,
                                    desc=f'values of parameter {name}.')
-                segs.promotes(f'segment_{i}', inputs=[prom_name])
+                # phase.connect(f'parameter_vals:{name}', f'segment_{i}.{prom_name}')
 
     def setup_defects(self, phase):
         """
@@ -579,9 +579,12 @@ class SolveIVP(TranscriptionBase):
                 param_size = np.prod(shape)
                 src_idxs = np.tile(np.arange(0, param_size, dtype=int), nn)
                 src_idxs = np.reshape(src_idxs, (nn,) + shape)
-                phase.promotes('timeseries', inputs=[(f'all_values:state_rates:{name}',
-                                                      f'parameters:{rate_src}')],
-                               src_indices=(src_idxs,), src_shape=shape)
+                phase.connect(f'parameters:{rate_src}',
+                              f'timieseries.all_values:state_rates:{name}',
+                              src_indices=src_idxs)
+                # phase.promotes('timeseries', inputs=[(f'all_values:state_rates:{name}',
+                #                                       f'parameters:{rate_src}')],
+                #                src_indices=(src_idxs,), src_shape=shape)
             else:
                 phase.connect(src_name=self.get_rate_source_path(name, phase),
                               tgt_name=f'timeseries.all_values:state_rates:{name}',
@@ -661,11 +664,14 @@ class SolveIVP(TranscriptionBase):
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                 else:
                     src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape']).ravel()
 
-                tgt_name = f'all_values:parameters:{name}'
-                phase.promotes('timeseries', inputs=[(tgt_name, prom_name)],
-                               src_indices=(src_idxs,), flat_src_indices=True)
+                # tgt_name = f'all_values:parameters:{name}'
+                # phase.promotes('timeseries', inputs=[(tgt_name, prom_name)],
+                #                src_indices=(src_idxs,), flat_src_indices=True)
+                # print(src_idxs)
+                phase.connect(f'parameter_vals:{name}', f'timeseries.all_values:parameters:{name}',
+                              src_indices=src_idxs, flat_src_indices=True)
 
         for var, options in phase._timeseries['timeseries']['outputs'].items():
             output_name = options['output_name']
@@ -742,12 +748,31 @@ class SolveIVP(TranscriptionBase):
 
         if name in phase.parameter_options:
             options = phase.parameter_options[name]
-            ode_tgts = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
+            # ode_tgts = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
 
             static = options['static_target']
             shape = options['shape']
 
+            # Get connections to each segment
+            #
+            gd = self.grid_data
+            #
+            # # We also need to take care of the segments.
+            # segs = phase._get_subsystem('segments')
+
+            # for name, options in phase.parameter_options.items():
+            #     prom_name = f'parameters:{name}'
+            #     shape = options['shape']
+            #     units = options['units']
+            #
+            for i in range(gd.num_segments):
+                # seg_comp = segs._get_subsystem(f'segment_{i}')
+                # seg_comp.add_input(name=f'parameters:{name}', val=np.ones(shape), units=units,
+                #                    desc=f'values of parameter {name}.')
+                phase.connect(f'parameter_vals:{name}', f'segment_{i}.parameters:{name}')
+
             # Connections to the final ODE
+            ode_tgts = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
             if not static:
                 src_idxs_raw = np.zeros(num_final_ode_nodes, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)

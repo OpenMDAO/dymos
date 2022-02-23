@@ -71,14 +71,8 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        time_options = phase.time_options
-
         # Warn about invalid options
         phase.check_time_options()
-
-        if not time_options['input_initial'] or not time_options['input_duration']:
-            phase.add_subsystem('time_extents', om.IndepVarComp(),
-                                promotes_outputs=['*'])
 
     def configure_time(self, phase):
         """
@@ -101,19 +95,13 @@ class TranscriptionBase(object):
                                                                user_units=time_options['units'],
                                                                user_shape='')
 
-        time_units = time_options['units']
-        indeps = []
-        default_vals = {'t_initial': phase.time_options['initial_val'],
-                        't_duration': phase.time_options['duration_val']}
+        phase.set_input_defaults('t_initial',
+                                 val=phase.time_options['initial_val'],
+                                 units=phase.time_options['units'])
 
-        if not time_options['input_initial']:
-            indeps.append('t_initial')
-
-        if not time_options['input_duration']:
-            indeps.append('t_duration')
-
-        for var in indeps:
-            phase.time_extents.add_output(var, val=default_vals[var], units=time_units)
+        phase.set_input_defaults('t_duration',
+                                 val=phase.time_options['duration_val'],
+                                 units=phase.time_options['units'])
 
         if not (time_options['input_initial'] or time_options['fix_initial']):
             lb, ub = time_options['initial_bounds']
@@ -214,19 +202,6 @@ class TranscriptionBase(object):
             param_comp = ParameterComp()
             phase.add_subsystem('param_comp', subsys=param_comp, promotes_inputs=['*'], promotes_outputs=['*'])
 
-            for name, options in phase.parameter_options.items():
-                param_comp.add_parameter(name, val=options['val'], shape=options['shape'], units=options['units'])
-                if options['opt']:
-                    lb = -INF_BOUND if options['lower'] is None else options['lower']
-                    ub = INF_BOUND if options['upper'] is None else options['upper']
-                    phase.add_design_var(name=f'parameters:{name}',
-                                         lower=lb,
-                                         upper=ub,
-                                         scaler=options['scaler'],
-                                         adder=options['adder'],
-                                         ref0=options['ref0'],
-                                         ref=options['ref'])
-
     def configure_parameters(self, phase):
         """
         Configure parameter promotion.
@@ -240,13 +215,28 @@ class TranscriptionBase(object):
             The phase object to which this transcription instance applies.
         """
         if phase.parameter_options:
+            param_comp = phase._get_subsystem('param_comp')
+
             for name, options in phase.parameter_options.items():
+                param_comp.add_parameter(name, val=options['val'], shape=options['shape'], units=options['units'])
+
+                if options['opt']:
+                    lb = -INF_BOUND if options['lower'] is None else options['lower']
+                    ub = INF_BOUND if options['upper'] is None else options['upper']
+                    phase.add_design_var(name=f'parameters:{name}',
+                                         lower=lb,
+                                         upper=ub,
+                                         scaler=options['scaler'],
+                                         adder=options['adder'],
+                                         ref0=options['ref0'],
+                                         ref=options['ref'])
+
                 for tgts, src_idxs in self.get_parameter_connections(name, phase):
                     if not options['static_target']:
-                        phase.connect(f'parameter_values:{name}', tgts, src_indices=src_idxs,
+                        phase.connect(f'parameter_vals:{name}', tgts, src_indices=src_idxs,
                                       flat_src_indices=True)
                     else:
-                        phase.connect(f'parameter:values{name}', tgts)
+                        phase.connect(f'parameter_vals:{name}', tgts)
 
     def setup_states(self, phase):
         """
