@@ -326,8 +326,8 @@ class Radau(PseudospectralBase):
                 # enclose indices in tuple to ensure shaping of indices works
                 src_idxs = (src_idxs,)
 
-            phase.connect(src_name=src, tgt_name=tgt,
-                          src_indices=src_idxs, flat_src_indices=flat_src_idxs)
+            # phase.connect(src_name=src, tgt_name=tgt,
+            #               src_indices=src_idxs, flat_src_indices=flat_src_idxs)
 
     def configure_timeseries_outputs(self, phase):
         """

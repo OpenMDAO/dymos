@@ -446,9 +446,9 @@ class TranscriptionBase(object):
         """
         gd = self.grid_data
 
-        if phase._path_constraints:
-            path_comp = PathConstraintComp(num_nodes=gd.num_nodes)
-            phase.add_subsystem('path_constraints', subsys=path_comp)
+        # if phase._path_constraints:
+        #     path_comp = PathConstraintComp(num_nodes=gd.num_nodes)
+        #     phase.add_subsystem('path_constraints', subsys=path_comp)
 
     def configure_path_constraints(self, phase):
         """
@@ -476,11 +476,13 @@ class TranscriptionBase(object):
                 constraint_kwargs['shape'] = (1,)
                 constraint_kwargs['units'] = time_units if con_units is None else con_units
                 constraint_kwargs['linear'] = True
+                con_timeseries_output = 'time'
 
             elif var_type == 'time_phase':
                 constraint_kwargs['shape'] = (1,)
                 constraint_kwargs['units'] = time_units if con_units is None else con_units
                 constraint_kwargs['linear'] = True
+                con_timeseries_output = 'time_phase'
 
             elif var_type == 'state':
                 state_shape = phase.state_options[var]['shape']
@@ -488,6 +490,7 @@ class TranscriptionBase(object):
                 constraint_kwargs['shape'] = state_shape
                 constraint_kwargs['units'] = state_units if con_units is None else con_units
                 constraint_kwargs['linear'] = False
+                con_timeseries_output = f'states:{var}'
 
             elif var_type == 'indep_control':
                 control_shape = phase.control_options[var]['shape']
@@ -496,6 +499,7 @@ class TranscriptionBase(object):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = control_units if con_units is None else con_units
                 constraint_kwargs['linear'] = True
+                con_timeseries_output = f'controls:{var}'
 
             elif var_type == 'input_control':
                 control_shape = phase.control_options[var]['shape']
@@ -504,6 +508,7 @@ class TranscriptionBase(object):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = control_units if con_units is None else con_units
                 constraint_kwargs['linear'] = True
+                con_timeseries_output = f'controls:{var}'
 
             elif var_type == 'indep_polynomial_control':
                 control_shape = phase.polynomial_control_options[var]['shape']
@@ -511,6 +516,7 @@ class TranscriptionBase(object):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = control_units if con_units is None else con_units
                 constraint_kwargs['linear'] = False
+                con_timeseries_output = f'polynomial_controls:{var}'
 
             elif var_type == 'input_polynomial_control':
                 control_shape = phase.polynomial_control_options[var]['shape']
@@ -518,6 +524,7 @@ class TranscriptionBase(object):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = control_units if con_units is None else con_units
                 constraint_kwargs['linear'] = False
+                con_timeseries_output = f'polynomial_controls:{var}'
 
             elif var_type == 'control_rate':
                 control_name = var[:-5]
@@ -526,6 +533,7 @@ class TranscriptionBase(object):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con_units is None else con_units
+                con_timeseries_output = f'control_rates:{var}'
 
             elif var_type == 'control_rate2':
                 control_name = var[:-6]
@@ -534,6 +542,7 @@ class TranscriptionBase(object):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con_units is None else con_units
+                con_timeseries_output = f'control_rates:{var}'
 
             elif var_type == 'polynomial_control_rate':
                 control_name = var[:-5]
@@ -542,6 +551,7 @@ class TranscriptionBase(object):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con_units is None else con_units
+                con_timeseries_output = f'polynomial_control_rates:{var}'
 
             elif var_type == 'polynomial_control_rate2':
                 control_name = var[:-6]
@@ -550,6 +560,7 @@ class TranscriptionBase(object):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con_units is None else con_units
+                con_timeseries_output = f'polynomial_control_rates:{var}'
 
             else:
                 # Failed to find variable, assume it is in the ODE. This requires introspection.
@@ -562,13 +573,24 @@ class TranscriptionBase(object):
                 constraint_kwargs['linear'] = False
                 constraint_kwargs['shape'] = shape
                 constraint_kwargs['units'] = units
+                con_timeseries_output = f'{con_name}'
 
             # Propagate the introspected shape back into the options dict.
             # Some transcriptions use this later.
             options['shape'] = constraint_kwargs['shape']
 
             constraint_kwargs.pop('constraint_name', None)
-            phase._get_subsystem('path_constraints')._add_path_constraint_configure(con_name, **constraint_kwargs)
+            constraint_kwargs.pop('shape', None)
+            # phase._get_subsystem('path_constraints')._add_path_constraint_configure(con_name, **constraint_kwargs)
+
+            print(con_name)
+            print(constraint_kwargs)
+
+            print('Phase adding constraint to ', f'timeseries.{con_timeseries_output}')
+            print('With alias', f'path_constraint:{con_name}')
+
+            phase.add_constraint(f'timeseries.{con_timeseries_output}', **constraint_kwargs, alias=f'path_constraint:{con_name}')
+
 
     def configure_objective(self, phase):
         """
