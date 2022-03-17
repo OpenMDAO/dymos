@@ -419,6 +419,14 @@ class TranscriptionBase(object):
             phase.add_constraint(con_output, **constraint_kwargs)
 
     def setup_path_constraints(self, phase):
+        """
+        Not used in SolveIVP.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         pass
 
     def _get_constraint_kwargs(self, constraint_type, var, options, phase):
@@ -450,8 +458,8 @@ class TranscriptionBase(object):
             constraint_kwargs['linear'] = False
             con_output = f'timeseries.states:{var}'
             
-        elif var_type == 'parameter:':
-            con_output = f'parameter_values:{var}'
+        elif var_type == 'parameter':
+            con_output = f'parameter_value:{var}'
 
         elif var_type == 'indep_control':
             control_shape = phase.control_options[var]['shape']
