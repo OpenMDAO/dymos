@@ -3,41 +3,7 @@ from collections.abc import Iterable
 import numpy as np
 
 from .constants import INF_BOUND
-
-
-class _ReprClass(object):
-    """
-    Class for defining objects with a simple constant string __repr__.
-
-    This is useful for constants used in arg lists when you want them to appear in
-    automatically generated source documentation as a certain string instead of python's
-    default representation.
-    """
-
-    def __init__(self, repr_string):
-        """
-        Initialize the __repr__ string.
-
-        Parameters
-        ----------
-        repr_string : str
-            The string to be returned by __repr__
-        """
-        self._repr_string = repr_string
-
-    def __repr__(self):
-        """
-        Return our _repr_string.
-
-        Returns
-        -------
-        str
-            Whatever string we were initialized with.
-        """
-        return self._repr_string
-
-    def __str__(self):
-        return self._repr_string
+from openmdao.core.constants import _ReprClass
 
 
 # unique object to check if default is given (when None is an allowed value)
