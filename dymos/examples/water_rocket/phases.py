@@ -142,7 +142,7 @@ def new_water_rocket_trajectory(objective):
                                 'ballistic_ascent': 'm_empty',
                                 'descent': 'mass'},
                        lower=0.001, upper=1, ref=0.1,
-                       opt=True)
+                       opt=False)
     traj.add_parameter('V_b', units='m**3', val=2e-3,
                        targets={'propelled_ascent': 'V_b'},
                        opt=False)
@@ -153,6 +153,9 @@ def new_water_rocket_trajectory(objective):
                        opt=False)
     traj.add_parameter('k', units=None, val=1.2, opt=False,
                        targets={'propelled_ascent': ['water_engine.k']})
+
+    # Make parameter m_empty a design variable
+    traj.set_parameter_options('m_empty', opt=True)
 
     return traj, {'propelled_ascent': propelled_ascent,
                   'ballistic_ascent': ballistic_ascent,
