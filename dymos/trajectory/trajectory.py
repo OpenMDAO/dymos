@@ -773,7 +773,7 @@ class Trajectory(om.Group):
                     _print_on_rank(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ==  '
                                    f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
 
-        _print_on_rank('\n* : This quantity is fixed or is an input.\n')
+        _print_on_rank('\n* : Value is fixed or is an input.\n')
 
     def configure(self):
         """
