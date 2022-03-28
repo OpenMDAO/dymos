@@ -1,8 +1,8 @@
 import unittest
 import warnings
 
-from numpy.testing import assert_almost_equal
 import openmdao.api as om
+from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
 
 import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
@@ -81,8 +81,6 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
     p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
     p['traj0.phase0.parameters:g'] = 9.80665
 
-    # dm.run_problem(p, run_driver=run_driver, simulate=True, make_plots=False)
-
     return p
 
 
@@ -102,22 +100,22 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         v0 = p.get_val('traj0.phase0.timeseries.states:v')[0, 0]
         vf = p.get_val('traj0.phase0.timeseries.states:v')[-1, 0]
 
-        g = p.get_val('traj0.phase0.timeseries.parameters:g')
+        g = p.get_val('traj0.phase0.parameter_vals:g')
 
         thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1, 0]
 
-        assert_almost_equal(t_initial, 0.0)
-        assert_almost_equal(x0, 0.0)
-        assert_almost_equal(y0, 10.0)
-        assert_almost_equal(v0, 0.0)
+        assert_near_equal(t_initial, 0.0, tolerance=1.0E-2)
+        assert_near_equal(x0, 0.0, tolerance=1.0E-2)
+        assert_near_equal(y0, 10.0, tolerance=1.0E-2)
+        assert_near_equal(v0, 0.0, tolerance=1.0E-2)
 
-        assert_almost_equal(t_final, 1.8016, decimal=4)
-        assert_almost_equal(xf, 10.0, decimal=3)
-        assert_almost_equal(yf, 5.0, decimal=3)
-        assert_almost_equal(vf, 9.902, decimal=3)
-        assert_almost_equal(g, 9.80665, decimal=3)
+        assert_near_equal(t_final, 1.8016, tolerance=1.0E-2)
+        assert_near_equal(xf, 10.0, tolerance=1.0E-2)
+        assert_near_equal(yf, 5.0, tolerance=1.0E-2)
+        assert_near_equal(vf, 9.902, tolerance=1.0E-2)
+        assert_near_equal(g, 9.80665, tolerance=1.0E-2)
 
-        assert_almost_equal(thetaf, 100.12, decimal=0)
+        assert_near_equal(thetaf, 100.12, tolerance=1.0E-2)
 
     def test_ex_brachistochrone_vs_radau_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = False
@@ -216,22 +214,22 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
         v0 = p.get_val('traj0.phase0.timeseries.states:v')[0]
         vf = p.get_val('traj0.phase0.timeseries.states:v')[-1]
 
-        g = p.get_val('traj0.phase0.timeseries.parameters:g')
+        g = p.get_val('traj0.phase0.parameter_vals:g')
 
         thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1, 0]
 
-        assert_almost_equal(t_initial, 0.0)
-        assert_almost_equal(x0, 0.0, decimal=4)
-        assert_almost_equal(y0, 10.0, decimal=4)
-        assert_almost_equal(v0, 0.0, decimal=4)
+        assert_near_equal(t_initial, 0.0, tolerance=1.0E-2)
+        assert_near_equal(x0, 0.0, tolerance=1.0E-2)
+        assert_near_equal(y0, 10.0, tolerance=1.0E-2)
+        assert_near_equal(v0, 0.0, tolerance=1.0E-2)
 
-        assert_almost_equal(t_final, 1.8016, decimal=4)
-        assert_almost_equal(xf, 10.0, decimal=3)
-        assert_almost_equal(yf, 5.0, decimal=3)
-        assert_almost_equal(vf, 9.902, decimal=3)
-        assert_almost_equal(g, 9.80665, decimal=3)
+        assert_near_equal(t_final, 1.8016, tolerance=1.0E-2)
+        assert_near_equal(xf, 10.0, tolerance=1.0E-2)
+        assert_near_equal(yf, 5.0, tolerance=1.0E-2)
+        assert_near_equal(vf, 9.902, tolerance=1.0E-2)
+        assert_near_equal(g, 9.80665, tolerance=1.0E-2)
 
-        assert_almost_equal(thetaf, 100.12, decimal=0)
+        assert_near_equal(thetaf, 100.12, tolerance=1.0E-2)
 
     def test_brachistochrone_solve_segments(self):
 
