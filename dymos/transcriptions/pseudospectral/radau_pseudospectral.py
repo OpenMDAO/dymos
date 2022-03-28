@@ -77,12 +77,18 @@ class Radau(PseudospectralBase):
                 if shape == (1,):
                     src_idxs = None
                     flat_src_idxs = None
+                    src_shape = None
                 else:
                     src_idxs = np.zeros(self.grid_data.subset_num_nodes['all'])
                     flat_src_idxs = True
+                    src_shape = (1,)
 
-                phase.connect(f'{name}_val', f'rhs_all.{t}',
-                              src_indices=src_idxs, flat_src_indices=flat_src_idxs)
+                phase.promotes('rhs_all', inputs=[(t, name)], src_indices=src_idxs,
+                               flat_src_indices=flat_src_idxs, src_shape=src_shape)
+            if targets:
+                phase.set_input_defaults(name=name,
+                                         val=np.ones((1,)),
+                                         units=options['units'])
 
     def configure_controls(self, phase):
         """
@@ -201,7 +207,6 @@ class Radau(PseudospectralBase):
     def configure_defects(self, phase):
         """
         Configure the continuity_comp and connect the collocation constraints.
-
         Parameters
         ----------
         phase : dymos.Phase
@@ -213,23 +218,10 @@ class Radau(PseudospectralBase):
             phase.connect(f'state_interp.staterate_col:{name}',
                           f'collocation_constraint.f_approx:{name}')
 
-            rate_src = options['rate_source']
-            if rate_src in phase.parameter_options:
-                # If the rate source is a parameter, which is an input, we need to promote
-                # f_computed to the parameter name instead of connecting to it.
-                shape = phase.parameter_options[rate_src]['shape']
-                param_size = np.prod(shape)
-                ncn = self.grid_data.subset_num_nodes['col']
-                src_idxs = np.tile(np.arange(0, param_size, dtype=int), ncn)
-                src_idxs = np.reshape(src_idxs, (ncn,) + shape)
-                phase.promotes('collocation_constraint', inputs=[(f'f_computed:{name}', f'parameters:{rate_src}')],
-                               src_indices=(src_idxs,), flat_src_indices=True, src_shape=shape)
-                phase.connect(f'parameter_vals:{rate_src}', f'collocation_constraint.f_computed{name}')
-            else:
-                rate_src_path, src_idxs = self.get_rate_source_path(name, 'col', phase)
-                phase.connect(rate_src_path,
-                              f'collocation_constraint.f_computed:{name}',
-                              src_indices=src_idxs)
+            rate_src_path, src_idxs = self._get_rate_source_path(name, 'col', phase)
+            phase.connect(rate_src_path,
+                          f'collocation_constraint.f_computed:{name}',
+                          src_indices=src_idxs)
 
         any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
 
@@ -327,7 +319,6 @@ class Radau(PseudospectralBase):
     def configure_timeseries_outputs(self, phase):
         """
         Create connections from time series to all post-introspection sources.
-
         Parameters
         ----------
         phase : dymos.Phase
@@ -370,45 +361,19 @@ class Radau(PseudospectralBase):
                                   tgt_name=f'{timeseries_name}.input_values:states:{state_name}',
                                   src_indices=om.slicer[src_rows, ...])
 
-                rate_src = options['rate_source']
-                if rate_src in phase.parameter_options:
-                    rate_src_path = f'parameters:{rate_src}'
+                rate_src_path, src_idxs = self._get_rate_source_path(state_name, 'all', phase)
 
-                    added_src = timeseries_comp._add_output_configure(f'state_rates:{state_name}',
-                                                                      shape=options['shape'],
-                                                                      units=get_rate_units(
-                                                                          options['units'],
-                                                                          time_units),
-                                                                      desc=f'rate of state {state_name}',
-                                                                      src=rate_src_path)
-
-                    if added_src:
-                        # If the rate source is a parameter, which is an input, we need to promote
-                        # the state rates input value to the parameter name instead of connecting to it.
-                        nn = self.grid_data.subset_num_nodes['all']
-                        shape = phase.parameter_options[rate_src]['shape']
-                        param_size = np.prod(shape)
-                        src_idxs = np.tile(np.arange(0, param_size, dtype=int), nn)
-                        src_idxs = np.reshape(src_idxs, (nn,) + shape)
-                        phase.promotes(f'{timeseries_name}',
-                                       inputs=[(f'input_values:state_rates:{state_name}',
-                                                f'parameters:{rate_src}')],
-                                       src_indices=(src_idxs,), src_shape=shape)
-
-                else:
-                    rate_src_path, src_idxs = self.get_rate_source_path(state_name, 'all', phase)
-
-                    added_src = timeseries_comp._add_output_configure(f'state_rates:{state_name}',
-                                                                      shape=options['shape'],
-                                                                      units=get_rate_units(
-                                                                          options['units'],
-                                                                          time_units),
-                                                                      desc=f'rate of state {state_name}',
-                                                                      src=rate_src_path)
-                    if added_src:
-                        phase.connect(src_name=rate_src_path,
-                                      tgt_name=f'{timeseries_name}.input_values:state_rates:{state_name}',
-                                      src_indices=src_idxs)
+                added_src = timeseries_comp._add_output_configure(f'state_rates:{state_name}',
+                                                                  shape=options['shape'],
+                                                                  units=get_rate_units(
+                                                                      options['units'],
+                                                                      time_units),
+                                                                  desc=f'rate of state {state_name}',
+                                                                  src=rate_src_path)
+                if added_src:
+                    phase.connect(src_name=rate_src_path,
+                                  tgt_name=f'{timeseries_name}.input_values:state_rates:{state_name}',
+                                  src_indices=src_idxs)
 
             for control_name, options in phase.control_options.items():
                 control_units = options['units']
@@ -578,7 +543,7 @@ class Radau(PseudospectralBase):
                         phase.connect(src_name=f'rhs_all.{v}',
                                       tgt_name=f'{timeseries_name}.input_values:{output_name}')
 
-    def get_rate_source_path(self, state_name, nodes, phase):
+    def _get_rate_source_path(self, state_name, nodes, phase):
         """
         Return the rate source location and indices for a given state name.
 
@@ -662,7 +627,7 @@ class Radau(PseudospectralBase):
             rate_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'parameter':
-            rate_path = 'parameters:{0}'.format(var)
+            rate_path = 'parameter_vals:{0}'.format(var)
             dynamic = phase.parameter_options[var]['dynamic']
             if dynamic:
                 node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)

@@ -534,7 +534,6 @@ class SolveIVP(TranscriptionBase):
     def configure_timeseries_outputs(self, phase):
         """
         Create connections from time series to all post-introspection sources.
-
         Parameters
         ----------
         phase : dymos.Phase
@@ -573,22 +572,12 @@ class SolveIVP(TranscriptionBase):
                           tgt_name=f'timeseries.all_values:states:{name}')
 
             rate_src = phase.state_options[name]['rate_source']
-            if rate_src in phase.parameter_options:
-                nn = num_seg * output_nodes_per_seg
-                shape = phase.parameter_options[rate_src]['shape']
-                param_size = np.prod(shape)
-                src_idxs = np.tile(np.arange(0, param_size, dtype=int), nn)
-                src_idxs = np.reshape(src_idxs, (nn,) + shape)
-                phase.connect(f'parameters:{rate_src}',
-                              f'timieseries.all_values:state_rates:{name}',
-                              src_indices=src_idxs)
-                # phase.promotes('timeseries', inputs=[(f'all_values:state_rates:{name}',
-                #                                       f'parameters:{rate_src}')],
-                #                src_indices=(src_idxs,), src_shape=shape)
-            else:
-                phase.connect(src_name=self.get_rate_source_path(name, phase),
-                              tgt_name=f'timeseries.all_values:state_rates:{name}',
-                              src_indices=om.slicer[:], flat_src_indices=True)
+            rate_path, node_idxs = self._get_rate_source_path(name, None, phase=phase)
+            src_idxs = None if rate_src not in phase.parameter_options else om.slicer[node_idxs, ...]
+
+            phase.connect(src_name=rate_path,
+                          tgt_name=f'timeseries.all_values:state_rates:{name}',
+                          src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in phase.control_options.items():
             control_units = options['units']
@@ -790,23 +779,26 @@ class SolveIVP(TranscriptionBase):
     def _get_boundary_constraint_src(self, var, loc):
         pass
 
-    def get_rate_source_path(self, state_var, phase):
+    def _get_rate_source_path(self, state_var, nodes, phase):
         """
         Return the rate source location for a given state name.
-
         Parameters
         ----------
         state_var : str
             Name of the state.
+        nodes : str
+            The nodes subset which we are connecting from the rate source. Note used in SolveIVP.
         phase : dymos.Phase
             Phase object containing the rate source.
-
         Returns
         -------
         str
             Path to the rate source.
+        np.array
+            Source indices for the connection from the rate source to the target.
         """
         var = phase.state_options[state_var]['rate_source']
+        node_idxs = None
 
         if var == 'time':
             rate_path = 'time'
@@ -819,7 +811,9 @@ class SolveIVP(TranscriptionBase):
         elif phase.polynomial_control_options is not None and var in phase.polynomial_control_options:
             rate_path = f'polynomial_control_values:{var}'
         elif phase.parameter_options is not None and var in phase.parameter_options:
-            rate_path = f'parameters:{var}'
+            rate_path = f'parameter_vals:{var}'
+            num_seg = self.grid_data.num_segments
+            node_idxs = np.zeros(num_seg * self.options['output_nodes_per_seg'], dtype=int)
         elif var.endswith('_rate') and phase.control_options is not None and \
                 var[:-5] in phase.control_options:
             rate_path = f'control_rates:{var}'
@@ -835,4 +829,4 @@ class SolveIVP(TranscriptionBase):
         else:
             rate_path = f'ode.{var}'
 
-        return rate_path
+        return rate_path, node_idxs

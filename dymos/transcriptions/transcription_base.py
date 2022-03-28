@@ -65,19 +65,23 @@ class TranscriptionBase(object):
     def setup_time(self, phase):
         """
         Setup up the time component and time extents for the phase.
-
         Parameters
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        time_options = phase.time_options
+
         # Warn about invalid options
         phase.check_time_options()
+
+        if not time_options['input_initial'] or not time_options['input_duration']:
+            phase.add_subsystem('time_extents', om.IndepVarComp(),
+                                promotes_outputs=['*'])
 
     def configure_time(self, phase):
         """
         Configure the inputs/outputs on the time component.
-
         Parameters
         ----------
         phase : dymos.Phase
@@ -95,13 +99,19 @@ class TranscriptionBase(object):
                                                                user_units=time_options['units'],
                                                                user_shape='')
 
-        phase.set_input_defaults('t_initial',
-                                 val=phase.time_options['initial_val'],
-                                 units=phase.time_options['units'])
+        time_units = time_options['units']
+        indeps = []
+        default_vals = {'t_initial': phase.time_options['initial_val'],
+                        't_duration': phase.time_options['duration_val']}
 
-        phase.set_input_defaults('t_duration',
-                                 val=phase.time_options['duration_val'],
-                                 units=phase.time_options['units'])
+        if not time_options['input_initial']:
+            indeps.append('t_initial')
+
+        if not time_options['input_duration']:
+            indeps.append('t_duration')
+
+        for var in indeps:
+            phase.time_extents.add_output(var, val=default_vals[var], units=time_units)
 
         if not (time_options['input_initial'] or time_options['fix_initial']):
             lb, ub = time_options['initial_bounds']

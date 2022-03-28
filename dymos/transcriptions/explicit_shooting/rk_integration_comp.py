@@ -302,16 +302,12 @@ class RKIntegrationComp(om.ExplicitComponent):
 
         self.add_input('t_initial', shape=(1,), units=self.time_options['units'])
         self.add_input('t_duration', shape=(1,), units=self.time_options['units'])
-        self.add_output('t_initial_val', shape=(1,), units=self.time_options['units'])
-        self.add_output('t_duration_val', shape=(1,), units=self.time_options['units'])
         self.add_output('t_final', shape=(1,), units=self.time_options['units'])
         self.add_output('time', shape=(num_output_rows, 1), units=self.time_options['units'])
         self.add_output('time_phase', shape=(num_output_rows, 1), units=self.time_options['units'])
 
         self.declare_partials('t_final', 't_initial', val=1.0)
         self.declare_partials('t_final', 't_duration', val=1.0)
-        self.declare_partials('t_initial_val', 't_initial', val=1.0)
-        self.declare_partials('t_duration_val', 't_duration', val=1.0)
         self.declare_partials('time', 't_initial', val=1.0)
         self.declare_partials('time', 't_duration', val=1.0)
         self.declare_partials('time_phase', 't_duration', val=1.0)
@@ -1544,8 +1540,6 @@ class RKIntegrationComp(om.ExplicitComponent):
         outputs['t_final'] = self._t[-1, ...]
 
         # Extract time
-        outputs['t_initial_val'] = inputs['t_initial']
-        outputs['t_duration_val'] = inputs['t_duration']
         outputs['time'] = self._t[idxs, ...]
         outputs['time_phase'] = self._t[idxs, ...] - inputs['t_initial']
 

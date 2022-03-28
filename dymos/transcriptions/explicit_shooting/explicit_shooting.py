@@ -168,8 +168,7 @@ class ExplicitShooting(TranscriptionBase):
                                             ode_init_kwargs=phase.options['ode_init_kwargs'],
                                             standalone_mode=False)
 
-        phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'],
-                            promotes_outputs=['t_initial_val', 't_duration_val'])
+        phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'])
 
     def configure_ode(self, phase):
         """
@@ -323,7 +322,7 @@ class ExplicitShooting(TranscriptionBase):
                               f'continuity_comp.control_rates:{control_name}_rate2')
 
         if any_rate_cnty:
-            phase.connect('t_duration_val', 'continuity_comp.t_duration')
+            phase.promotes('continuity_comp', inputs=['t_duration'])
 
     def configure_objective(self, phase):
         """

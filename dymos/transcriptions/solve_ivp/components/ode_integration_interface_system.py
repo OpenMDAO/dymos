@@ -156,25 +156,25 @@ class ODEIntegrationInterfaceSystem(om.Group):
         elif var == 'time_phase':
             rate_path = 'time_phase'
         elif self.options['state_options'] is not None and var in self.options['state_options']:
-            rate_path = 'states:{0}'.format(var)
+            rate_path = f'states:{var}'
         elif self.options['control_options'] is not None and var in self.options['control_options']:
-            rate_path = 'controls:{0}'.format(var)
+            rate_path = f'controls:{var}'
         elif self.options['polynomial_control_options'] is not None and var in self.options['polynomial_control_options']:
-            rate_path = 'polynomial_controls:{0}'.format(var)
+            rate_path = f'polynomial_controls:{var}'
         elif self.options['parameter_options'] is not None and var in self.options['parameter_options']:
-            rate_path = 'parameters:{0}'.format(var)
+            rate_path = f'parameters:{var}'
         elif var.endswith('_rate') and self.options['control_options'] is not None and \
                 var[:-5] in self.options['control_options']:
-            rate_path = 'control_rates:{0}'.format(var)
+            rate_path = f'control_rates:{var}'
         elif var.endswith('_rate2') and self.options['control_options'] is not None and \
                 var[:-6] in self.options['control_options']:
-            rate_path = 'control_rates:{0}'.format(var)
+            rate_path = f'control_rates:{var}'
         elif var.endswith('_rate') and self.options['polynomial_control_options'] is not None and \
                 var[:-5] in self.options['polynomial_control_options']:
-            rate_path = 'polynomial_control_rates:{0}'.format(var)
+            rate_path = f'polynomial_control_rates:{var}'
         elif var.endswith('_rate2') and self.options['polynomial_control_options'] is not None and \
                 var[:-6] in self.options['polynomial_control_options']:
-            rate_path = 'polynomial_control_rates:{0}'.format(var)
+            rate_path = f'polynomial_control_rates:{var}'
 
         return rate_path
 

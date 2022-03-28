@@ -246,19 +246,6 @@ class Trajectory(om.Group):
             self.add_subsystem('param_comp', subsys=param_comp, promotes_inputs=['*'], promotes_outputs=['*'])
 
             for name, options in self.parameter_options.items():
-                param_comp.add_parameter(name, val=options['val'], shape=options['shape'], units=options['units'])
-                if options['opt']:
-                    lb = -INF_BOUND if options['lower'] is None else options['lower']
-                    ub = INF_BOUND if options['upper'] is None else options['upper']
-
-                    self.add_design_var(name=f'parameters:{name}',
-                                        lower=lb,
-                                        upper=ub,
-                                        scaler=options['scaler'],
-                                        adder=options['adder'],
-                                        ref0=options['ref0'],
-                                        ref=options['ref'])
-
                 tgts = options['targets']
 
                 if tgts is None:
@@ -346,9 +333,8 @@ class Trajectory(om.Group):
         promoted_inputs = []
 
         for name, options in parameter_options.items():
-            prom_name = f'parameters:{name}'
+            promoted_inputs.append(f'parameters:{name}')
             targets = options['targets']
-            units = options['units']
 
             # For each phase, use introspection to get the units and shape.
             # If units do not match across all phases, require user to set them.
@@ -357,17 +343,12 @@ class Trajectory(om.Group):
             tgt_units = {}
             tgt_shapes = {}
 
-            print('traj parameter:', prom_name)
-            print('    targets:', targets)
-
             for phase_name, phs in self._phases.items():
 
                 if targets is None or phase_name not in targets:
                     # Attempt to connect to an input parameter of the same name in the phase, if
                     # it exists.
-                    print('    phase', phase_name, 'targets None or phase_name not in targets')
                     if name in phs.parameter_options:
-                        print('        but param name in phase paramter_options')
                         tgt = f'{phase_name}.parameters:{name}'
                         tgt_shapes[phs.name] = phs.parameter_options[name]['shape']
                         tgt_units[phs.name] = phs.parameter_options[name]['units']
@@ -378,8 +359,6 @@ class Trajectory(om.Group):
                     continue
                 elif isinstance(targets[phase_name], str) and \
                         targets[phase_name] in phs.parameter_options:
-                    print('    phase', phase_name, 'got str parameter name')
-                    print('        ', targets[phase_name])
                     # Connect to an input parameter with a different name in this phase
                     tgt = f'{phase_name}.parameters:{targets[phase_name]}'
                     tgt_shapes[phs.name] = phs.parameter_options[targets[phase_name]]['shape']
@@ -388,8 +367,6 @@ class Trajectory(om.Group):
                         name in phs.parameter_options:
                     # User gave a list of ODE targets which were passed to the creation of a
                     # new input parameter in setup, just connect to that new input parameter
-                    print('    phase', phase_name, 'got sequence')
-                    print('        ', targets[phase_name])
                     tgt = f'{phase_name}.parameters:{name}'
                     tgt_shapes[phs.name] = phs.parameter_options[name]['shape']
                     tgt_units[phs.name] = phs.parameter_options[name]['units']
@@ -397,10 +374,6 @@ class Trajectory(om.Group):
                     raise ValueError(f'Unhandled target(s) ({targets[phase_name]}) for parameter {name} in '
                                      f'phase {phase_name}.  If connecting to ODE inputs in the phase, '
                                      f'format the targets as a sequence of strings.')
-
-                # promoted_inputs.append(tgt)
-                # self.promotes('phases', inputs=[(tgt, prom_name)])
-                # self.connect(f'parameter_vals:{name}', tgt)
                 tgts.append(tgt)
 
             if options['shape'] is _unspecified:
@@ -420,16 +393,21 @@ class Trajectory(om.Group):
                                f'explicitly provide units for the parameter since they cannot be '
                                f'inferred.')
 
+            param_comp = self._get_subsystem('param_comp')
+            param_comp.add_parameter(name, val=options['val'], shape=options['shape'], units=options['units'])
+            if options['opt']:
+                lb = -INF_BOUND if options['lower'] is None else options['lower']
+                ub = INF_BOUND if options['upper'] is None else options['upper']
+
+                self.add_design_var(name=f'parameters:{name}',
+                                    lower=lb,
+                                    upper=ub,
+                                    scaler=options['scaler'],
+                                    adder=options['adder'],
+                                    ref0=options['ref0'],
+                                    ref=options['ref'])
+
             self.connect(f'parameter_vals:{name}', tgts)
-            print(tgts)
-            promoted_inputs.extend(tgts)
-            # val = options['val']
-            # _shape = options['shape']
-            # shaped_val = np.broadcast_to(val, _shape)
-            #
-            # self.set_input_defaults(name=prom_name,
-            #                         val=shaped_val,
-            #                         units=options['units'])
 
         return promoted_inputs
 
