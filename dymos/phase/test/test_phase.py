@@ -494,7 +494,7 @@ class TestPhaseBase(unittest.TestCase):
             with self.subTest():
                 p = om.Problem(model=om.Group())
 
-                p.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+                p.driver = om.ScipyOptimizeDriver()
                 p.driver.declare_coloring()
 
                 phase = dm.Phase(ode_class=BrachistochroneODE,
