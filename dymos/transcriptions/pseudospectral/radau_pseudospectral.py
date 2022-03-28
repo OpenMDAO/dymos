@@ -207,6 +207,7 @@ class Radau(PseudospectralBase):
     def configure_defects(self, phase):
         """
         Configure the continuity_comp and connect the collocation constraints.
+
         Parameters
         ----------
         phase : dymos.Phase
@@ -319,6 +320,7 @@ class Radau(PseudospectralBase):
     def configure_timeseries_outputs(self, phase):
         """
         Create connections from time series to all post-introspection sources.
+
         Parameters
         ----------
         phase : dymos.Phase

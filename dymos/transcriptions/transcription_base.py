@@ -65,6 +65,7 @@ class TranscriptionBase(object):
     def setup_time(self, phase):
         """
         Setup up the time component and time extents for the phase.
+
         Parameters
         ----------
         phase : dymos.Phase
@@ -82,6 +83,7 @@ class TranscriptionBase(object):
     def configure_time(self, phase):
         """
         Configure the inputs/outputs on the time component.
+
         Parameters
         ----------
         phase : dymos.Phase

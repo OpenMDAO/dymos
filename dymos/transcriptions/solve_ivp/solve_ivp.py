@@ -534,6 +534,7 @@ class SolveIVP(TranscriptionBase):
     def configure_timeseries_outputs(self, phase):
         """
         Create connections from time series to all post-introspection sources.
+
         Parameters
         ----------
         phase : dymos.Phase

@@ -163,5 +163,9 @@ class ParameterComp(ExplicitComponent):
             Unscaled, dimensional input variables read via inputs[key].
         outputs : Vector
             Unscaled, dimensional output variables read via outputs[key].
+        discrete_inputs : Vector
+            Discrete input variables read via discrete_inputs[key].
+        discrete_outputs : Vector
+            Discrete output variables read via discrete_outputs[key].
         """
         outputs.set_val(inputs.asarray())
