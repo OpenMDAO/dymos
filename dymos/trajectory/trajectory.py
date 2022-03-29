@@ -1062,7 +1062,7 @@ class Trajectory(om.Group):
 
                     if equals is not None:
                         printer(f'{2 * indent}{str_loc:<10s}{str_equals} == {expr} [{str_units}]',
-                              file=outstream)
+                                file=outstream)
                     else:
                         printer(
                             f'{2 * indent}{str_loc:<10s}{str_lower} {expr} {str_upper} [{str_units}]',
