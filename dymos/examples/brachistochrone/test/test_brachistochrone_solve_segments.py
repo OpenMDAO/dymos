@@ -14,7 +14,6 @@ from openmdao.utils.general_utils import set_pyoptsparse_opt
 OPT, OPTIMIZER = set_pyoptsparse_opt('SLSQP')
 
 
-@require_pyoptsparse(optimizer='SLSQP')
 def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
                   compressed=True, optimizer='SLSQP', force_alloc_complex=False,
                   solve_segments=False, y_bounds=None):
@@ -84,6 +83,7 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
     return p
 
 
+@require_pyoptsparse(optimizer='SLSQP')
 @use_tempdirs
 class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
 
@@ -198,6 +198,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         self.assert_results(p)
 
 
+@require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
 class TestBrachistochroneSolveSegments(unittest.TestCase):
 
@@ -241,7 +242,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                                       f'compressed: {compressed}'):
                         p = _make_problem(transcription=tx,
                                           compressed=compressed,
-                                          optimizer='SLSQP',
+                                          optimizer='IPOPT',
                                           force_alloc_complex=True,
                                           solve_segments=solve_segs,
                                           num_segments=20,
@@ -259,7 +260,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
         with warnings.catch_warnings(record=True) as ctx:
             p = _make_problem(transcription='radau-ps',
                               compressed=True,
-                              optimizer='SLSQP',
+                              optimizer='IPOPT',
                               force_alloc_complex=True,
                               solve_segments='forward',
                               num_segments=20,
