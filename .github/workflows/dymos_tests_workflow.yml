@@ -1,9 +1,5 @@
-# Run Tests
-
-# Matrix Options
-# DOCS: 2-Build and publish, 1-build only, 0-no docs
-
-name: Dymos Tests
+# Run OpenMDAO Tests
+name: OpenMDAO Tests
 
 on:
   # Trigger on push or pull request events for the master branch
@@ -14,72 +10,58 @@ on:
 
 jobs:
 
-  test_ubuntu:
-    runs-on: ubuntu-latest
+  ubuntu_tests:
+    runs-on: ubuntu-20.04
 
-    timeout-minutes: 90
+    timeout-minutes: 110
 
     strategy:
       fail-fast: false
       matrix:
         include:
           # baseline versions
-          - PY: 3.8
+          - NAME: Baseline
+            PY: 3.8
             NUMPY: 1.18
             SCIPY: 1.4
             PETSc: 3.12
             PYOPTSPARSE: 'v2.1.5'
             SNOPT: 7.7
-            MBI: 1
-            OPENMDAO: 'latest'
             OPTIONAL: '[all]'
-            DOCS: 2
+            JAX: True
+            BANDIT: True
+            BUILD_DOCS: True
+            PUBLISH_DOCS: True
 
-          # baseline versions except no pyoptsparse or SNOPT
-          - PY: 3.8
-            NUMPY: 1.18
-            SCIPY: 1.4
-            PETSc: 3.12
-            MBI: 1
-            OPENMDAO: 'latest'
-            OPTIONAL: '[all]'
-            DOCS: 0
-
-          # baseline versions except with pyoptsparse but no SNOPT
-          # build docs to verify those that use pyoptsparse do not use SNOPT
-          - PY: 3.8
-            NUMPY: 1.18
-            SCIPY: 1.4
-            PETSc: 3.12
-            PYOPTSPARSE: 'v2.1.5'
-            MBI: 1
-            OPENMDAO: 'latest'
-            OPTIONAL: '[all]'
-            DOCS: 1
-
-          # try latest versions
-          - PY: 3
+          # latest versions
+          - NAME: Latest
+            PY: 3
             NUMPY: 1
             SCIPY: 1
-            # PETSc: 3
-            PYOPTSPARSE: 'v2.1.5'
+            PETSc: 3
+            PYOPTSPARSE: 'v2.6.2'
             SNOPT: 7.7
-            MBI: 1
-            OPENMDAO: 'dev'
+            OPTIONAL: '[all]'
+
+          # minimal install
+          - NAME: Minimal
+            PY: 3
+            NUMPY: 1
+            SCIPY: 1
+            PYOPTSPARSE: 'conda-forge'
             OPTIONAL: '[test]'
-            DOCS: 0
 
           # oldest supported versions
-          - PY: 3.7
-            NUMPY: 1.16
+          - NAME: Oldest
+            PY: 3.7
+            NUMPY: 1.17
             SCIPY: 1.2
             PETSc: 3.10.2
             PYOPTSPARSE: 'v1.2'
             SNOPT: 7.2
-            MBI: 1
-            OPENMDAO: 3.13.0
             OPTIONAL: '[all]'
-            DOCS: 0
+
+    name: Ubuntu ${{ matrix.NAME }}
 
     steps:
       - name: Display run details
@@ -92,16 +74,10 @@ jobs:
           echo "Initiated by: ${GITHUB_ACTOR}"
           echo "============================================================="
 
-      # TEMPORARY WHILE GITHUB FIXES THIS https://github.com/actions/virtual-environments/issues/3185
-      - name: Add the current IP address, long hostname and short hostname record to /etc/hosts file
-        run: |
-          echo -e "$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)\t$(hostname -f) $(hostname -s)" | sudo tee -a /etc/hosts
-
       - name: Create SSH key
-        shell: bash
         env:
-          SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
-          SSH_KNOWN_HOSTS: ${{secrets.SSH_KNOWN_HOSTS}}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
         run: |
           mkdir -p ~/.ssh/
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
@@ -115,24 +91,42 @@ jobs:
         run: |
           git fetch --prune --unshallow --tags
 
-      - name: Install miniconda
+      - name: Setup miniconda
         uses: conda-incubator/setup-miniconda@v2
         with:
-          activate-environment: test
+          auto-update-conda: true
           python-version: ${{ matrix.PY }}
-          channels: conda-forge,spyder-ide
-          allow-softlinks: true
-          channel-priority: flexible
-          show-channel-urls: true
-          use-only-tar-bz2: true
 
-      - name: Install Numpy/Scipy
+      - name: Install OpenMDAO
+        shell: bash -l {0}
+        run: |
+          conda install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
+
+          pip install --upgrade pip
+
+          echo "============================================================="
+          echo "Install OpenMDAO"
+          echo "============================================================="
+          pip install .${{ matrix.OPTIONAL }}
+
+      - name: Install jax
+        if: matrix.JAX
         shell: bash -l {0}
         run: |
           echo "============================================================="
-          echo "Install Numpy/Scipy"
+          echo "Install jax"
           echo "============================================================="
-          conda install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
+          pip install jax
+          pip install jaxlib
+
+      - name: Install libscotch
+        if: matrix.name == 'Oldest'
+        shell: bash -l {0}
+        run: |
+          echo "============================================================="
+          echo "Install libscotch"
+          echo "============================================================="
+          sudo apt-get install -y libscotch-6.0
 
       - name: Install PETSc
         if: matrix.PETSc
@@ -151,55 +145,44 @@ jobs:
           echo "============================================================="
           echo "Install pyoptsparse"
           echo "============================================================="
-          git clone -q https://github.com/OpenMDAO/build_pyoptsparse
-          cd build_pyoptsparse
-          chmod 755 ./build_pyoptsparse.sh
-          if [[ "${{ matrix.PETSc }}" && "${{ matrix.PYOPTSPARSE }}" == "v1.2" ]]; then
-            PAROPT=-a
-          fi
-          if [[ "${{ matrix.SNOPT }}" == "7.7" && "${{ secrets.SNOPT_LOCATION_77 }}" ]]; then
-            echo "  > Secure copying SNOPT 7.7 over SSH"
-            mkdir SNOPT
-            scp -qr ${{ secrets.SNOPT_LOCATION_77 }} SNOPT
-            ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}" -s SNOPT/src
-          elif [[ "${{ matrix.SNOPT }}" == "7.2" && "${{ secrets.SNOPT_LOCATION_72 }}" ]]; then
-            echo "  > Secure copying SNOPT 7.2 over SSH"
-            mkdir SNOPT
-            scp -qr ${{ secrets.SNOPT_LOCATION_72 }} SNOPT
-            ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}" -s SNOPT/source
-          else
+
+          if [[ "${{ matrix.PYOPTSPARSE }}" == "conda-forge" ]]; then
+            conda install -c conda-forge pyoptsparse
             if [[ "${{ matrix.SNOPT }}" ]]; then
-              echo "SNOPT version ${{ matrix.SNOPT }} was requested but source is not available"
+              echo "SNOPT ${{ matrix.SNOPT }} was requested but is not available on conda-forge"
             fi
-            ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}"
-          fi
-          cd ..
-          echo "LD_LIBRARY_PATH=$HOME/ipopt/lib" >> $GITHUB_ENV
-
-      - name: Install MBI
-        if: matrix.MBI
-        shell: bash -l {0}
-        run: |
-          echo "============================================================="
-          echo "Install MBI"
-          echo "============================================================="
-          git clone -q https://github.com/OpenMDAO/MBI
-          cd MBI
-          pip install .
-
-      - name: Install OpenMDAO
-        if: matrix.OPENMDAO
-        shell: bash -l {0}
-        run: |
-          echo "============================================================="
-          echo "Install OpenMDAO"
-          echo "============================================================="
-          if [[ "${{ matrix.OPENMDAO }}" == "dev" ]]; then
-            pip install git+https://github.com/OpenMDAO/OpenMDAO
-          elif [[ "${{ matrix.OPENMDAO }}" == "latest" ]]; then
-            pip install openmdao
           else
-            pip install openmdao==${{ matrix.OPENMDAO }}
+            git clone -q https://github.com/OpenMDAO/build_pyoptsparse
+
+            cd build_pyoptsparse
+            chmod 755 ./build_pyoptsparse.sh
+
+            if [[ "${{ matrix.PETSc }}" && "${{ matrix.PYOPTSPARSE }}" == "v1.2" ]]; then
+              PAROPT=-a
+            fi
+
+            if [[ "${{ matrix.SNOPT }}" == "7.7" && "${{ secrets.SNOPT_LOCATION_77 }}" ]]; then
+              echo "  > Secure copying SNOPT 7.7 over SSH"
+              mkdir SNOPT
+              scp -qr ${{ secrets.SNOPT_LOCATION_77 }} SNOPT
+              ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}" -s SNOPT/src
+
+            elif [[ "${{ matrix.SNOPT }}" == "7.2" && "${{ secrets.SNOPT_LOCATION_72 }}" ]]; then
+              echo "  > Secure copying SNOPT 7.2 over SSH"
+              mkdir SNOPT
+              scp -qr ${{ secrets.SNOPT_LOCATION_72 }} SNOPT
+              ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}" -s SNOPT/source
+
+            else
+              if [[ "${{ matrix.SNOPT }}" ]]; then
+                echo "SNOPT version ${{ matrix.SNOPT }} was requested but source is not available"
+              fi
+              ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}"
+            fi
+
+            cd ..
+
+            echo "LD_LIBRARY_PATH=$HOME/ipopt/lib" >> $GITHUB_ENV
           fi
 
       - name: Install optional dependencies
@@ -209,15 +192,7 @@ jobs:
           echo "============================================================="
           echo "Install additional packages for testing/coverage"
           echo "============================================================="
-          pip install bokeh
-
-      - name: Install Dymos
-        shell: bash -l {0}
-        run: |
-          echo "============================================================="
-          echo "Install Dymos"
-          echo "============================================================="
-          pip install .${{ matrix.OPTIONAL }}
+          pip install psutil objgraph git+https://github.com/mdolab/pyxdsm
 
       - name: Display conda info
         shell: bash -l {0}
@@ -226,20 +201,14 @@ jobs:
           conda list
 
       - name: Run tests
-        env:
-          DYMOS_CHECK_PARTIALS: True
         shell: bash -l {0}
         run: |
           echo "============================================================="
-          echo "Run Tests"
-          echo "Environment:"
-          echo "   DYMOS_CHECK_PARTIALS: $DYMOS_CHECK_PARTIALS"
+          echo "Run tests with coverage (from directory other than repo root)"
           echo "============================================================="
-          testflo -n 1 docs/dymos_book/test --pre_announce
-          testflo -n 1 joss/test --pre_announce
-          testflo -b benchmark --pre_announce
+          cp .coveragerc $HOME
           cd $HOME
-          testflo dymos -n 1 --show_skipped --coverage --coverpkg dymos
+          testflo -n 1 openmdao --timeout=120 --show_skipped --coverage --coverpkg openmdao
 
       - name: Submit coverage
         shell: bash -l {0}
@@ -257,23 +226,41 @@ jobs:
           coveralls --basedir $SITE_DIR
 
       - name: Build docs
-        if: ${{ matrix.DOCS == '1' || matrix.DOCS == '2' }}
+        if: matrix.BUILD_DOCS
         id: build_docs
         shell: bash -l {0}
         run: |
-          echo "============================================================="
-          echo "Building Docs"
-          echo "============================================================="
+          # Temporary: Install the latest jupyter-book which isn't on pypi
           pip install git+https://github.com/executablebooks/jupyter-book
-          cd docs
-          jupyter-book build -W --keep-going dymos_book
+
+          cd openmdao/docs
+          if [[ "${{ secrets.SNOPT_LOCATION_72 }}" || "${{ secrets.SNOPT_LOCATION_77 }}" ]]; then
+            echo "============================================================="
+            echo "Building docs with SNOPT examples."
+            echo "============================================================="
+          else
+            echo "============================================================="
+            echo "Disabling SNOPT cells in notebooks."
+            echo "============================================================="
+            python openmdao_book/other/disable_snopt_cells.py
+          fi
+
+          # start ipcluster to run MPI under notebooks
+          ./ipcluster_start.sh
+          sleep 12
+
+          echo "============================================================="
+          echo "Build the docs"
+          echo "============================================================="
+          export OPENMDAO_REPORTS=0
+          python build_source_docs.py
+          jupyter-book build -W --keep-going openmdao_book
           python copy_build_artifacts.py
 
       - name: Display doc build reports
-        continue-on-error: True
-        if: failure() && (matrix.DOCS == '1' || matrix.DOCS == '2') && steps.build_docs.outcome == 'failure'
+        if: failure() && matrix.BUILD_DOCS && steps.build_docs.outcome == 'failure'
         run: |
-          for f in /home/runner/work/dymos/dymos/docs/dymos_book/_build/html/reports/*; do
+          for f in /home/runner/work/OpenMDAO/OpenMDAO/openmdao/docs/openmdao_book/_build/html/reports/*; do
             echo "============================================================="
             echo $f
             echo "============================================================="
@@ -281,20 +268,144 @@ jobs:
           done
 
       - name: Publish docs
-        if: ${{ matrix.DOCS == '2' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.event_name == 'push' && matrix.PUBLISH_DOCS }}
+        shell: bash -l {0}
+        env:
+          DOCS_LOCATION: ${{ secrets.DOCS_LOCATION }}
+        run: |
+          if [[ "${#DOCS_LOCATION}" ]]; then
+            echo "============================================================="
+            echo "Publish docs"
+            echo "============================================================="
+            cd openmdao/docs
+            python upload_doc_version.py openmdao_book/_build/html/ ${{ secrets.DOCS_LOCATION }}
+          else
+            echo "Docs destination not available."
+          fi
+
+      - name: Scan for security issues
+        if: matrix.BANDIT
+        id: bandit
         shell: bash -l {0}
         run: |
+          pip install bandit
           echo "============================================================="
-          echo "Publishing Docs"
+          echo "Run bandit scan for high/medium severity issues"
           echo "============================================================="
-          pip install ghp-import
-          cd $HOME/work/dymos/dymos
-          pwd
-          ghp-import -n -p -f docs/dymos_book/_build/html
+          cd $GITHUB_WORKSPACE
+          bandit -c bandit.yml -ll -r openmdao
+
+      - name: Notify slack
+        uses: act10ns/slack@v1
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        with:
+          status: ${{ job.status }}
+        if: always()
+
+  windows_tests:
+    runs-on: windows-latest
+
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # baseline versions
+          - NAME: Baseline
+            PY: 3
+            NUMPY: 1.18
+            SCIPY: 1.4
+
+    name: Windows ${{ matrix.NAME }}
+
+    steps:
+      - name: Display run details
+        run: |
+          echo "============================================================="
+          echo "Run #$env:GITHUB_RUN_NUMBER"
+          echo "Run ID: $env:GITHUB_RUN_ID"
+          echo "Testing: $env:GITHUB_REPOSITORY"
+          echo "Triggered by: $env:GITHUB_EVENT_NAME"
+          echo "Initiated by: $env:GITHUB_ACTOR"
+          echo "============================================================="
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Fetch tags
+        run: |
+          git fetch --prune --unshallow --tags
+
+      - name: Setup miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.PY }}
+
+      - name: Install OpenDMAO
+        shell: pwsh
+        run: |
+          conda install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
+
+          pip install --upgrade pip
+
+          echo "============================================================="
+          echo "Install OpenMDAO"
+          echo "============================================================="
+          pip install .[all]
+
+      - name: Install optional dependencies
+        shell: pwsh
+        run: |
+          echo "============================================================="
+          echo "Install additional packages for testing/coverage"
+          echo "============================================================="
+          pip install psutil objgraph git+https://github.com/mdolab/pyxdsm
+
+      - name: Display conda info
+        shell: pwsh
+        run: |
+          conda info
+          conda list
+
+      - name: Run tests
+        shell: pwsh
+        run: |
+          echo "============================================================="
+          echo "Run tests with coverage (from directory other than repo root)"
+          echo "============================================================="
+          copy .coveragerc $HOME
+          cd $HOME
+          testflo -n 1 openmdao --timeout=120 --show_skipped --coverage  --coverpkg openmdao
+
+      - name: Submit coverage
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_SERVICE_NAME: "github"
+          COVERALLS_PARALLEL: True
+        shell: pwsh
+        run: |
+          echo "============================================================="
+          echo "Submit coverage"
+          echo "============================================================="
+          copy $HOME\.coverage .
+          pip install coveralls
+          $SITE_DIR=python -c "import site; print(site.getsitepackages()[-1].replace('lib\\site-', 'Lib\\site-'))"
+          coveralls --basedir $SITE_DIR
+
+      - name: Notify slack
+        uses: act10ns/slack@v1
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        with:
+          status: ${{ job.status }}
+        if: always()
 
   coveralls:
-    name: Finish coveralls
-    needs: test_ubuntu
+    name: Finish coverage
+    needs: [ubuntu_tests, windows_tests]
     runs-on: ubuntu-latest
     steps:
     - uses: coverallsapp/github-action@master
