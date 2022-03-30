@@ -6,12 +6,12 @@
 name: Dymos Tests
 
 on:
-  # Trigger on push or pull request events for the master branch
+  # Trigger on push, pull request or workflow dispatch events for the master branch
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-  repository_dispatch:
+  workflow_dispatch:
     branches: [ master ]
 
 jobs:
