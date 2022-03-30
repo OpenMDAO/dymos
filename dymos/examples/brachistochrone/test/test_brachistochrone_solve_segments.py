@@ -25,7 +25,12 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
         p.driver.opt_settings['iSumm'] = 6
         p.driver.opt_settings['Verify level'] = 3
     elif optimizer == 'IPOPT':
-        p.driver.opt_settings['print_level'] = 4
+        p.driver.opt_settings['mu_init'] = 1e-3
+        p.driver.opt_settings['max_iter'] = 500
+        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+        p.driver.opt_settings['mu_strategy'] = 'monotone'
     p.driver.declare_coloring(tol=1.0E-12)
 
     if transcription == 'gauss-lobatto':
@@ -68,6 +73,8 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
     phase.add_boundary_constraint('y', loc='final', equals=5)
     # Minimize time at the end of the phase
     phase.add_objective('time_phase', loc='final', scaler=10)
+
+    p.set_solver_print(1)
 
     p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
 
