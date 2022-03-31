@@ -185,7 +185,6 @@ class RKIntegrationComp(om.ExplicitComponent):
         p.model.ode_eval.linear_solver = om.DirectSolver()
         p.setup(force_alloc_complex=False)
         p.final_setup()
-        # self._eval_subprob.set_complex_step_mode(self._complex_step_mode)
 
     def _set_complex_step_mode(self, active):
         """
