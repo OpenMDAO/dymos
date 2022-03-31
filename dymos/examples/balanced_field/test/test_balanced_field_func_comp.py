@@ -1,9 +1,11 @@
+from distutils.version import LooseVersion
 import unittest
 
 import openmdao.api as om
 import openmdao.func_api as omf
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao import __version__ as om_version
 import dymos as dm
 import numpy as np
 
@@ -132,12 +134,14 @@ def wrap_ode_func(num_nodes, flight_mode, grad_method='jax', jax_jit=True):
 @use_tempdirs
 class TestBalancedFieldFuncComp(unittest.TestCase):
 
+    @unittest.skipIf(LooseVersion(om_version) < LooseVersion('3.14'), 'requires OpenMDAO >= 3.14')
     @require_pyoptsparse('IPOPT')
     def test_balanced_field_func_comp_radau(self):
         self._run_problem(dm.Radau)
 
+    @unittest.skipIf(LooseVersion(om_version) < LooseVersion('3.14'), 'requires OpenMDAO >= 3.14')
     @require_pyoptsparse('IPOPT')
-    def test_balanced_field_func_comp_radau(self):
+    def test_balanced_field_func_comp_gl(self):
         self._run_problem(dm.GaussLobatto)
 
     def _run_problem(self, tx):
@@ -167,7 +171,7 @@ class TestBalancedFieldFuncComp(unittest.TestCase):
         br_to_v1.add_timeseries_output('*')
 
         # Second Phase: Rejected takeoff at V1 - no engines operable
-        rto = dm.Phase(ode_class=wrap_ode_func, transcription=dm.Radau(num_segments=3),
+        rto = dm.Phase(ode_class=wrap_ode_func, transcription=tx(num_segments=3),
                        ode_init_kwargs={'flight_mode': 'runway'})
         rto.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1.0)
         rto.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
@@ -176,7 +180,7 @@ class TestBalancedFieldFuncComp(unittest.TestCase):
         rto.add_timeseries_output('*')
 
         # Third Phase: V1 to Vr - single engine operable
-        v1_to_vr = dm.Phase(ode_class=wrap_ode_func, transcription=dm.Radau(num_segments=3),
+        v1_to_vr = dm.Phase(ode_class=wrap_ode_func, transcription=tx(num_segments=3),
                             ode_init_kwargs={'flight_mode': 'runway'})
         v1_to_vr.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1.0)
         v1_to_vr.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
@@ -185,7 +189,7 @@ class TestBalancedFieldFuncComp(unittest.TestCase):
         v1_to_vr.add_timeseries_output('*')
 
         # Fourth Phase: Rotate - single engine operable
-        rotate = dm.Phase(ode_class=wrap_ode_func, transcription=dm.Radau(num_segments=3),
+        rotate = dm.Phase(ode_class=wrap_ode_func, transcription=tx(num_segments=3),
                           ode_init_kwargs={'flight_mode': 'runway'})
         rotate.set_time_options(fix_initial=False, duration_bounds=(1.0, 5), duration_ref=1.0)
         rotate.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
@@ -194,7 +198,7 @@ class TestBalancedFieldFuncComp(unittest.TestCase):
         rotate.add_timeseries_output('*')
 
         # Fifth Phase: Climb to target speed and altitude at end of runway.
-        climb = dm.Phase(ode_class=wrap_ode_func, transcription=dm.Radau(num_segments=5),
+        climb = dm.Phase(ode_class=wrap_ode_func, transcription=tx(num_segments=5),
                          ode_init_kwargs={'flight_mode': 'climb'})
         climb.set_time_options(fix_initial=False, duration_bounds=(1, 100), duration_ref=1.0)
         climb.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
