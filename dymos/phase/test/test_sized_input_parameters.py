@@ -46,11 +46,6 @@ class TestParameterConnections(unittest.TestCase):
 
         seg_ends, _ = lgl(num_segments + 1)
 
-        # @dm.declare_time(units='s')
-        # @dm.declare_state('v', rate_source='eom.v_dot', units='m/s')
-        # @dm.declare_state('h', rate_source='eom.h_dot', units='m')
-        # @dm.declare_parameter('m', targets='sum.m', units='kg', shape=(2, 2))
-
         phase = dm.Phase(ode_class=TrajectoryODE,
                          transcription=dm.Radau(num_segments=num_segments, order=transcription_order,
                                                 segment_ends=seg_ends))
