@@ -239,23 +239,181 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
 
         assert_near_equal(thetaf, 100.12, tolerance=1.0E-2)
 
-    def test_brachistochrone_solve_segments(self):
+    def test_brachistochrone_solve_segments_radau_False_compressed(self):
+        p = _make_problem(transcription='radau-ps',
+                          compressed=True,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments=False,
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
 
-        for tx in ('radau-ps', 'gauss-lobatto'):
-            for solve_segs in (False, 'forward', 'backward', None):
-                for compressed in (True, False):
-                    print(f'transcription: {tx}  solve_segments: {solve_segs}  compressed: {compressed}')
-                    with self.subTest(f'transcription: {tx}  solve_segments: {solve_segs}  '
-                                      f'compressed: {compressed}'):
-                        p = _make_problem(transcription=tx,
-                                          compressed=compressed,
-                                          optimizer='IPOPT',
-                                          force_alloc_complex=True,
-                                          solve_segments=solve_segs,
-                                          num_segments=20,
-                                          transcription_order=3)
-                        dm.run_problem(p)
-                        self.assert_results(p)
+    def test_brachistochrone_solve_segments_radau_forward_compressed(self):
+        p = _make_problem(transcription='radau-ps',
+                          compressed=True,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments='forward',
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
+
+    def test_brachistochrone_solve_segments_radau_backward_compressed(self):
+        p = _make_problem(transcription='radau-ps',
+                          compressed=True,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments='backward',
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
+
+    def test_brachistochrone_solve_segments_radau_None_compressed(self):
+        p = _make_problem(transcription='radau-ps',
+                          compressed=True,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments=None,
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
+
+    def test_brachistochrone_solve_segments_radau_False_noncompressed(self):
+        p = _make_problem(transcription='radau-ps',
+                          compressed=False,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments=False,
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
+
+    def test_brachistochrone_solve_segments_radau_forward_noncompressed(self):
+        p = _make_problem(transcription='radau-ps',
+                          compressed=False,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments='forward',
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
+
+    def test_brachistochrone_solve_segments_radau_backward_noncompressed(self):
+        p = _make_problem(transcription='radau-ps',
+                          compressed=False,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments='backward',
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
+
+    def test_brachistochrone_solve_segments_radau_None_noncompressed(self):
+        p = _make_problem(transcription='radau-ps',
+                          compressed=False,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments=None,
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
+
+    def test_brachistochrone_solve_segments_gl_False_compressed(self):
+        p = _make_problem(transcription='gauss-lobatto',
+                          compressed=True,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments=False,
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
+
+    def test_brachistochrone_solve_segments_gl_forward_compressed(self):
+        p = _make_problem(transcription='gauss-lobatto',
+                          compressed=True,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments='forward',
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
+
+    def test_brachistochrone_solve_segments_gl_backward_compressed(self):
+        p = _make_problem(transcription='gauss-lobatto',
+                          compressed=True,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments='backward',
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
+
+    def test_brachistochrone_solve_segments_gl_None_compressed(self):
+        p = _make_problem(transcription='gauss-lobatto',
+                          compressed=True,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments=None,
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
+
+    def test_brachistochrone_solve_segments_gl_False_noncompressed(self):
+        p = _make_problem(transcription='gauss-lobatto',
+                          compressed=False,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments=False,
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
+
+    def test_brachistochrone_solve_segments_gl_forward_noncompressed(self):
+        p = _make_problem(transcription='gauss-lobatto',
+                          compressed=False,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments='forward',
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
+
+    def test_brachistochrone_solve_segments_gl_backward_noncompressed(self):
+        p = _make_problem(transcription='gauss-lobatto',
+                          compressed=False,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments='backward',
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
+
+    def test_brachistochrone_solve_segments_gl_None_noncompressed(self):
+        p = _make_problem(transcription='gauss-lobatto',
+                          compressed=False,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments=None,
+                          num_segments=20,
+                          transcription_order=3)
+        dm.run_problem(p)
+        self.assert_results(p)
 
     def test_brachistochrone_bounded_solve_segments(self):
 
