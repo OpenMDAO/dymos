@@ -9,6 +9,11 @@ from openmdao import __version__ as om_version
 import dymos as dm
 import numpy as np
 
+try:
+    import jax
+except ImportError:
+    jax = None
+
 
 def runway_ode(rho, S, CD0, CL0, CL_max, alpha_max, h_w, AR, e, span, T, mu_r, m, v, h, alpha):
     g = 9.80665
@@ -135,11 +140,13 @@ def wrap_ode_func(num_nodes, flight_mode, grad_method='jax', jax_jit=True):
 class TestBalancedFieldFuncComp(unittest.TestCase):
 
     @unittest.skipIf(LooseVersion(om_version) < LooseVersion('3.14'), 'requires OpenMDAO >= 3.14')
+    @unittest.skipIf(jax is None, 'requires jax and jaxlib')
     @require_pyoptsparse('IPOPT')
     def test_balanced_field_func_comp_radau(self):
         self._run_problem(dm.Radau)
 
     @unittest.skipIf(LooseVersion(om_version) < LooseVersion('3.14'), 'requires OpenMDAO >= 3.14')
+    @unittest.skipIf(jax is None, 'requires jax and jaxlib')
     @require_pyoptsparse('IPOPT')
     def test_balanced_field_func_comp_gl(self):
         self._run_problem(dm.GaussLobatto)
