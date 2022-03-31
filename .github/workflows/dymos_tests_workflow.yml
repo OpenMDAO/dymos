@@ -34,6 +34,7 @@ jobs:
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
+            JAX: True
             DOCS: 2
 
           # baseline versions except no pyoptsparse or SNOPT
@@ -71,6 +72,7 @@ jobs:
             MBI: 1
             OPENMDAO: 'dev'
             OPTIONAL: '[test]'
+            JAX: True
             DOCS: 0
 
           # oldest supported versions
@@ -133,6 +135,16 @@ jobs:
           echo "Install Numpy/Scipy"
           echo "============================================================="
           conda install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
+
+      - name: Install jax
+        if: matrix.JAX
+        shell: bash -l {0}
+        run: |
+          echo "============================================================="
+          echo "Install jax"
+          echo "============================================================="
+          pip install jax
+          pip install jaxlib
 
       - name: Install libscotch
         if: matrix.name == 'oldest'

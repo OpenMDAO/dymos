@@ -770,7 +770,7 @@ class Trajectory(om.Group):
                     _print_on_rank(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ==  '
                                    f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
 
-        _print_on_rank('\n* : This quantity is fixed or is an input.\n')
+        _print_on_rank('\n* : Value is fixed or is an input.\n')
 
     def configure(self):
         """
@@ -788,8 +788,7 @@ class Trajectory(om.Group):
                 self._configure_phase_options_dicts()
             self._configure_linkages()
 
-        if self.comm.rank == 0:
-            self._constraint_report(outstream=sys.stdout)
+        self._constraint_report(outstream=sys.stdout)
 
         # promote everything else out of phases
         self.promotes('phases', inputs=['*'], outputs=['*'])
@@ -998,8 +997,14 @@ class Trajectory(om.Group):
         if self.options['sim_mode']:
             return
 
+        if self.comm.rank == 0:
+            printer = print
+        else:
+            def printer(*args, **kwargs):
+                pass
+
         float_fmt = '6.4e'
-        print(f'\n--- Constraint Report [{self.pathname}] ---')
+        printer(f'\n--- Constraint Report [{self.pathname}] ---')
         indent = '    '
 
         def _print_constraints(phase, outstream):
@@ -1013,7 +1018,7 @@ class Trajectory(om.Group):
 
             if not (
                     phase._initial_boundary_constraints or phase._final_boundary_constraints or phase._path_constraints):
-                print(f'{2 * indent}None', file=outstream)
+                printer(f'{2 * indent}None', file=outstream)
 
             for loc, d in ds.items():
                 str_loc = f'[{loc}]'
@@ -1051,19 +1056,19 @@ class Trajectory(om.Group):
                         str_upper = ''
 
                     if equals is not None:
-                        print(f'{2 * indent}{str_loc:<10s}{str_equals} == {expr} [{str_units}]',
-                              file=outstream)
+                        printer(f'{2 * indent}{str_loc:<10s}{str_equals} == {expr} [{str_units}]',
+                                file=outstream)
                     else:
-                        print(
+                        printer(
                             f'{2 * indent}{str_loc:<10s}{str_lower} {expr} {str_upper} [{str_units}]',
                             file=outstream)
 
         for phase_name, phs in self._phases.items():
-            print(f'{indent}--- {phase_name} ---', file=outstream)
+            printer(f'{indent}--- {phase_name} ---', file=outstream)
             if phs._is_local:
                 _print_constraints(phs, outstream)
 
-        print('', file=outstream)
+        printer('', file=outstream)
 
     def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None, case_prefix=None,

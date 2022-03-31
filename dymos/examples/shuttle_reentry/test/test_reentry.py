@@ -15,7 +15,6 @@ expected_results = {'constrained': {'time': 2198.67, 'theta': 30.6255},
 
 
 @use_tempdirs
-@require_pyoptsparse(optimizer='SLSQP')
 class TestReentry(unittest.TestCase):
 
     def make_problem(self, constrained=True, transcription=GaussLobatto, optimizer='SLSQP',
@@ -25,6 +24,7 @@ class TestReentry(unittest.TestCase):
         p.driver.declare_coloring()
 
         if optimizer == 'IPOPT':
+            p.driver.opt_settings['max_iter'] = 500
             p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
             p.driver.opt_settings['print_level'] = 5
             p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
