@@ -4,7 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 
-from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp
+from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp, ParameterComp
 from ..utils.constants import INF_BOUND
 from ..utils.misc import get_rate_units, _unspecified
 from ..utils.introspection import get_promoted_vars, get_source_metadata, get_target_metadata
@@ -211,20 +211,8 @@ class TranscriptionBase(object):
         phase._check_parameter_options()
 
         if phase.parameter_options:
-            for name, options in phase.parameter_options.items():
-                src_name = 'parameters:{0}'.format(name)
-
-                if options['opt']:
-                    lb = -INF_BOUND if options['lower'] is None else options['lower']
-                    ub = INF_BOUND if options['upper'] is None else options['upper']
-
-                    phase.add_design_var(name=src_name,
-                                         lower=lb,
-                                         upper=ub,
-                                         scaler=options['scaler'],
-                                         adder=options['adder'],
-                                         ref0=options['ref0'],
-                                         ref=options['ref'])
+            param_comp = ParameterComp()
+            phase.add_subsystem('param_comp', subsys=param_comp, promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure_parameters(self, phase):
         """
@@ -239,28 +227,28 @@ class TranscriptionBase(object):
             The phase object to which this transcription instance applies.
         """
         if phase.parameter_options:
-            ode = self._get_ode(phase)
+            param_comp = phase._get_subsystem('param_comp')
 
             for name, options in phase.parameter_options.items():
-                prom_name = f'parameters:{name}'
+                param_comp.add_parameter(name, val=options['val'], shape=options['shape'], units=options['units'])
+
+                if options['opt']:
+                    lb = -INF_BOUND if options['lower'] is None else options['lower']
+                    ub = INF_BOUND if options['upper'] is None else options['upper']
+                    phase.add_design_var(name=f'parameters:{name}',
+                                         lower=lb,
+                                         upper=ub,
+                                         scaler=options['scaler'],
+                                         adder=options['adder'],
+                                         ref0=options['ref0'],
+                                         ref=options['ref'])
 
                 for tgts, src_idxs in self.get_parameter_connections(name, phase):
-                    for pathname in tgts:
-                        parts = pathname.split('.')
-                        sub_sys = parts[0]
-                        tgt_var = '.'.join(parts[1:])
-                        if not options['static_target']:
-                            phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)],
-                                           src_indices=src_idxs, flat_src_indices=True)
-                        else:
-                            phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)])
-
-                val = options['val']
-                _shape = options['shape']
-                shaped_val = np.broadcast_to(val, _shape)
-                phase.set_input_defaults(name=prom_name,
-                                         val=shaped_val,
-                                         units=options['units'])
+                    if not options['static_target']:
+                        phase.connect(f'parameter_vals:{name}', tgts, src_indices=src_idxs,
+                                      flat_src_indices=True)
+                    else:
+                        phase.connect(f'parameter_vals:{name}', tgts)
 
     def setup_states(self, phase):
         """

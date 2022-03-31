@@ -269,24 +269,11 @@ class GaussLobatto(PseudospectralBase):
                 phase.connect(f'state_interp.state_col:{name}',
                               [f'rhs_col.{tgt}' for tgt in targets])
 
-            rate_src = options['rate_source']
-            if rate_src in phase.parameter_options:
-                # If the rate source is a parameter, which is an input, we need to promote
-                # f_computed to the parameter name instead of connecting to it.
-                shape = phase.parameter_options[rate_src]['shape']
-                param_size = np.prod(shape)
-                ndn = self.grid_data.subset_num_nodes['state_disc']
-                src_idxs = np.tile(np.arange(0, param_size, dtype=int), ndn)
-                src_idxs = np.reshape(src_idxs, (ndn,) + shape)
-                phase.promotes('state_interp',
-                               inputs=[(f'staterate_disc:{name}', f'parameters:{rate_src}')],
-                               src_indices=(src_idxs,), flat_src_indices=True, src_shape=shape)
-            else:
-                rate_path, disc_src_idxs = self.get_rate_source_path(name, nodes='state_disc',
-                                                                     phase=phase)
-                phase.connect(rate_path,
-                              f'state_interp.staterate_disc:{name}',
-                              src_indices=disc_src_idxs)
+            rate_path, disc_src_idxs = self._get_rate_source_path(name, nodes='state_disc',
+                                                                  phase=phase)
+            phase.connect(rate_path,
+                          f'state_interp.staterate_disc:{name}',
+                          src_indices=disc_src_idxs, flat_src_indices=False)
         self.configure_interleave_comp(phase)
 
     def configure_interleave_comp(self, phase):
@@ -326,49 +313,31 @@ class GaussLobatto(PseudospectralBase):
             if rate_src in phase.parameter_options:
                 rate_path_disc = rate_path_col = f'parameters:{rate_src}'
             else:
-                rate_path_disc, disc_src_idxs = self.get_rate_source_path(state_name,
-                                                                          nodes='state_disc',
-                                                                          phase=phase)
-                rate_path_col, col_src_idxs = self.get_rate_source_path(state_name,
-                                                                        nodes='col',
-                                                                        phase=phase)
+                rate_path_disc, disc_src_idxs = self._get_rate_source_path(state_name,
+                                                                           nodes='state_disc',
+                                                                           phase=phase)
+                rate_path_col, col_src_idxs = self._get_rate_source_path(state_name,
+                                                                         nodes='col',
+                                                                         phase=phase)
 
             src_added = interleave_comp.add_var(f'state_rates:{state_name}', shape,
                                                 units=get_rate_units(options['units'], time_units),
                                                 disc_src=rate_path_disc, col_src=rate_path_col)
 
             if src_added:
-                if rate_src in phase.parameter_options:
-                    # If the rate source is a parameter, which is an input, we need to promote
-                    # f_computed to the parameter name instead of connecting to it.
-                    shape = phase.parameter_options[rate_src]['shape']
-                    param_size = np.prod(shape)
-                    ndn = self.grid_data.subset_num_nodes['state_disc']
-                    ncn = self.grid_data.subset_num_nodes['col']
-                    src_idxs = np.tile(np.arange(0, param_size, dtype=int), ndn)
-                    src_idxs = np.reshape(src_idxs, (ndn,) + shape)
-                    phase.promotes('interleave_comp',
-                                   inputs=[(f'disc_values:state_rates:{state_name}', f'parameters:{rate_src}')],
-                                   src_indices=(src_idxs,), flat_src_indices=True, src_shape=shape)
-                    src_idxs = np.tile(np.arange(0, param_size, dtype=int), ncn)
-                    src_idxs = np.reshape(src_idxs, (ncn,) + shape)
-                    phase.promotes('interleave_comp',
-                                   inputs=[(f'col_values:state_rates:{state_name}', f'parameters:{rate_src}')],
-                                   src_indices=(src_idxs,), flat_src_indices=True, src_shape=shape)
-                else:
-                    rate_path_disc, disc_src_idxs = self.get_rate_source_path(state_name,
-                                                                              nodes='state_disc',
-                                                                              phase=phase)
-                    phase.connect(rate_path_disc,
-                                  f'interleave_comp.disc_values:state_rates:{state_name}',
-                                  src_indices=disc_src_idxs)
+                rate_path_disc, disc_src_idxs = self._get_rate_source_path(state_name,
+                                                                           nodes='state_disc',
+                                                                           phase=phase)
+                phase.connect(rate_path_disc,
+                              f'interleave_comp.disc_values:state_rates:{state_name}',
+                              src_indices=disc_src_idxs)
 
-                    rate_path_col, col_src_idxs = self.get_rate_source_path(state_name,
-                                                                            nodes='col',
-                                                                            phase=phase)
-                    phase.connect(rate_path_col,
-                                  f'interleave_comp.col_values:state_rates:{state_name}',
-                                  src_indices=col_src_idxs)
+                rate_path_col, col_src_idxs = self._get_rate_source_path(state_name,
+                                                                         nodes='col',
+                                                                         phase=phase)
+                phase.connect(rate_path_col,
+                              f'interleave_comp.col_values:state_rates:{state_name}',
+                              src_indices=col_src_idxs)
 
     def setup_defects(self, phase):
         """
@@ -408,23 +377,11 @@ class GaussLobatto(PseudospectralBase):
             phase.connect(f'state_interp.staterate_col:{name}',
                           f'collocation_constraint.f_approx:{name}')
 
-            rate_src = options['rate_source']
-            if rate_src in phase.parameter_options:
-                # If the rate source is a parameter, which is an input, we need to promote
-                # f_computed to the parameter name instead of connecting to it.
-                shape = phase.parameter_options[rate_src]['shape']
-                param_size = np.prod(shape)
-                ncn = self.grid_data.subset_num_nodes['col']
-                src_idxs = np.tile(np.arange(0, param_size, dtype=int), ncn)
-                src_idxs = np.reshape(src_idxs, (ncn,) + shape)
-                phase.promotes('collocation_constraint',
-                               inputs=[(f'f_computed:{name}', f'parameters:{rate_src}')],
-                               src_indices=(src_idxs,), flat_src_indices=True, src_shape=shape)
-            else:
-                rate_path, src_idxs = self.get_rate_source_path(name, nodes='col', phase=phase)
-                phase.connect(rate_path,
-                              f'collocation_constraint.f_computed:{name}',
-                              src_indices=src_idxs)
+            rate_path, src_idxs = self._get_rate_source_path(name, nodes='col', phase=phase)
+
+            phase.connect(rate_path,
+                          f'collocation_constraint.f_computed:{name}',
+                          src_indices=src_idxs)
 
     def configure_path_constraints(self, phase):
         """
@@ -641,10 +598,13 @@ class GaussLobatto(PseudospectralBase):
                                                           src=prom_name)
 
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape']).ravel()
 
-                    phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
-                                   src_indices=(src_idxs,), flat_src_indices=True)
+                    phase.connect(f'parameter_vals:{param_name}',
+                                  f'{timeseries_name}.{tgt_name}',
+                                  src_indices=src_idxs, flat_src_indices=True)
+                    # phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
+                    #                src_indices=(src_idxs,), flat_src_indices=True)
 
             for var, options in phase._timeseries[timeseries_name]['outputs'].items():
                 output_name = options['output_name']
@@ -727,7 +687,7 @@ class GaussLobatto(PseudospectralBase):
                         phase.connect(src_name=f'interleave_comp.all_values:{output_name}',
                                       tgt_name=f'{timeseries_name}.input_values:{output_name}')
 
-    def get_rate_source_path(self, state_name, nodes, phase):
+    def _get_rate_source_path(self, state_name, nodes, phase):
         """
         Return the rate source location and indices for a given state name.
 
@@ -799,7 +759,7 @@ class GaussLobatto(PseudospectralBase):
             rate_path = f'polynomial_control_rates:{control_name}_rate2'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'parameter':
-            rate_path = f'parameters:{var}'
+            rate_path = f'parameter_vals:{var}'
             node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
         # Failed to find variable, it must be an ODE output
         else:

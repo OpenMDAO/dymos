@@ -112,8 +112,6 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        # phase.add_subsystem('indep_states', om.IndepVarComp(),
-        #                     promotes_outputs=['*'])
         pass
 
     def configure_states(self, phase):
@@ -271,6 +269,8 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        super().configure_parameters(phase)
+
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_parameters_io()
 
@@ -656,8 +656,8 @@ class ExplicitShooting(TranscriptionBase):
                                                           units=options['units'], src=prom_name)
 
                     src_idxs = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
-                    phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
-                                   src_indices=om.slicer[src_idxs, ...], src_shape=options['shape'])
+                    phase.connect(f'parameter_vals:{param_name}', f'{timeseries_name}.{tgt_name}',
+                                  src_indices=om.slicer[src_idxs, ...])
 
             for var, options in integrator_comp._filtered_timeseries_outputs.items():
                 added_src = timeseries_comp._add_output_configure(var,
@@ -759,7 +759,7 @@ class ExplicitShooting(TranscriptionBase):
             shape = phase.parameter_options[var]['shape']
             units = phase.parameter_options[var]['units']
             linear = True
-            constraint_path = f'parameters:{var}'
+            constraint_path = f'parameter_vals:{var}'
         elif var_type in ('control_rate', 'control_rate2'):
             control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
             shape = phase.control_options[control_var]['shape']
