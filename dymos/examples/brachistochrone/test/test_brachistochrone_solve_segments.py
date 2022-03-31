@@ -74,12 +74,12 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
     # Minimize time at the end of the phase
     phase.add_objective('time_phase', loc='final', scaler=10)
 
-    p.set_solver_print(1)
+    p.set_solver_print(0)
 
     p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
 
     p['traj0.phase0.t_initial'] = 0.0
-    p['traj0.phase0.t_duration'] = 2.0
+    p['traj0.phase0.t_duration'] = 1.5
 
     p['traj0.phase0.states:x'] = phase.interp('x', [0, 10])
     p['traj0.phase0.states:y'] = phase.interp('y', [10, 5])
@@ -245,7 +245,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments=False,
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -256,7 +256,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments='forward',
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -267,7 +267,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments='backward',
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -278,7 +278,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments=None,
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -289,7 +289,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments=False,
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -300,7 +300,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments='forward',
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -311,7 +311,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments='backward',
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -322,7 +322,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments=None,
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -333,7 +333,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments=False,
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -344,7 +344,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments='forward',
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -355,7 +355,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments='backward',
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -366,7 +366,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments=None,
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -377,7 +377,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments=False,
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -388,7 +388,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments='forward',
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -399,7 +399,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments='backward',
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -410,7 +410,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='IPOPT',
                           force_alloc_complex=True,
                           solve_segments=None,
-                          num_segments=20,
+                          num_segments=8,
                           transcription_order=3)
         dm.run_problem(p)
         self.assert_results(p)
@@ -423,14 +423,14 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
 
         # Setup the problem
         with warnings.catch_warnings(record=True) as ctx:
-            p = _make_problem(transcription='radau-ps',
-                              compressed=True,
-                              optimizer='IPOPT',
-                              force_alloc_complex=True,
-                              solve_segments='forward',
-                              num_segments=20,
-                              transcription_order=3,
-                              y_bounds=(5, 10))
+            _make_problem(transcription='radau-ps',
+                          compressed=True,
+                          optimizer='IPOPT',
+                          force_alloc_complex=True,
+                          solve_segments='forward',
+                          num_segments=8,
+                          transcription_order=3,
+                          y_bounds=(5, 10))
 
             warnings.simplefilter('always')
             self.assertIn(expected_warning, [str(w.message) for w in ctx])
