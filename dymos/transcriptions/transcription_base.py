@@ -327,8 +327,6 @@ class TranscriptionBase(object):
         bc_dict = phase._initial_boundary_constraints \
             if loc == 'initial' else phase._final_boundary_constraints
 
-        sys_name = f'{loc}_boundary_constraints'
-        bc_comp = phase._get_subsystem(sys_name)
         ode_outputs = get_promoted_vars(self._get_ode(phase), 'output')
 
         for var, options in bc_dict.items():
@@ -395,14 +393,8 @@ class TranscriptionBase(object):
 
             # bc_comp._add_constraint(con_name, **con_options)
             con_options.pop('shape', None)
-
-            # indices = om.slicer[0, ...] if loc == 'initial' else om.slicer[-1, ...]
-
             con_output, constraint_kwargs = self._get_constraint_kwargs(loc, var, options, phase)
-
             constraint_kwargs.pop('shape', None)
-            # indices = constraint_kwargs.pop('indices', None)
-            # print(constraint_kwargs['indices'])
 
             phase.add_constraint(con_output, **constraint_kwargs)
 
@@ -418,6 +410,27 @@ class TranscriptionBase(object):
         pass
 
     def _get_constraint_kwargs(self, constraint_type, var, options, phase):
+        """
+        Given the constraint options provide the keyword arguments for the OpenMDAO add_constraint method.
+
+        Parameters
+        ----------
+        constraint_type : str
+            One of 'initial', 'final', or 'path'.
+        var : str
+            The variable to be constrained.
+        options : dict
+            The constraint options.
+        phase : Phase
+            The dymos phase to which the constraint applies.
+
+        Returns
+        -------
+        con_output : str
+            The phase-relative path being constrained.
+        constraint_kwargs : dict
+            Keyword arguments for the OpenMDAO add_constraint method.
+        """
         constraint_kwargs = options.copy()
         time_units = phase.time_options['units']
         con_units = constraint_kwargs['units'] = options.get('units', None)
@@ -447,7 +460,7 @@ class TranscriptionBase(object):
             con_output = f'timeseries.states:{var}'
             
         elif var_type == 'parameter':
-            con_output = f'parameter_value:{var}'
+            con_output = f'parameter_vals:{var}'
 
         elif var_type == 'indep_control':
             control_shape = phase.control_options[var]['shape']
@@ -534,21 +547,44 @@ class TranscriptionBase(object):
 
         user_idxs = options['indices'] if options['indices'] is not None else om.slicer[...]
 
-        if constraint_type == 'initial':
-            constraint_kwargs['indices'] = om.slicer[0, user_idxs]
-            constraint_kwargs['alias'] = f'{phase.pathname}.{con_output} [bc_initial:{con_name}]'
-        elif constraint_type == 'final':
-            constraint_kwargs['indices'] =  om.slicer[-1, user_idxs]
-            constraint_kwargs['alias'] = f'{phase.pathname}.{con_output} [bc_final:{con_name}]'
-        else:
-            if var in phase._initial_boundary_constraints:
-                constraint_kwargs['indices'] = om.slicer[1:, user_idxs]
-            elif var in phase._final_boundary_constraints:
-                constraint_kwargs['indices'] = om.slicer[:-1, user_idxs]
-            else:
-                constraint_kwargs['indices'] = om.slicer[:, user_idxs]
+        in_initial = var in phase._initial_boundary_constraints
+        in_final = var in phase._final_boundary_constraints
+        in_path = var in phase._path_constraints
 
-            constraint_kwargs['alias'] = f'{phase.pathname}.{con_output} [path:{con_name}]'
+        if var_type == 'parameter':
+            if any([in_initial and in_final, in_initial and in_path, in_final and in_path]):
+                raise RuntimeError(f'In phase {phase.pathname}, parameter {var} is subject to multiple boundary \n'
+                                   f'or path constraints. Parameters are single values that do not change in \n'
+                                   f'time, and may only be used in a single boundary or path constraint.')
+            constraint_kwargs['indices'] = om.slicer[user_idxs]
+        else:
+            if constraint_type == 'initial':
+                constraint_kwargs['indices'] = om.slicer[0, ...] if options['indices'] is None \
+                    else om.slicer[(0,) + tuple(user_idxs)]
+            elif constraint_type == 'final':
+                constraint_kwargs['indices'] = om.slicer[-1, ...] if options['indices'] is None \
+                    else om.slicer[(-1,) + tuple(user_idxs)]
+            else:
+                if in_initial and in_final:
+                    # Both a path constraint and an initial constraint and a final constraint
+                    constraint_kwargs['indices'] = om.slicer[1:-1, user_idxs]
+                elif in_initial:
+                    # Both a path constraint and an initial constraint
+                    constraint_kwargs['indices'] = om.slicer[1:, user_idxs]
+                elif in_final:
+                    # Both a path constraint and an final constraint
+                    constraint_kwargs['indices'] = om.slicer[:-1, user_idxs]
+                else:
+                    # Var is only a path constraint
+                    constraint_kwargs['indices'] = om.slicer[:, user_idxs]
+
+        alias_map = {'path': 'path_constraint',
+                     'initial': 'initial_boundary_constraint',
+                     'final': 'final_boundary_constraint'}
+
+        str_idxs = '' if options['indices'] is None else f'{options["indices"]}'
+
+        constraint_kwargs['alias'] = f'{phase.pathname}->{alias_map[constraint_type]}->{con_name}{str_idxs}'
 
         return con_output, constraint_kwargs
 
@@ -572,7 +608,6 @@ class TranscriptionBase(object):
             constraint_kwargs.pop('shape', None)
 
             phase.add_constraint(con_output, **constraint_kwargs)
-
 
     def configure_objective(self, phase):
         """

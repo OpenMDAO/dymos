@@ -30,7 +30,7 @@ class ODEComp(om.ExplicitComponent):
 @use_tempdirs
 class TestCannonballMatrixState(unittest.TestCase):
     """ Tests to verify that dymos can use matrix-states"""
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def _make_problem(self, tx):
         p = om.Problem()
 
@@ -43,12 +43,15 @@ class TestCannonballMatrixState(unittest.TestCase):
         phase.set_time_options(fix_initial=True, duration_bounds=(1, 5), units=None)
         phase.add_state('z', rate_source='zdot', fix_initial=True, units=None)
 
-        phase.add_boundary_constraint('z', loc='final', lower=0, upper=0, indices=[1])
+        phase.add_boundary_constraint('z', loc='final', lower=0, upper=0, indices=[0, 1])
         phase.add_objective('time', loc='final')
 
         phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
 
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
+
+        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['derivative_test'] = 'first-order'
         p.driver.declare_coloring(tol=1.0E-12)
 
         p.setup()
@@ -146,7 +149,7 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
         phase.set_time_options(fix_initial=True, duration_bounds=(1, 5), units=None)
         phase.add_state('z', rate_source='zdot', fix_initial=True, units=None, shape=(2, 2))
 
-        phase.add_boundary_constraint('z', loc='final', lower=0, upper=0, indices=[1])
+        phase.add_boundary_constraint('z', loc='final', lower=0, upper=0, indices=[0, 1])
         phase.add_objective('time', loc='final')
 
         phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
