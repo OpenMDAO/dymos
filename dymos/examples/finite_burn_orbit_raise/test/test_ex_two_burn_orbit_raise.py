@@ -162,12 +162,17 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         if show_output:
             p.driver.opt_settings['iSumm'] = 6
     elif optimizer == 'IPOPT':
-        p.driver.opt_settings['hessian_approximation'] = 'limited-memory'
-        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
-        p.driver.opt_settings['print_level'] = 4
-        p.driver.opt_settings['linear_solver'] = 'mumps'
-        p.driver.opt_settings['mu_strategy'] = 'adaptive'
-        # p.driver.opt_settings['derivative_test'] = 'first-order'
+        p.driver.opt_settings['mu_init'] = 1e-3
+        p.driver.opt_settings['max_iter'] = 500
+        p.driver.opt_settings['acceptable_tol'] = 1e-3
+        p.driver.opt_settings['constr_viol_tol'] = 1e-3
+        p.driver.opt_settings['compl_inf_tol'] = 1e-3
+        p.driver.opt_settings['acceptable_iter'] = 0
+        p.driver.opt_settings['tol'] = 1e-3
+        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+        p.driver.opt_settings['mu_strategy'] = 'monotone'
 
     traj = make_traj(transcription=transcription, transcription_order=transcription_order,
                      compressed=compressed, connected=connected)

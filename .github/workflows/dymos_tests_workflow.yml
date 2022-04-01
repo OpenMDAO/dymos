@@ -6,10 +6,12 @@
 name: Dymos Tests
 
 on:
-  # Trigger on push or pull request events for the master branch
+  # Trigger on push, pull request or workflow dispatch events for the master branch
   push:
     branches: [ master ]
   pull_request:
+    branches: [ master ]
+  workflow_dispatch:
     branches: [ master ]
 
 jobs:
@@ -24,7 +26,8 @@ jobs:
       matrix:
         include:
           # baseline versions
-          - PY: 3.8
+          - NAME: baseline
+            PY: 3.8
             NUMPY: 1.18
             SCIPY: 1.4
             PETSc: 3.12
@@ -33,10 +36,12 @@ jobs:
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
+            JAX: True
             DOCS: 2
 
           # baseline versions except no pyoptsparse or SNOPT
-          - PY: 3.8
+          - NAME: no_pyoptsparse
+            PY: 3.8
             NUMPY: 1.18
             SCIPY: 1.4
             PETSc: 3.12
@@ -47,7 +52,8 @@ jobs:
 
           # baseline versions except with pyoptsparse but no SNOPT
           # build docs to verify those that use pyoptsparse do not use SNOPT
-          - PY: 3.8
+          - NAME: no_snopt
+            PY: 3.8
             NUMPY: 1.18
             SCIPY: 1.4
             PETSc: 3.12
@@ -58,7 +64,8 @@ jobs:
             DOCS: 1
 
           # try latest versions
-          - PY: 3
+          - NAME: latest
+            PY: 3
             NUMPY: 1
             SCIPY: 1
             # PETSc: 3
@@ -67,10 +74,12 @@ jobs:
             MBI: 1
             OPENMDAO: 'dev'
             OPTIONAL: '[test]'
+            JAX: True
             DOCS: 0
 
           # oldest supported versions
-          - PY: 3.7
+          - NAME: oldest
+            PY: 3.7
             NUMPY: 1.16
             SCIPY: 1.2
             PETSc: 3.10.2
@@ -91,11 +100,6 @@ jobs:
           echo "Triggered by: ${GITHUB_EVENT_NAME}"
           echo "Initiated by: ${GITHUB_ACTOR}"
           echo "============================================================="
-
-      # TEMPORARY WHILE GITHUB FIXES THIS https://github.com/actions/virtual-environments/issues/3185
-      - name: Add the current IP address, long hostname and short hostname record to /etc/hosts file
-        run: |
-          echo -e "$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)\t$(hostname -f) $(hostname -s)" | sudo tee -a /etc/hosts
 
       - name: Create SSH key
         shell: bash
@@ -120,7 +124,7 @@ jobs:
         with:
           activate-environment: test
           python-version: ${{ matrix.PY }}
-          channels: conda-forge,spyder-ide
+          channels: conda-forge
           allow-softlinks: true
           channel-priority: flexible
           show-channel-urls: true
@@ -133,6 +137,25 @@ jobs:
           echo "Install Numpy/Scipy"
           echo "============================================================="
           conda install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
+
+      - name: Install jax
+        if: matrix.JAX
+        shell: bash -l {0}
+        run: |
+          echo "============================================================="
+          echo "Install jax"
+          echo "============================================================="
+          pip install jax
+          pip install jaxlib
+
+      - name: Install libscotch
+        if: matrix.name == 'oldest'
+        shell: bash -l {0}
+        run: |
+          echo "============================================================="
+          echo "Install libscotch"
+          echo "============================================================="
+          sudo apt-get install -y libscotch-6.0
 
       - name: Install PETSc
         if: matrix.PETSc
@@ -239,7 +262,7 @@ jobs:
           testflo -n 1 joss/test --pre_announce
           testflo -b benchmark --pre_announce
           cd $HOME
-          testflo dymos -n 1 --show_skipped --coverage --coverpkg dymos
+          testflo dymos -n 1 --pre_announce --show_skipped --coverage --coverpkg dymos
 
       - name: Submit coverage
         shell: bash -l {0}

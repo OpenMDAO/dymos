@@ -561,27 +561,27 @@ class PseudospectralBase(TranscriptionBase):
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
             linear = True
-            constraint_path = 'control_values:{0}'.format(var)
+            constraint_path = f'control_values:{var}'
         elif var_type == 'input_control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
             linear = False
-            constraint_path = 'control_values:{0}'.format(var)
+            constraint_path = f'control_values:{var}'
         elif var_type in 'indep_polynomial_control':
             shape = phase.polynomial_control_options[var]['shape']
             units = phase.polynomial_control_options[var]['units']
             linear = True
-            constraint_path = 'polynomial_control_values:{0}'.format(var)
+            constraint_path = f'polynomial_control_values:{var}'
         elif var_type == 'input_polynomial_control':
             shape = phase.polynomial_control_options[var]['shape']
             units = phase.polynomial_control_options[var]['units']
             linear = False
-            constraint_path = 'polynomial_control_values:{0}'.format(var)
+            constraint_path = f'polynomial_control_values:{var}'
         elif var_type == 'parameter':
             shape = phase.parameter_options[var]['shape']
             units = phase.parameter_options[var]['units']
             linear = True
-            constraint_path = 'parameters:{0}'.format(var)
+            constraint_path = f'parameter_vals:{var}'
         elif var_type in ('control_rate', 'control_rate2'):
             control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
             shape = phase.control_options[control_var]['shape']
@@ -590,7 +590,7 @@ class PseudospectralBase(TranscriptionBase):
             control_rate_units = get_rate_units(control_units, time_units, deriv=d)
             units = control_rate_units
             linear = False
-            constraint_path = 'control_rates:{0}'.format(var)
+            constraint_path = f'control_rates:{var}'
         elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
             control_var = var[:-5]
             shape = phase.polynomial_control_options[control_var]['shape']

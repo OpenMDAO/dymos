@@ -589,7 +589,6 @@ class TestExplicitShooting(unittest.TestCase):
 
                 self.assertIn(msg, [str(w.message) for w in ctx])
 
-    # @require_pyoptsparse(optimizer='SNOPT')
     def test_brachistochrone_static_gravity_explicit_shooting(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
