@@ -300,17 +300,9 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        if loc not in ('initial', 'final'):
-            raise ValueError('loc must be one of \'initial\' or \'final\'.')
+        pass
 
-        bc_dict = phase._initial_boundary_constraints \
-            if loc == 'initial' else phase._final_boundary_constraints
-
-        if bc_dict:
-            phase.add_subsystem(f'{loc}_boundary_constraints',
-                                subsys=BoundaryConstraintComp(loc=loc))
-
-    def configure_boundary_constraints(self, loc, phase):
+    def _configure_boundary_constraints(self, phase):
         """
         Configures the boundary constraints.
 
@@ -319,81 +311,30 @@ class TranscriptionBase(object):
 
         Parameters
         ----------
-        loc : str
-            The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        bc_dict = phase._initial_boundary_constraints \
-            if loc == 'initial' else phase._final_boundary_constraints
 
-        ode_outputs = get_promoted_vars(self._get_ode(phase), 'output')
+        for var, options in phase._initial_boundary_constraints.items():
+            con_output, constraint_kwargs = self._get_constraint_kwargs('initial', var, options, phase)
 
-        for var, options in bc_dict.items():
-            con_name = options['constraint_name']
+            # Propagate the introspected shape back into the options dict.
+            # Some transcriptions use this later.
+            options['shape'] = constraint_kwargs['shape']
 
-            _, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase, ode_outputs=ode_outputs)
+            constraint_kwargs.pop('constraint_name', None)
+            constraint_kwargs.pop('shape', None)
 
-            if options['indices'] is not None:
-                # Sliced shape.
-                con_shape = (len(options['indices']), )
-                # Indices provided, make sure lower/upper/equals have shape of the indices.
-                if options['lower'] and not np.isscalar(options['lower']) and \
-                        np.asarray(options['lower']).shape != con_shape:
-                    raise ValueError('The lower bounds of boundary constraint on {0} are not '
-                                     'compatible with its shape, and no indices were '
-                                     'provided.'.format(var))
+            phase.add_constraint(con_output, **constraint_kwargs)
 
-                if options['upper'] and not np.isscalar(options['upper']) and \
-                        np.asarray(options['upper']).shape != con_shape:
-                    raise ValueError('The upper bounds of boundary constraint on {0} are not '
-                                     'compatible with its shape, and no indices were '
-                                     'provided.'.format(var))
+        for var, options in phase._final_boundary_constraints.items():
+            con_output, constraint_kwargs = self._get_constraint_kwargs('final', var, options, phase)
 
-                if options['equals'] and not np.isscalar(options['equals']) and \
-                        np.asarray(options['equals']).shape != con_shape:
-                    raise ValueError('The equality boundary constraint value on {0} is not '
-                                     'compatible the provided indices. Provide them as a '
-                                     'flat array with the same size as indices.'.format(var))
+            # Propagate the introspected shape back into the options dict.
+            # Some transcriptions use this later.
+            options['shape'] = constraint_kwargs['shape']
 
-            else:
-                # Indices not provided, make sure lower/upper/equals have shape of source.
-                if 'lower' in options and options['lower'] is not None and \
-                        not np.isscalar(options['lower']) and np.asarray(options['lower']).shape != shape:
-                    raise ValueError('The lower bounds of boundary constraint on {0} are not '
-                                     'compatible with its shape, and no indices were '
-                                     'provided. Expected a shape of {1} but given shape '
-                                     'is {2}'.format(var, shape, np.asarray(options['lower']).shape))
-
-                if 'upper' in options and options['upper'] is not None and \
-                        not np.isscalar(options['upper']) and np.asarray(options['upper']).shape != shape:
-                    raise ValueError('The upper bounds of boundary constraint on {0} are not '
-                                     'compatible with its shape, and no indices were '
-                                     'provided. Expected a shape of {1} but given shape '
-                                     'is {2}'.format(var, shape, np.asarray(options['upper']).shape))
-
-                if 'equals' in options and options['equals'] is not None and \
-                        not np.isscalar(options['equals']) and np.asarray(options['equals']).shape != shape:
-                    raise ValueError('The equality boundary constraint value on {0} is not '
-                                     'compatible with its shape, and no indices were '
-                                     'provided. Expected a shape of {1} but given shape '
-                                     'is {2}'.format(var, shape, np.asarray(options['equals']).shape))
-
-            # Constraint options are a copy of options with constraint_name key removed.
-            con_options = options.copy()
-            con_options.pop('constraint_name')
-
-            # By now, all possible constraint target shapes should have been introspected.
-            con_options['shape'] = options['shape'] = shape
-
-            # If user overrides the introspected unit, then change the unit on the add_constraint call.
-            con_units = options['units']
-            con_options['units'] = units if con_units is None else con_units
-            con_options['linear'] = linear
-
-            # bc_comp._add_constraint(con_name, **con_options)
-            con_options.pop('shape', None)
-            con_output, constraint_kwargs = self._get_constraint_kwargs(loc, var, options, phase)
+            constraint_kwargs.pop('constraint_name', None)
             constraint_kwargs.pop('shape', None)
 
             phase.add_constraint(con_output, **constraint_kwargs)
@@ -622,7 +563,7 @@ class TranscriptionBase(object):
             index = options['index']
             loc = options['loc']
 
-            obj_path, shape, units, _ = self._get_boundary_constraint_src(name, loc, phase)
+            obj_path, shape, units, _ = self._get_objective_src(name, loc, phase)
 
             shape = options['shape'] if shape is None else shape
 
@@ -654,13 +595,38 @@ class TranscriptionBase(object):
                                               scaler=options['scaler'],
                                               parallel_deriv_color=options['parallel_deriv_color'])
 
-    def _get_boundary_constraint_src(self, name, loc, phase, ode_outputs=None):
-        raise NotImplementedError('Transcription {0} does not implement method'
-                                  '_get_boundary_constraint_source.'.format(self.__class__.__name__))
+    def _get_objective_src(self, name, loc, phase, ode_outputs=None):
+        """
+        Return the path to the variable that will be used as the objective.
+
+        Parameters
+        ----------
+        var : str
+            Name of the variable to be used as the objective.
+        loc : str
+            The location of the objective in the phase ['initial', 'final'].
+        phase : dymos.Phase
+            Phase object containing in which the objective resides.
+        ode_outputs : dict or None
+            A dictionary of ODE outputs as returned by get_promoted_vars.
+
+        Returns
+        -------
+        obj_path : str
+            Path to the source.
+        shape : tuple
+            Source shape.
+        units : str
+            Source units.
+        linear : bool
+            True if the objective quantity1 is linear.
+        """
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
+                                  '_get_objective_src.')
 
     def _get_rate_source_path(self, name, loc, phase):
-        raise NotImplementedError('Transcription {0} does not implement method'
-                                  '_get_rate_source_path.'.format(self.__class__.__name__))
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
+                                  '_get_rate_source_path.')
 
     def _get_ode(self, phase):
         """

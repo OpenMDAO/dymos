@@ -479,14 +479,12 @@ class SolveIVP(TranscriptionBase):
         """
         pass
 
-    def configure_boundary_constraints(self, loc, phase):
+    def _configure_boundary_constraints(self, phase):
         """
         Not used in SolveIVP.
 
         Parameters
         ----------
-        loc : str
-            The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
@@ -776,9 +774,6 @@ class SolveIVP(TranscriptionBase):
             connection_info.append(([f'ode.{tgt}' for tgt in ode_tgts], (src_idxs,)))
 
         return connection_info
-
-    def _get_boundary_constraint_src(self, var, loc):
-        pass
 
     def _get_rate_source_path(self, state_var, nodes, phase):
         """

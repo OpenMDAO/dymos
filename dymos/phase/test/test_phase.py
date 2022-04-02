@@ -659,6 +659,65 @@ class TestPhaseBase(unittest.TestCase):
                 assert_near_equal(p.get_val('phase0.timeseries.parameters:g')[-1], 9.80665,
                                   tolerance=1.0E-6)
 
+    def test_parameter_path_constraint(self):
+
+        for tx in (dm.GaussLobatto, dm.Radau, dm.ExplicitShooting):
+            with self.subTest():
+                p = om.Problem(model=om.Group())
+
+                p.driver = om.pyOptSparseDriver()
+                p.driver.declare_coloring()
+
+                phase = dm.Phase(ode_class=BrachistochroneODE,
+                                 transcription=tx(num_segments=5, order=3))
+
+                p.model.add_subsystem('phase0', phase)
+
+                phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+                phase.add_state('x', fix_initial=True, fix_final=False)
+
+                phase.add_state('y', fix_initial=True, fix_final=False)
+
+                phase.add_state('v', fix_initial=True, fix_final=False)
+
+                phase.add_control('theta', continuity=True, rate_continuity=True, rate2_continuity=True,
+                                  units='deg', lower=0.01, upper=179.9)
+
+                phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
+
+                # We'll let g vary, but make sure it hits the desired value.
+                # It's a static parameter, so it shouldn't matter whether we enforce it
+                # at the start or the end of the phase.  In this case we'll use a path
+                # constraint to enforce it, but it will still just be a single scalar constraint.
+                phase.add_boundary_constraint('x', loc='final', units='m', equals=10)
+                phase.add_boundary_constraint('y', loc='final', units='m', equals=5)
+                phase.add_path_constraint('g', units='m/s**2', upper=9.80665)
+
+                # Minimize time at the end of the phase
+                phase.add_objective('time_phase', loc='final', scaler=10)
+
+                p.model.linear_solver = om.DirectSolver()
+                p.setup(check=True)
+
+                p['phase0.t_initial'] = 0.0
+                p['phase0.t_duration'] = 2.0
+
+                p['phase0.states:x'] = phase.interp('x', [0, 10])
+                p['phase0.states:y'] = phase.interp('y', [10, 5])
+                p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+                p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
+                p['phase0.parameters:g'] = 5
+
+                p.run_driver()
+
+                assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016,
+                                  tolerance=1.0E-4)
+                assert_near_equal(p.get_val('phase0.timeseries.parameters:g')[0], 9.80665,
+                                  tolerance=1.0E-6)
+                assert_near_equal(p.get_val('phase0.timeseries.parameters:g')[-1], 9.80665,
+                                  tolerance=1.0E-6)
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

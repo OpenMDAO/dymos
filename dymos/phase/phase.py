@@ -1522,9 +1522,7 @@ class Phase(om.Group):
 
         transcription.configure_defects(self)
 
-        transcription.configure_boundary_constraints('initial', self)
-
-        transcription.configure_boundary_constraints('final', self)
+        transcription._configure_boundary_constraints(self)
 
         transcription.configure_path_constraints(self)
 
