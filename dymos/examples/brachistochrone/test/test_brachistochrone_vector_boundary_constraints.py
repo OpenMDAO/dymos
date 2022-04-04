@@ -129,7 +129,7 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
         phase.add_parameter('g',
                             units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_boundary_constraint('pos', loc='final', equals=[10, 5], indices=[0, 1])
+        phase.add_boundary_constraint('pos', loc='final', equals=[10, 5])
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)

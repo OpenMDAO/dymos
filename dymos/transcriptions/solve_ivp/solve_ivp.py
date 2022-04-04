@@ -444,36 +444,12 @@ class SolveIVP(TranscriptionBase):
         """
         pass
 
-    def setup_path_constraints(self, phase):
-        """
-        Not used in SolveIVP.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        pass
-
     def configure_path_constraints(self, phase):
         """
         Not used in SolveIVP.
 
         Parameters
         ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        pass
-
-    def setup_boundary_constraints(self, loc, phase):
-        """
-        Not used in SolveIVP.
-
-        Parameters
-        ----------
-        loc : str
-            The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """

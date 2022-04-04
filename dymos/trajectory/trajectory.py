@@ -1022,7 +1022,8 @@ class Trajectory(om.Group):
 
             for loc, d in ds.items():
                 str_loc = f'[{loc}]'
-                for expr, options in d.items():
+                for options in d:
+                    expr = options['name']
                     _, shape, units, linear = tx._get_objective_src(expr, loc, phase, ode_outputs=ode_outputs)
 
                     equals = options['equals']

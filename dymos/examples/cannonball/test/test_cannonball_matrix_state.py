@@ -103,10 +103,6 @@ class TestCannonballMatrixState(unittest.TestCase):
 
         dm.run_problem(p, simulate=True)
 
-        z = p.get_val('traj.phase.timeseries.states:z')
-
-        print(z.shape)
-
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)

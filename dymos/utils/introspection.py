@@ -240,6 +240,133 @@ def get_state_target_metadata(ode, name, targets=_unspecified, user_units=_unspe
     return shape, units
 
 
+def _configure_constraint_introspection(phase):
+    """
+    Modify constraint options in-place using introspection of the phase and its ODE.
+
+    Parameters
+    ----------
+    phase : Phase
+        The phase object whose boundary and path constraints are to be introspected.
+    """
+    for options in phase._initial_boundary_constraints + phase._final_boundary_constraints + phase._path_constraints:
+        time_units = phase.time_options['units']
+
+        # Determine the path to the variable which we will be constraining
+        var = options['name']
+        var_type = phase.classify_var(var)
+
+        if var_type == 'time':
+            options['shape'] = (1,)
+            options['units'] = time_units if options['units'] is None else options['units']
+            options['linear'] = True
+            options['constraint_path'] = 'timeseries.time'
+
+        elif var_type == 'time_phase':
+            options['shape'] = (1,)
+            options['units'] = time_units if options['units'] is None else options['units']
+            options['linear'] = True
+            options['constraint_path'] = 'timeseries.time_phase'
+
+        elif var_type == 'state':
+            state_shape = phase.state_options[var]['shape']
+            state_units = phase.state_options[var]['units']
+            options['shape'] = state_shape
+            options['units'] = state_units if options['units'] is None else options['units']
+            options['linear'] = False
+            options['constraint_path'] = f'timeseries.states:{var}'
+
+        elif var_type == 'parameter':
+            param_shape = phase.parameter_options[var]['shape']
+            param_units = phase.parameter_options[var]['units']
+            options['shape'] = param_shape
+            options['units'] = param_units if options['units'] is None else options['units']
+            options['constraint_path'] = f'parameter_vals:{var}'
+
+        elif var_type == 'indep_control':
+            control_shape = phase.control_options[var]['shape']
+            control_units = phase.control_options[var]['units']
+
+            options['shape'] = control_shape
+            options['units'] = control_units if options['units'] is None else options['units']
+            options['linear'] = True
+            options['constraint_path'] = f'timeseries.controls:{var}'
+
+        elif var_type == 'input_control':
+            control_shape = phase.control_options[var]['shape']
+            control_units = phase.control_options[var]['units']
+
+            options['shape'] = control_shape
+            options['units'] = control_units if options['units'] is None else options['units']
+            options['linear'] = True
+            options['constraint_path'] = f'timeseries.controls:{var}'
+
+        elif var_type == 'indep_polynomial_control':
+            control_shape = phase.polynomial_control_options[var]['shape']
+            control_units = phase.polynomial_control_options[var]['units']
+            options['shape'] = control_shape
+            options['units'] = control_units if options['units'] is None else options['units']
+            options['linear'] = False
+            options['constraint_path'] = f'timeseries.polynomial_controls:{var}'
+
+        elif var_type == 'input_polynomial_control':
+            control_shape = phase.polynomial_control_options[var]['shape']
+            control_units = phase.polynomial_control_options[var]['units']
+            options['shape'] = control_shape
+            options['units'] = control_units if options['units'] is None else options['units']
+            options['linear'] = False
+            options['constraint_path'] = f'timeseries.polynomial_controls:{var}'
+
+        elif var_type == 'control_rate':
+            control_name = var[:-5]
+            control_shape = phase.control_options[control_name]['shape']
+            control_units = phase.control_options[control_name]['units']
+            options['shape'] = control_shape
+            options['units'] = get_rate_units(control_units, time_units, deriv=1) \
+                if options['units'] is None else options['units']
+            options['constraint_path'] = f'timeseries.control_rates:{var}'
+
+        elif var_type == 'control_rate2':
+            control_name = var[:-6]
+            control_shape = phase.control_options[control_name]['shape']
+            control_units = phase.control_options[control_name]['units']
+            options['shape'] = control_shape
+            options['units'] = get_rate_units(control_units, time_units, deriv=2) \
+                if options['units'] is None else options['units']
+            options['constraint_path'] = f'timeseries.control_rates:{var}'
+
+        elif var_type == 'polynomial_control_rate':
+            control_name = var[:-5]
+            control_shape = phase.polynomial_control_options[control_name]['shape']
+            control_units = phase.polynomial_control_options[control_name]['units']
+            options['shape'] = control_shape
+            options['units'] = get_rate_units(control_units, time_units, deriv=1) \
+                if options['units'] is None else options['units']
+            options['constraint_path'] = f'timeseries.polynomial_control_rates:{var}'
+
+        elif var_type == 'polynomial_control_rate2':
+            control_name = var[:-6]
+            control_shape = phase.polynomial_control_options[control_name]['shape']
+            control_units = phase.polynomial_control_options[control_name]['units']
+            options['shape'] = control_shape
+            options['units'] = get_rate_units(control_units, time_units, deriv=2) \
+                if options['units'] is None else options['units']
+            options['constraint_path'] = f'timeseries.polynomial_control_rates:{var}'
+
+        else:
+            # Failed to find variable, assume it is in the ODE. This requires introspection.
+            ode = phase.options['transcription']._get_ode(phase)
+
+            shape, units = get_source_metadata(ode, src=var,
+                                               user_units=options['units'],
+                                               user_shape=options['shape'])
+
+            options['linear'] = False
+            options['shape'] = shape
+            options['units'] = units
+            options['constraint_path'] = f'timeseries.{options["constraint_name"]}'
+
+
 def configure_controls_introspection(control_options, ode, time_units='s'):
     """
     Modify control options in-place using introspection of the user-provided ODE.
