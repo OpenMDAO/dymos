@@ -30,7 +30,7 @@ class ODEComp(om.ExplicitComponent):
 @use_tempdirs
 class TestCannonballMatrixState(unittest.TestCase):
     """ Tests to verify that dymos can use matrix-states"""
-    @require_pyoptsparse(optimizer='IPOPT')
+
     def _make_problem(self, tx):
         p = om.Problem()
 
@@ -44,14 +44,12 @@ class TestCannonballMatrixState(unittest.TestCase):
         phase.add_state('z', rate_source='zdot', fix_initial=True, units=None)
 
         phase.add_boundary_constraint('z', loc='final', lower=0, upper=0, indices=[0, 1])
+        phase.add_path_constraint('z', lower=0, upper=1E3, indices=[0, 0])
         phase.add_objective('time', loc='final')
 
         phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
-
-        p.driver.opt_settings['print_level'] = 5
-        p.driver.opt_settings['derivative_test'] = 'first-order'
         p.driver.declare_coloring(tol=1.0E-12)
 
         p.setup()
@@ -105,6 +103,10 @@ class TestCannonballMatrixState(unittest.TestCase):
 
         dm.run_problem(p, simulate=True)
 
+        z = p.get_val('traj.phase.timeseries.states:z')
+
+        print(z.shape)
+
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
@@ -136,7 +138,7 @@ class TestCannonballMatrixState(unittest.TestCase):
 @use_tempdirs
 class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
     """ Tests to verify that dymos can use matrix-states"""
-    @require_pyoptsparse(optimizer='SLSQP')
+
     def _make_problem(self, tx):
         p = om.Problem()
 
@@ -154,7 +156,7 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
 
         phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
 
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.declare_coloring(tol=1.0E-12)
 
         p.setup()

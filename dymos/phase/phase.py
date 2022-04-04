@@ -960,7 +960,7 @@ class Phase(om.Group):
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
-                                scaler=None, adder=None, ref=None, ref0=None, linear=False):
+                                scaler=None, adder=None, ref=None, ref0=None, linear=False, flat_indices=False):
         r"""
         Add a boundary constraint to a variable in the phase.
 
@@ -1005,6 +1005,9 @@ class Phase(om.Group):
             Value of response variable that scales to 0.0 in the driver.
         linear : bool
             Set to True if constraint is linear. Default is False.
+        flat_indices : bool
+            If True, treat indices as flattened C-ordered indices of elements to constrain. Otherwise,
+            indices should be a tuple or list giving the elements to constrain at each point in time.
         """
         if loc not in ['initial', 'final']:
             raise ValueError('Invalid boundary constraint location "{0}". Must be '
@@ -1030,6 +1033,7 @@ class Phase(om.Group):
         bc_dict[name]['ref'] = ref
         bc_dict[name]['linear'] = linear
         bc_dict[name]['units'] = units
+        bc_dict[name]['flat_indices'] = flat_indices
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
@@ -1038,7 +1042,7 @@ class Phase(om.Group):
 
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
-                            ref0=None, linear=False):
+                            ref0=None, linear=False, flat_indices=False):
         r"""
         Add a path constraint to a variable in the phase.
 
@@ -1060,7 +1064,7 @@ class Phase(om.Group):
             if the constrained variable is an output of the ODE system.
         indices : tuple, list, ndarray, or None
             The indices of the output variable to be path constrained.  Indices assumes C-order
-            flattening.  For instance, when constraining element [0, 1] of a variable of shape
+            flattening.  For instance, when constraining element [1, 0] of a variable of shape
             [2, 2], indices would be [3].
         lower : float or ndarray, optional
             Lower boundary for the variable.
@@ -1080,6 +1084,9 @@ class Phase(om.Group):
             Value of response variable that scales to 0.0 in the driver.
         linear : bool
             Set to True if constraint is linear. Default is False.
+        flat_indices : bool
+            If True, treat indices as flattened C-ordered indices of elements to constrain at each given point in time.
+            Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.
         """
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
@@ -1099,6 +1106,7 @@ class Phase(om.Group):
         self._path_constraints[name]['shape'] = shape
         self._path_constraints[name]['linear'] = linear
         self._path_constraints[name]['units'] = units
+        self._path_constraints[name]['flat_indices'] = flat_indices
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
@@ -2207,3 +2215,20 @@ class Phase(om.Group):
             raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
                              f'"final" but got {loc}')
         return res
+
+    def _get_constraint_responses(pathname, shape, indices, boundary_constraints, path_constraints, objectives):
+        """
+        Returns True if the pathname/indices combination is part of more than one boundary constraint, path_constraint, or objective.
+
+        Parameters
+        ----------
+        pathname
+        shape
+        indices
+        boundary_constraints
+        path_constraints
+
+        Returns
+        -------
+
+        """

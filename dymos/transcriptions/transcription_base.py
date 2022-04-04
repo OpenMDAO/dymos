@@ -501,23 +501,23 @@ class TranscriptionBase(object):
         else:
             if constraint_type == 'initial':
                 constraint_kwargs['indices'] = om.slicer[0, ...] if options['indices'] is None \
-                    else om.slicer[(0,) + tuple(user_idxs)]
+                    else (0,) + tuple(user_idxs)
             elif constraint_type == 'final':
                 constraint_kwargs['indices'] = om.slicer[-1, ...] if options['indices'] is None \
-                    else om.slicer[(-1,) + tuple(user_idxs)]
+                    else (-1,) + tuple(user_idxs)
             else:
                 if in_initial and in_final:
                     # Both a path constraint and an initial constraint and a final constraint
-                    constraint_kwargs['indices'] = om.slicer[1:-1, user_idxs]
+                    constraint_kwargs['indices'] = tuple([om.slicer[1:-1]]) + tuple(user_idxs)
                 elif in_initial:
                     # Both a path constraint and an initial constraint
-                    constraint_kwargs['indices'] = om.slicer[1:, user_idxs]
+                    constraint_kwargs['indices'] = tuple([om.slicer[1:]]) + tuple(user_idxs)
                 elif in_final:
-                    # Both a path constraint and an final constraint
-                    constraint_kwargs['indices'] = om.slicer[:-1, user_idxs]
+                    # Both a path constraint and a final constraint
+                    constraint_kwargs['indices'] = tuple([om.slicer[:-1]]) + tuple(user_idxs)
                 else:
                     # Var is only a path constraint
-                    constraint_kwargs['indices'] = om.slicer[:, user_idxs]
+                    constraint_kwargs['indices'] = tuple([om.slicer[:]]) + tuple(user_idxs)
 
         alias_map = {'path': 'path_constraint',
                      'initial': 'initial_boundary_constraint',

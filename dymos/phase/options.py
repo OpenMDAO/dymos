@@ -595,3 +595,58 @@ class SimulateOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='max_step', types=float, default=np.inf,
                      desc='Maximum allowable step size')
+
+
+class ConstraintOptionsDictionary(om.OptionsDictionary):
+    """
+    An OptionsDictionary for path and boundary constraints.
+
+    Parameters
+    ----------
+    read_only : bool
+        If True, setting (via __setitem__ or update) is not permitted.
+    """
+    def __init__(self, read_only=False):
+        super(SimulateOptionsDictionary, self).__init__(read_only)
+
+        self.declare(name='constraint_name', types=str, default=None, allow_none=True,
+                     desc='Name of the variable when used as a constraint, to avoid name collisions.')
+
+        self.declare(name='lower', types=(Iterable, Number), default=None, allow_none=True,
+                     desc='Lower bound of the constraint.')
+
+        self.declare(name='upper', types=(Iterable, Number), default=None,  allow_none=True, \
+                     desc='Upper bound of the constraint.')
+
+        self.declare(name='equals', types=(Iterable, Number), default=None,  allow_none=True, \
+                     desc='Desired vlue for an equality constraint.')
+
+        self.declare(name='scaler', types=(Iterable, Number), default=None, allow_none=True,
+                     desc='Scaler of the variable.')
+
+        self.declare(name='adder', types=(Iterable, Number), default=None, allow_none=True,
+                     desc='Adder of the state variable.')
+
+        self.declare(name='ref0', types=(Iterable, Number), default=None, allow_none=True,
+                     desc='Zero-reference value of the variable.')
+
+        self.declare(name='ref', types=(Iterable, Number), default=None, allow_none=True,
+                     desc='Unit-reference value of the variable.')
+
+        self.declare(name='indices', types=(Iterable,), default=None, allow_none=True,
+                     desc='Indices value of the variable, format is controlled by the `flat_indices` option.')
+
+        self.declare(name='shape', types=(Iterable,), default=None, allow_none=True,
+                     desc='The shape of the constrained variable. This is generally determined automatically by dymos.')
+
+        self.declare(name='linear', types=bool, default=None, allow_none=True,
+                     desc='If True, treat this constraint as linear. When possible, dymos will determine this '
+                          'automatically.')
+
+        self.declare(name='units', types=str, default=None, allow_none=True,
+                     desc='Units to be used for the constraint bounds, or None to use the units of the constrained '
+                          'variable.')
+
+        self.declare(name='flat_indices', types=bool, default=True,
+                     desc='If True, the given indices will be treated as indices into a C-order flattened array based '
+                          'on the shaped of the constrained variable at a point in time.')
