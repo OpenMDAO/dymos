@@ -30,7 +30,7 @@ jobs:
             PY: 3.8
             NUMPY: 1.18
             SCIPY: 1.4
-            PETSc: 3.12
+            PETSc: 3.16
             PYOPTSPARSE: 'v2.1.5'
             SNOPT: 7.7
             MBI: 1
@@ -44,7 +44,7 @@ jobs:
             PY: 3.8
             NUMPY: 1.18
             SCIPY: 1.4
-            PETSc: 3.12
+            PETSc: 3.16
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
@@ -56,7 +56,7 @@ jobs:
             PY: 3.8
             NUMPY: 1.18
             SCIPY: 1.4
-            PETSc: 3.12
+            PETSc: 3.16
             PYOPTSPARSE: 'v2.1.5'
             MBI: 1
             OPENMDAO: 'latest'
@@ -68,7 +68,7 @@ jobs:
             PY: 3
             NUMPY: 1
             SCIPY: 1
-            # PETSc: 3
+            PETSc: 3
             PYOPTSPARSE: 'v2.1.5'
             SNOPT: 7.7
             MBI: 1
