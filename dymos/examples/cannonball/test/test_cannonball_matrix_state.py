@@ -43,8 +43,8 @@ class TestCannonballMatrixState(unittest.TestCase):
         phase.set_time_options(fix_initial=True, duration_bounds=(1, 5), units=None)
         phase.add_state('z', rate_source='zdot', fix_initial=True, units=None)
 
-        phase.add_boundary_constraint('z', loc='final', lower=0, upper=0, indices=[0, 1])
-        phase.add_path_constraint('z', lower=0, upper=1E3, indices=[0, 0])
+        phase.add_boundary_constraint('z', loc='final', lower=0, upper=0, indices=[[0], [1]])
+        phase.add_path_constraint('z', lower=0, upper=1E3, indices=[[0], [0]])
         phase.add_objective('time', loc='final')
 
         phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)

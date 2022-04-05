@@ -983,10 +983,11 @@ class Phase(om.Group):
             The shape of the variable being boundary-constrained.  This can be inferred
             automatically for time, states, controls, and parameters, but is required
             if the constrained variable is an output of the ODE system.
-        indices : tuple, list, ndarray, or None
-            The indices of the output variable to be boundary constrained.  Indices assumes C-order
-            flattening.  For instance, when constraining element [0, 1] of a variable of shape
-            [2, 2], indices would be [3].
+        indices : tuple, list, ndarray, slice, or None
+            The indices of the output variable to be boundary constrained at either the initial or final time in the
+            phase. When the variable is multi-dimensional, this should be a list of lists, one for each dimension,
+            containing the indices to be constrained.  Note the behavior of indices changes depending on the value
+            of the flat_indices option.
         lower : float or ndarray, optional
             Lower boundary for the variable.
         upper : float or ndarray, optional
@@ -1071,9 +1072,10 @@ class Phase(om.Group):
             automatically for time, states, controls, and parameters, but is required
             if the constrained variable is an output of the ODE system.
         indices : tuple, list, ndarray, or None
-            The indices of the output variable to be path constrained.  Indices assumes C-order
-            flattening.  For instance, when constraining element [1, 0] of a variable of shape
-            [2, 2], indices would be [3].
+            The indices of the output variable to be constrained at each point in time in the phase.
+            When the variable is multi-dimensional, this should be a list of lists, one for each dimension,
+            containing the indices to be constrained.  Note the behavior of indices changes depending on the value
+            of the flat_indices option.
         lower : float or ndarray, optional
             Lower boundary for the variable.
         upper : float or ndarray, optional
@@ -2233,18 +2235,19 @@ class Phase(om.Group):
 
     def _indices_in_constraints(self, name, loc):
         """
-        Returns a set of the C-order flattened indices
+        Returns a set of the C-order flattened indices involving constraint of the given name at the given loc.
 
         Parameters
         ----------
-        pathname : str
+        name : str
             The pathname of the constrained quantity.
         loc : str
             The type of constraint to search: 'initial', 'final', or 'path'.
 
         Returns
         -------
-        A C-order flattened set of indices that apply to the constraint.
+        all_flat_idxs : set
+            A C-order flattened set of indices that apply to the constraint.
         """
         if loc == 'initial':
             cons = [con for con in self._initial_boundary_constraints if con['name'] == name]
@@ -2255,16 +2258,10 @@ class Phase(om.Group):
         else:
             raise ValueError('Unrecognized value of "loc".  Must be one of "initial", "final", or "path".')
 
-        all_idxs = set()
+        all_flat_idxs = set()
 
         for con in cons:
-            if con['indices'] is None or con['indices'] is Ellipsis:
-                all_idxs |= set(np.arange(np.product(con['shape'], dtype=int)).tolist())
-            elif con['flat_indices']:
-                all_idxs |= set(con['indices'])
-            else:
-                print(con['indices'])
-                flat_idxs = [np.ravel_multi_index(con['indices'], con['shape'])]
-                all_idxs |= set(flat_idxs)
+            flat_idxs = np.arange(np.prod(con['shape'], dtype=int)).reshape(con['shape'])[con['indices']].ravel()
+            all_flat_idxs |= set(flat_idxs.tolist())
 
-        return all_idxs
+        return all_flat_idxs

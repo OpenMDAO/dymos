@@ -334,13 +334,13 @@ class TranscriptionBase(object):
         var = options['name']
         var_type = phase.classify_var(var)
 
-        print(constraint_kwargs['shape'])
-
         idxs_in_initial = phase._indices_in_constraints(var, 'initial')
         idxs_in_final = phase._indices_in_constraints(var, 'final')
         idxs_in_path = phase._indices_in_constraints(var, 'path')
 
-        user_idxs = options['indices']
+        print(idxs_in_initial)
+        print(idxs_in_final)
+        print(idxs_in_path)
 
         if var_type == 'parameter':
             if any([idxs_in_initial.intersection(idxs_in_final),
@@ -349,31 +349,27 @@ class TranscriptionBase(object):
                 raise RuntimeError(f'In phase {phase.pathname}, parameter {var} is subject to multiple boundary \n'
                                    f'or path constraints. Parameters are single values that do not change in \n'
                                    f'time, and may only be used in a single boundary or path constraint.')
-            constraint_kwargs['indices'] = om.slicer[user_idxs]
+            constraint_kwargs['indices'] = om.slicer[options['indices']]
         else:
             if constraint_type == 'initial':
-                constraint_kwargs['indices'] = om.slicer[0, ...] if options['indices'] is None \
-                    else (0,) + tuple(user_idxs)
+                constraint_kwargs['indices'] = om.slicer[0, options['indices']]
             elif constraint_type == 'final':
-                constraint_kwargs['indices'] = om.slicer[-1, ...] if options['indices'] is None \
-                    else (-1,) + tuple(user_idxs)
+                constraint_kwargs['indices'] = om.slicer[-1, options['indices']]
             else:
                 if idxs_in_path.intersection(idxs_in_initial, idxs_in_final):
                     # Both a path constraint and an initial constraint and a final constraint
-                    constraint_kwargs['indices'] = tuple([om.slicer[1:-1]]) if user_idxs is None \
-                        else tuple([om.slicer[1:-1]]) + tuple(user_idxs)
+                    constraint_kwargs['indices'] = om.slicer[1:-1, options['indices']]
                 elif idxs_in_path.intersection(idxs_in_initial):
                     # Both a path constraint and an initial constraint
-                    constraint_kwargs['indices'] = tuple([om.slicer[1:]]) if user_idxs is None \
-                        else tuple([om.slicer[1:]]) + tuple(user_idxs)
+                    constraint_kwargs['indices'] = om.slicer[1:, options['indices']]
                 elif idxs_in_path.intersection(idxs_in_final):
                     # Both a path constraint and a final constraint
-                    constraint_kwargs['indices'] = tuple([om.slicer[:-1]]) if user_idxs is None \
-                        else tuple([om.slicer[-1]]) + tuple(user_idxs)
+                    constraint_kwargs['indices'] = om.slicer[:-1, options['indices']]
                 else:
                     # Var is only a path constraint
-                    constraint_kwargs['indices'] = tuple([om.slicer[:]]) if user_idxs is None \
-                        else tuple([om.slicer[:]]) + tuple(user_idxs)
+                    constraint_kwargs['indices'] = om.slicer[:, options['indices']]
+
+        print(constraint_kwargs['indices'])
 
         alias_map = {'path': 'path_constraint',
                      'initial': 'initial_boundary_constraint',
