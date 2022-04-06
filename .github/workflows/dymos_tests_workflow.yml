@@ -25,46 +25,46 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # baseline versions
-          - NAME: baseline
-            PY: 3.8
-            NUMPY: 1.18
-            SCIPY: 1.4
-            PETSc: 3.16
-            OPENMPI: 4.1.2
-            PYOPTSPARSE: 'v2.1.5'
-            SNOPT: 7.7
-            MBI: 1
-            OPENMDAO: 'latest'
-            OPTIONAL: '[all]'
-            JAX: True
-            DOCS: 2
-
-          # baseline versions except no pyoptsparse or SNOPT
-          - NAME: no_pyoptsparse
-            PY: 3.8
-            NUMPY: 1.18
-            SCIPY: 1.4
-            PETSc: 3.16
-            OPENMPI: 4.1.2
-            MBI: 1
-            OPENMDAO: 'latest'
-            OPTIONAL: '[all]'
-            DOCS: 0
-
-          # baseline versions except with pyoptsparse but no SNOPT
-          # build docs to verify those that use pyoptsparse do not use SNOPT
-          - NAME: no_snopt
-            PY: 3.8
-            NUMPY: 1.18
-            SCIPY: 1.4
-            PETSc: 3.16
-            OPENMPI: 4.1.2
-            PYOPTSPARSE: 'v2.1.5'
-            MBI: 1
-            OPENMDAO: 'latest'
-            OPTIONAL: '[all]'
-            DOCS: 1
+#          # baseline versions
+#          - NAME: baseline
+#            PY: 3.8
+#            NUMPY: 1.18
+#            SCIPY: 1.4
+#            PETSc: 3.16
+#            OPENMPI: 4.1.2
+#            PYOPTSPARSE: 'v2.1.5'
+#            SNOPT: 7.7
+#            MBI: 1
+#            OPENMDAO: 'latest'
+#            OPTIONAL: '[all]'
+#            JAX: True
+#            DOCS: 2
+#
+#          # baseline versions except no pyoptsparse or SNOPT
+#          - NAME: no_pyoptsparse
+#            PY: 3.8
+#            NUMPY: 1.18
+#            SCIPY: 1.4
+#            PETSc: 3.16
+#            OPENMPI: 4.1.2
+#            MBI: 1
+#            OPENMDAO: 'latest'
+#            OPTIONAL: '[all]'
+#            DOCS: 0
+#
+#          # baseline versions except with pyoptsparse but no SNOPT
+#          # build docs to verify those that use pyoptsparse do not use SNOPT
+#          - NAME: no_snopt
+#            PY: 3.8
+#            NUMPY: 1.18
+#            SCIPY: 1.4
+#            PETSc: 3.16
+#            OPENMPI: 4.1.2
+#            PYOPTSPARSE: 'v2.1.5'
+#            MBI: 1
+#            OPENMDAO: 'latest'
+#            OPTIONAL: '[all]'
+#            DOCS: 1
 
           # try latest versions
           - NAME: latest
@@ -87,7 +87,7 @@ jobs:
             NUMPY: 1.16
             SCIPY: 1.2
             PETSc: 3.10.2
-            OPENMPI: 3.1
+            OPENMPI: 3
             PYOPTSPARSE: 'v1.2'
             SNOPT: 7.2
             MBI: 1
@@ -169,7 +169,7 @@ jobs:
           echo "============================================================="
           echo "Install PETSc"
           echo "============================================================="
-          conda install -c conda-forge mpi4py petsc=${{ matrix.PETSc }} openmpi=${{ matrix.openmpi }} petsc4py -q -y
+          conda install -c conda-forge mpi4py petsc=${{ matrix.PETSc }} openmpi=${{ matrix.OPENMPI }} petsc4py -q -y
           echo "OMPI_MCA_rmaps_base_oversubscribe=1" >> $GITHUB_ENV
 
       - name: Install pyOptSparse
