@@ -17,7 +17,7 @@ on:
 jobs:
 
   test_ubuntu:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     timeout-minutes: 90
 
@@ -31,6 +31,7 @@ jobs:
             NUMPY: 1.18
             SCIPY: 1.4
             PETSc: 3.12
+            OPENMPI: '4.0'
             PYOPTSPARSE: 'v2.1.5'
             SNOPT: 7.7
             MBI: 1
@@ -45,6 +46,7 @@ jobs:
             NUMPY: 1.18
             SCIPY: 1.4
             PETSc: 3.12
+            OPENMPI: '4.0'
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
@@ -57,6 +59,7 @@ jobs:
             NUMPY: 1.18
             SCIPY: 1.4
             PETSc: 3.12
+            OPENMPI: '4.0'
             PYOPTSPARSE: 'v2.1.5'
             MBI: 1
             OPENMDAO: 'latest'
@@ -68,7 +71,8 @@ jobs:
             PY: 3
             NUMPY: 1
             SCIPY: 1
-            # PETSc: 3
+            PETSc: 3
+            OPENMPI: '4'
             PYOPTSPARSE: 'v2.1.5'
             SNOPT: 7.7
             MBI: 1
@@ -80,7 +84,7 @@ jobs:
           # oldest supported versions
           - NAME: oldest
             PY: 3.7
-            NUMPY: 1.16
+            NUMPY: 1.17
             SCIPY: 1.2
             PETSc: 3.10.2
             PYOPTSPARSE: 'v1.2'
@@ -164,7 +168,11 @@ jobs:
           echo "============================================================="
           echo "Install PETSc"
           echo "============================================================="
-          conda install -c conda-forge mpi4py petsc=${{ matrix.PETSc }} petsc4py -q -y
+          if [[ "${{ matrix.OPENMPI }}" ]]; then
+            conda install -c conda-forge openmpi=${{ matrix.OPENMPI }} mpi4py petsc=${{ matrix.PETSc }} petsc4py -q -y
+          else
+            conda install -c conda-forge mpi4py petsc=${{ matrix.PETSc }} petsc4py -q -y
+          fi
           echo "OMPI_MCA_rmaps_base_oversubscribe=1" >> $GITHUB_ENV
 
       - name: Install pyOptSparse
