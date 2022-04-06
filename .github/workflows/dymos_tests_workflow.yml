@@ -84,10 +84,10 @@ jobs:
           # oldest supported versions
           - NAME: oldest
             PY: 3.7
-            NUMPY: 1.16
+            NUMPY: 1.17
             SCIPY: 1.2
             PETSc: 3.10.2
-            OPENMPI: 3
+            OPENMPI: 3.1
             PYOPTSPARSE: 'v1.2'
             SNOPT: 7.2
             MBI: 1
