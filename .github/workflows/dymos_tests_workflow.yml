@@ -86,8 +86,8 @@ jobs:
             PY: 3.7
             NUMPY: 1.17
             SCIPY: 1.2
-            PETSc: 3.10.2
-            OPENMPI: 3.1
+            PETSc: 3.12
+            OPENMPI: 4
             PYOPTSPARSE: 'v1.2'
             SNOPT: 7.2
             MBI: 1
