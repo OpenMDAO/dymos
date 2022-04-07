@@ -1267,13 +1267,8 @@ class USatm1976Comp(om.ExplicitComponent):
         """
         nn = self.options['num_nodes']
 
-        if self.options['h_def'] == 'geodetic':
-            R0 = 6_356_766 / 0.3048  # Value of R0 from the original standard
-            self._h = lambda z: z / (R0 + z) * R0
-            self._dh_dz = lambda z: (R0 / (R0 + z)) ** 2
-        else:
-            self._h = lambda z: z
-            self._dh_dz = lambda z: np.ones_like(z)
+        self._geodetic = self.options['h_def'] == 'geodetic'
+        self._R0 = 6_356_766 / 0.3048  # Value of R0 from the original standard (m -> ft)
 
         self.add_input('h', val=1. * np.ones(nn), units='ft')
 
@@ -1300,7 +1295,12 @@ class USatm1976Comp(om.ExplicitComponent):
             `Vector` containing outputs.
         """
         table_points = USatm1976Data.alt
-        h = self._h(inputs['h'])
+        h = inputs['h']
+
+        if self._geodetic:
+            h = h / (self._R0 + h) * self._R0  # Equation 19 from the original standard.
+
+        # From this point forward, h is geopotential altitude (z in the original reference).
 
         idx = np.searchsorted(table_points, h, side='left')
         h_bin_left = np.hstack((table_points[0], table_points))
@@ -1333,8 +1333,14 @@ class USatm1976Comp(om.ExplicitComponent):
             Subjac components written to partials[output_name, input_name].
         """
         table_points = USatm1976Data.alt
-        h = self._h(inputs['h'])
-        dh_dz = self._dh_dz(inputs['h'])
+        h = inputs['h']
+        dz_dh = 1.0
+
+        if self._geodetic:
+            dz_dh = (self._R0 / (self._R0 + h)) ** 2
+            h = h / (self._R0 + h) * self._R0  # Equation 19 from the original standard.
+
+        # From this point forawrd, h is geopotential altitude (z in the original reference).
 
         idx = np.searchsorted(table_points, h, side='left')
         h_index = np.hstack((table_points[0], table_points))
@@ -1356,13 +1362,20 @@ class USatm1976Comp(om.ExplicitComponent):
         coeffs = USatm1976Data.akima_drho[idx]
         d2rho_dh2 = coeffs[:, 1] + dx * (2.0 * coeffs[:, 2] + 3.0 * coeffs[:, 3] * dx)
 
-        partials['temp', 'h'] = dT_dh.ravel()
-        partials['pres', 'h'] = dP_dh.ravel() * dh_dz
-        partials['rho', 'h'] = drho_dh.ravel() * dh_dz
-        partials['viscosity', 'h'] = dvisc_dh.ravel() * dh_dz
-        partials['drhos_dh', 'h'] = d2rho_dh2.ravel() * dh_dz ** 2
-        partials['sos', 'h'][...] = (0.5 / np.sqrt(self._K * T) * partials['temp', 'h'] * self._K) * dh_dz
-        partials['temp', 'h'] = partials['temp', 'h'] * dh_dz
+        partials['temp', 'h'][...] = dT_dh.ravel()
+        partials['pres', 'h'][...] = dP_dh.ravel()
+        partials['rho', 'h'][...] = drho_dh.ravel()
+        partials['viscosity', 'h'][...] = dvisc_dh.ravel()
+        partials['drhos_dh', 'h'][...] = d2rho_dh2.ravel()
+        partials['sos', 'h'][...] = (0.5 / np.sqrt(self._K * T) * partials['temp', 'h'] * self._K)
+
+        if self._geodetic:
+            partials['sos', 'h'][...] *= dz_dh
+            partials['temp', 'h'][...] *= dz_dh
+            partials['viscosity', 'h'][...] *= dz_dh
+            partials['rho', 'h'][...] *= dz_dh
+            partials['pres', 'h'][...] *= dz_dh
+            partials['drhos_dh', 'h'][...] *= dz_dh ** 2
 
 
 if __name__ == "__main__":
