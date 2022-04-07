@@ -1237,6 +1237,8 @@ class USatm1976Comp(om.ExplicitComponent):
     Component model for the United States standard atmosphere 1976 tables.
 
     Data for the model was obtained from http://www.digitaldutch.com/atmoscalc/index.htm.
+    Based on the original model documented in https://www.ngdc.noaa.gov/stp/space-weather/online-publications/
+    miscellaneous/us-standard-atmosphere-1976/us-standard-atmosphere_st76-1562_noaa.pdf
 
     Parameters
     ----------
@@ -1255,11 +1257,24 @@ class USatm1976Comp(om.ExplicitComponent):
         gas_c = 1716.49  # Gas constant (ft lbf)/(slug R)
         self._K = gamma * gas_c
 
+        self.options.declare('h_def', values=('geopotential', 'geodetic'), default='geopotential',
+                             desc='The definition of altitude provided as input to the component.  If "geodetic",'
+                                  'it will be converted to geopotential based on Equation 19 in the original standard.')
+
     def setup(self):
         """
         Add component inputs and outputs.
         """
         nn = self.options['num_nodes']
+
+        if self.options['h_def'] == 'geodetic':
+            R0 = 6_356_766 / 0.3048  # Value of R0 from the original standard
+            self._h = lambda z: z / (R0 + z) * R0
+            self._dh_dz = lambda z: (R0 / (R0 + z)) ** 2
+        else:
+            self._h = lambda z: z
+            self._dh_dz = lambda z: np.ones_like(z)
+
         self.add_input('h', val=1. * np.ones(nn), units='ft')
 
         self.add_output('temp', val=1. * np.ones(nn), units='degR')
@@ -1269,7 +1284,7 @@ class USatm1976Comp(om.ExplicitComponent):
         self.add_output('drhos_dh', val=1. * np.ones(nn), units='slug/ft**4')
         self.add_output('sos', val=1 * np.ones(nn), units='ft/s')
 
-        arange = np.arange(nn)
+        arange = np.arange(nn, dtype=int)
         self.declare_partials(['temp', 'pres', 'rho', 'viscosity', 'drhos_dh', 'sos'], 'h',
                               rows=arange, cols=arange)
 
@@ -1285,7 +1300,7 @@ class USatm1976Comp(om.ExplicitComponent):
             `Vector` containing outputs.
         """
         table_points = USatm1976Data.alt
-        h = inputs['h']
+        h = self._h(inputs['h'])
 
         idx = np.searchsorted(table_points, h, side='left')
         h_bin_left = np.hstack((table_points[0], table_points))
@@ -1318,7 +1333,8 @@ class USatm1976Comp(om.ExplicitComponent):
             Subjac components written to partials[output_name, input_name].
         """
         table_points = USatm1976Data.alt
-        h = inputs['h']
+        h = self._h(inputs['h'])
+        dh_dz = self._dh_dz(inputs['h'])
 
         idx = np.searchsorted(table_points, h, side='left')
         h_index = np.hstack((table_points[0], table_points))
@@ -1341,11 +1357,12 @@ class USatm1976Comp(om.ExplicitComponent):
         d2rho_dh2 = coeffs[:, 1] + dx * (2.0 * coeffs[:, 2] + 3.0 * coeffs[:, 3] * dx)
 
         partials['temp', 'h'] = dT_dh.ravel()
-        partials['pres', 'h'] = dP_dh.ravel()
-        partials['rho', 'h'] = drho_dh.ravel()
-        partials['viscosity', 'h'] = dvisc_dh.ravel()
-        partials['drhos_dh', 'h'] = d2rho_dh2.ravel()
-        partials['sos', 'h'][...] = 0.5 / np.sqrt(self._K * T) * partials['temp', 'h'] * self._K
+        partials['pres', 'h'] = dP_dh.ravel() * dh_dz
+        partials['rho', 'h'] = drho_dh.ravel() * dh_dz
+        partials['viscosity', 'h'] = dvisc_dh.ravel() * dh_dz
+        partials['drhos_dh', 'h'] = d2rho_dh2.ravel() * dh_dz ** 2
+        partials['sos', 'h'][...] = (0.5 / np.sqrt(self._K * T) * partials['temp', 'h'] * self._K) * dh_dz
+        partials['temp', 'h'] = partials['temp', 'h'] * dh_dz
 
 
 if __name__ == "__main__":
