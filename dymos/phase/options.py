@@ -653,6 +653,6 @@ class ConstraintOptionsDictionary(om.OptionsDictionary):
                      desc='Units to be used for the constraint bounds, or None to use the units of the constrained '
                           'variable.')
 
-        self.declare(name='flat_indices', types=bool, default=False,
+        self.declare(name='flat_indices', types=bool, default=True,
                      desc='If True, the given indices will be treated as indices into a C-order flattened array based '
                           'on the shaped of the constrained variable at a point in time.')

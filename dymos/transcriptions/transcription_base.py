@@ -6,6 +6,7 @@ import openmdao.api as om
 
 from .common import ControlGroup, PolynomialControlGroup, ParameterComp
 from ..utils.constants import INF_BOUND
+from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.misc import _unspecified
 from ..utils.introspection import get_promoted_vars, get_target_metadata
 
@@ -327,6 +328,8 @@ class TranscriptionBase(object):
         constraint_kwargs : dict
             Keyword arguments for the OpenMDAO add_constraint method.
         """
+        num_nodes = phase.options['transcription'].grid_data.num_nodes
+
         constraint_kwargs = {key: options for key, options in options.items()}
         con_name = constraint_kwargs.pop('constraint_name')
 
@@ -334,13 +337,18 @@ class TranscriptionBase(object):
         var = options['name']
         var_type = phase.classify_var(var)
 
+        # These are the flat indices at a single point in time used
+        # in either initial, final, or path constraints.
+
         idxs_in_initial = phase._indices_in_constraints(var, 'initial')
         idxs_in_final = phase._indices_in_constraints(var, 'final')
         idxs_in_path = phase._indices_in_constraints(var, 'path')
 
-        print(idxs_in_initial)
-        print(idxs_in_final)
-        print(idxs_in_path)
+        size = np.prod(options['shape'], dtype=int)
+        flat_idxs = get_constraint_flat_idxs(options)
+
+        # Now we need to convert the indices given by the user at any given point
+        # to flat indices to be given to OpenMDAO as flat indices spanning the phase.
 
         if var_type == 'parameter':
             if any([idxs_in_initial.intersection(idxs_in_final),
@@ -349,27 +357,24 @@ class TranscriptionBase(object):
                 raise RuntimeError(f'In phase {phase.pathname}, parameter {var} is subject to multiple boundary \n'
                                    f'or path constraints. Parameters are single values that do not change in \n'
                                    f'time, and may only be used in a single boundary or path constraint.')
-            constraint_kwargs['indices'] = om.slicer[options['indices']]
+            constraint_kwargs['indices'] = flat_idxs
         else:
             if constraint_type == 'initial':
-                constraint_kwargs['indices'] = om.slicer[0, options['indices']]
+                constraint_kwargs['indices'] = flat_idxs
             elif constraint_type == 'final':
-                constraint_kwargs['indices'] = om.slicer[-1, options['indices']]
+                constraint_kwargs['indices'] = size * (num_nodes - 1) + flat_idxs
             else:
-                if idxs_in_path.intersection(idxs_in_initial, idxs_in_final):
-                    # Both a path constraint and an initial constraint and a final constraint
-                    constraint_kwargs['indices'] = om.slicer[1:-1, options['indices']]
-                elif idxs_in_path.intersection(idxs_in_initial):
-                    # Both a path constraint and an initial constraint
-                    constraint_kwargs['indices'] = om.slicer[1:, options['indices']]
-                elif idxs_in_path.intersection(idxs_in_final):
-                    # Both a path constraint and a final constraint
-                    constraint_kwargs['indices'] = om.slicer[:-1, options['indices']]
-                else:
-                    # Var is only a path constraint
-                    constraint_kwargs['indices'] = om.slicer[:, options['indices']]
+                # This is a path constraint.
+                # Remove any flat indices involved in an initial constraint from the path constraint
+                idxs_not_in_initial = list(set(flat_idxs.tolist()) - idxs_in_initial)
 
-        print(constraint_kwargs['indices'])
+                # Remove any flat indices involved in the final constraint from the path constraint
+                idxs_not_in_final = list(set(flat_idxs.tolist()) - idxs_in_final)
+                idxs_not_in_final = (size * (num_nodes - 1) + np.asarray(idxs_not_in_final)).tolist()
+                intermediate_idxs = []
+                for i in range(1, num_nodes - 1):
+                    intermediate_idxs.extend((size * i + np.asarray(flat_idxs)).tolist())
+                constraint_kwargs['indices'] = idxs_not_in_initial + intermediate_idxs + idxs_not_in_final
 
         alias_map = {'path': 'path_constraint',
                      'initial': 'initial_boundary_constraint',
@@ -381,6 +386,7 @@ class TranscriptionBase(object):
         constraint_kwargs.pop('name')
         con_path = constraint_kwargs.pop('constraint_path')
         constraint_kwargs.pop('shape')
+        constraint_kwargs['flat_indices'] = True
 
         return con_path, constraint_kwargs
 

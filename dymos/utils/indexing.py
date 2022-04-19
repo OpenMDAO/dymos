@@ -33,3 +33,27 @@ def get_src_indices_by_row(row_idxs, shape, flat=True):
     ixgrid = np.ix_(row_idxs, *other_idxs)
     a = np.reshape(np.arange(np.prod(src_shape), dtype=int), newshape=src_shape)
     return a[ixgrid]
+
+
+def get_constraint_flat_idxs(con):
+    """
+    Return the flat indices for a constraint at single point in time.
+
+    Parameters
+    ----------
+    con : dict
+        The ConstraintOptionsDictionary for the constraint in question.
+
+    Returns
+    -------
+    np.array
+        The flat indices of a constraint at a single point in time.
+
+    """
+    idxs = con['indices']
+    flat = con['flat_indices']
+
+    temp = np.arange(np.prod(con['shape'], dtype=int))
+    if flat:
+        temp = temp.reshape(con['shape'])
+    return temp[idxs].ravel()

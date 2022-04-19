@@ -17,6 +17,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
+from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, configure_states_introspection, \
     classify_var, get_promoted_vars
@@ -2261,7 +2262,7 @@ class Phase(om.Group):
         all_flat_idxs = set()
 
         for con in cons:
-            flat_idxs = np.arange(np.prod(con['shape'], dtype=int)).reshape(con['shape'])[con['indices']].ravel()
+            flat_idxs = get_constraint_flat_idxs(con)
             all_flat_idxs |= set(flat_idxs.tolist())
 
         return all_flat_idxs
