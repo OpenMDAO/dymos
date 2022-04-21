@@ -7,7 +7,7 @@ from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import GridData
 from .rk_integration_comp import RKIntegrationComp, rk_methods
-from ...utils.misc import get_rate_units, CoerceDesvar
+from ...utils.misc import get_rate_units, CoerceDesvar, _unspecified
 from ...utils.introspection import get_source_metadata
 from ...utils.constants import INF_BOUND
 
@@ -699,3 +699,94 @@ class ExplicitShooting(TranscriptionBase):
         any_rate_continuity = any_rate_continuity and num_seg > 1
 
         return state_continuity, any_control_continuity, any_rate_continuity
+
+    def _is_constraint_linear(self, constraint_type, options, phase):
+        """
+        Returns whether or not the given constraint _can_ be treated as linear by the optimizer.
+
+        In the case of ODE outputs, this will return _unspecified, indicating that the value can possibly be treated
+        as linear, but dymos lacks the information to know for sure.
+
+        Parameters
+        ----------
+        constraint_type : str
+            One of 'initial', 'final', or 'path'.
+        options : dict
+            The constraint options.
+        phase : Phase
+            The dymos phase to which the constraint applies.
+
+        Returns
+        -------
+        linear : bool or _unspecified
+            True if the constraint may definitely be treated as linear, False if the constraint definitely may _not_
+            be treated as linear, and otherwise _unspecified.
+        """
+        # For the transcription, this maps the variable type and constraint type to the linearity of the constraint.
+        map = {('time', 'initial'): True,
+               ('time', 'final'): True,
+               ('time', 'path'): True,
+
+               ('time_phase', 'initial'): True,
+               ('time_phase', 'final'): True,
+               ('time_phase', 'path'): True,
+
+               ('state', 'initial'): True,
+               ('state', 'final'): False,
+               ('state', 'path'): False,
+
+               ('input_control', 'initial'): False,
+               ('input_control', 'final'): False,
+               ('input_control', 'path'): False,
+
+               ('indep_control', 'initial'): True,
+               ('indep_control', 'final'): True,
+               ('indep_control', 'path'): False,
+
+               ('control_rate', 'initial'): False,
+               ('control_rate', 'final'): False,
+               ('control_rate', 'path'): False,
+
+               ('control_rate2', 'initial'): False,
+               ('control_rate2', 'final'): False,
+               ('control_rate2', 'path'): False,
+
+               ('input_polynomial_control', 'initial'): False,
+               ('input_polynomial_control', 'final'): False,
+               ('input_polynomial_control', 'path'): False,
+
+               ('indep_polynomial_control', 'initial'): True,
+               ('indep_polynomial_control', 'final'): True,
+               ('indep_polynomial_control', 'path'): False,
+
+               ('polynomial_control_rate', 'initial'): False,
+               ('polynomial_control_rate', 'final'): False,
+               ('polynomial_control_rate', 'path'): False,
+
+               ('polynomial_control_rate2', 'initial'): False,
+               ('polynomial_control_rate2', 'final'): False,
+               ('polynomial_control_rate2', 'path'): False,
+
+               ('parameter', 'initial'): True,
+               ('parameter', 'final'): True,
+               ('parameter', 'path'): True,
+
+               ('ode', 'initial'): False,
+               ('ode', 'final'): False,
+               ('ode', 'path'): False
+               }
+
+        var_class = phase.classify_var(options['name'])
+
+        return map[var_class, constraint_type]
+
+    def _get_num_timeseries_nodes(self):
+        """
+        Returns the number of nodes in the default timeseries for this transcription.
+
+        Returns
+        -------
+        int
+            The number of nodes in the default timeseries for this transcription.
+        """
+        return self.grid_data.subset_num_nodes['segment_ends']

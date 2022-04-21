@@ -607,3 +607,14 @@ class PseudospectralBase(TranscriptionBase):
             linear = False
 
         return constraint_path, shape, units, linear
+
+    def _get_num_timeseries_nodes(self):
+        """
+        Returns the number of nodes in the default timeseries for this transcription.
+
+        Returns
+        -------
+        int
+            The number of nodes in the default timeseries for this transcription.
+        """
+        return self.grid_data.num_nodes

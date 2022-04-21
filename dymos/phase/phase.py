@@ -10,6 +10,7 @@ import openmdao
 import openmdao.api as om
 from openmdao.utils.mpi import MPI
 from openmdao.core.system import System
+from openmdao.utils.indexer import indexer
 import dymos as dm
 
 from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
@@ -17,7 +18,6 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
-from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, configure_states_introspection, \
     classify_var, get_promoted_vars
@@ -2262,7 +2262,7 @@ class Phase(om.Group):
         all_flat_idxs = set()
 
         for con in cons:
-            flat_idxs = get_constraint_flat_idxs(con)
+            flat_idxs = indexer(con['indices'], src_shape=con['shape'], flat_src=con['flat_indices']).as_array()
             all_flat_idxs |= set(flat_idxs.tolist())
 
         return all_flat_idxs

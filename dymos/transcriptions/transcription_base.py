@@ -3,10 +3,10 @@ from collections.abc import Sequence
 import numpy as np
 
 import openmdao.api as om
+from openmdao.utils.indexer import indexer
 
 from .common import ControlGroup, PolynomialControlGroup, ParameterComp
 from ..utils.constants import INF_BOUND
-from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.misc import _unspecified
 from ..utils.introspection import get_promoted_vars, get_target_metadata
 
@@ -328,7 +328,7 @@ class TranscriptionBase(object):
         constraint_kwargs : dict
             Keyword arguments for the OpenMDAO add_constraint method.
         """
-        num_nodes = phase.options['transcription'].grid_data.num_nodes
+        num_nodes = self._get_num_timeseries_nodes()
 
         constraint_kwargs = {key: options for key, options in options.items()}
         con_name = constraint_kwargs.pop('constraint_name')
@@ -345,7 +345,8 @@ class TranscriptionBase(object):
         idxs_in_path = phase._indices_in_constraints(var, 'path')
 
         size = np.prod(options['shape'], dtype=int)
-        flat_idxs = get_constraint_flat_idxs(options)
+
+        flat_idxs = indexer(options['indices'], src_shape=options['shape'], flat_src=options['flat_indices']).as_array()
 
         # Now we need to convert the indices given by the user at any given point
         # to flat indices to be given to OpenMDAO as flat indices spanning the phase.
@@ -387,6 +388,19 @@ class TranscriptionBase(object):
         con_path = constraint_kwargs.pop('constraint_path')
         constraint_kwargs.pop('shape')
         constraint_kwargs['flat_indices'] = True
+
+        con_can_be_linear = self._is_constraint_linear(constraint_type, options, phase)
+
+        if con_can_be_linear is _unspecified:
+            constraint_kwargs['linear'] = False if options['linear'] is _unspecified else options['linear']
+        elif con_can_be_linear:
+            constraint_kwargs['linear'] = True if options['linear'] is _unspecified else options['linear']
+        elif options['linear']:
+            raise ValueError(f'User specified `linear=True` for {constraint_type} constraint {con_name} in '
+                             f'phase {phase.pathname} but {constraint_type} value of {con_name} is not a linear '
+                             f'function of the design variables.')
+        else:
+            constraint_kwargs['linear'] = False
 
         return con_path, constraint_kwargs
 
@@ -572,3 +586,40 @@ class TranscriptionBase(object):
         """
         raise NotImplementedError(f'The transcription {self.__class__} does not provide an '
                                   f'implementation of _requires_continuity_constraints')
+
+    def _is_constraint_linear(self, constraint_type, options, phase):
+        """
+        Returns whether or not the given constraint _can_ be treated as linear by the optimizer.
+
+        In the case of ODE outputs, this will return _unspecified, indicating that the value can possibly be treated
+        as linear, but dymos lacks the information to know for sure.
+
+        Parameters
+        ----------
+        constraint_type : str
+            One of 'initial', 'final', or 'path'.
+        options : dict
+            The constraint options.
+        phase : Phase
+            The dymos phase to which the constraint applies.
+
+        Returns
+        -------
+        linear : bool or _unspecified
+            True if the constraint may definitely be treated as linear, False if the constraint definitely may _not_
+            be treated as linear, and otherwise _unspecified.
+        """
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
+                                  '_is_constraint_linear.')
+
+    def _get_num_timeseries_nodes(self):
+        """
+        Returns the number of nodes in the default timeseries for this transcription.
+
+        Returns
+        -------
+        int
+            The number of nodes in the default timeseries for this transcription.
+        """
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
+                                  '_get_num_timeseries_nodes.')
