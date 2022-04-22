@@ -1,28 +1,68 @@
-import pathlib
+"""Unit Tests for the code that does automatic report generation"""
 import unittest
+import pathlib
+import sys
+import os
+from io import StringIO
 
 import openmdao.api as om
-import dymos as dm
-
+from openmdao.test_suite.components.paraboloid import Paraboloid
+from openmdao.test_suite.components.sellar_feature import SellarMDA
+import openmdao.core.problem
+from openmdao.core.constants import _UNDEFINED
+from openmdao.utils.assert_utils import assert_warning
+from openmdao.utils.general_utils import set_pyoptsparse_opt
+from openmdao.utils.reports_system import set_default_reports_dir, _reports_dir, register_report, \
+    list_reports, clear_reports, run_n2_report, setup_default_reports, report_function
 from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.mpi import MPI
+from openmdao.utils.tests.test_hooks import hooks_active
+from openmdao.visualization.n2_viewer.n2_viewer import _default_n2_filename
+from openmdao.visualization.scaling_viewer.scaling_report import _default_scaling_filename
+
+try:
+    from openmdao.vectors.petsc_vector import PETScVector
+except ImportError:
+    PETScVector = None
+
+OPT, OPTIMIZER = set_pyoptsparse_opt('SLSQP')
+
+if OPTIMIZER:
+    from openmdao.drivers.pyoptsparse_driver import pyOptSparseDriver
+
+import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
 @use_tempdirs
-class TestSimulateReportsToggle(unittest.TestCase):
+class TestSubproblemReportToggle(unittest.TestCase):
 
     def setUp(self):
+        self.n2_filename = _default_n2_filename
+        self.scaling_filename = _default_scaling_filename
+
+        # set things to a known initial state for all the test runs
+        openmdao.core.problem._problem_names = []  # need to reset these to simulate separate runs
+        os.environ.pop('OPENMDAO_REPORTS', None)
+        os.environ.pop('OPENMDAO_REPORTS_DIR', None)
         # We need to remove the TESTFLO_RUNNING environment variable for these tests to run.
         # The reports code checks to see if TESTFLO_RUNNING is set and will not do anything if set
         # But we need to remember whether it was set so we can restore it
         self.testflo_running = os.environ.pop('TESTFLO_RUNNING', None)
+        clear_reports()
+        set_default_reports_dir(_reports_dir)
+
+        self.count = 0
 
     def tearDown(self):
         # restore what was there before running the test
         if self.testflo_running is not None:
             os.environ['TESTFLO_RUNNING'] = self.testflo_running
 
+    @hooks_active
     def test_no_sim_reports(self):
+        setup_default_reports()
+
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
@@ -72,13 +112,21 @@ class TestSimulateReportsToggle(unittest.TestCase):
 
         dm.run_problem(p, run_driver=True, simulate=True)
 
-        report_dir = pathlib.Path.cwd() / 'reports'
-        report_subdirs = [e for e in report_dir.iterdir() if e.is_dir()]
+        problem_reports_dir = pathlib.Path(_reports_dir).joinpath(p._name)
+        report_subdirs = [e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
         self.assertEqual(len(report_subdirs), 1)
 
+        path = pathlib.Path(problem_reports_dir).joinpath(self.n2_filename)
+        self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
+        path = pathlib.Path(problem_reports_dir).joinpath(self.scaling_filename)
+        self.assertTrue(path.is_file(), f'The scaling report file, {str(path)}, was not found')
+
+    @hooks_active
     def test_make_sim_reports(self):
+        setup_default_reports()
+
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
@@ -128,29 +176,21 @@ class TestSimulateReportsToggle(unittest.TestCase):
 
         dm.run_problem(p, run_driver=True, simulate=True, simulate_kwargs={'reports': True})
 
-        reports_dir = pathlib.Path.cwd() / 'reports'
-        report_subdirs = [e for e in reports_dir.iterdir() if e.is_dir()]
+        problem_reports_dir = pathlib.Path(_reports_dir).joinpath(p._name)
+        report_subdirs = [e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
-        # There is the nominal problem, the simulation problem, and a subproblem for each segment in the simulation.
+        # # There is the nominal problem, the simulation problem, and a subproblem for each segment in the simulation.
         self.assertEqual(len(report_subdirs), 12)
 
+        for subdir in report_subdirs:
+            path = pathlib.Path(subdir).joinpath(self.n2_filename)
+            self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
 
-@use_tempdirs
-class TestExplicitShootingReportsToggle(unittest.TestCase):
+    @hooks_active
+    def test_explicitshooting_no_subprob_reports(self):
+        setup_default_reports()
 
-    def setUp(self):
-        # We need to remove the TESTFLO_RUNNING environment variable for these tests to run.
-        # The reports code checks to see if TESTFLO_RUNNING is set and will not do anything if set
-        # But we need to remember whether it was set so we can restore it
-        self.testflo_running = os.environ.pop('TESTFLO_RUNNING', None)
-
-    def tearDown(self):
-        # restore what was there before running the test
-        if self.testflo_running is not None:
-            os.environ['TESTFLO_RUNNING'] = self.testflo_running
-
-    def test_no_subprob_reports(self):
         prob = om.Problem()
 
         prob.driver = om.ScipyOptimizeDriver()
@@ -193,14 +233,21 @@ class TestExplicitShootingReportsToggle(unittest.TestCase):
 
         dm.run_problem(prob, run_driver=True, simulate=False)
 
-        reports_dir = pathlib.Path.cwd() / 'reports'
-        report_subdirs = [e for e in reports_dir.iterdir() if e.is_dir()]
+        problem_reports_dir = pathlib.Path(_reports_dir).joinpath(prob._name)
+        report_subdirs = [e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
-        # There is the nominal problem, the simulation problem, and a subproblem for each segment in the simulation.
         self.assertEqual(len(report_subdirs), 1)
 
-    def test_make_subprob_reports(self):
+        path = pathlib.Path(problem_reports_dir).joinpath(self.n2_filename)
+        self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
+        path = pathlib.Path(problem_reports_dir).joinpath(self.scaling_filename)
+        self.assertTrue(path.is_file(), f'The scaling report file, {str(path)}, was not found')
+
+    @hooks_active
+    def test_explicitshooting_make_subprob_reports(self):
+        setup_default_reports()
+
         prob = om.Problem()
 
         prob.driver = om.ScipyOptimizeDriver()
@@ -244,9 +291,18 @@ class TestExplicitShootingReportsToggle(unittest.TestCase):
 
         dm.run_problem(prob, run_driver=True, simulate=False)
 
-        reports_dir = pathlib.Path.cwd() / 'reports'
-        report_subdirs = [e for e in reports_dir.iterdir() if e.is_dir()]
+        problem_reports_dir = pathlib.Path(_reports_dir).joinpath(prob._name)
+        report_subdirs = [e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
         # There is the nominal problem, a subproblem for integration, and a subproblem for the derivatives.
         self.assertEqual(len(report_subdirs), 3)
+
+        path = pathlib.Path(problem_reports_dir).joinpath(self.n2_filename)
+        self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
+        path = pathlib.Path(problem_reports_dir).joinpath(self.scaling_filename)
+        self.assertTrue(path.is_file(), f'The scaling report file, {str(path)}, was not found')
+
+        for subdir in report_subdirs:
+            path = pathlib.Path(subdir).joinpath(self.n2_filename)
+            self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
