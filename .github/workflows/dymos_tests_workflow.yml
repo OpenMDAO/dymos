@@ -279,7 +279,9 @@ jobs:
           testflo -n 1 joss/test --pre_announce
           testflo -b benchmark --pre_announce
           cd $HOME
-          testflo dymos -n 1 --pre_announce --show_skipped --coverage --coverpkg dymos
+# Temporary change
+          cd dymos/examples/brachistochrone
+          testflo test -n 1 --pre_announce --nocapture --show_skipped --coverage --coverpkg dymos
 
       - name: Submit coverage
         if: (github.event_name != 'workflow_dispatch')
