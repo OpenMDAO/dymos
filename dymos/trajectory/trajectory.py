@@ -1072,7 +1072,7 @@ class Trajectory(om.Group):
 
     def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None, case_prefix=None,
-                 reset_iter_counts=True):
+                 reset_iter_counts=True, reports=False):
         """
         Simulate the Trajectory using scipy.integrate.solve_ivp.
 
@@ -1098,6 +1098,8 @@ class Trajectory(om.Group):
             Prefix to prepend to coordinates when recording.
         reset_iter_counts : bool
             If True and model has been run previously, reset all iteration counters.
+        reports : bool or None or str or Sequence
+            Reports setting for the subproblems run under simualate.
 
         Returns
         -------
@@ -1111,12 +1113,12 @@ class Trajectory(om.Group):
         for name, phs in self._phases.items():
             sim_phs = phs.get_simulation_phase(times_per_seg=times_per_seg, method=method,
                                                atol=atol, rtol=rtol, first_step=first_step,
-                                               max_step=max_step)
+                                               max_step=max_step, reports=reports)
             sim_traj.add_phase(name, sim_phs)
 
         sim_traj.parameter_options.update(self.parameter_options)
 
-        sim_prob = om.Problem(model=om.Group())
+        sim_prob = om.Problem(model=om.Group(), reports=reports)
 
         traj_name = self.name if self.name else 'sim_traj'
         sim_prob.model.add_subsystem(traj_name, sim_traj)
