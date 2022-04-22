@@ -222,6 +222,8 @@ class TestExplicitShootingReportsToggle(unittest.TestCase):
 
         dm.run_problem(prob, run_driver=True, simulate=False)
 
+        print([e for e in pathlib.Path.cwd().iterdir()])
+
         reports_dir = pathlib.Path.cwd() / 'reports'
         report_subdirs = [e for e in reports_dir.iterdir() if e.is_dir()]
 
