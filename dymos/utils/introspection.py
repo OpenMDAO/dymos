@@ -259,13 +259,11 @@ def _configure_constraint_introspection(phase):
         if var_type == 'time':
             options['shape'] = (1,)
             options['units'] = time_units if options['units'] is None else options['units']
-            options['linear'] = True
             options['constraint_path'] = 'timeseries.time'
 
         elif var_type == 'time_phase':
             options['shape'] = (1,)
             options['units'] = time_units if options['units'] is None else options['units']
-            options['linear'] = True
             options['constraint_path'] = 'timeseries.time_phase'
 
         elif var_type == 'state':
@@ -273,7 +271,6 @@ def _configure_constraint_introspection(phase):
             state_units = phase.state_options[var]['units']
             options['shape'] = state_shape
             options['units'] = state_units if options['units'] is None else options['units']
-            options['linear'] = False
             options['constraint_path'] = f'timeseries.states:{var}'
 
         elif var_type == 'parameter':
@@ -289,7 +286,6 @@ def _configure_constraint_introspection(phase):
 
             options['shape'] = control_shape
             options['units'] = control_units if options['units'] is None else options['units']
-            options['linear'] = True
             options['constraint_path'] = f'timeseries.controls:{var}'
 
         elif var_type == 'input_control':
@@ -298,7 +294,6 @@ def _configure_constraint_introspection(phase):
 
             options['shape'] = control_shape
             options['units'] = control_units if options['units'] is None else options['units']
-            options['linear'] = True
             options['constraint_path'] = f'timeseries.controls:{var}'
 
         elif var_type == 'indep_polynomial_control':
@@ -306,7 +301,6 @@ def _configure_constraint_introspection(phase):
             control_units = phase.polynomial_control_options[var]['units']
             options['shape'] = control_shape
             options['units'] = control_units if options['units'] is None else options['units']
-            options['linear'] = False
             options['constraint_path'] = f'timeseries.polynomial_controls:{var}'
 
         elif var_type == 'input_polynomial_control':
@@ -314,7 +308,6 @@ def _configure_constraint_introspection(phase):
             control_units = phase.polynomial_control_options[var]['units']
             options['shape'] = control_shape
             options['units'] = control_units if options['units'] is None else options['units']
-            options['linear'] = False
             options['constraint_path'] = f'timeseries.polynomial_controls:{var}'
 
         elif var_type == 'control_rate':
@@ -360,8 +353,6 @@ def _configure_constraint_introspection(phase):
             shape, units = get_source_metadata(ode, src=var,
                                                user_units=options['units'],
                                                user_shape=options['shape'])
-
-            options['linear'] = False
             options['shape'] = shape
             options['units'] = units
             options['constraint_path'] = f'timeseries.{options["constraint_name"]}'

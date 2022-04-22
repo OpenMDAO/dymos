@@ -848,4 +848,14 @@ class GaussLobatto(PseudospectralBase):
 
         var_class = phase.classify_var(options['name'])
 
-        return map[var_class, constraint_type]
+        # Handle special case of solve segments.
+        if self.any_solved_segs or self.any_connected_opt_segs:
+            if var_class in ('state', 'ode'):
+                is_linear = (self.options['solve_segments'] == 'forward' and constraint_type == 'initial') or \
+                            (self.options['solve_segments'] == 'backward' and constraint_type == 'final')
+        elif self.any_connected_opt_segs:
+            is_linear = False
+        else:
+            is_linear = map[var_class, constraint_type]
+
+        return is_linear

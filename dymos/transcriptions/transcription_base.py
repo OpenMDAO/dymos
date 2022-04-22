@@ -3,10 +3,10 @@ from collections.abc import Sequence
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.indexer import indexer
 
 from .common import ControlGroup, PolynomialControlGroup, ParameterComp
 from ..utils.constants import INF_BOUND
+from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.misc import _unspecified
 from ..utils.introspection import get_promoted_vars, get_target_metadata
 
@@ -346,7 +346,7 @@ class TranscriptionBase(object):
 
         size = np.prod(options['shape'], dtype=int)
 
-        flat_idxs = indexer(options['indices'], src_shape=options['shape'], flat_src=options['flat_indices']).as_array()
+        flat_idxs = get_constraint_flat_idxs(options)
 
         # Now we need to convert the indices given by the user at any given point
         # to flat indices to be given to OpenMDAO as flat indices spanning the phase.
@@ -395,12 +395,15 @@ class TranscriptionBase(object):
             constraint_kwargs['linear'] = False if options['linear'] is _unspecified else options['linear']
         elif con_can_be_linear:
             constraint_kwargs['linear'] = True if options['linear'] is _unspecified else options['linear']
-        elif options['linear']:
+        elif options['linear'] is True:
             raise ValueError(f'User specified `linear=True` for {constraint_type} constraint {con_name} in '
                              f'phase {phase.pathname} but {constraint_type} value of {con_name} is not a linear '
                              f'function of the design variables.')
         else:
             constraint_kwargs['linear'] = False
+
+
+        print(options['name'], constraint_kwargs['linear'])
 
         return con_path, constraint_kwargs
 

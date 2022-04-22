@@ -647,15 +647,15 @@ class Radau(PseudospectralBase):
         # For the transcription, this maps the variable type and constraint type to the linearity of the constraint.
         map = {('time', 'initial'): True,
                ('time', 'final'): True,
-               ('time', 'path'): True,
+               ('time', 'path'): False,
 
                ('time_phase', 'initial'): True,
                ('time_phase', 'final'): True,
-               ('time_phase', 'path'): True,
+               ('time_phase', 'path'): False,
 
                ('state', 'initial'): True,
                ('state', 'final'): True,
-               ('state', 'path'): True,
+               ('state', 'path'): False,
                
                ('input_control', 'initial'): False,
                ('input_control', 'final'): False,
@@ -701,4 +701,12 @@ class Radau(PseudospectralBase):
 
         var_class = phase.classify_var(options['name'])
 
-        return map[var_class, constraint_type]
+        # Handle special case of solve segments.
+        if self.any_solved_segs or self.any_connected_opt_segs:
+            if var_class in ('state', 'ode'):
+                is_linear = (self.options['solve_segments'] == 'forward' and constraint_type == 'initial') or \
+                            (self.options['solve_segments'] == 'backward' and constraint_type == 'final')
+        else:
+            is_linear = map[var_class, constraint_type]
+
+        return is_linear

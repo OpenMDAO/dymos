@@ -645,7 +645,7 @@ class ConstraintOptionsDictionary(om.OptionsDictionary):
         self.declare(name='shape', types=(Iterable,), default=None, allow_none=True,
                      desc='The shape of the constrained variable. This is generally determined automatically by dymos.')
 
-        self.declare(name='linear', types=bool, default=None, allow_none=True,
+        self.declare(name='linear', values=(True, False, _unspecified), default=_unspecified,
                      desc='If True, treat this constraint as linear. When possible, dymos will determine this '
                           'automatically.')
 

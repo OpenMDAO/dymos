@@ -10,7 +10,6 @@ import openmdao
 import openmdao.api as om
 from openmdao.utils.mpi import MPI
 from openmdao.core.system import System
-from openmdao.utils.indexer import indexer
 import dymos as dm
 
 from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
@@ -18,6 +17,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
+from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, configure_states_introspection, \
     classify_var, get_promoted_vars
@@ -961,7 +961,7 @@ class Phase(om.Group):
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
-                                scaler=None, adder=None, ref=None, ref0=None, linear=False, flat_indices=False):
+                                scaler=None, adder=None, ref=None, ref0=None, linear=_unspecified, flat_indices=False):
         r"""
         Add a boundary constraint to a variable in the phase.
 
@@ -1005,8 +1005,9 @@ class Phase(om.Group):
             Value of response variable that scales to 1.0 in the driver.
         ref0 : float or ndarray, optional
             Value of response variable that scales to 0.0 in the driver.
-        linear : bool
-            Set to True if constraint is linear. Default is False.
+        linear : bool or _undefined.
+            Set to True if constraint is linear. Default is _undefined, in which case Dymos will determine the
+            linearity of the constraint through introspection.
         flat_indices : bool
             If True, treat indices as flattened C-ordered indices of elements to constrain. Otherwise,
             indices should be a tuple or list giving the elements to constrain at each point in time.
@@ -1052,7 +1053,7 @@ class Phase(om.Group):
 
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
-                            ref0=None, linear=False, flat_indices=False):
+                            ref0=None, linear=_unspecified, flat_indices=False):
         r"""
         Add a path constraint to a variable in the phase.
 
@@ -1094,7 +1095,8 @@ class Phase(om.Group):
         ref0 : float or ndarray, optional
             Value of response variable that scales to 0.0 in the driver.
         linear : bool
-            Set to True if constraint is linear. Default is False.
+            Set to True if constraint is linear. Default is _undefined, in which case Dymos will determine the
+            linearity of the constraint through introspection.
         flat_indices : bool
             If True, treat indices as flattened C-ordered indices of elements to constrain at each given point in time.
             Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.
@@ -2262,7 +2264,7 @@ class Phase(om.Group):
         all_flat_idxs = set()
 
         for con in cons:
-            flat_idxs = indexer(con['indices'], src_shape=con['shape'], flat_src=con['flat_indices']).as_array()
+            flat_idxs = get_constraint_flat_idxs(con)
             all_flat_idxs |= set(flat_idxs.tolist())
 
         return all_flat_idxs

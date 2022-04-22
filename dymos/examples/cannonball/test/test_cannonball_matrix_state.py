@@ -238,7 +238,7 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
         assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestCannonballMatrixStateNonFlatIndices(unittest.TestCase):
     """ Tests to verify that dymos can use matrix-states"""
 
