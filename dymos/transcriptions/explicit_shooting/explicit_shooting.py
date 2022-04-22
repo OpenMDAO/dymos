@@ -41,6 +41,8 @@ class ExplicitShooting(TranscriptionBase):
                                   str(list(rk_methods.keys())))
         self.options.declare('num_steps_per_segment', types=int,
                              default=10, desc='Number of integration steps in each segment')
+        self.options.declare('subprob_reports', default=False,
+                             desc='Controls the reports made when running the subproblems for ExplicitShooting')
 
     def init_grid(self):
         """
@@ -166,7 +168,8 @@ class ExplicitShooting(TranscriptionBase):
                                             num_steps_per_segment=self.options['num_steps_per_segment'],
                                             grid_data=self.grid_data,
                                             ode_init_kwargs=phase.options['ode_init_kwargs'],
-                                            standalone_mode=False)
+                                            standalone_mode=False,
+                                            reports=self.options['subprob_reports'])
 
         phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'])
 

@@ -72,6 +72,8 @@ class SegmentSimulationComp(om.ExplicitComponent):
                                   'segment.  If an int (n) then results are provided at n '
                                   'equally distributed points in time within each segment.')
 
+        self.options.declare('reports', default=False, desc='Reports setting for the subproblem.')
+
         self.recording_options['options_excludes'] = ['ode_integration_interface']
 
     def configure_io(self):
@@ -106,7 +108,8 @@ class SegmentSimulationComp(om.ExplicitComponent):
                 control_options=self.options['control_options'],
                 polynomial_control_options=self.options['polynomial_control_options'],
                 parameter_options=self.options['parameter_options'],
-                ode_init_kwargs=self.options['ode_init_kwargs'])
+                ode_init_kwargs=self.options['ode_init_kwargs'],
+                reports=self.options['reports'])
 
         self.add_input(name='time', val=np.ones(nnps_i),
                        units=self.options['time_options']['units'],

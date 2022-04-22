@@ -90,7 +90,7 @@ jobs:
             PYOPTSPARSE: 'v1.2'
             SNOPT: 7.2
             MBI: 1
-            OPENMDAO: 3.13.0
+            OPENMDAO: 3.17.0
             OPTIONAL: '[all]'
             DOCS: 0
 
