@@ -11,6 +11,17 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 @use_tempdirs
 class TestSimulateReportsToggle(unittest.TestCase):
 
+    def setUp(self):
+        # We need to remove the TESTFLO_RUNNING environment variable for these tests to run.
+        # The reports code checks to see if TESTFLO_RUNNING is set and will not do anything if set
+        # But we need to remember whether it was set so we can restore it
+        self.testflo_running = os.environ.pop('TESTFLO_RUNNING', None)
+
+    def tearDown(self):
+        # restore what was there before running the test
+        if self.testflo_running is not None:
+            os.environ['TESTFLO_RUNNING'] = self.testflo_running
+
     def test_no_sim_reports(self):
         p = om.Problem(model=om.Group())
 
@@ -128,6 +139,17 @@ class TestSimulateReportsToggle(unittest.TestCase):
 @use_tempdirs
 class TestExplicitShootingReportsToggle(unittest.TestCase):
 
+    def setUp(self):
+        # We need to remove the TESTFLO_RUNNING environment variable for these tests to run.
+        # The reports code checks to see if TESTFLO_RUNNING is set and will not do anything if set
+        # But we need to remember whether it was set so we can restore it
+        self.testflo_running = os.environ.pop('TESTFLO_RUNNING', None)
+
+    def tearDown(self):
+        # restore what was there before running the test
+        if self.testflo_running is not None:
+            os.environ['TESTFLO_RUNNING'] = self.testflo_running
+
     def test_no_subprob_reports(self):
         prob = om.Problem()
 
@@ -221,8 +243,6 @@ class TestExplicitShootingReportsToggle(unittest.TestCase):
         prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 90]), units='deg')
 
         dm.run_problem(prob, run_driver=True, simulate=False)
-
-        print([e for e in pathlib.Path.cwd().iterdir()])
 
         reports_dir = pathlib.Path.cwd() / 'reports'
         report_subdirs = [e for e in reports_dir.iterdir() if e.is_dir()]
