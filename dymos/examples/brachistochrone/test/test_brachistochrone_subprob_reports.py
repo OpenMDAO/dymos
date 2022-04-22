@@ -14,8 +14,7 @@ class TestSimulateReportsToggle(unittest.TestCase):
     def test_no_sim_reports(self):
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.declare_coloring(tol=1.0E-12)
 
         t = dm.Radau(num_segments=10, order=3)
@@ -71,8 +70,7 @@ class TestSimulateReportsToggle(unittest.TestCase):
     def test_make_sim_reports(self):
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.declare_coloring(tol=1.0E-12)
 
         t = dm.Radau(num_segments=10, order=3)
@@ -133,7 +131,8 @@ class TestExplicitShootingReportsToggle(unittest.TestCase):
     def test_no_subprob_reports(self):
         prob = om.Problem()
 
-        prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+        prob.driver = om.ScipyOptimizeDriver()
+        prob.driver.declare_coloring(tol=1.0E-12)
 
         tx = dm.ExplicitShooting(num_segments=3, grid='gauss-lobatto',
                                  method='rk4', order=5,
@@ -182,7 +181,8 @@ class TestExplicitShootingReportsToggle(unittest.TestCase):
     def test_make_subprob_reports(self):
         prob = om.Problem()
 
-        prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+        prob.driver = om.ScipyOptimizeDriver()
+        prob.driver.declare_coloring(tol=1.0E-12)
 
         tx = dm.ExplicitShooting(num_segments=3, grid='gauss-lobatto',
                                  method='rk4', order=5,
