@@ -65,7 +65,7 @@ The software has two primary objectives:
     packages=find_packages(),
     python_requires=">=3.7",
     install_requires=[
-        'openmdao>=3.14.0',
+        'openmdao>=3.17.0',
         'numpy>=1.17',
         'scipy>=1.2'
     ],

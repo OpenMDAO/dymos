@@ -47,6 +47,8 @@ class SolveIVP(TranscriptionBase):
                                   'segment.  If an int (n) then results are provided at n '
                                   'equally distributed points in time within each segment.')
 
+        self.options.declare('reports', default=False, desc='Reports setting for the subproblem.')
+
     def init_grid(self):
         """
         Setup the GridData object for the Transcription.
@@ -242,7 +244,8 @@ class SolveIVP(TranscriptionBase):
                 control_options=phase.control_options,
                 polynomial_control_options=phase.polynomial_control_options,
                 parameter_options=phase.parameter_options,
-                output_nodes_per_seg=self.options['output_nodes_per_seg'])
+                output_nodes_per_seg=self.options['output_nodes_per_seg'],
+                reports=self.options['reports'])
 
             segments_group.add_subsystem(f'segment_{i}', subsys=seg_i_comp)
 

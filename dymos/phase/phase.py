@@ -1878,7 +1878,8 @@ class Phase(om.Group):
         return res
 
     def get_simulation_phase(self, times_per_seg=None, method=_unspecified, atol=_unspecified,
-                             rtol=_unspecified, first_step=_unspecified, max_step=_unspecified):
+                             rtol=_unspecified, first_step=_unspecified, max_step=_unspecified,
+                             reports=False):
         """
         Return a SolveIVPPhase instance.
 
@@ -1903,6 +1904,8 @@ class Phase(om.Group):
             Initial step size for the integration.
         max_step : float or _unspecified
             Maximum step size for the integration.
+        reports : bool or None or str or Sequence
+            The reports setting for the subproblem run under each simulation segment.
 
         Returns
         -------
@@ -1916,7 +1919,8 @@ class Phase(om.Group):
 
         sim_phase = dm.Phase(from_phase=self,
                              transcription=SolveIVP(grid_data=t.grid_data,
-                                                    output_nodes_per_seg=times_per_seg))
+                                                    output_nodes_per_seg=times_per_seg,
+                                                    reports=reports))
 
         # Copy over any simulation options from the simulate call.  The fallback will be to
         # phase.simulate_options, which are copied from the original phase.

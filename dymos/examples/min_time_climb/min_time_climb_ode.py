@@ -14,7 +14,7 @@ class MinTimeClimbODE(om.Group):
         nn = self.options['num_nodes']
 
         self.add_subsystem(name='atmos',
-                           subsys=USatm1976Comp(num_nodes=nn),
+                           subsys=USatm1976Comp(num_nodes=nn, h_def='geodetic'),
                            promotes_inputs=['h'])
 
         self.add_subsystem(name='aero',
