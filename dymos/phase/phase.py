@@ -961,7 +961,7 @@ class Phase(om.Group):
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
-                                scaler=None, adder=None, ref=None, ref0=None, linear=_unspecified, flat_indices=False):
+                                scaler=None, adder=None, ref=None, ref0=None, linear=False, flat_indices=False):
         r"""
         Add a boundary constraint to a variable in the phase.
 
@@ -1005,9 +1005,9 @@ class Phase(om.Group):
             Value of response variable that scales to 1.0 in the driver.
         ref0 : float or ndarray, optional
             Value of response variable that scales to 0.0 in the driver.
-        linear : bool or _undefined.
-            Set to True if constraint is linear. Default is _undefined, in which case Dymos will determine the
-            linearity of the constraint through introspection.
+        linear : bool
+            Set to True if constraint is linear. Setting this to True when the constraint is not a linear function
+            of the design variables will result in a failure of the optimization.
         flat_indices : bool
             If True, treat indices as flattened C-ordered indices of elements to constrain. Otherwise,
             indices should be a tuple or list giving the elements to constrain at each point in time.
@@ -1053,7 +1053,7 @@ class Phase(om.Group):
 
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
-                            ref0=None, linear=_unspecified, flat_indices=False):
+                            ref0=None, linear=False, flat_indices=False):
         r"""
         Add a path constraint to a variable in the phase.
 
@@ -1095,8 +1095,8 @@ class Phase(om.Group):
         ref0 : float or ndarray, optional
             Value of response variable that scales to 0.0 in the driver.
         linear : bool
-            Set to True if constraint is linear. Default is _undefined, in which case Dymos will determine the
-            linearity of the constraint through introspection.
+            Set to True if constraint is linear. If set to True and the constrained output is not a linear function
+            of the design variables, the optimization will fail.
         flat_indices : bool
             If True, treat indices as flattened C-ordered indices of elements to constrain at each given point in time.
             Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.

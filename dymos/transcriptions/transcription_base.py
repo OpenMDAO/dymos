@@ -389,22 +389,6 @@ class TranscriptionBase(object):
         constraint_kwargs.pop('shape')
         constraint_kwargs['flat_indices'] = True
 
-        con_can_be_linear = self._is_constraint_linear(constraint_type, options, phase)
-
-        if con_can_be_linear is _unspecified:
-            constraint_kwargs['linear'] = False if options['linear'] is _unspecified else options['linear']
-        elif con_can_be_linear:
-            constraint_kwargs['linear'] = True if options['linear'] is _unspecified else options['linear']
-        elif options['linear'] is True:
-            raise ValueError(f'User specified `linear=True` for {constraint_type} constraint {con_name} in '
-                             f'phase {phase.pathname} but {constraint_type} value of {con_name} is not a linear '
-                             f'function of the design variables.')
-        else:
-            constraint_kwargs['linear'] = False
-
-
-        print(options['name'], constraint_kwargs['linear'])
-
         return con_path, constraint_kwargs
 
     def configure_path_constraints(self, phase):
@@ -589,31 +573,6 @@ class TranscriptionBase(object):
         """
         raise NotImplementedError(f'The transcription {self.__class__} does not provide an '
                                   f'implementation of _requires_continuity_constraints')
-
-    def _is_constraint_linear(self, constraint_type, options, phase):
-        """
-        Returns whether or not the given constraint _can_ be treated as linear by the optimizer.
-
-        In the case of ODE outputs, this will return _unspecified, indicating that the value can possibly be treated
-        as linear, but dymos lacks the information to know for sure.
-
-        Parameters
-        ----------
-        constraint_type : str
-            One of 'initial', 'final', or 'path'.
-        options : dict
-            The constraint options.
-        phase : Phase
-            The dymos phase to which the constraint applies.
-
-        Returns
-        -------
-        linear : bool or _unspecified
-            True if the constraint may definitely be treated as linear, False if the constraint definitely may _not_
-            be treated as linear, and otherwise _unspecified.
-        """
-        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
-                                  '_is_constraint_linear.')
 
     def _get_num_timeseries_nodes(self):
         """

@@ -428,7 +428,8 @@ class TestExplicitShooting(unittest.TestCase):
                     warnings.simplefilter('always')
                     prob.setup(check=True)
 
-                self.assertIn("Option 'constraint_name' on path constraint y is only valid for "
+                self.assertIn("<class 'openmdao.utils.om_warnings.UnusedOptionWarning'>: "
+                              "Option 'constraint_name' on path constraint y is only valid for "
                               "ODE outputs. The option is being ignored.", [str(w.message) for w in ctx])
 
     @require_pyoptsparse(optimizer='SLSQP')
