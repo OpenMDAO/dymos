@@ -60,6 +60,7 @@ class TestCannonballMatrixState(unittest.TestCase):
 
         return p
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_cannonball_matrix_state_radau(self):
 
         tx = dm.Radau(num_segments=10, order=3, solve_segments=False)
@@ -80,6 +81,7 @@ class TestCannonballMatrixState(unittest.TestCase):
         assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_cannonball_matrix_state_gl(self):
         tx = dm.GaussLobatto(num_segments=10, order=3, solve_segments=False)
 
@@ -97,6 +99,7 @@ class TestCannonballMatrixState(unittest.TestCase):
         assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_cannonball_matrix_state_radau_solve_segments(self):
 
         tx = dm.Radau(num_segments=10, order=3, solve_segments='forward')
@@ -115,6 +118,7 @@ class TestCannonballMatrixState(unittest.TestCase):
         assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_cannonball_matrix_state_gl_solve_segments(self):
         tx = dm.GaussLobatto(num_segments=10, order=3, solve_segments='forward')
 
