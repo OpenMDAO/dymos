@@ -44,7 +44,7 @@ def _view_coloring(coloring_file, show_sparsity_text=False, show_sparsity=True,
 @use_tempdirs
 class TestMinTimeClimbForDocs(unittest.TestCase):
 
-    @require_pyoptsparse(optimizer='IPOPT')
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_min_time_climb_for_docs_partial_coloring(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
@@ -67,10 +67,8 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
                     p = om.Problem(model=om.Group())
 
                     p.driver = om.pyOptSparseDriver()
-                    p.driver.options['optimizer'] = 'IPOPT'
+                    p.driver.options['optimizer'] = 'SLSQP'
                     p.driver.declare_coloring(tol=1.0E-12)
-                    p.driver.opt_settings['max_iter'] = 500
-                    p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
 
                     #
                     # Instantiate the trajectory and phase
