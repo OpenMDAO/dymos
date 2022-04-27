@@ -490,8 +490,8 @@ class TestPhaseBase(unittest.TestCase):
 
     def test_parameter_multiple_boundary_constraints(self):
 
-        expected = 'In phase phase0, parameter g is subject to multiple boundary \n' \
-                   'or path constraints. Parameters are single values that do not change in \n' \
+        expected = 'In phase phase0, parameter `g` is subject to multiple boundary ' \
+                   'or path constraints.\nParameters are single values that do not change in ' \
                    'time, and may only be used in a single boundary or path constraint.'
 
         for tx in (dm.GaussLobatto, dm.Radau, dm.ExplicitShooting):

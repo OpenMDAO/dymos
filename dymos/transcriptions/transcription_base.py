@@ -353,7 +353,7 @@ class TranscriptionBase(object):
             if any([idxs_in_initial.intersection(idxs_in_final),
                     idxs_in_initial.intersection(idxs_in_path),
                     idxs_in_final.intersection(idxs_in_path)]):
-                raise RuntimeError(f'In phase {phase.pathname}, parameter {var} is subject to multiple boundary '
+                raise RuntimeError(f'In phase {phase.pathname}, parameter `{var}` is subject to multiple boundary '
                                    f'or path constraints.\nParameters are single values that do not change in '
                                    f'time, and may only be used in a single boundary or path constraint.')
             constraint_kwargs['indices'] = flat_idxs
