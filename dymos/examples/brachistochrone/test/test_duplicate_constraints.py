@@ -472,7 +472,7 @@ class TestDuplicateConstraints(unittest.TestCase):
             p.setup()
 
         expected = ("In phase traj0.phases.phase0, parameter `g` is subject to multiple boundary or path constraints.\n"
-                    "Parameters are single values that do not change in time, and may only be used in a single " \
+                    "Parameters are single values that do not change in time, and may only be used in a single "
                     "boundary or path constraint.")
 
         self.assertEqual(str(e.exception), expected)
