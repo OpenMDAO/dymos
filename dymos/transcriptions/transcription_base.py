@@ -339,7 +339,6 @@ class TranscriptionBase(object):
 
         # These are the flat indices at a single point in time used
         # in either initial, final, or path constraints.
-
         idxs_in_initial = phase._indices_in_constraints(var, 'initial')
         idxs_in_final = phase._indices_in_constraints(var, 'final')
         idxs_in_path = phase._indices_in_constraints(var, 'path')
@@ -350,7 +349,6 @@ class TranscriptionBase(object):
 
         # Now we need to convert the indices given by the user at any given point
         # to flat indices to be given to OpenMDAO as flat indices spanning the phase.
-
         if var_type == 'parameter':
             if any([idxs_in_initial.intersection(idxs_in_final),
                     idxs_in_initial.intersection(idxs_in_path),

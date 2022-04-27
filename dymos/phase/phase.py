@@ -1025,8 +1025,8 @@ class Phase(om.Group):
                        if bc['name'] == name and bc['indices'] == indices and bc['flat_indices'] == flat_indices]
 
         if existing_bc:
-            raise ValueError(f'Cannot add new {loc} boundary constraint for variable {name} and indices {indices} in '
-                             f'phase {self.pathname}.  One already exists')
+            raise ValueError(f'Cannot add new {loc} boundary constraint for variable `{name}` and indices {indices}. '
+                             f'One already exists.')
 
         bc = ConstraintOptionsDictionary()
         bc_list.append(bc)
@@ -1108,8 +1108,8 @@ class Phase(om.Group):
                        if pc['name'] == name and pc['indices'] == indices and pc['flat_indices'] == flat_indices]
 
         if existing_pc:
-            raise ValueError(f'Cannot add new path constraint for variable {name} and indices {indices} in '
-                             f'phase {self.pathname}.  One already exists')
+            raise ValueError(f'Cannot add new path constraint for variable `{name}` and indices {indices}. '
+                             f'One already exists.')
 
         pc = ConstraintOptionsDictionary()
         self._path_constraints.append(pc)
@@ -2256,6 +2256,8 @@ class Phase(om.Group):
         all_flat_idxs : set
             A C-order flattened set of indices that apply to the constraint.
         """
+        s = {'initial': 'initial boundary', 'final': 'final boundary', 'path': 'path'}
+
         if loc == 'initial':
             cons = [con for con in self._initial_boundary_constraints if con['name'] == name]
         elif loc == 'final':
@@ -2268,7 +2270,12 @@ class Phase(om.Group):
         all_flat_idxs = set()
 
         for con in cons:
-            flat_idxs = get_constraint_flat_idxs(con)
-            all_flat_idxs |= set(flat_idxs.tolist())
+            flat_idxs = set(get_constraint_flat_idxs(con).tolist())
+            duplicate_idxs = flat_idxs.intersection(all_flat_idxs)
+            if duplicate_idxs:
+                raise ValueError(f'Duplicate constraint in phase {self.pathname}. '
+                                 f'The following indices of `{name}` are used in '
+                                 f'multiple {s[loc]} constraints:\n{duplicate_idxs}')
+            all_flat_idxs |= flat_idxs
 
         return all_flat_idxs

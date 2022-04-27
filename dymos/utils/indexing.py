@@ -56,4 +56,9 @@ def get_constraint_flat_idxs(con):
     else:
         flat_idxs = indexer(con['indices'], src_shape=con['shape'], flat_src=con['flat_indices']).as_array()
 
+    # Convert any negative indices to positive indices, to make detecting overlaps easier.
+    size = np.prod(con['shape'], dtype=int)
+    neg_idxs = np.where(flat_idxs < 0)
+    flat_idxs[neg_idxs] += size
+
     return flat_idxs
