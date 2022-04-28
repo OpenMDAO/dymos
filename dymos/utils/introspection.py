@@ -324,11 +324,14 @@ def configure_parameters_introspection(parameter_options, ode):
     ode_inputs = get_promoted_vars(ode, iotypes='input')
 
     for name, options in parameter_options.items():
-        targets, shape, units, static_target = _get_targets_metadata(ode_inputs, name=name,
-                                                                     user_targets=options['targets'],
-                                                                     user_units=options['units'],
-                                                                     user_shape=options['shape'],
-                                                                     user_static_target=options['static_target'])
+        try:
+            targets, shape, units, static_target = _get_targets_metadata(ode_inputs, name=name,
+                                                                         user_targets=options['targets'],
+                                                                         user_units=options['units'],
+                                                                         user_shape=options['shape'],
+                                                                         user_static_target=options['static_target'])
+        except ValueError as e:
+            raise ValueError(f'Parameter `{name}` has invalid target(s).\n{str(e)}') from e
         options['targets'] = targets
         options['units'] = units
         options['shape'] = shape
@@ -765,6 +768,10 @@ def _get_targets_metadata(ode, name, user_targets=_unspecified, user_units=_unsp
 
     if not targets:
         return targets, user_shape, user_units, False
+
+    for tgt in targets:
+        if tgt not in ode_inputs:
+            raise ValueError(f"No such ODE input: '{tgt}'.")
 
     if user_units is _unspecified:
         target_units_set = {ode_inputs[tgt]['units'] for tgt in targets}
