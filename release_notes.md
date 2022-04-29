@@ -1,4 +1,57 @@
 *******************************
+# Release Notes for Dymos 1.5.0
+
+May 02, 2022
+
+This is version 1.5.0 of Dymos.
+
+This version adds better support for OpenMDAO's automatic generation of reports.
+Sub-problems, used to wrap ODEs for simulation or the ExplicitShooting transcription, will no longer generate problem reports by default.
+
+Phase parameters have been refactored so that they are always available as an input (`path.to.phase.parameters:{param_name}`) and an output (`path.to.phase.parameter_vals:{param_name}`).
+This should make connecting parameters to downstream models more intuitive since the user is no longer required to do so via promotion.
+We also fixed some instances where Dymos would not detect invalid targets for parameters in some situations.
+This may detect issues in existing models that were previously undetected by Dymos.
+
+The model for providing the 1976 standard atmosphere, `USatm1976Comp`, was originally intended to support some tests in Dymos but over time has been used by other projects.
+It has been changed such that it can accept either geodetic or geopotential altitude as input.
+The default is currently geopotential input (no transformation is performed on the altitude before interpolating the atmosphere table).
+In the future this will likely change to geodetic, since it's more likely to be the intent of the user that the provided altitude is geodetic.
+This will result in a minor change in the interpolated atmospheric properties, especially at higher altitudes, but we've found it to have only minor impact on results of several cases.
+
+Several enhancements and bug fixes have been performed regarding constraints.
+The recent constraint aliasing update in OpenMDAO allows us to apply separate constraints to different indices of the same variables, meaning that we can apply path and boundary constraints directly to the timeseries outputs and no longer need separate pass-thru components to handle them.
+Also, importantly, all boundary constraints and path constraints are currently marked as nonlinear.
+Dymos previously attempted to determine when constraints could potentially be linear, but it's difficult to know the linearity of inputs from outside the trajectory or phase.
+The logic to determine this was starting to get quite complex, so we decided to remove it entirely for now.
+If the user is 100% certain that a boundary constraint or path constraint can validly be treated as linear, then the `linear=True` argument can be added to `add_boundary_constraint` or `add_path_constraint`.
+Just note that this WILL cause the failure of the optimization if the constraint output is not actually a linear function of the design variables.
+This assumption of non-linearity also works around some issues we were seeing with the way OpenMAO and pyOptSparse handle linear constraints with nonzero y-intercepts.
+**This assumption of nonlinearity in boundary and path constraints may cause some models to have different convergence behavior and we welcome feedback if you experience problems due to this.**
+
+## Enhancements
+
+* Users can now pass `simulate_kwargs` from `dymos.run_problem`. [#720](https://github.com/OpenMDAO/dymos/pull/720)
+* Added `set_parameter_options` method to `Trajectory` for better API consistency. [#721](https://github.com/OpenMDAO/dymos/pull/721) 
+* USatm1976Comp now accepts altitude as either geopotential or geodetic. [#735](https://github.com/OpenMDAO/dymos/pull/735) 
+* Disabled reports by default for subproblems under simulate and ExplicitShooting.  [#741](https://github.com/OpenMDAO/dymos/pull/741) 
+* Constraints are now applied directly to timeseries outputs, and several other constraint improvements.  [#743](https://github.com/OpenMDAO/dymos/pull/743) 
+
+## Bug Fixes
+
+* Fixed a bug that caused a hang when running the constraint report on MPI. [#731](https://github.com/OpenMDAO/dymos/pull/731)
+* Fixed a bug where trajectory parameters with no valid target will not flag an error. [#744](https://github.com/OpenMDAO/dymos/pull/744)
+
+## Miscellaneous
+
+* Fixed plots on several of the documentation examples. [#709](https://github.com/OpenMDAO/dymos/pull/709)
+* Added an example of using OpenMDAO's FunctionComp API for an ODE. [#710](https://github.com/OpenMDAO/dymos/pull/710)
+* Cleanup of the configuration/introspection stack. [#713](https://github.com/OpenMDAO/dymos/pull/713)
+* Reuse the OpenMDAO _ReprClass for `_unspecified` to deal with some issues with MPI operation. [#724](https://github.com/OpenMDAO/dymos/pull/724)
+* Added workflow_dispatch trigger on github so Dymos tests can be triggered by OpenMDAO pull requests. [#732](https://github.com/OpenMDAO/dymos/pull/732) [#736](https://github.com/OpenMDAO/dymos/pull/736)
+* Fixed an incorrect equation in the documentation of the calculation of flight path angle. [#734](https://github.com/OpenMDAO/dymos/pull/734)
+
+*******************************
 # Release Notes for Dymos 1.4.0
 
 January 05, 2022
