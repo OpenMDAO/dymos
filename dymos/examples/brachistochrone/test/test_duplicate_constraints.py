@@ -1,5 +1,7 @@
 import os
 import unittest
+
+import numpy as np
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
@@ -433,6 +435,47 @@ class TestDuplicateConstraints(unittest.TestCase):
 
         expected = 'Duplicate constraint in phase traj0.phases.phase0. The following indices of `theta` are ' \
                    'used in multiple path constraints:\n{0}'
+
+        self.assertEqual(str(e.exception), expected)
+
+    def test_duplicate_initial_constraint_indies_as_ndarray(self):
+        p = om.Problem(model=om.Group())
+
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring(tol=1.0E-12)
+
+        tx = dm.Radau(num_segments=10, order=3)
+
+        traj = dm.Trajectory()
+        phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
+        p.model.add_subsystem('traj0', traj)
+        traj.add_phase('phase0', phase)
+
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.add_state('x', fix_initial=False, fix_final=False)
+        phase.add_state('y', fix_initial=False, fix_final=False)
+
+        # Note that by omitting the targets here Dymos will automatically attempt to connect
+        # to a top-level input named 'v' in the ODE, and connect to nothing if it's not found.
+        phase.add_state('v', fix_initial=False, fix_final=False)
+
+        phase.add_control('theta',
+                          continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_parameter('g', targets=['g'], units='m/s**2')
+
+        phase.add_boundary_constraint('x', loc='initial', equals=0, indices=np.array([0], dtype=int))
+
+        # Now mistakenly add a boundary constraint at the same loc, variable, and different but equivalent_negative indices.
+        phase.add_boundary_constraint('x', loc='initial', equals=10, indices=np.array([-1], dtype=int))
+
+        with self.assertRaises(ValueError) as e:
+            p.setup()
+
+        expected = 'Duplicate constraint in phase traj0.phases.phase0. The following indices of `x` are ' \
+                   'used in multiple initial boundary constraints:\n{0}'
 
         self.assertEqual(str(e.exception), expected)
 

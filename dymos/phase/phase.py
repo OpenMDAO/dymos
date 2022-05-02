@@ -1021,8 +1021,7 @@ class Phase(om.Group):
 
         bc_list = self._initial_boundary_constraints if loc == 'initial' else self._final_boundary_constraints
 
-        existing_bc = [bc for bc in bc_list
-                       if bc['name'] == name and bc['indices'] == indices and bc['flat_indices'] == flat_indices]
+        existing_bc = [bc for bc in bc_list if bc['name'] == name and bc['indices'] is None and indices is None]
 
         if existing_bc:
             raise ValueError(f'Cannot add new {loc} boundary constraint for variable `{name}` and indices {indices}. '
@@ -2257,25 +2256,21 @@ class Phase(om.Group):
             A C-order flattened set of indices that apply to the constraint.
         """
         s = {'initial': 'initial boundary', 'final': 'final boundary', 'path': 'path'}
-
-        if loc == 'initial':
-            cons = [con for con in self._initial_boundary_constraints if con['name'] == name]
-        elif loc == 'final':
-            cons = [con for con in self._final_boundary_constraints if con['name'] == name]
-        elif loc == 'path':
-            cons = [con for con in self._path_constraints if con['name'] == name]
-        else:
-            raise ValueError('Unrecognized value of "loc".  Must be one of "initial", "final", or "path".')
+        cons = {'initial': self._initial_boundary_constraints,
+                'final': self._final_boundary_constraints,
+                'path': self._path_constraints}
 
         all_flat_idxs = set()
 
-        for con in cons:
-            flat_idxs = set(get_constraint_flat_idxs(con).tolist())
-            duplicate_idxs = flat_idxs.intersection(all_flat_idxs)
+        for con in cons[loc]:
+            if con['name'] != name:
+                continue
+            flat_idxs = get_constraint_flat_idxs(con)
+            duplicate_idxs = all_flat_idxs.intersection(flat_idxs)
             if duplicate_idxs:
                 raise ValueError(f'Duplicate constraint in phase {self.pathname}. '
                                  f'The following indices of `{name}` are used in '
                                  f'multiple {s[loc]} constraints:\n{duplicate_idxs}')
-            all_flat_idxs |= flat_idxs
+            all_flat_idxs.update(flat_idxs)
 
         return all_flat_idxs

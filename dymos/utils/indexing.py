@@ -41,6 +41,8 @@ def get_constraint_flat_idxs(con):
     """
     Return the flat indices for a constraint at single point in time.
 
+    Indices are always returned as non-negative.
+
     Parameters
     ----------
     con : dict
@@ -52,13 +54,9 @@ def get_constraint_flat_idxs(con):
         The flat indices of a constraint at a single point in time.
     """
     if con['indices'] is None:
-        flat_idxs = np.arange(np.prod(con['shape'], dtype=int), dtype=int).ravel()
+        flat_idxs = np.arange(np.prod(con['shape'], dtype=int), dtype=int)
     else:
-        flat_idxs = indexer(con['indices'], src_shape=con['shape'], flat_src=con['flat_indices']).as_array()
-
-    # Convert any negative indices to positive indices, to make detecting overlaps easier.
-    size = np.prod(con['shape'], dtype=int)
-    neg_idxs = np.where(flat_idxs < 0)
-    flat_idxs[neg_idxs] += size
+        # Use shaped_array to force all indices to be non-negative.
+        flat_idxs = indexer(con['indices'], src_shape=con['shape'], flat_src=con['flat_indices']).shaped_array()
 
     return flat_idxs
