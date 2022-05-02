@@ -568,7 +568,7 @@ class TestPhaseBase(unittest.TestCase):
 
                 # We'll let g vary, but make sure it hits the desired value.
                 # It's a static parameter, so it shouldn't matter whether we enforce it
-                # at the start or the end of the phase, so here we'll do both.
+                # at the start or the end of the phase.
                 # Note if we make these equality constraints, some optimizers (SLSQP) will
                 # see the problem as infeasible.
                 phase.add_boundary_constraint('x', loc='final', units='m', equals=10)
@@ -628,7 +628,7 @@ class TestPhaseBase(unittest.TestCase):
 
                 # We'll let g vary, but make sure it hits the desired value.
                 # It's a static parameter, so it shouldn't matter whether we enforce it
-                # at the start or the end of the phase, so here we'll do both.
+                # at the start or the end of the phase.
                 # Note if we make these equality constraints, some optimizers (SLSQP) will
                 # see the problem as infeasible.
                 phase.add_boundary_constraint('x', loc='final', units='m', equals=10)

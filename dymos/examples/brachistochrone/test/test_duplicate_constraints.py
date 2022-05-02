@@ -88,8 +88,7 @@ class TestDuplicateConstraints(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             phase.add_boundary_constraint('x', loc='initial', equals=10)
 
-        expected = 'Cannot add new initial boundary constraint for variable `x` and indices None. ' \
-                   'One already exists.'
+        expected = 'Cannot add new initial boundary constraint for variable `x` and indices None. One already exists.'
 
         self.assertEqual(str(e.exception), expected)
 
@@ -127,8 +126,7 @@ class TestDuplicateConstraints(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             phase.add_boundary_constraint('x', loc='final', equals=10)
 
-        expected = 'Cannot add new final boundary constraint for variable `x` and indices None. ' \
-                   'One already exists.'
+        expected = 'Cannot add new final boundary constraint for variable `x` and indices None. One already exists.'
 
         self.assertEqual(str(e.exception), expected)
 
@@ -166,8 +164,7 @@ class TestDuplicateConstraints(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             phase.add_path_constraint('theta', upper=100)
 
-        expected = 'Cannot add new path constraint for variable `theta` and indices None. ' \
-                   'One already exists.'
+        expected = 'Cannot add new path constraint for variable `theta` and indices None. One already exists.'
 
         self.assertEqual(str(e.exception), expected)
 
@@ -302,7 +299,7 @@ class TestDuplicateConstraints(unittest.TestCase):
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
 
-        # Now mistakenly add a boundary constraint at the same loc, variable, and different but equivalent indices
+        # Now mistakenly add a path constraint at the same loc, variable, and different but equivalent indices
         phase.add_path_constraint('theta', upper=100)
         phase.add_path_constraint('theta', lower=0, indices=[0])
 
@@ -346,7 +343,7 @@ class TestDuplicateConstraints(unittest.TestCase):
 
         phase.add_boundary_constraint('x', loc='initial', equals=0)
 
-        # Now mistakenly add a boundary constraint at the same loc, variable, and different but equivalent_negative indices.
+        # Now mistakenly add a boundary constraint at the same loc, variable, and different but equivalent negative indices.
         phase.add_boundary_constraint('x', loc='initial', equals=10, indices=[-1])
 
         with self.assertRaises(ValueError) as e:
@@ -387,7 +384,7 @@ class TestDuplicateConstraints(unittest.TestCase):
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
 
-        # Now mistakenly add a boundary constraint at the same loc, variable, and different but equivalent_negative indices.
+        # Now mistakenly add a boundary constraint at the same loc, variable, and different but equivalent negative indices.
         phase.add_boundary_constraint('x', loc='final', equals=10, indices=[-1])
 
         with self.assertRaises(ValueError) as e:
@@ -426,7 +423,7 @@ class TestDuplicateConstraints(unittest.TestCase):
 
         phase.add_parameter('g', targets=['g'], units='m/s**2')
 
-        # Now mistakenly add a boundary constraint at the same loc, variable, and different but equivalent_negative indices
+        # Now mistakenly add a path constraint at the same loc, variable, and different but equivalent negative indices
         phase.add_path_constraint('theta', upper=100)
         phase.add_path_constraint('theta', lower=0, indices=[-1])
 
@@ -468,7 +465,7 @@ class TestDuplicateConstraints(unittest.TestCase):
 
         phase.add_boundary_constraint('x', loc='initial', equals=0, indices=np.array([0], dtype=int))
 
-        # Now mistakenly add a boundary constraint at the same loc, variable, and different but equivalent_negative indices.
+        # Now mistakenly add a boundary constraint at the same loc, variable, and different but equivalent negative indices.
         phase.add_boundary_constraint('x', loc='initial', equals=10, indices=np.array([-1], dtype=int))
 
         with self.assertRaises(ValueError) as e:
@@ -507,7 +504,8 @@ class TestDuplicateConstraints(unittest.TestCase):
 
         phase.add_parameter('g', targets=['g'], units='m/s**2', opt=True)
 
-        # Now mistakenly add a boundary constraint at the same loc, variable, and different but equivalent_negative indices
+        # Add a parameter as both a boundary and path constraint. This is illegal since the parameter value cannot
+        # change during the phase.  A user must choose either a path constraint or a boundary constraint.
         phase.add_boundary_constraint('g', loc='initial', upper=9.80665)
         phase.add_path_constraint('g', lower=0)
 
