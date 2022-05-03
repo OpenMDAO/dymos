@@ -13,12 +13,14 @@ from openmdao.core.system import System
 import dymos as dm
 
 from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
-    StateOptionsDictionary, TimeOptionsDictionary, \
+    StateOptionsDictionary, TimeOptionsDictionary, ConstraintOptionsDictionary, \
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
-from ..utils.introspection import configure_time_introspection, configure_controls_introspection, \
-    configure_parameters_introspection, configure_states_introspection, classify_var, get_promoted_vars
+from ..utils.indexing import get_constraint_flat_idxs
+from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
+    configure_controls_introspection, configure_parameters_introspection, configure_states_introspection, \
+    classify_var, get_promoted_vars
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
 
@@ -66,13 +68,12 @@ class Phase(om.Group):
         # Dictionaries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE
         if from_phase is None:
-            self._initial_boundary_constraints = {}
-            self._final_boundary_constraints = {}
-            self._path_constraints = {}
-            self._timeseries = {}
-            self._timeseries['timeseries'] = {'transcription': None,
-                                              'subset': 'all',
-                                              'outputs': {}}
+            self._initial_boundary_constraints = []
+            self._final_boundary_constraints = []
+            self._path_constraints = []
+            self._timeseries = {'timeseries': {'transcription': None,
+                                               'subset': 'all',
+                                               'outputs': {}}}
             self._objectives = {}
         else:
             self.time_options.update(from_phase.time_options)
@@ -960,7 +961,7 @@ class Phase(om.Group):
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
-                                scaler=None, adder=None, ref=None, ref0=None, linear=False):
+                                scaler=None, adder=None, ref=None, ref0=None, linear=False, flat_indices=False):
         r"""
         Add a boundary constraint to a variable in the phase.
 
@@ -983,10 +984,11 @@ class Phase(om.Group):
             The shape of the variable being boundary-constrained.  This can be inferred
             automatically for time, states, controls, and parameters, but is required
             if the constrained variable is an output of the ODE system.
-        indices : tuple, list, ndarray, or None
-            The indices of the output variable to be boundary constrained.  Indices assumes C-order
-            flattening.  For instance, when constraining element [0, 1] of a variable of shape
-            [2, 2], indices would be [3].
+        indices : tuple, list, ndarray, slice, or None
+            The indices of the output variable to be boundary constrained at either the initial or final time in the
+            phase. When the variable is multi-dimensional, this should be a list of lists, one for each dimension,
+            containing the indices to be constrained.  Note the behavior of indices changes depending on the value
+            of the flat_indices option.
         lower : float or ndarray, optional
             Lower boundary for the variable.
         upper : float or ndarray, optional
@@ -1004,7 +1006,11 @@ class Phase(om.Group):
         ref0 : float or ndarray, optional
             Value of response variable that scales to 0.0 in the driver.
         linear : bool
-            Set to True if constraint is linear. Default is False.
+            Set to True if constraint is linear. Setting this to True when the constraint is not a linear function
+            of the design variables will result in a failure of the optimization.
+        flat_indices : bool
+            If True, treat indices as flattened C-ordered indices of elements to constrain. Otherwise,
+            indices should be a tuple or list giving the elements to constrain at each point in time.
         """
         if loc not in ['initial', 'final']:
             raise ValueError('Invalid boundary constraint location "{0}". Must be '
@@ -1013,23 +1019,31 @@ class Phase(om.Group):
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
 
-        bc_dict = self._initial_boundary_constraints \
-            if loc == 'initial' else self._final_boundary_constraints
+        bc_list = self._initial_boundary_constraints if loc == 'initial' else self._final_boundary_constraints
 
-        bc_dict[name] = {}
-        bc_dict[name]['constraint_name'] = constraint_name
+        existing_bc = [bc for bc in bc_list if bc['name'] == name and bc['indices'] is None and indices is None]
 
-        bc_dict[name]['shape'] = shape
-        bc_dict[name]['indices'] = indices
-        bc_dict[name]['lower'] = lower
-        bc_dict[name]['upper'] = upper
-        bc_dict[name]['equals'] = equals
-        bc_dict[name]['scaler'] = scaler
-        bc_dict[name]['adder'] = adder
-        bc_dict[name]['ref0'] = ref0
-        bc_dict[name]['ref'] = ref
-        bc_dict[name]['linear'] = linear
-        bc_dict[name]['units'] = units
+        if existing_bc:
+            raise ValueError(f'Cannot add new {loc} boundary constraint for variable `{name}` and indices {indices}. '
+                             f'One already exists.')
+
+        bc = ConstraintOptionsDictionary()
+        bc_list.append(bc)
+
+        bc['name'] = name
+        bc['constraint_name'] = constraint_name
+        bc['lower'] = lower
+        bc['upper'] = upper
+        bc['equals'] = equals
+        bc['scaler'] = scaler
+        bc['adder'] = adder
+        bc['ref0'] = ref0
+        bc['ref'] = ref
+        bc['indices'] = indices
+        bc['shape'] = shape
+        bc['linear'] = linear
+        bc['units'] = units
+        bc['flat_indices'] = flat_indices
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
@@ -1038,7 +1052,7 @@ class Phase(om.Group):
 
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
-                            ref0=None, linear=False):
+                            ref0=None, linear=False, flat_indices=False):
         r"""
         Add a path constraint to a variable in the phase.
 
@@ -1059,9 +1073,10 @@ class Phase(om.Group):
             automatically for time, states, controls, and parameters, but is required
             if the constrained variable is an output of the ODE system.
         indices : tuple, list, ndarray, or None
-            The indices of the output variable to be path constrained.  Indices assumes C-order
-            flattening.  For instance, when constraining element [0, 1] of a variable of shape
-            [2, 2], indices would be [3].
+            The indices of the output variable to be constrained at each point in time in the phase.
+            When the variable is multi-dimensional, this should be a list of lists, one for each dimension,
+            containing the indices to be constrained.  Note the behavior of indices changes depending on the value
+            of the flat_indices option.
         lower : float or ndarray, optional
             Lower boundary for the variable.
         upper : float or ndarray, optional
@@ -1079,26 +1094,39 @@ class Phase(om.Group):
         ref0 : float or ndarray, optional
             Value of response variable that scales to 0.0 in the driver.
         linear : bool
-            Set to True if constraint is linear. Default is False.
+            Set to True if constraint is linear. If set to True and the constrained output is not a linear function
+            of the design variables, the optimization will fail.
+        flat_indices : bool
+            If True, treat indices as flattened C-ordered indices of elements to constrain at each given point in time.
+            Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.
         """
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
 
-        if name not in self._path_constraints:
-            self._path_constraints[name] = {}
-            self._path_constraints[name]['constraint_name'] = constraint_name
+        existing_pc = [pc for pc in self._path_constraints
+                       if pc['name'] == name and pc['indices'] == indices and pc['flat_indices'] == flat_indices]
 
-        self._path_constraints[name]['lower'] = lower
-        self._path_constraints[name]['upper'] = upper
-        self._path_constraints[name]['equals'] = equals
-        self._path_constraints[name]['scaler'] = scaler
-        self._path_constraints[name]['adder'] = adder
-        self._path_constraints[name]['ref0'] = ref0
-        self._path_constraints[name]['ref'] = ref
-        self._path_constraints[name]['indices'] = indices
-        self._path_constraints[name]['shape'] = shape
-        self._path_constraints[name]['linear'] = linear
-        self._path_constraints[name]['units'] = units
+        if existing_pc:
+            raise ValueError(f'Cannot add new path constraint for variable `{name}` and indices {indices}. '
+                             f'One already exists.')
+
+        pc = ConstraintOptionsDictionary()
+        self._path_constraints.append(pc)
+
+        pc['name'] = name
+        pc['constraint_name'] = constraint_name
+        pc['lower'] = lower
+        pc['upper'] = upper
+        pc['equals'] = equals
+        pc['scaler'] = scaler
+        pc['adder'] = adder
+        pc['ref0'] = ref0
+        pc['ref'] = ref
+        pc['indices'] = indices
+        pc['shape'] = shape
+        pc['linear'] = linear
+        pc['units'] = units
+        pc['flat_indices'] = flat_indices
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
@@ -1477,9 +1505,6 @@ class Phase(om.Group):
         self._check_ode()
         transcription.setup_ode(self)
 
-        transcription.setup_boundary_constraints('initial', self)
-        transcription.setup_boundary_constraints('final', self)
-        transcription.setup_path_constraints(self)
         transcription.setup_timeseries_outputs(self)
         transcription.setup_defects(self)
         transcription.setup_solvers(self)
@@ -1522,9 +1547,9 @@ class Phase(om.Group):
 
         transcription.configure_defects(self)
 
-        transcription.configure_boundary_constraints('initial', self)
+        _configure_constraint_introspection(self)
 
-        transcription.configure_boundary_constraints('final', self)
+        transcription._configure_boundary_constraints(self)
 
         transcription.configure_path_constraints(self)
 
@@ -2213,3 +2238,39 @@ class Phase(om.Group):
             raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
                              f'"final" but got {loc}')
         return res
+
+    def _indices_in_constraints(self, name, loc):
+        """
+        Returns a set of the C-order flattened indices involving constraint of the given name at the given loc.
+
+        Parameters
+        ----------
+        name : str
+            The pathname of the constrained quantity.
+        loc : str
+            The type of constraint to search: 'initial', 'final', or 'path'.
+
+        Returns
+        -------
+        all_flat_idxs : set
+            A C-order flattened set of indices that apply to the constraint.
+        """
+        s = {'initial': 'initial boundary', 'final': 'final boundary', 'path': 'path'}
+        cons = {'initial': self._initial_boundary_constraints,
+                'final': self._final_boundary_constraints,
+                'path': self._path_constraints}
+
+        all_flat_idxs = set()
+
+        for con in cons[loc]:
+            if con['name'] != name:
+                continue
+            flat_idxs = get_constraint_flat_idxs(con)
+            duplicate_idxs = all_flat_idxs.intersection(flat_idxs)
+            if duplicate_idxs:
+                raise ValueError(f'Duplicate constraint in phase {self.pathname}. '
+                                 f'The following indices of `{name}` are used in '
+                                 f'multiple {s[loc]} constraints:\n{duplicate_idxs}')
+            all_flat_idxs.update(flat_idxs)
+
+        return all_flat_idxs

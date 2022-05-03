@@ -1022,8 +1022,9 @@ class Trajectory(om.Group):
 
             for loc, d in ds.items():
                 str_loc = f'[{loc}]'
-                for expr, options in d.items():
-                    _, shape, units, linear = tx._get_boundary_constraint_src(expr, loc, phase, ode_outputs=ode_outputs)
+                for options in d:
+                    expr = options['name']
+                    _, shape, units, linear = tx._get_objective_src(expr, loc, phase, ode_outputs=ode_outputs)
 
                     equals = options['equals']
                     lower = options['lower']
