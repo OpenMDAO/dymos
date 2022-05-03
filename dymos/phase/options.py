@@ -656,3 +656,32 @@ class ConstraintOptionsDictionary(om.OptionsDictionary):
         self.declare(name='flat_indices', types=bool, default=True,
                      desc='If True, the given indices will be treated as indices into a C-order flattened array based '
                           'on the shaped of the constrained variable at a point in time.')
+
+
+class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
+    """
+    An OptionsDictionary for timeseries outputs.
+
+    Parameters
+    ----------
+    read_only : bool
+        If True, setting (via __setitem__ or update) is not permitted.
+    """
+    def __init__(self, read_only=False):
+        super(TimeseriesOutputOptionsDictionary, self).__init__(read_only)
+
+        self.declare(name='name', types=str, default=None, allow_none=True,
+                     desc='Name or ODE-relative path of the variable to be constrained.')
+
+        self.declare(name='output_name', types=str, default=None, allow_none=True,
+                     desc='Name of the variable used as the output from the timeseries, to avoid name collisions.')
+
+        self.declare(name='wildcard_units', types=dict, default=None, allow_none=True,
+                     desc='Variable name, unit mapping that can be provided if timeseries are specified '
+                          'with wildcards.')
+
+        self.declare(name='shape', default=None, allow_none=True,
+                     desc='The shape of the constrained variable. This is generally determined automatically by dymos.')
+
+        self.declare(name='units', default=None, allow_none=True,
+                     desc='Units to be used for the timeseries output, or None to leave the units unchanged.')

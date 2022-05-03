@@ -14,7 +14,9 @@ import dymos as dm
 
 from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     StateOptionsDictionary, TimeOptionsDictionary, ConstraintOptionsDictionary, \
-    PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary
+    PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary, \
+    TimeseriesOutputOptionsDictionary
+
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.indexing import get_constraint_flat_idxs
@@ -73,7 +75,7 @@ class Phase(om.Group):
             self._path_constraints = []
             self._timeseries = {'timeseries': {'transcription': None,
                                                'subset': 'all',
-                                               'outputs': {}}}
+                                               'outputs': []}}
             self._objectives = {}
         else:
             self.time_options.update(from_phase.time_options)
@@ -1175,7 +1177,7 @@ class Phase(om.Group):
 
                 # Handle specific units for wildcard names.
                 if '*' in name_i:
-                    self._timeseries[timeseries]['outputs'][name_i]['wildcard_units'] = units
+                    self._timeseries[timeseries]['outputs'][-1]['wildcard_units'] = units
 
         else:
             self._add_timeseries_output(name, output_name=output_name,
@@ -1216,13 +1218,17 @@ class Phase(om.Group):
         if timeseries not in self._timeseries:
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
-        if name not in self._timeseries[timeseries]['outputs']:
-            self._timeseries[timeseries]['outputs'][name] = {}
-            self._timeseries[timeseries]['outputs'][name]['output_name'] = output_name
-            self._timeseries[timeseries]['outputs'][name]['wildcard_units'] = {}
+        if output_name not in self._timeseries[timeseries]['outputs']:
+            ts_output = TimeseriesOutputOptionsDictionary()
+            ts_output['name'] = name
+            ts_output['output_name'] = output_name
+            ts_output['wildcard_units'] = {}
+            ts_output['units'] = units
+            ts_output['shape'] = shape
 
-        self._timeseries[timeseries]['outputs'][name]['units'] = units
-        self._timeseries[timeseries]['outputs'][name]['shape'] = shape
+            self._timeseries[timeseries]['outputs'].append(ts_output)
+        # else:
+        #     raise ValueError(f'Output name {name} is already in timeseries {timeseries}.')
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""
@@ -1241,7 +1247,7 @@ class Phase(om.Group):
         """
         self._timeseries[name] = {'transcription': transcription,
                                   'subset': subset,
-                                  'outputs': {}}
+                                  'outputs': []}
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None):

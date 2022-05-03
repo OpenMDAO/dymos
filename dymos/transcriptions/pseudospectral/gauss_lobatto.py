@@ -518,10 +518,12 @@ class GaussLobatto(PseudospectralBase):
                     # phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
                     #                src_indices=(src_idxs,), flat_src_indices=True)
 
-            for var, options in phase._timeseries[timeseries_name]['outputs'].items():
-                output_name = options['output_name']
-                units = options.get('units', None)
-                wildcard_units = options.get('wildcard_units', None)
+            for ts_output in phase._timeseries[timeseries_name]['outputs']:
+                var = ts_output['name']
+                output_name = ts_output['output_name']
+                units = ts_output['units']
+                wildcard_units = ts_output['wildcard_units']
+                shape = ts_output['shape']
 
                 if '*' in var:  # match outputs from the ODE
                     matches = filter(list(ode_outputs.keys()), var)
@@ -575,7 +577,7 @@ class GaussLobatto(PseudospectralBase):
                     try:
                         shape, units = get_source_metadata(ode_outputs, src=v,
                                                            user_units=units,
-                                                           user_shape=options['shape'])
+                                                           user_shape=shape)
                     except ValueError:
                         raise ValueError(f'Timeseries output {v} is not a known variable in'
                                          f' the phase {phase.pathname} nor is it a known output of '

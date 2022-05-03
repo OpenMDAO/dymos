@@ -11,6 +11,8 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.assert_utils import assert_near_equal
+
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT', fallback=True)
 
 
@@ -23,7 +25,7 @@ class TestDuplicateConstraints(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    def run_asserts(self, p):
+    def run_asserts(self, p, tol=0.01):
 
         t_initial = p.get_val('traj0.phase0.timeseries.time')[0]
         tf = p.get_val('traj0.phase0.timeseries.time')[-1]
@@ -39,20 +41,20 @@ class TestDuplicateConstraints(unittest.TestCase):
 
         g = p.get_val('traj0.phase0.timeseries.parameters:g')[0]
 
-        thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1]
+        thetaf = p.get_val('traj0.phase0.timeseries.controls:theta', units='deg')[-1]
 
-        assert_almost_equal(t_initial, 0.0)
-        assert_almost_equal(x0, 0.0)
-        assert_almost_equal(y0, 10.0)
-        assert_almost_equal(v0, 0.0)
+        assert_near_equal(t_initial, 0.0, tolerance=0.01)
+        assert_near_equal(x0, 0.0, tolerance=0.01)
+        assert_near_equal(y0, 10.0, tolerance=0.01)
+        assert_near_equal(v0, 0.0, tolerance=0.01)
 
-        assert_almost_equal(tf, 1.8016, decimal=4)
-        assert_almost_equal(xf, 10.0, decimal=3)
-        assert_almost_equal(yf, 5.0, decimal=3)
-        assert_almost_equal(vf, 9.902, decimal=3)
-        assert_almost_equal(g, 9.80665, decimal=3)
+        assert_near_equal(tf, 1.8016, tolerance=0.01)
+        assert_near_equal(xf, 10.0, tolerance=0.01)
+        assert_near_equal(yf, 5.0, tolerance=0.01)
+        assert_near_equal(vf, 9.902, tolerance=0.01)
+        assert_near_equal(g, 9.80665, tolerance=0.01)
 
-        assert_almost_equal(thetaf, 100.12, decimal=0)
+        assert_near_equal(thetaf, 100.12, tolerance=0.01)
 
     def test_duplicate_initial_constraint(self):
         p = om.Problem(model=om.Group())
@@ -517,3 +519,57 @@ class TestDuplicateConstraints(unittest.TestCase):
                     "boundary or path constraint.")
 
         self.assertEqual(str(e.exception), expected)
+
+    def test_duplicate_path_constraint_different_constraint_name(self):
+        p = om.Problem(model=om.Group())
+
+        p.driver = om.ScipyOptimizeDriver(tol=1.0E-6)
+        p.driver.declare_coloring(tol=1.0E-12)
+
+        tx = dm.Radau(num_segments=10, order=3)
+
+        traj = dm.Trajectory()
+        phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
+        p.model.add_subsystem('traj0', traj)
+        traj.add_phase('phase0', phase)
+
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.add_state('x', fix_initial=True, fix_final=True)
+        phase.add_state('y', fix_initial=True, fix_final=True)
+
+        # Note that by omitting the targets here Dymos will automatically attempt to connect
+        # to a top-level input named 'v' in the ODE, and connect to nothing if it's not found.
+        phase.add_state('v', fix_initial=True, fix_final=False)
+
+        phase.add_control('theta', units='rad', lower=1E-6, upper=np.pi)
+
+        phase.add_parameter('g', units='m/s**2')
+
+        # Constrain the ODE output "check", but with different names in different places.
+        phase.add_boundary_constraint('check', loc='final', lower=-50, upper=50)
+        phase.add_path_constraint('check', constraint_name='bounded_check', upper=100, lower=-100)
+        phase.add_objective('time', loc='final')
+
+        p.setup()
+
+        p.set_val('traj0.phase0.t_initial', 0.0)
+        p.set_val('traj0.phase0.t_duration', 2.0)
+
+        p.set_val('traj0.phase0.states:x', phase.interp('x', [0, 10]))
+        p.set_val('traj0.phase0.states:y', phase.interp('y', [10, 5]))
+        p.set_val('traj0.phase0.states:v', phase.interp('v', [0.001, 9.9]))
+        p.set_val('traj0.phase0.controls:theta', phase.interp('theta', [5, 90]), units='deg')
+        p.set_val('traj0.phase0.parameters:g', 9.80665)
+
+        p.run_model()
+
+        v = p.get_val('traj0.phase0.timeseries.states:v')
+        theta = p.get_val('traj0.phase0.timeseries.controls:theta', units='rad')
+
+        check_calc = v / np.sin(theta)
+        check_1 = p.get_val('traj0.phase0.timeseries.check')
+        check_2 = p.get_val('traj0.phase0.timeseries.bounded_check')
+
+        assert_near_equal(check_calc, check_1)
+        assert_near_equal(check_calc, check_2)

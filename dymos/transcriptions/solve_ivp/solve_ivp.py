@@ -640,10 +640,12 @@ class SolveIVP(TranscriptionBase):
                 phase.connect(f'parameter_vals:{name}', f'timeseries.all_values:parameters:{name}',
                               src_indices=src_idxs, flat_src_indices=True)
 
-        for var, options in phase._timeseries['timeseries']['outputs'].items():
-            output_name = options['output_name']
-            units = options.get('units', None)
-            wildcard_units = options.get('wildcard_units', None)
+        for ts_output in phase._timeseries['timeseries']['outputs']:
+            var = ts_output['name']
+            output_name = ts_output['output_name']
+            units = ts_output['units']
+            wildcard_units = ts_output['wildcard_units']
+            shape = ts_output['shape']
 
             if '*' in var:  # match outputs from the ODE
                 matches = filter(list(ode_outputs.keys()), var)
@@ -675,8 +677,7 @@ class SolveIVP(TranscriptionBase):
                                   f'sized such that its first dimension != num_nodes.')
                     continue
 
-                shape, units = get_source_metadata(ode_outputs, src=v, user_shape=options['shape'],
-                                                   user_units=units)
+                shape, units = get_source_metadata(ode_outputs, src=v, user_shape=shape, user_units=units)
 
                 try:
                     timeseries_comp._add_output_configure(output_name, shape=shape, units=units, desc='')
