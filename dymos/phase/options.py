@@ -671,7 +671,7 @@ class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
         super(TimeseriesOutputOptionsDictionary, self).__init__(read_only)
 
         self.declare(name='name', types=str, default=None, allow_none=True,
-                     desc='Name or ODE-relative path of the variable to be constrained.')
+                     desc='Name or ODE-relative path of the variable to be output in the timeseries.')
 
         self.declare(name='output_name', types=str, default=None, allow_none=True,
                      desc='Name of the variable used as the output from the timeseries, to avoid name collisions.')
@@ -681,7 +681,7 @@ class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
                           'with wildcards.')
 
         self.declare(name='shape', default=None, allow_none=True,
-                     desc='The shape of the constrained variable. This is generally determined automatically by dymos.')
+                     desc='The shape of the constrained variable. This is generally determined automatically by Dymos.')
 
         self.declare(name='units', default=None, allow_none=True,
                      desc='Units to be used for the timeseries output, or None to leave the units unchanged.')

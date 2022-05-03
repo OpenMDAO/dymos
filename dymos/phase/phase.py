@@ -1050,7 +1050,9 @@ class Phase(om.Group):
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
         if var_type == 'ode':
-            self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+            current_output_names = [op['output_name'] for op in self._timeseries['timeseries']['outputs']]
+            if constraint_name not in current_output_names:
+                self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
@@ -1133,7 +1135,9 @@ class Phase(om.Group):
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
         if var_type == 'ode':
-            self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+            current_output_names = [op['output_name'] for op in self._timeseries['timeseries']['outputs']]
+            if constraint_name not in current_output_names:
+                self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                               timeseries='timeseries'):
@@ -1218,7 +1222,9 @@ class Phase(om.Group):
         if timeseries not in self._timeseries:
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
-        if output_name not in self._timeseries[timeseries]['outputs']:
+        current_output_names = [op['output_name'] for op in self._timeseries[timeseries]['outputs']]
+
+        if output_name not in current_output_names:
             ts_output = TimeseriesOutputOptionsDictionary()
             ts_output['name'] = name
             ts_output['output_name'] = output_name
@@ -1227,8 +1233,9 @@ class Phase(om.Group):
             ts_output['shape'] = shape
 
             self._timeseries[timeseries]['outputs'].append(ts_output)
-        # else:
-        #     raise ValueError(f'Output name {name} is already in timeseries {timeseries}.')
+        else:
+            om.issue_warning(f'Output name `{output_name}` is already in timeseries `{timeseries}`. '
+                             f'New output ignored.')
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""
