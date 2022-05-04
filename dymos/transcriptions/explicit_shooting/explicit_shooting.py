@@ -494,14 +494,14 @@ class ExplicitShooting(TranscriptionBase):
                     phase.connect(f'parameter_vals:{param_name}', f'{timeseries_name}.{tgt_name}',
                                   src_indices=om.slicer[src_idxs, ...])
 
-            for var, options in integrator_comp._filtered_timeseries_outputs.items():
-                added_src = timeseries_comp._add_output_configure(var,
+            for output_name, options in integrator_comp._filtered_timeseries_outputs.items():
+                added_src = timeseries_comp._add_output_configure(output_name,
                                                                   shape=options['shape'],
                                                                   units=options['units'],
                                                                   src=options['path'])
 
-                phase.connect(src_name=f'integrator.timeseries:{var}',
-                              tgt_name=f'{timeseries_name}.input_values:{var}')
+                phase.connect(src_name=f'integrator.timeseries:{output_name}',
+                              tgt_name=f'{timeseries_name}.input_values:{output_name}')
 
     def get_parameter_connections(self, name, phase):
         """

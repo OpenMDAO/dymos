@@ -401,7 +401,6 @@ class TranscriptionBase(object):
         """
         for pc in phase._path_constraints:
             con_output, constraint_kwargs = self._get_constraint_kwargs('path', pc, phase)
-
             phase.add_constraint(con_output, **constraint_kwargs)
 
     def configure_objective(self, phase):

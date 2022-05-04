@@ -578,12 +578,10 @@ class RKIntegrationComp(om.ExplicitComponent):
         self._filtered_timeseries_outputs = {}
 
         for ts_name, ts_opts in self.timeseries_options.items():
-            patterns = list(ts_opts['outputs'].keys())
+            patterns = [output['name'] for output in ts_opts['outputs']]
             matching_outputs = filter_outputs(patterns, ode_outputs)
 
-            explicit_requests = set([key for key in
-                                     self.timeseries_options[ts_name]['outputs'].keys()
-                                     if '*' not in key])
+            explicit_requests = set([var for var in patterns if '*' not in var])
 
             unmatched_requests = sorted(list(set(explicit_requests) - set(matching_outputs.keys())))
 
@@ -593,11 +591,11 @@ class RKIntegrationComp(om.ExplicitComponent):
                                  category=om.OpenMDAOWarning)
 
             for var, var_meta in matching_outputs.items():
-                if var in self.timeseries_options[ts_name]['outputs']:
-                    ts_var_options = self.timeseries_options[ts_name]['outputs'][var]
+                if var in explicit_requests:
+                    ts_output = next((output for output in ts_opts['outputs'] if output['name'] == var))
                     # var explicitly matched
-                    output_name = ts_var_options['output_name'] if ts_var_options['output_name'] else var.split('.')[-1]
-                    units = ts_var_options.get('units', None) or var_meta.get('units', None)
+                    output_name = ts_output['output_name'] if ts_output['output_name'] else ts_output['name'].split('.')[-1]
+                    units = ts_output['units'] or var_meta.get('units', None)
                     shape = var_meta['shape']
                 else:
                     # var matched via wildcard
