@@ -681,7 +681,7 @@ class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
                           'with wildcards.')
 
         self.declare(name='shape', default=None, allow_none=True,
-                     desc='The shape of the constrained variable. This is generally determined automatically by Dymos.')
+                     desc='The shape of the timeseries output variable. This is generally determined automatically by Dymos.')
 
         self.declare(name='units', default=None, allow_none=True,
                      desc='Units to be used for the timeseries output, or None to leave the units unchanged.')
