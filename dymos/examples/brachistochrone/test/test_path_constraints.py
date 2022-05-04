@@ -1,6 +1,6 @@
 import unittest
 
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
 @use_tempdirs
@@ -203,6 +203,114 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         # Test the results
         assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+
+    @require_pyoptsparse(optimizer='IPOPT')
+    def test_state_path_constraint_radau(self):
+        import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_near_equal
+        import dymos as dm
+        from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
+
+        traj = dm.Trajectory()
+
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.Radau(num_segments=10,
+                                                compressed=False))
+
+        p.model.add_subsystem('traj0', traj)
+        traj.add_phase('phase0', phase)
+
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.add_state('x', fix_initial=True, fix_final=True)
+        phase.add_state('y', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True)
+
+        phase.add_control('theta', units='deg',
+                          rate_continuity=False, lower=0.01, upper=179.9)
+
+        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
+
+        # Minimize time at the end of the phase
+        phase.add_objective('time', loc='final', scaler=10)
+
+        phase.add_boundary_constraint('y', loc='final', equals=5)
+        phase.add_path_constraint('y', lower=5, upper=100)
+
+        p.model.linear_solver = om.DirectSolver()
+
+        p.setup()
+
+        p['traj0.phase0.t_initial'] = 0.0
+        p['traj0.phase0.t_duration'] = 2.0
+
+        p['traj0.phase0.states:x'] = phase.interp('x', ys=[0, 10])
+        p['traj0.phase0.states:y'] = phase.interp('y', ys=[10, 5])
+        p['traj0.phase0.states:v'] = phase.interp('v', ys=[0, 9.9])
+        p['traj0.phase0.controls:theta'] = phase.interp('theta', ys=[0.9, 101.5])
+
+        # Solve for the optimal trajectory
+        p.run_driver()
+
+        # Test the results
+        assert_near_equal(p.get_val('traj0.phase0.timeseries.time')[-1], 1.8029, tolerance=1.0E-3)
+
+    @require_pyoptsparse(optimizer='IPOPT')
+    def test_state_path_constraint_gl(self):
+        import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_near_equal
+        import dymos as dm
+        from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
+
+        traj = dm.Trajectory()
+
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=10,
+                                                       compressed=False))
+
+        p.model.add_subsystem('traj0', traj)
+        traj.add_phase('phase0', phase)
+
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.add_state('x', fix_initial=True, fix_final=True)
+        phase.add_state('y', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True)
+
+        phase.add_control('theta', units='deg',
+                          rate_continuity=False, lower=0.01, upper=179.9)
+
+        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
+
+        # Minimize time at the end of the phase
+        phase.add_objective('time', loc='final', scaler=10)
+
+        phase.add_boundary_constraint('y', loc='final', equals=5)
+        phase.add_path_constraint('y', lower=5, upper=100)
+
+        p.model.linear_solver = om.DirectSolver()
+
+        p.setup()
+
+        p['traj0.phase0.t_initial'] = 0.0
+        p['traj0.phase0.t_duration'] = 2.0
+
+        p['traj0.phase0.states:x'] = phase.interp('x', ys=[0, 10])
+        p['traj0.phase0.states:y'] = phase.interp('y', ys=[10, 5])
+        p['traj0.phase0.states:v'] = phase.interp('v', ys=[0, 9.9])
+        p['traj0.phase0.controls:theta'] = phase.interp('theta', ys=[0.9, 101.5])
+
+        # Solve for the optimal trajectory
+        p.run_driver()
+
+        # Test the results
+        assert_near_equal(p.get_val('traj0.phase0.timeseries.time')[-1], 1.8029, tolerance=1.0E-3)
 
 
 if __name__ == '__main__':  # pragma: no cover

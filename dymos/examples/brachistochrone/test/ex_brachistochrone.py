@@ -34,8 +34,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p.model.add_subsystem('traj0', traj)
     traj.add_phase('phase0', phase)
 
-    # p.model.add_subsystem('traj0', traj)
-
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
     phase.add_state('x', fix_initial=True, fix_final=False, solve_segments=solve_segments)
@@ -81,6 +79,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 
 if __name__ == '__main__':
-    p = brachistochrone_min_time(transcription='radau-ps', num_segments=3, run_driver=True,
+    p = brachistochrone_min_time(transcription='radau-ps', num_segments=20, run_driver=True,
                                  transcription_order=5, compressed=False, optimizer='SNOPT',
                                  solve_segments=False, force_alloc_complex=True)

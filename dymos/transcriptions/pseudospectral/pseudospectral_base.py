@@ -501,31 +501,31 @@ class PseudospectralBase(TranscriptionBase):
                                                                  output_subset=options['subset'])
             phase.add_subsystem(name, subsys=timeseries_comp)
 
-    def _get_boundary_constraint_src(self, var, loc, phase, ode_outputs=None):
+    def _get_objective_src(self, var, loc, phase, ode_outputs=None):
         """
-        Return the path to the variable that will be  constrained.
+        Return the path to the variable that will be used as the objective.
 
         Parameters
         ----------
         var : str
-            Name of the state.
+            Name of the variable to be used as the objective.
         loc : str
-            The location of the boundary constraint ['intitial', 'final'].
+            The location of the objective in the phase ['initial', 'final'].
         phase : dymos.Phase
-            Phase object containing the rate source.
-        ode_outputs : dict
-            A dictionary of the ODE outputs for the phase, as given by utils.introspection.get_promoted_vars.
+            Phase object containing in which the objective resides.
+        ode_outputs : dict or None
+            A dictionary of ODE outputs as returned by get_promoted_vars.
 
         Returns
         -------
-        str
+        obj_path : str
             Path to the source.
-        shape
+        shape : tuple
             Source shape.
-        str
+        units : str
             Source units.
-        bool
-            True if the constraint is linear.
+        linear : bool
+            True if the objective quantity1 is linear.
         """
         time_units = phase.time_options['units']
         var_type = phase.classify_var(var)
@@ -607,3 +607,14 @@ class PseudospectralBase(TranscriptionBase):
             linear = False
 
         return constraint_path, shape, units, linear
+
+    def _get_num_timeseries_nodes(self):
+        """
+        Returns the number of nodes in the default timeseries for this transcription.
+
+        Returns
+        -------
+        int
+            The number of nodes in the default timeseries for this transcription.
+        """
+        return self.grid_data.num_nodes

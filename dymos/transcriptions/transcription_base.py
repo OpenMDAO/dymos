@@ -4,10 +4,11 @@ import numpy as np
 
 import openmdao.api as om
 
-from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp, ParameterComp
+from .common import ControlGroup, PolynomialControlGroup, ParameterComp
 from ..utils.constants import INF_BOUND
-from ..utils.misc import get_rate_units, _unspecified
-from ..utils.introspection import get_promoted_vars, get_source_metadata, get_target_metadata
+from ..utils.indexing import get_constraint_flat_idxs
+from ..utils.misc import _unspecified
+from ..utils.introspection import get_promoted_vars, get_target_metadata
 
 
 class TranscriptionBase(object):
@@ -286,31 +287,7 @@ class TranscriptionBase(object):
         raise NotImplementedError('Transcription {0} does not implement method '
                                   'setup_timeseries_outputs.'.format(self.__class__.__name__))
 
-    def setup_boundary_constraints(self, loc, phase):
-        """
-        Setup the boundary constraints.
-
-        Adds BoundaryConstraintComp for initial and/or final boundary constraints if necessary
-        and issues appropriate connections.
-
-        Parameters
-        ----------
-        loc : str
-            The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        if loc not in ('initial', 'final'):
-            raise ValueError('loc must be one of \'initial\' or \'final\'.')
-
-        bc_dict = phase._initial_boundary_constraints \
-            if loc == 'initial' else phase._final_boundary_constraints
-
-        if bc_dict:
-            phase.add_subsystem(f'{loc}_boundary_constraints',
-                                subsys=BoundaryConstraintComp(loc=loc))
-
-    def configure_boundary_constraints(self, loc, phase):
+    def _configure_boundary_constraints(self, phase):
         """
         Configures the boundary constraints.
 
@@ -319,124 +296,99 @@ class TranscriptionBase(object):
 
         Parameters
         ----------
-        loc : str
-            The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        bc_dict = phase._initial_boundary_constraints \
-            if loc == 'initial' else phase._final_boundary_constraints
 
-        sys_name = f'{loc}_boundary_constraints'
-        bc_comp = phase._get_subsystem(sys_name)
-        ode_outputs = get_promoted_vars(self._get_ode(phase), 'output')
+        for ibc in phase._initial_boundary_constraints:
+            con_output, constraint_kwargs = self._get_constraint_kwargs('initial', ibc, phase)
+            phase.add_constraint(con_output, **constraint_kwargs)
 
-        for var, options in bc_dict.items():
-            con_name = options['constraint_name']
+        for fbc in phase._final_boundary_constraints:
+            con_output, constraint_kwargs = self._get_constraint_kwargs('final', fbc, phase)
+            phase.add_constraint(con_output, **constraint_kwargs)
 
-            _, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase, ode_outputs=ode_outputs)
-
-            if options['indices'] is not None:
-                # Sliced shape.
-                con_shape = (len(options['indices']), )
-                # Indices provided, make sure lower/upper/equals have shape of the indices.
-                if options['lower'] and not np.isscalar(options['lower']) and \
-                        np.asarray(options['lower']).shape != con_shape:
-                    raise ValueError('The lower bounds of boundary constraint on {0} are not '
-                                     'compatible with its shape, and no indices were '
-                                     'provided.'.format(var))
-
-                if options['upper'] and not np.isscalar(options['upper']) and \
-                        np.asarray(options['upper']).shape != con_shape:
-                    raise ValueError('The upper bounds of boundary constraint on {0} are not '
-                                     'compatible with its shape, and no indices were '
-                                     'provided.'.format(var))
-
-                if options['equals'] and not np.isscalar(options['equals']) and \
-                        np.asarray(options['equals']).shape != con_shape:
-                    raise ValueError('The equality boundary constraint value on {0} is not '
-                                     'compatible the provided indices. Provide them as a '
-                                     'flat array with the same size as indices.'.format(var))
-
-            else:
-                # Indices not provided, make sure lower/upper/equals have shape of source.
-                if 'lower' in options and options['lower'] is not None and \
-                        not np.isscalar(options['lower']) and np.asarray(options['lower']).shape != shape:
-                    raise ValueError('The lower bounds of boundary constraint on {0} are not '
-                                     'compatible with its shape, and no indices were '
-                                     'provided. Expected a shape of {1} but given shape '
-                                     'is {2}'.format(var, shape, np.asarray(options['lower']).shape))
-
-                if 'upper' in options and options['upper'] is not None and \
-                        not np.isscalar(options['upper']) and np.asarray(options['upper']).shape != shape:
-                    raise ValueError('The upper bounds of boundary constraint on {0} are not '
-                                     'compatible with its shape, and no indices were '
-                                     'provided. Expected a shape of {1} but given shape '
-                                     'is {2}'.format(var, shape, np.asarray(options['upper']).shape))
-
-                if 'equals' in options and options['equals'] is not None and \
-                        not np.isscalar(options['equals']) and np.asarray(options['equals']).shape != shape:
-                    raise ValueError('The equality boundary constraint value on {0} is not '
-                                     'compatible with its shape, and no indices were '
-                                     'provided. Expected a shape of {1} but given shape '
-                                     'is {2}'.format(var, shape, np.asarray(options['equals']).shape))
-
-            # Constraint options are a copy of options with constraint_name key removed.
-            con_options = options.copy()
-            con_options.pop('constraint_name')
-
-            # By now, all possible constraint target shapes should have been introspected.
-            con_options['shape'] = options['shape'] = shape
-
-            # If user overrides the introspected unit, then change the unit on the add_constraint call.
-            con_units = options['units']
-            con_options['units'] = units if con_units is None else con_units
-            con_options['linear'] = linear
-
-            bc_comp._add_constraint(con_name, **con_options)
-
-        if bc_comp:
-            bc_comp.configure_io()
-
-        for var, options in bc_dict.items():
-            con_name = options['constraint_name']
-
-            src, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase)
-
-            size = np.prod(shape)
-
-            # Build the correct src_indices regardless of shape
-            if loc == 'initial':
-                src_idxs = np.arange(size, dtype=int).reshape(shape)
-            else:
-                src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
-
-            src_idxs = (src_idxs,)
-
-            if 'parameters:' in src:
-                sys_name = '{0}_boundary_constraints'.format(loc)
-                tgt_name = '{0}_value_in:{1}'.format(loc, con_name)
-                phase.promotes(sys_name, inputs=[(tgt_name, src)],
-                               src_indices=src_idxs, flat_src_indices=True)
-
-            else:
-                phase.connect(src, f'{loc}_boundary_constraints.{loc}_value_in:{con_name}',
-                              src_indices=src_idxs, flat_src_indices=True)
-
-    def setup_path_constraints(self, phase):
+    def _get_constraint_kwargs(self, constraint_type, options, phase):
         """
-        Add a path constraint component if necessary.
+        Given the constraint options provide the keyword arguments for the OpenMDAO add_constraint method.
 
         Parameters
         ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        gd = self.grid_data
+        constraint_type : str
+            One of 'initial', 'final', or 'path'.
+        options : dict
+            The constraint options.
+        phase : Phase
+            The dymos phase to which the constraint applies.
 
-        if phase._path_constraints:
-            path_comp = PathConstraintComp(num_nodes=gd.num_nodes)
-            phase.add_subsystem('path_constraints', subsys=path_comp)
+        Returns
+        -------
+        con_output : str
+            The phase-relative path being constrained.
+        constraint_kwargs : dict
+            Keyword arguments for the OpenMDAO add_constraint method.
+        """
+        num_nodes = self._get_num_timeseries_nodes()
+
+        constraint_kwargs = {key: options for key, options in options.items()}
+        con_name = constraint_kwargs.pop('constraint_name')
+
+        # Determine the path to the variable which we will be constraining
+        var = options['name']
+        var_type = phase.classify_var(var)
+
+        # These are the flat indices at a single point in time used
+        # in either initial, final, or path constraints.
+        idxs_in_initial = phase._indices_in_constraints(var, 'initial')
+        idxs_in_final = phase._indices_in_constraints(var, 'final')
+        idxs_in_path = phase._indices_in_constraints(var, 'path')
+
+        size = np.prod(options['shape'], dtype=int)
+
+        flat_idxs = get_constraint_flat_idxs(options)
+
+        # Now we need to convert the indices given by the user at any given point
+        # to flat indices to be given to OpenMDAO as flat indices spanning the phase.
+        if var_type == 'parameter':
+            if any([idxs_in_initial.intersection(idxs_in_final),
+                    idxs_in_initial.intersection(idxs_in_path),
+                    idxs_in_final.intersection(idxs_in_path)]):
+                raise RuntimeError(f'In phase {phase.pathname}, parameter `{var}` is subject to multiple boundary '
+                                   f'or path constraints.\nParameters are single values that do not change in '
+                                   f'time, and may only be used in a single boundary or path constraint.')
+            constraint_kwargs['indices'] = flat_idxs
+        else:
+            if constraint_type == 'initial':
+                constraint_kwargs['indices'] = flat_idxs
+            elif constraint_type == 'final':
+                constraint_kwargs['indices'] = size * (num_nodes - 1) + flat_idxs
+            else:
+                # This is a path constraint.
+                # Remove any flat indices involved in an initial constraint from the path constraint
+                flat_idxs_set = set(flat_idxs.tolist())
+                idxs_not_in_initial = list(flat_idxs_set - idxs_in_initial)
+
+                # Remove any flat indices involved in the final constraint from the path constraint
+                idxs_not_in_final = list(flat_idxs_set - idxs_in_final)
+                idxs_not_in_final = (size * (num_nodes - 1) + np.asarray(idxs_not_in_final)).tolist()
+                intermediate_idxs = []
+                for i in range(1, num_nodes - 1):
+                    intermediate_idxs.extend((size * i + flat_idxs).tolist())
+                constraint_kwargs['indices'] = idxs_not_in_initial + intermediate_idxs + idxs_not_in_final
+
+        alias_map = {'path': 'path_constraint',
+                     'initial': 'initial_boundary_constraint',
+                     'final': 'final_boundary_constraint'}
+
+        str_idxs = '' if options['indices'] is None else f'{options["indices"]}'
+
+        constraint_kwargs['alias'] = f'{phase.pathname}->{alias_map[constraint_type]}->{con_name}{str_idxs}'
+        constraint_kwargs.pop('name')
+        con_path = constraint_kwargs.pop('constraint_path')
+        constraint_kwargs.pop('shape')
+        constraint_kwargs['flat_indices'] = True
+
+        return con_path, constraint_kwargs
 
     def configure_path_constraints(self, phase):
         """
@@ -447,116 +399,10 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        time_units = phase.time_options['units']
+        for pc in phase._path_constraints:
+            con_output, constraint_kwargs = self._get_constraint_kwargs('path', pc, phase)
 
-        for var, options in phase._path_constraints.items():
-            constraint_kwargs = options.copy()
-            con_units = constraint_kwargs['units'] = options.get('units', None)
-            con_name = constraint_kwargs.pop('constraint_name')
-
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
-
-            if var_type == 'time':
-                constraint_kwargs['shape'] = (1,)
-                constraint_kwargs['units'] = time_units if con_units is None else con_units
-                constraint_kwargs['linear'] = True
-
-            elif var_type == 'time_phase':
-                constraint_kwargs['shape'] = (1,)
-                constraint_kwargs['units'] = time_units if con_units is None else con_units
-                constraint_kwargs['linear'] = True
-
-            elif var_type == 'state':
-                state_shape = phase.state_options[var]['shape']
-                state_units = phase.state_options[var]['units']
-                constraint_kwargs['shape'] = state_shape
-                constraint_kwargs['units'] = state_units if con_units is None else con_units
-                constraint_kwargs['linear'] = False
-
-            elif var_type == 'indep_control':
-                control_shape = phase.control_options[var]['shape']
-                control_units = phase.control_options[var]['units']
-
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = control_units if con_units is None else con_units
-                constraint_kwargs['linear'] = True
-
-            elif var_type == 'input_control':
-                control_shape = phase.control_options[var]['shape']
-                control_units = phase.control_options[var]['units']
-
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = control_units if con_units is None else con_units
-                constraint_kwargs['linear'] = True
-
-            elif var_type == 'indep_polynomial_control':
-                control_shape = phase.polynomial_control_options[var]['shape']
-                control_units = phase.polynomial_control_options[var]['units']
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = control_units if con_units is None else con_units
-                constraint_kwargs['linear'] = False
-
-            elif var_type == 'input_polynomial_control':
-                control_shape = phase.polynomial_control_options[var]['shape']
-                control_units = phase.polynomial_control_options[var]['units']
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = control_units if con_units is None else con_units
-                constraint_kwargs['linear'] = False
-
-            elif var_type == 'control_rate':
-                control_name = var[:-5]
-                control_shape = phase.control_options[control_name]['shape']
-                control_units = phase.control_options[control_name]['units']
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=1) \
-                    if con_units is None else con_units
-
-            elif var_type == 'control_rate2':
-                control_name = var[:-6]
-                control_shape = phase.control_options[control_name]['shape']
-                control_units = phase.control_options[control_name]['units']
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=2) \
-                    if con_units is None else con_units
-
-            elif var_type == 'polynomial_control_rate':
-                control_name = var[:-5]
-                control_shape = phase.polynomial_control_options[control_name]['shape']
-                control_units = phase.polynomial_control_options[control_name]['units']
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=1) \
-                    if con_units is None else con_units
-
-            elif var_type == 'polynomial_control_rate2':
-                control_name = var[:-6]
-                control_shape = phase.polynomial_control_options[control_name]['shape']
-                control_units = phase.polynomial_control_options[control_name]['units']
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=2) \
-                    if con_units is None else con_units
-
-            else:
-                # Failed to find variable, assume it is in the ODE. This requires introspection.
-                ode = phase._get_subsystem(self._rhs_source)
-
-                shape, units = get_source_metadata(ode, src=var,
-                                                   user_units=options['units'],
-                                                   user_shape=options['shape'])
-
-                constraint_kwargs['linear'] = False
-                constraint_kwargs['shape'] = shape
-                constraint_kwargs['units'] = units
-
-            # Propagate the introspected shape back into the options dict.
-            # Some transcriptions use this later.
-            options['shape'] = constraint_kwargs['shape']
-
-            constraint_kwargs.pop('constraint_name', None)
-            phase._get_subsystem('path_constraints')._add_path_constraint_configure(con_name, **constraint_kwargs)
+            phase.add_constraint(con_output, **constraint_kwargs)
 
     def configure_objective(self, phase):
         """
@@ -571,7 +417,7 @@ class TranscriptionBase(object):
             index = options['index']
             loc = options['loc']
 
-            obj_path, shape, units, _ = self._get_boundary_constraint_src(name, loc, phase)
+            obj_path, shape, units, _ = self._get_objective_src(name, loc, phase)
 
             shape = options['shape'] if shape is None else shape
 
@@ -603,13 +449,38 @@ class TranscriptionBase(object):
                                               scaler=options['scaler'],
                                               parallel_deriv_color=options['parallel_deriv_color'])
 
-    def _get_boundary_constraint_src(self, name, loc, phase, ode_outputs=None):
-        raise NotImplementedError('Transcription {0} does not implement method'
-                                  '_get_boundary_constraint_source.'.format(self.__class__.__name__))
+    def _get_objective_src(self, name, loc, phase, ode_outputs=None):
+        """
+        Return the path to the variable that will be used as the objective.
+
+        Parameters
+        ----------
+        var : str
+            Name of the variable to be used as the objective.
+        loc : str
+            The location of the objective in the phase ['initial', 'final'].
+        phase : dymos.Phase
+            Phase object containing in which the objective resides.
+        ode_outputs : dict or None
+            A dictionary of ODE outputs as returned by get_promoted_vars.
+
+        Returns
+        -------
+        obj_path : str
+            Path to the source.
+        shape : tuple
+            Source shape.
+        units : str
+            Source units.
+        linear : bool
+            True if the objective quantity1 is linear.
+        """
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
+                                  '_get_objective_src.')
 
     def _get_rate_source_path(self, name, loc, phase):
-        raise NotImplementedError('Transcription {0} does not implement method'
-                                  '_get_rate_source_path.'.format(self.__class__.__name__))
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
+                                  '_get_rate_source_path.')
 
     def _get_ode(self, phase):
         """
@@ -701,3 +572,15 @@ class TranscriptionBase(object):
         """
         raise NotImplementedError(f'The transcription {self.__class__} does not provide an '
                                   f'implementation of _requires_continuity_constraints')
+
+    def _get_num_timeseries_nodes(self):
+        """
+        Returns the number of nodes in the default timeseries for this transcription.
+
+        Returns
+        -------
+        int
+            The number of nodes in the default timeseries for this transcription.
+        """
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
+                                  '_get_num_timeseries_nodes.')

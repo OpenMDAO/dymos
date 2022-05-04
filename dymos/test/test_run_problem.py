@@ -313,6 +313,7 @@ class TestRunProblem(unittest.TestCase):
                          'the argument "case_prefix", not part of the simulate_kwargs dictionary.')
 
     @require_pyoptsparse(optimizer='SLSQP')
+    @unittest.skip(reason='Skipped until the OpenMDAO issue of coloring changing the case_prefix is resolved.')
     def test_run_brachistochrone_problem_refine_case_driver_case_prefix(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
@@ -367,6 +368,7 @@ class TestRunProblem(unittest.TestCase):
             self.assertTrue(case.startswith('hp_') and 'pyOptSparse_SLSQP|' in case, msg=f'Unexpected case: {case}')
 
     @require_pyoptsparse(optimizer='SLSQP')
+    @unittest.skip(reason='Skipped until the OpenMDAO issue of coloring changing the case_prefix is resolved.')
     def test_run_brachistochrone_problem_refine_case_prefix(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
@@ -374,6 +376,7 @@ class TestRunProblem(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
 
         p.driver.add_recorder(om.SqliteRecorder('brach_driver_rec.db'))
+        p.driver.options['debug_print'] = ['desvars']
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=BrachistochroneODE,
