@@ -1522,7 +1522,7 @@ class TestInvalidLinkages(unittest.TestCase):
                            val=0.5, units=None, opt=False, static_target=True)
 
         traj.add_parameter('m', units='kg', val=1.0,
-                           targets={'ascent': 'mass', 'descent': 'mass'}, static_target=True)
+                           targets={'ascent': 'm', 'descent': 'm'}, static_target=True)
 
         # In this case, by omitting targets, we're connecting these
         # parameters to parameters with the same name in each phase.

@@ -1530,7 +1530,10 @@ class Phase(om.Group):
                                              time_units=self.time_options['units'])
 
         if self.parameter_options:
-            configure_parameters_introspection(self.parameter_options, ode)
+            try:
+                configure_parameters_introspection(self.parameter_options, ode)
+            except ValueError as e:
+                raise ValueError(f'Invalid parameter in phase `{self.pathname}`.\n{str(e)}') from e
 
         self.configure_state_discovery()
         configure_states_introspection(self.state_options, self.time_options, self.control_options,

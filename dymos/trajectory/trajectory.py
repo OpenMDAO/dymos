@@ -357,24 +357,42 @@ class Trajectory(om.Group):
                 elif targets[phase_name] is None:
                     # Connections to this phase are explicitly omitted
                     continue
-                elif isinstance(targets[phase_name], str) and \
-                        targets[phase_name] in phs.parameter_options:
-                    # Connect to an input parameter with a different name in this phase
-                    tgt = f'{phase_name}.parameters:{targets[phase_name]}'
-                    tgt_shapes[phs.name] = phs.parameter_options[targets[phase_name]]['shape']
-                    tgt_units[phs.name] = phs.parameter_options[targets[phase_name]]['units']
-                elif isinstance(targets[phase_name], Sequence) and \
-                        name in phs.parameter_options:
-                    # User gave a list of ODE targets which were passed to the creation of a
-                    # new input parameter in setup, just connect to that new input parameter
-                    tgt = f'{phase_name}.parameters:{name}'
-                    tgt_shapes[phs.name] = phs.parameter_options[name]['shape']
-                    tgt_units[phs.name] = phs.parameter_options[name]['units']
+                elif isinstance(targets[phase_name], str):
+                    if targets[phase_name] in phs.parameter_options:
+                        # Connect to an input parameter with a different name in this phase
+                        tgt = f'{phase_name}.parameters:{targets[phase_name]}'
+                        tgt_shapes[phs.name] = phs.parameter_options[targets[phase_name]]['shape']
+                        tgt_units[phs.name] = phs.parameter_options[targets[phase_name]]['units']
+                    else:
+                        msg = f'Invalid target for trajectory `{self.pathname}` parameter `{name}` in phase ' \
+                              f"`{phase_name}`.\nTarget for phase `{phase_name}` is '{targets[phase_name]}' but " \
+                              f"the phase has no such parameter."
+                        raise ValueError(msg)
+                elif isinstance(targets[phase_name], Sequence):
+                    if name in phs.parameter_options:
+                        # User gave a list of ODE targets which were passed to the creation of a
+                        # new input parameter in setup, just connect to that new input parameter
+                        tgt = f'{phase_name}.parameters:{name}'
+                        tgt_shapes[phs.name] = phs.parameter_options[name]['shape']
+                        tgt_units[phs.name] = phs.parameter_options[name]['units']
+                    else:
+                        msg = f'Invalid target for trajectory `{self.pathname}` parameter `{name}` in phase ' \
+                              f"`{phase_name}`.\nThe phase did not add the parameter as expected. Please file an " \
+                              f"issue with the Dymos development team at https://github.com/OpenMDAO/dymos"
+                        raise RuntimeError(msg)
                 else:
                     raise ValueError(f'Unhandled target(s) ({targets[phase_name]}) for parameter {name} in '
-                                     f'phase {phase_name}.  If connecting to ODE inputs in the phase, '
+                                     f'phase {phase_name}. If connecting to ODE inputs in the phase, '
                                      f'format the targets as a sequence of strings.')
                 tgts.append(tgt)
+
+            if not tgts:
+                # Find the reason
+                if targets is None:
+                    reason = f'Option `targets=None` but no phase in the trajectory has a parameter named `{name}`.'
+                elif all([t is None for t in targets.values()]) and set(targets.keys()) == set(self._phases.keys()):
+                    reason = f'Option `targets` is a dictionary keyed by phase name but target for each phase is None.'
+                raise ValueError(f'No target was found for trajectory parameter `{name}` in any phase.\n{reason}')
 
             if options['shape'] is _unspecified:
                 if len(set(tgt_shapes.values())) == 1:
