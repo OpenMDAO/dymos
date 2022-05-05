@@ -1,7 +1,7 @@
 *******************************
 # Release Notes for Dymos 1.5.0
 
-May 02, 2022
+May 05, 2022
 
 This is version 1.5.0 of Dymos.
 
