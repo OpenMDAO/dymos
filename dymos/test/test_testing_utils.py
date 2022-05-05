@@ -197,29 +197,37 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         x1 = np.atleast_2d(np.sin(t1)).T
         x2 = np.atleast_2d(np.sin(t2)).T
 
-        with self.assertRaises(ValueError) as e:
+        with self.assertRaises(AssertionError) as e:
             assert_timeseries_near_equal(t1, x1, t2, x2)
 
-        expected = "The initial time of the two timeseries is not the same. t1[0]=0.0  " \
-                   "t2[0]=5.0  difference: 5.0"
+        expected = 'The initial value of time in the two timeseries differ by more than the allowable tolerance.\n' \
+                   't1_initial: 0.0  t2_initial: 5.0\n' \
+                   'Pass argument `check_time=False` to ignore this error and only compare the values in the two ' \
+                   'timeseries in the overlapping region of time.'
 
         self.assertEqual(str(e.exception), expected)
 
+        assert_timeseries_near_equal(t1, x1, t2, x2, check_time=False)
+
     def test_assert_different_final_time(self):
 
-        t1 = np.linspace(0, 100, 50)
-        t2 = np.linspace(0, 102, 50)
+        t1 = np.linspace(0, 3.0, 50)
+        t2 = np.linspace(0, 3.14, 50)
 
         x1 = np.atleast_2d(np.sin(t1)).T
         x2 = np.atleast_2d(np.sin(t2)).T
 
-        with self.assertRaises(ValueError) as e:
+        with self.assertRaises(AssertionError) as e:
             assert_timeseries_near_equal(t1, x1, t2, x2)
 
-        expected = "The final time of the two timeseries is not the same. t1[0]=100.0  " \
-                   "t2[0]=102.0  difference: 2.0"
+        expected = 'The final value of time in the two timeseries differ by more than the allowable tolerance.\n' \
+                   't1_final: 3.0  t2_final: 3.14\n' \
+                   'Pass argument `check_time=False` to ignore this error and only compare the values in the two ' \
+                   'timeseries in the overlapping region of time.'
 
         self.assertEqual(str(e.exception), expected)
+
+        assert_timeseries_near_equal(t1, x1, t2, x2, check_time=False, tolerance=1.0E-6)
 
     def test_assert_different_values(self):
 
