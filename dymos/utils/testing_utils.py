@@ -231,7 +231,7 @@ def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=None, atol=1.0E-2, rt
 
             msg = f'The two timeseries do not agree to the specified tolerance (atol: {atol} rtol: {rtol}).\n' \
                   'The largest discrepancy is:\n' \
-                  f'time: {t_check[max_err_idx]}\n' \
+                  f'time: {t_check[max_err_idx]:0.{sigfigs}f}\n' \
                   f'x1: {x1_at_err}\n' \
                   f'x2: {x2_at_err}\n' \
                   f'rel err: {rel_err}\n' \
