@@ -191,8 +191,8 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
 
     def test_assert_different_initial_time(self):
 
-        t1 = np.linspace(0, 100, 50)
-        t2 = np.linspace(5, 100, 50)
+        t1 = np.linspace(0, 3.14, 50)
+        t2 = np.linspace(0.5, 3.14, 50)
 
         x1 = np.atleast_2d(np.sin(t1)).T
         x2 = np.atleast_2d(np.sin(t2)).T
@@ -201,7 +201,7 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
             assert_timeseries_near_equal(t1, x1, t2, x2)
 
         expected = 'The initial value of time in the two timeseries differ by more than the allowable tolerance.\n' \
-                   't1_initial: 0.0  t2_initial: 5.0\n' \
+                   't1_initial: 0.0  t2_initial: 0.5\n' \
                    'Pass argument `check_time=False` to ignore this error and only compare the values in the two ' \
                    'timeseries in the overlapping region of time.'
 
@@ -237,9 +237,9 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         x2 = np.atleast_2d(np.cos(t2)).T
 
         with self.assertRaises(AssertionError) as e:
-            assert_timeseries_near_equal(t1, x1, t2, x2)
+            assert_timeseries_near_equal(t1, x1, t2, x2, atol=1.0E-6, rtol=1.0E-6)
 
-        expected = 'The two timeseries do not agree to the specified tolerance (atol: 0.01 rtol: 0.01).\n' \
+        expected = 'The two timeseries do not agree to the specified tolerance (atol: 1e-06 rtol: 1e-06).\n' \
                    'The largest discrepancy is:\n' \
                    'time: 2.372221\n' \
                    'x1: [0.695684]\n' \

@@ -1,3 +1,4 @@
+import math
 import numpy as np
 
 from scipy.interpolate import interp1d
@@ -156,78 +157,84 @@ def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=None, atol=1.0E-2, rt
         raise ValueError('The shape of the variable in the two timeseries is not equal '
                          f'x1 is {shape1}  x2 is {shape2}')
 
+    size = shape_to_len(shape1)
+
     if tolerance is not None:
-        om.issue_warning('The tolerance argument in assert_timeseries_near_equal is deprecated. Please specify'
+        om.issue_warning('The tolerance argument in assert_timeseries_near_equal is deprecated. Please specify '
                          'atol and rtol.', om.OMDeprecationWarning)
         rtol = tolerance
         atol = tolerance
 
-    if check_time:
-        assert np.all(np.abs(t1[0] - t2[0]) < rtol * np.abs(t1[0]) + atol), \
-            'The initial value of time in the two timeseries differ by more than the allowable tolerance.\n'\
-            f't1_initial: {t1[0]}  t2_initial: {t2[0]}\n'\
-            'Pass argument `check_time=False` to ignore this error and only compare the values in the two timeseries ' \
-            'in the overlapping region of time.'
+    sigfigs = int(max(-math.log10(atol), -math.log10(rtol)))
+    format_str = f'{{:0.{sigfigs}f}}'
 
-        assert np.all(np.abs(t1[-1] - t2[-1]) < rtol * np.abs(t1[-1]) + atol), \
-            'The final value of time in the two timeseries differ by more than the allowable tolerance.\n'\
-            f't1_final: {t1[-1]}  t2_final: {t2[-1]}\n'\
-            'Pass argument `check_time=False` to ignore this error and only compare the values in the two timeseries ' \
-            'in the overlapping region of time.'
+    with np.printoptions(formatter={'float': format_str.format}):
 
-    size = np.prod(shape1)
+        if check_time:
+            assert np.all(np.abs(t1[0] - t2[0]) < rtol * np.abs(t1[0]) + atol), \
+                'The initial value of time in the two timeseries differ by more than the allowable tolerance.\n'\
+                f't1_initial: {t1[0]}  t2_initial: {t2[0]}\n'\
+                'Pass argument `check_time=False` to ignore this error and only compare the values in the two timeseries ' \
+                'in the overlapping region of time.'
 
-    nn1 = x1.shape[0]
-    a1 = np.reshape(x1, newshape=(nn1, size))
-    t1_unique, idxs1 = np.unique(t1.ravel(), return_index=True)
+            assert np.all(np.abs(t1[-1] - t2[-1]) < rtol * np.abs(t1[-1]) + atol), \
+                'The final value of time in the two timeseries differ by more than the allowable tolerance.\n'\
+                f't1_final: {t1[-1]}  t2_final: {t2[-1]}\n'\
+                'Pass argument `check_time=False` to ignore this error and only compare the values in the two timeseries ' \
+                'in the overlapping region of time.'
 
-    nn2 = x2.shape[0]
-    a2 = np.reshape(x2, newshape=(nn2, size))
-    t2_unique, idxs2 = np.unique(t2.ravel(), return_index=True)
+        nn1 = x1.shape[0]
+        a1 = np.reshape(x1, newshape=(nn1, size))
+        t1_unique, idxs1 = np.unique(t1.ravel(), return_index=True)
 
-    # The interval in which the two timeseries overlap.
-    t_overlap = (max(t1[0], t2[0]), min(t1[-1], t2[-1]))
+        nn2 = x2.shape[0]
+        a2 = np.reshape(x2, newshape=(nn2, size))
+        t2_unique, idxs2 = np.unique(t2.ravel(), return_index=True)
 
-    t1_overlap_idxs = np.where(np.logical_and(t_overlap[0] < t1_unique, t1_unique < t_overlap[1]))[0]
-    t2_overlap_idxs =  np.where(np.logical_and(t_overlap[0] < t2_unique, t2_unique < t_overlap[1]))[0]
+        # The interval in which the two timeseries overlap.
+        t_overlap = (max(t1[0], t2[0]), min(t1[-1], t2[-1]))
 
-    if len(t1_overlap_idxs) == 0:
-        raise ValueError(f'There are no values for the first timeseries in the region of overlapping time {t_overlap}')
-    if len(t2_overlap_idxs) == 0:
-        raise ValueError(f'There are no values for the first timeseries in the region of overlapping time {t_overlap}')
+        t1_overlap_idxs = np.where(np.logical_and(t_overlap[0] < t1_unique, t1_unique < t_overlap[1]))[0]
+        t2_overlap_idxs = np.where(np.logical_and(t_overlap[0] < t2_unique, t2_unique < t_overlap[1]))[0]
 
-    if nn1 > nn2:
-        # The first timeseries is more dense
-        t_to_interp = t1_unique[t1_overlap_idxs]
-        x_to_interp = a1[idxs1[t1_overlap_idxs], ...]
-        t_check = t2_unique[t2_overlap_idxs]
-        x_check = x2[t2_overlap_idxs, ...]
-    else:
-        # The second timeseries is more dense
-        t_to_interp = t2_unique[t2_overlap_idxs]
-        x_to_interp = a2[idxs2[t2_overlap_idxs], ...]
-        t_check = t1_unique[t1_overlap_idxs]
-        x_check = x1[t1_overlap_idxs, ...]
+        if len(t1_overlap_idxs) == 0:
+            raise ValueError(f'There are no values for the first timeseries in the region of overlapping time {t_overlap}')
+        if len(t2_overlap_idxs) == 0:
+            raise ValueError(f'There are no values for the first timeseries in the region of overlapping time {t_overlap}')
 
-    interp = interp1d(x=t_to_interp, y=x_to_interp, kind='slinear', axis=0, bounds_error=False, fill_value='extrapolate')
-    num_points = shape_to_len(t_check.shape)
-    x_interp = np.reshape(interp(t_check), newshape=(num_points,) + shape1)
+        if nn1 > nn2:
+            print(1)
+            # The first timeseries is more dense
+            t_to_interp = t1_unique
+            x_to_interp = a1[idxs1, ...]
+            t_check = t2_unique[t2_overlap_idxs]
+            x_check = x2[idxs2[t2_overlap_idxs], ...]
+        else:
+            # The second timeseries is more dense
+            t_to_interp = t2_unique
+            x_to_interp = a2[idxs2, ...]
+            t_check = t1_unique[t1_overlap_idxs]
+            x_check = x1[idxs1[t1_overlap_idxs], ...]
 
-    error_calc = np.abs(x_check - x_interp) < rtol * np.abs(x_check) + atol
+        interp = interp1d(x=t_to_interp, y=x_to_interp, kind='slinear', axis=0, bounds_error=False, fill_value='extrapolate')
+        num_points = shape_to_len(t_check.shape)
+        x_interp = np.reshape(interp(t_check), newshape=(num_points,) + shape1)
 
-    if not error_calc.all():
-        max_err_idx = np.argmax(np.abs(x_check - x_interp) - rtol * np.abs(x_check) + atol)
-        x1_at_err = x_interp[max_err_idx] if nn1 > nn2 else x_check[max_err_idx]
-        x2_at_err = x_check[max_err_idx] if nn1 > nn2 else x_interp[max_err_idx]
-        abs_err = np.abs(x_check[max_err_idx] - x_interp[max_err_idx])
-        rel_err = abs_err / np.abs(x_check[max_err_idx])
+        error_calc = np.abs(x_check - x_interp) < rtol * np.abs(x_check) + atol
 
-        msg = f'The two timeseries do not agree to the specified tolerance (atol: {atol} rtol: {rtol}).\n' \
-              'The largest discrepancy is:\n' \
-              f'time: {np.round(t_check[max_err_idx], 6)}\n' \
-              f'x1: {np.round(x1_at_err, 6)}\n' \
-              f'x2: {np.round(x2_at_err, 6)}\n' \
-              f'rel err: {np.round(rel_err, 6)}\n' \
-              f'abs err: {np.round(abs_err, 6)}'
+        if not error_calc.all():
+            max_err_idx = np.argmax(np.abs(x_check - x_interp) - rtol * np.abs(x_check) + atol)
+            x1_at_err = x_interp[max_err_idx] if nn1 > nn2 else x_check[max_err_idx]
+            x2_at_err = x_check[max_err_idx] if nn1 > nn2 else x_interp[max_err_idx]
+            abs_err = np.abs(x_check[max_err_idx] - x_interp[max_err_idx])
+            rel_err = abs_err / np.abs(x_check[max_err_idx])
 
-        assert np.all(np.abs(x_check - x_interp) < rtol * np.abs(x_check) + atol), msg
+            msg = f'The two timeseries do not agree to the specified tolerance (atol: {atol} rtol: {rtol}).\n' \
+                  'The largest discrepancy is:\n' \
+                  f'time: {t_check[max_err_idx]}\n' \
+                  f'x1: {x1_at_err}\n' \
+                  f'x2: {x2_at_err}\n' \
+                  f'rel err: {rel_err}\n' \
+                  f'abs err: {abs_err}'
+
+            assert np.all(np.abs(x_check - x_interp) < rtol * np.abs(x_check) + atol), msg

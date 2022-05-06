@@ -108,11 +108,11 @@ class TestIntegrateControl(unittest.TestCase):
         theta_rate_sol = sol.get_val('traj.phase0.timeseries.controls:theta_rate')
         theta_rate_sim = sim.get_val('traj.phase0.timeseries.controls:theta_rate')
 
-        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, tolerance=1.0E-3)
-        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, tolerance=1.0E-3)
-        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, tolerance=1.0E-3)
-        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sim, int_theta_sim, tolerance=1.0E-3)
-        assert_timeseries_near_equal(t_sol, theta_rate_sol, t_sim, theta_rate_sim, tolerance=1.0E-3)
+        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rtol=1.0E-2, atol=1.0E-2)
+        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rtol=1.0E-2, atol=1.0E-2)
+        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rtol=1.0E-2, atol=1.0E-2)
+        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sim, int_theta_sim, rtol=1.0E-2, atol=1.0E-2)
+        assert_timeseries_near_equal(t_sol, theta_rate_sol, t_sim, theta_rate_sim, rtol=1.0E-2, atol=1.0E-2)
 
     def _test_integrate_control_rate(self, transcription):
 
@@ -213,10 +213,10 @@ class TestIntegrateControl(unittest.TestCase):
         theta_sol = sol.get_val('traj.phase0.timeseries.controls:theta')
         theta_sim = sim.get_val('traj.phase0.timeseries.controls:theta')
 
-        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, tolerance=1.0E-3)
-        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, tolerance=1.0E-3)
-        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, tolerance=1.0E-3)
-        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sim, int_theta_sim, tolerance=1.0E-3)
+        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rtol=1.0E-2, atol=1.0E-2)
+        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rtol=1.0E-2, atol=1.0E-2)
+        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rtol=1.0E-2, atol=1.0E-2)
+        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sim, int_theta_sim, rtol=1.0E-2, atol=1.0E-2)
 
         assert_timeseries_near_equal(t_sol, int_theta_sol, t_sol, theta_sol, tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sim, int_theta_sim, t_sim, theta_sim, tolerance=1.0E-2)
@@ -451,9 +451,9 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         theta_rate_sol = sol.get_val('traj.phase0.timeseries.polynomial_controls:theta_rate')
         theta_rate_sim = sim.get_val('traj.phase0.timeseries.polynomial_controls:theta_rate')
 
-        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, tolerance=1.0E-3)
-        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, tolerance=1.0E-3)
-        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, tolerance=1.0E-3)
+        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rtol=1.0E-2, atol=1.0E-2)
+        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rtol=1.0E-2, atol=1.0E-2)
+        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rtol=1.0E-2, atol=1.0E-2)
         assert_timeseries_near_equal(t_sol, int_theta_sol, t_sim, int_theta_sim, tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sol, theta_rate_sol, t_sim, theta_rate_sim, tolerance=1.0E-2)
 
@@ -556,14 +556,14 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         theta_sol = sol.get_val('traj.phase0.timeseries.polynomial_controls:theta')
         theta_sim = sim.get_val('traj.phase0.timeseries.polynomial_controls:theta')
 
-        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, tolerance=1.0E-3)
-        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, tolerance=1.0E-3)
-        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, tolerance=1.0E-3)
+        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rtol=1.0E-3, atol=1.0E-3)
+        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rtol=1.0E-3, atol=1.0E-3)
+        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rtol=1.0E-3, atol=1.0E-3)
         assert_timeseries_near_equal(t_sol, int_theta_sol, t_sim, int_theta_sim,
-                                     tolerance=1.0E-3)
+                                     rtol=1.0E-3, atol=1.0E-3)
 
-        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sol, theta_sol, tolerance=1.0E-3)
-        # assert_timeseries_near_equal(t_sol, int_theta_sim, t_sol, theta_sim, tolerance=1.0E-3)
+        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sol, theta_sol, rtol=1.0E-3, atol=1.0E-3)
+        # assert_timeseries_near_equal(t_sol, int_theta_sim, t_sol, theta_sim, rtol=1.0E-3, atol=1.0E-3)
 
     @require_pyoptsparse(optimizer='SLSQP')
     def _test_integrate_polynomial_control_rate2(self, transcription):
