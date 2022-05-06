@@ -213,20 +213,21 @@ def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=None, atol=1.0E-2, rt
     num_points = shape_to_len(t_check.shape)
     x_interp = np.reshape(interp(t_check), newshape=(num_points,) + shape1)
 
-    # assert_array_less(np.abs(x_check - x_interp), rtol * np.abs(x_check) + atol, verbose=False)
-
     error_calc = np.abs(x_check - x_interp) < rtol * np.abs(x_check) + atol
 
-    if not error_calc.any():
+    if not error_calc.all():
         max_err_idx = np.argmax(np.abs(x_check - x_interp) - rtol * np.abs(x_check) + atol)
         x1_at_err = x_interp[max_err_idx] if nn1 > nn2 else x_check[max_err_idx]
         x2_at_err = x_check[max_err_idx] if nn1 > nn2 else x_interp[max_err_idx]
+        abs_err = np.abs(x_check[max_err_idx] - x_interp[max_err_idx])
+        rel_err = abs_err / np.abs(x_check[max_err_idx])
+
         msg = f'The two timeseries do not agree to the specified tolerance (atol: {atol} rtol: {rtol}).\n' \
               'The largest discrepancy is:\n' \
-              f'time: {t_check[max_err_idx]}\n' \
-              f'x1: {x1_at_err}\n' \
-              f'x2: {x2_at_err}\n' \
-              f'rel err: {np.abs(x_check[max_err_idx] - x_interp[max_err_idx])/np.abs(x_check[max_err_idx])}\n' \
-              f'abs err: {np.abs(x_check[max_err_idx] - x_interp[max_err_idx])}\n'
+              f'time: {np.round(t_check[max_err_idx], 6)}\n' \
+              f'x1: {np.round(x1_at_err, 6)}\n' \
+              f'x2: {np.round(x2_at_err, 6)}\n' \
+              f'rel err: {np.round(rel_err, 6)}\n' \
+              f'abs err: {np.round(abs_err, 6)}'
 
         assert np.all(np.abs(x_check - x_interp) < rtol * np.abs(x_check) + atol), msg

@@ -227,15 +227,24 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
 
         self.assertEqual(str(e.exception), expected)
 
-        assert_timeseries_near_equal(t1, x1, t2, x2, check_time=False, tolerance=1.0E-6)
+        assert_timeseries_near_equal(t1, x1, t2, x2, check_time=False, tolerance=1.0E-2)
 
     def test_assert_different_values(self):
 
-        t1 = np.linspace(0, 100, 50)
-        t2 = np.linspace(0, 100, 50)
+        t1 = t2 = np.linspace(0, 3.14159, 50)
 
         x1 = np.atleast_2d(np.sin(t1)).T
         x2 = np.atleast_2d(np.cos(t2)).T
 
-        with self.assertRaises(ValueError) as e:
+        with self.assertRaises(AssertionError) as e:
             assert_timeseries_near_equal(t1, x1, t2, x2)
+
+        expected = 'The two timeseries do not agree to the specified tolerance (atol: 0.01 rtol: 0.01).\n' \
+                   'The largest discrepancy is:\n' \
+                   'time: 2.372221\n' \
+                   'x1: [0.695684]\n' \
+                   'x2: [-0.718348]\n' \
+                   'rel err: [2.032578]\n' \
+                   'abs err: [1.414032]'
+
+        self.assertEqual(str(e.exception), expected)
