@@ -1,5 +1,6 @@
 import os
 import unittest
+import warnings
 
 import numpy as np
 import openmdao.api as om
@@ -201,13 +202,13 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
             assert_timeseries_near_equal(t1, x1, t2, x2)
 
         expected = 'The initial value of time in the two timeseries differ by more than the allowable tolerance.\n' \
-                   't1_initial: 0.0  t2_initial: 0.5\n' \
-                   'Pass argument `check_time=False` to ignore this error and only compare the values in the two ' \
+                   't_nom_initial: 0.0  t_check_initial: 0.5\n' \
+                   'Pass argument `assert_time=False` to ignore this error and only compare the values in the two ' \
                    'timeseries in the overlapping region of time.'
 
         self.assertEqual(str(e.exception), expected)
 
-        assert_timeseries_near_equal(t1, x1, t2, x2, check_time=False)
+        assert_timeseries_near_equal(t1, x1, t2, x2, assert_time=False)
 
     def test_assert_different_final_time(self):
 
@@ -221,13 +222,13 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
             assert_timeseries_near_equal(t1, x1, t2, x2)
 
         expected = 'The final value of time in the two timeseries differ by more than the allowable tolerance.\n' \
-                   't1_final: 3.0  t2_final: 3.14\n' \
-                   'Pass argument `check_time=False` to ignore this error and only compare the values in the two ' \
+                   't_nom_final: 3.0  t_check_final: 3.14\n' \
+                   'Pass argument `assert_time=False` to ignore this error and only compare the values in the two ' \
                    'timeseries in the overlapping region of time.'
 
         self.assertEqual(str(e.exception), expected)
 
-        assert_timeseries_near_equal(t1, x1, t2, x2, check_time=False, tolerance=1.0E-2)
+        assert_timeseries_near_equal(t1, x1, t2, x2, assert_time=False, tolerance=1.0E-2)
 
     def test_assert_different_values(self):
 
@@ -242,9 +243,26 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         expected = 'The two timeseries do not agree to the specified tolerance (atol: 1e-06 rtol: 1e-06).\n' \
                    'The largest discrepancy is:\n' \
                    'time: 2.372221\n' \
-                   'x1: [0.695684]\n' \
-                   'x2: [-0.718348]\n' \
+                   'x_nom: [0.695684]\n' \
+                   'x_check (interpolated): [-0.718348]\n' \
                    'rel err: [2.032578]\n' \
                    'abs err: [1.414032]'
 
         self.assertEqual(str(e.exception), expected)
+
+    def test_raises_with_wrong_orderr(self):
+
+        t1 = np.linspace(0, 3.14159, 50)
+        t2 = np.linspace(0, 3.14159, 20)
+
+        x1 = np.atleast_2d(np.sin(t1)).T
+        x2 = np.atleast_2d(np.sin(t2)).T
+
+        with warnings.catch_warnings(record=True) as ctx:
+            warnings.simplefilter('always')
+            assert_timeseries_near_equal(t1, x1, t2, x2, atol=1.0, rtol=1.0)
+
+        expected_msg = 't_check has fewer values on the overlapping interval (0.0, 3.14159) than t_nom. ' \
+                       'Interpolation errors may result.'
+
+        self.assertIn(expected_msg, [str(w.message) for w in ctx])
