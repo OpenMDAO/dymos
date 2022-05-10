@@ -230,7 +230,7 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
 
         assert_timeseries_near_equal(t1, x1, t2, x2, assert_time=False, tolerance=1.0E-2)
 
-    def test_assert_different_values(self):
+    def test_assert_different_values_rel_err(self):
 
         t1 = t2 = np.linspace(0, 3.14159, 50)
 
@@ -240,13 +240,29 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         with self.assertRaises(AssertionError) as e:
             assert_timeseries_near_equal(t1, x1, t2, x2, atol=1.0E-6, rtol=1.0E-6)
 
-        expected = 'The two timeseries do not agree to the specified tolerance (atol: 1e-06 rtol: 1e-06).\n' \
-                   'The largest discrepancy is:\n' \
-                   'time: 2.372221\n' \
-                   'x_nom: [0.695684]\n' \
-                   'x_check (interpolated): [-0.718348]\n' \
-                   'rel err: [2.032578]\n' \
-                   'abs err: [1.414032]'
+        expected = 'Relative error between timeseries exceeded tolerance (0.000001)\n' \
+                   'time: 3.077476\n' \
+                   'rel_err: [376848.99756974]\n' \
+                   'x_nom: [2.65358979e-06]\n' \
+                   'x_check (interpolated): [-1.]'
+
+        self.assertEqual(str(e.exception), expected)
+
+    def test_assert_different_values_abs_err(self):
+
+        t1 = t2 = np.linspace(0, 3.14159, 50)
+
+        x2 = np.atleast_2d(np.sin(t2)).T
+        x1 = np.zeros_like(x2)
+
+        with self.assertRaises(AssertionError) as e:
+            assert_timeseries_near_equal(t1, x1, t2, x2, atol=1.0E-3, rtol=1E-6)
+
+        expected = 'Absolute error between timeseries exceeded tolerance (0.001000)\n' \
+                   'time: 1.602852\n' \
+                   'abs_err: [0.99948626]\n' \
+                   'x_nom: [0.]\n' \
+                   'x_check (interpolated): [0.99948626]'
 
         self.assertEqual(str(e.exception), expected)
 

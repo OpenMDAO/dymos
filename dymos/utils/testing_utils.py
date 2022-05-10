@@ -115,7 +115,8 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
         raise AssertionError(err_msg)
 
 
-def assert_timeseries_near_equal(t_nom, x_nom, t_check, x_check, tolerance=None, atol=1.0E-2, rtol=1.0E-2, assert_time=True):
+def assert_timeseries_near_equal(t_nom, x_nom, t_check, x_check, tolerance=None, atol=1.0E-2, rtol=1.0E-2,
+                                 atol_cutoff=1.0E-6, assert_time=True):
     """
     Assert that two timeseries of data are approximately equal.
 
@@ -133,20 +134,22 @@ def assert_timeseries_near_equal(t_nom, x_nom, t_check, x_check, tolerance=None,
         The tolerance for any errors along at each point checked.
         Deprecated. This input is replaced by atol and rtol.
     atol : float
-        Absolute tolerance for error in the timeseries value at each point.
+        Absolute tolerance for error in the timeseries value at each point.  atol is only used when the absolute
+        value of x_nom is below the threshold value givenby atol_cutoff.
     rtol : float
         Relative tolerance for error in the timeseries value at each point.
+    atol_cutoff : float
+        If abs(x_nom) is above this value, check the relative error.  Otherwise, check the absolute error.
     assert_time : bool
         If True, assert that the start and end times of the two timeseries are within the specified tolerances.
 
     Raises
     ------
     AssertionError
-        When one or more elements of the interpolated timeseries are not within the
-        desired tolerance.
+        When one or more elements of the interpolated timeseries are not within the desired tolerance.
 
-    Warnings
-    --------
+    Warns
+    -----
     UserWarning
         UserWarning is raised if the second timeseries is less temporally-dense than the first timeseries. Since it is
         interpolated onto the times defining the first timeseries, a sparse timeseries defined by (t, x) can lead to
@@ -170,7 +173,7 @@ def assert_timeseries_near_equal(t_nom, x_nom, t_check, x_check, tolerance=None,
     sigfigs = int(max(-math.log10(atol), -math.log10(rtol)))
     format_str = f'{{:0.{sigfigs}f}}'
 
-    with np.printoptions(formatter={'float': format_str.format}):
+    with np.printoptions():#formatter={'float': format_str.format}):
 
         if assert_time:
             assert np.all(np.abs(t_check[0] - t_nom[0]) < rtol * np.abs(t_nom[0]) + atol), \
@@ -196,8 +199,8 @@ def assert_timeseries_near_equal(t_nom, x_nom, t_check, x_check, tolerance=None,
         # The interval in which the two timeseries overlap.
         t_overlap = (max(t_nom[0], t_check[0]), min(t_nom[-1], t_check[-1]))
 
-        t_nom_overlap_idxs = np.where(np.logical_and(t_overlap[0] < t_nom_unique, t_nom_unique < t_overlap[1]))[0]
-        t_check_overlap_idxs = np.where(np.logical_and(t_overlap[0] < t_check_unique, t_check_unique < t_overlap[1]))[0]
+        t_nom_overlap_idxs = np.where(np.logical_and(t_overlap[0] <= t_nom_unique, t_nom_unique <= t_overlap[1]))[0]
+        t_check_overlap_idxs = np.where(np.logical_and(t_overlap[0] <= t_check_unique, t_check_unique <= t_overlap[1]))[0]
 
         if len(t_nom_overlap_idxs) == 0:
             raise ValueError(f'There are no values for the nominsl timeseries in the region of overlapping '
@@ -219,21 +222,28 @@ def assert_timeseries_near_equal(t_nom, x_nom, t_check, x_check, tolerance=None,
         num_points = shape_to_len(t_to_test.shape)
         x_interp = np.reshape(interp(t_to_test), newshape=(num_points,) + shape1)
 
-        error_calc = np.abs(x_to_test - x_interp) < rtol * np.abs(x_to_test) + atol
+        abs_idxs = np.where(np.abs(x_to_test) <= atol_cutoff)[0]
+        rel_idxs = np.where(np.abs(x_to_test) > atol_cutoff)[0]
 
-        if not error_calc.all():
-            max_err_idx = np.argmax(np.abs(x_to_test - x_interp) - rtol * np.abs(x_to_test) + atol)
-            x_nom_at_err = x_to_test[max_err_idx]
-            x_check_at_err = x_interp[max_err_idx]
-            abs_err = np.abs(x_to_test[max_err_idx] - x_interp[max_err_idx])
-            rel_err = abs_err / np.abs(x_to_test[max_err_idx])
+        abs_err = np.abs(x_to_test[abs_idxs] - x_interp[abs_idxs])
+        rel_err = np.abs(x_to_test[rel_idxs] - x_interp[rel_idxs]) / np.abs(x_to_test[rel_idxs])
 
-            msg = f'The two timeseries do not agree to the specified tolerance (atol: {atol} rtol: {rtol}).\n' \
-                  'The largest discrepancy is:\n' \
-                  f'time: {t_to_test[max_err_idx]:0.{sigfigs}f}\n' \
-                  f'x_nom: {x_nom_at_err}\n' \
-                  f'x_check (interpolated): {x_check_at_err}\n' \
-                  f'rel err: {rel_err}\n' \
-                  f'abs err: {abs_err}'
+        if np.any(rel_err > rtol):
+            idx_max_rel_err = np.argmax(rel_err)
+            msg = f'Relative error between timeseries exceeded tolerance ({rtol:0.{sigfigs}f})\n' \
+                  f'time: {t_to_test[idx_max_rel_err]:0.{sigfigs}f}\n' \
+                  f'rel_err: {rel_err[idx_max_rel_err]}\n' \
+                  f'x_nom: {x_to_test[rel_idxs][idx_max_rel_err]}\n' \
+                  f'x_check (interpolated): {x_interp[rel_idxs][idx_max_rel_err]}'
 
-            assert np.all(np.abs(x_to_test - x_interp) < rtol * np.abs(x_to_test) + atol), msg
+            assert np.all(rel_err <= rtol), msg
+
+        if np.any(abs_err > atol):
+            idx_max_abs_err = np.argmax(abs_err)
+            msg = f'Absolute error between timeseries exceeded tolerance ({atol:0.{sigfigs}f})\n' \
+                  f'time: {t_to_test[idx_max_abs_err]:0.{sigfigs}f}\n' \
+                  f'abs_err: {abs_err[idx_max_abs_err]}\n' \
+                  f'x_nom: {x_to_test[abs_idxs][idx_max_abs_err]}\n' \
+                  f'x_check (interpolated): {x_interp[abs_idxs][idx_max_abs_err]}'
+
+            assert np.all(abs_err <= atol), msg
