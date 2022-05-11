@@ -1,19 +1,44 @@
 import dymos as dm
+from openmdao.visualization.htmlpp import HtmlPreprocessor
 from collections import OrderedDict
 import json
+import inspect 
+import os
 
-def create_linkage_report(traj):
+CBN = 'children_by_name'
+
+def create_linkage_report(traj, output_file='linkage_report.html',
+                          show_all_vars=False,
+                          title='Dymos Linkage Report', embedded=False):
     model_data = _trajectory_to_dict(traj)
-    model_data['connections'] = _linkages_to_list(traj, model_data)
-    _convert_dicts_to_lists(model_data['tree'])
+    model_data['connections_list'] = _linkages_to_list(traj, model_data)
+    _convert_dicts_to_lists(model_data['tree'], show_all_vars)
 
-    pretty = json.dumps(model_data, indent=2)
-    print(pretty)
+    html_vars = {
+        'title': title,
+        'embeddable': "non-embedded-diagram",
+        'sw_version': 0.1,
+        'model_data': model_data
+    }
+
+    import openmdao
+    openmdao_dir = os.path.dirname(inspect.getfile(openmdao))
+    vis_dir = os.path.join(openmdao_dir, "visualization/n2_viewer")
+    
+    dymos_dir = os.path.dirname(inspect.getfile(dm))
+    reports_dir = os.path.join(dymos_dir, "visualization/linkage")
+    # pretty = json.dumps(model_data, indent=2)
+    # print(pretty)
+
+    HtmlPreprocessor(os.path.join(reports_dir, "report_template.html"), output_file,
+                    start_path=vis_dir, allow_overwrite=True, var_dict=html_vars,
+                    verbose=False).run()
 
 def _tree_var(var_name, var_class):
     return {
         'name': var_name,
-        'type': 'variable',
+        # 'type': 'variable',
+        'type': 'output',
         'class': var_class
     }
 
@@ -22,7 +47,7 @@ def _trajectory_to_dict(traj):
         'tree': {
             'name': 'root',
             'type': 'group',
-            'children_by_name': OrderedDict()
+            CBN: OrderedDict()
         }
     }
 
@@ -31,17 +56,21 @@ def _trajectory_to_dict(traj):
     for pname, p in traj._phases.items():
         tree_phase = {
             'name': pname,
-            'type': 'phase',
-            'children_by_name': OrderedDict({
-                'initial': { 'name': 'initial', 'type': 'condition', 'children_by_name': OrderedDict() },
-                'final': { 'name': 'final', 'type': 'condition', 'children_by_name': OrderedDict() }
+            # 'type': 'phase',
+            'type': 'group',
+            CBN: OrderedDict({
+#                'initial': { 'name': 'initial', 'type': 'condition', CBN: OrderedDict() },
+#                'final': { 'name': 'final', 'type': 'condition', CBN: OrderedDict() }
+                'initial': { 'name': 'initial', 'type': 'group', CBN: OrderedDict() },
+                'final': { 'name': 'final', 'type': 'group', CBN: OrderedDict() }
+
             })
         }
 
-        tree['children_by_name'][pname] = tree_phase
+        tree[CBN][pname] = tree_phase
 
-        condition_children = [ tree_phase['children_by_name']['initial']['children_by_name'],
-            tree_phase['children_by_name']['final']['children_by_name'] ]
+        condition_children = [ tree_phase[CBN]['initial'][CBN],
+            tree_phase[CBN]['final'][CBN] ]
 
         # Time
         time_child = _tree_var('time', p.classify_var('time'))
@@ -101,8 +130,8 @@ def _linkages_to_list(traj, model_data):
             loc_a = options['loc_a']
             loc_b = options['loc_b']
 
-            tree_var_a = tree['children_by_name'][phase_name_a]['children_by_name'][loc_a]['children_by_name'][var_a]
-            tree_var_b = tree['children_by_name'][phase_name_b]['children_by_name'][loc_b]['children_by_name'][var_b]
+            tree_var_a = tree[CBN][phase_name_a][CBN][loc_a][CBN][var_a]
+            tree_var_b = tree[CBN][phase_name_b][CBN][loc_b][CBN][var_b]
 
             tree_var_a['linked'] = tree_var_b['linked'] = True
 
@@ -114,21 +143,34 @@ def _linkages_to_list(traj, model_data):
             tree_var_b['fixed'] = _is_fixed(var_b, class_b, phase_b, loc_b)
 
             linkages.append({
-                'src': tree_var_a['name'],
+                'src': f'{phase_name_a}.{loc_a}.{tree_var_a["name"]}',
                 'src_fixed': tree_var_a['fixed'],
-                'tgt': tree_var_b['name'],
+                'tgt': f'{phase_name_b}.{loc_b}.{tree_var_b["name"]}',
                 'tgt_fixed': tree_var_b['fixed']
             })
 
     return linkages
 
-def _convert_dicts_to_lists(tree_dict):
-    if 'children_by_name' in tree_dict:
-        tree_dict['children'] = []
-        for child_name, child in tree_dict['children_by_name'].items():
-            _convert_dicts_to_lists(child)
-            tree_dict['children'].append(child)
+def _display_child(child, show_all_vars):
+    if show_all_vars is True:
+        return True
 
-        tree_dict.pop('children_by_name')
+    if CBN in child or 'children' in child:
+        return True
+
+    if 'linked' in child or child['class'] == 'time' or child['class'] == 'state':
+        return True
+
+    return False
+
+def _convert_dicts_to_lists(tree_dict, show_all_vars):
+    if CBN in tree_dict:
+        tree_dict['children'] = []
+        for child_name, child in tree_dict[CBN].items():
+            _convert_dicts_to_lists(child, show_all_vars)
+            if _display_child(child, show_all_vars):
+                tree_dict['children'].append(child)
+
+        tree_dict.pop(CBN)
 
         
