@@ -88,7 +88,6 @@ def _is_fixed(var_name: str, class_name: str, phase, loc: str):
 def _tree_var(var_name, phase, loc, var_name_prefix=""):
     """ Create a dict to represent a variable in the tree. """
     class_name = phase.classify_var(var_name)
-    print(class_name)
 
     return {
         'name': f"{var_name_prefix}{var_name}",
@@ -187,9 +186,6 @@ def _linkages_to_list(traj, model_data):
 
     for phase_pair, var_dict in traj._linkages.items():
         phase_name_a, phase_name_b = phase_pair
-
-        phase_a = traj._get_subsystem(f'phases.{phase_name_a}')
-        phase_b = traj._get_subsystem(f'phases.{phase_name_b}')
 
         for var_pair, options in var_dict.items():
             var_a, var_b = var_pair
