@@ -50,86 +50,7 @@ def create_linkage_report(traj, output_file: str='linkage_report.html',
                     search_path=[vis_dir, reports_dir], allow_overwrite=True, var_dict=html_vars,
                     verbose=False).run()
 
-def _tree_var(var_name, var_class):
-    """ Create a dict to represent a variable in the tree. """
-    return {
-        'name': var_name,
-        # 'type': 'variable',
-        'type': 'output',
-        'class': var_class
-    }
-
-def _trajectory_to_dict(traj):
-    """
-    Iterate over the variables in the trajectory's phases and create a hierarchical structure.
-
-    Parameters
-    ----------
-    traj : Trajectory
-        The trajectory containing the phases to find variables in.
-    
-    Returns
-    -------
-    dict
-        A dictionary in the form: root -> phases -> conditions (initial/final) -> variables.
-    """
-    model_data = {
-        'tree': {
-            'name': 'root',
-            'type': 'group',
-            CBN: OrderedDict()
-        }
-    }
-
-    tree = model_data['tree']
-
-    for pname, p in traj._phases.items():
-        tree_phase = {
-            'name': pname,
-            # 'type': 'phase',
-            'type': 'group',
-            CBN: OrderedDict({
-#                'initial': { 'name': 'initial', 'type': 'condition', CBN: OrderedDict() },
-#                'final': { 'name': 'final', 'type': 'condition', CBN: OrderedDict() }
-                'initial': { 'name': 'initial', 'type': 'group', CBN: OrderedDict() },
-                'final': { 'name': 'final', 'type': 'group', CBN: OrderedDict() }
-
-            })
-        }
-
-        tree[CBN][pname] = tree_phase
-
-        condition_children = [ tree_phase[CBN]['initial'][CBN],
-            tree_phase[CBN]['final'][CBN] ]
-
-        # Time
-        time_child = _tree_var('time', p.classify_var('time'))
-        for child in condition_children:
-            child['time'] = time_child
-
-        # States
-        for sname, s in p.state_options.items():
-            for child in condition_children:
-                child[sname] = _tree_var(f'states:{sname}', p.classify_var(sname))
-
-        # Controls
-        for cname, c in p.control_options.items():
-            for child in condition_children:
-                child[cname] =  _tree_var(f'controls:{cname}', p.classify_var(cname))
-
-        # Polynomial Controls
-        for pcname, pc in p.polynomial_control_options.items():
-            for child in condition_children:
-                child[pcname] = _tree_var(f'polynomial_controls:{pcname}', p.classify_var(pcname))
-
-        # Parameters
-        for parname, par in p.parameter_options.items():
-            for child in condition_children:
-                child[parname] = _tree_var(f'parameters:{parname}', p.classify_var(parname))
-
-    return model_data
-
-def _is_fixed(var_name: str, class_name: str, phase: Phase, loc: str):
+def _is_fixed(var_name: str, class_name: str, phase, loc: str):
     """
     Determine whether a variable is fixed or not.
 
@@ -163,6 +84,85 @@ def _is_fixed(var_name: str, class_name: str, phase: Phase, loc: str):
         fixed = True
 
     return bool(fixed)
+
+def _tree_var(var_name, phase, loc, var_name_prefix=""):
+    """ Create a dict to represent a variable in the tree. """
+    class_name = phase.classify_var(var_name)
+    print(class_name)
+
+    return {
+        'name': f"{var_name_prefix}{var_name}",
+        'type': 'variable',
+        'class': str(class_name),
+        'fixed': _is_fixed(var_name, class_name, phase, loc)
+    }
+
+def _trajectory_to_dict(traj):
+    """
+    Iterate over the variables in the trajectory's phases and create a hierarchical structure.
+
+    Parameters
+    ----------
+    traj : Trajectory
+        The trajectory containing the phases to find variables in.
+    
+    Returns
+    -------
+    dict
+        A dictionary in the form: root -> phases -> conditions (initial/final) -> variables.
+    """
+    model_data = {
+        'tree': {
+            'name': 'Trajectory',
+            'type': 'root',
+            CBN: OrderedDict()
+        }
+    }
+
+    tree = model_data['tree']
+
+    for phase_name, phase in traj._phases.items():
+        tree_phase = {
+            'name': str(phase_name),
+            'type': 'phase',
+            CBN: OrderedDict({
+                'initial': { 'name': 'initial', 'type': 'condition', CBN: OrderedDict() },
+                'final': { 'name': 'final', 'type': 'condition', CBN: OrderedDict() }
+            })
+        }
+
+        tree[CBN][phase_name] = tree_phase
+
+        condition_children = OrderedDict({
+            'initial': tree_phase[CBN]['initial'][CBN],
+            'final': tree_phase[CBN]['final'][CBN]
+        })
+
+        # Time
+        for loc, child in condition_children.items():
+            child['time'] = _tree_var('time', phase, loc)
+
+        # States
+        for state_name, s in phase.state_options.items():
+            for loc, child in condition_children.items():
+                child[state_name] = _tree_var(state_name, phase, loc, 'states:')
+
+        # Controls
+        for control_name, c in phase.control_options.items():
+            for loc, child in condition_children.items():
+                child[control_name] =  _tree_var(control_name, phase, loc, 'controls:')
+
+        # Polynomial Controls
+        for pc_name, pc in phase.polynomial_control_options.items():
+            for loc, child in condition_children.items():
+                child[pc_name] = _tree_var(pc_name, phase, loc, 'polynomial_controls:')
+
+        # Parameters
+        for param_name, par in phase.parameter_options.items():
+            for loc, child in condition_children.items():
+                child[param_name] = _tree_var(param_name, phase, loc, 'parameters:')
+
+    return model_data
 
 def _linkages_to_list(traj, model_data):
     """
@@ -200,13 +200,7 @@ def _linkages_to_list(traj, model_data):
             tree_var_b = tree[CBN][phase_name_b][CBN][loc_b][CBN][var_b]
 
             tree_var_a['linked'] = tree_var_b['linked'] = True
-
-            class_a = phase_a.classify_var(var_a)
-            class_b = phase_b.classify_var(var_b)
-
             tree_var_a['connected'] = tree_var_b['connected'] = options['connected']
-            tree_var_a['fixed'] = _is_fixed(var_a, class_a, phase_a, loc_a)
-            tree_var_b['fixed'] = _is_fixed(var_b, class_b, phase_b, loc_b)
 
             linkages.append({
                 'src': f'{phase_name_a}.{loc_a}.{tree_var_a["name"]}',
@@ -225,7 +219,10 @@ def _display_child(child, show_all_vars):
     if CBN in child or 'children' in child:
         return True
 
-    if 'linked' in child or child['class'] == 'time' or child['class'] == 'state':
+    if 'linked' in child:
+        return True
+        
+    if child['class'] == 'time' or child['class'] == 'state':
         return True
 
     return False
