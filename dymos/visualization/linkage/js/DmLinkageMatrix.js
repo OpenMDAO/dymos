@@ -186,7 +186,8 @@ class DmLinkageMatrix extends Matrix {
                         })
                         .each((d, i, nodes) => {
                             const exitBoxDims = new Dimensions({ 'count': 1 }, null, d.obj.draw.varBoxDims);
-                            self._drawBox(d3.select(nodes[i]), d.obj.path, dims, exitBoxDims)
+                            self._drawBox(d3.select(nodes[i]), d.obj.path, dims, exitBoxDims);
+                            d.obj.draw.varBoxDims.preserve().count = 0;
                         })
                         .remove();                 
                 }
