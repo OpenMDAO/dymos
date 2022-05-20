@@ -30,6 +30,10 @@ class DmLinkageMatrix extends Matrix {
         super(model, layout, diagGroups, arrowMgr, lastClickWasLeft, findRootOfChangeFunction, prevNodeSize);
     }
 
+    _init() {
+        CellRenderer.updateDims(this.nodeSize.width, this.nodeSize.height, 0.8);
+    }
+
     /**
      * Generate a new DmLinkageMatrixCell object. Overrides superclass definition.
      * @param {Number} row Vertical coordinate of the cell in the matrix.
@@ -43,5 +47,149 @@ class DmLinkageMatrix extends Matrix {
         return new DmLinkageMatrixCell(row, col, srcObj, tgtObj, model);
     }
 
+    /**
+     * Compute the coordinates of each line in the grid that identifies variables with a phase.
+     * @param {String} phasePath The path of the associated phase, used as an identifier.
+     * @param {Dimensions} cellDims The size of the current and previous matrix cell.
+     * @param {Dimensions} boxDims The current and previous counts of variables in the box.
+     * @returns {Object[]} An array of objects each w/an id property and a dims property.
+     */
+    _plotBoxGrid(phasePath, cellDims, boxDims) {
+        const prevBoxWidth = cellDims.prev.width * boxDims.prev.count,
+              prevBoxHeight = cellDims.prev.height * boxDims.prev.count,
+              boxWidth = cellDims.width * boxDims.count,
+              boxHeight = cellDims.height * boxDims.count;
 
+        const gridLines = [];
+
+        // Vertical lines
+        for (let x = 0; x <= boxDims.count; x++) {
+            gridLines.push({
+                'id': `gridbox-${phasePath}-vert-${x}`,
+                'dims': new Dimensions({
+                    'x1': x * cellDims.width,
+                    'y1': 0,
+                    'x2': x * cellDims.width,
+                    'y2': boxHeight,
+                },
+                null,
+                {
+                    'x1': prevBoxWidth,
+                    'y1': 0,
+                    'x2': prevBoxWidth,
+                    'y2': prevBoxHeight, 
+                })
+            })
+        }
+
+        for (let y = 0; y <= boxDims.count; y++) {
+            gridLines.push({
+                'id': `gridbox-${phasePath}-horiz-${y}`,
+                'dims': new Dimensions({
+                    'x1': 0,
+                    'y1': y * cellDims.height,
+                    'x2': boxWidth,
+                    'y2': y * cellDims.height,
+                },
+                null,
+                {
+                    'x1': 0,
+                    'y1': prevBoxHeight,
+                    'x2': prevBoxWidth,
+                    'y2': prevBoxHeight
+                })
+            })
+        }
+
+        return gridLines;
+    }
+
+    /**
+     * Draw gridlines around the variables found in a single phase.
+     * @param {Object} boxGrpNode The D3 <g> selection to add lines to.
+     * @param {String} phasePath The path of the phase to use as an identifier.
+     * @param {Dimensions} dims The current and previous matrix cell dimensions.
+     * @param {Dimensions} boxDims The current and previous count of variables displayed in the box.
+     * @returns The same boxGrpNode that was used as an argument.
+     */
+    _drawBox(boxGrpNode, phasePath, dims, boxDims) {
+        const gridLines = this._plotBoxGrid(phasePath, dims, boxDims);
+
+        boxGrpNode.selectAll('line.boxgrid')
+            .data(gridLines, d => d.id)
+            .join(
+                enter => {
+                    enter.append('line')
+                        .attr('class', 'boxgrid')
+                        .attr('x1', d => d.dims.prev.x1).attr('y1', d => d.dims.prev.y1)
+                        .attr('x2', d => d.dims.prev.x2).attr('y2', d => d.dims.prev.y2)
+                        .transition(sharedTransition)
+                        .attr('x1', d => d.dims.x1).attr('y1', d => d.dims.y1)
+                        .attr('x2', d => d.dims.x2).attr('y2', d => d.dims.y2)
+                },
+                update => {
+                    update.transition(sharedTransition)
+                        .attr('x1', d => d.dims.x1).attr('y1', d => d.dims.y1)
+                        .attr('x2', d => d.dims.x2).attr('y2', d => d.dims.y2)
+                },
+                exit => {
+                    exit.transition(sharedTransition)
+                        .attr('x1', function() { return d3.select(this).attr('x1') == 0? 0 : dims.width * boxDims.count; })
+                        .attr('y1', function() { return d3.select(this).attr('y1') == 0? 0 : dims.height * boxDims.count; })
+                        .attr('x2', dims.width * boxDims.count)
+                        .attr('y2', dims.height * boxDims.count)
+                        .remove();
+                    }
+
+            );
+
+        return boxGrpNode;
+    }
+
+    /** Draw boxes around the cells associated with each variable grouping. */
+    _drawVariableBoxes(dims) {
+        const self = this; 
+
+        self.diagGroups.variableBoxes.selectAll('g.variable_box')
+            .data(self._variableBoxInfo, d => d.obj.id)
+            .join(
+                enter => {
+                    const newGroups = enter.append('g')
+                        .attr('class', 'variable_box')
+                        .attr('transform', d => {
+                            const transX = dims.prev.width * (d.startI - enterIndex),
+                                transY = dims.prev.height * (d.startI - enterIndex);
+                            return `translate(${transX}, ${transY})`;
+                        });
+
+                    newGroups.transition(sharedTransition)
+                        .attr('transform', d =>
+                            `translate(${dims.width * d.startI}, ${dims.height * d.startI})`);
+
+                    newGroups.each((d, i, nodes) => 
+                        self._drawBox(d3.select(nodes[i]), d.obj.path, dims, d.obj.draw.varBoxDims))
+                },
+                update => {
+                    update.transition(sharedTransition)
+                        .attr('transform', d =>
+                            `translate(${dims.width * d.startI}, ${dims.height * d.startI})`)
+
+                    update.each((d, i, nodes) =>
+                        self._drawBox(d3.select(nodes[i]), d.obj.path, dims, d.obj.draw.varBoxDims))
+                },
+                exit => {
+                    exit.transition(sharedTransition)
+                        .attr('transform', d => {
+                            const transX = dims.width * (d.startI - exitIndex),
+                              transY = dims.height * (d.startI - exitIndex);
+                            return `translate(${transX}, ${transY})`;
+                        })
+                        .each((d, i, nodes) => {
+                            const exitBoxDims = new Dimensions({ 'count': 1 }, null, d.obj.draw.varBoxDims);
+                            self._drawBox(d3.select(nodes[i]), d.obj.path, dims, exitBoxDims)
+                        })
+                        .remove();                 
+                }
+            )
+    }
 }

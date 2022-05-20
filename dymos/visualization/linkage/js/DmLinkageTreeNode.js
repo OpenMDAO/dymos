@@ -10,6 +10,10 @@ class DmLinkageTreeNode extends FilterCapableNode {
 
         if (this.fixed && parent) parent.fixed = true;
 
+        if (this.isPhase()) {
+            this.draw.varBoxDims = new Dimensions({'count': 0})
+        }
+
     }
 
     addFilterChild(attribNames) {
@@ -32,7 +36,9 @@ class DmLinkageTreeNode extends FilterCapableNode {
 
     /** In the matrix grid, draw a box around variables that share the same boxAncestor() */
     boxAncestor() {
-        return this.isVariable()? this.parent.parent : null;
+        if (this.isVariable()) return this.parent.parent;
+        else if (this.isCondition()) return this.parent;
+        else return null;
     }
 
     /** Not connectable if this is an input group or parents are minimized. */

@@ -10,9 +10,9 @@ class DmLinkageStyle extends Style {
         ...Style.color,
         'variableCell': 'black',
         'fixedLinkedVariableCell': 'red',
-        'fixedUnlinkedVariableCell': 'yellow',
-        'linkageCell': 'green',
-        'fixedLinkageCell': 'yellow',
+        'fixedUnlinkedVariableCell': '#ffc000',
+        'linkageCell': '#00b051',
+        'fixedLinkageCell': '#ffc000',
         'root': '#ccc',
         'group': '#ccc',
         'phase': '#ccc',
@@ -62,6 +62,16 @@ class DmLinkageStyle extends Style {
                 'fill-opacity': '.8',
                 'fill': DmLinkageStyle.color.final,
             },
+            '.arrowHead': {
+                'stroke-width': 1.5,
+                'stroke': '#ddd',
+                'fill': '#222'
+            },
+            'g.variable_box > line': {
+                'stroke': Style.color.variableBox,
+                'stroke-width': '3',
+                'fill': 'none',
+            }
         };
 
         return {...newCssJson, ...DmLinkageCssJson};
