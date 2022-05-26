@@ -1,4 +1,3 @@
-from distutils.version import LooseVersion
 import unittest
 
 import openmdao.api as om
@@ -139,13 +138,11 @@ def wrap_ode_func(num_nodes, flight_mode, grad_method='jax', jax_jit=True):
 @use_tempdirs
 class TestBalancedFieldFuncComp(unittest.TestCase):
 
-    @unittest.skipIf(LooseVersion(om_version) < LooseVersion('3.14'), 'requires OpenMDAO >= 3.14')
     @unittest.skipIf(jax is None, 'requires jax and jaxlib')
     @require_pyoptsparse('IPOPT')
     def test_balanced_field_func_comp_radau(self):
         self._run_problem(dm.Radau)
 
-    @unittest.skipIf(LooseVersion(om_version) < LooseVersion('3.14'), 'requires OpenMDAO >= 3.14')
     @unittest.skipIf(jax is None, 'requires jax and jaxlib')
     @require_pyoptsparse('IPOPT')
     def test_balanced_field_func_comp_gl(self):
