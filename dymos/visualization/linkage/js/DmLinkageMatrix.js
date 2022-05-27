@@ -47,7 +47,12 @@ class DmLinkageMatrix extends Matrix {
         return new DmLinkageMatrixCell(row, col, srcObj, tgtObj, model);
     }
 
-    _plotBgSquares() {
+    /**
+     * Create an array containing the dimensions of the background "checkerboard" pattern
+     * for the matrix, with each square based on the presence of a condition.
+     * @param {Dimensions} cellDims The size of a matrix cell.
+     */
+    _plotBgSquares(cellDims) {
         const boxInfo = this._boxInfo(1);
 
         const conditionBoxInfo = [];
@@ -57,13 +62,15 @@ class DmLinkageMatrix extends Matrix {
             const curNode = this.diagNodes[box.startI];
             if (!curNode.boxAncestor(1)) continue; // Collapsed phase
 
-            /*
-            box.obj = curNode.boxAncestor(1);
-            if (box.obj.draw.varBoxDims) {
-                box.obj.draw.varBoxDims.preserve().count = 1 + box.stopI - box.startI;
-            }
-            */
             i = box.stopI;
+
+            // Save dimensions to the underlying tree node so we can properly
+            // transition when the diagram changes.
+            if (! curNode.draw.bgBoxDims) {
+                curNode.draw.bgBoxDims = new Dimensions({ 'start': 0, 'stop': 0})
+            }
+            curNode.draw.bgBoxDims.preserve().set({ 'start': box.startI, 'stop': box.stopI });
+
             conditionBoxInfo.push(box);
         }        
 
@@ -71,10 +78,13 @@ class DmLinkageMatrix extends Matrix {
 
         for (let boxYidx in conditionBoxInfo) {
             const boxY = conditionBoxInfo[boxYidx];
-            const boxObjY = this.diagNodes[boxY.startI];
+            const nodeY = this.diagNodes[boxY.startI];
+            const prevY = nodeY.draw.bgBoxDims.prev;
+
             for (let boxXidx in conditionBoxInfo) {
                 const boxX = conditionBoxInfo[boxXidx];
-                const boxObjX = this.diagNodes[boxX.startI];
+                const nodeX = this.diagNodes[boxX.startI];
+                const prevX = nodeX.draw.bgBoxDims.prev;
 
                 let boxType = null;
 
@@ -85,21 +95,78 @@ class DmLinkageMatrix extends Matrix {
                 if (!evenX && !evenY) boxType = 3;
 
                 const bgSquare = {
-                    'id': `bg-box-${boxType}-${boxXidx}-${boxYidx}`,
+                    'id': `bg-box-${boxType}-${nodeX.boxAncestor(1).path}-${nodeY.boxAncestor(1).path}`,
                     'type': boxType,
                     'dims': new Dimensions({
-                        'x': boxX.startI,
-                        'y': boxY.startI,
-                        'width': boxX.stopI - boxX.startI + 1,
-                        'height': boxY.stopI - boxY.startI + 1
-                    }/*, null,
+                        'x': cellDims.width * boxX.startI,
+                        'y': cellDims.height * boxY.startI,
+                        'width': cellDims.width * (boxX.stopI - boxX.startI + 1),
+                        'height': cellDims.height * (boxY.stopI - boxY.startI + 1)
+                    }, null,
                     {
-                    
-                    }*/)
+                        'x': cellDims.prev.width * prevX.start,
+                        'y': cellDims.prev.height * prevY.start,
+                        'width': cellDims.prev.width * (prevX.stop - prevX.start + 1),
+                        'height': cellDims.prev.height * (prevY.stop - prevY.start + 1)                    
+                    })
                 }
                 this._bgSquareDims.push(bgSquare)
             }
         }
+    }
+
+    /**
+     * Draw the "checkerboard" pattern of background squares on the matrix diagram,
+     * each square related to a condition.
+     * @param {Dimensions} cellDims The size of a matrix cell.
+     */
+    _drawBgSquares(cellDims) {
+        const self = this;
+        this._plotBgSquares(cellDims);
+
+        this.diagGroups.background.selectAll('g.condition-box')
+            .data(this._bgSquareDims, d => d.id)
+            .join(
+                enter => {
+                    const newGroups = enter.append('g')
+                        .attr('class', 'condition-box')
+                        .attr('transform', d => `translate(${d.dims.prev.x}, ${d.dims.prev.y})`);
+
+                    newGroups.transition(sharedTransition)
+                        .attr('transform', d => `translate(${d.dims.x}, ${d.dims.y})`);
+
+                    newGroups.append('rect')
+                        .attr('class', d => `cond-box-${d.type}`)
+                        .attr('width', d => d.dims.prev.width)
+                        .attr('height', d => d.dims.prev.height)
+                        .transition(sharedTransition)
+                        .attr('width', d => d.dims.width)
+                        .attr('height', d => d.dims.height);    
+                },
+                update => {
+                    update.transition(sharedTransition)
+                        .attr('transform', d =>
+                            `translate(${d.dims.x}, ${d.dims.y})`);
+
+                    update.select('rect').transition(sharedTransition)
+                        .attr('width', d => d.dims.width)
+                        .attr('height', d => d.dims.height);
+                },
+                exit => {
+                    const ratioX = cellDims.width / cellDims.prev.width;
+                    const ratioY = cellDims.height / cellDims.prev.height;
+
+                    exit.transition(sharedTransition)
+                        .attr('transform', d =>
+                            `translate(${d.dims.x * ratioX}, ${d.dims.y * ratioY})`)
+                        .remove();
+                    
+                    exit.select('rect').transition(sharedTransition)
+                        .attr('width', d => d.dims.width * ratioX)
+                        .attr('height', d => d.dims.height * ratioY)
+                        .remove();
+                }
+            )
     }
 
     /**
@@ -249,51 +316,7 @@ class DmLinkageMatrix extends Matrix {
             )
     }
 
-    _preDraw(dims) {
-        this._plotBgSquares();
-
-        this.diagGroups.background.selectAll('g.condition-box')
-            .data(this._bgSquareDims, d => d.id)
-            .join(
-                enter => {
-                    const newGroups = enter.append('g')
-                        .attr('class', 'condition-box')
-                        .attr('transform', d => {
-                            const transX = dims.prev.width * d.dims.prev.x,
-                                transY = dims.prev.height * d.dims.prev.y;
-                            return `translate(${transX}, ${transY})`;
-                        });
-
-                    newGroups.transition(sharedTransition)
-                        .attr('transform', d =>
-                            `translate(${dims.width * d.dims.x}, ${dims.height * d.dims.y})`);
-
-                    newGroups.append('rect')
-                        .attr('class', d => `cond-box-${d.type}`)
-                        .attr('width', d => dims.prev.width * d.dims.prev.width )
-                        .attr('height', d => dims.prev.height * d.dims.prev.height)
-                        .transition(sharedTransition)
-                        .attr('width', d => dims.width * d.dims.width)
-                        .attr('height', d => dims.height * d.dims.height);    
-                },
-                update => {
-                    update.transition(sharedTransition)
-                        .attr('transform', d =>
-                            `translate(${dims.width * d.dims.x}, ${dims.height * d.dims.y})`);
-
-                    update.select('rect').transition(sharedTransition)
-                        .attr('width', d => dims.width * d.dims.width)
-                        .attr('height', d => dims.height * d.dims.height);
-                },
-                exit => {
-                    exit.transition(sharedTransition)/*
-                        .attr('transform', d => {
-                            const transX = dims.width * (d.startI - exitIndex),
-                              transY = dims.height * (d.startI - exitIndex);
-                            return `translate(${transX}, ${transY})`;
-                        })*/
-                        .remove();
-                }
-            )
+    _preDraw(cellDims) {
+        this._drawBgSquares(cellDims);
     }
 }
