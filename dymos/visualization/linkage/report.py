@@ -1,7 +1,6 @@
 import dymos as dm
 from openmdao.visualization.htmlpp import HtmlPreprocessor
 from collections import OrderedDict
-import json
 import inspect 
 import os
 
@@ -43,8 +42,6 @@ def create_linkage_report(traj, output_file: str='linkage_report.html',
     
     dymos_dir = os.path.dirname(inspect.getfile(dm))
     reports_dir = os.path.join(dymos_dir, "visualization/linkage")
-    # pretty = json.dumps(model_data, indent=2)
-    # print(pretty)
 
     HtmlPreprocessor(os.path.join(reports_dir, "report_template.html"), output_file,
                     search_path=[vis_dir, reports_dir], allow_overwrite=True, var_dict=html_vars,

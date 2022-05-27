@@ -47,6 +47,61 @@ class DmLinkageMatrix extends Matrix {
         return new DmLinkageMatrixCell(row, col, srcObj, tgtObj, model);
     }
 
+    _plotBgSquares() {
+        const boxInfo = this._boxInfo(1);
+
+        const conditionBoxInfo = [];
+        for (let i = 0; i < boxInfo.length; ++i) {
+            const box = boxInfo[i];
+
+            const curNode = this.diagNodes[box.startI];
+            if (!curNode.boxAncestor(1)) continue; // Collapsed phase
+
+            /*
+            box.obj = curNode.boxAncestor(1);
+            if (box.obj.draw.varBoxDims) {
+                box.obj.draw.varBoxDims.preserve().count = 1 + box.stopI - box.startI;
+            }
+            */
+            i = box.stopI;
+            conditionBoxInfo.push(box);
+        }        
+
+        this._bgSquareDims = [];
+
+        for (let boxYidx in conditionBoxInfo) {
+            const boxY = conditionBoxInfo[boxYidx];
+            const boxObjY = this.diagNodes[boxY.startI];
+            for (let boxXidx in conditionBoxInfo) {
+                const boxX = conditionBoxInfo[boxXidx];
+                const boxObjX = this.diagNodes[boxX.startI];
+
+                let boxType = null;
+
+                const evenX = (boxXidx % 2 == 0), evenY = (boxYidx % 2 == 0);
+                if (evenX && evenY) boxType = 0;
+                if (!evenX && evenY) boxType = 1;
+                if (evenX && !evenY) boxType = 2;
+                if (!evenX && !evenY) boxType = 3;
+
+                const bgSquare = {
+                    'id': `bg-box-${boxType}-${boxXidx}-${boxYidx}`,
+                    'type': boxType,
+                    'dims': new Dimensions({
+                        'x': boxX.startI,
+                        'y': boxY.startI,
+                        'width': boxX.stopI - boxX.startI + 1,
+                        'height': boxY.stopI - boxY.startI + 1
+                    }/*, null,
+                    {
+                    
+                    }*/)
+                }
+                this._bgSquareDims.push(bgSquare)
+            }
+        }
+    }
+
     /**
      * Compute the coordinates of each line in the grid that identifies variables with a phase.
      * @param {String} phasePath The path of the associated phase, used as an identifier.
@@ -190,6 +245,54 @@ class DmLinkageMatrix extends Matrix {
                             d.obj.draw.varBoxDims.preserve().count = 0;
                         })
                         .remove();                 
+                }
+            )
+    }
+
+    _preDraw(dims) {
+        this._plotBgSquares();
+
+        this.diagGroups.background.selectAll('g.condition-box')
+            .data(this._bgSquareDims, d => d.id)
+            .join(
+                enter => {
+                    const newGroups = enter.append('g')
+                        .attr('class', 'condition-box')
+                        .attr('transform', d => {
+                            const transX = dims.prev.width * d.dims.prev.x,
+                                transY = dims.prev.height * d.dims.prev.y;
+                            return `translate(${transX}, ${transY})`;
+                        });
+
+                    newGroups.transition(sharedTransition)
+                        .attr('transform', d =>
+                            `translate(${dims.width * d.dims.x}, ${dims.height * d.dims.y})`);
+
+                    newGroups.append('rect')
+                        .attr('class', d => `cond-box-${d.type}`)
+                        .attr('width', d => dims.prev.width * d.dims.prev.width )
+                        .attr('height', d => dims.prev.height * d.dims.prev.height)
+                        .transition(sharedTransition)
+                        .attr('width', d => dims.width * d.dims.width)
+                        .attr('height', d => dims.height * d.dims.height);    
+                },
+                update => {
+                    update.transition(sharedTransition)
+                        .attr('transform', d =>
+                            `translate(${dims.width * d.dims.x}, ${dims.height * d.dims.y})`);
+
+                    update.select('rect').transition(sharedTransition)
+                        .attr('width', d => dims.width * d.dims.width)
+                        .attr('height', d => dims.height * d.dims.height);
+                },
+                exit => {
+                    exit.transition(sharedTransition)/*
+                        .attr('transform', d => {
+                            const transX = dims.width * (d.startI - exitIndex),
+                              transY = dims.height * (d.startI - exitIndex);
+                            return `translate(${transX}, ${transY})`;
+                        })*/
+                        .remove();
                 }
             )
     }

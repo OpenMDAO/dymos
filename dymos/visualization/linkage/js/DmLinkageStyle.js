@@ -69,8 +69,24 @@ class DmLinkageStyle extends Style {
             },
             'g.variable_box > line': {
                 'stroke': Style.color.variableBox,
-                'stroke-width': '3',
+                'stroke-width': '2',
                 'fill': 'none',
+                'stroke': 'black'
+            },
+            '#backgroundRect': {
+                'display': 'none'
+            },
+            'rect.cond-box-0': {
+                'fill': '#eee'
+            }            ,
+            'rect.cond-box-1': {
+                'fill': '#ddd'
+            },
+            'rect.cond-box-2': {
+                'fill': '#ddd'
+            },
+            'rect.cond-box-3': {
+                'fill': '#ccc'
             }
         };
 
