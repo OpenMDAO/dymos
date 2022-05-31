@@ -87,6 +87,14 @@ class DmLinkageStyle extends Style {
             },
             'rect.cond-box-3': {
                 'fill': '#ccc'
+            },
+            'text.connected-variable-text': {
+                'fill': 'white',
+                'stroke': 'black',
+                'stroke-width': '1px',
+                'text-anchor': 'start',
+                'font-weight': 'bold',
+                'font-family': 'sans-serif'
             }
         };
 

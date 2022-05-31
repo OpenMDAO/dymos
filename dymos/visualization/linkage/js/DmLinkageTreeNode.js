@@ -34,6 +34,8 @@ class DmLinkageTreeNode extends FilterCapableNode {
 
     isLinked() { return this.linked; }
 
+    isConnected() { return this.isVariable && this.connected == true; }
+
     /** In the matrix grid, draw a box around variables that share the same boxAncestor() */
     boxAncestor(level = 2) {
         if (level == 1) { // Return condition reference
