@@ -44,9 +44,6 @@ class DmLinkageStyle extends Style {
                 'fill': DmLinkageStyle.color.root,
                 'fill-opacity': '.8',
             },
-            '#tree > g.root > text': {
-                'transform': 'rotate(-90)'
-            },
             '#tree > g.phase > rect': {
                 'cursor': 'pointer',
                 'fill': DmLinkageStyle.color.phase,
@@ -62,40 +59,12 @@ class DmLinkageStyle extends Style {
                 'fill-opacity': '.8',
                 'fill': DmLinkageStyle.color.final,
             },
-            '.arrowHead': {
-                'stroke-width': 1.5,
-                'stroke': '#ddd',
-                'fill': '#222'
-            },
             'g.variable_box > line': {
                 'stroke': Style.color.variableBox,
                 'stroke-width': '2',
                 'fill': 'none',
                 'stroke': 'black'
             },
-            '#backgroundRect': {
-                'display': 'none'
-            },
-            'rect.cond-box-0': {
-                'fill': '#eee'
-            }            ,
-            'rect.cond-box-1': {
-                'fill': '#ddd'
-            },
-            'rect.cond-box-2': {
-                'fill': '#ddd'
-            },
-            'rect.cond-box-3': {
-                'fill': '#ccc'
-            },
-            'text.connected-variable-text': {
-                'fill': 'white',
-                'stroke': 'black',
-                'stroke-width': '1px',
-                'text-anchor': 'start',
-                'font-weight': 'bold',
-                'font-family': 'sans-serif'
-            }
         };
 
         return {...newCssJson, ...DmLinkageCssJson};

@@ -37,14 +37,15 @@ class DmLinkageMatrixCell extends MatrixCell {
         const clr = DmLinkageStyle.color;
 
         if (this.onDiagonal()) {
-            if (this.obj.isFixed()) {
+            if ('isFixed' in this.obj && this.obj.isFixed()) {
                 return this.obj.isLinked()? clr.fixedLinkedVariableCell : clr.fixedUnlinkedVariableCell;
             }
             if (this.obj.draw.minimized) return clr.collapsed;
             return clr.variableCell;
         }
 
-        if (this.srcObj.isFixed() || this.tgtObj.isFixed()) return clr.fixedLinkageCell;
+        if (( 'isFixed' in this.srcObj && this.srcObj.isFixed()) ||
+            ( 'isFixed' in this.tgtObj && this.tgtObj.isFixed())) return clr.fixedLinkageCell;
         return clr.linkageCell;
     }
 
