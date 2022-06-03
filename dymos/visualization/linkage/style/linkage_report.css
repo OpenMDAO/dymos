@@ -34,9 +34,10 @@ rect.cond-box-3 {
 
 text.connected-variable-text {
     fill: white;
-    stroke: black;
-    stroke-width: 1px;
-    text-anchor: start;
-    font-weight: bold;
+    stroke: white;
+    stroke-width: 0.5px;
+    text-anchor: middle;
+    dominant-baseline: central;
+    font-weight: normal;
     font-family: sans-serif;
 }

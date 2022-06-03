@@ -33,11 +33,9 @@ class DmLinkageConnectedCell extends VectorBase {
             .attr("height", dims.bottomRight.y * dims.size.percent * 2);
 
         d3Group.select('text').transition(sharedTransition)
-            .attr("x", dims.topLeft.x * 0.7 * dims.size.percent)
-            .attr("y", dims.bottomRight.y * 0.7 * dims.size.percent)
-            .style('font-size', `${dims.bottomRight.x * dims.size.percent * 2}px`)
-            .attr("width", dims.bottomRight.x * dims.size.percent * 2)
-            .attr("height", dims.bottomRight.y * dims.size.percent * 2);
+            .attr("x", 0)
+            .attr("y", 0)
+            .style('font-size', `${dims.bottomRight.x * dims.size.percent * 2}px`);
         
 
         return d3Group.selectAll('*');
@@ -61,7 +59,7 @@ class DmLinkageConnectedCell extends VectorBase {
             .append('text')
             .attr('class', 'connected-variable-text')
             .attr('id', `${this.id}-text`)
-            .text('C');
+            .html('&#x21c4;');
 
         return this.update(svgGroup, dims);
     }
