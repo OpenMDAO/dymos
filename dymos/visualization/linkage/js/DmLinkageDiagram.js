@@ -1,7 +1,7 @@
 // <<hpp_insert gen/Diagram.js>>
 // <<hpp_insert gen/Layout.js>>
 // <<hpp_insert js/DmLinkageStyle.js>>
-// <<hpp_insert gen/UserInterface.js>>
+// <<hpp_insert js/DmLinkageUserInterface.js>>
 // <<hpp_insert js/DmLinkageMatrix.js>>
 
 /**
@@ -37,7 +37,7 @@ class DmLinkageDiagram extends Diagram {
      _init() {
         this.style = new DmLinkageStyle(this.dom.svgStyle, this.dims.size.font);
         this.layout = this._newLayout();
-        this.ui = new UserInterface(this);
+        this.ui = new DmLinkageUserInterface(this);
         this.matrix = this._newMatrix(true);
     }
 }

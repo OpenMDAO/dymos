@@ -41,3 +41,74 @@ text.connected-variable-text {
     font-weight: normal;
     font-family: sans-serif;
 }
+
+.tree-nodes-container::-webkit-scrollbar, .matrix-cells-container::-webkit-scrollbar {
+    display: none;
+}
+
+/* Nodes legend area */
+
+.tree-nodes-container {
+    height: 90px;
+    border-radius: 15px;
+    border: 1px solid #98daba;
+    display: flex;
+    flex-direction: row;
+    background-color: white;
+    z-index: 1;
+    overflow-y: scroll;
+}
+
+#tree-nodes-legend {
+    height: 90px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    margin-right: 45px;
+    overflow-x: hidden;
+}
+
+/* Matrix cells legend area */
+
+.matrix-cells-container {
+    height: 90px;
+    border-radius: 15px;
+    border: 1px solid #42926b;
+    display: flex;
+    flex-direction: row;
+    margin-left: -20px;
+    margin-right: 0;
+    background-color: white;
+    z-index: 3;
+    overflow: hidden;
+}
+
+#matrix-cells-legend {
+    height: 90px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    margin-right: 20px;
+    overflow-x: hidden;
+}
+
+.dm-legend-box {
+    border: 2px solid black;
+    padding: 1px;
+    background: content-box;
+}
+
+.dm-legend-cell {
+    border: 0;
+}
+
+.dm-legend-connected::before {
+    content: "\21c4";
+}
+
+.dm-legend-connected {
+    color: black;
+    font-size: 15px;
+    font-family: sans-serif;
+    padding-bottom: 8px;
+}
