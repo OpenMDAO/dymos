@@ -16,9 +16,25 @@ class DmLinkageTreeNode extends FilterCapableNode {
 
     }
 
+    /** Use a single filter instead of separate inputs and outputs */
     addFilterChild(attribNames) {
-        if (this.isCondition()) { super.addFilterChild(attribNames); }
+        if (this.isCondition()) {
+            this.filter = new FilterNode(this, attribNames, 'variables');
+            this.children.push(this.filter);
+        }
     }
+
+    /** Add ourselves to the parental filter */
+    addSelfToFilter() { this.parent.filter.add(this);  }
+
+    /** Remove ourselves from the parental filter */
+    removeSelfFromFilter() { this.parent.filter.del(this); }
+
+    getFilterList() { return [ this.filter ];}
+
+    wipeFilters() { this.filter.wipe(); }
+
+    addToFilter(node) { this.filter.add(node); }
 
     isPhase() { return this.type == 'phase'; }
 
