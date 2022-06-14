@@ -544,9 +544,9 @@ class Trajectory(om.Group):
                     shapes[i], units[i] = get_source_metadata(phases[i]._get_subsystem(rhs_source),
                                                               vars[i], user_units=units[i],
                                                               user_shape=_unspecified)
-                except ValueError:
-                    raise ValueError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
-                                     f'phase \'{phases[i].pathname}\' or its ODE.')
+                except RuntimeError as e:
+                    raise RuntimeError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
+                                       f'phase \'{phases[i].pathname}\' or its ODE.')
 
         linkage_options._src_a = sources['a']
         linkage_options._src_b = sources['b']
