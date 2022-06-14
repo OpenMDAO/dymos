@@ -847,3 +847,84 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
 
     def test_radau(self):
         self._test_transcription(transcription=dm.Radau)
+
+
+@use_tempdirs
+class TestInvalidStateRateSource(unittest.TestCase):
+
+    def test_brach_invalid_state_rate_source(self):
+
+        class _BrachODE(om.ExplicitComponent):
+
+            def initialize(self):
+                self.options.declare('num_nodes', types=int)
+
+            def setup(self):
+                nn = self.options['num_nodes']
+
+                # Inputs
+                self.add_input('v', val=np.zeros(nn), desc='velocity', units='m/s')
+                self.add_input('g', val=9.80665 * np.ones(nn), desc='grav. acceleration', units='m/s/s')
+                self.add_input('theta', val=np.ones(nn), desc='angle of wire', units='rad')
+
+                self.add_output('xdot', val=np.zeros(nn), desc='velocity component in x', units='m/s')
+
+                self.add_output('ydot', val=np.zeros(nn), desc='velocity component in y', units='m/s')
+
+                self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2')
+
+                self.add_output('check', val=np.zeros(nn), desc='check solution: v/sin(theta) = constant',
+                                units='m/s')
+
+                self.declare_coloring(wrt='*', method='cs')
+
+            def compute(self, inputs, outputs):
+                theta = inputs['theta']
+                cos_theta = np.cos(theta)
+                sin_theta = np.sin(theta)
+                g = inputs['g']
+                v = inputs['v']
+
+                outputs['vdot'] = g * cos_theta
+                outputs['xdot'] = v * sin_theta
+                outputs['ydot'] = -v * cos_theta
+                outputs['check'] = v / sin_theta
+
+        p = om.Problem(model=om.Group())
+
+        p.driver = om.pyOptSparseDriver()
+        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver.declare_coloring(tol=1.0E-12)
+
+        t = dm.Radau(num_segments=10, order=3, compressed=True)
+
+        traj = dm.Trajectory()
+        phase = dm.Phase(ode_class=_BrachODE, transcription=t)
+        p.model.add_subsystem('traj0', traj)
+        traj.add_phase('phase0', phase)
+
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.add_state('x', fix_initial=True, fix_final=False, rate_source='xdot')
+        phase.add_state('y', fix_initial=True, fix_final=False, rate_source='ydot')
+
+        # Intentionally incorrect rate source to trigger an error during configure.
+        phase.add_state('v', fix_initial=True, fix_final=False, rate_source='vel_dot')
+
+        phase.add_control('theta',
+                          continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_parameter('g', units='m/s**2')
+
+        phase.add_boundary_constraint('x', loc='final', equals=10)
+        phase.add_boundary_constraint('y', loc='final', equals=5)
+
+        # Minimize time at the end of the phase
+        phase.add_objective('time_phase', loc='final', scaler=10)
+
+        with self.assertRaises(RuntimeError) as ctx:
+            p.setup()
+
+        expected = 'Error during configure_states_introspection in phase traj0.phases.phase0.'
+        self.assertEqual(str(ctx.exception), expected)

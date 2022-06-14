@@ -1549,9 +1549,13 @@ class Phase(om.Group):
                 raise ValueError(f'Invalid parameter in phase `{self.pathname}`.\n{str(e)}') from e
 
         self.configure_state_discovery()
-        configure_states_introspection(self.state_options, self.time_options, self.control_options,
-                                       self.parameter_options, self.polynomial_control_options,
-                                       ode)
+
+        try:
+            configure_states_introspection(self.state_options, self.time_options, self.control_options,
+                                           self.parameter_options, self.polynomial_control_options,
+                                           ode)
+        except RuntimeError as val_err:
+            raise RuntimeError(f'Error during configure_states_introspection in phase {self.pathname}.') from val_err
 
         transcription.configure_time(self)
         transcription.configure_controls(self)

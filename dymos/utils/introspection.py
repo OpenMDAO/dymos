@@ -989,7 +989,7 @@ def get_source_metadata(ode, src, user_units, user_shape):
     ode_outputs = ode if isinstance(ode, dict) else get_promoted_vars(ode, iotypes='output')
 
     if src not in ode_outputs:
-        raise ValueError(f'Unable to find the source {src} in the ODE at {ode.pathname}.')
+        raise RuntimeError(f'Unable to find the source {src} in the ODE.')
 
     if user_units in {None, _unspecified}:
         units = ode_outputs[src]['units']
