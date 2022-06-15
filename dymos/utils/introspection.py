@@ -951,7 +951,7 @@ def _get_targets_metadata(ode, name, user_targets=_unspecified, user_units=_unsp
 
 def get_source_metadata(ode, src, user_units, user_shape):
     """
-    Return the targets of a state variable in a given ODE system.
+    Return the units and shape of output src in the given ODE.
 
     If the targets of the state is _unspecified, and the state name is a top level input name
     in the ODE, then the state values are automatically connected to that top-level input.
@@ -989,7 +989,7 @@ def get_source_metadata(ode, src, user_units, user_shape):
     ode_outputs = ode if isinstance(ode, dict) else get_promoted_vars(ode, iotypes='output')
 
     if src not in ode_outputs:
-        raise ValueError(f'Unable to find the source {src} in the ODE at {ode.pathname}.')
+        raise RuntimeError(f'Unable to find the source {src} in the ODE.')
 
     if user_units in {None, _unspecified}:
         units = ode_outputs[src]['units']
