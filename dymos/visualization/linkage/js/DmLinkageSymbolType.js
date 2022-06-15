@@ -17,7 +17,6 @@ class DmLinkageSymbolType extends SymbolType {
         super(cell, model);
     }
 
-
     /** 
      * Decide what object the cell will be drawn as, based on its position
      * in the matrix, type, source, target, and/or other conditions.
@@ -28,7 +27,7 @@ class DmLinkageSymbolType extends SymbolType {
         if (cell.srcObj.isFilter() || cell.tgtObj.isFilter()) {
             this.name = 'filter';
         }
-        else if (cell.srcObj.isConnected()) {
+        else if (cell.srcObj.isConnected() && cell.srcObj === cell.tgtObj) {
             this.name = 'connected_variable';
         }
         else {

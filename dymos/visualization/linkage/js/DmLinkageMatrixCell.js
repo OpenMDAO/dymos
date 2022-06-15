@@ -44,8 +44,6 @@ class DmLinkageMatrixCell extends MatrixCell {
             return clr.variableCell;
         }
 
-        if (( 'isFixed' in this.srcObj && this.srcObj.isFixed()) ||
-            ( 'isFixed' in this.tgtObj && this.tgtObj.isFixed())) return clr.fixedLinkageCell;
         return clr.linkageCell;
     }
 

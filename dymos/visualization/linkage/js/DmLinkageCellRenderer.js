@@ -59,7 +59,7 @@ class DmLinkageConnectedCell extends VectorBase {
             .append('text')
             .attr('class', 'connected-variable-text')
             .attr('id', `${this.id}-text`)
-            .html('&#x21c4;');
+            .html('&#x2794;');
 
         return this.update(svgGroup, dims);
     }
