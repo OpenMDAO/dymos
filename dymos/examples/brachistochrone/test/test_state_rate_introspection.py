@@ -892,11 +892,9 @@ class TestInvalidStateRateSource(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.declare_coloring(tol=1.0E-12)
+        p.driver = om.ScipyOptimizeDriver()
 
-        t = dm.Radau(num_segments=10, order=3, compressed=True)
+        t = dm.Radau(num_segments=10, order=3)
 
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=_BrachODE, transcription=t)
