@@ -1,34 +1,16 @@
 """Unit Tests for the code that does automatic report generation"""
 import unittest
 import pathlib
-import sys
 import os
-from io import StringIO
 
 import openmdao.api as om
-from openmdao.test_suite.components.paraboloid import Paraboloid
-from openmdao.test_suite.components.sellar_feature import SellarMDA
 import openmdao.core.problem
-from openmdao.core.constants import _UNDEFINED
-from openmdao.utils.assert_utils import assert_warning
-from openmdao.utils.general_utils import set_pyoptsparse_opt
-from openmdao.utils.reports_system import set_default_reports_dir, _reports_dir, register_report, \
-    list_reports, clear_reports, run_n2_report, setup_default_reports, report_function
+from openmdao.utils.reports_system import get_reports_dir, clear_reports
 from openmdao.utils.testing_utils import use_tempdirs
-from openmdao.utils.mpi import MPI
 from openmdao.utils.tests.test_hooks import hooks_active
 from openmdao.visualization.n2_viewer.n2_viewer import _default_n2_filename
 from openmdao.visualization.scaling_viewer.scaling_report import _default_scaling_filename
 
-try:
-    from openmdao.vectors.petsc_vector import PETScVector
-except ImportError:
-    PETScVector = None
-
-OPT, OPTIMIZER = set_pyoptsparse_opt('SLSQP')
-
-if OPTIMIZER:
-    from openmdao.drivers.pyoptsparse_driver import pyOptSparseDriver
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -50,7 +32,6 @@ class TestSubproblemReportToggle(unittest.TestCase):
         # But we need to remember whether it was set so we can restore it
         self.testflo_running = os.environ.pop('TESTFLO_RUNNING', None)
         clear_reports()
-        set_default_reports_dir(_reports_dir)
 
         self.count = 0
 
@@ -61,8 +42,6 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
     @hooks_active
     def test_no_sim_reports(self):
-        setup_default_reports()
-
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
@@ -112,8 +91,8 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
         dm.run_problem(p, run_driver=True, simulate=True)
 
-        problem_reports_dir = pathlib.Path(_reports_dir).joinpath(p._name)
-        report_subdirs = [e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()]
+        problem_reports_dir = p.get_reports_dir()
+        report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
         self.assertEqual(len(report_subdirs), 1)
@@ -125,8 +104,6 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
     @hooks_active
     def test_make_sim_reports(self):
-        setup_default_reports()
-
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
@@ -176,8 +153,8 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
         dm.run_problem(p, run_driver=True, simulate=True, simulate_kwargs={'reports': True})
 
-        problem_reports_dir = pathlib.Path(_reports_dir).joinpath(p._name)
-        report_subdirs = [e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()]
+        problem_reports_dir = pathlib.Path(get_reports_dir()).joinpath(p._name)
+        report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
         # # There is the nominal problem, the simulation problem, and a subproblem for each segment in the simulation.
@@ -189,8 +166,6 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
     @hooks_active
     def test_explicitshooting_no_subprob_reports(self):
-        setup_default_reports()
-
         prob = om.Problem()
 
         prob.driver = om.ScipyOptimizeDriver()
@@ -233,8 +208,8 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
         dm.run_problem(prob, run_driver=True, simulate=False)
 
-        problem_reports_dir = pathlib.Path(_reports_dir).joinpath(prob._name)
-        report_subdirs = [e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()]
+        problem_reports_dir = prob.get_reports_dir()
+        report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
         self.assertEqual(len(report_subdirs), 1)
@@ -246,8 +221,6 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
     @hooks_active
     def test_explicitshooting_make_subprob_reports(self):
-        setup_default_reports()
-
         prob = om.Problem()
 
         prob.driver = om.ScipyOptimizeDriver()
@@ -291,8 +264,8 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
         dm.run_problem(prob, run_driver=True, simulate=False)
 
-        problem_reports_dir = pathlib.Path(_reports_dir).joinpath(prob._name)
-        report_subdirs = [e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()]
+        problem_reports_dir = prob.get_reports_dir()
+        report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
         # There is the nominal problem, a subproblem for integration, and a subproblem for the derivatives.
