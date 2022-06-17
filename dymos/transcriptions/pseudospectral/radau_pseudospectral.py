@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 import openmdao.api as om
-from openmdao.utils.general_utils import simple_warning
+from openmdao.utils.om_warnings import issue_warning
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import RadauPSContinuityComp
@@ -413,10 +413,10 @@ class Radau(PseudospectralBase):
                     for output_name, var_list in output_name_groups.items():
                         if len(var_list) > 1:
                             var_list_as_string = ', '.join(var_list)
-                            simple_warning(f"The timeseries variable name {output_name} is "
-                                           f"duplicated in these variables: {var_list_as_string}. "
-                                           "Disambiguate by using the add_timeseries_output "
-                                           "output_name option.")
+                            issue_warning(f"The timeseries variable name {output_name} is "
+                                          f"duplicated in these variables: {var_list_as_string}. "
+                                          "Disambiguate by using the add_timeseries_output "
+                                          "output_name option.")
                 else:
                     matches = [var]
 
