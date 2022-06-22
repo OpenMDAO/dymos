@@ -747,7 +747,7 @@ class SolveIVP(TranscriptionBase):
             src_shape = phase.parameter_options[var]['shape']
         else:
             # Failed to find variable, assume it is in the ODE
-            path = f'rhs_all.{var}'
+            path = f'ode.{var}'
             src_shape, src_units = get_source_metadata(ode_outputs, src=var)
 
         src_idxs = None if node_idxs is None else om.slicer[node_idxs, ...]
