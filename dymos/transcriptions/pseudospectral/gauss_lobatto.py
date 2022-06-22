@@ -96,6 +96,10 @@ class GaussLobatto(PseudospectralBase):
                                          val=np.ones((1,)),
                                          units=options['units'])
 
+    def configure_timeseries_outputs(self, phase):
+        super().configure_timeseries_outputs(phase)
+        self.configure_interleave_comp(phase)
+
     def configure_controls(self, phase):
         """
         Configure the inputs/outputs for the controls.
@@ -274,7 +278,6 @@ class GaussLobatto(PseudospectralBase):
             phase.connect(rate_path,
                           f'state_interp.staterate_disc:{name}',
                           src_indices=disc_src_idxs, flat_src_indices=False)
-        self.configure_interleave_comp(phase)
 
     def configure_interleave_comp(self, phase):
         """
@@ -338,6 +341,28 @@ class GaussLobatto(PseudospectralBase):
                 phase.connect(rate_path_col,
                               f'interleave_comp.col_values:state_rates:{state_name}',
                               src_indices=col_src_idxs)
+
+        for timeseries_name, timeseries_options in phase._timeseries.items():
+
+            for ts_output_name, ts_output in phase._timeseries[timeseries_name]['outputs'].items():
+                name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
+
+                var_type = phase.classify_var(ts_output['name'])
+                if var_type == 'ode':
+                    units = ts_output['units']
+                    shape = ts_output['shape']
+
+                    # Add the state values to the interleave comp
+                    src_added = interleave_comp.add_var(name, shape, units,
+                                                        disc_src=f'rhs_disc.{name}',
+                                                        col_src=f'rhs_col.{name}')
+
+                    if src_added:
+                        phase.connect(f'rhs_disc.{name}',
+                                      f'interleave_comp.disc_values:{ts_output_name}')
+
+                        phase.connect(f'rhs_col.{name}',
+                                      f'interleave_comp.col_values:{ts_output_name}')
 
     def setup_defects(self, phase):
         """
