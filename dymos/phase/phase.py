@@ -22,7 +22,7 @@ from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, configure_states_introspection, \
-    classify_var, get_promoted_vars
+    configure_timeseries_output_introspection, classify_var, get_promoted_vars
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
 
@@ -75,7 +75,7 @@ class Phase(om.Group):
             self._path_constraints = []
             self._timeseries = {'timeseries': {'transcription': None,
                                                'subset': 'all',
-                                               'outputs': []}}
+                                               'outputs': {}}}
             self._objectives = {}
         else:
             self.time_options.update(from_phase.time_options)
@@ -1222,9 +1222,7 @@ class Phase(om.Group):
         if timeseries not in self._timeseries:
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
-        current_output_names = [op['output_name'] for op in self._timeseries[timeseries]['outputs']]
-
-        if output_name not in current_output_names:
+        if output_name not in self._timeseries[timeseries]['outputs'].keys():
             ts_output = TimeseriesOutputOptionsDictionary()
             ts_output['name'] = name
             ts_output['output_name'] = output_name
@@ -1232,7 +1230,7 @@ class Phase(om.Group):
             ts_output['units'] = units
             ts_output['shape'] = shape
 
-            self._timeseries[timeseries]['outputs'].append(ts_output)
+            self._timeseries[timeseries]['outputs'][output_name] = ts_output
         else:
             om.issue_warning(f'Output name `{output_name}` is already in timeseries `{timeseries}`. '
                              f'New output ignored.')
@@ -1574,6 +1572,11 @@ class Phase(om.Group):
         transcription.configure_path_constraints(self)
 
         transcription.configure_objective(self)
+
+        try:
+            configure_timeseries_output_introspection(self)
+        except RuntimeError as val_err:
+            raise RuntimeError(f'Error during configure_timeseries_output_introspection in phase {self.pathname}.') from val_err
 
         transcription.configure_timeseries_outputs(self)
 

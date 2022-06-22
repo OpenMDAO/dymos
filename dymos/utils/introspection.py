@@ -1,9 +1,10 @@
 from collections.abc import Iterable
+import copy
 import fnmatch
 
 import openmdao.api as om
 from dymos.utils.misc import _unspecified
-from ..phase.options import StateOptionsDictionary
+from ..phase.options import StateOptionsDictionary, TimeseriesOutputOptionsDictionary
 from .misc import get_rate_units
 
 
@@ -682,6 +683,70 @@ def configure_states_discovery(state_options, ode):
             raise ValueError(f"State '{name}' is missing a rate_source.")
 
 
+def configure_timeseries_output_glob_expansion(phase):
+    """
+    Modify timeseries outputs in-place using introspection to expand any glob patterns.
+
+    Parameters
+    ----------
+    phase : Phase
+        The phase object whose boundary and path constraints are to be introspected.
+    """
+    transcription = phase.options['transcription']
+    ode = transcription._get_ode(phase)
+    ode_outputs = get_promoted_vars(ode, 'output')
+
+    new_outputs = {}
+
+    # Step 1: Expand globs
+    for ts_name, ts_meta in phase._timeseries.items():
+
+        explicit_requests = set([output['name'] for output in ts_meta['outputs'].values() if '*' not in output['name']])
+
+        for output_name, output_options in ts_meta['outputs'].items():
+            if '*' in output_name:
+                matching_outputs = filter_outputs(output['name'], ode_outputs)
+
+                for op, meta in matching_outputs.items():
+                    if op not in explicit_requests and 'dymos.static_output' not in meta['tags']:
+                        new_output = TimeseriesOutputOptionsDictionary()
+                        new_output.update(output)
+                        new_output['name'] = op
+                        new_output['output_name'] = None
+                        new_output['units'] = meta['units']
+                        new_output['shape'] = meta['shape']
+                        new_outputs.append(new_output)
+            else:
+                new_outputs[output_name] = output_options
+        phase._timeseries[ts_name]['outputs'] = new_outputs
+
+def configure_timeseries_output_introspection(phase):
+    """
+    Modify timeseries outputs in-place using introspection to find output units and shape.
+
+    Parameters
+    ----------
+    phase : Phase
+        The phase object whose timeseries outputs are to be introspected.
+    """
+    configure_timeseries_output_glob_expansion(phase)
+
+    transcription = phase.options['transcription']
+
+    for ts_name, ts_opts in phase._timeseries.items():
+        ts_subset = ts_opts['subset']
+
+        for output_name, output_options in ts_opts['outputs'].items():
+            output_options['src'], output_options['src_idxs'], src_units, src_shape = \
+                transcription._get_timeseries_var_source(output_options['name'], nodes=ts_subset, phase=phase)
+    
+            if output_options['shape'] in (None, _unspecified):
+                output_options['shape'] = src_shape
+    
+            if output_options['units'] is _unspecified:
+                output_options['units'] = src_units
+
+
 def filter_outputs(patterns, sys):
     """
     Find all outputs of the given system that match one or more of the strings given in patterns.
@@ -701,7 +766,7 @@ def filter_outputs(patterns, sys):
         A dictionary where the matching output names are the keys and the associated dict provides
         the 'units' and 'shapes' metadata.
     """
-    outputs = sys if isinstance(sys, dict) else get_promoted_vars(sys, iotypes='output', metadata_keys=['shape', 'units'])
+    outputs = sys if isinstance(sys, dict) else get_promoted_vars(sys, iotypes='output', metadata_keys=['shape', 'units', 'tags'])
 
     output_names = list(outputs.keys())
     filtered = []
@@ -712,7 +777,7 @@ def filter_outputs(patterns, sys):
     filtered = list(set(filtered))  # de-dupe
 
     for var in filtered:
-        results[var] = {'units': outputs[var]['units'], 'shape': outputs[var]['shape']}
+        results[var] = {'units': outputs[var]['units'], 'shape': outputs[var]['shape'], 'tags': outputs[var]['tags']}
 
     return results
 
@@ -949,7 +1014,7 @@ def _get_targets_metadata(ode, name, user_targets=_unspecified, user_units=_unsp
     return targets, shape, units, static_target
 
 
-def get_source_metadata(ode, src, user_units, user_shape):
+def get_source_metadata(ode, src, user_units=_unspecified, user_shape=_unspecified):
     """
     Return the units and shape of output src in the given ODE.
 

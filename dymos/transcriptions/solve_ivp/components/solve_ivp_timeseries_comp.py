@@ -37,7 +37,7 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
             shape = kwargs['shape']
             self._add_output_configure(name, units, shape, desc)
 
-    def _add_output_configure(self, name, units, shape, desc):
+    def _add_output_configure(self, name, units, shape, desc, src=None):
         """
         Add a single timeseries output.
 
@@ -55,10 +55,12 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
             Default is None, which means it has no units.
         desc : str
             description of the timeseries output variable.
+        src : str or None
+            The source of the timeseries output.
         """
         num_nodes = self.num_nodes
 
-        input_name = f'all_values:{name}'
+        input_name = f'input_values:{name}'
         self.add_input(input_name,
                        shape=(num_nodes,) + shape,
                        units=units, desc=desc)
@@ -69,6 +71,8 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
                         units=units, desc=desc)
 
         self._vars[name] = (input_name, output_name, shape)
+
+        return True
 
     def compute(self, inputs, outputs):
         """

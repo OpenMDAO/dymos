@@ -107,8 +107,7 @@ class ODEIntegrationInterface(object):
             pos = state_options['pos']
             size = state_options['size']
             self._state_rate_vec[pos:pos + size] = \
-                np.ravel(self.prob['state_rate_collector.'
-                                   'state_rates:{0}_rate'.format(state_name)])
+                np.ravel(self.prob[f'state_rate_collector.state_rates:{state_name}_rate'])
         return self._state_rate_vec
 
     def set_interpolant(self, name, interp):
