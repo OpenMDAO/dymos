@@ -1135,8 +1135,7 @@ class Phase(om.Group):
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
         if var_type == 'ode':
-            current_output_names = [op['output_name'] for op in self._timeseries['timeseries']['outputs']]
-            if constraint_name not in current_output_names:
+            if constraint_name not in self._timeseries['timeseries']['outputs']:
                 self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
@@ -1252,7 +1251,7 @@ class Phase(om.Group):
         """
         self._timeseries[name] = {'transcription': transcription,
                                   'subset': subset,
-                                  'outputs': []}
+                                  'outputs': {}}
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None):

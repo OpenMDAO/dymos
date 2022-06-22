@@ -239,6 +239,12 @@ class TranscriptionBase(object):
             param_comp = ParameterComp()
             phase.add_subsystem('param_comp', subsys=param_comp, promotes_inputs=['*'], promotes_outputs=['*'])
 
+        for name, options in phase.parameter_options.items():
+            if options['include_timeseries']:
+                for ts_name, ts_options in phase._timeseries.items():
+                    if f'parameters:{name}' not in ts_options['outputs']:
+                        phase.add_timeseries_output(name, output_name=f'parameters:{name}')
+
     def configure_parameters(self, phase):
         """
         Configure parameter promotion.
