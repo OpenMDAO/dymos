@@ -747,7 +747,7 @@ def configure_timeseries_output_introspection(phase):
 
         for output_name, output_options in ts_opts['outputs'].items():
             output_options['src'], output_options['src_idxs'], src_units, src_shape = \
-                transcription._get_timeseries_var_source(output_options['name'], nodes=ts_subset, phase=phase)
+                transcription._get_timeseries_var_source(output_options['name'], nodes='all', phase=phase)
     
             if output_options['shape'] in (None, _unspecified):
                 output_options['shape'] = src_shape

@@ -517,28 +517,23 @@ class SolveIVP(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        gd = self.grid_data
-        time_units = phase.time_options['units']
-        ode = phase.options['transcription']._get_ode(phase)
+        timeseries_comp = phase._get_subsystem('timeseries')
 
-        for timeseries_name, timeseries_options in phase._timeseries.items():
-            timeseries_comp = phase._get_subsystem(timeseries_name)
+        for ts_output_name, ts_output in phase._timeseries['timeseries']['outputs'].items():
+            name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
+            units = ts_output['units']
+            shape = ts_output['shape']
+            src = ts_output['src']
+            src_idxs = ts_output['src_idxs']
 
-            for ts_output_name, ts_output in phase._timeseries[timeseries_name]['outputs'].items():
-                name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
-                units = ts_output['units']
-                shape = ts_output['shape']
-                src = ts_output['src']
-                src_idxs = ts_output['src_idxs']
+            added_src = timeseries_comp._add_output_configure(name,
+                                                              shape=shape,
+                                                              units=units,
+                                                              desc='',
+                                                              src=src)
 
-                added_src = timeseries_comp._add_output_configure(name,
-                                                                  shape=shape,
-                                                                  units=units,
-                                                                  desc='',
-                                                                  src=src)
-
-                if added_src:
-                    phase.connect(src_name=src, tgt_name=f'{timeseries_name}.input_values:{name}', src_indices=src_idxs)
+            if added_src:
+                phase.connect(src_name=src, tgt_name=f'timeseries.input_values:{name}', src_indices=src_idxs)
 
     def get_parameter_connections(self, name, phase):
         """
