@@ -651,7 +651,7 @@ class SolveIVP(TranscriptionBase):
 
         return rate_path, node_idxs
 
-    def _get_timeseries_var_source(self, var, nodes, phase):
+    def _get_timeseries_var_source(self, var, output_name, phase):
         """
         Return the source path and indices for a given variable to be connected to a timeseries.
 
@@ -659,8 +659,8 @@ class SolveIVP(TranscriptionBase):
         ----------
         var : str
             Name of the whose source is desired.
-        nodes : str
-            The node subset for which the values of the variable are desired.
+        output_name : str
+            The name of the variable as it appears in the timeseries.
         phase : dymos.Phase
             Phase object containing the variable, either as state, time, control, etc., or as an ODE output.
 
@@ -743,7 +743,10 @@ class SolveIVP(TranscriptionBase):
         else:
             # Failed to find variable, assume it is in the ODE
             path = f'ode.{var}'
-            src_shape, src_units = get_source_metadata(ode_outputs, src=var)
+            src_shape, src_units, src_tags = get_source_metadata(ode_outputs, src=var)
+            if 'dymos.static' in src_tags:
+                raise RuntimeError(f'ODE output {var} is tagged with "dymos.no_timeseries" and cannot be a '
+                                   f'timeseries output.')
 
         src_idxs = None if node_idxs is None else om.slicer[node_idxs, ...]
 

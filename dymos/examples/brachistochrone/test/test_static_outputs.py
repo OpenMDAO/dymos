@@ -40,7 +40,8 @@ class BrachODEStaticOutput(om.ExplicitComponent):
         self.add_output('check', val=np.zeros(nn), desc='check solution: v/sin(theta) = constant',
                         units='m/s')
 
-        self.add_output('foo', val=np.eye(2), desc='a static matrix to be output', units='m/s**2')
+        self.add_output('foo', val=np.eye(2), desc='a static matrix to be output', units='m/s**2',
+                        tags=['dymos.no_timeseries'])
 
         self.declare_partials(of='*', wrt='*', method='cs')
         self.declare_coloring(wrt='*', method='cs', show_summary=True, show_sparsity=True)
@@ -123,9 +124,6 @@ class TestStaticODEOutput(unittest.TestCase):
         with warnings.catch_warnings(record=True) as ctx:
             warnings.simplefilter('always')
             p.setup(check=True)
-            expected_warning = "Cannot add ODE output foo to the timeseries output. It is sized " \
-                               "such that its first dimension != num_nodes."
-            self.assertIn(expected_warning, [str(w.message) for w in ctx])
 
         # Now that the OpenMDAO problem is setup, we can set the values of the states.
 
@@ -149,12 +147,7 @@ class TestStaticODEOutput(unittest.TestCase):
                   units='deg')
 
         # Run the driver to solve the problem
-        with warnings.catch_warnings(record=True) as ctx:
-            warnings.simplefilter('always')
-            dm.run_problem(p, simulate=True, make_plots=False)
-            expected_warning = "Cannot add ODE output foo to the timeseries output. It is sized " \
-                               "such that its first dimension != num_nodes."
-            self.assertIn(expected_warning, [str(w.message) for w in ctx])
+        dm.run_problem(p, simulate=True, make_plots=False)
 
         sol = om.CaseReader('dymos_solution.db').get_case('final')
         sim = om.CaseReader('dymos_simulation.db').get_case('final')

@@ -328,7 +328,7 @@ class Radau(PseudospectralBase):
 
         return rate_path, src_idxs
 
-    def _get_timeseries_var_source(self, var, nodes, phase):
+    def _get_timeseries_var_source(self, var, output_name, phase):
         """
         Return the source path and indices for a given variable to be connected to a timeseries.
 
@@ -336,8 +336,8 @@ class Radau(PseudospectralBase):
         ----------
         var : str
             Name of the whose source is desired.
-        nodes : str
-            The node subset for which the values of the variable are desired.
+        output_name : str
+            The name of the output variable as it appears in the timeseries.
         phase : dymos.Phase
             Phase object containing the variable, either as state, time, control, etc., or as an ODE output.
 
@@ -361,7 +361,7 @@ class Radau(PseudospectralBase):
         ode_outputs = get_promoted_vars(ode, 'output')
 
         # The default for node_idxs, applies to everything except states and parameters.
-        node_idxs = gd.subset_node_indices[nodes]
+        node_idxs = gd.subset_node_indices['all']
 
         # Determine the path to the variable
         if var_type == 'time':
@@ -392,7 +392,7 @@ class Radau(PseudospectralBase):
             map_input_node_idxs_to_all = np.repeat(np.arange(gd.subset_num_nodes['state_input'],
                                                              dtype=int), repeats=repeat_idxs)
             # Now select the subset of nodes we want to use.
-            node_idxs = map_input_node_idxs_to_all[gd.subset_node_indices[nodes]]
+            node_idxs = map_input_node_idxs_to_all[gd.subset_node_indices['all']]
         elif var_type in ['indep_control', 'input_control']:
             path = f'control_values:{var}'
             src_units = phase.control_options[var]['units']
@@ -428,7 +428,7 @@ class Radau(PseudospectralBase):
             path = f'parameter_vals:{var}'
             dynamic = phase.parameter_options[var]['dynamic']
             if dynamic:
-                node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+                node_idxs = np.zeros(gd.subset_num_nodes['all'], dtype=int)
             else:
                 node_idxs = np.zeros(1, dtype=int)
             src_units = phase.parameter_options[var]['units']
@@ -436,7 +436,9 @@ class Radau(PseudospectralBase):
         else:
             # Failed to find variable, assume it is in the ODE
             path = f'rhs_all.{var}'
-            src_shape, src_units = get_source_metadata(ode_outputs, src=var)
+            src_shape, src_units, src_tags = get_source_metadata(ode_outputs, src=var)
+            if 'dymos.no_timeseries' in src_tags:
+                raise RuntimeError(f'ODE output {var} is tagged with "dymos.no_timeseries" and cannot be a timeseries output.')
 
         src_idxs = om.slicer[node_idxs, ...]
 

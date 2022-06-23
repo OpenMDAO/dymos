@@ -358,9 +358,9 @@ def _configure_constraint_introspection(phase):
                 # Failed to find variable, assume it is in the ODE. This requires introspection.
                 ode = phase.options['transcription']._get_ode(phase)
 
-                shape, units = get_source_metadata(ode, src=var,
-                                                   user_units=con['units'],
-                                                   user_shape=con['shape'])
+                shape, units, _ = get_source_metadata(ode, src=var,
+                                                      user_units=con['units'],
+                                                      user_shape=con['shape'])
                 con['shape'] = shape
                 con['units'] = units
                 con['constraint_path'] = f'timeseries.{con["constraint_name"]}'
@@ -611,10 +611,10 @@ def configure_states_introspection(state_options, time_options, control_options,
             rate_src_units = get_rate_units(control['units'], time_units, deriv=2)
             rate_src_shape = control['shape']
         elif rate_src_type == 'ode':
-            rate_src_shape, rate_src_units = get_source_metadata(ode_outputs,
-                                                                 src=rate_src,
-                                                                 user_units=options['units'],
-                                                                 user_shape=options['shape'])
+            rate_src_shape, rate_src_units, _ = get_source_metadata(ode_outputs,
+                                                                    src=rate_src,
+                                                                    user_units=options['units'],
+                                                                    user_shape=options['shape'])
         else:
             rate_src_shape = (1,)
             rate_src_units = None
@@ -708,7 +708,7 @@ def configure_timeseries_output_glob_expansion(phase):
                 matching_outputs = filter_outputs(output_name, ode_outputs)
 
                 for op, meta in matching_outputs.items():
-                    if op not in explicit_requests and 'dymos.static_output' not in meta['tags']:
+                    if op not in explicit_requests and 'dymos.no_timeseries' not in meta['tags']:
                         new_output = TimeseriesOutputOptionsDictionary()
                         new_output['name'] = op
                         new_output['output_name'] = opname = op.split('.')[-1]
@@ -743,11 +743,10 @@ def configure_timeseries_output_introspection(phase):
     transcription = phase.options['transcription']
 
     for ts_name, ts_opts in phase._timeseries.items():
-        ts_subset = ts_opts['subset']
 
         for output_name, output_options in ts_opts['outputs'].items():
             output_options['src'], output_options['src_idxs'], src_units, src_shape = \
-                transcription._get_timeseries_var_source(output_options['name'], nodes='all', phase=phase)
+                transcription._get_timeseries_var_source(output_options['name'], output_options['output_name'], phase=phase)
     
             if output_options['shape'] in (None, _unspecified):
                 output_options['shape'] = src_shape
@@ -1053,6 +1052,8 @@ def get_source_metadata(ode, src, user_units=_unspecified, user_shape=_unspecifi
         The shape of the variable.  If not specified, shape is taken from the ODE targets.
     units : str
         The units of the variable.  If not specified, units are taken from the ODE targets.
+    tags : Sequence of str
+        Any tags associated with the output.
 
     Notes
     -----
@@ -1076,4 +1077,4 @@ def get_source_metadata(ode, src, user_units=_unspecified, user_shape=_unspecifi
     else:
         shape = user_shape
 
-    return shape, units
+    return shape, units, ode_outputs[src]['tags']

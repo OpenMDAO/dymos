@@ -345,23 +345,21 @@ class GaussLobatto(PseudospectralBase):
         for timeseries_name, timeseries_options in phase._timeseries.items():
 
             for ts_output_name, ts_output in phase._timeseries[timeseries_name]['outputs'].items():
-                name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
-
                 var_type = phase.classify_var(ts_output['name'])
                 if var_type == 'ode':
                     units = ts_output['units']
                     shape = ts_output['shape']
 
                     # Add the state values to the interleave comp
-                    src_added = interleave_comp.add_var(name, shape, units,
-                                                        disc_src=f'rhs_disc.{name}',
-                                                        col_src=f'rhs_col.{name}')
+                    src_added = interleave_comp.add_var(ts_output_name, shape, units,
+                                                        disc_src=f'rhs_disc.{ts_output_name}',
+                                                        col_src=f'rhs_col.{ts_output_name}')
 
                     if src_added:
-                        phase.connect(f'rhs_disc.{name}',
+                        phase.connect(f'rhs_disc.{ts_output["name"]}',
                                       f'interleave_comp.disc_values:{ts_output_name}')
 
-                        phase.connect(f'rhs_col.{name}',
+                        phase.connect(f'rhs_col.{ts_output["name"]}',
                                       f'interleave_comp.col_values:{ts_output_name}')
 
     def setup_defects(self, phase):
@@ -498,16 +496,16 @@ class GaussLobatto(PseudospectralBase):
 
         return rate_path, src_idxs
 
-    def _get_timeseries_var_source(self, var, nodes, phase):
+    def _get_timeseries_var_source(self, var, output_name, phase):
         """
         Return the source path and indices for a given variable to be connected to a timeseries.
 
         Parameters
         ----------
         var : str
-            Name of the whose source is desired.
-        nodes : str
-            The node subset for which the values of the variable are desired.
+            Name of the variable whose source is desired.
+        output_name : str
+            The name of the variable as it appears in the timeseries.
         phase : dymos.Phase
             Phase object containing the variable, either as state, time, control, etc., or as an ODE output.
 
@@ -531,7 +529,7 @@ class GaussLobatto(PseudospectralBase):
         ode_outputs = get_promoted_vars(ode, 'output')
 
         # The default for node_idxs, applies to everything except states and parameters.
-        node_idxs = gd.subset_node_indices[nodes]
+        node_idxs = gd.subset_node_indices['all']
 
         # Determine the path to the variable
         if var_type == 'time':
@@ -581,15 +579,17 @@ class GaussLobatto(PseudospectralBase):
             path = f'parameter_vals:{var}'
             dynamic = phase.parameter_options[var]['dynamic']
             if dynamic:
-                node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+                node_idxs = np.zeros(gd.subset_num_nodes['all'], dtype=int)
             else:
                 node_idxs = np.zeros(1, dtype=int)
             src_units = phase.parameter_options[var]['units']
             src_shape = phase.parameter_options[var]['shape']
         else:
             # Failed to find variable, assume it is in the ODE
-            path = f'interleave_comp.all_values:{var}'
-            src_shape, src_units = get_source_metadata(ode_outputs, src=var)
+            path = f'interleave_comp.all_values:{output_name}'
+            src_shape, src_units, src_tags = get_source_metadata(ode_outputs, src=var)
+            if 'dymos.no_timeseries' in src_tags:
+                raise RuntimeError(f'ODE output {var} is tagged with "dymos.no_timeseries" and cannot be a timeseries output.')
 
         src_idxs = om.slicer[node_idxs, ...]
 

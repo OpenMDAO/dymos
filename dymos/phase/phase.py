@@ -1050,9 +1050,8 @@ class Phase(om.Group):
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
         if var_type == 'ode':
-            current_output_names = [op['output_name'] for op in self._timeseries['timeseries']['outputs']]
-            if constraint_name not in current_output_names:
-                self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+            if constraint_name not in self._timeseries['timeseries']['outputs']:
+                self.add_timeseries_output(name, output_name=constraint_name)
 
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
@@ -1136,7 +1135,8 @@ class Phase(om.Group):
         var_type = self.classify_var(name)
         if var_type == 'ode':
             if constraint_name not in self._timeseries['timeseries']['outputs']:
-                self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+                print(f'adding path constraint for {constraint_name} with units {units}')
+                self.add_timeseries_output(name, output_name=constraint_name)
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                               timeseries='timeseries'):
