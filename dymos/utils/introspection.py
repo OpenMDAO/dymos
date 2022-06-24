@@ -130,13 +130,16 @@ def get_targets(ode, name, user_targets, control_rates=False):
     this method should be called from configure of some parent Group, and the ODE should
     be a system within that Group.
     """
-    if isinstance(ode, dict):
-        ode_inputs = ode
-    else:
-        ode_inputs = {opts['prom_name']: opts for (k, opts) in
-                      ode.get_io_metadata(iotypes=('input',), get_remote=True).items()}
-
     if user_targets is _unspecified:
+        if isinstance(ode, dict):
+            ode_inputs = ode
+        else:
+            # TODO: make sure it's OK that prom_name is non-unique for inputs here...
+            # TODO: why are we even calling get_io_metadata here when all we need are to check
+            #       if certain promoted names match name or {name}_rate1 or {name}_rate2?
+            ode_inputs = {opts['prom_name']: opts for opts in
+                          ode.get_io_metadata(iotypes=('input',), get_remote=True).values()}
+
         if control_rates not in (1, 2) and name in ode_inputs:
             targets = [name]
         elif control_rates == 1 and f'{name}_rate' in ode_inputs:
