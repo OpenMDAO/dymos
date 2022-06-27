@@ -75,7 +75,7 @@ class Phase(om.Group):
             self._path_constraints = []
             self._timeseries = {'timeseries': {'transcription': None,
                                                'subset': 'all',
-                                               'outputs': []}}
+                                               'outputs': {}}}
             self._objectives = {}
         else:
             self.time_options.update(from_phase.time_options)
@@ -1050,8 +1050,7 @@ class Phase(om.Group):
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
         if var_type == 'ode':
-            current_output_names = [op['output_name'] for op in self._timeseries['timeseries']['outputs']]
-            if constraint_name not in current_output_names:
+            if constraint_name not in self._timeseries['timeseries']['outputs']:
                 self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
@@ -1135,8 +1134,7 @@ class Phase(om.Group):
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
         if var_type == 'ode':
-            current_output_names = [op['output_name'] for op in self._timeseries['timeseries']['outputs']]
-            if constraint_name not in current_output_names:
+            if constraint_name not in self._timeseries['timeseries']['outputs']:
                 self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
@@ -1179,16 +1177,17 @@ class Phase(om.Group):
                 else:
                     unit = units
 
-                self._add_timeseries_output(name_i, output_name=output_name,
-                                            units=unit,
-                                            shape=shape,
-                                            timeseries=timeseries,
-                                            val=val,
-                                            rate=rate)
+                outnames = self._add_timeseries_output(name_i, output_name=output_name,
+                                                       units=unit,
+                                                       shape=shape,
+                                                       timeseries=timeseries,
+                                                       val=val,
+                                                       rate=rate)
 
                 # Handle specific units for wildcard names.
                 if '*' in name_i:
-                    self._timeseries[timeseries]['outputs'][-1]['wildcard_units'] = units
+                    for oname in outnames:
+                        self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
 
         else:
             self._add_timeseries_output(name, output_name=output_name,
@@ -1230,6 +1229,11 @@ class Phase(om.Group):
         rate : bool
             If True, add the rate of change of the named variable to the timeseries outputs of the
             phase.  The rate variable will be named f'{name}_rate'.
+
+        Returns
+        -------
+        list
+            List of names of outputs that were added to the timeseries.
         """
         if timeseries not in self._timeseries:
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
@@ -1237,13 +1241,12 @@ class Phase(om.Group):
         if output_name is None:
             output_name = name.rpartition('.')[-1]
 
-        for op in self._timeseries[timeseries]['outputs']:
-            if output_name == op['output_name']:
-                om.issue_warning(f'Output name `{output_name}` is already in timeseries `{timeseries}`. '
-                                 f'New output ignored.')
-                break
-        else:
+        outnames = []
 
+        if output_name in self._timeseries[timeseries]['outputs']:
+            om.issue_warning(f'Output name `{output_name}` is already in timeseries `{timeseries}`. '
+                             f'New output ignored.')
+        else:
             if val:
                 ts_output = TimeseriesOutputOptionsDictionary()
                 ts_output['name'] = name
@@ -1251,16 +1254,21 @@ class Phase(om.Group):
                 ts_output['wildcard_units'] = {}
                 ts_output['units'] = units
                 ts_output['shape'] = shape
-                self._timeseries[timeseries]['outputs'].append(ts_output)
+                self._timeseries[timeseries]['outputs'][output_name] = ts_output
+                outnames.append(output_name)
 
             if rate:
+                rate_name = output_name + '_rate'
                 ts_output = TimeseriesOutputOptionsDictionary()
                 ts_output['name'] = name
-                ts_output['output_name'] = output_name + '_rate'
+                ts_output['output_name'] = rate_name
                 ts_output['wildcard_units'] = {}
                 ts_output['units'] = units
                 ts_output['shape'] = shape
-                self._timeseries[timeseries]['outputs'].append(ts_output)
+                self._timeseries[timeseries]['outputs'][rate_name] = ts_output
+                outnames.append(rate_name)
+
+        return outnames
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""
@@ -1279,7 +1287,7 @@ class Phase(om.Group):
         """
         self._timeseries[name] = {'transcription': transcription,
                                   'subset': subset,
-                                  'outputs': []}
+                                  'outputs': {}}
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None):

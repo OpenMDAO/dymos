@@ -640,9 +640,8 @@ class SolveIVP(TranscriptionBase):
                 phase.connect(f'parameter_vals:{name}', f'timeseries.all_values:parameters:{name}',
                               src_indices=src_idxs, flat_src_indices=True)
 
-        for ts_output in phase._timeseries['timeseries']['outputs']:
+        for output_name, ts_output in phase._timeseries['timeseries']['outputs'].items():
             var = ts_output['name']
-            output_name = ts_output['output_name']
             units = ts_output['units']
             wildcard_units = ts_output['wildcard_units']
             shape = ts_output['shape']
