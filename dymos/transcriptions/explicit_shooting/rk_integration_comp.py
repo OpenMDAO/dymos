@@ -583,7 +583,7 @@ class RKIntegrationComp(om.ExplicitComponent):
 
             explicit_requests = set([var for var in patterns if '*' not in var])
 
-            unmatched_requests = sorted(list(set(explicit_requests) - set(matching_outputs.keys())))
+            unmatched_requests = sorted(set(explicit_requests) - set(matching_outputs.keys()))
 
             if unmatched_requests:
                 om.issue_warning(msg='The following timeseries outputs were requested but '

@@ -114,7 +114,7 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
             offset = 0
         else:
             scale, offset = unit_conversion(input_units, units)
-        self._conversion_factors[output_name] = scale, offset
+            self._conversion_factors[output_name] = scale, offset
 
         self.declare_partials(of=output_name,
                               wrt=input_name,
@@ -134,5 +134,8 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
             `Vector` containing outputs.
         """
         for (input_name, output_name, _) in self._vars.values():
-            scale, offset = self._conversion_factors[output_name]
-            outputs[output_name] = scale * (inputs[input_name] + offset)
+            if output_name in self._conversion_factors:
+                scale, offset = self._conversion_factors[output_name]
+                outputs[output_name] = scale * (inputs[input_name] + offset)
+            else:
+                outputs[output_name] = inputs[input_name]

@@ -1019,7 +1019,7 @@ class Phase(om.Group):
                              '"initial" or "final".'.format(loc))
 
         if constraint_name is None:
-            constraint_name = name.split('.')[-1]
+            constraint_name = name.rpartition('.')[-1]
 
         bc_list = self._initial_boundary_constraints if loc == 'initial' else self._final_boundary_constraints
 
@@ -1140,7 +1140,7 @@ class Phase(om.Group):
                 self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
-                              timeseries='timeseries'):
+                              timeseries='timeseries', val=True, rate=False):
         r"""
         Add a variable to the timeseries outputs of the phase.
 
@@ -1164,6 +1164,11 @@ class Phase(om.Group):
             since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
         timeseries : str or None
             The name of the timeseries to which the output is being added.
+        val : bool
+            If True, add the named variable to the timeseries outputs of the phase.
+        rate : bool
+            If True, add the rate of change of the named variable to the timeseries outputs of the
+            phase.  The rate variable will be named f'{name}_rate'.
         """
         if type(name) is list:
             for i, name_i in enumerate(name):
@@ -1177,7 +1182,9 @@ class Phase(om.Group):
                 self._add_timeseries_output(name_i, output_name=output_name,
                                             units=unit,
                                             shape=shape,
-                                            timeseries=timeseries)
+                                            timeseries=timeseries,
+                                            val=val,
+                                            rate=rate)
 
                 # Handle specific units for wildcard names.
                 if '*' in name_i:
@@ -1187,10 +1194,12 @@ class Phase(om.Group):
             self._add_timeseries_output(name, output_name=output_name,
                                         units=units,
                                         shape=shape,
-                                        timeseries=timeseries)
+                                        timeseries=timeseries,
+                                        val=val,
+                                        rate=rate)
 
     def _add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
-                               timeseries='timeseries'):
+                               timeseries='timeseries', val=True, rate=False):
         r"""
         Add a single variable to the timeseries outputs of the phase.
 
@@ -1205,7 +1214,8 @@ class Phase(om.Group):
         output_name : str or None
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
-            override the constraint name if splitting the path causes name collisions.
+            override the constraint name if splitting the path causes name collisions.  If rate
+            is True, the rate name will be this name + _rate.
         units : str or None
             The units to express the timeseries output.  If None, use the
             units associated with the target.  If provided, must be compatible with
@@ -1215,27 +1225,42 @@ class Phase(om.Group):
             since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
         timeseries : str or None
             The name of the timeseries to which the output is being added.
+        val : bool
+            If True, add the named variable to the timeseries outputs of the phase.
+        rate : bool
+            If True, add the rate of change of the named variable to the timeseries outputs of the
+            phase.  The rate variable will be named f'{name}_rate'.
         """
-        if output_name is None:
-            output_name = name.split('.')[-1]
-
         if timeseries not in self._timeseries:
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
-        current_output_names = [op['output_name'] for op in self._timeseries[timeseries]['outputs']]
+        if output_name is None:
+            output_name = name.rpartition('.')[-1]
 
-        if output_name not in current_output_names:
-            ts_output = TimeseriesOutputOptionsDictionary()
-            ts_output['name'] = name
-            ts_output['output_name'] = output_name
-            ts_output['wildcard_units'] = {}
-            ts_output['units'] = units
-            ts_output['shape'] = shape
-
-            self._timeseries[timeseries]['outputs'].append(ts_output)
+        for op in self._timeseries[timeseries]['outputs']:
+            if output_name == op['output_name']:
+                om.issue_warning(f'Output name `{output_name}` is already in timeseries `{timeseries}`. '
+                                 f'New output ignored.')
+                break
         else:
-            om.issue_warning(f'Output name `{output_name}` is already in timeseries `{timeseries}`. '
-                             f'New output ignored.')
+
+            if val:
+                ts_output = TimeseriesOutputOptionsDictionary()
+                ts_output['name'] = name
+                ts_output['output_name'] = output_name
+                ts_output['wildcard_units'] = {}
+                ts_output['units'] = units
+                ts_output['shape'] = shape
+                self._timeseries[timeseries]['outputs'].append(ts_output)
+
+            if rate:
+                ts_output = TimeseriesOutputOptionsDictionary()
+                ts_output['name'] = name
+                ts_output['output_name'] = output_name + '_rate'
+                ts_output['wildcard_units'] = {}
+                ts_output['units'] = units
+                ts_output['shape'] = shape
+                self._timeseries[timeseries]['outputs'].append(ts_output)
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""

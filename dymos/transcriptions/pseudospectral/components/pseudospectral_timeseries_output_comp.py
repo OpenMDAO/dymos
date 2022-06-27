@@ -177,7 +177,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             offset = 0
         else:
             scale, offset = unit_conversion(input_units, units)
-        self._conversion_factors[output_name] = scale, offset
+            self._conversion_factors[output_name] = scale, offset
 
         self.declare_partials(of=output_name,
                               wrt=input_name,
@@ -197,8 +197,6 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             `Vector` containing outputs.
         """
         for (input_name, output_name, _) in self._vars.values():
-            scale, offset = self._conversion_factors[output_name]
-
             if self._no_interp:
                 interp_vals = inputs[input_name]
             else:
@@ -208,4 +206,9 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
                     inp = inp.swapaxes(0, 1)
 
                 interp_vals = self.interpolation_matrix.dot(inp)
-            outputs[output_name] = scale * (interp_vals + offset)
+
+            if output_name in self._conversion_factors:
+                scale, offset = self._conversion_factors[output_name]
+                outputs[output_name] = scale * (interp_vals + offset)
+            else:
+                outputs[output_name] = interp_vals

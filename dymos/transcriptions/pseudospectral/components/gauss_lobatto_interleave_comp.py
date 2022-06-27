@@ -120,7 +120,7 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
             offset = 0
         else:
             scale, offset = unit_conversion(input_units, units)
-        self._conversion_factors[self._varnames[name]['all']] = scale, offset
+            self._conversion_factors[self._varnames[name]['all']] = scale, offset
 
         self.declare_partials(of=self._varnames[name]['all'],
                               wrt=self._varnames[name]['state_disc'],
@@ -151,8 +151,10 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
         col_idxs = self.options['grid_data'].subset_node_indices['col']
 
         for name, varnames in self._varnames.items():
-            scale, offset = self._conversion_factors[self._varnames[name]['all']]
             outputs[varnames['all']][disc_idxs] = inputs[varnames['state_disc']]
             outputs[varnames['all']][col_idxs] = inputs[varnames['col']]
-            outputs[varnames['all']] *= scale
-            outputs[varnames['all']] += offset
+            conv_name = self._varnames[name]['all']
+            if conv_name in self._conversion_factors:
+                scale, offset = self._conversion_factors[conv_name]
+                outputs[varnames['all']] *= scale
+                outputs[varnames['all']] += offset
