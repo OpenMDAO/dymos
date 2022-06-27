@@ -62,6 +62,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         # To do this, find the nodes in the output grid which fall in each segment of the input
         # grid.  Then build a Lagrange interpolating polynomial for that segment
         L_blocks = []
+        D_blocks = []
         output_nodes_ptau = ogd.node_ptau[ogd.subset_node_indices[output_subset]].tolist()
 
         for iseg in range(igd.num_segments):
@@ -86,19 +87,19 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             ostau_segi = 2.0 * (optau_segi - iptau_segi[0]) / (iptau_segi[-1] - iptau_segi[0]) - 1
 
             # Create the interpolation matrix and add it to the blocks
-            L, _ = lagrange_matrices(istau_segi, ostau_segi)
+            L, D = lagrange_matrices(istau_segi, ostau_segi)
             L_blocks.append(L)
+            D_blocks.append(D)
 
         if _USE_SPARSE:
             self.interpolation_matrix = sp.block_diag(L_blocks, format='csr')
+            self.differentiation_matrix = sp.block_diag(D_blocks, format='csr')
         else:
             self.interpolation_matrix = block_diag(*L_blocks)
+            self.differentiation_matrix = block_diag(*D_blocks)
 
-        for (name, kwargs) in self._timeseries_outputs:
-            units = kwargs['units']
-            desc = kwargs['units']
-            shape = kwargs['shape']
-            self._add_output_configure(name, units, shape, desc)
+        # for (name, kwargs) in self._timeseries_outputs:
+        #     self._add_output_configure(name, kwargs['units'], kwargs['shape'], kwargs['desc'])
 
     def _add_output_configure(self, name, units, shape, desc='', src=None):
         """
@@ -148,40 +149,49 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             added_source = True
 
         output_name = name
-        self.add_output(output_name,
-                        shape=(output_num_nodes,) + shape,
-                        units=units, desc=desc)
+        self.add_output(output_name, shape=(output_num_nodes,) + shape, units=units, desc=desc)
 
         self._vars[name] = (input_name, output_name, shape)
 
         size = np.prod(shape)
         val_jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
+        rate_jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
 
         for i in range(size):
             if _USE_SPARSE:
                 val_jac[:, i, :, i] = self.interpolation_matrix.toarray()
+                rate_jac[:, i, :, i] = self.differentiation_matrix.toarray()
             else:
                 val_jac[:, i, :, i] = self.interpolation_matrix
+                rate_jac[:, i, :, i] = self.differentiation_matrix
 
         val_jac = val_jac.reshape((output_num_nodes * size, input_num_nodes * size),
                                   order='C')
+        rate_jac = rate_jac.reshape((output_num_nodes * size, input_num_nodes * size),
+                                    order='C')
 
         val_jac_rows, val_jac_cols = np.where(val_jac != 0)
-
-        rs, cs = val_jac_rows, val_jac_cols
+        rate_jac_rows, rate_jac_cols = np.where(rate_jac != 0)
 
         # There's a chance that the input for this output was pulled from another variable with
         # different units, so account for that with a conversion.
         if None in {input_units, units}:
-            scale = 1.0
-            offset = 0
+            self.declare_partials(of=output_name,
+                                  wrt=input_name,
+                                  rows=val_jac_rows, cols=val_jac_cols,
+                                  val=val_jac[val_jac_rows, val_jac_cols])
         else:
             scale, offset = unit_conversion(input_units, units)
             self._conversion_factors[output_name] = scale, offset
 
-        self.declare_partials(of=output_name,
-                              wrt=input_name,
-                              rows=rs, cols=cs, val=scale * val_jac[rs, cs])
+            self.declare_partials(of=output_name,
+                                  wrt=input_name,
+                                  rows=val_jac_rows, cols=val_jac_cols,
+                                  val=scale * val_jac[val_jac_rows, val_jac_cols])
+
+        # self.declare_partials(of=self._output_rate_names[name],
+        #                         wrt=self._input_names[name],
+        #                         rows=self.rate_jac_rows[name], cols=self.rate_jac_cols[name])
 
         return added_source
 
