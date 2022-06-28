@@ -706,14 +706,11 @@ def filter_outputs(patterns, sys):
     """
     outputs = sys if isinstance(sys, dict) else get_promoted_vars(sys, iotypes='output', metadata_keys=['shape', 'units'])
 
-    output_names = list(outputs.keys())
-    filtered = []
-    results = {}
-
+    filtered = set()
     for pattern in patterns:
-        filtered.extend(fnmatch.filter(output_names, pattern))
-    filtered = list(set(filtered))  # de-dupe
+        filtered.update(fnmatch.filter(outputs.keys(), pattern))
 
+    results = {}
     for var in filtered:
         results[var] = {'units': outputs[var]['units'], 'shape': outputs[var]['shape']}
 

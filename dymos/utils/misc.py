@@ -98,23 +98,36 @@ class CoerceDesvar(object):
         fix_final = options['fix_final']
 
         if desvar_indices is None:
-            desvar_indices = list(range(size * num_input_nodes))
+            mask = None
+            # desvar_indices = list(range(size * num_input_nodes))
 
             if fix_initial:
+                mask = np.ones(size * num_input_nodes, dtype=bool)
                 if isinstance(fix_initial, Iterable):
                     idxs_to_fix = np.where(np.asarray(fix_initial))[0]
-                    for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                        del desvar_indices[idx_to_fix]
+                    mask[idxs_to_fix] = False
+                    # for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                    #     del desvar_indices[idx_to_fix]
                 else:
-                    del desvar_indices[:size]
+                    # del desvar_indices[:size]
+                    mask[:size] = False
 
             if fix_final:
+                if mask is None:
+                    mask = np.ones(size * num_input_nodes, dtype=bool)
                 if isinstance(fix_final, Iterable):
                     idxs_to_fix = np.where(np.asarray(fix_final))[0]
-                    for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                        del desvar_indices[-size + idx_to_fix]
+                    mask[idxs_to_fix - size] = False
+                    # for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                    #     del desvar_indices[-size + idx_to_fix]
                 else:
-                    del desvar_indices[-size:]
+                    # del desvar_indices[-size:]
+                    mask[-size:] = False
+
+            if mask is None:
+                desvar_indices = np.arange(size * num_input_nodes)
+            else:
+                desvar_indices = np.nonzero(mask)[0]
 
         self.desvar_indices = desvar_indices
         self.options = options
