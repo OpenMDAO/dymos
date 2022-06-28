@@ -2293,7 +2293,7 @@ class Phase(om.Group):
 
     def _indices_in_constraints(self, name, loc):
         """
-        Returns a set of the C-order flattened indices involving constraint of the given name at the given loc.
+        Returns a set of the flattened indices involving constraint of the given name at the given loc.
 
         Parameters
         ----------
@@ -2305,9 +2305,8 @@ class Phase(om.Group):
         Returns
         -------
         all_flat_idxs : set
-            A C-order flattened set of indices that apply to the constraint.
+            A flattened set of indices that apply to the constraint.
         """
-        s = {'initial': 'initial boundary', 'final': 'final boundary', 'path': 'path'}
         cons = {'initial': self._initial_boundary_constraints,
                 'final': self._final_boundary_constraints,
                 'path': self._path_constraints}
@@ -2317,12 +2316,15 @@ class Phase(om.Group):
         for con in cons[loc]:
             if con['name'] != name:
                 continue
+
             flat_idxs = get_constraint_flat_idxs(con)
             duplicate_idxs = all_flat_idxs.intersection(flat_idxs)
             if duplicate_idxs:
+                s = {'initial': 'initial boundary', 'final': 'final boundary', 'path': 'path'}
                 raise ValueError(f'Duplicate constraint in phase {self.pathname}. '
                                  f'The following indices of `{name}` are used in '
                                  f'multiple {s[loc]} constraints:\n{duplicate_idxs}')
+
             all_flat_idxs.update(flat_idxs)
 
         return all_flat_idxs

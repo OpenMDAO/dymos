@@ -583,11 +583,11 @@ class RKIntegrationComp(om.ExplicitComponent):
 
             explicit_requests = set([var for var in patterns if '*' not in var])
 
-            unmatched_requests = sorted(set(explicit_requests) - set(matching_outputs.keys()))
+            unmatched_requests = explicit_requests.difference(matching_outputs)
 
             if unmatched_requests:
                 om.issue_warning(msg='The following timeseries outputs were requested but '
-                                     f'not found in the ODE: {", ".join(unmatched_requests)}',
+                                     f'not found in the ODE: {", ".join(sorted(unmatched_requests))}',
                                  category=om.OpenMDAOWarning)
 
             for var, var_meta in matching_outputs.items():
@@ -599,7 +599,7 @@ class RKIntegrationComp(om.ExplicitComponent):
                     shape = var_meta['shape']
                 else:
                     # var matched via wildcard
-                    output_name = var.split('.')[-1]
+                    output_name = var.rpartition('.')[-1]
                     units = var_meta['units']
                     shape = var_meta['shape']
 

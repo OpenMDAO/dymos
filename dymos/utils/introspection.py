@@ -89,9 +89,8 @@ def get_promoted_vars(ode, iotypes, metadata_keys=None, get_remote=True):
     dict
         A dictionary mapping the promoted names of inputs in the system to their associated metadata.
     """
-    _iotypes = (iotypes,) if isinstance(iotypes, str) else iotypes
-    return {opts['prom_name']: opts for (k, opts) in ode.get_io_metadata(iotypes=_iotypes, get_remote=get_remote,
-                                                                         metadata_keys=metadata_keys).items()}
+    return {opts['prom_name']: opts for opts in ode.get_io_metadata(iotypes=iotypes, get_remote=get_remote,
+                                                                    metadata_keys=metadata_keys).values()}
 
 
 def get_targets(ode, name, user_targets, control_rates=False):
@@ -134,11 +133,9 @@ def get_targets(ode, name, user_targets, control_rates=False):
         if isinstance(ode, dict):
             ode_inputs = ode
         else:
-            # TODO: make sure it's OK that prom_name is non-unique for inputs here...
-            # TODO: why are we even calling get_io_metadata here when all we need are to check
-            #       if certain promoted names match name or {name}_rate1 or {name}_rate2?
-            ode_inputs = {opts['prom_name']: opts for opts in
-                          ode.get_io_metadata(iotypes=('input',), get_remote=True).values()}
+            # TODO: make an access func for prom names on the OM side to avoid directly
+            #   accessing internal data structures
+            ode_inputs = ode._var_allprocs_prom2abs_list['input']
 
         if control_rates not in (1, 2) and name in ode_inputs:
             targets = [name]

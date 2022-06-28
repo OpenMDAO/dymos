@@ -1171,8 +1171,9 @@ class Trajectory(om.Group):
                     targets_phase = targets[phase_name]
                     if targets_phase is not None:
                         if isinstance(targets_phase, str):
-                            targets_phase = [targets_phase]
-                        skip_params = skip_params.union(targets_phase)
+                            skip_params.add(targets_phase)
+                        else:
+                            skip_params.update(targets_phase)
 
             phs.initialize_values_from_phase(sim_prob, self._phases[phase_name],
                                              phase_path=traj_name,
