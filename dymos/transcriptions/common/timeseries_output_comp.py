@@ -28,7 +28,7 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
         """
         Declare component options.
         """
-        self._timeseries_outputs = []
+        # self._timeseries_outputs = []
 
         self._vars = {}
 

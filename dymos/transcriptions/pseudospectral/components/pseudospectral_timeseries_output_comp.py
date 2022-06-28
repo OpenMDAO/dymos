@@ -98,6 +98,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             self.interpolation_matrix = block_diag(*L_blocks)
             self.differentiation_matrix = block_diag(*D_blocks)
 
+        # self._timeseries_outputs was never populated...
         # for (name, kwargs) in self._timeseries_outputs:
         #     self._add_output_configure(name, kwargs['units'], kwargs['shape'], kwargs['desc'])
 

@@ -394,7 +394,7 @@ class GaussLobatto(PseudospectralBase):
         """
         ode_outputs = get_promoted_vars(self._get_ode(phase), 'output')
 
-        for timeseries_name, timeseries_options in phase._timeseries.items():
+        for timeseries_name in phase._timeseries:
             timeseries_comp = phase._get_subsystem(timeseries_name)
             time_units = phase.time_options['units']
 
@@ -586,7 +586,7 @@ class GaussLobatto(PseudospectralBase):
                                                                                    src=f'interleave_comp.'
                                                                                        f'all_values:{output_name}')
 
-                    interleave_comp = phase._get_subsystem('interleave_comp')
+                    interleave_comp = phase.interleave_comp
                     src_added = interleave_comp.add_var(output_name, shape, units,
                                                         disc_src=f'rhs_disc.{v}',
                                                         col_src=f'rhs_col.{v}')
