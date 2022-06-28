@@ -365,7 +365,7 @@ class TranscriptionBase(object):
             else:
                 # This is a path constraint.
                 # Remove any flat indices involved in an initial constraint from the path constraint
-                flat_idxs_set = set(flat_idxs.tolist())
+                flat_idxs_set = set(flat_idxs)
                 idxs_not_in_initial = list(flat_idxs_set - idxs_in_initial)
 
                 # Remove any flat indices involved in the final constraint from the path constraint
@@ -373,7 +373,7 @@ class TranscriptionBase(object):
                 idxs_not_in_final = (size * (num_nodes - 1) + np.asarray(idxs_not_in_final)).tolist()
                 intermediate_idxs = []
                 for i in range(1, num_nodes - 1):
-                    intermediate_idxs.extend((size * i + flat_idxs).tolist())
+                    intermediate_idxs.extend((size * i + flat_idxs))
                 constraint_kwargs['indices'] = idxs_not_in_initial + intermediate_idxs + idxs_not_in_final
 
         alias_map = {'path': 'path_constraint',

@@ -191,8 +191,8 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
                                   val=scale * val_jac[val_jac_rows, val_jac_cols])
 
         # self.declare_partials(of=self._output_rate_names[name],
-        #                         wrt=self._input_names[name],
-        #                         rows=self.rate_jac_rows[name], cols=self.rate_jac_cols[name])
+        #                         wrt=input_name,
+        #                         rows=self.rate_jac_rows, cols=self.rate_jac_cols)
 
         return added_source
 

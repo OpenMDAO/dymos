@@ -395,7 +395,7 @@ class Radau(PseudospectralBase):
                 shape = ts_output['shape']
 
                 if '*' in var:  # match outputs from the ODE
-                    matches = filter(list(ode_outputs.keys()), var)
+                    matches = filter(ode_outputs.keys(), var)
 
                     # A nested ODE can have multiple outputs at different levels that share
                     #   the same name.

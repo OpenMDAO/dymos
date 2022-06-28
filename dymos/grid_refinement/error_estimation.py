@@ -306,14 +306,14 @@ def compute_state_quadratures(x_hat, f_hat, t_duration, transcription):
 
     left_end_idxs = gd.subset_node_indices['segment_ends'][0::2]
     all_idxs = gd.subset_node_indices['all']
-    not_left_end_idxs = np.array(sorted(list(set(all_idxs).difference(set(left_end_idxs)))))
+    not_left_end_idxs = np.array(sorted(set(all_idxs).difference(left_end_idxs)))
 
     dt_dstau = np.atleast_2d(0.5 * t_duration * gd.node_dptau_dstau[not_left_end_idxs]).T
 
     if x_hat.keys() != f_hat.keys():
         raise ValueError('x_hat and f_hat don\'t contain the same states.\n'
-                         f'x_hat states are: {list(x_hat.keys())}\n'
-                         f'f_hat states are: {list(f_hat.keys())}')
+                         f'x_hat states are: {sorted(x_hat.keys())}\n'
+                         f'f_hat states are: {sorted(f_hat.keys())}')
 
     for state_name in x_hat:
         x_prime[state_name] = np.zeros_like(x_hat[state_name])

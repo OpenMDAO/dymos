@@ -1147,7 +1147,8 @@ class Phase(om.Group):
         name : str, or list of str
             The name(s) of the variable to be used as a timeseries output.  Must be one of
             'time', 'time_phase', one of the states, controls, control rates, or parameters,
-            in the phase, or the path to an output variable in the ODE.
+            in the phase, the path to an output variable in the ODE, or a glob pattern
+            matching some outputs in the ODE.
         output_name : str or None or list or dict
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
