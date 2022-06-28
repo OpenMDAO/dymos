@@ -1618,17 +1618,15 @@ class Phase(om.Group):
         """
         transcription = self.options['transcription']
         state_options = self.state_options
-        out_meta = get_promoted_vars(transcription._get_ode(self), 'output')
+        out_meta = get_promoted_vars(transcription._get_ode(self), 'output', metadata_keys=('tags',))
 
-        for name, meta in out_meta.items():
-            tags = meta['tags']
-            prom_name = meta['prom_name']
+        for prom_name, meta in out_meta.items():
             state = None
-            for tag in sorted(tags):
+            for tag in sorted(meta['tags']):
 
                 # Declared as rate_source.
                 if tag.startswith('dymos.state_rate_source:') or tag.startswith('state_rate_source:'):
-                    state = tag.split(':')[-1]
+                    state = tag.rpartition(':')[-1]
                     if tag.startswith('state_rate_source:'):
                         msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
                               f"dymos version 2.0.0. Use 'dymos.state_rate_source:{state}' instead."
@@ -1640,13 +1638,13 @@ class Phase(om.Group):
                     if state_options[state]['rate_source'] is not None:
                         if state_options[state]['rate_source'] != prom_name:
                             raise ValueError(f"rate_source has been declared twice for state "
-                                             f"'{state}' which is tagged on '{name}'.")
+                                             f"'{state}' which is tagged on '{prom_name}'.")
 
                     state_options[state]['rate_source'] = prom_name
 
                 # Declares units for state.
                 if tag.startswith('dymos.state_units:') or tag.startswith('state_units:'):
-                    tagged_state_units = tag.split(':')[-1]
+                    tagged_state_units = tag.rpartition(':')[-1]
                     if tag.startswith('state_units:'):
                         msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
                               f"dymos version 2.0.0. Use 'dymos.{tag}' instead."

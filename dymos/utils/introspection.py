@@ -79,7 +79,7 @@ def get_promoted_vars(ode, iotypes, metadata_keys=None, get_remote=True):
     iotypes : str or tuple
         One of 'input' or 'output', or a tuple of both.
     metadata_keys : Iterable or None
-        Metadata requested for the variables. By default returns metadata available on 'allprocs'.  See
+        Additional metadata requested for the variables. By default returns metadata available on 'allprocs'.  See
         openmdao.core.System.get_io_metadata for more information.
     get_remote : bool
         If True, include IO not local to this proc.
@@ -90,8 +90,8 @@ def get_promoted_vars(ode, iotypes, metadata_keys=None, get_remote=True):
         A dictionary mapping the promoted names of inputs in the system to their associated metadata.
     """
     _iotypes = (iotypes,) if isinstance(iotypes, str) else iotypes
-    return {opts['prom_name']: opts for opts in ode.get_io_metadata(iotypes=_iotypes, get_remote=get_remote,
-                                                                    metadata_keys=metadata_keys).values()}
+    return {opts['prom_name']: opts for (k, opts) in ode.get_io_metadata(iotypes=_iotypes, get_remote=get_remote,
+                                                                         metadata_keys=metadata_keys).items()}
 
 
 def get_targets(ode, name, user_targets, control_rates=False):

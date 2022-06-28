@@ -31,11 +31,12 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         else:
             self.num_nodes = grid_data.num_segments * self.options['output_nodes_per_seg']
 
-        for (name, kwargs) in self._timeseries_outputs:
-            units = kwargs['units']
-            desc = kwargs['units']
-            shape = kwargs['shape']
-            self._add_output_configure(name, units, shape, desc)
+        # _timeseries_outputs never gets populated
+        # for (name, kwargs) in self._timeseries_outputs:
+        #     units = kwargs['units']
+        #     desc = kwargs['units']
+        #     shape = kwargs['shape']
+        #     self._add_output_configure(name, units, shape, desc)
 
     def _add_output_configure(self, name, units, shape, desc):
         """
