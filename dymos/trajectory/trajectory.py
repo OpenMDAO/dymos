@@ -123,8 +123,6 @@ class Trajectory(om.Group):
             True if the targets in the ODE are not shaped with num_nodes as the first dimension
             (meaning they cannot have a unique value at each node).  Otherwise False.
         """
-        print(name)
-        print(shape)
         if name not in self.parameter_options:
             self.parameter_options[name] = TrajParameterOptionsDictionary()
 
