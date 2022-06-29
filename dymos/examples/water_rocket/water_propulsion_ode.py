@@ -77,7 +77,7 @@ class _MassAdder(om.ExplicitComponent):
         jacobian['m', 'V_w'] = inputs['rho_w']
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     p = om.Problem()
     p.model = WaterPropulsionODE(num_nodes=1)
     p.setup()

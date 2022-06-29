@@ -54,7 +54,7 @@ class Motors(om.ExplicitComponent):
         partials['power_in_motor', 'current_in_motor'] = 0.3 * power_out / (n_parallel * eff**2)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
 
     import openmdao.api as om
     num_nodes = 1

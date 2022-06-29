@@ -100,7 +100,10 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
 
         # self._timeseries_outputs was never populated...
         # for (name, kwargs) in self._timeseries_outputs:
-        #     self._add_output_configure(name, kwargs['units'], kwargs['shape'], kwargs['desc'])
+        #     units = kwargs['units']
+        #     desc = kwargs['units']
+        #     shape = kwargs['shape']
+        #     self._add_output_configure(name, units, shape, desc)
 
     def _add_output_configure(self, name, units, shape, desc='', src=None):
         """
@@ -150,49 +153,45 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             added_source = True
 
         output_name = name
+        is_rate = False  # name.endswith('_rate')
         self.add_output(output_name, shape=(output_num_nodes,) + shape, units=units, desc=desc)
 
         self._vars[name] = (input_name, output_name, shape)
 
         size = np.prod(shape)
-        val_jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
-        rate_jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
+        jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
 
+        if is_rate:
+            mat = self.differentiation_matrix
+        else:
+            mat = self.interpolation_matrix
         for i in range(size):
             if _USE_SPARSE:
-                val_jac[:, i, :, i] = self.interpolation_matrix.toarray()
-                rate_jac[:, i, :, i] = self.differentiation_matrix.toarray()
+                jac[:, i, :, i] = mat.toarray()
             else:
-                val_jac[:, i, :, i] = self.interpolation_matrix
-                rate_jac[:, i, :, i] = self.differentiation_matrix
+                jac[:, i, :, i] = mat
 
-        val_jac = val_jac.reshape((output_num_nodes * size, input_num_nodes * size),
-                                  order='C')
-        rate_jac = rate_jac.reshape((output_num_nodes * size, input_num_nodes * size),
-                                    order='C')
+        jac = jac.reshape((output_num_nodes * size, input_num_nodes * size), order='C')
 
-        val_jac_rows, val_jac_cols = np.where(val_jac != 0)
-        rate_jac_rows, rate_jac_cols = np.where(rate_jac != 0)
+        jac_rows, jac_cols = np.nonzero(jac)
 
         # There's a chance that the input for this output was pulled from another variable with
-        # different units, so account for that with a conversion.
-        if None in {input_units, units}:
-            self.declare_partials(of=output_name,
-                                  wrt=input_name,
-                                  rows=val_jac_rows, cols=val_jac_cols,
-                                  val=val_jac[val_jac_rows, val_jac_cols])
+        # different units, so account for that with a conversion, if var is not a rate.
+        if is_rate or None in {input_units, units}:
+            if is_rate:
+                val = None  # we don't set val for rates
+            else:
+                val = jac[jac_rows, jac_cols]
+
+            self.declare_partials(of=output_name, wrt=input_name,
+                                  rows=jac_rows, cols=jac_cols, val=val)
         else:
             scale, offset = unit_conversion(input_units, units)
             self._conversion_factors[output_name] = scale, offset
 
-            self.declare_partials(of=output_name,
-                                  wrt=input_name,
-                                  rows=val_jac_rows, cols=val_jac_cols,
-                                  val=scale * val_jac[val_jac_rows, val_jac_cols])
-
-        # self.declare_partials(of=self._output_rate_names[name],
-        #                         wrt=input_name,
-        #                         rows=self.rate_jac_rows, cols=self.rate_jac_cols)
+            self.declare_partials(of=output_name, wrt=input_name,
+                                  rows=jac_rows, cols=jac_cols,
+                                  val=scale * jac[jac_rows, jac_cols])
 
         return added_source
 

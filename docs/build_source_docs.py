@@ -188,5 +188,5 @@ def build_src_docs(top, src_dir, project_name='openmdao'):
     index.close()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     build_src_docs("openmdao_book/", "..")

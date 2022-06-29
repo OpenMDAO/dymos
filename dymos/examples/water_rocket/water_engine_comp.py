@@ -183,7 +183,7 @@ class _WaterThrust(om.ExplicitComponent):
         partials['F', 'v_out'] = 2*rho_w*v_out*A_out
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     p = om.Problem()
     p.model = WaterEngine(num_nodes=1)
     p.setup()

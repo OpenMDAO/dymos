@@ -32,17 +32,15 @@ def get_rate_units(units, time_units, deriv=1):
     if deriv not in (1, 2):
         raise ValueError('deriv argument must be 1 or 2.')
 
-    tu = time_units if deriv == 1 else '{0}**2'.format(time_units)
-
-    if units is not None and time_units is not None:
-        rate_units = '{0}/{1}'.format(units, tu)
-    elif units is not None:
-        rate_units = units
+    if units is not None:
+        if time_units is not None:
+            tu = time_units if deriv == 1 else f'{time_units}**2'
+            return f'{units}/{tu}'
+        else:
+            return units
     elif time_units is not None:
-        rate_units = '1.0/{0}'.format(tu)
-    else:
-        rate_units = None
-    return rate_units
+        tu = time_units if deriv == 1 else f'{time_units}**2'
+        return f'1.0/{tu}'
 
 
 def reshape_val(val, shape, num_input_nodes):

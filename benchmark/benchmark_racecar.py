@@ -186,5 +186,5 @@ class BenchmarkRacecar(unittest.TestCase):
         _run_racecar_problem(dm.Radau, timeseries=True)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     _run_racecar_problem(dm.GaussLobatto, timeseries=False)

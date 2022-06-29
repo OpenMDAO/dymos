@@ -90,7 +90,7 @@ def vanderpol(transcription='gauss-lobatto', num_segments=40, transcription_orde
     return p
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     # just set up the problem, test it elsewhere
     p = vanderpol(transcription='radau-ps', num_segments=30, transcription_order=3,
                   compressed=True, optimizer='SLSQP', delay=0.005, distrib=True, use_pyoptsparse=True)

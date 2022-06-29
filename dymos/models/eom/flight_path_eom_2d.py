@@ -191,7 +191,7 @@ class FlightPathEOM2D(om.ExplicitComponent):
         partials['r_dot', 'v'] = cgam
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     import openmdao.api as om
     p = om.Problem()

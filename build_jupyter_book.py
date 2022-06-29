@@ -29,7 +29,7 @@ def build_book(book_dir=BOOK_DIR, clean=True):
     os.chdir(save_cwd)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     parser = argparse.ArgumentParser(description='Build a JupyterBook and automatically copy over'
                                                  'necessary build artifacts')
     parser.add_argument('-c', '--clean', action='store_true',
