@@ -123,6 +123,8 @@ class Trajectory(om.Group):
             True if the targets in the ODE are not shaped with num_nodes as the first dimension
             (meaning they cannot have a unique value at each node).  Otherwise False.
         """
+        print(name)
+        print(shape)
         if name not in self.parameter_options:
             self.parameter_options[name] = TrajParameterOptionsDictionary()
 
@@ -273,6 +275,14 @@ class Trajectory(om.Group):
                         kwargs = {'static_target': options['static_target'],
                                   'units': options['units'],
                                   'val': options['val'],
+                                  'shape': options['shape'],
+                                  'ref0': options['ref0'],
+                                  'ref': options['ref'],
+                                  'adder': options['adder'],
+                                  'scaler': options['scaler'],
+                                  'opt': options['opt'],
+                                  'lower': options['lower'],
+                                  'upper': options['upper'],
                                   'targets': tgts[phase_name]}
 
                         if not self.options['sim_mode']:
