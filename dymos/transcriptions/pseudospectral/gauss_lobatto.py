@@ -523,8 +523,10 @@ class GaussLobatto(PseudospectralBase):
                 units = ts_output['units']
                 wildcard_units = ts_output['wildcard_units']
                 shape = ts_output['shape']
+                is_rate = ts_output['is_rate']
 
                 if '*' in var:  # match outputs from the ODE
+                    # FIXME: this match will be case INSENSITIVE on windows
                     matches = filter(ode_outputs.keys(), var)
 
                     # A nested ODE can have multiple outputs at different levels that share
@@ -582,9 +584,9 @@ class GaussLobatto(PseudospectralBase):
                                          f' the phase {phase.pathname} nor is it a known output of '
                                          f' the ODE.')
 
-                    timeseries_input_added = timeseries_comp._add_output_configure(output_name, units, shape,
-                                                                                   src=f'interleave_comp.'
-                                                                                       f'all_values:{output_name}')
+                    timeseries_input_added = timeseries_comp._add_output_configure(
+                        output_name, units, shape, src=f'interleave_comp.all_values:{output_name}',
+                        rate=is_rate)
 
                     interleave_comp = phase.interleave_comp
                     src_added = interleave_comp.add_var(output_name, shape, units,

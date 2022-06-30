@@ -647,6 +647,7 @@ class SolveIVP(TranscriptionBase):
             shape = ts_output['shape']
 
             if '*' in var:  # match outputs from the ODE
+                # FIXME: this match will be case INSENSITIVE on windows
                 matches = filter(ode_outputs.keys(), var)
             else:
                 matches = [var]

@@ -340,7 +340,6 @@ class ControlGroup(om.Group):
                     desvar_indices = np.arange(size * num_input_nodes)
                 else:
                     desvar_indices = np.nonzero(mask)[0]
-                    del mask
 
                 if len(desvar_indices) > 0:
                     coerce_desvar_option = CoerceDesvar(num_input_nodes, options=options)

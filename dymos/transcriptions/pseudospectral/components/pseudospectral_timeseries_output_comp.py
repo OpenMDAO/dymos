@@ -105,7 +105,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         #     shape = kwargs['shape']
         #     self._add_output_configure(name, units, shape, desc)
 
-    def _add_output_configure(self, name, units, shape, desc='', src=None):
+    def _add_output_configure(self, name, units, shape, desc='', src=None, rate=False):
         """
         Add a single timeseries output.
 
@@ -125,6 +125,8 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             description of the timeseries output variable.
         src : str
             The src path of the variables input, used to prevent redundant inputs.
+        rate : bool
+            If True, timeseries output is a rate.
 
         Returns
         -------
@@ -153,7 +155,6 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             added_source = True
 
         output_name = name
-        is_rate = False  # name.endswith('_rate')
         self.add_output(output_name, shape=(output_num_nodes,) + shape, units=units, desc=desc)
 
         self._vars[name] = (input_name, output_name, shape)
@@ -161,7 +162,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         size = np.prod(shape)
         jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
 
-        if is_rate:
+        if rate:
             mat = self.differentiation_matrix
         else:
             mat = self.interpolation_matrix
@@ -177,11 +178,8 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
 
         # There's a chance that the input for this output was pulled from another variable with
         # different units, so account for that with a conversion, if var is not a rate.
-        if is_rate or None in {input_units, units}:
-            if is_rate:
-                val = None  # we don't set val for rates
-            else:
-                val = jac[jac_rows, jac_cols]
+        if None in {input_units, units}:
+            val = jac[jac_rows, jac_cols]
 
             self.declare_partials(of=output_name, wrt=input_name,
                                   rows=jac_rows, cols=jac_cols, val=val)

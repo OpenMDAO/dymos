@@ -102,6 +102,7 @@ class CoerceDesvar(object):
             if fix_initial:
                 mask = np.ones(size * num_input_nodes, dtype=bool)
                 if isinstance(fix_initial, Iterable):
+                    # TODO: this block is currently not being tested (no coverage)
                     idxs_to_fix = np.where(np.asarray(fix_initial))[0]
                     mask[idxs_to_fix] = False
                     # for idx_to_fix in reversed(sorted(idxs_to_fix)):
@@ -114,6 +115,7 @@ class CoerceDesvar(object):
                 if mask is None:
                     mask = np.ones(size * num_input_nodes, dtype=bool)
                 if isinstance(fix_final, Iterable):
+                    # TODO: this block is currently not being tested (no coverage)
                     idxs_to_fix = np.where(np.asarray(fix_final))[0]
                     mask[idxs_to_fix - size] = False
                     # for idx_to_fix in reversed(sorted(idxs_to_fix)):
@@ -164,9 +166,11 @@ class CoerceDesvar(object):
 
         if val is None or np.isscalar(val):
             return val
+
         # Handle value for vector/matrix valued variables
         if isinstance(val, list):
             val = np.asarray(val)
+
         if val.shape == self.options['shape']:
             return np.tile(val.flatten(), int(len(self.desvar_indices)/val.size))
         else:

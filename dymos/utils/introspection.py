@@ -705,6 +705,7 @@ def filter_outputs(patterns, sys):
 
     filtered = set()
     for pattern in patterns:
+        # FIXME: this match will be case INSENSITIVE on windows
         filtered.update(fnmatch.filter(outputs.keys(), pattern))
 
     results = {}

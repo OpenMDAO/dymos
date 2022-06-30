@@ -25,13 +25,7 @@ class StateRateCollectorComp(om.ExplicitComponent):
     """
     def __init__(self, vec_size=1, **kwargs):
         super().__init__(**kwargs)
-
-        # Save the names of the dynamic controls/parameters
-        self._input_names = {}
-        self._output_names = {}
-
         self._vec_size = vec_size
-
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
@@ -54,21 +48,19 @@ class StateRateCollectorComp(om.ExplicitComponent):
         time_units = self.options['time_units']
 
         for name, options in state_options.items():
-            self._input_names[name] = f'state_rates_in:{name}_rate'
-            self._output_names[name] = f'state_rates:{name}_rate'
+            input_name = f'state_rates_in:{name}_rate'
+            output_name = f'state_rates:{name}_rate'
             shape = options['shape']
             size = np.prod(shape, dtype=int)
             units = options['units']
 
             rate_units = get_rate_units(units, time_units)
 
-            self.add_input(self._input_names[name], shape=(vec_size,) + shape, units=rate_units)
-            self.add_output(self._output_names[name], shape=(vec_size,) + shape, units=rate_units)
+            self.add_input(input_name, shape=(vec_size,) + shape, units=rate_units)
+            self.add_output(output_name, shape=(vec_size,) + shape, units=rate_units)
 
             ar = np.arange(vec_size*size, dtype=int)
-            self.declare_partials(of=self._output_names[name],
-                                  wrt=self._input_names[name],
-                                  rows=ar, cols=ar, val=1.0)
+            self.declare_partials(of=output_name, wrt=input_name, rows=ar, cols=ar, val=1.0)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """
@@ -85,7 +77,4 @@ class StateRateCollectorComp(om.ExplicitComponent):
         discrete_outputs : `Vector`
             `Vector` containing discrete outputs.
         """
-        state_options = self.options['state_options']
-
-        for name, options in state_options.items():
-            outputs[self._output_names[name]] = inputs[self._input_names[name]]
+        outputs.set_val(inputs.asarray())

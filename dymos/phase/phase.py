@@ -1235,29 +1235,24 @@ class Phase(om.Group):
         if output_name is None:
             output_name = name.rpartition('.')[-1]
 
+        if rate:
+            output_name = output_name + '_rate'
+
         if output_name in self._timeseries[timeseries]['outputs']:
             om.issue_warning(f'Output name `{output_name}` is already in timeseries `{timeseries}`. '
                              f'New output ignored.')
         else:
-            if rate:
-                rate_name = output_name + '_rate'
-                ts_output = TimeseriesOutputOptionsDictionary()
-                ts_output['name'] = name
-                ts_output['output_name'] = rate_name
-                ts_output['wildcard_units'] = {}
-                ts_output['units'] = units
-                ts_output['shape'] = shape
-                self._timeseries[timeseries]['outputs'][rate_name] = ts_output
-                return rate_name
-            else:  # normal output
-                ts_output = TimeseriesOutputOptionsDictionary()
-                ts_output['name'] = name
-                ts_output['output_name'] = output_name
-                ts_output['wildcard_units'] = {}
-                ts_output['units'] = units
-                ts_output['shape'] = shape
-                self._timeseries[timeseries]['outputs'][output_name] = ts_output
-                return output_name
+            ts_output = TimeseriesOutputOptionsDictionary()
+            ts_output['name'] = name
+            ts_output['output_name'] = output_name
+            ts_output['wildcard_units'] = {}
+            ts_output['units'] = units
+            ts_output['shape'] = shape
+            ts_output['is_rate'] = rate
+
+            self._timeseries[timeseries]['outputs'][output_name] = ts_output
+
+            return output_name
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""

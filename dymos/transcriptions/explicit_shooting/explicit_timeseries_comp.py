@@ -50,7 +50,7 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
         self.input_num_nodes = igd.subset_num_nodes['segment_ends']
         self.output_num_nodes = self.input_num_nodes
 
-    def _add_output_configure(self, name, units, shape, desc='', src=None):
+    def _add_output_configure(self, name, units, shape, desc='', src=None, rate=False):
         """
         Add a single timeseries output.
 
@@ -70,6 +70,8 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
             description of the timeseries output variable.
         src : str
             The src path of the variables input, used to prevent redundant inputs.
+        rate : bool
+            If True, timeseries output is a rate.
 
         Returns
         -------

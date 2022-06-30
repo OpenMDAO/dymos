@@ -1545,12 +1545,12 @@ class RKIntegrationComp(om.ExplicitComponent):
         outputs['time_phase'] = self._t[idxs, ...] - inputs['t_initial']
 
         # Extract the state values
-        for state_name, options in self.state_options.items():
+        for state_name in self.state_options:
             of = self._state_output_names[state_name]
             outputs[of] = self._x[idxs, self.state_idxs[state_name]]
 
         # Extract the control values and rates
-        for control_name, options in self.control_options.items():
+        for control_name in self.control_options:
             oname = self._control_output_names[control_name]
             rate_name = self._control_rate_names[control_name]
             rate2_name = self._control_rate2_names[control_name]
@@ -1559,7 +1559,7 @@ class RKIntegrationComp(om.ExplicitComponent):
             outputs[rate2_name] = self._y[idxs, self._control_rate2_idxs_in_y[control_name]]
 
         # Extract the control values and rates
-        for control_name, options in self.polynomial_control_options.items():
+        for control_name in self.polynomial_control_options:
             oname = self._polynomial_control_output_names[control_name]
             rate_name = self._polynomial_control_rate_names[control_name]
             rate2_name = self._polynomial_control_rate2_names[control_name]
@@ -1568,7 +1568,7 @@ class RKIntegrationComp(om.ExplicitComponent):
             outputs[rate2_name] = self._y[idxs, self._polynomial_control_rate2_idxs_in_y[control_name]]
 
         # Extract the timeseries outputs
-        for name, options in self._filtered_timeseries_outputs.items():
+        for name in self._filtered_timeseries_outputs:
             oname = self._timeseries_output_names[name]
             outputs[oname] = self._y[idxs, self._timeseries_idxs_in_y[name]]
 
