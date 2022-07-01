@@ -395,7 +395,7 @@ class Radau(PseudospectralBase):
                 shape = ts_output['shape']
 
                 if '*' in var:  # match outputs from the ODE
-                    # FIXME: this match will be case INSENSITIVE on windows
+                    # TODO: is filter still case INSENSTIVE on windows?  If so, fix this
                     matches = filter(ode_outputs.keys(), var)
 
                     # A nested ODE can have multiple outputs at different levels that share

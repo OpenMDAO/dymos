@@ -166,6 +166,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             mat = self.differentiation_matrix
         else:
             mat = self.interpolation_matrix
+
         for i in range(size):
             if _USE_SPARSE:
                 jac[:, i, :, i] = mat.toarray()
@@ -178,11 +179,9 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
 
         # There's a chance that the input for this output was pulled from another variable with
         # different units, so account for that with a conversion, if var is not a rate.
-        if None in {input_units, units}:
-            val = jac[jac_rows, jac_cols]
-
+        if input_units is None or units is None:
             self.declare_partials(of=output_name, wrt=input_name,
-                                  rows=jac_rows, cols=jac_cols, val=val)
+                                  rows=jac_rows, cols=jac_cols, val=jac[jac_rows, jac_cols])
         else:
             scale, offset = unit_conversion(input_units, units)
             self._conversion_factors[output_name] = scale, offset

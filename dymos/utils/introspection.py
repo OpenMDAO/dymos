@@ -701,18 +701,15 @@ def filter_outputs(patterns, sys):
         A dictionary where the matching output names are the keys and the associated dict provides
         the 'units' and 'shapes' metadata.
     """
+    # TODO: this function is never called with a System, so we could get rid of this check...
     outputs = sys if isinstance(sys, dict) else get_promoted_vars(sys, iotypes='output', metadata_keys=['shape', 'units'])
 
     filtered = set()
     for pattern in patterns:
-        # FIXME: this match will be case INSENSITIVE on windows
+        # TODO: is filter still case INSENSTIVE on windows?  If so, fix this
         filtered.update(fnmatch.filter(outputs.keys(), pattern))
 
-    results = {}
-    for var in filtered:
-        results[var] = {'units': outputs[var]['units'], 'shape': outputs[var]['shape']}
-
-    return results
+    return {var: outputs[var] for var in filtered}
 
 
 def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspecified,
