@@ -1104,7 +1104,7 @@ class Phase(om.Group):
             Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.
         """
         if constraint_name is None:
-            constraint_name = name.split('.')[-1]
+            constraint_name = name.rpartition('.')[-1]
 
         existing_pc = [pc for pc in self._path_constraints
                        if pc['name'] == name and pc['indices'] == indices and pc['flat_indices'] == flat_indices]
@@ -1991,10 +1991,10 @@ class Phase(om.Group):
 
         phs_path = phs.pathname + '.' if phs.pathname else ''
 
-        if self.pathname.split('.')[0] == self.name:
+        if self.pathname.partition('.')[0] == self.name:
             self_path = self.name + '.'
         else:
-            self_path = self.pathname.split('.')[0] + '.' + self.name + '.'
+            self_path = self.pathname.partition('.')[0] + '.' + self.name + '.'
 
         if MPI:
             op_dict = MPI.COMM_WORLD.bcast(op_dict, root=0)

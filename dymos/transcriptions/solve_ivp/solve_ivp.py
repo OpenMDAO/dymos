@@ -633,10 +633,6 @@ class SolveIVP(TranscriptionBase):
                     src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape']).ravel()
 
-                # tgt_name = f'all_values:parameters:{name}'
-                # phase.promotes('timeseries', inputs=[(tgt_name, prom_name)],
-                #                src_indices=(src_idxs,), flat_src_indices=True)
-                # print(src_idxs)
                 phase.connect(f'parameter_vals:{name}', f'timeseries.all_values:parameters:{name}',
                               src_indices=src_idxs, flat_src_indices=True)
 
@@ -654,7 +650,7 @@ class SolveIVP(TranscriptionBase):
 
             for v in matches:
                 if '*' in var:
-                    output_name = v.split('.')[-1]
+                    output_name = v.rpartition('.')[-1]
                     units = ode_outputs[v]['units']
                     # check for wildcard_units override of ODE units
                     if v in wildcard_units:

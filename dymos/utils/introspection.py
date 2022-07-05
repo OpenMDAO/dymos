@@ -647,7 +647,7 @@ def configure_states_discovery(state_options, ode):
 
             # Declared as rate_source.
             if tag.startswith('dymos.state_rate_source:') or tag.startswith('state_rate_source:'):
-                state = tag.split(':')[-1]
+                state = tag.rpartition(':')[-1]
                 if tag.startswith('state_rate_source:'):
                     msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
                           f"dymos version 2.0.0. Use 'dymos.state_rate_source:{state}' instead."
@@ -665,7 +665,7 @@ def configure_states_discovery(state_options, ode):
 
             # Declares units for state.
             if tag.startswith('dymos.state_units:') or tag.startswith('state_units:'):
-                tagged_state_units = tag.split(':')[-1]
+                tagged_state_units = tag.rpartition(':')[-1]
                 if tag.startswith('state_units:'):
                     msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
                           f"dymos version 2.0.0. Use 'dymos.{tag}' instead."

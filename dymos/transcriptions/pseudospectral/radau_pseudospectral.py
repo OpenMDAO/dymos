@@ -395,7 +395,7 @@ class Radau(PseudospectralBase):
                 shape = ts_output['shape']
 
                 if '*' in var:  # match outputs from the ODE
-                    # TODO: is filter still case INSENSTIVE on windows?  If so, fix this
+                    # FIXME: this match will be case INSENSITIVE on windows
                     matches = filter(ode_outputs.keys(), var)
 
                     # A nested ODE can have multiple outputs at different levels that share
@@ -406,7 +406,7 @@ class Radau(PseudospectralBase):
                     # Find the duplicate timeseries names by looking at the last part of the names.
                     output_name_groups = defaultdict(list)
                     for v in matches:
-                        output_name = v.split('.')[-1]
+                        output_name = v.rpartition('.')[-1]
                         output_name_groups[output_name].append(v)
 
                     # If there are duplicates, warn the user
@@ -422,7 +422,7 @@ class Radau(PseudospectralBase):
 
                 for v in matches:
                     if '*' in var:
-                        output_name = v.split('.')[-1]
+                        output_name = v.rpartition('.')[-1]
                         units = ode_outputs[v]['units']
                         # check for wildcard_units override of ODE units
                         if v in wildcard_units:
