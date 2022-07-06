@@ -388,9 +388,8 @@ class Radau(PseudospectralBase):
                                       src_indices=(src_idxs,),
                                       flat_src_indices=True)
 
-            for ts_output in phase._timeseries[timeseries_name]['outputs']:
+            for output_name, ts_output in phase._timeseries[timeseries_name]['outputs'].items():
                 var = ts_output['name']
-                output_name = ts_output['output_name']
                 units = ts_output['units']
                 wildcard_units = ts_output['wildcard_units']
                 shape = ts_output['shape']
