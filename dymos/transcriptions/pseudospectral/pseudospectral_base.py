@@ -557,7 +557,7 @@ class PseudospectralBase(TranscriptionBase):
             else:
                 linear = False
             constraint_path = f'states:{var}'
-        elif var_type in 'indep_control':
+        elif var_type == 'indep_control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
             linear = True
@@ -567,7 +567,7 @@ class PseudospectralBase(TranscriptionBase):
             units = phase.control_options[var]['units']
             linear = False
             constraint_path = f'control_values:{var}'
-        elif var_type in 'indep_polynomial_control':
+        elif var_type == 'indep_polynomial_control':
             shape = phase.polynomial_control_options[var]['shape']
             units = phase.polynomial_control_options[var]['units']
             linear = True

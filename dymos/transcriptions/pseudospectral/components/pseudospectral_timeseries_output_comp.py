@@ -179,7 +179,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
 
         # There's a chance that the input for this output was pulled from another variable with
         # different units, so account for that with a conversion, if var is not a rate.
-        if input_units is None or units is None:
+        if rate or input_units is None or units is None:
             self.declare_partials(of=output_name, wrt=input_name,
                                   rows=jac_rows, cols=jac_cols, val=jac[jac_rows, jac_cols])
         else:

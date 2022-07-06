@@ -613,7 +613,7 @@ class Phase(om.Group):
         name : str
             Name of the controllable parameter in the ODE.
         order : int
-            The order of the interpolating polynomial used to represent the control valeu in
+            The order of the interpolating polynomial used to represent the control value in
             phase tau space.
         desc : str
             A description of the polynomial control.

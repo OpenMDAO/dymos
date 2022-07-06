@@ -56,16 +56,18 @@ def classify_var(var, state_options, parameter_options, control_options, polynom
             return 'input_polynomial_control'
     elif var in parameter_options:
         return 'parameter'
-    elif var.endswith('_rate') and var[:-5] in control_options:
-        return 'control_rate'
-    elif var.endswith('_rate2') and var[:-6] in control_options:
-        return 'control_rate2'
-    elif var.endswith('_rate') and var[:-5] in polynomial_control_options:
-        return 'polynomial_control_rate'
-    elif var.endswith('_rate2') and var[:-6] in polynomial_control_options:
-        return 'polynomial_control_rate2'
-    else:
-        return 'ode'
+    elif var.endswith('_rate'):
+        if var[:-5] in control_options:
+            return 'control_rate'
+        elif var[:-5] in polynomial_control_options:
+            return 'polynomial_control_rate'
+    elif var.endswith('_rate2'):
+        if var[:-6] in control_options:
+            return 'control_rate2'
+        elif var[:-6] in polynomial_control_options:
+            return 'polynomial_control_rate2'
+
+    return 'ode'
 
 
 def get_promoted_vars(ode, iotypes, metadata_keys=None, get_remote=True):

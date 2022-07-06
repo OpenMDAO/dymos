@@ -567,7 +567,7 @@ class ExplicitShooting(TranscriptionBase):
             units = phase.state_options[var]['units']
             linear = loc == 'initial'
             obj_path = f'integrator.states_out:{var}'
-        elif var_type in 'indep_control':
+        elif var_type == 'indep_control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
             linear = True
@@ -577,7 +577,7 @@ class ExplicitShooting(TranscriptionBase):
             units = phase.control_options[var]['units']
             linear = False
             obj_path = f'control_values:{var}'
-        elif var_type in 'indep_polynomial_control':
+        elif var_type == 'indep_polynomial_control':
             shape = phase.polynomial_control_options[var]['shape']
             units = phase.polynomial_control_options[var]['units']
             linear = True

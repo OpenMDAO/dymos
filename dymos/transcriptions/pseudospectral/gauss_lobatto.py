@@ -3,7 +3,7 @@ import warnings
 
 import numpy as np
 import openmdao.api as om
-from openmdao.utils.general_utils import simple_warning
+from openmdao.utils.om_warnings import issue_warning
 
 from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
@@ -394,7 +394,7 @@ class GaussLobatto(PseudospectralBase):
         """
         ode_outputs = get_promoted_vars(self._get_ode(phase), 'output')
 
-        for timeseries_name in phase._timeseries:
+        for timeseries_name, timeseries_options in phase._timeseries.items():
             timeseries_comp = phase._get_subsystem(timeseries_name)
             time_units = phase.time_options['units']
 
@@ -518,16 +518,15 @@ class GaussLobatto(PseudospectralBase):
                     # phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
                     #                src_indices=(src_idxs,), flat_src_indices=True)
 
-            for output_name, ts_output in phase._timeseries[timeseries_name]['outputs'].items():
+            for ts_output in phase._timeseries[timeseries_name]['outputs']:
                 var = ts_output['name']
+                output_name = ts_output['output_name']
                 units = ts_output['units']
                 wildcard_units = ts_output['wildcard_units']
                 shape = ts_output['shape']
-                is_rate = ts_output['is_rate']
 
                 if '*' in var:  # match outputs from the ODE
-                    # TODO: is filter still case INSENSTIVE on windows?  If so, fix this
-                    matches = filter(ode_outputs.keys(), var)
+                    matches = filter(list(ode_outputs.keys()), var)
 
                     # A nested ODE can have multiple outputs at different levels that share
                     #   the same name.
@@ -537,23 +536,23 @@ class GaussLobatto(PseudospectralBase):
                     # Find the duplicate timeseries names by looking at the last part of the names.
                     output_name_groups = defaultdict(list)
                     for v in matches:
-                        output_name = v.rpartition('.')[-1]
+                        output_name = v.split('.')[-1]
                         output_name_groups[output_name].append(v)
 
                     # If there are duplicates, warn the user
                     for output_name, var_list in output_name_groups.items():
                         if len(var_list) > 1:
                             var_list_as_string = ', '.join(var_list)
-                            simple_warning(f"The timeseries variable name {output_name} is "
-                                           f"duplicated in these variables: {var_list_as_string}. "
-                                           "Disambiguate by using the add_timeseries_output "
-                                           "output_name option.")
+                            issue_warning(f"The timeseries variable name {output_name} is "
+                                          f"duplicated in these variables: {var_list_as_string}. "
+                                          "Disambiguate by using the add_timeseries_output "
+                                          "output_name option.")
                 else:
                     matches = [var]
 
                 for v in matches:
                     if '*' in var:
-                        output_name = v.rpartition('.')[-1]
+                        output_name = v.split('.')[-1]
                         units = ode_outputs[v]['units']
                         # check for wildcard_units override of ODE units
                         if v in wildcard_units:
@@ -584,11 +583,11 @@ class GaussLobatto(PseudospectralBase):
                                          f' the phase {phase.pathname} nor is it a known output of '
                                          f' the ODE.')
 
-                    timeseries_input_added = timeseries_comp._add_output_configure(
-                        output_name, units, shape, src=f'interleave_comp.all_values:{output_name}',
-                        rate=is_rate)
+                    timeseries_input_added = timeseries_comp._add_output_configure(output_name, units, shape,
+                                                                                   src=f'interleave_comp.'
+                                                                                       f'all_values:{output_name}')
 
-                    interleave_comp = phase.interleave_comp
+                    interleave_comp = phase._get_subsystem('interleave_comp')
                     src_added = interleave_comp.add_var(output_name, shape, units,
                                                         disc_src=f'rhs_disc.{v}',
                                                         col_src=f'rhs_col.{v}')

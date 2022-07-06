@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 import openmdao.api as om
-from openmdao.utils.general_utils import simple_warning
+from openmdao.utils.om_warnings import issue_warning
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import RadauPSContinuityComp
@@ -388,15 +388,15 @@ class Radau(PseudospectralBase):
                                       src_indices=(src_idxs,),
                                       flat_src_indices=True)
 
-            for output_name, ts_output in phase._timeseries[timeseries_name]['outputs'].items():
+            for ts_output in phase._timeseries[timeseries_name]['outputs']:
                 var = ts_output['name']
+                output_name = ts_output['output_name']
                 units = ts_output['units']
                 wildcard_units = ts_output['wildcard_units']
                 shape = ts_output['shape']
 
                 if '*' in var:  # match outputs from the ODE
-                    # FIXME: this match will be case INSENSITIVE on windows
-                    matches = filter(ode_outputs.keys(), var)
+                    matches = filter(list(ode_outputs.keys()), var)
 
                     # A nested ODE can have multiple outputs at different levels that share
                     #   the same name.
@@ -406,23 +406,23 @@ class Radau(PseudospectralBase):
                     # Find the duplicate timeseries names by looking at the last part of the names.
                     output_name_groups = defaultdict(list)
                     for v in matches:
-                        output_name = v.rpartition('.')[-1]
+                        output_name = v.split('.')[-1]
                         output_name_groups[output_name].append(v)
 
                     # If there are duplicates, warn the user
                     for output_name, var_list in output_name_groups.items():
                         if len(var_list) > 1:
                             var_list_as_string = ', '.join(var_list)
-                            simple_warning(f"The timeseries variable name {output_name} is "
-                                           f"duplicated in these variables: {var_list_as_string}. "
-                                           "Disambiguate by using the add_timeseries_output "
-                                           "output_name option.")
+                            issue_warning(f"The timeseries variable name {output_name} is "
+                                          f"duplicated in these variables: {var_list_as_string}. "
+                                          "Disambiguate by using the add_timeseries_output "
+                                          "output_name option.")
                 else:
                     matches = [var]
 
                 for v in matches:
                     if '*' in var:
-                        output_name = v.rpartition('.')[-1]
+                        output_name = v.split('.')[-1]
                         units = ode_outputs[v]['units']
                         # check for wildcard_units override of ODE units
                         if v in wildcard_units:
@@ -504,7 +504,7 @@ class Radau(PseudospectralBase):
             if self.options['compressed']:
                 segment_end_idxs = gd.subset_node_indices['segment_ends'][1:-1]
                 # Repeat nodes that are on segment bounds (but not the first or last nodes in the phase)
-                nodes_to_repeat = list(set(state_input_idxs).intersection(segment_end_idxs))
+                nodes_to_repeat = list(set(state_input_idxs).intersection(set(segment_end_idxs)))
                 # Now find these nodes in the state input indices
                 idxs_of_ntr_in_state_inputs = np.where(np.in1d(state_input_idxs, nodes_to_repeat))[0]
                 # All state input nodes are used once, but nodes_to_repeat are used twice
