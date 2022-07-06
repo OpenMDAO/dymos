@@ -1,5 +1,4 @@
-from distutils.core import setup
-from setuptools import find_packages
+from setuptools import find_packages, setup
 
 # Setup optional dependencies
 optional_dependencies = {
@@ -63,11 +62,11 @@ The software has two primary objectives:
     ],
     license='Apache License',
     packages=find_packages(),
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     install_requires=[
         'openmdao>=3.17.0',
-        'numpy>=1.17',
-        'scipy>=1.2'
+        'numpy',
+        'scipy'
     ],
     extras_require=optional_dependencies,
     zip_safe=False,

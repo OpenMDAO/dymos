@@ -1153,7 +1153,7 @@ class TestInvalidLinkages(unittest.TestCase):
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
 
-        with self.assertRaises(ValueError) as e:
+        with self.assertRaises(RuntimeError) as e:
             p.setup(check=True)
 
         self.assertEqual(str(e.exception), 'Error in linking bar from burn1 to bar in burn2: '

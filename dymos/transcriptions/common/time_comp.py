@@ -50,6 +50,8 @@ class TimeComp(om.ExplicitComponent):
         """
         time_units = self.options['units']
         num_nodes = self.options['num_nodes']
+        node_ptau = self.options['node_ptau']
+        node_dptau_dstau = self.options['node_dptau_dstau']
 
         self.add_input('t_initial', val=self.options['initial_val'], units=time_units)
         self.add_input('t_duration', val=self.options['duration_val'], units=time_units)
@@ -61,10 +63,12 @@ class TimeComp(om.ExplicitComponent):
         rs = np.arange(num_nodes)
         cs = np.zeros(num_nodes)
 
+        dtime_dduration = 0.5 * (node_ptau + 1)
+
         self.declare_partials(of='time', wrt='t_initial', rows=rs, cols=cs, val=1.0)
-        self.declare_partials(of='time', wrt='t_duration', rows=rs, cols=cs, val=1.0)
-        self.declare_partials(of='time_phase', wrt='t_duration', rows=rs, cols=cs, val=1.0)
-        self.declare_partials(of='dt_dstau', wrt='t_duration', rows=rs, cols=cs, val=1.0)
+        self.declare_partials(of='time', wrt='t_duration', rows=rs, cols=cs, val=dtime_dduration)
+        self.declare_partials(of='time_phase', wrt='t_duration', rows=rs, cols=cs, val=dtime_dduration)
+        self.declare_partials(of='dt_dstau', wrt='t_duration', rows=rs, cols=cs, val=0.5 * node_dptau_dstau)
 
     def compute(self, inputs, outputs):
         """
@@ -86,21 +90,3 @@ class TimeComp(om.ExplicitComponent):
         outputs['time'][:] = t_initial + 0.5 * (node_ptau + 1) * t_duration
         outputs['time_phase'][:] = 0.5 * (node_ptau + 1) * t_duration
         outputs['dt_dstau'][:] = 0.5 * t_duration * node_dptau_dstau
-
-    def compute_partials(self, inputs, partials):
-        """
-        Compute sub-jacobian parts. The model is assumed to be in an unscaled state.
-
-        Parameters
-        ----------
-        inputs : Vector
-            Unscaled, dimensional input variables read via inputs[key].
-        partials : Jacobian
-            Subjac components written to partials[output_name, input_name].
-        """
-        node_ptau = self.options['node_ptau']
-        node_dptau_dstau = self.options['node_dptau_dstau']
-
-        partials['time', 't_duration'] = 0.5 * (node_ptau + 1)
-        partials['time_phase', 't_duration'] = partials['time', 't_duration']
-        partials['dt_dstau', 't_duration'] = 0.5 * node_dptau_dstau
