@@ -1,5 +1,5 @@
 import unittest
-
+import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
@@ -9,7 +9,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 @require_pyoptsparse(optimizer='SLSQP')
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
-                   transcription_order=3, force_alloc_complex=False):
+                   transcription_order=3, force_alloc_complex=False, add_rate=False):
 
     p = om.Problem(model=om.Group())
 
@@ -86,6 +86,10 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase.add_timeseries_output(['aero.*', 'prop.thrust', 'prop.m_dot'],
                                 units={'aero.f_lift': 'lbf', 'prop.thrust': 'lbf'})
 
+    # test adding rate as timeseries output
+    if add_rate:
+        phase.add_timeseries_output('aero.mach', rate=True)
+
     p.model.linear_solver = om.DirectSolver()
 
     p.setup(check=True, force_alloc_complex=force_alloc_complex)
@@ -110,7 +114,7 @@ class TestMinTimeClimb(unittest.TestCase):
 
     def test_results_gauss_lobatto(self):
         p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
-                           transcription='gauss-lobatto')
+                           transcription='gauss-lobatto', add_rate=True)
 
         # Check that time matches to within 1% of an externally verified solution.
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 321.0, tolerance=0.02)
@@ -120,14 +124,25 @@ class TestMinTimeClimb(unittest.TestCase):
 
         # verify all wildcard timeseries exist
         output_dict = dict(p.model.list_outputs(units=True))
-        ts = [k for k, v in output_dict.items() if 'timeseries' in k]
+        ts = {k:v for k, v in output_dict.items() if 'timeseries.' in k}
         for c in ['mach', 'CD0', 'kappa', 'CLa', 'CL', 'CD', 'q', 'f_lift', 'f_drag', 'thrust', 'm_dot']:
             assert(any([True for t in ts if 'timeseries.' + c in t]))
+        self.assertTrue('traj.phases.phase0.timeseries.mach_rate' in ts)
+
         # verify time series units
         assert(output_dict['traj.phases.phase0.timeseries.thrust']['units'] == 'lbf')  # no wildcard, from units dict
         assert(output_dict['traj.phases.phase0.timeseries.m_dot']['units'] == 'kg/s')  # no wildcard, from ODE
         assert(output_dict['traj.phases.phase0.timeseries.f_drag']['units'] == 'N')    # wildcard, from ODE
         assert(output_dict['traj.phases.phase0.timeseries.f_lift']['units'] == 'lbf')  # wildcard, from units dict
+        
+        print('polyfit')
+        print("time shape:", p['traj.phases.phase0.timeseries.time'].shape)
+        print("mach shape:", p['traj.phases.phase0.timeseries.mach'].shape)
+        polyarr = np.polyfit(p['traj.phases.phase0.timeseries.time'][:,0], p['traj.phases.phase0.timeseries.mach'][:,0], deg=3)
+        Poly = np.polynomial.polynomial.Polynomial(polyarr[::-1])
+        print('rate')
+        print(p['traj.phases.phase0.timeseries.mach_rate'])
+        
 
     def test_results_radau(self):
         p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
