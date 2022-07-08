@@ -60,19 +60,18 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
         and case2 contain the same variable but the variable has a different size/shape in the two
         cases, or if the variables have the same shape but different values (as given by tol).
     """
-    if isinstance(case1, om.Problem):
-        case1_vars = {t[1]['prom_name']: t[1] for t in
-                      case1.model.list_inputs(val=True, units=True, prom_name=True, out_stream=None)}
-    else:
-        case1_vars = {t[1]['prom_name']: t[1] for t in
-                      case1.list_inputs(val=True, units=True, prom_name=True, out_stream=None)}
+    _case1 = case1.model if isinstance(case1, om.Problem) else case1
+    _case2 = case2.model if isinstance(case2, om.Problem) else case2
 
-    if isinstance(case2, om.Problem):
-        case2_vars = {t[1]['prom_name']: t[1] for t in
-                      case2.model.list_inputs(val=True, units=True, prom_name=True, out_stream=None)}
-    else:
-        case2_vars = {t[1]['prom_name']: t[1] for t in
-                      case2.list_inputs(val=True, units=True, prom_name=True, out_stream=None)}
+    case1_vars = {t[1]['prom_name']: t[1] for t in
+                  _case1.list_inputs(val=True, units=True, prom_name=True, out_stream=None)}
+    case1_vars.update({t[1]['prom_name']: t[1] for t in
+                       _case1.list_outputs(val=True, units=True, prom_name=True, out_stream=None)})
+
+    case2_vars = {t[1]['prom_name']: t[1] for t in
+                  _case2.list_inputs(val=True, units=True, prom_name=True, out_stream=None)}
+    case2_vars.update({t[1]['prom_name']: t[1] for t in
+                       _case2.list_outputs(val=True, units=True, prom_name=True, out_stream=None)})
 
     # Warn if a and b don't contain the same sets of variables
     diff_err_msg = ''
@@ -101,7 +100,7 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
         err = np.abs(a - b)
         if np.any(err > tol):
             val_errors.add(var)
-            val_err_msg += f'\n{var}: {err.T}\n{a.T}\n{b.T}'
+            val_err_msg += f'\n{var}: {err}'
 
     err_msg = ''
     if diff_err_msg:
