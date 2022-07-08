@@ -2,35 +2,43 @@ import unittest
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.mpi import MPI
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 from dymos.examples.finite_burn_orbit_raise.finite_burn_orbit_raise_problem import two_burn_orbit_raise_problem
 from dymos.utils.testing_utils import assert_cases_equal
 
 
+# This test is separate because connected phases aren't directly parallelizable.
 @require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
-class TestExampleTwoBurnOrbitRaiseRestart(unittest.TestCase):
+class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
 
-    def test_restart_from_solution_gl(self):
+    def test_ex_two_burn_orbit_raise_connected(self):
         optimizer = 'IPOPT'
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer=optimizer,
-                                         show_output=False)
-
-        case1 = om.CaseReader('dymos_solution.db').get_case('final')
-        sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
+                                         show_output=False, connected=True)
 
         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
-                              tolerance=2.0E-3)
+            assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
+                              tolerance=4.0E-3)
 
-        # Run again without an actual optimzier
+        import shutil
+        shutil.move('dymos_solution.db', 'dymos_solution1.db')
+        shutil.move('dymos_simulation.db', 'dymos_simulation1.db')
+
+        case1 = om.CaseReader('dymos_solution1.db').get_case('final')
+        sim_case1 = om.CaseReader('dymos_simulation1.db').get_case('final')
+
+        # Run again without an actual optimizer
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer=None,
-                                         show_output=False, restart='dymos_solution.db')
+                                         compressed=False, optimizer=optimizer,
+                                         show_output=False, connected=True,
+                                         run_driver=True, max_iter=0,
+                                         restart='dymos_solution1.db')
+
+        p.run_model()
 
         case2 = om.CaseReader('dymos_solution.db').get_case('final')
         sim_case2 = om.CaseReader('dymos_simulation.db').get_case('final')
@@ -84,7 +92,7 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
         case1 = om.CaseReader('dymos_solution.db').get_case('final')
         sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
 
-        # Run again without an actual optimzier
+        # Run again without an actual optimizer
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer=None,
                                          show_output=False, restart='dymos_solution.db',
