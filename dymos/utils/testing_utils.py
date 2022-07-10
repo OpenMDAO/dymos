@@ -103,7 +103,7 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
         max_err = np.max(err)
         mean_err = np.mean(err)
         if np.any(max_err > tol):
-            val_errors[var] =  (max_err, mean_err)
+            val_errors[var] = (max_err, mean_err)
 
     err_msg = ''
     if diff_err_msg:
@@ -114,7 +114,7 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
         val_err_msg.write('\nThe following variables contain different values:\n')
         max_var_len = max(3, max([len(s) for s in val_errors.keys()]))
         val_err_msg.write(f"{'var'.rjust(max_var_len)} {'max error'.rjust(16)} {'mean error'.rjust(16)}\n")
-        val_err_msg.write(max_var_len*'-' + ' ' + 16 * '-' + ' ' + 16 * '-' +'\n')
+        val_err_msg.write(max_var_len * '-' + ' ' + 16 * '-' + ' ' + 16 * '-' + '\n')
         for varname, (max_err, mean_err) in val_errors.items():
             val_err_msg.write(f"{varname.rjust(max_var_len)} {max_err:16.9e} {mean_err:16.9e}\n")
         err_msg += val_err_msg.getvalue()
