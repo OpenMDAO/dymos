@@ -63,7 +63,7 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
 
         # Verify that the second case has the same inputs and outputs
         assert_cases_equal(case1, p, tol=1.0E-9)
-        assert_cases_equal(sim_case1, sim_case2, tol=1.0E-9)
+        assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
 
 
 # This test is separate because connected phases aren't directly parallelizable.
