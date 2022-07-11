@@ -1,3 +1,5 @@
+import io
+
 import numpy as np
 
 from scipy.interpolate import interp1d
@@ -86,9 +88,9 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
             diff_err_msg += f'\nVariables in case2 but not in case1: {sorted(case2_minus_case1)}'
 
     shape_errors = set()
-    val_errors = set()
+    val_errors = {}
     shape_err_msg = '\nThe following variables have different shapes/sizes:'
-    val_err_msg = '\nThe following variables contain different values:\nvar: error'
+    val_err_msg = io.StringIO()
 
     for var in sorted(set(case1_vars.keys()).intersection(case2_vars.keys())):
         a = case1_vars[var]['val']
@@ -98,9 +100,10 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
             shape_err_msg += f'\n{var} has shape {a.shape} in case1 but shape {b.shape} in case2'
             continue
         err = np.abs(a - b)
-        if np.any(err > tol):
-            val_errors.add(var)
-            val_err_msg += f'\n{var}: {err}'
+        max_err = np.max(err)
+        mean_err = np.mean(err)
+        if np.any(max_err > tol):
+            val_errors[var] = (max_err, mean_err)
 
     err_msg = ''
     if diff_err_msg:
@@ -108,7 +111,13 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
     if shape_errors:
         err_msg += shape_err_msg
     if val_errors:
-        err_msg += val_err_msg
+        val_err_msg.write('\nThe following variables contain different values:\n')
+        max_var_len = max(3, max([len(s) for s in val_errors.keys()]))
+        val_err_msg.write(f"{'var'.rjust(max_var_len)} {'max error'.rjust(16)} {'mean error'.rjust(16)}\n")
+        val_err_msg.write(max_var_len * '-' + ' ' + 16 * '-' + ' ' + 16 * '-' + '\n')
+        for varname, (max_err, mean_err) in val_errors.items():
+            val_err_msg.write(f"{varname.rjust(max_var_len)} {max_err:16.9e} {mean_err:16.9e}\n")
+        err_msg += val_err_msg.getvalue()
 
     if err_msg:
         raise AssertionError(err_msg)
