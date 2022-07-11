@@ -501,9 +501,7 @@ class PseudospectralBase(TranscriptionBase):
                                                                  output_subset=options['subset'])
             phase.add_subsystem(name, subsys=timeseries_comp)
 
-            phase.connect('dt_dstau', (f'{name}.dt_dstau'),
-                        #   src_indices=self.grid_data.subset_node_indices['col'],
-                          flat_src_indices=True)
+            phase.connect('dt_dstau', (f'{name}.dt_dstau'), flat_src_indices=True)
 
     def _get_objective_src(self, var, loc, phase, ode_outputs=None):
         """

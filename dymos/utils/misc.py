@@ -32,15 +32,17 @@ def get_rate_units(units, time_units, deriv=1):
     if deriv not in (1, 2):
         raise ValueError('deriv argument must be 1 or 2.')
 
-    if units is not None:
-        if time_units is not None:
-            tu = time_units if deriv == 1 else f'{time_units}**2'
-            return f'{units}/{tu}'
-        else:
-            return units
+    tu = time_units if deriv == 1 else '{0}**2'.format(time_units)
+
+    if units is not None and time_units is not None:
+        rate_units = '{0}/{1}'.format(units, tu)
+    elif units is not None:
+        rate_units = units
     elif time_units is not None:
-        tu = time_units if deriv == 1 else f'{time_units}**2'
-        return f'1.0/{tu}'
+        rate_units = '1.0/{0}'.format(tu)
+    else:
+        rate_units = None
+    return rate_units
 
 
 def reshape_val(val, shape, num_input_nodes):
@@ -96,38 +98,23 @@ class CoerceDesvar(object):
         fix_final = options['fix_final']
 
         if desvar_indices is None:
-            mask = None
-            # desvar_indices = list(range(size * num_input_nodes))
+            desvar_indices = list(range(size * num_input_nodes))
 
             if fix_initial:
-                mask = np.ones(size * num_input_nodes, dtype=bool)
                 if isinstance(fix_initial, Iterable):
-                    # TODO: this block is currently not being tested (no coverage)
                     idxs_to_fix = np.where(np.asarray(fix_initial))[0]
-                    mask[idxs_to_fix] = False
-                    # for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                    #     del desvar_indices[idx_to_fix]
+                    for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                        del desvar_indices[idx_to_fix]
                 else:
-                    # del desvar_indices[:size]
-                    mask[:size] = False
+                    del desvar_indices[:size]
 
             if fix_final:
-                if mask is None:
-                    mask = np.ones(size * num_input_nodes, dtype=bool)
                 if isinstance(fix_final, Iterable):
-                    # TODO: this block is currently not being tested (no coverage)
                     idxs_to_fix = np.where(np.asarray(fix_final))[0]
-                    mask[idxs_to_fix - size] = False
-                    # for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                    #     del desvar_indices[-size + idx_to_fix]
+                    for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                        del desvar_indices[-size + idx_to_fix]
                 else:
-                    # del desvar_indices[-size:]
-                    mask[-size:] = False
-
-            if mask is None:
-                desvar_indices = np.arange(size * num_input_nodes)
-            else:
-                desvar_indices = np.nonzero(mask)[0]
+                    del desvar_indices[-size:]
 
         self.desvar_indices = desvar_indices
         self.options = options
@@ -166,11 +153,9 @@ class CoerceDesvar(object):
 
         if val is None or np.isscalar(val):
             return val
-
         # Handle value for vector/matrix valued variables
         if isinstance(val, list):
             val = np.asarray(val)
-
         if val.shape == self.options['shape']:
             return np.tile(val.flatten(), int(len(self.desvar_indices)/val.size))
         else:

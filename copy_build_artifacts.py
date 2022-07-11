@@ -30,5 +30,5 @@ def copy_build_artifacts(book_dir='docs'):
             shutil.copyfile(src, dst)
 
 
-if __name__ == '__main__':  # pragma: no cover
+if __name__ == '__main__':
     copy_build_artifacts('docs')

@@ -56,18 +56,16 @@ def classify_var(var, state_options, parameter_options, control_options, polynom
             return 'input_polynomial_control'
     elif var in parameter_options:
         return 'parameter'
-    elif var.endswith('_rate'):
-        if var[:-5] in control_options:
-            return 'control_rate'
-        elif var[:-5] in polynomial_control_options:
-            return 'polynomial_control_rate'
-    elif var.endswith('_rate2'):
-        if var[:-6] in control_options:
-            return 'control_rate2'
-        elif var[:-6] in polynomial_control_options:
-            return 'polynomial_control_rate2'
-
-    return 'ode'
+    elif var.endswith('_rate') and var[:-5] in control_options:
+        return 'control_rate'
+    elif var.endswith('_rate2') and var[:-6] in control_options:
+        return 'control_rate2'
+    elif var.endswith('_rate') and var[:-5] in polynomial_control_options:
+        return 'polynomial_control_rate'
+    elif var.endswith('_rate2') and var[:-6] in polynomial_control_options:
+        return 'polynomial_control_rate2'
+    else:
+        return 'ode'
 
 
 def get_promoted_vars(ode, iotypes, metadata_keys=None, get_remote=True):
@@ -91,8 +89,9 @@ def get_promoted_vars(ode, iotypes, metadata_keys=None, get_remote=True):
     dict
         A dictionary mapping the promoted names of inputs in the system to their associated metadata.
     """
-    return {opts['prom_name']: opts for opts in ode.get_io_metadata(iotypes=iotypes, get_remote=get_remote,
-                                                                    metadata_keys=metadata_keys).values()}
+    _iotypes = (iotypes,) if isinstance(iotypes, str) else iotypes
+    return {opts['prom_name']: opts for (k, opts) in ode.get_io_metadata(iotypes=_iotypes, get_remote=get_remote,
+                                                                         metadata_keys=metadata_keys).items()}
 
 
 def get_targets(ode, name, user_targets, control_rates=False):
@@ -131,14 +130,13 @@ def get_targets(ode, name, user_targets, control_rates=False):
     this method should be called from configure of some parent Group, and the ODE should
     be a system within that Group.
     """
-    if user_targets is _unspecified:
-        if isinstance(ode, dict):
-            ode_inputs = ode
-        else:
-            # TODO: make an access func for prom names on the OM side to avoid directly
-            #   accessing internal data structures
-            ode_inputs = ode._var_allprocs_prom2abs_list['input']
+    if isinstance(ode, dict):
+        ode_inputs = ode
+    else:
+        ode_inputs = {opts['prom_name']: opts for (k, opts) in
+                      ode.get_io_metadata(iotypes=('input',), get_remote=True).items()}
 
+    if user_targets is _unspecified:
         if control_rates not in (1, 2) and name in ode_inputs:
             targets = [name]
         elif control_rates == 1 and f'{name}_rate' in ode_inputs:
@@ -649,7 +647,7 @@ def configure_states_discovery(state_options, ode):
 
             # Declared as rate_source.
             if tag.startswith('dymos.state_rate_source:') or tag.startswith('state_rate_source:'):
-                state = tag.rpartition(':')[-1]
+                state = tag.split(':')[-1]
                 if tag.startswith('state_rate_source:'):
                     msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
                           f"dymos version 2.0.0. Use 'dymos.state_rate_source:{state}' instead."
@@ -667,7 +665,7 @@ def configure_states_discovery(state_options, ode):
 
             # Declares units for state.
             if tag.startswith('dymos.state_units:') or tag.startswith('state_units:'):
-                tagged_state_units = tag.rpartition(':')[-1]
+                tagged_state_units = tag.split(':')[-1]
                 if tag.startswith('state_units:'):
                     msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
                           f"dymos version 2.0.0. Use 'dymos.{tag}' instead."
@@ -703,15 +701,20 @@ def filter_outputs(patterns, sys):
         A dictionary where the matching output names are the keys and the associated dict provides
         the 'units' and 'shapes' metadata.
     """
-    # TODO: this function is never called with a System, so we could get rid of this check...
     outputs = sys if isinstance(sys, dict) else get_promoted_vars(sys, iotypes='output', metadata_keys=['shape', 'units'])
 
-    filtered = set()
-    for pattern in patterns:
-        # TODO: is filter still case INSENSTIVE on windows?  If so, fix this
-        filtered.update(fnmatch.filter(outputs.keys(), pattern))
+    output_names = list(outputs.keys())
+    filtered = []
+    results = {}
 
-    return {var: outputs[var] for var in filtered}
+    for pattern in patterns:
+        filtered.extend(fnmatch.filter(output_names, pattern))
+    filtered = list(set(filtered))  # de-dupe
+
+    for var in filtered:
+        results[var] = {'units': outputs[var]['units'], 'shape': outputs[var]['shape']}
+
+    return results
 
 
 def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspecified,

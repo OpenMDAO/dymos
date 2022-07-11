@@ -1019,7 +1019,7 @@ class Phase(om.Group):
                              '"initial" or "final".'.format(loc))
 
         if constraint_name is None:
-            constraint_name = name.rpartition('.')[-1]
+            constraint_name = name.split('.')[-1]
 
         bc_list = self._initial_boundary_constraints if loc == 'initial' else self._final_boundary_constraints
 
@@ -1104,7 +1104,7 @@ class Phase(om.Group):
             Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.
         """
         if constraint_name is None:
-            constraint_name = name.rpartition('.')[-1]
+            constraint_name = name.split('.')[-1]
 
         existing_pc = [pc for pc in self._path_constraints
                        if pc['name'] == name and pc['indices'] == indices and pc['flat_indices'] == flat_indices]
@@ -1183,7 +1183,7 @@ class Phase(om.Group):
                                                     rate=rate)
 
                 # Handle specific units for wildcard names.
-                if '*' in name_i and oname is not None:
+                if oname is not None and '*' in name_i:
                     self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
 
         else:
@@ -1233,7 +1233,7 @@ class Phase(om.Group):
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
         if output_name is None:
-            output_name = name.rpartition('.')[-1]
+            output_name = name.split('.')[-1]
 
             if rate:
                 output_name = output_name + '_rate'
@@ -1610,7 +1610,7 @@ class Phase(om.Group):
 
                 # Declared as rate_source.
                 if tag.startswith('dymos.state_rate_source:') or tag.startswith('state_rate_source:'):
-                    state = tag.rpartition(':')[-1]
+                    state = tag.split(':')[-1]
                     if tag.startswith('state_rate_source:'):
                         msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
                               f"dymos version 2.0.0. Use 'dymos.state_rate_source:{state}' instead."
@@ -1628,7 +1628,7 @@ class Phase(om.Group):
 
                 # Declares units for state.
                 if tag.startswith('dymos.state_units:') or tag.startswith('state_units:'):
-                    tagged_state_units = tag.rpartition(':')[-1]
+                    tagged_state_units = tag.split(':')[-1]
                     if tag.startswith('state_units:'):
                         msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
                               f"dymos version 2.0.0. Use 'dymos.{tag}' instead."
@@ -1991,10 +1991,10 @@ class Phase(om.Group):
 
         phs_path = phs.pathname + '.' if phs.pathname else ''
 
-        if self.pathname.partition('.')[0] == self.name:
+        if self.pathname.split('.')[0] == self.name:
             self_path = self.name + '.'
         else:
-            self_path = self.pathname.partition('.')[0] + '.' + self.name + '.'
+            self_path = self.pathname.split('.')[0] + '.' + self.name + '.'
 
         if MPI:
             op_dict = MPI.COMM_WORLD.bcast(op_dict, root=0)

@@ -227,7 +227,7 @@ class ContinuityCompBase(om.ExplicitComponent):
         if num_segments <= 1 or compressed:
             return
 
-        for state_name in state_options:
+        for state_name, options in state_options.items():
             input_name, output_name = self.name_maps[state_name]['value_names']
             end_vals = inputs[input_name][1:-1:2, ...]
             start_vals = inputs[input_name][2:-1:2, ...]

@@ -1378,7 +1378,7 @@ class USatm1976Comp(om.ExplicitComponent):
             partials['drhos_dh', 'h'][...] *= dz_dh ** 2
 
 
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == "__main__":
 
     # Running this script generates and prints the Akima coefficients using the OpenMDAO akima1D interpolant.
 

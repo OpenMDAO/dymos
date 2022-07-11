@@ -109,7 +109,7 @@ def upload_doc_version(source_dir, destination, *args):
         print("Uploaded documentation for", name if rel else "latest")
 
 
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Source and Destination required: "
               f"python {sys.argv[0]} [PATH]/_build/html [USER@]HOST:DIRECTORY")

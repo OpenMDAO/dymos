@@ -308,31 +308,23 @@ class ControlGroup(om.Group):
             size = np.prod(shape)
             if options['opt']:
                 num_input_nodes = gd.subset_num_nodes['control_input']
-                mask = None
+                desvar_indices = list(range(size * num_input_nodes))
 
                 if options['fix_initial']:
-                    mask = np.ones(size * num_input_nodes, dtype=bool)
                     if isinstance(options['fix_initial'], Iterable):
-                        # TODO: not sure exactly why we need a 'where' here (and below).
-                        #  not sure what form fix_initial takes.  It appears to be untested.
                         idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
-                        mask[idxs_to_fix] = False
+                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                            del desvar_indices[idx_to_fix]
                     else:
-                        mask[:size] = False
+                        del desvar_indices[:size]
 
                 if options['fix_final']:
-                    if mask is None:
-                        mask = np.ones(size * num_input_nodes, dtype=bool)
                     if isinstance(options['fix_final'], Iterable):
                         idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
-                        mask[idxs_to_fix - size] = False
+                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                            del desvar_indices[-size + idx_to_fix]
                     else:
-                        mask[-size:] = False
-
-                if mask is None:
-                    desvar_indices = np.arange(size * num_input_nodes)
-                else:
-                    desvar_indices = np.nonzero(mask)[0]
+                        del desvar_indices[-size:]
 
                 if len(desvar_indices) > 0:
                     coerce_desvar_option = CoerceDesvar(num_input_nodes, options=options)

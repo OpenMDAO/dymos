@@ -30,7 +30,7 @@ def copy_build_artifacts(book_dir='openmdao_book'):
             shutil.copyfile(src, dst)
 
 
-if __name__ == '__main__':  # pragma: no cover
+if __name__ == '__main__':
     copy_build_artifacts('openmdao_book')
 
 

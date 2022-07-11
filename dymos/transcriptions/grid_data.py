@@ -283,9 +283,10 @@ class GridData(object):
                                                        compressed=compressed)
 
             if iseg == 0:
-                subset_ind0 = {name: 0 for name in subsets_i}
+                subset_names = list(subsets_i.keys())
+                subset_ind0 = {name: 0 for name in subset_names}
                 # index of the first node in the segment for each subset
-                subset_ind1 = {name: 0 for name in subsets_i}
+                subset_ind1 = {name: 0 for name in subset_names}
                 # index of the last node in the segment for each subset
 
             num_nodes_i = len(nodes_i)

@@ -124,10 +124,9 @@ class TestMinTimeClimb(unittest.TestCase):
         # Check that time matches to within 1% of an externally verified solution.
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 321.0, tolerance=0.02)
 
-
         # verify all wildcard timeseries exist
         output_dict = dict(p.model.list_outputs(units=True))
-        ts = {k:v for k, v in output_dict.items() if 'timeseries.' in k}
+        ts = {k: v for k, v in output_dict.items() if 'timeseries.' in k}
         for c in ['mach', 'CD0', 'kappa', 'CLa', 'CL', 'CD', 'q', 'f_lift', 'f_drag', 'thrust', 'm_dot']:
             assert(any([True for t in ts if 'timeseries.' + c in t]))
         self.assertTrue('traj.phases.phase0.timeseries.mach_rate' in ts)
@@ -141,60 +140,22 @@ class TestMinTimeClimb(unittest.TestCase):
         print('polyfit')
         print("time shape:", p['traj.phases.phase0.timeseries.time'].shape)
         print("mach shape:", p['traj.phases.phase0.timeseries.mach'].shape)
-        maxtime = np.max(p['traj.phases.phase0.timeseries.time'])
-        maxmach = np.max(p['traj.phases.phase0.timeseries.mach'])
-        norm_time = p['traj.phases.phase0.timeseries.time'][:,0] / maxtime
-        norm_mach = p['traj.phases.phase0.timeseries.mach'][:,0] / maxmach
-        time = p['traj.phases.phase0.timeseries.time'][:,0]
-        mach = p['traj.phases.phase0.timeseries.mach'][:,0]
-        mach_rate = p['traj.phases.phase0.timeseries.mach_rate'][:,0]
-
-        # def polyargs(t, *args):
-        #     p1d = np.poly1d(args)
-        #     return p1d(t)
-
-        # def objective(t, a, b, c, d):
-        #     return polyargs(t, a, b, c, d)
-
-        # from scipy.optimize import curve_fit
-
+        time = p['traj.phases.phase0.timeseries.time'][:, 0]
+        mach = p['traj.phases.phase0.timeseries.mach'][:, 0]
 
         from numpy.polynomial import Polynomial as P
-        from numpy.polynomial import Chebyshev as T
 
         order = 10
         p = P.fit(time, mach, order)
         deriv = p.deriv(1)
-        # tfit = T.fit(time, mach, order)
         print("POLY:", p)
         print("domain:", p.domain)
         print("window:", p.window)
         print("DERIV domain:", deriv.domain)
         print("DERIV window:", deriv.window)
-        # fitval = P.polyval(time, coefs)
-
-
-        # polyarr, _ = curve_fit(objective, time, mach)
-        # print("polyarr:", polyarr)
-        # polyarr = np.polyfit(time, mach, deg=3)
-        # p1d = np.poly1d(polyarr.ravel())
-        # print("FIT:\n", p1d)
-
-        # fitval = objective(time, *poxlyarr)
-        # fitval = p1d(time)
-        # pder = np.polyder(p1d)
-        # print("DERIV:\n", pder)
 
         print("EVALUATE DERIV AT:\n")
         print(time)
-        # deriv = pder(time)
-        # Poly = np.polynomial.polynomial.Polynomial(polyarr[::-1])
-        # deriv = Poly.deriv()
-        # print('rate')
-        # print(p['traj.phases.phase0.timeseries.mach_rate'])
-        # print('deriv')
-        # print(deriv)
-
 
         # step size
         h = time[1] - time[0]
@@ -208,28 +169,26 @@ class TestMinTimeClimb(unittest.TestCase):
         # compute corresponding grid
         x_diff = x[:-1:]
 
+        # import matplotlib.pyplot as plt
 
-        import matplotlib.pyplot as plt
+        # fig, ax = plt.subplot_mosaic([['top'],
+        #                                ['bottom']], layout='constrained')
+        # # fig, ax = plt.subplots()
+        # line1, = ax['top'].plot(time, mach, label="mach")
+        # line1.set_dashes([2,2,10,2])
+        # line4, = ax['top'].plot(time, p(time), dashes=[2,2,4], label='poly fit')
 
-        fig, ax = plt.subplot_mosaic([['top'],
-                                       ['bottom']], layout='constrained')
-        # fig, ax = plt.subplots()
-        line1, = ax['top'].plot(time, mach, label="mach")
-        line1.set_dashes([2,2,10,2])
-        line4, = ax['top'].plot(time, p(time), dashes=[2,2,4], label='poly fit')
+        # line2, = ax['bottom'].plot(time, mach_rate, dashes=[6,2], label='mach_rate')
+        # line5, = ax['bottom'].plot(time, deriv(time), dashes=[2,6,4], label='deriv of polyfit')
+        # # line6, = ax['bottom'].plot(x_diff,forward_diff, dashes=[2,2,6], label='fd of mach')
 
-        line2, = ax['bottom'].plot(time, mach_rate, dashes=[6,2], label='mach_rate')
-        line5, = ax['bottom'].plot(time, deriv(time), dashes=[2,6,4], label='deriv of polyfit')
-        # line6, = ax['bottom'].plot(x_diff,forward_diff, dashes=[2,2,6], label='fd of mach')
+        # ax['top'].set(xlabel='time (s)')
+        # ax['bottom'].set(xlabel='time (s)')
+        # # ax.grid()
+        # ax['top'].legend()
+        # ax['bottom'].legend()
 
-        ax['top'].set(xlabel='time (s)')
-        ax['bottom'].set(xlabel='time (s)')
-        # ax.grid()
-        ax['top'].legend()
-        ax['bottom'].legend()
-
-        plt.show()
-
+        # plt.show()
 
     def test_results_radau(self):
         p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,

@@ -650,7 +650,7 @@ class SolveIVP(TranscriptionBase):
 
             for v in matches:
                 if '*' in var:
-                    output_name = v.rpartition('.')[-1]
+                    output_name = v.split('.')[-1]
                     units = ode_outputs[v]['units']
                     # check for wildcard_units override of ODE units
                     if v in wildcard_units:

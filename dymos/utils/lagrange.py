@@ -34,7 +34,7 @@ def lagrange_matrices(x_disc, x_interp):
     ni = len(x_interp)
     wb = np.ones(nd)
 
-    Li = np.empty((ni, nd))
+    Li = np.zeros((ni, nd))
     Di = np.zeros((ni, nd))
 
     # Barycentric Weights
@@ -43,14 +43,20 @@ def lagrange_matrices(x_disc, x_interp):
             if k != j:
                 wb[j] /= (x_disc[j] - x_disc[k])
 
-    # Compute Li and Di
+    # Compute Li
     for i in range(ni):
         for j in range(nd):
             Li[i, j] = wb[j]
             for k in range(nd):
-                prod = 1.0
                 if k != j:
                     Li[i, j] *= (x_interp[i] - x_disc[k])
+
+    # Compute Di
+    for i in range(ni):
+        for j in range(nd):
+            for k in range(nd):
+                prod = 1.0
+                if k != j:
                     for m in range(nd):
                         if m != j and m != k:
                             prod *= (x_interp[i] - x_disc[m])

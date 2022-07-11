@@ -108,7 +108,7 @@ class Battery(om.ExplicitComponent):
         partials['P_pack', 'SOC'] = n_parallel * I_Li * n_series * dV_dSOC
 
 
-if __name__ == '__main__':  # pragma: no cover
+if __name__ == '__main__':
 
     import openmdao.api as om
     num_nodes = 1

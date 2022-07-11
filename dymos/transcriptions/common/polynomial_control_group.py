@@ -110,11 +110,11 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
                                                                   num_control_input_nodes * size),
                                                                   order='C')
             self.val_jac_rows[name], self.val_jac_cols[name] = \
-                np.nonzero(self.val_jacs[name])
+                np.where(self.val_jacs[name] != 0)
             self.rate_jac_rows[name], self.rate_jac_cols[name] = \
-                np.nonzero(self.rate_jacs[name])
+                np.where(self.rate_jacs[name] != 0)
             self.rate2_jac_rows[name], self.rate2_jac_cols[name] = \
-                np.nonzero(self.rate2_jacs[name])
+                np.where(self.rate2_jacs[name] != 0)
 
             self.sizes[name] = size
 
@@ -276,11 +276,11 @@ class PolynomialControlGroup(om.Group):
                                                           val=default_val,
                                                           units=options['units'])
 
-                desvar_indices = np.arange(num_input_nodes)
+                desvar_indices = list(range(num_input_nodes))
                 if options['fix_initial']:
-                    desvar_indices = desvar_indices[1:]
+                    desvar_indices.pop(0)
                 if options['fix_final']:
-                    desvar_indices = desvar_indices[:-1]
+                    desvar_indices.pop()
 
                 lb = -INF_BOUND if options['lower'] is None else options['lower']
                 ub = INF_BOUND if options['upper'] is None else options['upper']

@@ -90,7 +90,7 @@ class ControlEndpointDefectComp(om.ExplicitComponent):
 
             col_idxs = []
             for i in range(size):
-                col_idxs.extend(range(initial_col + i, final_col, size))
+                col_idxs.extend(np.arange(initial_col + i, final_col, size, dtype=int))
 
             dout_din = np.tile(np.concatenate((np.ravel(-self._L), [1.0])), size)
 
