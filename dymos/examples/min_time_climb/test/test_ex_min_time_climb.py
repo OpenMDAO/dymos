@@ -122,7 +122,7 @@ class TestMinTimeClimb(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
 
         # Check that time matches to within 1% of an externally verified solution.
-        # assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 321.0, tolerance=0.02)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 321.0, tolerance=0.02)
 
 
         # verify all wildcard timeseries exist

@@ -2276,7 +2276,7 @@ class Phase(om.Group):
 
     def _indices_in_constraints(self, name, loc):
         """
-        Returns a set of the flattened indices involving constraint of the given name at the given loc.
+        Returns a set of the C-order flattened indices involving constraint of the given name at the given loc.
 
         Parameters
         ----------
@@ -2288,7 +2288,7 @@ class Phase(om.Group):
         Returns
         -------
         all_flat_idxs : set
-            A flattened set of indices that apply to the constraint.
+            A C-order flattened set of indices that apply to the constraint.
         """
         cons = {'initial': self._initial_boundary_constraints,
                 'final': self._final_boundary_constraints,
