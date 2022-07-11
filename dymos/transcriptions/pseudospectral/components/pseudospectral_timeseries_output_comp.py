@@ -40,6 +40,9 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         # Flag to set if no multiplication by the interpolation matrix is necessary
         self._no_interp = False
 
+        self.options.declare('time_units', default=None, allow_none=True, types=str,
+                             desc='Units of time')
+
     def setup(self):
         """
         Define the independent variables as output variables.
@@ -97,6 +100,8 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         else:
             self.interpolation_matrix = block_diag(*L_blocks)
             self.differentiation_matrix = block_diag(*D_blocks)
+
+        self.add_input('dt_dstau', shape=(self.input_num_nodes,), units=self.options['time_units'])
 
         # self._timeseries_outputs was never populated...
         # for (name, kwargs) in self._timeseries_outputs:
@@ -157,7 +162,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         output_name = name
         self.add_output(output_name, shape=(output_num_nodes,) + shape, units=units, desc=desc)
 
-        self._vars[name] = (input_name, output_name, shape)
+        self._vars[name] = (input_name, output_name, shape, rate)
 
         size = np.prod(shape)
         jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
@@ -178,8 +183,8 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         jac_rows, jac_cols = np.nonzero(jac)
 
         # There's a chance that the input for this output was pulled from another variable with
-        # different units, so account for that with a conversion, if var is not a rate.
-        if rate or input_units is None or units is None:
+        # different units, so account for that with a conversion.
+        if input_units is None or units is None:
             self.declare_partials(of=output_name, wrt=input_name,
                                   rows=jac_rows, cols=jac_cols, val=jac[jac_rows, jac_cols])
         else:
@@ -203,7 +208,10 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        for (input_name, output_name, _) in self._vars.values():
+        # convert dt_dstau to a column vector
+        dt_dstau = inputs['dt_dstau'][:, np.newaxis]
+
+        for (input_name, output_name, _, is_rate) in self._vars.values():
             if self._no_interp:
                 interp_vals = inputs[input_name]
             else:
@@ -213,6 +221,9 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
                     inp = inp.swapaxes(0, 1)
 
                 interp_vals = self.interpolation_matrix.dot(inp)
+
+            if is_rate:
+                interp_vals = self.differentiation_matrix.dot(interp_vals) / dt_dstau
 
             if output_name in self._conversion_factors:
                 scale, offset = self._conversion_factors[output_name]

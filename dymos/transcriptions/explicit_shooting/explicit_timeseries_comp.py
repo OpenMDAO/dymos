@@ -31,7 +31,6 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
         # from another variable has potentially different units
         self._units = {}
         self._conversion_factors = {}
-        self._vars = {}
 
         self._no_check_partials = not dymos_options['include_check_partials']
 
@@ -104,7 +103,7 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
                         shape=(output_num_nodes,) + shape,
                         units=units, desc=desc)
 
-        self._vars[name] = (input_name, output_name, shape)
+        self._vars[name] = (input_name, output_name, shape, rate)
 
         size = np.prod(shape)
         rs = cs = np.arange(output_num_nodes * size, dtype=int)
@@ -135,7 +134,7 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        for (input_name, output_name, _) in self._vars.values():
+        for (input_name, output_name, _, _) in self._vars.values():
             if output_name in self._conversion_factors:
                 scale, offset = self._conversion_factors[output_name]
                 outputs[output_name] = scale * (inputs[input_name] + offset)

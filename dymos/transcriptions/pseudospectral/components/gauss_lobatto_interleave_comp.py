@@ -115,9 +115,8 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
 
         # There's a chance that the input for this output was pulled from another variable with
         # different units, so account for that with a conversion.
-        if None in {input_units, units}:
+        if input_units is None or units is None:
             scale = 1.0
-            offset = 0
         else:
             scale, offset = unit_conversion(input_units, units)
             self._conversion_factors[self._varnames[name]['all']] = scale, offset
@@ -151,10 +150,10 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
         col_idxs = self.options['grid_data'].subset_node_indices['col']
 
         for name, varnames in self._varnames.items():
-            outputs[varnames['all']][disc_idxs] = inputs[varnames['state_disc']]
-            outputs[varnames['all']][col_idxs] = inputs[varnames['col']]
-            conv_name = self._varnames[name]['all']
-            if conv_name in self._conversion_factors:
-                scale, offset = self._conversion_factors[conv_name]
-                outputs[varnames['all']] *= scale
-                outputs[varnames['all']] += offset
+            allname = varnames['all']
+            outputs[allname][disc_idxs] = inputs[varnames['state_disc']]
+            outputs[allname][col_idxs] = inputs[varnames['col']]
+            if allname in self._conversion_factors:
+                scale, offset = self._conversion_factors[allname]
+                outputs[allname] *= scale
+                outputs[allname] += offset

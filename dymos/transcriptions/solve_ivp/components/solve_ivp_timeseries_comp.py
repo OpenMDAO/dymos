@@ -59,19 +59,13 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         rate : bool
             If True, timeseries output is a rate.
         """
-        num_nodes = self.num_nodes
-
+        nodeshape = (self.num_nodes,)
         input_name = f'all_values:{name}'
-        self.add_input(input_name,
-                       shape=(num_nodes,) + shape,
-                       units=units, desc=desc)
 
-        output_name = name
-        self.add_output(output_name,
-                        shape=(num_nodes,) + shape,
-                        units=units, desc=desc)
+        self.add_input(input_name, shape=nodeshape + shape,  units=units, desc=desc)
+        self.add_output(name, shape=nodeshape + shape, units=units, desc=desc)
 
-        self._vars[name] = (input_name, output_name, shape)
+        self._vars[name] = (input_name, name, shape, rate)
 
     def compute(self, inputs, outputs):
         """
