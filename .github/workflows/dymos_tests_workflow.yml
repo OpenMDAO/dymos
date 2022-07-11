@@ -16,7 +16,7 @@ on:
 jobs:
 
   test_ubuntu:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     timeout-minutes: 90
 
@@ -26,12 +26,11 @@ jobs:
         include:
           # baseline versions
           - NAME: baseline
-            PY: 3.8
-            NUMPY: 1.18
-            SCIPY: 1.4
-            PETSc: 3.12
-            OPENMPI: '4.0'
-            PYOPTSPARSE: 'v2.1.5'
+            PY: '3.10'
+            NUMPY: 1.22
+            SCIPY: 1.7
+            PETSc: 3.17
+            PYOPTSPARSE: 'v2.8.3'
             SNOPT: 7.7
             MBI: 1
             OPENMDAO: 'latest'
@@ -41,11 +40,10 @@ jobs:
 
           # baseline versions except no pyoptsparse or SNOPT
           - NAME: no_pyoptsparse
-            PY: 3.8
-            NUMPY: 1.18
-            SCIPY: 1.4
-            PETSc: 3.12
-            OPENMPI: '4.0'
+            PY: '3.10'
+            NUMPY: 1.22
+            SCIPY: 1.7
+            PETSc: 3.17
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
@@ -54,12 +52,11 @@ jobs:
           # baseline versions except with pyoptsparse but no SNOPT
           # build docs to verify those that use pyoptsparse do not use SNOPT
           - NAME: no_snopt
-            PY: 3.8
-            NUMPY: 1.18
-            SCIPY: 1.4
-            PETSc: 3.12
-            OPENMPI: '4.0'
-            PYOPTSPARSE: 'v2.1.5'
+            PY: '3.10'
+            NUMPY: 1.22
+            SCIPY: 1.7
+            PETSc: 3.17
+            PYOPTSPARSE: 'v2.8.3'
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
@@ -71,8 +68,7 @@ jobs:
             NUMPY: 1
             SCIPY: 1
             PETSc: 3
-            OPENMPI: '4'
-            PYOPTSPARSE: 'v2.1.5'
+            PYOPTSPARSE: 'main'
             SNOPT: 7.7
             MBI: 1
             OPENMDAO: 'dev'
@@ -82,10 +78,12 @@ jobs:
 
           # oldest supported versions
           - NAME: oldest
-            PY: 3.7
-            NUMPY: 1.17
-            SCIPY: 1.2
-            PETSc: 3.10.2
+            PY: 3.8
+            NUMPY: 1.22
+            SCIPY: 1.7
+            OPENMPI: '4.0'
+            MPI4PY: '3.0'
+            PETSc: 3.13
             PYOPTSPARSE: 'v1.2'
             SNOPT: 7.2
             MBI: 1
@@ -126,17 +124,14 @@ jobs:
         run: |
           git fetch --prune --unshallow --tags
 
-      - name: Install miniconda
+      - name: Setup mamba
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         uses: conda-incubator/setup-miniconda@v2
         with:
-          activate-environment: test
           python-version: ${{ matrix.PY }}
-          channels: conda-forge
-          allow-softlinks: true
-          channel-priority: flexible
-          show-channel-urls: true
-          use-only-tar-bz2: true
+          mamba-version: "*"
+          channels: conda-forge,defaults
+          channel-priority: true
 
       - name: Install Numpy/Scipy
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
@@ -145,7 +140,7 @@ jobs:
           echo "============================================================="
           echo "Install Numpy/Scipy"
           echo "============================================================="
-          conda install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
+          mamba install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
 
       - name: Install jax
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.JAX
@@ -157,15 +152,6 @@ jobs:
           pip install jax
           pip install jaxlib
 
-      - name: Install libscotch
-        if: (github.event_name != 'workflow_dispatch' && matrix.name == 'oldest')
-        shell: bash -l {0}
-        run: |
-          echo "============================================================="
-          echo "Install libscotch"
-          echo "============================================================="
-          sudo apt-get install -y libscotch-6.0
-
       - name: Install PETSc
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.PETSc
         shell: bash -l {0}
@@ -173,11 +159,20 @@ jobs:
           echo "============================================================="
           echo "Install PETSc"
           echo "============================================================="
-          if [[ "${{ matrix.OPENMPI }}" ]]; then
-            conda install -c conda-forge openmpi=${{ matrix.OPENMPI }} mpi4py petsc=${{ matrix.PETSc }} petsc4py -q -y
+          if [[ "${{ matrix.OPENMPI }}" && "${{ matrix.MPI4PY }}" ]]; then
+            mamba install openmpi=${{ matrix.OPENMPI }} mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
+          elif [[ "${{ matrix.MPI4PY }}" ]]; then
+            mamba install mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
           else
-            conda install -c conda-forge mpi4py petsc=${{ matrix.PETSc }} petsc4py -q -y
+            mamba install mpi4py petsc4py=${{ matrix.PETSc }} -q -y
           fi
+          echo "-----------------------"
+          echo "Quick test of mpi4py:"
+          mpirun -n 2 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
+          echo "-----------------------"
+          echo "Quick test of petsc4py:"
+          mpirun -n 2 python -c "import numpy; from mpi4py import MPI; comm = MPI.COMM_WORLD; import petsc4py; petsc4py.init(); x = petsc4py.PETSc.Vec().createWithArray(numpy.ones(5)*comm.rank, comm=comm);  print(x.getArray())"
+          echo "-----------------------"
           echo "OMPI_MCA_rmaps_base_oversubscribe=1" >> $GITHUB_ENV
 
       - name: Install pyOptSparse
@@ -256,12 +251,24 @@ jobs:
           echo "============================================================="
           pip install .${{ matrix.OPTIONAL }}
 
-      - name: Display conda info
+      - name: Display environment info
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         shell: bash -l {0}
         run: |
           conda info
           conda list
+
+          echo "============================================================="
+          echo "Check installed versions of Python, Numpy and Scipy"
+          echo "============================================================="
+          python -c "import sys; assert str(sys.version).startswith(str(${{ matrix.PY }})), \
+                    f'Python version {sys.version} is not the requested version (${{ matrix.PY }})'"
+
+          python -c "import numpy; assert str(numpy.__version__).startswith(str(${{ matrix.NUMPY }})), \
+                    f'Numpy version {numpy.__version__} is not the requested version (${{ matrix.NUMPY }})'"
+
+          python -c "import scipy; assert str(scipy.__version__).startswith(str(${{ matrix.SCIPY }})), \
+                    f'Scipy version {scipy.__version__} is not the requested version (${{ matrix.SCIPY }})'"
 
       - name: Run tests
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')

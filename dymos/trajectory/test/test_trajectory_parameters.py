@@ -12,6 +12,28 @@ from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
+class ParamComp(om.ExplicitComponent):
+
+    def setup(self):
+
+        self.add_input('falling_object:mass', np.array([0.3, 0.5, 0.9]), units='kg')
+
+    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+        pass
+
+
+class ODEGroup(om.Group):
+
+    def initialize(self):
+        self.options.declare('num_nodes', types=int)
+
+    def setup(self):
+        nn = self.options['num_nodes']
+
+        self.add_subsystem('p1', ParamComp(), promotes=['*'])
+        self.add_subsystem('brach', BrachistochroneODE(num_nodes=nn), promotes=['*'])
+
+
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=False,
               connected=False, param_mode='param_sequence'):
 
@@ -335,6 +357,86 @@ class TestPhaseParameterPromotion(unittest.TestCase):
 
                 p.run_driver()
 
+                assert_near_equal(p['traj.t_duration'], 1.8016, tolerance=1.0E-4)
+
+
+@use_tempdirs
+class TestTrajectoryParametersDefinition(unittest.TestCase):
+
+    @require_pyoptsparse(optimizer='SLSQP')
+    def test_parameter_shape_definition(self):
+
+        for transcription in ['radau-ps', 'gauss-lobatto']:
+            with self.subTest(msg=transcription):
+                optimizer = 'SLSQP'
+                num_segments = 10
+                transcription_order = 3
+                compressed = False
+
+                p = om.Problem(model=om.Group())
+
+                p.driver = om.pyOptSparseDriver()
+                OPT, OPTIMIZER = set_pyoptsparse_opt(optimizer, fallback=True)
+                p.driver.options['optimizer'] = OPTIMIZER
+                p.driver.declare_coloring()
+
+                if transcription == 'gauss-lobatto':
+                    t = dm.GaussLobatto(num_segments=num_segments,
+                                        order=transcription_order,
+                                        compressed=compressed)
+                elif transcription == 'radau-ps':
+                    t = dm.Radau(num_segments=num_segments,
+                                 order=transcription_order,
+                                 compressed=compressed)
+
+                traj = p.model.add_subsystem('traj', dm.Trajectory())
+                phase = traj.add_phase('phase0',
+                                       dm.Phase(ode_class=ODEGroup,
+                                                transcription=t),
+                                       promotes_inputs=['t_initial', 't_duration', 'parameters:g'])
+
+                # p.model.add_subsystem('p1', ParamComp(), promotes=['*'])
+
+                # Add a vector parameter.
+                traj.add_parameter('falling_object:mass',
+                                   opt=False,
+                                   units='kg',
+                                   shape=(3,),
+                                   static_target=True,
+                                   targets={'phase0': ['falling_object:mass']})
+
+                phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+                phase.add_state('x', fix_initial=True, fix_final=True)
+                phase.add_state('y', fix_initial=True, fix_final=True)
+                phase.add_state('v', fix_initial=True)
+
+                phase.add_control('theta', units='deg',
+                                  rate_continuity=False, lower=0.01, upper=179.9)
+
+                phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
+
+                # Minimize time at the end of the phase
+                phase.add_objective('time', loc='final', scaler=10)
+
+                phase.add_path_constraint('theta_rate', lower=0, upper=100)
+
+                p.model.linear_solver = om.DirectSolver()
+
+                p.setup()
+
+                p['traj.phase0.t_initial'] = 0.0
+                p['traj.phase0.t_duration'] = 2.0
+
+                p['traj.phase0.states:x'] = phase.interp('x', ys=[0, 10])
+                p['traj.phase0.states:y'] = phase.interp('y', ys=[10, 5])
+                p['traj.phase0.states:v'] = phase.interp('v', ys=[0, 9.9])
+                p['traj.phase0.controls:theta'] = phase.interp('theta', ys=[0.9, 101.5])
+
+                # Solve for the optimal trajectory
+                p.run_driver()
+
+                # Test the results
                 assert_near_equal(p['traj.t_duration'], 1.8016, tolerance=1.0E-4)
 
 

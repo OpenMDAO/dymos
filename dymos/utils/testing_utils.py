@@ -2,6 +2,7 @@ import numpy as np
 
 from scipy.interpolate import interp1d
 
+import openmdao.api as om
 import openmdao.utils.assert_utils as _om_assert_utils
 
 
@@ -59,15 +60,18 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
         and case2 contain the same variable but the variable has a different size/shape in the two
         cases, or if the variables have the same shape but different values (as given by tol).
     """
+    _case1 = case1.model if isinstance(case1, om.Problem) else case1
+    _case2 = case2.model if isinstance(case2, om.Problem) else case2
+
     case1_vars = {t[1]['prom_name']: t[1] for t in
-                  case1.list_inputs(values=True, units=True, prom_name=True, out_stream=None)}
+                  _case1.list_inputs(val=True, units=True, prom_name=True, out_stream=None)}
     case1_vars.update({t[1]['prom_name']: t[1] for t in
-                       case1.list_outputs(values=True, units=True, prom_name=True, out_stream=None)})
+                       _case1.list_outputs(val=True, units=True, prom_name=True, out_stream=None)})
 
     case2_vars = {t[1]['prom_name']: t[1] for t in
-                  case2.list_inputs(values=True, units=True, prom_name=True, out_stream=None)}
+                  _case2.list_inputs(val=True, units=True, prom_name=True, out_stream=None)}
     case2_vars.update({t[1]['prom_name']: t[1] for t in
-                       case2.list_outputs(values=True, units=True, prom_name=True, out_stream=None)})
+                       _case2.list_outputs(val=True, units=True, prom_name=True, out_stream=None)})
 
     # Warn if a and b don't contain the same sets of variables
     diff_err_msg = ''
