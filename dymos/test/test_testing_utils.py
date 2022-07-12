@@ -1,3 +1,4 @@
+import difflib
 import os
 import unittest
 
@@ -16,9 +17,8 @@ class TestAssertCasesEqual(unittest.TestCase):
         for file in ('p1.db', 'p2.db'):
             try:
                 os.remove(file)
-                print('removed', file)
             except:
-                print(f'no file named {file}')
+                pass
 
     def test_different_variables(self):
 
@@ -161,9 +161,12 @@ class TestAssertCasesEqual(unittest.TestCase):
         c1 = om.CaseReader('p1.db').get_case('final')
         c2 = om.CaseReader('p2.db').get_case('final')
 
-        expected = "\nThe following variables contain different values:\nvar: " \
-                   "error\na: [0. 2. 4.]\nb: [[0. 1. 2.]\n [3. 4. 5.]]\n" \
-                   "c: [[4. 0. 0.]\n [0. 4. 0.]\n [0. 0. 4.]]"
+        expected = "\nThe following variables contain different values:\n" \
+                   "var        max error       mean error\n" \
+                   "--- ---------------- ----------------\n" \
+                   "  a  4.000000000e+00  2.000000000e+00\n" \
+                   "  b  5.000000000e+00  2.500000000e+00\n" \
+                   "  c  4.000000000e+00  1.333333333e+00\n"
 
         with self.assertRaises(AssertionError) as e:
             assert_cases_equal(c1, c2)
