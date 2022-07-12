@@ -94,7 +94,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     # test adding rate as timeseries output
     if add_rate:
-        phase.add_timeseries_output('aero.mach', rate=True)
+        phase.add_timeseries_rate_output('aero.mach')
 
     p.model.linear_solver = om.DirectSolver()
 

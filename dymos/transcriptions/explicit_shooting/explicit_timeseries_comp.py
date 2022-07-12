@@ -77,6 +77,10 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
         bool
             True if a new input was added for the output, or False if it reuses an existing input.
         """
+        if rate:
+            raise NotImplementedError("Timeseries output rates are not currently supported for "
+                                      "ExplicitShooting transcriptions.")
+
         input_num_nodes = self.input_num_nodes
         output_num_nodes = self.output_num_nodes
         added_source = False

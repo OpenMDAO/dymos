@@ -103,13 +103,6 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
 
         self.add_input('dt_dstau', shape=(self.input_num_nodes,), units=self.options['time_units'])
 
-        # self._timeseries_outputs was never populated...
-        # for (name, kwargs) in self._timeseries_outputs:
-        #     units = kwargs['units']
-        #     desc = kwargs['units']
-        #     shape = kwargs['shape']
-        #     self._add_output_configure(name, units, shape, desc)
-
     def _add_output_configure(self, name, units, shape, desc='', src=None, rate=False):
         """
         Add a single timeseries output.

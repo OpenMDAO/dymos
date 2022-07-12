@@ -1138,7 +1138,7 @@ class Phase(om.Group):
                 self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
-                              timeseries='timeseries', rate=False):
+                              timeseries='timeseries'):
         r"""
         Add a variable to the timeseries outputs of the phase.
 
@@ -1163,9 +1163,6 @@ class Phase(om.Group):
             since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
         timeseries : str or None
             The name of the timeseries to which the output is being added.
-        rate : bool
-            If True, add the rate of change of the named variable to the timeseries outputs of the
-            phase.  The rate variable will be named f'{name}_rate'.  Defaults to False.
         """
         if type(name) is list:
             for i, name_i in enumerate(name):
@@ -1180,7 +1177,7 @@ class Phase(om.Group):
                                                     units=unit,
                                                     shape=shape,
                                                     timeseries=timeseries,
-                                                    rate=rate)
+                                                    rate=False)
 
                 # Handle specific units for wildcard names.
                 if oname is not None and '*' in name_i:
@@ -1191,14 +1188,68 @@ class Phase(om.Group):
                                         units=units,
                                         shape=shape,
                                         timeseries=timeseries,
-                                        rate=rate)
+                                        rate=False)
+
+    def add_timeseries_rate_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
+                                   timeseries='timeseries'):
+        r"""
+        Add the rate of a variable to the timeseries outputs of the phase.
+
+        Parameters
+        ----------
+        name : str, or list of str
+            The name(s) of the variable to be used as a timeseries output.  Must be one of
+            'time', 'time_phase', one of the states, controls, control rates, or parameters,
+            in the phase, the path to an output variable in the ODE, or a glob pattern
+            matching some outputs in the ODE.
+        output_name : str or None or list or dict
+            The name of the variable as listed in the phase timeseries outputs.  By
+            default this is the last element in `name` when split by dots.  The user may
+            override the constraint name if splitting the path causes name collisions.
+        units : str or None or _unspecified
+            The units to express the timeseries output.  If None, use the
+            units associated with the target.  If provided, must be compatible with
+            the target units.
+            If a list of names is provided, units can be a matching list or dictionary.
+        shape : tuple or _unspecified
+            The shape of the timeseries output variable.  This must be provided (if not scalar)
+            since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
+        timeseries : str or None
+            The name of the timeseries to which the output is being added.
+        """
+        if type(name) is list:
+            for i, name_i in enumerate(name):
+                if type(units) is dict:  # accept dict for units when using array of name
+                    unit = units.get(name_i, None)
+                elif type(units) is list:  # allow matching list for units
+                    unit = units[i]
+                else:
+                    unit = units
+
+                oname = self._add_timeseries_output(name_i, output_name=output_name,
+                                                    units=unit,
+                                                    shape=shape,
+                                                    timeseries=timeseries,
+                                                    rate=True)
+
+                # Handle specific units for wildcard names.
+                if oname is not None and '*' in name_i:
+                    self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
+
+        else:
+            self._add_timeseries_output(name, output_name=output_name,
+                                        units=units,
+                                        shape=shape,
+                                        timeseries=timeseries,
+                                        rate=True)
 
     def _add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                                timeseries='timeseries', rate=False):
         r"""
-        Add a single variable to the timeseries outputs of the phase.
+        Add a single variable or rate to the timeseries outputs of the phase.
 
-        This is called by add_timeseries_output for each variable that is added.
+        This is called by add_timeseries_output or add_timeseries_rate_output for each variable or rate
+        that is added.
 
         Parameters
         ----------

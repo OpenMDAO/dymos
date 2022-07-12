@@ -31,13 +31,6 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         else:
             self.num_nodes = grid_data.num_segments * self.options['output_nodes_per_seg']
 
-        # _timeseries_outputs never gets populated
-        # for (name, kwargs) in self._timeseries_outputs:
-        #     units = kwargs['units']
-        #     desc = kwargs['units']
-        #     shape = kwargs['shape']
-        #     self._add_output_configure(name, units, shape, desc)
-
     def _add_output_configure(self, name, units, shape, desc, rate=False):
         """
         Add a single timeseries output.
@@ -59,6 +52,10 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         rate : bool
             If True, timeseries output is a rate.
         """
+        if rate:
+            raise NotImplementedError("Timeseries output rates are not currently supported for "
+                                      "SolveIVP transcriptions.")
+
         nodeshape = (self.num_nodes,)
         input_name = f'all_values:{name}'
 
