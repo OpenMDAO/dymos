@@ -273,6 +273,14 @@ class Trajectory(om.Group):
                         kwargs = {'static_target': options['static_target'],
                                   'units': options['units'],
                                   'val': options['val'],
+                                  'shape': options['shape'],
+                                  'ref0': options['ref0'],
+                                  'ref': options['ref'],
+                                  'adder': options['adder'],
+                                  'scaler': options['scaler'],
+                                  'opt': options['opt'],
+                                  'lower': options['lower'],
+                                  'upper': options['upper'],
                                   'targets': tgts[phase_name]}
 
                         if not self.options['sim_mode']:
