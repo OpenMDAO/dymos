@@ -267,8 +267,6 @@ class TestSubproblemReportToggle(unittest.TestCase):
         # There is the nominal problem, a subproblem for integration, and a subproblem for the derivatives.
         self.assertEqual(len(report_subdirs), 3)
 
-        nom_subdir,sim_subdir, der_subdir = report_subdirs
-
         path = pathlib.Path(report_subdirs[0]).joinpath(self.n2_filename)
         self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
         path = pathlib.Path(report_subdirs[0]).joinpath(self.scaling_filename)
