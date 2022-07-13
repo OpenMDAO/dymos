@@ -17,6 +17,7 @@ from openmdao import __version__ as openmdao_version
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
+
 def setup_model_radau(do_reports):
     p = om.Problem(model=om.Group())
 
@@ -41,9 +42,8 @@ def setup_model_radau(do_reports):
     # to a top-level input named 'v' in the ODE, and connect to nothing if it's not found.
     phase.add_state('v', fix_initial=True, fix_final=False)
 
-    phase.add_control('theta',
-                        continuity=True, rate_continuity=True,
-                        units='deg', lower=0.01, upper=179.9)
+    phase.add_control('theta', continuity=True, rate_continuity=True,
+                      units='deg', lower=0.01, upper=179.9)
 
     phase.add_parameter('g', targets=['g'], units='m/s**2')
 
@@ -80,10 +80,10 @@ def setup_model_shooting(do_reports):
     prob.driver.declare_coloring(tol=1.0E-12)
 
     tx = dm.ExplicitShooting(num_segments=3, grid='gauss-lobatto',
-                                method='rk4', order=5,
-                                num_steps_per_segment=5,
-                                compressed=False,
-                                subprob_reports=do_reports)
+                             method='rk4', order=5,
+                             num_steps_per_segment=5,
+                             compressed=False,
+                             subprob_reports=do_reports)
 
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
 
@@ -96,7 +96,7 @@ def setup_model_shooting(do_reports):
 
     phase.add_parameter('g', val=1.0, units='m/s**2', opt=True, lower=1, upper=9.80665)
     phase.add_control('theta', val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9,
-                        ref=90., rate2_continuity=True)
+                      ref=90., rate2_continuity=True)
 
     phase.add_boundary_constraint('x', loc='final', equals=10.0)
     phase.add_boundary_constraint('y', loc='final', equals=5.0)
