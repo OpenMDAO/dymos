@@ -75,7 +75,7 @@ class Phase(om.Group):
             self._path_constraints = []
             self._timeseries = {'timeseries': {'transcription': None,
                                                'subset': 'all',
-                                               'outputs': []}}
+                                               'outputs': {}}}
             self._objectives = {}
         else:
             self.time_options.update(from_phase.time_options)
@@ -613,7 +613,7 @@ class Phase(om.Group):
         name : str
             Name of the controllable parameter in the ODE.
         order : int
-            The order of the interpolating polynomial used to represent the control valeu in
+            The order of the interpolating polynomial used to represent the control value in
             phase tau space.
         desc : str
             A description of the polynomial control.
@@ -1050,8 +1050,7 @@ class Phase(om.Group):
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
         if var_type == 'ode':
-            current_output_names = [op['output_name'] for op in self._timeseries['timeseries']['outputs']]
-            if constraint_name not in current_output_names:
+            if constraint_name not in self._timeseries['timeseries']['outputs']:
                 self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
@@ -1135,8 +1134,7 @@ class Phase(om.Group):
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
         if var_type == 'ode':
-            current_output_names = [op['output_name'] for op in self._timeseries['timeseries']['outputs']]
-            if constraint_name not in current_output_names:
+            if constraint_name not in self._timeseries['timeseries']['outputs']:
                 self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
@@ -1149,7 +1147,8 @@ class Phase(om.Group):
         name : str, or list of str
             The name(s) of the variable to be used as a timeseries output.  Must be one of
             'time', 'time_phase', one of the states, controls, control rates, or parameters,
-            in the phase, or the path to an output variable in the ODE.
+            in the phase, the path to an output variable in the ODE, or a glob pattern
+            matching some outputs in the ODE.
         output_name : str or None or list or dict
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
@@ -1174,27 +1173,83 @@ class Phase(om.Group):
                 else:
                     unit = units
 
-                self._add_timeseries_output(name_i, output_name=output_name,
-                                            units=unit,
-                                            shape=shape,
-                                            timeseries=timeseries)
+                oname = self._add_timeseries_output(name_i, output_name=output_name,
+                                                    units=unit,
+                                                    shape=shape,
+                                                    timeseries=timeseries,
+                                                    rate=False)
 
                 # Handle specific units for wildcard names.
-                if '*' in name_i:
-                    self._timeseries[timeseries]['outputs'][-1]['wildcard_units'] = units
+                if oname is not None and '*' in name_i:
+                    self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
 
         else:
             self._add_timeseries_output(name, output_name=output_name,
                                         units=units,
                                         shape=shape,
-                                        timeseries=timeseries)
+                                        timeseries=timeseries,
+                                        rate=False)
+
+    def add_timeseries_rate_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
+                                   timeseries='timeseries'):
+        r"""
+        Add the rate of a variable to the timeseries outputs of the phase.
+
+        Parameters
+        ----------
+        name : str, or list of str
+            The name(s) of the variable to be used as a timeseries output.  Must be one of
+            'time', 'time_phase', one of the states, controls, control rates, or parameters,
+            in the phase, the path to an output variable in the ODE, or a glob pattern
+            matching some outputs in the ODE.
+        output_name : str or None or list or dict
+            The name of the variable as listed in the phase timeseries outputs.  By
+            default this is the last element in `name` when split by dots.  The user may
+            override the constraint name if splitting the path causes name collisions.
+        units : str or None or _unspecified
+            The units to express the timeseries output.  If None, use the
+            units associated with the target.  If provided, must be compatible with
+            the target units.
+            If a list of names is provided, units can be a matching list or dictionary.
+        shape : tuple or _unspecified
+            The shape of the timeseries output variable.  This must be provided (if not scalar)
+            since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
+        timeseries : str or None
+            The name of the timeseries to which the output is being added.
+        """
+        if type(name) is list:
+            for i, name_i in enumerate(name):
+                if type(units) is dict:  # accept dict for units when using array of name
+                    unit = units.get(name_i, None)
+                elif type(units) is list:  # allow matching list for units
+                    unit = units[i]
+                else:
+                    unit = units
+
+                oname = self._add_timeseries_output(name_i, output_name=output_name,
+                                                    units=unit,
+                                                    shape=shape,
+                                                    timeseries=timeseries,
+                                                    rate=True)
+
+                # Handle specific units for wildcard names.
+                if oname is not None and '*' in name_i:
+                    self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
+
+        else:
+            self._add_timeseries_output(name, output_name=output_name,
+                                        units=units,
+                                        shape=shape,
+                                        timeseries=timeseries,
+                                        rate=True)
 
     def _add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
-                               timeseries='timeseries'):
+                               timeseries='timeseries', rate=False):
         r"""
-        Add a single variable to the timeseries outputs of the phase.
+        Add a single variable or rate to the timeseries outputs of the phase.
 
-        This is called by add_timeseries_output for each variable that is added.
+        This is called by add_timeseries_output or add_timeseries_rate_output for each variable or rate
+        that is added.
 
         Parameters
         ----------
@@ -1205,7 +1260,8 @@ class Phase(om.Group):
         output_name : str or None
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
-            override the constraint name if splitting the path causes name collisions.
+            override the constraint name if splitting the path causes name collisions.  If rate
+            is True, the rate name will be this name + _rate.
         units : str or None
             The units to express the timeseries output.  If None, use the
             units associated with the target.  If provided, must be compatible with
@@ -1215,27 +1271,39 @@ class Phase(om.Group):
             since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
         timeseries : str or None
             The name of the timeseries to which the output is being added.
-        """
-        if output_name is None:
-            output_name = name.split('.')[-1]
+        rate : bool
+            If True, add the rate of change of the named variable to the timeseries outputs of the
+            phase.  The rate variable will be named f'{name}_rate'.  Defaults to False.
 
+        Returns
+        -------
+        str or None
+           Name of output that was added to the timeseries or None if nothing was added.
+        """
         if timeseries not in self._timeseries:
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
-        current_output_names = [op['output_name'] for op in self._timeseries[timeseries]['outputs']]
+        if output_name is None:
+            output_name = name.split('.')[-1]
 
-        if output_name not in current_output_names:
+            if rate:
+                output_name = output_name + '_rate'
+
+        if output_name in self._timeseries[timeseries]['outputs']:
+            om.issue_warning(f'Output name `{output_name}` is already in timeseries `{timeseries}`. '
+                             f'New output ignored.')
+        else:
             ts_output = TimeseriesOutputOptionsDictionary()
             ts_output['name'] = name
             ts_output['output_name'] = output_name
             ts_output['wildcard_units'] = {}
             ts_output['units'] = units
             ts_output['shape'] = shape
+            ts_output['is_rate'] = rate
 
-            self._timeseries[timeseries]['outputs'].append(ts_output)
-        else:
-            om.issue_warning(f'Output name `{output_name}` is already in timeseries `{timeseries}`. '
-                             f'New output ignored.')
+            self._timeseries[timeseries]['outputs'][output_name] = ts_output
+
+            return output_name
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""
@@ -1254,7 +1322,7 @@ class Phase(om.Group):
         """
         self._timeseries[name] = {'transcription': transcription,
                                   'subset': subset,
-                                  'outputs': []}
+                                  'outputs': {}}
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None):
@@ -1585,13 +1653,11 @@ class Phase(om.Group):
         """
         transcription = self.options['transcription']
         state_options = self.state_options
-        out_meta = get_promoted_vars(transcription._get_ode(self), 'output')
+        out_meta = get_promoted_vars(transcription._get_ode(self), 'output', metadata_keys=('tags',))
 
-        for name, meta in out_meta.items():
-            tags = meta['tags']
-            prom_name = meta['prom_name']
+        for prom_name, meta in out_meta.items():
             state = None
-            for tag in sorted(tags):
+            for tag in sorted(meta['tags']):
 
                 # Declared as rate_source.
                 if tag.startswith('dymos.state_rate_source:') or tag.startswith('state_rate_source:'):
@@ -1607,7 +1673,7 @@ class Phase(om.Group):
                     if state_options[state]['rate_source'] is not None:
                         if state_options[state]['rate_source'] != prom_name:
                             raise ValueError(f"rate_source has been declared twice for state "
-                                             f"'{state}' which is tagged on '{name}'.")
+                                             f"'{state}' which is tagged on '{prom_name}'.")
 
                     state_options[state]['rate_source'] = prom_name
 
@@ -2275,7 +2341,6 @@ class Phase(om.Group):
         all_flat_idxs : set
             A C-order flattened set of indices that apply to the constraint.
         """
-        s = {'initial': 'initial boundary', 'final': 'final boundary', 'path': 'path'}
         cons = {'initial': self._initial_boundary_constraints,
                 'final': self._final_boundary_constraints,
                 'path': self._path_constraints}
@@ -2285,12 +2350,15 @@ class Phase(om.Group):
         for con in cons[loc]:
             if con['name'] != name:
                 continue
+
             flat_idxs = get_constraint_flat_idxs(con)
             duplicate_idxs = all_flat_idxs.intersection(flat_idxs)
             if duplicate_idxs:
+                s = {'initial': 'initial boundary', 'final': 'final boundary', 'path': 'path'}
                 raise ValueError(f'Duplicate constraint in phase {self.pathname}. '
                                  f'The following indices of `{name}` are used in '
                                  f'multiple {s[loc]} constraints:\n{duplicate_idxs}')
+
             all_flat_idxs.update(flat_idxs)
 
         return all_flat_idxs
