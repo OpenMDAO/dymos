@@ -40,6 +40,11 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         # Flag to set if no multiplication by the interpolation matrix is necessary
         self._no_interp = False
 
+    def _declare_options(self):
+        """
+        Declare options before kwargs are processed in the init method.
+        """
+        super()._declare_options()
         self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of time')
 

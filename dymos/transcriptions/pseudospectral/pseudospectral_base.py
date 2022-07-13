@@ -45,13 +45,13 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        time_units = phase.time_options['units']
         grid_data = self.grid_data
 
         super(PseudospectralBase, self).setup_time(phase)
 
         time_comp = TimeComp(num_nodes=grid_data.num_nodes, node_ptau=grid_data.node_ptau,
-                             node_dptau_dstau=grid_data.node_dptau_dstau, units=time_units,
+                             node_dptau_dstau=grid_data.node_dptau_dstau,
+                             units=phase.time_options['units'],
                              initial_val=phase.time_options['initial_val'],
                              duration_val=phase.time_options['duration_val'])
 
@@ -252,14 +252,11 @@ class PseudospectralBase(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
-        transcription = grid_data.transcription
-        time_units = phase.time_options['units']
-
         phase.add_subsystem('state_interp',
                             subsys=StateInterpComp(grid_data=grid_data,
                                                    state_options=phase.state_options,
-                                                   time_units=time_units,
-                                                   transcription=transcription))
+                                                   time_units=phase.time_options['units'],
+                                                   transcription=grid_data.transcription))
 
     def configure_ode(self, phase):
         """
@@ -292,14 +289,10 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        grid_data = self.grid_data
-
-        time_units = phase.time_options['units']
-
         phase.add_subsystem('collocation_constraint',
-                            CollocationComp(grid_data=grid_data,
+                            CollocationComp(grid_data=self.grid_data,
                                             state_options=phase.state_options,
-                                            time_units=time_units))
+                                            time_units=phase.time_options['units']))
 
     def _configure_solve_segments(self, state_name, options, phase):
         """
@@ -498,7 +491,8 @@ class PseudospectralBase(TranscriptionBase):
 
             timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=gd,
                                                                  output_grid_data=ogd,
-                                                                 output_subset=options['subset'])
+                                                                 output_subset=options['subset'],
+                                                                 time_units=phase.time_options['units'])
             phase.add_subsystem(name, subsys=timeseries_comp)
 
             phase.connect('dt_dstau', (f'{name}.dt_dstau'), flat_src_indices=True)
