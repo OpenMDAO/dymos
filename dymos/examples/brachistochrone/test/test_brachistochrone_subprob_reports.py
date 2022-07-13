@@ -2,18 +2,30 @@
 import unittest
 import pathlib
 import os
+from packaging.version import Version
 
 import openmdao.api as om
 import openmdao.core.problem
-from openmdao.utils.reports_system import get_reports_dir, clear_reports
+from openmdao.utils.reports_system import get_reports_dir as grd, clear_reports
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.tests.test_hooks import hooks_active
 from openmdao.visualization.n2_viewer.n2_viewer import _default_n2_filename
 from openmdao.visualization.scaling_viewer.scaling_report import _default_scaling_filename
+from openmdao import __version__ as openmdao_version
 
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+
+# reports API changed at 3.18, so handle it here in order to be able to test against older
+# versions of openmdao
+if Version(openmdao_version) <= Version("3.18"):
+    def get_reports_dir(prob=None):
+        if prob is None:
+            return grd(om.Problem())
+        return get_reports_dir(prob)
+else:
+    get_reports_dir = grd
 
 
 @use_tempdirs
@@ -91,7 +103,7 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
         dm.run_problem(p, run_driver=True, simulate=True)
 
-        report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
+        report_subdirs = [e for e in pathlib.Path(get_reports_dir()).parent.iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
         self.assertEqual(len(report_subdirs), 1)
@@ -152,7 +164,7 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
         dm.run_problem(p, run_driver=True, simulate=True, simulate_kwargs={'reports': True})
 
-        report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
+        report_subdirs = [e for e in pathlib.Path(get_reports_dir()).parent.iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
         # # There is the nominal problem, the simulation problem, and a subproblem for each segment in the simulation.
@@ -206,7 +218,7 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
         dm.run_problem(prob, run_driver=True, simulate=False)
 
-        report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
+        report_subdirs = [e for e in pathlib.Path(get_reports_dir()).parent.iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
         self.assertEqual(len(report_subdirs), 1)
@@ -261,7 +273,7 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
         dm.run_problem(prob, run_driver=True, simulate=False)
 
-        report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
+        report_subdirs = [e for e in pathlib.Path(get_reports_dir()).parent.iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
         # There is the nominal problem, a subproblem for integration, and a subproblem for the derivatives.
