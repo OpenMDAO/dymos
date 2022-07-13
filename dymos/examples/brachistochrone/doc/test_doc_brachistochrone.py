@@ -310,7 +310,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
-        p.driver.opt_settings['print_level'] = 4
+        p.driver.opt_settings['print_level'] = 0
         # p.driver.declare_coloring()
 
         #
