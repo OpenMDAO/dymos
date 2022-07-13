@@ -91,15 +91,14 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
         dm.run_problem(p, run_driver=True, simulate=True)
 
-        problem_reports_dir = p.get_reports_dir()
         report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
         self.assertEqual(len(report_subdirs), 1)
 
-        path = pathlib.Path(problem_reports_dir).joinpath(self.n2_filename)
+        path = pathlib.Path(report_subdirs[0]).joinpath(self.n2_filename)
         self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
-        path = pathlib.Path(problem_reports_dir).joinpath(self.scaling_filename)
+        path = pathlib.Path(report_subdirs[0]).joinpath(self.scaling_filename)
         self.assertTrue(path.is_file(), f'The scaling report file, {str(path)}, was not found')
 
     @hooks_active
@@ -153,7 +152,6 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
         dm.run_problem(p, run_driver=True, simulate=True, simulate_kwargs={'reports': True})
 
-        problem_reports_dir = pathlib.Path(get_reports_dir()).joinpath(p._name)
         report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
@@ -208,15 +206,14 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
         dm.run_problem(prob, run_driver=True, simulate=False)
 
-        problem_reports_dir = prob.get_reports_dir()
         report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
         self.assertEqual(len(report_subdirs), 1)
 
-        path = pathlib.Path(problem_reports_dir).joinpath(self.n2_filename)
+        path = pathlib.Path(report_subdirs[0]).joinpath(self.n2_filename)
         self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
-        path = pathlib.Path(problem_reports_dir).joinpath(self.scaling_filename)
+        path = pathlib.Path(report_subdirs[0]).joinpath(self.scaling_filename)
         self.assertTrue(path.is_file(), f'The scaling report file, {str(path)}, was not found')
 
     @hooks_active
@@ -264,16 +261,15 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
         dm.run_problem(prob, run_driver=True, simulate=False)
 
-        problem_reports_dir = prob.get_reports_dir()
         report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
 
         # Test that a report subdir was made
         # There is the nominal problem, a subproblem for integration, and a subproblem for the derivatives.
         self.assertEqual(len(report_subdirs), 3)
 
-        path = pathlib.Path(problem_reports_dir).joinpath(self.n2_filename)
+        path = pathlib.Path(report_subdirs[0]).joinpath(self.n2_filename)
         self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
-        path = pathlib.Path(problem_reports_dir).joinpath(self.scaling_filename)
+        path = pathlib.Path(report_subdirs[0]).joinpath(self.scaling_filename)
         self.assertTrue(path.is_file(), f'The scaling report file, {str(path)}, was not found')
 
         for subdir in report_subdirs:

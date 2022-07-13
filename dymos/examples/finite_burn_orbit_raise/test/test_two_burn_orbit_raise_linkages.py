@@ -362,8 +362,17 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'IPOPT'
+        p.driver.opt_settings['mu_init'] = 1e-3
         p.driver.opt_settings['max_iter'] = 500
-        p.driver.opt_settings['print_level'] = 4
+        p.driver.opt_settings['acceptable_tol'] = 1e-3
+        p.driver.opt_settings['constr_viol_tol'] = 1e-3
+        p.driver.opt_settings['compl_inf_tol'] = 1e-3
+        p.driver.opt_settings['acceptable_iter'] = 0
+        p.driver.opt_settings['tol'] = 1e-3
+        p.driver.opt_settings['print_level'] = 0
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+        p.driver.opt_settings['mu_strategy'] = 'monotone'
 
         p.driver.declare_coloring()
 
@@ -416,6 +425,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         coast.add_state('deltav', fix_initial=False, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
         coast.add_parameter('u1', opt=True, units='deg', lower=-30, upper=30, scaler=0.01)
+
+        coast.nonlinear_solver = om.NewtonSolver(iprint=0, solve_subsystems=True)
 
         # Third Phase (burn)
 
@@ -512,70 +523,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         assert_near_equal(burn1_u1_final - coast_u1_initial, 0.0, 1e-12)
         assert_near_equal(coast_u1_final - burn2_u1_initial, 0.0, 1e-12)
-
-        # Plot results
-        exp_out = traj.simulate()
-
-        fig = plt.figure(figsize=(8, 4))
-        fig.suptitle('Two Burn Orbit Raise Solution')
-        ax_u1 = plt.subplot2grid((2, 2), (0, 0))
-        ax_deltav = plt.subplot2grid((2, 2), (1, 0))
-        ax_xy = plt.subplot2grid((2, 2), (0, 1), rowspan=2)
-
-        span = np.linspace(0, 2 * np.pi, 100)
-        ax_xy.plot(np.cos(span), np.sin(span), 'k--', lw=1)
-        ax_xy.plot(3 * np.cos(span), 3 * np.sin(span), 'k--', lw=1)
-        ax_xy.set_xlim(-4.5, 4.5)
-        ax_xy.set_ylim(-4.5, 4.5)
-
-        ax_xy.set_xlabel('x ($R_e$)')
-        ax_xy.set_ylabel('y ($R_e$)')
-
-        ax_u1.set_xlabel('time ($TU$)')
-        ax_u1.set_ylabel('$u_1$ ($deg$)')
-        ax_u1.grid(True)
-
-        ax_deltav.set_xlabel('time ($TU$)')
-        ax_deltav.set_ylabel('${\Delta}v$ ($DU/TU$)')
-        ax_deltav.grid(True)
-
-        t_sol = dict((phs, p.get_val('traj.{0}.timeseries.time'.format(phs)))
-                     for phs in ['burn1', 'coast', 'burn2'])
-        x_sol = dict((phs, p.get_val('traj.{0}.timeseries.pos_x'.format(phs)))
-                     for phs in ['burn1', 'coast', 'burn2'])
-        y_sol = dict((phs, p.get_val('traj.{0}.timeseries.pos_y'.format(phs)))
-                     for phs in ['burn1', 'coast', 'burn2'])
-        dv_sol = dict((phs, p.get_val('traj.{0}.timeseries.states:deltav'.format(phs)))
-                      for phs in ['burn1', 'coast', 'burn2'])
-        u1_sol = dict((phs, p.get_val('traj.{0}.timeseries.controls:u1'.format(phs), units='deg'))
-                      for phs in ['burn1', 'burn2'])
-
-        t_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.time'.format(phs)))
-                     for phs in ['burn1', 'coast', 'burn2'])
-        x_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.pos_x'.format(phs)))
-                     for phs in ['burn1', 'coast', 'burn2'])
-        y_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.pos_y'.format(phs)))
-                     for phs in ['burn1', 'coast', 'burn2'])
-        dv_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.states:deltav'.format(phs)))
-                      for phs in ['burn1', 'coast', 'burn2'])
-        u1_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.controls:u1'.format(phs),
-                                            units='deg'))
-                      for phs in ['burn1', 'burn2'])
-
-        for phs in ['burn1', 'coast', 'burn2']:
-            try:
-                ax_u1.plot(t_sol[phs], u1_sol[phs], 'ro', ms=3)
-                ax_u1.plot(t_exp[phs], u1_exp[phs], 'b-')
-            except KeyError:
-                pass
-
-            ax_deltav.plot(t_sol[phs], dv_sol[phs], 'ro', ms=3)
-            ax_deltav.plot(t_exp[phs], dv_exp[phs], 'b-')
-
-            ax_xy.plot(x_sol[phs], y_sol[phs], 'ro', ms=3, label='implicit')
-            ax_xy.plot(x_exp[phs], y_exp[phs], 'b-', label='explicit')
-
-        plt.show()
 
     @use_tempdirs
     def test_two_burn_orbit_raise_gl_list_add_timeseries_output(self):

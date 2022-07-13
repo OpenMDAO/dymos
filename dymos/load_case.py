@@ -85,17 +85,21 @@ def load_case(problem, previous_solution):
         return
 
     prev_vars = {}
-    prev_vars.update({v['prom_name']: {'val': v['val'], 'units': v['units']} for k, v in previous_solution['inputs']})
-    prev_vars.update({v['prom_name']: {'val': v['val'], 'units': v['units']} for k, v in previous_solution['outputs']})
+    prev_vars.update({v['prom_name']: {'val': v['val'], 'units': v['units'], 'abs_name': k}
+                      for k, v in previous_solution['inputs']})
+    prev_vars.update({v['prom_name']: {'val': v['val'], 'units': v['units'], 'abs_name': k}
+                      for k, v in previous_solution['outputs']})
 
     problem.final_setup()  # make sure list_inputs and list_outputs can work
 
-    phase_io = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
-                'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
+    phase_io = {'inputs': problem.model.list_inputs(units=True, prom_name=True, out_stream=None),
+                'outputs': problem.model.list_outputs(units=True, prom_name=True, out_stream=None)}
 
     phase_vars = {}
-    phase_vars.update({v['prom_name']: {'val': v['val'], 'units': v['units']} for k, v in phase_io['inputs']})
-    phase_vars.update({v['prom_name']: {'val': v['val'], 'units': v['units']} for k, v in phase_io['outputs']})
+    phase_vars.update({v['prom_name']: {'val': v['val'], 'units': v['units'], 'abs_name': k}
+                       for k, v in phase_io['inputs']})
+    phase_vars.update({v['prom_name']: {'val': v['val'], 'units': v['units'], 'abs_name': k}
+                       for k, v in phase_io['outputs']})
 
     for traj_abs_path, traj in traj_paths.items():
         traj_name = traj_abs_path.split('.')[-1]
@@ -140,6 +144,10 @@ def load_case(problem, previous_solution):
                             phase.interp(xs=prev_time_val, ys=prev_state_val,
                                          nodes='state_input', kind='slinear'),
                             units=prev_state_units)
+
+            init_val_path = [s for s in phase_vars if s.endswith(f'{phase_name}.initial_states:{state_name}')]
+            if init_val_path:
+                problem.set_val(init_val_path[0], prev_state_val[0, ...], units=prev_state_units)
 
         # Interpolate the timeseries control outputs from the previous solution onto the new grid.
         for control_name, options in phase.control_options.items():
