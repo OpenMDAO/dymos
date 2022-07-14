@@ -38,8 +38,8 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
         sim_case2 = om.CaseReader('dymos_simulation.db').get_case('final')
 
         # Verify that the second case has the same inputs and outputs
-        assert_cases_equal(case1, p, tol=1.0E-9)
-        assert_cases_equal(sim_case1, sim_case2, tol=1.0E-9)
+        assert_cases_equal(case1, p, tol=1.0E-8)
+        assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
 
     def test_restart_from_solution_radau(self):
         optimizer = 'IPOPT'
@@ -94,8 +94,8 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
         sim_case2 = om.CaseReader('dymos_simulation.db').get_case('final')
 
         # Verify that the second case has the same inputs and outputs
-        assert_cases_equal(case1, p, tol=1.0E-9)
-        assert_cases_equal(sim_case1, sim_case2, tol=1.0E-9)
+        assert_cases_equal(case1, p, tol=1.0E-8)
+        assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
 
     def test_restart_from_solution_radau_to_connected(self):
         optimizer = 'IPOPT'
