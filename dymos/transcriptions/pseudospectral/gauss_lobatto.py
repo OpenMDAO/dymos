@@ -518,12 +518,12 @@ class GaussLobatto(PseudospectralBase):
                     # phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
                     #                src_indices=(src_idxs,), flat_src_indices=True)
 
-            for ts_output in phase._timeseries[timeseries_name]['outputs']:
+            for output_name, ts_output in phase._timeseries[timeseries_name]['outputs'].items():
                 var = ts_output['name']
-                output_name = ts_output['output_name']
                 units = ts_output['units']
                 wildcard_units = ts_output['wildcard_units']
                 shape = ts_output['shape']
+                is_rate = ts_output['is_rate']
 
                 if '*' in var:  # match outputs from the ODE
                     matches = filter(list(ode_outputs.keys()), var)
@@ -585,7 +585,8 @@ class GaussLobatto(PseudospectralBase):
 
                     timeseries_input_added = timeseries_comp._add_output_configure(output_name, units, shape,
                                                                                    src=f'interleave_comp.'
-                                                                                       f'all_values:{output_name}')
+                                                                                       f'all_values:{output_name}',
+                                                                                   rate=is_rate)
 
                     interleave_comp = phase._get_subsystem('interleave_comp')
                     src_added = interleave_comp.add_var(output_name, shape, units,

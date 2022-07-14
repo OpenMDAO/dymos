@@ -75,7 +75,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
                     rate_source='deltav_dot', units='DU/TU')
 
     coast.add_parameter('u1', opt=False, val=0.0, units='deg')
-    coast.add_parameter('c', val=0.0, units='DU/TU')
+    coast.add_parameter('c', val=1.0, units='DU/TU')
 
     # Third Phase (burn)
     burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=t[transcription])
@@ -155,6 +155,13 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
                          vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
 
         traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
+
+    if connected:
+        # If running connected and under MPI the phases subsystem requires a Nonlinear Block Jacobi solver.
+        # This is not the most efficient way to actually solve this problem but it demonstrates access
+        # to the traj.phases subsystem before setup.
+        traj.phases.nonlinear_solver = om.NonlinearBlockJac()
+        traj.phases.linear_solver = om.PETScKrylov()
 
     return traj
 
@@ -255,6 +262,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         p.set_val('traj.coast.states:vr', val=coast.interp('vr', [0.3285, 0]))
         p.set_val('traj.coast.states:vt', val=coast.interp('vt', [0.97, 1]))
         p.set_val('traj.coast.states:accel', val=coast.interp('accel', [0, 0]))
+        p.set_val('traj.burn1.controls:u1', val=burn1.interp('u1', [0, 0]))
 
     if burn2 in p.model.traj.phases._subsystems_myproc:
         if connected:
@@ -267,6 +275,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
             p.set_val('traj.burn2.states:vt', val=burn2.interp('vt', [np.sqrt(1 / r_target), 1]))
             p.set_val('traj.burn2.states:deltav', val=burn2.interp('deltav', [0.2, 0.1]))
             p.set_val('traj.burn2.states:accel', val=burn2.interp('accel', [0., 0.1]))
+            p.set_val('traj.burn2.controls:u1', val=burn2.interp('u1', [0, 0]))
 
         else:
             p.set_val('traj.burn2.t_initial', val=5.25)
@@ -280,6 +289,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
             p.set_val('traj.burn2.states:accel', val=burn2.interp('accel', [0.1, 0]))
             p.set_val('traj.burn2.controls:u1', val=burn2.interp('u1', [0, 0]))
 
-    dm.run_problem(p, run_driver=run_driver, simulate=simulate, restart=restart)
+    if run_driver or simulate:
+        dm.run_problem(p, run_driver=run_driver, simulate=simulate, restart=restart)
 
     return p

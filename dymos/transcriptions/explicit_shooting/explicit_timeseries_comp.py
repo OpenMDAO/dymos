@@ -31,7 +31,6 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
         # from another variable has potentially different units
         self._units = {}
         self._conversion_factors = {}
-        self._vars = {}
 
         self._no_check_partials = not dymos_options['include_check_partials']
 
@@ -50,7 +49,7 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
         self.input_num_nodes = igd.subset_num_nodes['segment_ends']
         self.output_num_nodes = self.input_num_nodes
 
-    def _add_output_configure(self, name, units, shape, desc='', src=None):
+    def _add_output_configure(self, name, units, shape, desc='', src=None, rate=False):
         """
         Add a single timeseries output.
 
@@ -70,12 +69,18 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
             description of the timeseries output variable.
         src : str
             The src path of the variables input, used to prevent redundant inputs.
+        rate : bool
+            If True, timeseries output is a rate.
 
         Returns
         -------
         bool
             True if a new input was added for the output, or False if it reuses an existing input.
         """
+        if rate:
+            raise NotImplementedError("Timeseries output rates are not currently supported for "
+                                      "ExplicitShooting transcriptions.")
+
         input_num_nodes = self.input_num_nodes
         output_num_nodes = self.output_num_nodes
         added_source = False
@@ -102,7 +107,7 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
                         shape=(output_num_nodes,) + shape,
                         units=units, desc=desc)
 
-        self._vars[name] = (input_name, output_name, shape)
+        self._vars[name] = (input_name, output_name, shape, rate)
 
         size = np.prod(shape)
         rs = cs = np.arange(output_num_nodes * size, dtype=int)
@@ -114,7 +119,7 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
             offset = 0
         else:
             scale, offset = unit_conversion(input_units, units)
-        self._conversion_factors[output_name] = scale, offset
+            self._conversion_factors[output_name] = scale, offset
 
         self.declare_partials(of=output_name,
                               wrt=input_name,
@@ -133,6 +138,9 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        for (input_name, output_name, _) in self._vars.values():
-            scale, offset = self._conversion_factors[output_name]
-            outputs[output_name] = scale * (inputs[input_name] + offset)
+        for (input_name, output_name, _, _) in self._vars.values():
+            if output_name in self._conversion_factors:
+                scale, offset = self._conversion_factors[output_name]
+                outputs[output_name] = scale * (inputs[input_name] + offset)
+            else:
+                outputs[output_name] = inputs[input_name]
