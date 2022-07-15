@@ -34,7 +34,7 @@ class TestRobotArm(unittest.TestCase):
             p.driver.opt_settings['Verify level'] = 3
         elif optimizer == 'IPOPT':
             p.driver.opt_settings['max_iter'] = 500
-            p.driver.opt_settings['print_level'] = 4
+            p.driver.opt_settings['print_level'] = 0
             p.driver.opt_settings['tol'] = 1.0E-6
             p.driver.opt_settings['acceptable_tol'] = 1.0E-5
         traj = p.model.add_subsystem('traj', Trajectory())
