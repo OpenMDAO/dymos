@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 import openmdao.api as om
-from openmdao.utils.general_utils import simple_warning
+from openmdao.utils.om_warnings import issue_warning
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import RadauPSContinuityComp
@@ -388,12 +388,12 @@ class Radau(PseudospectralBase):
                                       src_indices=(src_idxs,),
                                       flat_src_indices=True)
 
-            for ts_output in phase._timeseries[timeseries_name]['outputs']:
+            for output_name, ts_output in phase._timeseries[timeseries_name]['outputs'].items():
                 var = ts_output['name']
-                output_name = ts_output['output_name']
                 units = ts_output['units']
                 wildcard_units = ts_output['wildcard_units']
                 shape = ts_output['shape']
+                is_rate = ts_output['is_rate']
 
                 if '*' in var:  # match outputs from the ODE
                     matches = filter(list(ode_outputs.keys()), var)
@@ -413,10 +413,10 @@ class Radau(PseudospectralBase):
                     for output_name, var_list in output_name_groups.items():
                         if len(var_list) > 1:
                             var_list_as_string = ', '.join(var_list)
-                            simple_warning(f"The timeseries variable name {output_name} is "
-                                           f"duplicated in these variables: {var_list_as_string}. "
-                                           "Disambiguate by using the add_timeseries_output "
-                                           "output_name option.")
+                            issue_warning(f"The timeseries variable name {output_name} is "
+                                          f"duplicated in these variables: {var_list_as_string}. "
+                                          "Disambiguate by using the add_timeseries_output "
+                                          "output_name option.")
                 else:
                     matches = [var]
 
@@ -453,7 +453,8 @@ class Radau(PseudospectralBase):
 
                     add_connection = timeseries_comp._add_output_configure(output_name, units,
                                                                            shape, desc='',
-                                                                           src=f'rhs_all.{v}')
+                                                                           src=f'rhs_all.{v}',
+                                                                           rate=is_rate)
 
                     if add_connection:
                         phase.connect(src_name=f'rhs_all.{v}',

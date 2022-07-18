@@ -28,8 +28,6 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
         """
         Declare component options.
         """
-        self._timeseries_outputs = []
-
         self._vars = {}
 
         self.options.declare('input_grid_data',

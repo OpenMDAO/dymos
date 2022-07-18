@@ -20,7 +20,7 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
     p.driver.options['optimizer'] = optimizer
     p.driver.options['print_results'] = False
     if optimizer == 'IPOPT':
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 0
 
     # First Phase: Brake release to V1 - both engines operable
     br_to_v1 = dm.Phase(ode_class=BalancedFieldODEComp,
