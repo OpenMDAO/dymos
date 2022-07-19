@@ -110,7 +110,8 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
         raise AssertionError(err_msg)
 
 
-def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6):
+
+def assert_timeseries_near_equal_old(t1, x1, t2, x2, tolerance=1.0E-6):
     """
     Assert that two timeseries of data are approximately equal.
 
@@ -173,6 +174,73 @@ def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6):
         x_to_interp = a2[idxs2, ...]
         t_check = t1.ravel()
         x_check = x1
+
+    interp = interp1d(x=t_unique, y=x_to_interp, kind='slinear', axis=0)
+    num_points = np.prod(t_check.shape)
+
+    y_interp = np.reshape(interp(t_check), newshape=(num_points,) + shape1)
+
+    _om_assert_utils.assert_near_equal(y_interp, x_check, tolerance=tolerance)
+
+
+def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6):
+    """
+    Assert that two timeseries of data are approximately equal.
+
+    This is done by fitting a 1D interpolant to each index of each timeseries, and then comparing
+    the values of the two interpolants at some equally spaced number of points.
+
+    The first timeseries, defined by t1, x1, serves as the reference.
+
+    Parameters
+    ----------
+    t1 : np.array
+        Time values for the reference timeseries.
+    x1 : np.array
+        Data values for the reference timeseries.
+    t2 : np.array
+        Time values for the timeseries that is compared to the reference.
+    x2 : np.array
+        Data values for the timeseries that is compared to the reference.
+    tolerance : float
+        The tolerance for any errors along at each point checked.
+
+    Raises
+    ------
+    AssertionError
+        When one or more elements of the interpolated timeseries are not within the
+        desired tolerance.
+    """
+    shape1 = x1.shape[1:]
+    shape2 = x2.shape[1:]
+
+    if shape1 != shape2:
+        raise ValueError('The shape of the variable in the two timeseries is not equal '
+                         f'x1 is {shape1}  x2 is {shape2}')
+
+    if abs(t1[0] - t2[0]) > 1.0E-12:
+        raise ValueError('The initial time of the two timeseries is not the same. '
+                         f't1[0]={t1[0]}  t2[0]={t2[0]}  difference: {t2[0] - t1[0]}')
+
+    if abs(t1[-1] - t2[-1]) > 1.0E-12:
+        raise ValueError('The final time of the two timeseries is not the same. '
+                         f't1[0]={t1[-1]}  t2[0]={t2[-1]}  difference: {t2[-1] - t1[-1]}')
+
+    size = np.prod(shape1)
+
+    nn1 = x1.shape[0]
+    a1 = np.reshape(x1, newshape=(nn1, size))
+    t1_unique, idxs1 = np.unique(t1.ravel(), return_index=True)
+
+    nn2 = x2.shape[0]
+    # a2 = np.reshape(x2, newshape=(nn2, size))
+    # t2_unique, idxs2 = np.unique(t2.ravel(), return_index=True)
+
+    # Assuming that The first timeseries is the reference and therefore more dense
+    t_unique = t1_unique
+    x_to_interp = a1[idxs1, ...]
+    t_check = t2.ravel()
+    x_check = x2
 
     interp = interp1d(x=t_unique, y=x_to_interp, kind='slinear', axis=0)
     num_points = np.prod(t_check.shape)
