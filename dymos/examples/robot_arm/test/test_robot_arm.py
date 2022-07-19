@@ -38,7 +38,7 @@ class TestRobotArm(unittest.TestCase):
         elif optimizer == 'IPOPT':
             p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
             p.driver.opt_settings['max_iter'] = 500
-            p.driver.opt_settings['print_level'] = 4
+            p.driver.opt_settings['print_level'] = 0
         traj = p.model.add_subsystem('traj', Trajectory())
 
         phase = traj.add_phase('phase', Phase(ode_class=RobotArmODE,

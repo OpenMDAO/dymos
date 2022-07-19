@@ -129,7 +129,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     elif optimizer == 'IPOPT':
         p.driver.opt_settings['hessian_approximation'] = 'limited-memory'
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
-        p.driver.opt_settings['print_level'] = 4
+        p.driver.opt_settings['print_level'] = 0
         p.driver.opt_settings['linear_solver'] = 'mumps'
         p.driver.opt_settings['mu_strategy'] = 'adaptive'
         # p.driver.opt_settings['derivative_test'] = 'first-order'
@@ -216,7 +216,7 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
                           'states_accel.png', 'controls_u1.png', 'states_vr.png', 'pos_x.png',
                           'states_vt.png', 'pos_y.png', 'parameters_u1.png', 'states_theta.png',
                           'control_rates_u1_rate2.png', 'state_rates_vt.png', 'time_phase.png',
-                          'parameters_c.png', 'state_rates_theta.png', 'state_rates_vr.png'}
+                          'parameters_c.png', 'state_rates_theta.png', 'state_rates_vr.png', 'dt_dstau.png'}
 
         self.assertSetEqual(expected_files, set(os.listdir('plots')))
 

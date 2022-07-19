@@ -3,7 +3,7 @@ import warnings
 
 import numpy as np
 import openmdao.api as om
-from openmdao.utils.general_utils import simple_warning
+from openmdao.utils.om_warnings import issue_warning
 
 from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
@@ -518,12 +518,12 @@ class GaussLobatto(PseudospectralBase):
                     # phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
                     #                src_indices=(src_idxs,), flat_src_indices=True)
 
-            for ts_output in phase._timeseries[timeseries_name]['outputs']:
+            for output_name, ts_output in phase._timeseries[timeseries_name]['outputs'].items():
                 var = ts_output['name']
-                output_name = ts_output['output_name']
                 units = ts_output['units']
                 wildcard_units = ts_output['wildcard_units']
                 shape = ts_output['shape']
+                is_rate = ts_output['is_rate']
 
                 if '*' in var:  # match outputs from the ODE
                     matches = filter(list(ode_outputs.keys()), var)
@@ -543,10 +543,10 @@ class GaussLobatto(PseudospectralBase):
                     for output_name, var_list in output_name_groups.items():
                         if len(var_list) > 1:
                             var_list_as_string = ', '.join(var_list)
-                            simple_warning(f"The timeseries variable name {output_name} is "
-                                           f"duplicated in these variables: {var_list_as_string}. "
-                                           "Disambiguate by using the add_timeseries_output "
-                                           "output_name option.")
+                            issue_warning(f"The timeseries variable name {output_name} is "
+                                          f"duplicated in these variables: {var_list_as_string}. "
+                                          "Disambiguate by using the add_timeseries_output "
+                                          "output_name option.")
                 else:
                     matches = [var]
 
@@ -585,7 +585,8 @@ class GaussLobatto(PseudospectralBase):
 
                     timeseries_input_added = timeseries_comp._add_output_configure(output_name, units, shape,
                                                                                    src=f'interleave_comp.'
-                                                                                       f'all_values:{output_name}')
+                                                                                       f'all_values:{output_name}',
+                                                                                   rate=is_rate)
 
                     interleave_comp = phase._get_subsystem('interleave_comp')
                     src_added = interleave_comp.add_var(output_name, shape, units,

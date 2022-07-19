@@ -633,22 +633,18 @@ class SolveIVP(TranscriptionBase):
                     src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape']).ravel()
 
-                # tgt_name = f'all_values:parameters:{name}'
-                # phase.promotes('timeseries', inputs=[(tgt_name, prom_name)],
-                #                src_indices=(src_idxs,), flat_src_indices=True)
-                # print(src_idxs)
                 phase.connect(f'parameter_vals:{name}', f'timeseries.all_values:parameters:{name}',
                               src_indices=src_idxs, flat_src_indices=True)
 
-        for ts_output in phase._timeseries['timeseries']['outputs']:
+        for output_name, ts_output in phase._timeseries['timeseries']['outputs'].items():
             var = ts_output['name']
-            output_name = ts_output['output_name']
             units = ts_output['units']
             wildcard_units = ts_output['wildcard_units']
             shape = ts_output['shape']
 
             if '*' in var:  # match outputs from the ODE
-                matches = filter(list(ode_outputs.keys()), var)
+                # TODO: is filter still case INSENSTIVE on windows?  If so, fix this
+                matches = filter(ode_outputs.keys(), var)
             else:
                 matches = [var]
 

@@ -35,14 +35,27 @@ class Trajectory(om.Group):
     ----------
     **kwargs : dict
         Dictionary of optional arguments.
+
+    Attributes
+    ----------
+    parameter_options : dict
+        A dictionary of parameter names and their associated TrajectoryParameterOptionsDictionary
+    phases : om.Group or om.ParallelGroup
+        The Group which contains phases for this Trajectory.
+
+    _linkages : OrderedDict
+        A dictionary containing phase linkage information for the Trajectory.
+    _phases : dict
+        A dictionary of phase names as keys with the Phase objects being their associated values.
     """
     def __init__(self, **kwargs):
         super(Trajectory, self).__init__(**kwargs)
 
+        self._linkages = {}
+        self._phases = {}
+
         self.parameter_options = {}
-        self._linkages = OrderedDict()
-        self._phases = OrderedDict()
-        self._phase_add_kwargs = {}
+        self.phases = om.ParallelGroup()
 
     def initialize(self):
         """
@@ -71,8 +84,7 @@ class Trajectory(om.Group):
         PhaseBase
             The Phase object added to the trajectory.
         """
-        self._phases[name] = phase
-        self._phase_add_kwargs[name] = kwargs
+        self._phases[name] = self.phases.add_subsystem(name, phase, **kwargs)
         return phase
 
     def set_parameter_options(self, name, units=_unspecified, val=_unspecified, desc=_unspecified, opt=False,
@@ -273,6 +285,14 @@ class Trajectory(om.Group):
                         kwargs = {'static_target': options['static_target'],
                                   'units': options['units'],
                                   'val': options['val'],
+                                  'shape': options['shape'],
+                                  'ref0': options['ref0'],
+                                  'ref': options['ref'],
+                                  'adder': options['adder'],
+                                  'scaler': options['scaler'],
+                                  'opt': options['opt'],
+                                  'lower': options['lower'],
+                                  'upper': options['upper'],
                                   'targets': tgts[phase_name]}
 
                         if not self.options['sim_mode']:
@@ -316,10 +336,8 @@ class Trajectory(om.Group):
         if self.parameter_options:
             self._setup_parameters()
 
-        phases_group = self.add_subsystem('phases', subsys=om.ParallelGroup())
-
-        for name, phs in self._phases.items():
-            phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
+        # This will override the existing phases attribute with the same thing.
+        self.add_subsystem('phases', subsys=self.phases)
 
         if self._linkages:
             self._setup_linkages()

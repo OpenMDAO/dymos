@@ -685,3 +685,6 @@ class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='units', default=None, allow_none=True,
                      desc='Units to be used for the timeseries output, or None to leave the units unchanged.')
+
+        self.declare(name='is_rate', default=False, allow_none=False,
+                     desc='If True this is a rate.')
