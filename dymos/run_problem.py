@@ -95,9 +95,9 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     if make_plots:
         if simulate:
             timeseries_plots(solution_record_file, simulation_record_file=simulation_record_file,
-                             plot_dir=plot_dir)
+                             plot_dir=plot_dir, problem=problem)
         else:
             timeseries_plots(solution_record_file, simulation_record_file=None,
-                             plot_dir=plot_dir)
+                             plot_dir=plot_dir, problem=problem)
 
     return failed

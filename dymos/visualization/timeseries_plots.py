@@ -1,5 +1,6 @@
 import os
 import warnings
+import pathlib
 
 import numpy as np
 
@@ -57,8 +58,9 @@ def _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_n
     plt.switch_backend('Agg')
     # use a colormap with 20 values
     cm = plt.cm.get_cmap('tab20')
+    plotfiles = []
 
-    for ivar, var_name in enumerate(varnames):
+    for var_name in varnames:
         # start a new plot
         fig, ax = plt.subplots()
 
@@ -129,25 +131,30 @@ def _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_n
         plt.subplots_adjust(bottom=0.23, top=0.9, left=0.2)
 
         # save to file
-        plot_file_path = os.path.join(plot_dir_path, f'{var_name.replace(":","_")}.png')
+        plot_file_path = plot_dir_path.joinpath(f'{var_name.replace(":","_")}.png')
         plt.savefig(plot_file_path)
+        plotfiles.append(plot_file_path)
 
     plt.switch_backend(backend_save)
+
+    return plotfiles
 
 
 def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
                             last_solution_case, last_simulation_case, plot_dir_path, num_cols=2,
                             bg_fill_color='#282828', grid_line_color='#666666', open_browser=False):
     from bokeh.io import output_notebook, output_file, save, show
-    from bokeh.layouts import gridplot, column, row, grid, layout
-    from bokeh.models import Legend, LegendItem
+    from bokeh.layouts import gridplot, column
+    from bokeh.models import Legend
     from bokeh.plotting import figure
     import bokeh.palettes as bp
 
     if dymos_options['notebook_mode']:
         output_notebook()
+        fname = None
     else:
-        output_file(os.path.join(plot_dir_path, 'plots.html'))
+        fname = os.path.join(plot_dir_path, 'plots.html')
+        output_file(fname)
 
     # Prune the edges from the color map
     cmap = bp.turbo(len(phase_names) + 2)[1:-1]
@@ -170,7 +177,7 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
         max_time = max(max_time, np.max(last_solution_case.outputs[time_name]))
         colors[phase_name] = cmap[iphase]
 
-    for ivar, var_name in enumerate(varnames):
+    for var_name in varnames:
         # Get the labels
         time_label = f'time ({time_units[var_name]})'
         var_label = f'{var_name} ({var_units[var_name]})'
@@ -268,8 +275,12 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
     else:
         save(plots)
 
+    if fname is None:
+        return []
+    return [fname]
 
-def timeseries_plots(solution_recorder_filename, simulation_record_file=None, plot_dir="plots"):
+def timeseries_plots(solution_recorder_filename, simulation_record_file=None, plot_dir="plots",
+                     problem=None):
     """
     Create plots of the timeseries.
 
@@ -285,12 +296,17 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
         this implies that the data from it should be plotted.
     plot_dir : str
         The path to the directory to which the plot files will be written.
+    problem : Problem or None
+        If not None, the owning Problem.
     """
 
     # get ready to generate plot files
-    plot_dir_path = os.path.join(os.getcwd(), plot_dir)
-    if not os.path.isdir(plot_dir_path):
-        os.mkdir(plot_dir_path)
+    if problem is None:
+        plot_dir_path = pathlib.Path.cwd().joinpath(plot_dir).resolve()
+    else:
+        plot_dir_path = pathlib.Path(problem.get_reports_dir()).joinpath(plot_dir).resolve()
+
+    plot_dir_path.mkdir(parents=True, exist_ok=True)
 
     cr = om.CaseReader(solution_recorder_filename)
 
@@ -349,7 +365,14 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
         _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
                                 last_solution_case, last_simulation_case, plot_dir_path)
     elif dymos_options['plots'] == 'matplotlib':
-        _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
-                              last_solution_case, last_simulation_case, plot_dir_path)
+        fnames = _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
+                                       last_solution_case, last_simulation_case, plot_dir_path)
+        if problem is not None:
+            for name in fnames:
+                # create html files that wrap the image files
+                fpath = pathlib.Path(name).resolve()
+                htmlpath = str(fpath.parent.joinpath(fpath.stem + '.html'))
+                with open(htmlpath, 'w', encoding='utf-8') as f:
+                    f.write(om.image2html(fpath.name))
     else:
         raise ValueError(f'Unknown plotting option: {dymos_options["plots"]}')
