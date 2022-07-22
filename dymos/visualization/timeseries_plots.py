@@ -9,6 +9,7 @@ import matplotlib.lines as mlines
 import matplotlib.patches as mpatches
 
 import openmdao.api as om
+from openmdao.utils.file_utils import image2html
 from dymos.options import options as dymos_options
 
 
@@ -133,6 +134,7 @@ def _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_n
         # save to file
         plot_file_path = plot_dir_path.joinpath(f'{var_name.replace(":","_")}.png')
         plt.savefig(plot_file_path)
+        plt.close(fig)
         plotfiles.append(plot_file_path)
 
     plt.switch_backend(backend_save)
@@ -368,6 +370,6 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
                 fpath = pathlib.Path(name).resolve()
                 htmlpath = str(fpath.parent.joinpath(fpath.stem + '.html'))
                 with open(htmlpath, 'w', encoding='utf-8') as f:
-                    f.write(om.image2html(fpath.name))
+                    f.write(image2html(fpath.name))
     else:
         raise ValueError(f'Unknown plotting option: {dymos_options["plots"]}')
