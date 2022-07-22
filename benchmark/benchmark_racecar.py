@@ -11,7 +11,7 @@ from dymos.examples.racecar.spline import get_spline, get_track_points
 from dymos.examples.racecar.tracks import ovaltrack  # track curvature imports
 
 
-def _run_racecar_problem(transcription, timeseries=False):
+def _run_racecar_problem(transcription, timeseries=False, make_plots=False):
     # change track here and in curvature.py. Tracks are defined in tracks.py
     track = ovaltrack
 
@@ -161,7 +161,7 @@ def _run_racecar_problem(transcription, timeseries=False):
     p.set_val('traj.phase0.controls:thrust', phase.interp('thrust', [0.1, 0.1]), units=None)
     # a small amount of thrust can speed up convergence
 
-    dm.run_problem(p, run_driver=True, simulate=False, make_plots=False)
+    dm.run_problem(p, run_driver=True, simulate=False, make_plots=make_plots)
     print('Optimization finished')
 
     t = p.get_val('traj.phase0.timeseries.states:t')
@@ -187,4 +187,4 @@ class BenchmarkRacecar(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    _run_racecar_problem(dm.GaussLobatto, timeseries=False)
+    _run_racecar_problem(dm.GaussLobatto, timeseries=False, make_plots=True)
