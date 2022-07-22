@@ -15,76 +15,75 @@ from dymos.utils.lgl import lgl
 from dymos.visualization.timeseries_plots import timeseries_plots
 
 
-def _setup_problem(pname):
-    optimizer = 'SLSQP'
-    num_segments = 8
-    transcription_order = 3
-    compressed = True
-
-    p = om.Problem(model=om.Group(), name=pname)
-
-    p.driver = om.pyOptSparseDriver()
-    p.driver.options['optimizer'] = optimizer
-    p.driver.declare_coloring()
-
-    t = dm.GaussLobatto(num_segments=num_segments,
-                        order=transcription_order,
-                        compressed=compressed)
-    traj = dm.Trajectory()
-    phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
-    traj.add_phase('phase0', phase)
-
-    p.model.add_subsystem('traj0', traj)
-
-    phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
-
-    phase.add_state('x', fix_initial=True, fix_final=False)
-    phase.add_state('y', fix_initial=True, fix_final=False)
-    phase.add_state('v', fix_initial=True, fix_final=False)
-
-    phase.add_control('theta', continuity=True, rate_continuity=True,
-                        units='deg', lower=0.01, upper=179.9)
-
-    phase.add_parameter('g', units='m/s**2', val=9.80665)
-
-    phase.add_timeseries('timeseries2',
-                            transcription=dm.Radau(num_segments=num_segments * 5,
-                                                order=transcription_order,
-                                                compressed=compressed),
-                            subset='control_input')
-
-    phase.add_boundary_constraint('x', loc='final', equals=10)
-    phase.add_boundary_constraint('y', loc='final', equals=5)
-    # Minimize time at the end of the phase
-    phase.add_objective('time_phase', loc='final', scaler=10)
-
-    p.model.linear_solver = om.DirectSolver()
-    p.setup(check=['unconnected_inputs'])
-
-    p['traj0.phase0.t_initial'] = 0.0
-    p['traj0.phase0.t_duration'] = 2.0
-
-    p['traj0.phase0.states:x'] = phase.interp('x', [0, 10])
-    p['traj0.phase0.states:y'] = phase.interp('y', [10, 5])
-    p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
-    p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
-    p['traj0.phase0.parameters:g'] = 9.80665
-
-    p.setup()
-
-    return p
-
-
 @use_tempdirs
 @require_pyoptsparse(optimizer='SLSQP')
 class TestTimeSeriesPlotsBasics(unittest.TestCase):
 
-    def test_brachistochrone_timeseries_plots(self):
-        p = _setup_problem("brachistochrone_timeseries_plots")
-        dm.run_problem(p, make_plots=False)
+    def setUp(self):
+        optimizer = 'SLSQP'
+        num_segments = 8
+        transcription_order = 3
+        compressed = True
 
-        timeseries_plots('dymos_solution.db', problem=p)
-        plot_dir = pathlib.Path(p.get_reports_dir()).joinpath('plots')
+        p = om.Problem(model=om.Group())
+
+        p.driver = om.pyOptSparseDriver()
+        p.driver.options['optimizer'] = optimizer
+        p.driver.declare_coloring()
+
+        t = dm.GaussLobatto(num_segments=num_segments,
+                            order=transcription_order,
+                            compressed=compressed)
+        traj = dm.Trajectory()
+        phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
+        traj.add_phase('phase0', phase)
+
+        p.model.add_subsystem('traj0', traj)
+
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.add_state('x', fix_initial=True, fix_final=False)
+        phase.add_state('y', fix_initial=True, fix_final=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
+
+        phase.add_control('theta', continuity=True, rate_continuity=True,
+                            units='deg', lower=0.01, upper=179.9)
+
+        phase.add_parameter('g', units='m/s**2', val=9.80665)
+
+        phase.add_timeseries('timeseries2',
+                                transcription=dm.Radau(num_segments=num_segments * 5,
+                                                    order=transcription_order,
+                                                    compressed=compressed),
+                                subset='control_input')
+
+        phase.add_boundary_constraint('x', loc='final', equals=10)
+        phase.add_boundary_constraint('y', loc='final', equals=5)
+        # Minimize time at the end of the phase
+        phase.add_objective('time_phase', loc='final', scaler=10)
+
+        p.model.linear_solver = om.DirectSolver()
+        p.setup(check=['unconnected_inputs'])
+
+        p['traj0.phase0.t_initial'] = 0.0
+        p['traj0.phase0.t_duration'] = 2.0
+
+        p['traj0.phase0.states:x'] = phase.interp('x', [0, 10])
+        p['traj0.phase0.states:y'] = phase.interp('y', [10, 5])
+        p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
+        p['traj0.phase0.parameters:g'] = 9.80665
+
+        p.setup()
+
+        self.p = p
+
+
+    def test_brachistochrone_timeseries_plots(self):
+        dm.run_problem(self.p, make_plots=False)
+
+        timeseries_plots('dymos_solution.db', problem=self.p)
+        plot_dir = pathlib.Path(self.p.get_reports_dir()).joinpath('plots')
 
         self.assertTrue(plot_dir.joinpath('states_x.png').exists())
         self.assertTrue(plot_dir.joinpath('states_y.png').exists())
@@ -94,12 +93,11 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         self.assertTrue(plot_dir.joinpath('control_rates_theta_rate2.png').exists())
 
     def test_brachistochrone_timeseries_plots_solution_only_set_solution_record_file(self):
-        p = _setup_problem("brachistochrone_timeseries_plots_solution_only_set_solution_record_file")
         # records to the default file 'dymos_simulation.db'
-        dm.run_problem(p, make_plots=False, solution_record_file='solution_record_file.db')
+        dm.run_problem(self.p, make_plots=False, solution_record_file='solution_record_file.db')
 
-        timeseries_plots('solution_record_file.db', problem=p)
-        plot_dir = pathlib.Path(p.get_reports_dir()).joinpath('plots')
+        timeseries_plots('solution_record_file.db', problem=self.p)
+        plot_dir = pathlib.Path(self.p.get_reports_dir()).joinpath('plots')
 
         self.assertTrue(plot_dir.joinpath('states_x.png').exists())
         self.assertTrue(plot_dir.joinpath('states_y.png').exists())
@@ -109,18 +107,16 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         self.assertTrue(plot_dir.joinpath('control_rates_theta_rate2.png').exists())
 
     def test_brachistochrone_timeseries_plots_solution_and_simulation(self):
-        p = _setup_problem("brachistochrone_timeseries_plots_solution_and_simulation")
-        dm.run_problem(p, simulate=True, make_plots=False,
+        dm.run_problem(self.p, simulate=True, make_plots=False,
                        simulation_record_file='simulation_record_file.db')
 
-        timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db', problem=p)
+        timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db', problem=self.p)
 
     def test_brachistochrone_timeseries_plots_set_plot_dir(self):
-        p = _setup_problem("brachistochrone_timeseries_plots_set_plot_dir")
-        dm.run_problem(p, make_plots=False)
+        dm.run_problem(self.p, make_plots=False)
 
-        plot_dir = pathlib.Path(p.get_reports_dir()).joinpath("test_plot_dir").resolve()
-        timeseries_plots('dymos_solution.db', plot_dir=plot_dir, problem=p)
+        plot_dir = pathlib.Path(self.p.get_reports_dir()).joinpath("test_plot_dir").resolve()
+        timeseries_plots('dymos_solution.db', plot_dir=plot_dir, problem=self.p)
 
         self.assertTrue(plot_dir.joinpath('states_x.png').exists())
         self.assertTrue(plot_dir.joinpath('states_y.png').exists())
@@ -137,7 +133,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
     def test_trajectory_linked_phases_make_plot(self):
 
         self.traj = dm.Trajectory()
-        p = self.p = om.Problem(model=self.traj, name="trajectory_linked_phases_make_plot")
+        p = self.p = om.Problem(model=self.traj)
 
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'IPOPT'
@@ -281,7 +277,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
 
     def test_overlapping_phases_make_plot(self):
 
-        prob = om.Problem(name="overlapping_phases_make_plot")
+        prob = om.Problem()
 
         opt = prob.driver = om.ScipyOptimizeDriver()
         opt.declare_coloring()
@@ -373,7 +369,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         """
 
         self.traj = dm.Trajectory()
-        p = self.p = om.Problem(model=self.traj, name="trajectory_linked_phases_make_plot_missing_data")
+        p = self.p = om.Problem(model=self.traj)
 
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'IPOPT'
