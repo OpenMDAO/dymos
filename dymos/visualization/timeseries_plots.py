@@ -297,7 +297,8 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
     plot_dir : str
         The path to the directory to which the plot files will be written.
     problem : Problem or None
-        If not None, the owning Problem.
+        If not None, the owning Problem, and the plot_dir will be relative to the reports
+        directory for the Problem.
     """
 
     # get ready to generate plot files
