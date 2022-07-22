@@ -151,10 +151,8 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
 
     if dymos_options['notebook_mode']:
         output_notebook()
-        fname = None
     else:
-        fname = os.path.join(plot_dir_path, 'plots.html')
-        output_file(fname)
+        output_file(os.path.join(plot_dir_path, 'plots.html'))
 
     # Prune the edges from the color map
     cmap = bp.turbo(len(phase_names) + 2)[1:-1]
@@ -274,10 +272,6 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
         show(plots)
     else:
         save(plots)
-
-    if fname is None:
-        return []
-    return [fname]
 
 def timeseries_plots(solution_recorder_filename, simulation_record_file=None, plot_dir="plots",
                      problem=None):

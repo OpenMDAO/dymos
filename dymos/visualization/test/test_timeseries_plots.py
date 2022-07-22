@@ -47,15 +47,15 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
-                            units='deg', lower=0.01, upper=179.9)
+                          units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', units='m/s**2', val=9.80665)
 
         phase.add_timeseries('timeseries2',
-                                transcription=dm.Radau(num_segments=num_segments * 5,
+                             transcription=dm.Radau(num_segments=num_segments * 5,
                                                     order=transcription_order,
                                                     compressed=compressed),
-                                subset='control_input')
+                             subset='control_input')
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -77,7 +77,6 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         p.setup()
 
         self.p = p
-
 
     def test_brachistochrone_timeseries_plots(self):
         dm.run_problem(self.p, make_plots=False)
