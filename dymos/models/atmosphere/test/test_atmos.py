@@ -4,7 +4,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 
-from dymos.models.atmosphere.atmos_1976 import USatm1976Comp, USatm1976Data
+from dymos.models.atmosphere.atmos_1976 import USatm1976Comp, USatm1976Data, _build_akima_coefs
 
 
 class TestAtmosphere(unittest.TestCase):
@@ -68,6 +68,13 @@ class TestAtmosphere(unittest.TestCase):
         with np.printoptions(linewidth=100000):
             cpd = p.check_partials(method='cs')
         assert_check_partials(cpd)
+
+    def test_atmos_build_akima_coefs(self):
+        coeff_data = _build_akima_coefs(out_stream=None)
+
+        for key, vals in coeff_data.items():
+            saved_vals = getattr(USatm1976Data, key.split('.')[-1])
+            assert_near_equal(vals, saved_vals, tolerance=1.0E-15)
 
 
 if __name__ == '__main__':  # pragma: no cover

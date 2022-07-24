@@ -20,8 +20,7 @@ _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 @use_tempdirs
 class TestRunProblem(unittest.TestCase):
 
-    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_run_HS_problem_radau(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
@@ -87,8 +86,7 @@ class TestRunProblem(unittest.TestCase):
                           J,
                           tolerance=5e-4)
 
-    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_run_HS_problem_gl(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()

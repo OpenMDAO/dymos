@@ -4,6 +4,7 @@ obtained from http://www.digitaldutch.com/atmoscalc/index.htm
 based on NASA-TM-X-74335.
 """
 from collections import namedtuple
+import sys
 
 import numpy as np
 
@@ -1378,23 +1379,29 @@ class USatm1976Comp(om.ExplicitComponent):
             partials['drhos_dh', 'h'][...] *= dz_dh ** 2
 
 
-if __name__ == "__main__":
+def _build_akima_coefs(out_stream=sys.stdout):
+    """
+    Print out the Akima coefficients based on the raw atmospheric data.
 
-    # Running this script generates and prints the Akima coefficients using the OpenMDAO akima1D interpolant.
+    This is used to more rapidly interpolate the data and the rate of change of rho wrt altitude.
 
-    from pprint import pprint
+    Returns
+    -------
+    dict
+        A mapping of the variable name and Akima coeffcient values for each table in the atmosphere.
+    """
     import textwrap
-
     from openmdao.components.interp_util.interp import InterpND
-    import openmdao.api as om
 
-    T_interp = InterpND(method='akima1D', points=USatm1976Data.alt, values=USatm1976Data.T, extrapolate=True)
-    P_interp = InterpND(method='akima1D', points=USatm1976Data.alt, values=USatm1976Data.P, extrapolate=True)
-    rho_interp = InterpND(method='akima1D', points=USatm1976Data.alt, values=USatm1976Data.rho, extrapolate=True)
-    visc_interp = InterpND(method='akima1D', points=USatm1976Data.alt, values=USatm1976Data.viscosity, extrapolate=True)
+    coeff_data = {}
+
+    T_interp = InterpND(method='1D-akima', points=USatm1976Data.alt, values=USatm1976Data.T, extrapolate=True)
+    P_interp = InterpND(method='1D-akima', points=USatm1976Data.alt, values=USatm1976Data.P, extrapolate=True)
+    rho_interp = InterpND(method='1D-akima', points=USatm1976Data.alt, values=USatm1976Data.rho, extrapolate=True)
+    visc_interp = InterpND(method='1D-akima', points=USatm1976Data.alt, values=USatm1976Data.viscosity, extrapolate=True)
 
     _, _drho_dh = rho_interp.interpolate(USatm1976Data.alt, compute_derivative=True)
-    drho_interp = InterpND(method='akima1D', points=USatm1976Data.alt, values=_drho_dh.ravel(), extrapolate=True)
+    drho_interp = InterpND(method='1D-akima', points=USatm1976Data.alt, values=_drho_dh.ravel(), extrapolate=True)
 
     # Find midpoints of all bins plus an extrapolation point on each end.
     min_alt = np.min(USatm1976Data.alt)
@@ -1428,8 +1435,17 @@ if __name__ == "__main__":
                 coeff_array[i, 2] = c
                 coeff_array[i, 3] = d
 
-            print(f'USatm1976Data.akima_{var} = \\')
-            print(textwrap.indent(repr(coeff_array).replace('array', 'np.array'), '    '))
-            print()
+            if out_stream is not None:
+                print(f'USatm1976Data.akima_{var} = \\', file=out_stream)
+                print(textwrap.indent(repr(coeff_array).replace('array', 'np.array'), '    '),
+                      file=out_stream)
+                print('', file=out_stream)
 
-    print('done')
+            coeff_data[f'USatm1976Data.akima_{var}'] = coeff_array
+
+    return coeff_data
+
+
+if __name__ == "__main__":
+    # Running this script generates and prints the Akima coefficients using the OpenMDAO akima1D interpolant.
+    _build_akima_coefs()

@@ -36,7 +36,7 @@ class _BrysonDenhamODE(om.ExplicitComponent):
 
 class TestGridRefinement(unittest.TestCase):
 
-    def test_refine_non_ode_rate_sources(self):
+    def test_refine_hp_non_ode_rate_sources(self):
         p = om.Problem()
 
         p.driver = om.ScipyOptimizeDriver()
@@ -82,3 +82,63 @@ class TestGridRefinement(unittest.TestCase):
         # Solve for the optimal trajectory
         #
         dm.run_problem(p, run_driver=True, simulate=True, refine_iteration_limit=5)
+
+        num_seg = p.model.traj.phases.phase0.options['transcription'].grid_data.num_segments
+        seg_orders = p.model.traj.phases.phase0.options['transcription'].grid_data.transcription_order
+
+        self.assertGreaterEqual(num_seg, 5)
+        self.assertGreater(sum(seg_orders), 5 * 3)
+
+    def test_refine_ph_non_ode_rate_sources(self):
+        p = om.Problem()
+
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
+
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+        tx = dm.Radau(num_segments=5, order=3)
+        phase = traj.add_phase('phase0', dm.Phase(ode_class=_BrysonDenhamODE, transcription=tx))
+
+        #
+        # Set the variables
+        #
+        phase.set_time_options(fix_initial=True, fix_duration=True)
+
+        phase.add_state('x', fix_initial=True, fix_final=True, rate_source='v')
+        phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u')
+        phase.add_state('J', fix_initial=True, fix_final=False)
+        phase.add_control('u', continuity=True, rate_continuity=False)
+
+        #
+        # Minimize time at the end of the phase
+        #
+        phase.add_objective('J', loc='final', ref=1)
+        phase.add_path_constraint('x', upper=1/9)
+
+        #
+        # Setup the Problem
+        #
+        p.setup()
+
+        #
+        # Set the initial values
+        #
+        p['traj.phase0.t_initial'] = 0.0
+        p['traj.phase0.t_duration'] = 1.0
+
+        p.set_val('traj.phase0.states:x', phase.interp('x', ys=[0, 0]))
+        p.set_val('traj.phase0.states:v', phase.interp('v', ys=[1, -1]))
+        p.set_val('traj.phase0.states:J', phase.interp('J', ys=[0, 1]))
+        p.set_val('traj.phase0.controls:u', np.sin(phase.interp('u', ys=[0, 0])))
+
+        #
+        # Solve for the optimal trajectory
+        #
+        dm.run_problem(p, run_driver=True, simulate=True,
+                       refine_method='ph', refine_iteration_limit=5)
+
+        num_seg = p.model.traj.phases.phase0.options['transcription'].grid_data.num_segments
+        seg_orders = p.model.traj.phases.phase0.options['transcription'].grid_data.transcription_order
+
+        self.assertGreaterEqual(num_seg, 5)
+        self.assertGreater(sum(seg_orders), 5 * 3)
