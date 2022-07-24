@@ -1,12 +1,13 @@
 import dymos as dm
 from openmdao.visualization.htmlpp import HtmlPreprocessor
 from collections import OrderedDict
-import inspect 
+import inspect
 import os
 
 CBN = 'children_by_name'
 
-def create_linkage_report(traj, output_file: str='linkage_report.html',
+
+def create_linkage_report(traj, output_file: str = 'linkage_report.html',
                           show_all_vars=False,
                           title='Dymos Linkage Report', embedded=False):
     """
@@ -39,13 +40,14 @@ def create_linkage_report(traj, output_file: str='linkage_report.html',
     import openmdao
     openmdao_dir = os.path.dirname(inspect.getfile(openmdao))
     vis_dir = os.path.join(openmdao_dir, "visualization/n2_viewer")
-    
+
     dymos_dir = os.path.dirname(inspect.getfile(dm))
     reports_dir = os.path.join(dymos_dir, "visualization/linkage")
 
     HtmlPreprocessor(os.path.join(reports_dir, "report_template.html"), output_file,
-                    search_path=[vis_dir, reports_dir], allow_overwrite=True, var_dict=html_vars,
-                    verbose=False).run()
+                     search_path=[vis_dir, reports_dir], allow_overwrite=True, var_dict=html_vars,
+                     verbose=False).run()
+
 
 def _is_fixed(var_name: str, class_name: str, phase, loc: str):
     """
@@ -82,6 +84,7 @@ def _is_fixed(var_name: str, class_name: str, phase, loc: str):
 
     return bool(fixed)
 
+
 def _tree_var(var_name, phase, loc, var_name_prefix=""):
     """ Create a dict to represent a variable in the tree. """
     class_name = phase.classify_var(var_name)
@@ -93,6 +96,7 @@ def _tree_var(var_name, phase, loc, var_name_prefix=""):
         'fixed': _is_fixed(var_name, class_name, phase, loc)
     }
 
+
 def _trajectory_to_dict(traj):
     """
     Iterate over the variables in the trajectory's phases and create a hierarchical structure.
@@ -101,7 +105,7 @@ def _trajectory_to_dict(traj):
     ----------
     traj : Trajectory
         The trajectory containing the phases to find variables in.
-    
+
     Returns
     -------
     dict
@@ -122,8 +126,8 @@ def _trajectory_to_dict(traj):
             'name': str(phase_name),
             'type': 'phase',
             CBN: OrderedDict({
-                'initial': { 'name': 'initial', 'type': 'condition', CBN: OrderedDict() },
-                'final': { 'name': 'final', 'type': 'condition', CBN: OrderedDict() }
+                'initial': {'name': 'initial', 'type': 'condition', CBN: OrderedDict()},
+                'final': {'name': 'final', 'type': 'condition', CBN: OrderedDict()}
             })
         }
 
@@ -146,7 +150,7 @@ def _trajectory_to_dict(traj):
         # Controls
         for control_name, c in phase.control_options.items():
             for loc, child in condition_children.items():
-                child[control_name] =  _tree_var(control_name, phase, loc, 'controls:')
+                child[control_name] = _tree_var(control_name, phase, loc, 'controls:')
 
         # Polynomial Controls
         for pc_name, pc in phase.polynomial_control_options.items():
@@ -159,6 +163,7 @@ def _trajectory_to_dict(traj):
                 child[param_name] = _tree_var(param_name, phase, loc, 'parameters:')
 
     return model_data
+
 
 def _linkages_to_list(traj, model_data):
     """
@@ -204,6 +209,7 @@ def _linkages_to_list(traj, model_data):
 
     return linkages
 
+
 def _display_child(child, show_all_vars):
     """ Determine whether the object should be included in the diagram. """
     if show_all_vars is True:
@@ -214,11 +220,12 @@ def _display_child(child, show_all_vars):
 
     if 'linked' in child:
         return True
-        
+
     if child['class'] == 'time' or child['class'] == 'state':
         return True
 
     return False
+
 
 def _convert_dicts_to_lists(tree_dict, show_all_vars):
     """ Convert all children_by_name dicts to lists. """
@@ -230,5 +237,3 @@ def _convert_dicts_to_lists(tree_dict, show_all_vars):
                 tree_dict['children'].append(child)
 
         tree_dict.pop(CBN)
-
-        
