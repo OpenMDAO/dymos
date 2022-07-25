@@ -304,6 +304,8 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
             plot_dir_path = pathlib.Path.cwd().joinpath(plot_dir)
         else:
             plot_dir_path = pathlib.Path(problem.get_reports_dir()).joinpath(plot_dir)
+    else:
+        plot_dir_path = plot_dir
 
     plot_dir_path.mkdir(parents=True, exist_ok=True)
 
