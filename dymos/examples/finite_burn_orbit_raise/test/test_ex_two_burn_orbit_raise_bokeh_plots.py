@@ -2,6 +2,7 @@ import importlib
 import os
 import shutil
 import unittest
+import pathlib
 
 import numpy as np
 
@@ -200,16 +201,17 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
     def test_bokeh_plots(self):
         dm.options['plots'] = 'bokeh'
 
-        two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                     compressed=False, optimizer='SLSQP', show_output=False)
+        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                         compressed=False, optimizer='SLSQP', show_output=False)
 
-        self.assertSetEqual({'plots.html'}, set(os.listdir('plots')))
+        plot_dir = pathlib.Path(p.get_reports_dir()).joinpath('plots')
+        self.assertSetEqual({'plots.html'}, set(os.listdir(plot_dir)))
 
     def test_mpl_plots(self):
         dm.options['plots'] = 'matplotlib'
 
-        two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                     compressed=False, optimizer='SLSQP', show_output=False)
+        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                         compressed=False, optimizer='SLSQP', show_output=False)
 
         expected_files = {'control_rates_u1_rate.png', 'state_rates_r.png', 'states_deltav.png',
                           'states_r.png', 'state_rates_accel.png', 'state_rates_deltav.png',
@@ -218,7 +220,9 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
                           'control_rates_u1_rate2.png', 'state_rates_vt.png', 'time_phase.png',
                           'parameters_c.png', 'state_rates_theta.png', 'state_rates_vr.png', 'dt_dstau.png'}
 
-        self.assertSetEqual(expected_files, set(os.listdir('plots')))
+        html_files = {str(pathlib.Path(f).with_suffix('.html')) for f in expected_files}
+        plot_dir = pathlib.Path(p.get_reports_dir()).joinpath('plots')
+        self.assertSetEqual(expected_files.union(html_files), set(os.listdir(plot_dir)))
 
 
 if __name__ == '__main__':  # pragma: no cover

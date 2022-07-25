@@ -275,6 +275,7 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
     else:
         save(plots)
 
+
 def timeseries_plots(solution_recorder_filename, simulation_record_file=None, plot_dir="plots",
                      problem=None):
     """
@@ -296,12 +297,13 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
         If not None, this is the owning Problem, and the plot_dir will be relative to the reports
         directory for this Problem.
     """
-
     # get ready to generate plot files
-    if problem is None:
-        plot_dir_path = pathlib.Path.cwd().joinpath(plot_dir).resolve()
-    else:
-        plot_dir_path = pathlib.Path(problem.get_reports_dir()).joinpath(plot_dir).resolve()
+
+    if not pathlib.Path(plot_dir).is_absolute():
+        if problem is None:
+            plot_dir_path = pathlib.Path.cwd().joinpath(plot_dir)
+        else:
+            plot_dir_path = pathlib.Path(problem.get_reports_dir()).joinpath(plot_dir)
 
     plot_dir_path.mkdir(parents=True, exist_ok=True)
 

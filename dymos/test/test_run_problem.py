@@ -1,6 +1,7 @@
 from __future__ import print_function, division, absolute_import
 import os
 import unittest
+import pathlib
 
 import numpy as np
 from numpy.testing import assert_almost_equal
@@ -605,31 +606,33 @@ class TestRunProblemPlotting(unittest.TestCase):
 
     def test_run_brachistochrone_problem_make_plots(self):
         dm.run_problem(self.p, make_plots=True)
+        plot_dir = pathlib.Path(self.p.get_reports_dir()).joinpath('plots')
 
         for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
                         'control_rates:theta_rate2', 'parameters:g']:
-            self.assertTrue(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
+            self.assertTrue(plot_dir.joinpath(f'{varname.replace(":","_")}.png').exists())
 
     def test_run_brachistochrone_problem_make_plots_set_plot_dir(self):
-        plot_dir = "test_plot_dir"
-        dm.run_problem(self.p, make_plots=True, plot_dir=plot_dir)
+        dm.run_problem(self.p, make_plots=True, plot_dir="test_plot_dir")
 
+        plot_dir = pathlib.Path(self.p.get_reports_dir())
         for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
                         'control_rates:theta_rate2', 'parameters:g']:
-            self.assertTrue(os.path.exists(f'test_plot_dir/{varname.replace(":","_")}.png'))
+            self.assertTrue(plot_dir.joinpath('test_plot_dir', f'{varname.replace(":","_")}.png').exists())
 
     def test_run_brachistochrone_problem_do_not_make_plots(self):
         dm.run_problem(self.p, make_plots=False)
+        plot_dir = pathlib.Path(self.p.get_reports_dir()).joinpath('plots')
 
         for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
                         'control_rates:theta_rate2', 'parameters:g']:
-            self.assertFalse(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
+            self.assertFalse(plot_dir.joinpath(f'{varname.replace(":","_")}.png').exists())
 
     def test_run_brachistochrone_problem_set_simulation_record_file(self):
         simulation_record_file = 'simulation_record_file.db'
@@ -645,21 +648,23 @@ class TestRunProblemPlotting(unittest.TestCase):
 
     def test_run_brachistochrone_problem_plot_simulation(self):
         dm.run_problem(self.p, make_plots=True, simulate=True)
+        plot_dir = pathlib.Path(self.p.get_reports_dir()).joinpath('plots')
 
         for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
                         'control_rates:theta_rate2', 'parameters:g']:
-            self.assertTrue(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
+            self.assertTrue(plot_dir.joinpath(f'{varname.replace(":","_")}.png').exists())
 
     def test_run_brachistochrone_problem_plot_no_simulation_record_file_given(self):
         dm.run_problem(self.p, make_plots=True, simulate=True)
+        plot_dir = pathlib.Path(self.p.get_reports_dir()).joinpath('plots')
 
         for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
                         'control_rates:theta_rate2', 'parameters:g']:
-            self.assertTrue(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
+            self.assertTrue(plot_dir.joinpath(f'{varname.replace(":","_")}.png').exists())
 
 
 @use_tempdirs
