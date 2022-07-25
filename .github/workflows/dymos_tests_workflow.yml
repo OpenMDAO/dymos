@@ -285,7 +285,7 @@ jobs:
           testflo -n 1 joss/test --pre_announce
           testflo -b benchmark --pre_announce
           cd $HOME
-          testflo dymos -n 2 --pre_announce --show_skipped --coverage --coverpkg dymos
+          testflo dymos -n 2 --show_skipped --coverage --coverpkg dymos
 
       - name: Submit coverage
         if: (github.event_name != 'workflow_dispatch')
