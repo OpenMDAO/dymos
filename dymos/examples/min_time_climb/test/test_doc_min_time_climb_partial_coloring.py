@@ -1,6 +1,3 @@
-import os.path
-from pprint import pprint
-import shutil
 import unittest
 
 import matplotlib
@@ -9,36 +6,6 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-from openmdao.utils.coloring import Coloring
-
-
-def _view_coloring(coloring_file, show_sparsity_text=False, show_sparsity=True,
-                   subjac_sparsity=False, color_var=None, show_meta=False):
-    coloring = Coloring.load(coloring_file)
-    if show_sparsity_text:
-        coloring.display_txt()
-
-    if show_sparsity:
-        coloring.display()
-        fig = plt.gcf()
-        fig.set_size_inches(5.5, 5.5)
-        fig.tight_layout()
-
-    if subjac_sparsity:
-        print("\nSubjacobian sparsity:")
-        for tup in coloring._subjac_sparsity_iter():
-            print("(%s, %s)\n   rows=%s\n   cols=%s" % tup[:4])
-        print()
-
-    if color_var is not None:
-        fwd, rev = coloring.get_row_var_coloring(color_var)
-        print("\nVar: %s  (fwd solves: %d,  rev solves: %d)\n" % (color_var, fwd, rev))
-
-    if show_meta:
-        print("\nColoring metadata:")
-        pprint(coloring._meta)
-
-    coloring.summary()
 
 
 @use_tempdirs
