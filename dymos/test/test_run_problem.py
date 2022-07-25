@@ -5,6 +5,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
+import openmdao
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
@@ -15,6 +16,8 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import BrachistochroneVectorStatesODE
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+
+om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 @use_tempdirs
@@ -331,6 +334,7 @@ class TestRunProblem(unittest.TestCase):
                          'Key "case_prefix" was found in simulate_kwargs but should instead by provided by '
                          'the argument "case_prefix", not part of the simulate_kwargs dictionary.')
 
+    @unittest.skipIf(om_version < (3, 18, 0), 'test requires OpenMDAO >= 3.18.01')
     @require_pyoptsparse(optimizer='SLSQP')
     def test_run_brachistochrone_problem_refine_case_driver_case_prefix(self):
         p = om.Problem(model=om.Group())
