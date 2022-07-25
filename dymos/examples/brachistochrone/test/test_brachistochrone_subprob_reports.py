@@ -153,7 +153,7 @@ if Version(openmdao_version) > Version("3.18"):
         def test_no_sim_reports(self):
             p = setup_model_radau(do_reports=False)
 
-            report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
+            report_subdirs = sorted([e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()])
 
             # Test that a report subdir was made
             self.assertEqual(len(report_subdirs), 1)
@@ -167,7 +167,7 @@ if Version(openmdao_version) > Version("3.18"):
         def test_make_sim_reports(self):
             p = setup_model_radau(do_reports=True)
 
-            report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
+            report_subdirs = sorted([e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()])
 
             # Test that a report subdir was made
             # # There is the nominal problem, the simulation problem, and a subproblem for each segment in the simulation.
@@ -181,7 +181,7 @@ if Version(openmdao_version) > Version("3.18"):
         def test_explicitshooting_no_subprob_reports(self):
             p = setup_model_shooting(do_reports=False)
 
-            report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
+            report_subdirs = sorted([e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()])
 
             # Test that a report subdir was made
             self.assertEqual(len(report_subdirs), 1)
@@ -195,7 +195,7 @@ if Version(openmdao_version) > Version("3.18"):
         def test_explicitshooting_make_subprob_reports(self):
             p = setup_model_shooting(do_reports=True)
 
-            report_subdirs = [e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()]
+            report_subdirs = sorted([e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()])
 
             # Test that a report subdir was made
             # There is the nominal problem, a subproblem for integration, and a subproblem for the derivatives.
@@ -246,7 +246,7 @@ else:  # old OM versions before reports API changed...
             p = setup_model_radau(do_reports=False)
 
             problem_reports_dir = pathlib.Path(_reports_dir).joinpath(p._name)
-            report_subdirs = [e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()]
+            report_subdirs = sorted([e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()])
 
             # Test that a report subdir was made
             self.assertEqual(len(report_subdirs), 1)
@@ -262,7 +262,7 @@ else:  # old OM versions before reports API changed...
 
             p = setup_model_radau(do_reports=True)
 
-            report_subdirs = [e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()]
+            report_subdirs = sorted([e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()])
 
             # Test that a report subdir was made
             # # There is the nominal problem, the simulation problem, and a subproblem for each segment in the simulation.
@@ -279,7 +279,7 @@ else:  # old OM versions before reports API changed...
             p = setup_model_shooting(do_reports=False)
 
             problem_reports_dir = pathlib.Path(_reports_dir).joinpath(p._name)
-            report_subdirs = [e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()]
+            report_subdirs = sorted([e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()])
 
             # Test that a report subdir was made
             self.assertEqual(len(report_subdirs), 1)
@@ -296,7 +296,7 @@ else:  # old OM versions before reports API changed...
             p = setup_model_shooting(do_reports=True)
 
             problem_reports_dir = pathlib.Path(_reports_dir).joinpath(p._name)
-            report_subdirs = [e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()]
+            report_subdirs = sorted([e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()])
 
             # Test that a report subdir was made
             # There is the nominal problem, a subproblem for integration, and a subproblem for the derivatives.

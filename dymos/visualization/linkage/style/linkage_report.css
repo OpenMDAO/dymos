@@ -1,0 +1,114 @@
+#tree > g.root > text {
+    transform: 'rotate(-90)'
+}
+
+div.title-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+rect.cond-box-0 {
+    fill: #eee
+}        
+
+rect.cond-box-1 {
+    fill: #ddd
+}
+
+rect.cond-box-2 {
+    fill: #ddd
+}
+
+rect.cond-box-3 {
+    fill: #ccc
+}
+
+.arrowHead {
+    stroke-width: 1.5;
+    stroke: #ddd;
+    fill: #222;
+}
+
+text.connected-variable-text {
+    fill: white;
+    stroke: white;
+    stroke-width: 0.5px;
+    text-anchor: middle;
+    dominant-baseline: central;
+    font-weight: normal;
+    font-family: sans-serif;
+}
+
+.tree-nodes-container::-webkit-scrollbar, .matrix-cells-container::-webkit-scrollbar {
+    display: none;
+}
+
+/* Nodes legend area */
+
+.tree-nodes-container {
+    height: 90px;
+    border-radius: 15px;
+    border: 1px solid #98daba;
+    display: flex;
+    flex-direction: row;
+    background-color: white;
+    z-index: 1;
+    overflow-y: scroll;
+}
+
+#tree-nodes-legend {
+    height: 90px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    margin-right: 45px;
+    overflow-x: hidden;
+}
+
+/* Matrix cells legend area */
+
+.matrix-cells-container {
+    height: 90px;
+    border-radius: 15px;
+    border: 1px solid #42926b;
+    display: flex;
+    flex-direction: row;
+    margin-left: -20px;
+    margin-right: 0;
+    background-color: white;
+    z-index: 3;
+    overflow: hidden;
+}
+
+#matrix-cells-legend {
+    height: 90px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    margin-right: 20px;
+    overflow-x: hidden;
+}
+
+.dm-legend-box {
+    border: 2px solid black;
+    padding: 1px;
+    background: content-box;
+}
+
+.dm-legend-cell {
+    border: 0;
+}
+
+.dm-legend-connected::before {
+    content: "\2794";
+}
+
+.dm-legend-connected {
+    color: black;
+    font-size: 15px;
+    font-family: sans-serif;
+    padding-bottom: 8px;
+}
