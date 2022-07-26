@@ -45,7 +45,7 @@ jobs:
             SNOPT: 7.7
             MBI: 1
             OPENMDAO: 'dev'
-            OPTIONAL: '[test]'
+            OPTIONAL: '[all]'
             JAX: True
             PUBLISH_DOCS: 0
 
