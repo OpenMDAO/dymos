@@ -328,7 +328,7 @@ def _get_reports_dir(prob):
         pass
 
     from openmdao.utils.reports_system import get_reports_dir
-    return str(pathlib.Path(get_reports_dir()).joinpath(prob._name))
+    return str(pathlib.Path(get_reports_dir(prob)).joinpath(prob._name))
 
 
 def timeseries_plots(solution_recorder_filename, simulation_record_file=None, plot_dir="plots",
