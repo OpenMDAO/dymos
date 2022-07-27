@@ -70,161 +70,161 @@ toolbar_script = [
 
 """ A dictionary of tests script with an array for each model."""
 gui_test_script = [
-        {   "test": "toolbar"},
-        {
-            "desc": "Hover on matrix cell and check arrow count",
-            "test": "hoverArrow",
-            "selector": "g#n2elements rect#cellShape_node_10.vMid",
-            "arrowCount": 2
-        },
-        {
-            "desc": "Left-click on model tree element to zoom",
-            "test": "click",
-            "selector": "g#tree g.phase rect#climb",
-            "button": "left"
-        },
-        {
-            "desc": "Hover on matrix cell and check arrow count",
-            "test": "hoverArrow",
-            "selector": "g#n2elements rect#cellShape_node_55.vMid",
-            "arrowCount": 1
-        },
-        { "test": "root" },
-        {
-            "desc": "Right-click on model tree element to collapse",
-            "test": "click",
-            "selector": "g#tree rect#br_to_v1",
-            "button": "right"
-        },
-        {
-            "desc": "Hover over collapsed matrix cell and check arrow count",
-            "test": "hoverArrow",
-            "selector": "g#n2elements rect#cellShape_node_1.gMid",
-            "arrowCount": 6
-        },
-        {
-            "desc": "Right-click on model tree element to uncollapse",
-            "test": "click",
-            "selector": "g#tree rect#br_to_v1",
-            "button": "right"
-        },
-        { "test": "root" },
-        {
-            "desc": "Check the number of cells in the matrix grid",
-            "test": "count",
-            "selector": "g#n2elements > g.n2cell",
-            "count": 53
-        },
-        {
-            "desc": "Perform a search on states:v",
-            "test": "search",
-            "searchString": "states:v",
-            "diagElementCount": 14
-        },
-        { "test": "root" },
-        {
-            "desc": "Check that home button works after search",
-            "test": "count",
-            "selector": "g#n2elements > g.n2cell",
-            "count": 53
-        },
-        {
-            "desc": "Expand toolbar connections menu",
-            "test": "hover",
-            "selector": ".group-3 > div.expandable:first-child"
-        },
-        {
-            "desc": "Press toolbar show all connections button",
-            "test": "click",
-            "selector": "#show-all-connections",
-            "button": "left"
-        },
-        {
-            "desc": "Check number of arrows",
-            "test": "count",
-            "selector": "g#n2arrows > g",
-            "count": 30
-        },
-        {
-            "desc": "Expand toolbar connections menu",
-            "test": "hover",
-            "selector": ".group-3 > div.expandable:first-child"
-        },
-        {
-            "desc": "Press toolbar hide all connections button",
-            "test": "click",
-            "selector": "#hide-connections-2",
-            "button": "left"
-        },
-        {
-            "desc": "Check number of arrows",
-            "test": "count",
-            "selector": "g#n2arrows > g",
-            "count": 0
-        },
-        { "test": "root" },
-        {
-            "desc": "Alt-right-click the climb.initial component",
-            "test": "click",
-            "selector": "rect#climb_initial",
-            "button": "right",
-            "modifiers": [ "Alt" ]
-        },
-        {
-            "desc": "Check that variable selection dialog appears",
-            "test": "count",
-            "selector": "#childSelect-climb_initial",
-            "count": 1
-        },
-        {
-            "desc": "Select a variable to hide",
-            "test": "click",
-            "selector": "input#climb_initial_time-visible-check",
-            "button": "left"
-        },
-        {
-            "desc": "Click the Apply button",
-            "test": "click",
-            "selector": ".button-container button:last-child",
-            "button": "left"
-        },
-        {
-            "desc": "Check that the time variable is no longer displayed",
-            "test": "count",
-            "selector": "rect#climb_initial_time",
-            "count": 0
-        },
-        {
-            "desc": "Alt-right-click the climb.initial component",
-            "test": "click",
-            "selector": "rect#climb_initial",
-            "button": "right",
-            "modifiers": [ "Alt" ]
-        },
-        {
-            "desc": "Click the Clear Search button",
-            "test": "click",
-            "selector": ".search-clear",
-            "button": "left"
-        },
-        {
-            "desc": "Perform a search in the variable selection dialog",
-            "test": "var_select_search",
-            "searchString": "gam",
-            "foundVariableCount": 1
-        },
-        {
-            "desc": "Click the Apply button",
-            "test": "click",
-            "selector": ".button-container button:last-child",
-            "button": "left"
-        },
-        {
-            "desc": "Check the number of cells in the matrix grid",
-            "test": "count",
-            "selector": "g#n2elements > g.n2cell",
-            "count": 49
-        },
+    {"test": "toolbar"},
+    {
+        "desc": "Hover on matrix cell and check arrow count",
+        "test": "hoverArrow",
+        "selector": "g#n2elements rect#cellShape_node_10.vMid",
+        "arrowCount": 2
+    },
+    {
+        "desc": "Left-click on model tree element to zoom",
+        "test": "click",
+        "selector": "g#tree g.phase rect#climb",
+        "button": "left"
+    },
+    {
+        "desc": "Hover on matrix cell and check arrow count",
+        "test": "hoverArrow",
+        "selector": "g#n2elements rect#cellShape_node_55.vMid",
+        "arrowCount": 1
+    },
+    {"test": "root"},
+    {
+        "desc": "Right-click on model tree element to collapse",
+        "test": "click",
+        "selector": "g#tree rect#br_to_v1",
+        "button": "right"
+    },
+    {
+        "desc": "Hover over collapsed matrix cell and check arrow count",
+        "test": "hoverArrow",
+        "selector": "g#n2elements rect#cellShape_node_1.gMid",
+        "arrowCount": 6
+    },
+    {
+        "desc": "Right-click on model tree element to uncollapse",
+        "test": "click",
+        "selector": "g#tree rect#br_to_v1",
+        "button": "right"
+    },
+    {"test": "root"},
+    {
+        "desc": "Check the number of cells in the matrix grid",
+        "test": "count",
+        "selector": "g#n2elements > g.n2cell",
+        "count": 53
+    },
+    {
+        "desc": "Perform a search on states:v",
+        "test": "search",
+        "searchString": "states:v",
+        "diagElementCount": 14
+    },
+    {"test": "root"},
+    {
+        "desc": "Check that home button works after search",
+        "test": "count",
+        "selector": "g#n2elements > g.n2cell",
+        "count": 53
+    },
+    {
+        "desc": "Expand toolbar connections menu",
+        "test": "hover",
+        "selector": ".group-3 > div.expandable:first-child"
+    },
+    {
+        "desc": "Press toolbar show all connections button",
+        "test": "click",
+        "selector": "#show-all-connections",
+        "button": "left"
+    },
+    {
+        "desc": "Check number of arrows",
+        "test": "count",
+        "selector": "g#n2arrows > g",
+        "count": 30
+    },
+    {
+        "desc": "Expand toolbar connections menu",
+        "test": "hover",
+        "selector": ".group-3 > div.expandable:first-child"
+    },
+    {
+        "desc": "Press toolbar hide all connections button",
+        "test": "click",
+        "selector": "#hide-connections-2",
+        "button": "left"
+    },
+    {
+        "desc": "Check number of arrows",
+        "test": "count",
+        "selector": "g#n2arrows > g",
+        "count": 0
+    },
+    {"test": "root"},
+    {
+        "desc": "Alt-right-click the climb.initial component",
+        "test": "click",
+        "selector": "rect#climb_initial",
+        "button": "right",
+        "modifiers": ["Alt"]
+    },
+    {
+        "desc": "Check that variable selection dialog appears",
+        "test": "count",
+        "selector": "#childSelect-climb_initial",
+        "count": 1
+    },
+    {
+        "desc": "Select a variable to hide",
+        "test": "click",
+        "selector": "input#climb_initial_time-visible-check",
+        "button": "left"
+    },
+    {
+        "desc": "Click the Apply button",
+        "test": "click",
+        "selector": ".button-container button:last-child",
+        "button": "left"
+    },
+    {
+        "desc": "Check that the time variable is no longer displayed",
+        "test": "count",
+        "selector": "rect#climb_initial_time",
+        "count": 0
+    },
+    {
+        "desc": "Alt-right-click the climb.initial component",
+        "test": "click",
+        "selector": "rect#climb_initial",
+        "button": "right",
+        "modifiers": ["Alt"]
+    },
+    {
+        "desc": "Click the Clear Search button",
+        "test": "click",
+        "selector": ".search-clear",
+        "button": "left"
+    },
+    {
+        "desc": "Perform a search in the variable selection dialog",
+        "test": "var_select_search",
+        "searchString": "gam",
+        "foundVariableCount": 1
+    },
+    {
+        "desc": "Click the Apply button",
+        "test": "click",
+        "selector": ".button-container button:last-child",
+        "button": "left"
+    },
+    {
+        "desc": "Check the number of cells in the matrix grid",
+        "test": "count",
+        "selector": "g#n2elements > g.n2cell",
+        "count": 49
+    },
 
 ]
 
@@ -240,6 +240,7 @@ resize_dirs = {
 }
 
 current_test = 1
+
 
 @use_tempdirs
 class dymos_linkage_gui_test_case(_GuiTestCase):
@@ -264,7 +265,7 @@ class dymos_linkage_gui_test_case(_GuiTestCase):
 
         # Second Phase: Rejected takeoff at V1 - no engines operable
         rto = dm.Phase(ode_class=BalancedFieldODEComp, transcription=dm.Radau(num_segments=3),
-                        ode_init_kwargs={'mode': 'runway'})
+                       ode_init_kwargs={'mode': 'runway'})
         rto.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1.0)
         rto.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
         rto.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0)
@@ -282,7 +283,7 @@ class dymos_linkage_gui_test_case(_GuiTestCase):
 
         # Fourth Phase: Rotate - single engine operable
         rotate = dm.Phase(ode_class=BalancedFieldODEComp, transcription=dm.Radau(num_segments=3),
-                            ode_init_kwargs={'mode': 'runway'})
+                          ode_init_kwargs={'mode': 'runway'})
         rotate.set_time_options(fix_initial=False, duration_bounds=(1.0, 5), duration_ref=1.0)
         rotate.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
         rotate.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0)
@@ -291,7 +292,7 @@ class dymos_linkage_gui_test_case(_GuiTestCase):
 
         # Fifth Phase: Climb to target speed and altitude at end of runway.
         climb = dm.Phase(ode_class=BalancedFieldODEComp, transcription=dm.Radau(num_segments=5),
-                            ode_init_kwargs={'mode': 'climb'})
+                         ode_init_kwargs={'mode': 'climb'})
         climb.set_time_options(fix_initial=False, duration_bounds=(1, 100), duration_ref=1.0)
         climb.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
         climb.add_state('h', fix_initial=True, lower=0.0, ref=1.0, defect_ref=1.0)
@@ -311,79 +312,79 @@ class dymos_linkage_gui_test_case(_GuiTestCase):
 
         # Add parameters common to multiple phases to the trajectory
         traj.add_parameter('m', val=174200., opt=False, units='lbm',
-                            desc='aircraft mass',
-                            targets={'br_to_v1': ['m'], 'v1_to_vr': ['m'], 'rto': ['m'],
+                           desc='aircraft mass',
+                           targets={'br_to_v1': ['m'], 'v1_to_vr': ['m'], 'rto': ['m'],
                                     'rotate': ['m'], 'climb': ['m']})
 
         traj.add_parameter('T_nominal', val=27000 * 2, opt=False, units='lbf', static_target=True,
-                            desc='nominal aircraft thrust',
-                            targets={'br_to_v1': ['T']})
+                           desc='nominal aircraft thrust',
+                           targets={'br_to_v1': ['T']})
 
         traj.add_parameter('T_engine_out', val=27000, opt=False, units='lbf', static_target=True,
-                            desc='thrust under a single engine',
-                            targets={'v1_to_vr': ['T'], 'rotate': ['T'], 'climb': ['T']})
+                           desc='thrust under a single engine',
+                           targets={'v1_to_vr': ['T'], 'rotate': ['T'], 'climb': ['T']})
 
         traj.add_parameter('T_shutdown', val=0.0, opt=False, units='lbf', static_target=True,
-                            desc='thrust when engines are shut down for rejected takeoff',
-                            targets={'rto': ['T']})
+                           desc='thrust when engines are shut down for rejected takeoff',
+                           targets={'rto': ['T']})
 
         traj.add_parameter('mu_r_nominal', val=0.03, opt=False, units=None, static_target=True,
-                            desc='nominal runway friction coeffcient',
-                            targets={'br_to_v1': ['mu_r'], 'v1_to_vr': ['mu_r'],  'rotate': ['mu_r']})
+                           desc='nominal runway friction coeffcient',
+                           targets={'br_to_v1': ['mu_r'], 'v1_to_vr': ['mu_r'], 'rotate': ['mu_r']})
 
         traj.add_parameter('mu_r_braking', val=0.3, opt=False, units=None, static_target=True,
-                            desc='runway friction coefficient under braking',
-                            targets={'rto': ['mu_r']})
+                           desc='runway friction coefficient under braking',
+                           targets={'rto': ['mu_r']})
 
         traj.add_parameter('h_runway', val=0., opt=False, units='ft', static_target=False,
-                            desc='runway altitude',
-                            targets={'br_to_v1': ['h'], 'v1_to_vr': ['h'], 'rto': ['h'],
+                           desc='runway altitude',
+                           targets={'br_to_v1': ['h'], 'v1_to_vr': ['h'], 'rto': ['h'],
                                     'rotate': ['h']})
 
         traj.add_parameter('rho', val=1.225, opt=False, units='kg/m**3', static_target=True,
-                            desc='atmospheric density',
-                            targets={'br_to_v1': ['rho'], 'v1_to_vr': ['rho'], 'rto': ['rho'],
+                           desc='atmospheric density',
+                           targets={'br_to_v1': ['rho'], 'v1_to_vr': ['rho'], 'rto': ['rho'],
                                     'rotate': ['rho']})
 
         traj.add_parameter('S', val=124.7, opt=False, units='m**2', static_target=True,
-                            desc='aerodynamic reference area',
-                            targets={'br_to_v1': ['S'], 'v1_to_vr': ['S'], 'rto': ['S'],
+                           desc='aerodynamic reference area',
+                           targets={'br_to_v1': ['S'], 'v1_to_vr': ['S'], 'rto': ['S'],
                                     'rotate': ['S'], 'climb': ['S']})
 
         traj.add_parameter('CD0', val=0.03, opt=False, units=None, static_target=True,
-                            desc='zero-lift drag coefficient',
-                            targets={f'{phase}': ['CD0'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                        'rto', 'rotate' 'climb']})
+                           desc='zero-lift drag coefficient',
+                           targets={f'{phase}': ['CD0'] for phase in ['br_to_v1', 'v1_to_vr',
+                                                                      'rto', 'rotate' 'climb']})
 
         traj.add_parameter('AR', val=9.45, opt=False, units=None, static_target=True,
-                            desc='wing aspect ratio',
-                            targets={f'{phase}': ['AR'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                        'rto', 'rotate' 'climb']})
+                           desc='wing aspect ratio',
+                           targets={f'{phase}': ['AR'] for phase in ['br_to_v1', 'v1_to_vr',
+                                                                     'rto', 'rotate' 'climb']})
 
         traj.add_parameter('e', val=801, opt=False, units=None, static_target=True,
-                            desc='Oswald span efficiency factor',
-                            targets={f'{phase}': ['e'] for phase in ['br_to_v1', 'v1_to_vr',
+                           desc='Oswald span efficiency factor',
+                           targets={f'{phase}': ['e'] for phase in ['br_to_v1', 'v1_to_vr',
                                                                     'rto', 'rotate' 'climb']})
 
         traj.add_parameter('span', val=35.7, opt=False, units='m', static_target=True,
-                            desc='wingspan',
-                            targets={f'{phase}': ['span'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                        'rto', 'rotate' 'climb']})
+                           desc='wingspan',
+                           targets={f'{phase}': ['span'] for phase in ['br_to_v1', 'v1_to_vr',
+                                                                       'rto', 'rotate' 'climb']})
 
         traj.add_parameter('h_w', val=1.0, opt=False, units='m', static_target=True,
-                            desc='height of wing above CG',
-                            targets={f'{phase}': ['h_w'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                        'rto', 'rotate' 'climb']})
+                           desc='height of wing above CG',
+                           targets={f'{phase}': ['h_w'] for phase in ['br_to_v1', 'v1_to_vr',
+                                                                      'rto', 'rotate' 'climb']})
 
         traj.add_parameter('CL0', val=0.5, opt=False, units=None, static_target=True,
-                            desc='zero-alpha lift coefficient',
-                            targets={f'{phase}': ['CL0'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                        'rto', 'rotate' 'climb']})
+                           desc='zero-alpha lift coefficient',
+                           targets={f'{phase}': ['CL0'] for phase in ['br_to_v1', 'v1_to_vr',
+                                                                      'rto', 'rotate' 'climb']})
 
         traj.add_parameter('CL_max', val=2.0, opt=False, units=None, static_target=True,
-                            desc='maximum lift coefficient for linear fit',
-                            targets={f'{phase}': ['CL_max'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                            'rto', 'rotate' 'climb']})
+                           desc='maximum lift coefficient for linear fit',
+                           targets={f'{phase}': ['CL_max'] for phase in ['br_to_v1', 'v1_to_vr',
+                                                                         'rto', 'rotate' 'climb']})
 
         # Standard "end of first phase to beginning of second phase" linkages
         traj.link_phases(['br_to_v1', 'v1_to_vr'], vars=['time', 'r', 'v'])
@@ -611,10 +612,8 @@ class dymos_linkage_gui_test_case(_GuiTestCase):
         edge_hndl = await self.get_handle(options['selector'] + ' div.rsz-' + options['side'])
         edge_bbox = await edge_hndl.bounding_box()
 
-        new_x = edge_bbox['x'] + \
-            resize_dirs[options['side']][0] * options['distance']
-        new_y = edge_bbox['y'] + \
-            resize_dirs[options['side']][1] * options['distance']
+        new_x = edge_bbox['x'] + resize_dirs[options['side']][0] * options['distance']
+        new_y = edge_bbox['y'] + resize_dirs[options['side']][1] * options['distance']
 
         await edge_hndl.hover()
         await self.page.mouse.down()
@@ -709,7 +708,7 @@ class dymos_linkage_gui_test_case(_GuiTestCase):
             elif test_type == 'count':
                 self.log_test(script_item['desc'] if 'desc' in script_item
                               else "Checking for " + str(script_item['count']) +
-                              "' instances of '" + script_item['selector'] + "'")
+                                   "' instances of '" + script_item['selector'] + "'")
                 await self.assert_element_count(script_item['selector'],
                                                 script_item['count'])
 
