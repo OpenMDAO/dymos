@@ -1,9 +1,6 @@
-# Run Tests
+# Build docs
 
-# Matrix Options
-# DOCS: 2-Build and publish, 1-build only, 0-no docs
-
-name: Dymos Tests
+name: Dymos Docs
 
 on:
   # Trigger on push, pull request or workflow dispatch events for the master branch
@@ -24,45 +21,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # baseline versions
-          - NAME: baseline
+          # baseline versions except with pyoptsparse but no SNOPT
+          # build docs to verify those that use pyoptsparse do not use SNOPT
+          - NAME: baseline_no_snopt
             PY: '3.10'
             NUMPY: 1.22
             SCIPY: 1.7
             PETSc: 3.17
             PYOPTSPARSE: 'v2.8.3'
-            SNOPT: 7.7
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
             JAX: True
-            DOCS: 0
+            PUBLISH_DOCS: 1
 
-          # baseline versions except no pyoptsparse or SNOPT
-          - NAME: no_pyoptsparse
-            PY: '3.10'
-            NUMPY: 1.22
-            SCIPY: 1.7
-            PETSc: 3.17
-            MBI: 1
-            OPENMDAO: 'latest'
-            OPTIONAL: '[all]'
-            DOCS: 0
-
-          # baseline versions except with pyoptsparse but no SNOPT
-          # build docs to verify those that use pyoptsparse do not use SNOPT
-          - NAME: no_snopt
-            PY: '3.10'
-            NUMPY: 1.22
-            SCIPY: 1.7
-            PETSc: 3.17
-            PYOPTSPARSE: 'v2.8.3'
-            MBI: 1
-            OPENMDAO: 'latest'
-            OPTIONAL: '[all]'
-            DOCS: 0
-
-          # try latest versions
+          # make sure the latest versions of things don't break the docs
           - NAME: latest
             PY: 3
             NUMPY: 1
@@ -72,24 +45,9 @@ jobs:
             SNOPT: 7.7
             MBI: 1
             OPENMDAO: 'dev'
-            OPTIONAL: '[test]'
-            JAX: True
-            DOCS: 0
-
-          # oldest supported versions
-          - NAME: oldest
-            PY: 3.8
-            NUMPY: 1.22
-            SCIPY: 1.7
-            OPENMPI: '4.0'
-            MPI4PY: '3.0'
-            PETSc: 3.13
-            PYOPTSPARSE: 'v1.2'
-            SNOPT: 7.2
-            MBI: 1
-            OPENMDAO: 3.17.0
             OPTIONAL: '[all]'
-            DOCS: 0
+            JAX: True
+            PUBLISH_DOCS: 0
 
     steps:
       - name: Display run details
@@ -270,41 +228,8 @@ jobs:
           python -c "import scipy; assert str(scipy.__version__).startswith(str(${{ matrix.SCIPY }})), \
                     f'Scipy version {scipy.__version__} is not the requested version (${{ matrix.SCIPY }})'"
 
-      - name: Run tests
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
-        env:
-          DYMOS_CHECK_PARTIALS: True
-        shell: bash -l {0}
-        run: |
-          echo "============================================================="
-          echo "Run Tests"
-          echo "Environment:"
-          echo "   DYMOS_CHECK_PARTIALS: $DYMOS_CHECK_PARTIALS"
-          echo "============================================================="
-          testflo -n 1 docs/dymos_book/test --pre_announce
-          testflo -n 1 joss/test --pre_announce
-          testflo -b benchmark --pre_announce
-          cd $HOME
-          testflo dymos -n 2 --show_skipped --coverage --coverpkg dymos
-
-      - name: Submit coverage
-        if: (github.event_name != 'workflow_dispatch')
-        shell: bash -l {0}
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_SERVICE_NAME: "github"
-          COVERALLS_PARALLEL: True
-        run: |
-          echo "============================================================="
-          echo "Submit coverage"
-          echo "============================================================="
-          cp $HOME/.coverage .
-          pip install coveralls
-          SITE_DIR=`python -c 'import site; print(site.getsitepackages()[-1])'`
-          coveralls --basedir $SITE_DIR
-
       - name: Build docs
-        if: (github.event_name != 'workflow_dispatch') && (matrix.DOCS == '1' || matrix.DOCS == '2')
+        if: (github.event_name != 'workflow_dispatch')
         id: build_docs
         shell: bash -l {0}
         run: |
@@ -320,9 +245,7 @@ jobs:
         continue-on-error: True
         if: |
           github.event_name != 'workflow_dispatch' &&
-          failure() &&
-          (matrix.DOCS == '1' || matrix.DOCS == '2') &&
-          steps.build_docs.outcome == 'failure'
+          failure() && steps.build_docs.outcome == 'failure'
         run: |
           for f in /home/runner/work/dymos/dymos/docs/dymos_book/_build/html/reports/*; do
             echo "============================================================="
@@ -334,7 +257,7 @@ jobs:
       - name: Publish docs
         if: |
           github.event_name == 'push' && github.ref == 'refs/heads/master' &&
-          matrix.DOCS == '2'
+          matrix.PUBLISH_DOCS == '1'
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -344,14 +267,3 @@ jobs:
           cd $HOME/work/dymos/dymos
           pwd
           ghp-import -n -p -f docs/dymos_book/_build/html
-
-  coveralls:
-    name: Finish coveralls
-    if: (github.event_name != 'workflow_dispatch')
-    needs: test_ubuntu
-    runs-on: ubuntu-latest
-    steps:
-    - uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        parallel-finished: true

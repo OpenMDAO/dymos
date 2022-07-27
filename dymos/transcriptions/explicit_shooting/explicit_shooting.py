@@ -626,53 +626,6 @@ class ExplicitShooting(TranscriptionBase):
 
         return obj_path, shape, units, linear
 
-    def get_rate_source_path(self, state_var, phase):
-        """
-        Return the rate source location for a given state name.
-
-        Parameters
-        ----------
-        state_var : str
-            Name of the state.
-        phase : dymos.Phase
-            Phase object containing the rate source.
-
-        Returns
-        -------
-        str
-            Path to the rate source.
-        """
-        var = phase.state_options[state_var]['rate_source']
-
-        if var == 'time':
-            rate_path = 'time'
-        elif var == 'time_phase':
-            rate_path = 'time_phase'
-        elif phase.state_options is not None and var in phase.state_options:
-            rate_path = f'state_mux_comp.states:{var}'
-        elif phase.control_options is not None and var in phase.control_options:
-            rate_path = f'control_values:{var}'
-        elif phase.polynomial_control_options is not None and var in phase.polynomial_control_options:
-            rate_path = f'polynomial_control_values:{var}'
-        elif phase.parameter_options is not None and var in phase.parameter_options:
-            rate_path = f'parameters:{var}'
-        elif var.endswith('_rate') and phase.control_options is not None and \
-                var[:-5] in phase.control_options:
-            rate_path = f'control_rates:{var}'
-        elif var.endswith('_rate2') and phase.control_options is not None and \
-                var[:-6] in phase.control_options:
-            rate_path = f'control_rates:{var}'
-        elif var.endswith('_rate') and phase.polynomial_control_options is not None and \
-                var[:-5] in phase.polynomial_control_options:
-            rate_path = f'polynomial_control_rates:{var}'
-        elif var.endswith('_rate2') and phase.polynomial_control_options is not None and \
-                var[:-6] in phase.polynomial_control_options:
-            rate_path = f'polynomial_control_rates:{var}'
-        else:
-            rate_path = f'ode.{var}'
-
-        return rate_path
-
     def _requires_continuity_constraints(self, phase):
         """
         Tests whether state and/or control and/or control rate continuity are required.
