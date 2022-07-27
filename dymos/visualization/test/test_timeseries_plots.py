@@ -272,7 +272,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                         'state_rates:accel', 'states:deltav', 'state_rates:deltav',
                         'controls:u1', 'control_rates:u1_rate', 'control_rates:u1_rate2',
                         'parameters:c']:
-            self.assertTrue(plot_dir.joinpath(varname.replace(":","_") + '.png').exists())
+            self.assertTrue(plot_dir.joinpath(varname.replace(":", "_") + '.png').exists())
 
     def test_overlapping_phases_make_plot(self):
 
@@ -506,7 +506,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                         'state_rates:accel', 'states:deltav', 'state_rates:deltav',
                         'controls:u1', 'control_rates:u1_rate', 'control_rates:u1_rate2',
                         'parameters:c', 'parameters:u1']:
-            self.assertTrue(plot_dir.joinpath(varname.replace(":","_") + '.png').exists())
+            self.assertTrue(plot_dir.joinpath(varname.replace(":", "_") + '.png').exists())
 
 
 if __name__ == '__main__':  # pragma: no cover
