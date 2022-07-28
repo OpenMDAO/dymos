@@ -10,12 +10,14 @@ import openmdao
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.general_utils import set_pyoptsparse_opt
 
 import dymos as dm
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import BrachistochroneVectorStatesODE
-from openmdao.utils.general_utils import set_pyoptsparse_opt
+from dymos.utils.testing_utils import _get_reports_dir
+
 _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
 om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
@@ -628,7 +630,7 @@ class TestRunProblemPlotting(unittest.TestCase):
 
     def test_run_brachistochrone_problem_make_plots(self):
         dm.run_problem(self.p, make_plots=True)
-        plot_dir = pathlib.Path(self.p.get_reports_dir()).joinpath('plots')
+        plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
         for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
@@ -639,7 +641,7 @@ class TestRunProblemPlotting(unittest.TestCase):
     def test_run_brachistochrone_problem_make_plots_set_plot_dir(self):
         dm.run_problem(self.p, make_plots=True, plot_dir="test_plot_dir")
 
-        plot_dir = pathlib.Path(self.p.get_reports_dir())
+        plot_dir = pathlib.Path(_get_reports_dir(self.p))
         for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
@@ -648,7 +650,7 @@ class TestRunProblemPlotting(unittest.TestCase):
 
     def test_run_brachistochrone_problem_do_not_make_plots(self):
         dm.run_problem(self.p, make_plots=False)
-        plot_dir = pathlib.Path(self.p.get_reports_dir()).joinpath('plots')
+        plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
         for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
@@ -670,7 +672,7 @@ class TestRunProblemPlotting(unittest.TestCase):
 
     def test_run_brachistochrone_problem_plot_simulation(self):
         dm.run_problem(self.p, make_plots=True, simulate=True)
-        plot_dir = pathlib.Path(self.p.get_reports_dir()).joinpath('plots')
+        plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
         for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
@@ -680,7 +682,7 @@ class TestRunProblemPlotting(unittest.TestCase):
 
     def test_run_brachistochrone_problem_plot_no_simulation_record_file_given(self):
         dm.run_problem(self.p, make_plots=True, simulate=True)
-        plot_dir = pathlib.Path(self.p.get_reports_dir()).joinpath('plots')
+        plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
         for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',

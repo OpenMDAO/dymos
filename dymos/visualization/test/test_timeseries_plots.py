@@ -12,6 +12,7 @@ from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
 from dymos.utils.lgl import lgl
+from dymos.utils.testing_utils import _get_reports_dir
 from dymos.visualization.timeseries_plots import timeseries_plots
 
 
@@ -82,7 +83,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         dm.run_problem(self.p, make_plots=False)
 
         timeseries_plots('dymos_solution.db', problem=self.p)
-        plot_dir = pathlib.Path(self.p.get_reports_dir()).joinpath('plots')
+        plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
         self.assertTrue(plot_dir.joinpath('states_x.png').exists())
         self.assertTrue(plot_dir.joinpath('states_y.png').exists())
@@ -96,7 +97,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         dm.run_problem(self.p, make_plots=False, solution_record_file='solution_record_file.db')
 
         timeseries_plots('solution_record_file.db', problem=self.p)
-        plot_dir = pathlib.Path(self.p.get_reports_dir()).joinpath('plots')
+        plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
         self.assertTrue(plot_dir.joinpath('states_x.png').exists())
         self.assertTrue(plot_dir.joinpath('states_y.png').exists())
@@ -114,7 +115,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
     def test_brachistochrone_timeseries_plots_set_plot_dir(self):
         dm.run_problem(self.p, make_plots=False)
 
-        plot_dir = pathlib.Path(self.p.get_reports_dir()).joinpath("test_plot_dir").resolve()
+        plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath("test_plot_dir").resolve()
         timeseries_plots('dymos_solution.db', plot_dir=plot_dir, problem=self.p)
 
         self.assertTrue(plot_dir.joinpath('states_x.png').exists())
@@ -264,7 +265,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
 
         timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db',
                          problem=p)
-        plot_dir = pathlib.Path(p.get_reports_dir()).joinpath("plots")
+        plot_dir = pathlib.Path(_get_reports_dir(p)).joinpath("plots")
 
         for varname in ['time_phase', 'states:r', 'state_rates:r', 'states:theta',
                         'state_rates:theta', 'states:vr', 'state_rates:vr', 'states:vt',
@@ -354,7 +355,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
 
         timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db',
                          problem=prob)
-        plot_dir = pathlib.Path(prob.get_reports_dir()).joinpath("plots")
+        plot_dir = pathlib.Path(_get_reports_dir(prob)).joinpath("plots")
 
         self.assertTrue(plot_dir.joinpath('time_phase.png').exists())
         self.assertTrue(plot_dir.joinpath('states_state_of_charge.png').exists())
@@ -498,7 +499,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
 
         timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db',
                          problem=p)
-        plot_dir = pathlib.Path(p.get_reports_dir()).joinpath("plots")
+        plot_dir = pathlib.Path(_get_reports_dir(p)).joinpath("plots")
 
         for varname in ['time_phase', 'states:r', 'state_rates:r', 'states:theta',
                         'state_rates:theta', 'states:vr', 'state_rates:vr', 'states:vt',

@@ -1,4 +1,6 @@
 import io
+import pathlib
+from packaging.version import Version
 
 import numpy as np
 
@@ -6,6 +8,7 @@ from scipy.interpolate import interp1d
 
 import openmdao.api as om
 import openmdao.utils.assert_utils as _om_assert_utils
+from openmdao import __version__ as openmdao_version
 
 
 def assert_check_partials(data, atol=1.0E-6, rtol=1.0E-6):
@@ -193,3 +196,14 @@ def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6):
     y_interp = np.reshape(interp(t_check), newshape=(num_points,) + shape1)
 
     _om_assert_utils.assert_near_equal(y_interp, x_check, tolerance=tolerance)
+
+
+def _get_reports_dir(prob):
+    # need this to work with older OM versions with old reports system API
+    # reports API changed between 3.18 and 3.19, so handle it here in order to be able to test against older
+    # versions of openmdao
+    if Version(openmdao_version) > Version("3.18"):
+        return prob.get_reports_dir()
+
+    from openmdao.utils.reports_system import get_reports_dir
+    return str(pathlib.Path(get_reports_dir()).joinpath(prob._name))

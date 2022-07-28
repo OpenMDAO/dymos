@@ -9,12 +9,14 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.testing_utils import require_pyoptsparse
 from openmdao.utils.general_utils import set_pyoptsparse_opt
-_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+from openmdao.utils.testing_utils import use_tempdirs
+
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
-from openmdao.utils.testing_utils import use_tempdirs
+from dymos.utils.testing_utils import _get_reports_dir
 
+_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 bokeh_available = importlib.util.find_spec('bokeh') is not None
 
 
@@ -204,7 +206,7 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer='SLSQP', show_output=False)
 
-        plot_dir = pathlib.Path(p.get_reports_dir()).joinpath('plots')
+        plot_dir = pathlib.Path(_get_reports_dir(p)).joinpath('plots')
         self.assertSetEqual({'plots.html'}, set(os.listdir(plot_dir)))
 
     def test_mpl_plots(self):
@@ -221,7 +223,7 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
                           'parameters_c.png', 'state_rates_theta.png', 'state_rates_vr.png', 'dt_dstau.png'}
 
         html_files = {str(pathlib.Path(f).with_suffix('.html')) for f in expected_files}
-        plot_dir = pathlib.Path(p.get_reports_dir()).joinpath('plots')
+        plot_dir = pathlib.Path(_get_reports_dir(p)).joinpath('plots')
         self.assertSetEqual(expected_files.union(html_files), set(os.listdir(plot_dir)))
 
 

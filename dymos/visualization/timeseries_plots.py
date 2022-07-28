@@ -320,17 +320,6 @@ def image2html(imagefile, title='', alt=''):
 """
 
 
-def _get_reports_dir(prob):
-    # need this to work with older OM versions.
-    try:
-        return prob.get_reports_dir()
-    except Exception:
-        pass
-
-    from openmdao.utils.reports_system import get_reports_dir
-    return str(pathlib.Path(get_reports_dir(prob)).joinpath(prob._name))
-
-
 def timeseries_plots(solution_recorder_filename, simulation_record_file=None, plot_dir="plots",
                      problem=None):
     """
@@ -358,7 +347,7 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
         if problem is None:
             plot_dir_path = pathlib.Path.cwd().joinpath(plot_dir)
         else:
-            plot_dir_path = pathlib.Path(_get_reports_dir(problem)).joinpath(plot_dir)
+            plot_dir_path = pathlib.Path(problem.get_reports_dir()).joinpath(plot_dir)
     else:
         plot_dir_path = plot_dir
 
