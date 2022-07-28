@@ -275,49 +275,52 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
         save(plots)
 
 
-# this function is defined in newer versions of openmdao, so remove this
-# at some point later when we don't care about testing vs. older openmdao versions.
-def image2html(imagefile, title='', alt=''):
+try:
+    from openmdao.utils.file_utils import image2html
+except ImportError:
+    # FIXME: this function is defined in newer versions of openmdao, so remove this
+    # at some point later when we don't care about testing vs. older (< 3.19) openmdao versions.
+    def image2html(imagefile, title='', alt=''):
+        """
+        Wrap the given image for display as an html file.
+
+        Returns an html syntax string that can be written to a file.
+
+        Parameters
+        ----------
+        imagefile : str
+            Name of image file to be displayed.
+        title : str
+            The page title.
+        alt : str
+            Set the alt text for the image.
+
+        Returns
+        -------
+        str
+            Content string to create an html file.
+        """
+        return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <style>
+            h2 {text-align: center;}
+            .center {
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+                width: 80%;
+            }
+        </style>
+    </head>
+    <body>
+    <h2>""" + title + "</h2>" + f"""
+    <img src="{imagefile}" alt="{alt}" class="center"></img>
+
+    </body>
+    </html>
     """
-    Wrap the given image for display as an html file.
-
-    Returns an html syntax string that can be written to a file.
-
-    Parameters
-    ----------
-    imagefile : str
-        Name of image file to be displayed.
-    title : str
-        The page title.
-    alt : str
-        Set the alt text for the image.
-
-    Returns
-    -------
-    str
-        Content string to create an html file.
-    """
-    return """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <style>
-        h2 {text-align: center;}
-        .center {
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            width: 80%;
-        }
-    </style>
-</head>
-<body>
-<h2>""" + title + "</h2>" + f"""
-<img src="{imagefile}" alt="{alt}" class="center"></img>
-
-</body>
-</html>
-"""
 
 
 def timeseries_plots(solution_recorder_filename, simulation_record_file=None, plot_dir="plots",

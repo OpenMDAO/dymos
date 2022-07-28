@@ -3,6 +3,7 @@ import unittest
 
 import numpy as np
 import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
 import dymos as dm
 
 
@@ -34,6 +35,7 @@ class _BrysonDenhamODE(om.ExplicitComponent):
         partials['J_dot', 'u'] = inputs['u']
 
 
+@use_tempdirs
 class TestGridRefinement(unittest.TestCase):
 
     def test_refine_hp_non_ode_rate_sources(self):
