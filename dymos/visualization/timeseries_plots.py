@@ -347,7 +347,12 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
         if problem is None:
             plot_dir_path = pathlib.Path.cwd().joinpath(plot_dir)
         else:
-            plot_dir_path = pathlib.Path(problem.get_reports_dir()).joinpath(plot_dir)
+            try:
+                repdir = problem.get_reports_dir()
+            except AttributeError:
+                from openmdao.utils.reports_system import get_reports_dir
+                repdir = get_reports_dir(problem)
+            plot_dir_path = pathlib.Path(repdir).joinpath(plot_dir)
     else:
         plot_dir_path = plot_dir
 

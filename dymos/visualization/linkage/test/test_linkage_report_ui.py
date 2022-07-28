@@ -1,12 +1,15 @@
 """Test Dymos Linkage Reports GUI using Playwright."""
 import asyncio
+from packaging.version import Version
 from playwright.async_api import async_playwright
 from aiounittest import async_test
+import unittest
 
 from openmdao.utils.gui_testing_utils import _GuiTestCase
 import sys
 
 import openmdao.api as om
+import openmdao
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.assert_utils import assert_near_equal
 
@@ -17,6 +20,7 @@ from dymos.visualization.linkage.report import create_linkage_report
 if 'win32' in sys.platform:
     # Windows specific event-loop policy & cmd
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
 
 my_loop = asyncio.get_event_loop()
 
@@ -241,7 +245,7 @@ resize_dirs = {
 
 current_test = 1
 
-
+@unittest.skipUnless(Version(openmdao.__version__) >= Version("3.19"), "reports API is too old")
 @use_tempdirs
 class dymos_linkage_gui_test_case(_GuiTestCase):
     def setUp(self):

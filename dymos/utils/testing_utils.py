@@ -206,4 +206,4 @@ def _get_reports_dir(prob):
         return prob.get_reports_dir()
 
     from openmdao.utils.reports_system import get_reports_dir
-    return str(pathlib.Path(get_reports_dir()).joinpath(prob._name))
+    return get_reports_dir(prob)
