@@ -39,10 +39,10 @@ def create_linkage_report(traj, output_file: str = 'linkage_report.html',
 
     import openmdao
     openmdao_dir = os.path.dirname(inspect.getfile(openmdao))
-    vis_dir = os.path.join(openmdao_dir, "visualization/n2_viewer")
+    vis_dir = os.path.join(openmdao_dir, "visualization", "n2_viewer")
 
     dymos_dir = os.path.dirname(inspect.getfile(dm))
-    reports_dir = os.path.join(dymos_dir, "visualization/linkage")
+    reports_dir = os.path.join(dymos_dir, "visualization", "linkage")
 
     HtmlPreprocessor(os.path.join(reports_dir, "report_template.html"), output_file,
                      search_path=[vis_dir, reports_dir], allow_overwrite=True, var_dict=html_vars,
