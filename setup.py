@@ -24,6 +24,8 @@ optional_dependencies = {
         'testflo>=1.3.6',
         'matplotlib',
         'numpydoc>=1.1',
+        'playwright>=1.20',
+        'aiounittest'
     ]
 }
 
