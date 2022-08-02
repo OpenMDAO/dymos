@@ -75,10 +75,10 @@ class ControlInterpComp(om.ExplicitComponent):
         time_units = self.options['time_units']
 
         for name, options in control_options.items():
-            self._input_names[name] = 'controls:{0}'.format(name)
-            self._output_val_names[name] = 'control_values:{0}'.format(name)
-            self._output_rate_names[name] = 'control_rates:{0}_rate'.format(name)
-            self._output_rate2_names[name] = 'control_rates:{0}_rate2'.format(name)
+            self._input_names[name] = f'controls:{name}'
+            self._output_val_names[name] = f'control_values:{name}'
+            self._output_rate_names[name] = f'control_rates:{name}_rate'
+            self._output_rate2_names[name] = f'control_rates:{name}_rate2'
             shape = options['shape']
             input_shape = (num_control_input_nodes,) + shape
             output_shape = (num_nodes,) + shape
@@ -86,8 +86,6 @@ class ControlInterpComp(om.ExplicitComponent):
             units = options['units']
             rate_units = get_rate_units(units, time_units)
             rate2_units = get_rate_units(units, time_units, deriv=2)
-
-            # self._dynamic_names.append(name)
 
             self.add_input(self._input_names[name], val=np.ones(input_shape), units=units)
 
@@ -329,8 +327,7 @@ class ControlGroup(om.Group):
                         del desvar_indices[-size:]
 
                 if len(desvar_indices) > 0:
-                    coerce_desvar_option = CoerceDesvar(num_input_nodes, desvar_indices,
-                                                        options)
+                    coerce_desvar_option = CoerceDesvar(num_input_nodes, options=options)
 
                     lb = np.zeros_like(desvar_indices, dtype=float)
                     lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
@@ -347,7 +344,8 @@ class ControlGroup(om.Group):
                                         adder=coerce_desvar_option('adder'),
                                         ref0=coerce_desvar_option('ref0'),
                                         ref=coerce_desvar_option('ref'),
-                                        indices=desvar_indices)
+                                        indices=desvar_indices,
+                                        flat_indices=True)
 
                 default_val = reshape_val(options['val'], shape, num_input_nodes)
 

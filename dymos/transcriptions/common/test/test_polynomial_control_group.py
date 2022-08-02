@@ -3,8 +3,9 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 import openmdao.api as om
-from dymos.utils.testing_utils import assert_check_partials
 
+import dymos as dm
+from dymos.utils.testing_utils import assert_check_partials
 from dymos.transcriptions.common import TimeComp, PolynomialControlGroup
 from dymos.transcriptions.grid_data import GridData
 from dymos.phase.options import PolynomialControlOptionsDictionary
@@ -66,6 +67,12 @@ def f2_d(t):
 
 
 class TestInterpolatedControLGroup(unittest.TestCase):
+
+    def setUp(self):
+        dm.options['include_check_partials'] = True
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
 
     def test_polynomial_control_group_scalar_gl(self):
         transcription = 'gauss-lobatto'
@@ -211,8 +218,6 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
-
         p.setup(force_alloc_complex=True)
 
         p['t_initial'] = 0.0
@@ -302,8 +307,6 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
-
-        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
 
         p.setup(force_alloc_complex=True)
 
@@ -409,8 +412,6 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
-
         p.setup(force_alloc_complex=True)
 
         p['t_initial'] = 0.0
@@ -515,8 +516,6 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
-
         p.setup(force_alloc_complex=True)
 
         p['t_initial'] = 0.0
@@ -620,8 +619,6 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
-
-        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
 
         p.setup(force_alloc_complex=True)
 

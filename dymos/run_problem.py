@@ -13,7 +13,10 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
                 solution_record_file='dymos_solution.db',
                 simulation_record_file='dymos_simulation.db',
                 make_plots=False,
-                plot_dir="plots"
+                plot_dir="plots",
+                case_prefix=None,
+                reset_iter_counts=True,
+                simulate_kwargs=None,
                 ):
     """
     A Dymos-specific interface to execute an OpenMDAO problem containing Dymos Trajectories or
@@ -43,6 +46,12 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         Path to case recorder file use to store results from simulation.
     plot_dir : str
         Path to directory for plot files.
+    simulate_kwargs : dict
+        A dictionary of argument: value pairs to be passed to simulate.  These are ignored when simulate=False.
+    case_prefix : str or None
+        Prefix to prepend to coordinates when recording.
+    reset_iter_counts : bool
+        If True and model has been run previously, reset all iteration counters.
     """
     if restart is not None:
         case = om.CaseReader(restart).get_case('final')
@@ -61,27 +70,34 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         load_case(problem, case)
 
     if run_driver:
-        failed = problem.run_driver()
-        _refine_iter(problem, refine_iteration_limit, refine_method)
+        failed = _refine_iter(problem, refine_iteration_limit, refine_method, case_prefix=case_prefix)
     else:
         failed = problem.run_model()
         if refine_iteration_limit > 0:
             warnings.warn("Refinement not performed. Set run_driver to True to perform refinement.")
 
-    problem.record('final')  # save case for potential restart
+    _case_prefix = '' if case_prefix is None else f'{case_prefix}_'
+    problem.record(f'{_case_prefix}final')  # save case for potential restart
     problem.cleanup()
 
     if simulate:
+        _simulate_kwargs = simulate_kwargs if simulate_kwargs is not None else {}
+        if 'record_file' in _simulate_kwargs:
+            raise ValueError('Key "record_file" was found in simulate_kwargs but should instead by provided by the '
+                             'argument "simulation_record_file".')
+        if 'case_prefix' in _simulate_kwargs:
+            raise ValueError('Key "case_prefix" was found in simulate_kwargs but should instead by provided by the '
+                             'argument "case_prefix", not part of the simulate_kwargs dictionary.')
         for subsys in problem.model.system_iter(include_self=True, recurse=True):
             if isinstance(subsys, Trajectory):
-                subsys.simulate(record_file=simulation_record_file)
+                subsys.simulate(record_file=simulation_record_file, case_prefix=case_prefix, **_simulate_kwargs)
 
     if make_plots:
         if simulate:
             timeseries_plots(solution_record_file, simulation_record_file=simulation_record_file,
-                             plot_dir=plot_dir)
+                             plot_dir=plot_dir, problem=problem)
         else:
             timeseries_plots(solution_record_file, simulation_record_file=None,
-                             plot_dir=plot_dir)
+                             plot_dir=plot_dir, problem=problem)
 
     return failed

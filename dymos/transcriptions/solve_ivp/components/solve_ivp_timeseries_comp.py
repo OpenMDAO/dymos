@@ -31,13 +31,7 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         else:
             self.num_nodes = grid_data.num_segments * self.options['output_nodes_per_seg']
 
-        for (name, kwargs) in self._timeseries_outputs:
-            units = kwargs['units']
-            desc = kwargs['units']
-            shape = kwargs['shape']
-            self._add_output_configure(name, units, shape, desc)
-
-    def _add_output_configure(self, name, units, shape, desc):
+    def _add_output_configure(self, name, units, shape, desc, rate=False):
         """
         Add a single timeseries output.
 
@@ -55,20 +49,20 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
             Default is None, which means it has no units.
         desc : str
             description of the timeseries output variable.
+        rate : bool
+            If True, timeseries output is a rate.
         """
-        num_nodes = self.num_nodes
+        if rate:
+            raise NotImplementedError("Timeseries output rates are not currently supported for "
+                                      "SolveIVP transcriptions.")
 
+        nodeshape = (self.num_nodes,)
         input_name = f'all_values:{name}'
-        self.add_input(input_name,
-                       shape=(num_nodes,) + shape,
-                       units=units, desc=desc)
 
-        output_name = name
-        self.add_output(output_name,
-                        shape=(num_nodes,) + shape,
-                        units=units, desc=desc)
+        self.add_input(input_name, shape=nodeshape + shape,  units=units, desc=desc)
+        self.add_output(name, shape=nodeshape + shape, units=units, desc=desc)
 
-        self._vars[name] = (input_name, output_name, shape)
+        self._vars[name] = (input_name, name, shape, rate)
 
     def compute(self, inputs, outputs):
         """
@@ -81,5 +75,4 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        for (input_name, output_name, _) in self._vars.values():
-            outputs[output_name] = inputs[input_name]
+        outputs.set_val(inputs.asarray())

@@ -76,6 +76,11 @@ class StateIndependentsComp(om.ImplicitComponent):
                 default_val = np.repeat(default_val[np.newaxis, ...], num_state_input_nodes, axis=0)
             var_names = self.var_names[state_name]
 
+            if solved and (options['lower'] or options['upper']):
+                om.issue_warning(f'State {state_name} has bounds but they are not enforced when '
+                                 f'using `solve_segments.` Apply a path constraint to {state_name} '
+                                 f'to enforce bounds.', om.UnusedOptionWarning)
+
             # only need the implicit variable if this state is solved.
             # Note: we don't add scaling and bounds here. This may be revisited.
             self.add_output(name=f'states:{state_name}',

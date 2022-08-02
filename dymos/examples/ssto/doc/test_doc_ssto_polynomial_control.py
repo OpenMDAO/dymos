@@ -5,14 +5,12 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
-from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
 @use_tempdirs
 class TestDocSSTOPolynomialControl(unittest.TestCase):
 
-    @save_for_docs
     @require_pyoptsparse(optimizer='SLSQP')
     def test_doc_ssto_polynomial_control(self):
         import numpy as np
@@ -161,9 +159,9 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
                 nn = self.options['num_nodes']
 
                 self.add_subsystem('guidance', om.ExecComp('theta=arctan(tan_theta)',
-                                                           theta={'value': np.ones(nn),
+                                                           theta={'val': np.ones(nn),
                                                                   'units': 'rad'},
-                                                           tan_theta={'value': np.ones(nn)}))
+                                                           tan_theta={'val': np.ones(nn)}))
 
                 self.add_subsystem('eom', LaunchVehicle2DEOM(num_nodes=nn))
 

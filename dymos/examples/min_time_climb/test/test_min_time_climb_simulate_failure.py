@@ -89,14 +89,14 @@ class TestMinTimeClimbSimulateFailure(unittest.TestCase):
         Test that simulation of a naive alpha guess for the min time climb results in an
         AnalysisError due to a singularity in the dynamics
         """
-        p = min_time_climb(num_seg=12, transcription_order=3)
+        p = min_time_climb(num_seg=12, transcription_order=9)
 
         with self.assertRaises(om.AnalysisError) as e:
             dm.run_problem(p, run_driver=False, simulate=True)
-        expected = '\'traj.phases.phase0.segments.segment_1\' <class SegmentSimulationComp>: ' \
-                   'Error calling compute(), solve_ivp failed: Required step size is less than ' \
-                   'spacing between numbers. Dynamics changing too dramatically'
-        self.assertEqual(str(e.exception), expected)
+        expected_pattern = r"'traj.phases.phase0.segments.segment_[0-9]' <class SegmentSimulationComp>: Error calling " \
+                           r"compute\(\), solve_ivp failed: Required step size is less than spacing " \
+                           r"between numbers. Dynamics changing too dramatically"
+        self.assertRegex(str(e.exception), expected_pattern)
 
 
 if __name__ == '__main__':  # pragma: no cover

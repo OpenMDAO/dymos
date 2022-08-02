@@ -93,10 +93,12 @@ class TestCollocationCompSolOpt(unittest.TestCase):
 
         state_options = {'x': {'units': 'm', 'shape': (1, ), 'fix_initial': True,
                                'fix_final': False, 'solve_segments': False,
-                               'connected_initial': False, 'val': 1.0},
+                               'connected_initial': False, 'val': 1.0, 'lower': None,
+                               'upper': None},
                          'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial': False,
                                'fix_final': True, 'solve_segments': True,
-                               'connected_initial': False, 'val': np.ones((3, 2))}}
+                               'connected_initial': False, 'val': np.ones((3, 2)),
+                               'lower': None, 'upper': None}}
 
         indep_comp = om.IndepVarComp()
         p.model.add_subsystem('indep', indep_comp, promotes_outputs=['*'])

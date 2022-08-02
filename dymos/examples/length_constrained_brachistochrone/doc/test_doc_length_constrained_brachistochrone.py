@@ -4,8 +4,6 @@ import unittest
 
 from openmdao.utils.testing_utils import use_tempdirs
 
-from dymos.utils.doc_utils import save_for_docs
-
 import matplotlib
 matplotlib.use('Agg')
 
@@ -16,7 +14,6 @@ SHOW_PLOTS = True
 @use_tempdirs
 class TestLengthConstrainedBrachistochrone(unittest.TestCase):
 
-    @save_for_docs
     def test_length_constrained_brachistochrone(self):
         import openmdao.api as om
         import dymos as dm

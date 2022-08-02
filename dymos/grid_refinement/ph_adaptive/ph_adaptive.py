@@ -58,7 +58,7 @@ class PHAdaptive:
             algorithm.  refine_results is returned by check_error.  This method modifies it
             in place, adding the new_num_segments, new_order, and new_segment_ends.
         iter_number : int
-            Iteration number of the grid refinement.
+            Iteration number of the grid refinement. The first iteration is 1.
 
         Returns
         -------

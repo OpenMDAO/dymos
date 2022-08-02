@@ -1,12 +1,12 @@
-from collections.abc import Iterable
-
 import numpy as np
 
 import openmdao.api as om
 from ..transcription_base import TranscriptionBase
-from ..common import TimeComp, PseudospectralTimeseriesOutputComp
-from .components import StateIndependentsComp, StateInterpComp, CollocationComp
-from ...utils.misc import CoerceDesvar, get_rate_units, get_source_metadata, reshape_val
+from ..common import TimeComp
+from .components import StateIndependentsComp, StateInterpComp, CollocationComp, \
+    PseudospectralTimeseriesOutputComp
+from ...utils.misc import CoerceDesvar, get_rate_units, reshape_val
+from ...utils.introspection import get_promoted_vars, get_source_metadata
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 
@@ -45,13 +45,13 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        time_units = phase.time_options['units']
         grid_data = self.grid_data
 
         super(PseudospectralBase, self).setup_time(phase)
 
         time_comp = TimeComp(num_nodes=grid_data.num_nodes, node_ptau=grid_data.node_ptau,
-                             node_dptau_dstau=grid_data.node_dptau_dstau, units=time_units,
+                             node_dptau_dstau=grid_data.node_dptau_dstau,
+                             units=phase.time_options['units'],
                              initial_val=phase.time_options['initial_val'],
                              duration_val=phase.time_options['duration_val'])
 
@@ -103,6 +103,24 @@ class PseudospectralBase(TranscriptionBase):
         phase.add_subsystem('indep_states', indep, promotes_inputs=prom_inputs,
                             promotes_outputs=['*'])
 
+    def configure_controls(self, phase):
+        """
+        Configure control I/O for the phase.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        super().configure_controls(phase)
+
+        if phase.control_options:
+            phase.control_group.configure_io()
+            phase.promotes('control_group',
+                           any=['controls:*', 'control_values:*', 'control_rates:*'])
+
+            phase.connect('dt_dstau', 'control_group.dt_dstau')
+
     def configure_states(self, phase):
         """
         Configure state connections post-introspection.
@@ -123,7 +141,6 @@ class PseudospectralBase(TranscriptionBase):
         # add all the des-vars (either from the IndepVarComp or from the indep-var-like
         # outputs of the collocation comp)
         for name, options in phase.state_options.items():
-            self._configure_state_introspection(name, options, phase)
             self._configure_solve_segments(name, options, phase)
             shape = options['shape']
             # In certain cases, we put an output on the IVC.
@@ -213,7 +230,8 @@ class PseudospectralBase(TranscriptionBase):
                                          adder=coerce_desvar_option('adder'),
                                          ref0=coerce_desvar_option('ref0'),
                                          ref=coerce_desvar_option('ref'),
-                                         indices=desvar_indices)
+                                         indices=desvar_indices,
+                                         flat_indices=True)
 
         if isinstance(indep, StateIndependentsComp):
             indep.configure_io(self.state_idx_map)
@@ -234,14 +252,11 @@ class PseudospectralBase(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
-        transcription = grid_data.transcription
-        time_units = phase.time_options['units']
-
         phase.add_subsystem('state_interp',
                             subsys=StateInterpComp(grid_data=grid_data,
                                                    state_options=phase.state_options,
-                                                   time_units=time_units,
-                                                   transcription=transcription))
+                                                   time_units=phase.time_options['units'],
+                                                   transcription=grid_data.transcription))
 
     def configure_ode(self, phase):
         """
@@ -258,13 +273,11 @@ class PseudospectralBase(TranscriptionBase):
         phase.state_interp.configure_io()
 
         phase.connect('dt_dstau', 'state_interp.dt_dstau',
-                      src_indices=grid_data.subset_node_indices['col'])
+                      src_indices=grid_data.subset_node_indices['col'], flat_src_indices=True)
 
-        for name, options in phase.state_options.items():
-            size = np.prod(options['shape'])
-
-            phase.connect('states:{0}'.format(name),
-                          'state_interp.state_disc:{0}'.format(name),
+        for name, _ in phase.state_options.items():
+            phase.connect(f'states:{name}',
+                          f'state_interp.state_disc:{name}',
                           src_indices=om.slicer[map_input_indices_to_disc, ...])
 
     def setup_defects(self, phase):
@@ -276,14 +289,10 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        grid_data = self.grid_data
-
-        time_units = phase.time_options['units']
-
         phase.add_subsystem('collocation_constraint',
-                            CollocationComp(grid_data=grid_data,
+                            CollocationComp(grid_data=self.grid_data,
                                             state_options=phase.state_options,
-                                            time_units=time_units))
+                                            time_units=phase.time_options['units']))
 
     def _configure_solve_segments(self, state_name, options, phase):
         """
@@ -303,10 +312,6 @@ class PseudospectralBase(TranscriptionBase):
         state_input_idxs = self.grid_data.subset_node_indices['state_input']
         num_state_input_nodes = self.grid_data.subset_num_nodes['state_input']
         compressed = self.options['compressed']
-
-        # Transcription solve_segments overrides state solve_segments if its not set
-        if options['solve_segments'] is None:
-            options['solve_segments'] = self.options['solve_segments']
 
         # Sanity-checks for solve segments
         # If solve_segments is used at all, we cannot fix the state at both ends of the phase.
@@ -378,46 +383,58 @@ class PseudospectralBase(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
-        num_seg = grid_data.num_segments
 
         phase.connect('dt_dstau', ('collocation_constraint.dt_dstau'),
-                      src_indices=grid_data.subset_node_indices['col'])
+                      src_indices=grid_data.subset_node_indices['col'], flat_src_indices=True)
 
         phase.collocation_constraint.configure_io()
 
+        any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
+
+        if not any((any_state_cnty, any_control_cnty, any_control_rate_cnty)):
+            return
+
         # Add the continuity constraint component if necessary
-        if num_seg > 1:
+        segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+        state_disc_idxs = grid_data.subset_node_indices['state_disc']
+
+        if any_state_cnty:
+            state_input_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
+
+            for name, options in phase.state_options.items():
+                shape = options['shape']
+                flattened_src_idxs = get_src_indices_by_row(state_input_subidxs, shape=shape,
+                                                            flat=True)
+                phase.connect(f'states:{name}',
+                              f'continuity_comp.states:{name}',
+                              src_indices=(flattened_src_idxs,), flat_src_indices=True)
+
+        if any_control_rate_cnty:
+            phase.promotes('continuity_comp', inputs=['t_duration'])
+
+        for name, options in phase.control_options.items():
+            control_src_name = f'control_values:{name}'
+
+            # The sub-indices of control_disc indices that are segment ends
             segment_end_idxs = grid_data.subset_node_indices['segment_ends']
-            state_disc_idxs = grid_data.subset_node_indices['state_disc']
+            src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
 
-            if not self.options['compressed']:
-                state_input_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
+            # enclose indices in tuple to ensure shaping of indices works
+            src_idxs = (src_idxs,)
 
-                for name, options in phase.state_options.items():
-                    shape = options['shape']
-                    flattened_src_idxs = get_src_indices_by_row(state_input_subidxs, shape=shape,
-                                                                flat=True)
-                    phase.connect('states:{0}'.format(name),
-                                  'continuity_comp.states:{}'.format(name),
-                                  src_indices=flattened_src_idxs, flat_src_indices=True)
-
-            for name, options in phase.control_options.items():
-                control_src_name = 'control_values:{0}'.format(name)
-
-                # The sub-indices of control_disc indices that are segment ends
-                segment_end_idxs = grid_data.subset_node_indices['segment_ends']
-                src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
-
+            if options['continuity']:
                 phase.connect(control_src_name,
-                              'continuity_comp.controls:{0}'.format(name),
+                              f'continuity_comp.controls:{name}',
                               src_indices=src_idxs, flat_src_indices=True)
 
-                phase.connect('control_rates:{0}_rate'.format(name),
-                              'continuity_comp.control_rates:{}_rate'.format(name),
+            if options['rate_continuity']:
+                phase.connect(f'control_rates:{name}_rate',
+                              f'continuity_comp.control_rates:{name}_rate',
                               src_indices=src_idxs, flat_src_indices=True)
 
-                phase.connect('control_rates:{0}_rate2'.format(name),
-                              'continuity_comp.control_rates:{}_rate2'.format(name),
+            if options['rate2_continuity']:
+                phase.connect(f'control_rates:{name}_rate2',
+                              f'continuity_comp.control_rates:{name}_rate2',
                               src_indices=src_idxs, flat_src_indices=True)
 
     def setup_solvers(self, phase):
@@ -440,14 +457,18 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        if self.any_solved_segs or self.any_connected_opt_segs:
+        if self.any_solved_segs:
             # Only override the solvers if the user hasn't set them to something else.
             if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
                 newton = phase.nonlinear_solver = om.NewtonSolver()
                 newton.options['solve_subsystems'] = True
                 newton.options['maxiter'] = 100
                 newton.options['iprint'] = 2
+                newton.options['stall_limit'] = 3
                 newton.linesearch = om.BoundsEnforceLS()
+
+        # even though you don't need a nl_solver for connections, you still ln_solver since its implicit
+        if self.any_solved_segs or self.any_connected_opt_segs:
             if isinstance(phase.linear_solver, om.LinearRunOnce):
                 phase.linear_solver = om.DirectSolver()
 
@@ -470,35 +491,43 @@ class PseudospectralBase(TranscriptionBase):
 
             timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=gd,
                                                                  output_grid_data=ogd,
-                                                                 output_subset=options['subset'])
+                                                                 output_subset=options['subset'],
+                                                                 time_units=phase.time_options['units'])
             phase.add_subsystem(name, subsys=timeseries_comp)
 
-    def _get_boundary_constraint_src(self, var, loc, phase):
+            phase.connect('dt_dstau', (f'{name}.dt_dstau'), flat_src_indices=True)
+
+    def _get_objective_src(self, var, loc, phase, ode_outputs=None):
         """
-        Return the path to the variable that will be  constrained.
+        Return the path to the variable that will be used as the objective.
 
         Parameters
         ----------
         var : str
-            Name of the state.
+            Name of the variable to be used as the objective.
         loc : str
-            The location of the boundary constraint ['intitial', 'final'].
+            The location of the objective in the phase ['initial', 'final'].
         phase : dymos.Phase
-            Phase object containing the rate source.
+            Phase object containing in which the objective resides.
+        ode_outputs : dict or None
+            A dictionary of ODE outputs as returned by get_promoted_vars.
 
         Returns
         -------
-        str
+        obj_path : str
             Path to the source.
-        shape
+        shape : tuple
             Source shape.
-        str
+        units : str
             Source units.
-        bool
-            True if the constraint is linear.
+        linear : bool
+            True if the objective quantity1 is linear.
         """
         time_units = phase.time_options['units']
         var_type = phase.classify_var(var)
+
+        if ode_outputs is None:
+            ode_outputs = get_promoted_vars(phase._get_subsystem(self._rhs_source), 'output')
 
         if var_type == 'time':
             shape = (1,)
@@ -524,31 +553,31 @@ class PseudospectralBase(TranscriptionBase):
             else:
                 linear = False
             constraint_path = f'states:{var}'
-        elif var_type in 'indep_control':
+        elif var_type == 'indep_control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
             linear = True
-            constraint_path = 'control_values:{0}'.format(var)
+            constraint_path = f'control_values:{var}'
         elif var_type == 'input_control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
             linear = False
-            constraint_path = 'control_values:{0}'.format(var)
-        elif var_type in 'indep_polynomial_control':
+            constraint_path = f'control_values:{var}'
+        elif var_type == 'indep_polynomial_control':
             shape = phase.polynomial_control_options[var]['shape']
             units = phase.polynomial_control_options[var]['units']
             linear = True
-            constraint_path = 'polynomial_control_values:{0}'.format(var)
+            constraint_path = f'polynomial_control_values:{var}'
         elif var_type == 'input_polynomial_control':
             shape = phase.polynomial_control_options[var]['shape']
             units = phase.polynomial_control_options[var]['units']
             linear = False
-            constraint_path = 'polynomial_control_values:{0}'.format(var)
+            constraint_path = f'polynomial_control_values:{var}'
         elif var_type == 'parameter':
             shape = phase.parameter_options[var]['shape']
             units = phase.parameter_options[var]['units']
             linear = True
-            constraint_path = 'parameters:{0}'.format(var)
+            constraint_path = f'parameter_vals:{var}'
         elif var_type in ('control_rate', 'control_rate2'):
             control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
             shape = phase.control_options[control_var]['shape']
@@ -557,7 +586,7 @@ class PseudospectralBase(TranscriptionBase):
             control_rate_units = get_rate_units(control_units, time_units, deriv=d)
             units = control_rate_units
             linear = False
-            constraint_path = 'control_rates:{0}'.format(var)
+            constraint_path = f'control_rates:{var}'
         elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
             control_var = var[:-5]
             shape = phase.polynomial_control_options[control_var]['shape']
@@ -570,8 +599,18 @@ class PseudospectralBase(TranscriptionBase):
         else:
             # Failed to find variable, assume it is in the ODE. This requires introspection.
             constraint_path = f'{self._rhs_source}.{var}'
-            ode = phase._get_subsystem(self._rhs_source)
-            shape, units = get_source_metadata(ode, var, user_units=None, user_shape=None)
+            shape, units = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
             linear = False
 
         return constraint_path, shape, units, linear
+
+    def _get_num_timeseries_nodes(self):
+        """
+        Returns the number of nodes in the default timeseries for this transcription.
+
+        Returns
+        -------
+        int
+            The number of nodes in the default timeseries for this transcription.
+        """
+        return self.grid_data.num_nodes

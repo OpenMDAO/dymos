@@ -1,5 +1,7 @@
 import numpy as np
 
+from openmdao.utils.indexer import indexer
+
 
 def get_src_indices_by_row(row_idxs, shape, flat=True):
     """
@@ -32,5 +34,29 @@ def get_src_indices_by_row(row_idxs, shape, flat=True):
     other_idxs = [np.arange(n, dtype=int) for n in shape]
     ixgrid = np.ix_(row_idxs, *other_idxs)
     a = np.reshape(np.arange(np.prod(src_shape), dtype=int), newshape=src_shape)
-    src_idxs = a[ixgrid]
-    return src_idxs
+    return a[ixgrid]
+
+
+def get_constraint_flat_idxs(con):
+    """
+    Return the flat indices for a constraint at single point in time.
+
+    Indices are always returned as non-negative.
+
+    Parameters
+    ----------
+    con : dict
+        The ConstraintOptionsDictionary for the constraint in question.
+
+    Returns
+    -------
+    np.array
+        The flat indices of a constraint at a single point in time.
+    """
+    if con['indices'] is None:
+        flat_idxs = np.arange(np.prod(con['shape'], dtype=int), dtype=int)
+    else:
+        # Use shaped_array to force all indices to be non-negative.
+        flat_idxs = indexer(con['indices'], src_shape=con['shape'], flat_src=con['flat_indices']).shaped_array()
+
+    return flat_idxs

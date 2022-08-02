@@ -290,14 +290,14 @@ class HPAdaptive:
             algorithm.  refine_results is returned by check_error.  This method modifies it
             in place, adding the new_num_segments, new_order, and new_segment_ends.
         iter_number : int
-            Current iteration of the grid refinement.
+            Current iteration of the grid refinement. The first iteration is 1.
 
         Returns
         -------
         dict
             A dictionary of phase paths : phases which were refined.
         """
-        if iter_number == 0:
+        if iter_number == 1:
             self.refine_first_iter(refine_results)
             return
 

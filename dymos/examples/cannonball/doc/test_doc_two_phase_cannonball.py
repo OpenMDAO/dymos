@@ -3,14 +3,12 @@ import unittest
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
 
-from dymos.utils.doc_utils import save_for_docs
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
 @use_tempdirs
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
-    @save_for_docs
     @require_pyoptsparse(optimizer='SLSQP')
     def test_two_phase_cannonball_for_docs(self):
         import numpy as np
@@ -209,9 +207,9 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters
-        # named 'mass' in each phase.
+        # named 'm' in each phase.
         traj.add_parameter('m', units='kg', val=1.0,
-                           targets={'ascent': 'mass', 'descent': 'mass'}, static_target=True)
+                           targets={'ascent': 'm', 'descent': 'm'}, static_target=True)
 
         # In this case, by omitting targets, we're connecting these
         # parameters to parameters with the same name in each phase.

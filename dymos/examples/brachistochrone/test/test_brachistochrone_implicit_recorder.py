@@ -66,7 +66,7 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
                                                                 out_stream=None)])
 
         assert_near_equal(p['phase0.controls:theta'],
-                          outputs['phase0.control_group.indep_controls.controls:theta']['value'])
+                          outputs['phase0.control_group.indep_controls.controls:theta']['val'])
 
 
 if __name__ == '__main__':  # pragma: no cover

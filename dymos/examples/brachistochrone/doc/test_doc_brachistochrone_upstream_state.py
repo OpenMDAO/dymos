@@ -2,13 +2,10 @@ import unittest
 
 from openmdao.utils.testing_utils import use_tempdirs
 
-from dymos.utils.doc_utils import save_for_docs
-
 
 @use_tempdirs
 class TestBrachistochroneUpstreamState(unittest.TestCase):
 
-    @save_for_docs
     def test_brachistochrone_upstream_state(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
@@ -37,7 +34,7 @@ class TestBrachistochroneUpstreamState(unittest.TestCase):
         # Connect x0 to the state error component so we can constrain the given value of x0
         # to be equal to the value chosen in the phase.
         p.model.connect('x0', 'state_error_comp.x0_target')
-        p.model.connect('traj.phase0.timeseries.states:x', 'state_error_comp.x0_actual', src_indices=[0])
+        p.model.connect('traj.phase0.timeseries.states:x', 'state_error_comp.x0_actual', src_indices=[0], flat_src_indices=True)
 
         #
         # Define a Trajectory object

@@ -2,6 +2,7 @@ from collections import OrderedDict
 from collections.abc import Sequence
 from copy import deepcopy
 import itertools
+import sys
 import warnings
 try:
     from itertools import izip
@@ -18,7 +19,9 @@ from ..utils.constants import INF_BOUND
 from .options import LinkageOptionsDictionary
 from .phase_linkage_comp import PhaseLinkageComp
 from ..phase.options import TrajParameterOptionsDictionary
-from ..utils.misc import get_rate_units, get_source_metadata, _unspecified
+from ..transcriptions.common import ParameterComp
+from ..utils.misc import get_rate_units, _unspecified
+from ..utils.introspection import get_promoted_vars, get_source_metadata
 
 
 class Trajectory(om.Group):
@@ -32,14 +35,27 @@ class Trajectory(om.Group):
     ----------
     **kwargs : dict
         Dictionary of optional arguments.
+
+    Attributes
+    ----------
+    parameter_options : dict
+        A dictionary of parameter names and their associated TrajectoryParameterOptionsDictionary
+    phases : om.Group or om.ParallelGroup
+        The Group which contains phases for this Trajectory.
+
+    _linkages : OrderedDict
+        A dictionary containing phase linkage information for the Trajectory.
+    _phases : dict
+        A dictionary of phase names as keys with the Phase objects being their associated values.
     """
     def __init__(self, **kwargs):
         super(Trajectory, self).__init__(**kwargs)
 
+        self._linkages = {}
+        self._phases = {}
+
         self.parameter_options = {}
-        self._linkages = OrderedDict()
-        self._phases = OrderedDict()
-        self._phase_add_kwargs = {}
+        self.phases = om.ParallelGroup()
 
     def initialize(self):
         """
@@ -68,23 +84,22 @@ class Trajectory(om.Group):
         PhaseBase
             The Phase object added to the trajectory.
         """
-        self._phases[name] = phase
-        self._phase_add_kwargs[name] = kwargs
+        self._phases[name] = self.phases.add_subsystem(name, phase, **kwargs)
         return phase
 
-    def add_parameter(self, name, units, val=_unspecified, desc=_unspecified, opt=False,
-                      targets=_unspecified, lower=_unspecified, upper=_unspecified,
-                      scaler=_unspecified, adder=_unspecified, ref0=_unspecified, ref=_unspecified,
-                      shape=_unspecified, dynamic=_unspecified, static_target=_unspecified):
+    def set_parameter_options(self, name, units=_unspecified, val=_unspecified, desc=_unspecified, opt=False,
+                              targets=_unspecified, lower=_unspecified, upper=_unspecified,
+                              scaler=_unspecified, adder=_unspecified, ref0=_unspecified, ref=_unspecified,
+                              shape=_unspecified, dynamic=_unspecified, static_target=_unspecified):
         """
-        Add a parameter (static control) to the trajectory.
+        Set the options of an existing a parameter in the trajectory.
 
         Parameters
         ----------
         name : str
             Name of the parameter.
-        units : str or None or 0
-            Units in which the parameter is defined.  If 0, use the units declared
+        units : str or None or _unspecified
+            Units in which the parameter is defined.  If _unspecified, use the units declared
             for the parameter in the ODE.
         val : float or ndarray
             Default value of the parameter at all nodes.
@@ -115,7 +130,7 @@ class Trajectory(om.Group):
             The shape of the parameter.
         dynamic : bool
             True if the targets in the ODE may be dynamic (if the inputs are sized to the number
-            of nodes) else False.
+            of nodes) else False. This argument is deprecated in favor of static_target.
         static_target : bool or _unspecified
             True if the targets in the ODE are not shaped with num_nodes as the first dimension
             (meaning they cannot have a unique value at each node).  Otherwise False.
@@ -174,26 +189,75 @@ class Trajectory(om.Group):
                              f"Going forward, please use only option static_target.  Option "
                              f"'dynamic' will be removed in Dymos 2.0.0.")
 
+    def add_parameter(self, name, units=_unspecified, val=_unspecified, desc=_unspecified, opt=False,
+                      targets=_unspecified, lower=_unspecified, upper=_unspecified,
+                      scaler=_unspecified, adder=_unspecified, ref0=_unspecified, ref=_unspecified,
+                      shape=_unspecified, dynamic=_unspecified, static_target=_unspecified):
+        """
+        Add a parameter (static control) to the trajectory.
+
+        Parameters
+        ----------
+        name : str
+            Name of the parameter.
+        units : str or None or _unspecified
+            Units in which the parameter is defined.  If _unspecified, use the units declared
+            for the parameter in the ODE.
+        val : float or ndarray
+            Default value of the parameter at all nodes.
+        desc : str
+            A description of the parameter.
+        opt : bool
+            If True the value(s) of this parameter will be design variables in
+            the optimization problem. The default is False.
+        targets : dict or None
+            If None, then the parameter will be connected to the controllable parameter
+            in the ODE of each phase.  For each phase where no such controllable parameter exists,
+            a warning will be issued.  If targets is given as a dict, the dict should provide
+            the relevant phase names as keys, each associated with the respective controllable
+            parameter as a value.
+        lower : float or ndarray
+            The lower bound of the parameter value.
+        upper : float or ndarray
+            The upper bound of the parameter value.
+        scaler : float or ndarray
+            The scaler of the parameter value for the optimizer.
+        adder : float or ndarray
+            The adder of the parameter value for the optimizer.
+        ref0 : float or ndarray
+            The zero-reference value of the parameter for the optimizer.
+        ref : float or ndarray
+            The unit-reference value of the parameter for the optimizer.
+        shape : Sequence of int
+            The shape of the parameter.
+        dynamic : bool
+            True if the targets in the ODE may be dynamic (if the inputs are sized to the number
+            of nodes) else False. This argument is deprecated in favor of static_target.
+        static_target : bool or _unspecified
+            True if the targets in the ODE are not shaped with num_nodes as the first dimension
+            (meaning they cannot have a unique value at each node).  Otherwise False.
+        """
+        if name not in self.parameter_options:
+            self.parameter_options[name] = TrajParameterOptionsDictionary()
+            self.parameter_options[name]['name'] = name
+        else:
+            raise ValueError(f'Attempted to add parameter "{name}" to trajectory but trajectory already has a parameter'
+                             'of that name.')
+
+        self.set_parameter_options(name, units=units, val=val, desc=desc, opt=opt, targets=targets, lower=lower,
+                                   upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref, shape=shape,
+                                   dynamic=dynamic, static_target=static_target)
+
     def _setup_parameters(self):
         """
         Adds an IndepVarComp if necessary and issues appropriate connections based
         on transcription.
         """
         if self.parameter_options:
+            param_comp = ParameterComp()
+            self.add_subsystem('param_comp', subsys=param_comp, promotes_inputs=['*'], promotes_outputs=['*'])
+
             for name, options in self.parameter_options.items():
-
-                if options['opt']:
-                    lb = -INF_BOUND if options['lower'] is None else options['lower']
-                    ub = INF_BOUND if options['upper'] is None else options['upper']
-
-                    self.add_design_var(name='parameters:{0}'.format(name),
-                                        lower=lb,
-                                        upper=ub,
-                                        scaler=options['scaler'],
-                                        adder=options['adder'],
-                                        ref0=options['ref0'],
-                                        ref=options['ref'])
-
                 tgts = options['targets']
 
                 if tgts is None:
@@ -221,6 +285,14 @@ class Trajectory(om.Group):
                         kwargs = {'static_target': options['static_target'],
                                   'units': options['units'],
                                   'val': options['val'],
+                                  'shape': options['shape'],
+                                  'ref0': options['ref0'],
+                                  'ref': options['ref'],
+                                  'adder': options['adder'],
+                                  'scaler': options['scaler'],
+                                  'opt': options['opt'],
+                                  'lower': options['lower'],
+                                  'upper': options['upper'],
                                   'targets': tgts[phase_name]}
 
                         if not self.options['sim_mode']:
@@ -264,10 +336,8 @@ class Trajectory(om.Group):
         if self.parameter_options:
             self._setup_parameters()
 
-        phases_group = self.add_subsystem('phases', subsys=om.ParallelGroup())
-
-        for name, phs in self._phases.items():
-            phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
+        # This will override the existing phases attribute with the same thing.
+        self.add_subsystem('phases', subsys=self.phases)
 
         if self._linkages:
             self._setup_linkages()
@@ -281,12 +351,13 @@ class Trajectory(om.Group):
         promoted_inputs = []
 
         for name, options in parameter_options.items():
-            prom_name = f'parameters:{name}'
+            promoted_inputs.append(f'parameters:{name}')
             targets = options['targets']
 
             # For each phase, use introspection to get the units and shape.
             # If units do not match across all phases, require user to set them.
             # If shapes do not match across all phases, this is an error.
+            tgts = []
             tgt_units = {}
             tgt_shapes = {}
 
@@ -304,54 +375,81 @@ class Trajectory(om.Group):
                 elif targets[phase_name] is None:
                     # Connections to this phase are explicitly omitted
                     continue
-                elif isinstance(targets[phase_name], str) and \
-                        targets[phase_name] in phs.parameter_options:
-                    # Connect to an input parameter with a different name in this phase
-                    tgt = f'{phase_name}.parameters:{targets[phase_name]}'
-                    tgt_shapes[phs.name] = phs.parameter_options[targets[phase_name]]['shape']
-                    tgt_units[phs.name] = phs.parameter_options[targets[phase_name]]['units']
-                elif isinstance(targets[phase_name], Sequence) and \
-                        name in phs.parameter_options:
-                    # User gave a list of ODE targets which were passed to the creation of a
-                    # new input parameter in setup, just connect to that new input parameter
-                    tgt = f'{phase_name}.parameters:{name}'
-                    tgt_shapes[phs.name] = phs.parameter_options[name]['shape']
-                    tgt_units[phs.name] = phs.parameter_options[name]['units']
+                elif isinstance(targets[phase_name], str):
+                    if targets[phase_name] in phs.parameter_options:
+                        # Connect to an input parameter with a different name in this phase
+                        tgt = f'{phase_name}.parameters:{targets[phase_name]}'
+                        tgt_shapes[phs.name] = phs.parameter_options[targets[phase_name]]['shape']
+                        tgt_units[phs.name] = phs.parameter_options[targets[phase_name]]['units']
+                    else:
+                        msg = f'Invalid target for trajectory `{self.pathname}` parameter `{name}` in phase ' \
+                              f"`{phase_name}`.\nTarget for phase `{phase_name}` is '{targets[phase_name]}' but " \
+                              f"the phase has no such parameter."
+                        raise ValueError(msg)
+                elif isinstance(targets[phase_name], Sequence):
+                    if name in phs.parameter_options:
+                        # User gave a list of ODE targets which were passed to the creation of a
+                        # new input parameter in setup, just connect to that new input parameter
+                        tgt = f'{phase_name}.parameters:{name}'
+                        tgt_shapes[phs.name] = phs.parameter_options[name]['shape']
+                        tgt_units[phs.name] = phs.parameter_options[name]['units']
+                    else:
+                        msg = f'Invalid target for trajectory `{self.pathname}` parameter `{name}` in phase ' \
+                              f"`{phase_name}`.\nThe phase did not add the parameter as expected. Please file an " \
+                              f"issue with the Dymos development team at https://github.com/OpenMDAO/dymos"
+                        raise RuntimeError(msg)
                 else:
                     raise ValueError(f'Unhandled target(s) ({targets[phase_name]}) for parameter {name} in '
-                                     f'phase {phase_name}.  If connecting to ODE inputs in the phase, '
+                                     f'phase {phase_name}. If connecting to ODE inputs in the phase, '
                                      f'format the targets as a sequence of strings.')
+                tgts.append(tgt)
 
-                promoted_inputs.append(tgt)
-                self.promotes('phases', inputs=[(tgt, prom_name)])
+            if not tgts:
+                # Find the reason
+                if targets is None:
+                    reason = f'Option `targets=None` but no phase in the trajectory has a parameter named `{name}`.'
+                elif all([t is None for t in targets.values()]) and set(targets.keys()) == set(self._phases.keys()):
+                    reason = f'Option `targets` is a dictionary keyed by phase name but target for each phase is None.'
+                raise ValueError(f'No target was found for trajectory parameter `{name}` in any phase.\n{reason}')
 
-            if len(set(tgt_shapes.values())) == 1:
-                options['shape'] = next(iter(tgt_shapes.values()))
-            else:
-                raise ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
-                                 f'targets in multiple phases that have different shapes.')
+            if options['shape'] is _unspecified:
+                if len(set(tgt_shapes.values())) == 1:
+                    options['shape'] = next(iter(tgt_shapes.values()))
+                else:
+                    raise ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
+                                     f'targets in multiple phases that have different shapes.')
 
-            if len(set(tgt_units.values())) != 1:
-                options['units'] = next(iter(tgt_units))
-            else:
-                ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
-                           f'targets in multiple phases that have different units. You must '
-                           f'explicitly provide units for the parameter since they cannot be '
-                           f'inferred.')
+            if options['units'] is _unspecified:
+                tgt_units_set = set(tgt_units.values())
+                if len(tgt_units_set) == 1:
+                    options['units'] = list(tgt_units_set)[0]
+                else:
+                    ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
+                               f'targets in multiple phases that have different units. You must '
+                               f'explicitly provide units for the parameter since they cannot be '
+                               f'inferred.')
 
-            val = options['val']
-            _shape = options['shape']
-            shaped_val = np.broadcast_to(val, _shape)
+            param_comp = self._get_subsystem('param_comp')
+            param_comp.add_parameter(name, val=options['val'], shape=options['shape'], units=options['units'])
+            if options['opt']:
+                lb = -INF_BOUND if options['lower'] is None else options['lower']
+                ub = INF_BOUND if options['upper'] is None else options['upper']
 
-            self.set_input_defaults(name=prom_name,
-                                    val=shaped_val,
-                                    units=options['units'])
+                self.add_design_var(name=f'parameters:{name}',
+                                    lower=lb,
+                                    upper=ub,
+                                    scaler=options['scaler'],
+                                    adder=options['adder'],
+                                    ref0=options['ref0'],
+                                    ref=options['ref'])
+
+            self.connect(f'parameter_vals:{name}', tgts)
 
         return promoted_inputs
 
     def _configure_phase_options_dicts(self):
         """
-        Called during configure if we are under MPI. Loops over all phases and broacasts the shape
+        Called during configure if we are under MPI. Loops over all phases and broadcasts the shape
         and units options to all procs for all dymos variables.
         """
         for name, phase in self._phases.items():
@@ -464,9 +562,9 @@ class Trajectory(om.Group):
                     shapes[i], units[i] = get_source_metadata(phases[i]._get_subsystem(rhs_source),
                                                               vars[i], user_units=units[i],
                                                               user_shape=_unspecified)
-                except ValueError:
-                    raise ValueError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
-                                     f'phase \'{phases[i].pathname}\' or its ODE.')
+                except RuntimeError as e:
+                    raise RuntimeError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
+                                       f'phase \'{phases[i].pathname}\' or its ODE.')
 
         linkage_options._src_a = sources['a']
         linkage_options._src_b = sources['b']
@@ -579,11 +677,33 @@ class Trajectory(om.Group):
     def _configure_linkages(self):
         connected_linkage_inputs = []
 
+        def _print_on_rank(rank=0, *args, **kwargs):
+            if self.comm.rank == rank:
+                print(*args, **kwargs)
+
+        def _get_prefixed_var(var, phase):
+            class_var = phase.classify_var(var)
+            prefixes = {'time': '',
+                        'time_phase': '',
+                        'state': 'states:',
+                        'parameter': 'parameters:',
+                        'input_control': 'controls:',
+                        'indep_control': 'controls:',
+                        'control_rate': 'control_rates:',
+                        'control_rate2': 'control_rates:',
+                        'input_polynomial_control': 'polynomial_controls:',
+                        'indep_polynomial_control': 'polynomial_controls:',
+                        'polynomial_control_rate': 'polynomial_control_rates:',
+                        'polynomial_control_rate2': 'polynomial_control_rates:',
+                        'ode': ''
+                        }
+            return f'{prefixes[class_var]}{var}'
+
         # First, if the user requested all states and time be continuous ('*', '*'), then
         # expand it out.
         self._expand_star_linkage_configure()
 
-        print(f'--- Linkage Report [{self.pathname}] ---')
+        _print_on_rank(f'--- Linkage Report [{self.pathname}] ---')
 
         indent = '    '
 
@@ -591,36 +711,77 @@ class Trajectory(om.Group):
 
         for phase_pair, var_dict in self._linkages.items():
             phase_name_a, phase_name_b = phase_pair
-            print(f'{indent}--- {phase_name_a} - {phase_name_b} ---')
+            _print_on_rank(f'{indent}--- {phase_name_a} - {phase_name_b} ---')
 
+            phase_a = self._get_subsystem(f'phases.{phase_name_a}')
             phase_b = self._get_subsystem(f'phases.{phase_name_b}')
 
             # Pull out the maximum variable name length of all variables to make the print nicer.
-            var_len = [(len(var_pair[0]), len(var_pair[1])) for var_pair in var_dict]
-            max_varname_length = max(itertools.chain(*var_len))
-            padding = max_varname_length + 1
+            var_len_a = [len(_get_prefixed_var(var_pair[0], phase_a)) for var_pair in var_dict]
+            var_len_b = [len(_get_prefixed_var(var_pair[1], phase_b)) for var_pair in var_dict]
+            padding_a = max(var_len_a) + 2
+            padding_b = max(var_len_b) + 2
 
             for var_pair, options in var_dict.items():
                 var_a, var_b = var_pair
                 loc_a = options['loc_a']
                 loc_b = options['loc_b']
 
+                class_a = phase_a.classify_var(var_a)
+                class_b = phase_b.classify_var(var_b)
+
                 self._update_linkage_options_configure(options)
 
                 src_a = options._src_a
                 src_b = options._src_b
 
+                if class_a == 'time':
+                    fixed_a = phase_a.is_time_fixed(loc_a)
+                elif class_a == 'state':
+                    fixed_a = phase_a.is_state_fixed(var_a, loc_a)
+                elif class_a in {'input_control', 'indep_control'}:
+                    fixed_a = phase_a.is_control_fixed(var_a, loc_a)
+                elif class_a in {'input_polynomial_control', 'indep_polynomial_control'}:
+                    fixed_a = phase_a.is_polynomial_control_fixed(var_a, loc_a)
+                else:
+                    fixed_a = True
+
+                if class_b == 'time':
+                    fixed_b = phase_b.is_time_fixed(loc_b)
+                elif class_b == 'state':
+                    fixed_b = phase_b.is_state_fixed(var_b, loc_b)
+                elif class_b in {'input_control', 'indep_control'}:
+                    fixed_b = phase_b.is_control_fixed(var_b, loc_b)
+                elif class_b in {'input_polynomial_control', 'indep_polynomial_control'}:
+                    fixed_b = phase_b.is_polynomial_control_fixed(var_b, loc_b)
+                else:
+                    fixed_b = True
+
+                prefixed_a = _get_prefixed_var(var_a, phase_a)
+                prefixed_b = _get_prefixed_var(var_b, phase_b)
+
+                str_fixed_a = '*' if fixed_a else ''
+                str_fixed_b = '*' if fixed_b else ''
+
                 if options['connected']:
-                    if phase_b.classify_var(var_b) == 'time':
+                    if class_b == 'time':
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.t_initial',
-                                     src_indices=[-1])
-                    elif phase_b.classify_var(var_b) == 'state':
+                                     src_indices=[-1], flat_src_indices=True)
+                    elif class_b == 'state':
                         tgt_b = f'initial_states:{var_b}'
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.{tgt_b}',
                                      src_indices=om.slicer[-1, ...])
-                    print(f'{indent * 2}{var_a:<{padding}s}[{loc_a}]  ->  {var_b:<{padding}s}[{loc_b}]')
+                    else:
+                        msg = f'Could not create connection linkage from phase `{phase_name_a}` ' \
+                              f'variable `{var_a}` to phase `{phase_name_b}` variable `{var_b}`. ' \
+                              f'For direct connections, the target variable must be `time` or a ' \
+                              f'state in the phase.\nEither remove the linkage or specify ' \
+                              f'`connected=False` to enforce it via an optimization constraint.'
+                        raise om.OpenMDAOWarning(msg)
+                    _print_on_rank(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ->  '
+                                   f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
                 else:
                     is_valid, msg = self._is_valid_linkage(phase_name_a, phase_name_b,
                                                            loc_a, loc_b, var_a, var_b)
@@ -642,9 +803,10 @@ class Trajectory(om.Group):
                                      src_indices=om.slicer[[0, -1], ...])
                         connected_linkage_inputs.append(options._input_b)
 
-                    print(f'{indent * 2}{var_a:<{padding}s}[{loc_a}]  ==  {var_b:<{padding}s}[{loc_b}]')
+                    _print_on_rank(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ==  '
+                                   f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
 
-            print('----------------------------')
+        _print_on_rank('\n* : Value is fixed or is an input.\n')
 
     def configure(self):
         """
@@ -654,18 +816,18 @@ class Trajectory(om.Group):
         setup has already been called on all children of the Trajectory, we can query them for
         variables at this point.
         """
-        promoted_parameter_inputs = self._configure_parameters() if self.parameter_options else []
+        if self.parameter_options:
+            self._configure_parameters()
 
         if self._linkages:
             if MPI:
                 self._configure_phase_options_dicts()
             self._configure_linkages()
-        # promote everything else out of phases that wasn't promoted as a parameter
-        phases_group = self._get_subsystem('phases')
-        inputs_set = {opts['prom_name'] for (k, opts) in
-                      phases_group.get_io_metadata(iotypes=('input',), get_remote=True).items()}
-        inputs_to_promote = inputs_set - set(promoted_parameter_inputs)
-        self.promotes('phases', inputs=list(inputs_to_promote), outputs=['*'])
+
+        self._constraint_report(outstream=sys.stdout)
+
+        # promote everything else out of phases
+        self.promotes('phases', inputs=['*'], outputs=['*'])
 
     def add_linkage_constraint(self, phase_a, phase_b, var_a, var_b, loc_a='final', loc_b='initial',
                                sign_a=1.0, sign_b=-1.0, units=_unspecified, lower=None, upper=None,
@@ -867,8 +1029,87 @@ class Trajectory(om.Group):
                                             var_a=var, var_b=var, loc_a=loc_a, loc_b=loc_b,
                                             connected=connected)
 
+    def _constraint_report(self, outstream=sys.stdout):
+        if self.options['sim_mode']:
+            return
+
+        if self.comm.rank == 0:
+            printer = print
+        else:
+            def printer(*args, **kwargs):
+                pass
+
+        float_fmt = '6.4e'
+        printer(f'\n--- Constraint Report [{self.pathname}] ---')
+        indent = '    '
+
+        def _print_constraints(phase, outstream):
+            tx = phase.options['transcription']
+
+            ode_outputs = get_promoted_vars(tx._get_ode(phase), 'output')
+
+            ds = {'initial': phase._initial_boundary_constraints,
+                  'final': phase._final_boundary_constraints,
+                  'path': phase._path_constraints}
+
+            if not (
+                    phase._initial_boundary_constraints or phase._final_boundary_constraints or phase._path_constraints):
+                printer(f'{2 * indent}None', file=outstream)
+
+            for loc, d in ds.items():
+                str_loc = f'[{loc}]'
+                for options in d:
+                    expr = options['name']
+                    _, shape, units, linear = tx._get_objective_src(expr, loc, phase, ode_outputs=ode_outputs)
+
+                    equals = options['equals']
+                    lower = options['lower']
+                    upper = options['upper']
+
+                    if options['units']:
+                        str_units = options['units']
+                    elif units is not None:
+                        str_units = units
+                    else:
+                        str_units = 'None'
+
+                    if equals is not None and np.prod(np.asarray(equals).shape) != 1:
+                        str_equals = f'array<{"x".join([str(i) for i in np.asarray(equals).shape])}>'
+                    elif equals is not None:
+                        str_equals = f'{equals:{float_fmt}}'
+
+                    if lower is not None and np.prod(np.asarray(lower).shape) != 1:
+                        str_lower = f'array<{"x".join([str(i) for i in np.asarray(lower).shape])}> <='
+                    elif lower is not None:
+                        str_lower = f'{lower:{float_fmt}} <='
+                    else:
+                        str_lower = 12 * ''
+
+                    if upper is not None and np.prod(np.asarray(upper).shape) != 1:
+                        str_upper = f'<= array<{"x".join([str(i) for i in np.asarray(upper).shape])}> '
+                    elif upper is not None:
+                        str_upper = f'<= {upper:{float_fmt}} '
+                    else:
+                        str_upper = ''
+
+                    if equals is not None:
+                        printer(f'{2 * indent}{str_loc:<10s}{str_equals} == {expr} [{str_units}]',
+                                file=outstream)
+                    else:
+                        printer(
+                            f'{2 * indent}{str_loc:<10s}{str_lower} {expr} {str_upper} [{str_units}]',
+                            file=outstream)
+
+        for phase_name, phs in self._phases.items():
+            printer(f'{indent}--- {phase_name} ---', file=outstream)
+            if phs._is_local:
+                _print_constraints(phs, outstream)
+
+        printer('', file=outstream)
+
     def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
-                 first_step=_unspecified, max_step=_unspecified, record_file=None):
+                 first_step=_unspecified, max_step=_unspecified, record_file=None, case_prefix=None,
+                 reset_iter_counts=True, reports=False):
         """
         Simulate the Trajectory using scipy.integrate.solve_ivp.
 
@@ -890,6 +1131,12 @@ class Trajectory(om.Group):
         record_file : str or None
             If a string, the file to which the result of the simulation will be saved.
             If None, no record of the simulation will be saved.
+        case_prefix : str or None
+            Prefix to prepend to coordinates when recording.
+        reset_iter_counts : bool
+            If True and model has been run previously, reset all iteration counters.
+        reports : bool or None or str or Sequence
+            Reports setting for the subproblems run under simualate.
 
         Returns
         -------
@@ -903,12 +1150,12 @@ class Trajectory(om.Group):
         for name, phs in self._phases.items():
             sim_phs = phs.get_simulation_phase(times_per_seg=times_per_seg, method=method,
                                                atol=atol, rtol=rtol, first_step=first_step,
-                                               max_step=max_step)
+                                               max_step=max_step, reports=reports)
             sim_traj.add_phase(name, sim_phs)
 
         sim_traj.parameter_options.update(self.parameter_options)
 
-        sim_prob = om.Problem(model=om.Group())
+        sim_prob = om.Problem(model=om.Group(), reports=reports)
 
         traj_name = self.name if self.name else 'sim_traj'
         sim_prob.model.add_subsystem(traj_name, sim_traj)
@@ -951,10 +1198,11 @@ class Trajectory(om.Group):
                                              skip_params=skip_params)
 
         print('\nSimulating trajectory {0}'.format(self.pathname))
-        sim_prob.run_model()
+        sim_prob.run_model(case_prefix=case_prefix, reset_iter_counts=reset_iter_counts)
         print('Done simulating trajectory {0}'.format(self.pathname))
         if record_file:
-            sim_prob.record('final')
+            _case_prefix = '' if case_prefix is None else f'{case_prefix}_'
+            sim_prob.record(f'{_case_prefix}final')
         sim_prob.cleanup()
 
         return sim_prob

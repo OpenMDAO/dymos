@@ -1,13 +1,17 @@
 # Run Tests
 
+# Matrix Options
+# DOCS: 2-Build and publish, 1-build only, 0-no docs
+
 name: Dymos Tests
 
 on:
-  # Trigger on push or pull request events for the master branch
+  # Trigger on push, pull request or workflow dispatch events for the master branch
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 
 jobs:
 
@@ -21,43 +25,75 @@ jobs:
       matrix:
         include:
           # baseline versions
-          - PY: 3.8
-            NUMPY: 1.18
-            SCIPY: 1.4
-            PETSc: 3.12
-            PYOPTSPARSE: 'v2.1.5'
+          - NAME: baseline
+            PY: '3.10'
+            NUMPY: 1.22
+            SCIPY: 1.7
+            PETSc: 3.17
+            PYOPTSPARSE: 'v2.8.3'
             SNOPT: 7.7
             MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
-            DOCS: 1
+            JAX: True
+            DOCS: 0
 
-          # try latest versions
-          - PY: 3
-            NUMPY: 1
-            SCIPY: 1
-            # PETSc: 3
-            PYOPTSPARSE: 'v2.1.5'
-            SNOPT: 7.7
+          # baseline versions except no pyoptsparse or SNOPT
+          - NAME: no_pyoptsparse
+            PY: '3.10'
+            NUMPY: 1.22
+            SCIPY: 1.7
+            PETSc: 3.17
             MBI: 1
             OPENMDAO: 'latest'
+            OPTIONAL: '[all]'
+            DOCS: 0
+
+          # baseline versions except with pyoptsparse but no SNOPT
+          # build docs to verify those that use pyoptsparse do not use SNOPT
+          - NAME: no_snopt
+            PY: '3.10'
+            NUMPY: 1.22
+            SCIPY: 1.7
+            PETSc: 3.17
+            PYOPTSPARSE: 'v2.8.3'
+            MBI: 1
+            OPENMDAO: 'latest'
+            OPTIONAL: '[all]'
+            DOCS: 0
+
+          # try latest versions
+          - NAME: latest
+            PY: 3
+            NUMPY: 1
+            SCIPY: 1
+            PETSc: 3
+            PYOPTSPARSE: 'main'
+            SNOPT: 7.7
+            MBI: 1
+            OPENMDAO: 'dev'
             OPTIONAL: '[test]'
+            JAX: True
             DOCS: 0
 
           # oldest supported versions
-          - PY: 3.6
-            NUMPY: 1.16
-            SCIPY: 1.2
-            PETSc: 3.10.2
+          - NAME: oldest
+            PY: 3.8
+            NUMPY: 1.22
+            SCIPY: 1.7
+            OPENMPI: '4.0'
+            MPI4PY: '3.0'
+            PETSc: 3.13
             PYOPTSPARSE: 'v1.2'
             SNOPT: 7.2
             MBI: 1
-            OPENMDAO: 3.10.0
+            OPENMDAO: 3.17.0
             OPTIONAL: '[all]'
             DOCS: 0
 
     steps:
       - name: Display run details
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         run: |
           echo "============================================================="
           echo "Run #${GITHUB_RUN_NUMBER}"
@@ -67,12 +103,8 @@ jobs:
           echo "Initiated by: ${GITHUB_ACTOR}"
           echo "============================================================="
 
-      # TEMPORARY WHILE GITHUB FIXES THIS https://github.com/actions/virtual-environments/issues/3185
-      - name: Add the current IP address, long hostname and short hostname record to /etc/hosts file
-        run: |
-          echo -e "$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)\t$(hostname -f) $(hostname -s)" | sudo tee -a /etc/hosts
-
       - name: Create SSH key
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         shell: bash
         env:
           SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
@@ -84,43 +116,67 @@ jobs:
           echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
 
       - name: Checkout code
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         uses: actions/checkout@v2
 
       - name: Fetch tags
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         run: |
           git fetch --prune --unshallow --tags
 
-      - name: Install miniconda
+      - name: Setup mamba
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         uses: conda-incubator/setup-miniconda@v2
         with:
-          activate-environment: test
           python-version: ${{ matrix.PY }}
-          channels: conda-forge,spyder-ide
-          allow-softlinks: true
-          channel-priority: flexible
-          show-channel-urls: true
-          use-only-tar-bz2: true
+          mamba-version: "*"
+          channels: conda-forge,defaults
+          channel-priority: true
 
       - name: Install Numpy/Scipy
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install Numpy/Scipy"
           echo "============================================================="
-          conda install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
+          mamba install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
+
+      - name: Install jax
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.JAX
+        shell: bash -l {0}
+        run: |
+          echo "============================================================="
+          echo "Install jax"
+          echo "============================================================="
+          pip install jax
+          pip install jaxlib
 
       - name: Install PETSc
-        if: matrix.PETSc
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.PETSc
         shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install PETSc"
           echo "============================================================="
-          conda install -c conda-forge mpi4py petsc=${{ matrix.PETSc }} petsc4py -q -y
+          if [[ "${{ matrix.OPENMPI }}" && "${{ matrix.MPI4PY }}" ]]; then
+            mamba install openmpi=${{ matrix.OPENMPI }} mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
+          elif [[ "${{ matrix.MPI4PY }}" ]]; then
+            mamba install mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
+          else
+            mamba install mpi4py petsc4py=${{ matrix.PETSc }} -q -y
+          fi
+          echo "-----------------------"
+          echo "Quick test of mpi4py:"
+          mpirun -n 2 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
+          echo "-----------------------"
+          echo "Quick test of petsc4py:"
+          mpirun -n 2 python -c "import numpy; from mpi4py import MPI; comm = MPI.COMM_WORLD; import petsc4py; petsc4py.init(); x = petsc4py.PETSc.Vec().createWithArray(numpy.ones(5)*comm.rank, comm=comm);  print(x.getArray())"
+          echo "-----------------------"
           echo "OMPI_MCA_rmaps_base_oversubscribe=1" >> $GITHUB_ENV
 
       - name: Install pyOptSparse
-        if: matrix.PYOPTSPARSE
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.PYOPTSPARSE
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -152,7 +208,7 @@ jobs:
           echo "LD_LIBRARY_PATH=$HOME/ipopt/lib" >> $GITHUB_ENV
 
       - name: Install MBI
-        if: matrix.MBI
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.MBI
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -163,21 +219,22 @@ jobs:
           pip install .
 
       - name: Install OpenMDAO
-        if: matrix.OPENMDAO
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.OPENMDAO
         shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install OpenMDAO"
           echo "============================================================="
-          if [[ "${{ matrix.OPENMDAO }}" == "latest" ]]; then
-            git clone -q https://github.com/OpenMDAO/OpenMDAO
-            pip install OpenMDAO
+          if [[ "${{ matrix.OPENMDAO }}" == "dev" ]]; then
+            pip install git+https://github.com/OpenMDAO/OpenMDAO
+          elif [[ "${{ matrix.OPENMDAO }}" == "latest" ]]; then
+            pip install openmdao
           else
             pip install openmdao==${{ matrix.OPENMDAO }}
           fi
 
       - name: Install optional dependencies
-        if: matrix.OPTIONAL == '[all]'
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.OPTIONAL == '[all]'
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -186,6 +243,7 @@ jobs:
           pip install bokeh
 
       - name: Install Dymos
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -193,25 +251,44 @@ jobs:
           echo "============================================================="
           pip install .${{ matrix.OPTIONAL }}
 
-      - name: Display conda info
+      - name: Display environment info
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         shell: bash -l {0}
         run: |
           conda info
           conda list
 
+          echo "============================================================="
+          echo "Check installed versions of Python, Numpy and Scipy"
+          echo "============================================================="
+          python -c "import sys; assert str(sys.version).startswith(str(${{ matrix.PY }})), \
+                    f'Python version {sys.version} is not the requested version (${{ matrix.PY }})'"
+
+          python -c "import numpy; assert str(numpy.__version__).startswith(str(${{ matrix.NUMPY }})), \
+                    f'Numpy version {numpy.__version__} is not the requested version (${{ matrix.NUMPY }})'"
+
+          python -c "import scipy; assert str(scipy.__version__).startswith(str(${{ matrix.SCIPY }})), \
+                    f'Scipy version {scipy.__version__} is not the requested version (${{ matrix.SCIPY }})'"
+
       - name: Run tests
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
+        env:
+          DYMOS_CHECK_PARTIALS: True
         shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Run Tests"
+          echo "Environment:"
+          echo "   DYMOS_CHECK_PARTIALS: $DYMOS_CHECK_PARTIALS"
           echo "============================================================="
-          testflo -n 1 docs/test --pre_announce
+          testflo -n 1 docs/dymos_book/test --pre_announce
           testflo -n 1 joss/test --pre_announce
           testflo -b benchmark --pre_announce
           cd $HOME
-          testflo dymos -n 1 --show_skipped --coverage --coverpkg dymos
+          testflo dymos -n 2 --show_skipped --coverage --coverpkg dymos
 
       - name: Submit coverage
+        if: (github.event_name != 'workflow_dispatch')
         shell: bash -l {0}
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -227,21 +304,37 @@ jobs:
           coveralls --basedir $SITE_DIR
 
       - name: Build docs
-        if: ${{ matrix.DOCS == '1' }}
+        if: (github.event_name != 'workflow_dispatch') && (matrix.DOCS == '1' || matrix.DOCS == '2')
+        id: build_docs
         shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Building Docs"
           echo "============================================================="
-          pwd
-          git clone -q https://github.com/executablebooks/jupyter-book
-          cd jupyter-book
-          pip install -e .
-          cd ..
-          jupyter-book build docs/
+          pip install git+https://github.com/executablebooks/jupyter-book
+          cd docs
+          jupyter-book build -W --keep-going dymos_book
+          python copy_build_artifacts.py
+
+      - name: Display doc build reports
+        continue-on-error: True
+        if: |
+          github.event_name != 'workflow_dispatch' &&
+          failure() &&
+          (matrix.DOCS == '1' || matrix.DOCS == '2') &&
+          steps.build_docs.outcome == 'failure'
+        run: |
+          for f in /home/runner/work/dymos/dymos/docs/dymos_book/_build/html/reports/*; do
+            echo "============================================================="
+            echo $f
+            echo "============================================================="
+            cat $f
+          done
 
       - name: Publish docs
-        if: ${{ matrix.DOCS == '1' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: |
+          github.event_name == 'push' && github.ref == 'refs/heads/master' &&
+          matrix.DOCS == '2'
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -250,10 +343,11 @@ jobs:
           pip install ghp-import
           cd $HOME/work/dymos/dymos
           pwd
-          ghp-import -n -p -f docs/_build/html
+          ghp-import -n -p -f docs/dymos_book/_build/html
 
   coveralls:
     name: Finish coveralls
+    if: (github.event_name != 'workflow_dispatch')
     needs: test_ubuntu
     runs-on: ubuntu-latest
     steps:

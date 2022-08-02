@@ -6,7 +6,7 @@ import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
-from dymos import Trajectory, GaussLobatto, Phase, Radau
+from dymos import Trajectory, GaussLobatto, Phase, Radau, run_problem
 from dymos.examples.shuttle_reentry.shuttle_ode import ShuttleODE
 
 # Expected results from Betts
@@ -15,15 +15,21 @@ expected_results = {'constrained': {'time': 2198.67, 'theta': 30.6255},
 
 
 @use_tempdirs
-@require_pyoptsparse(optimizer='SLSQP')
 class TestReentry(unittest.TestCase):
 
     def make_problem(self, constrained=True, transcription=GaussLobatto, optimizer='SLSQP',
-                     numseg=30):
+                     numseg=50):
         p = om.Problem(model=om.Group())
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver(optimizer=optimizer)
         p.driver.declare_coloring()
-        p.driver.options['optimizer'] = optimizer
+
+        if optimizer == 'IPOPT':
+            p.driver.opt_settings['max_iter'] = 500
+            p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+            p.driver.opt_settings['print_level'] = 0
+            p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+            p.driver.opt_settings['tol'] = 1.0E-7
+            p.driver.opt_settings['mu_strategy'] = 'monotone'
 
         traj = p.model.add_subsystem('traj', Trajectory())
         phase0 = traj.add_phase('phase0',
@@ -79,6 +85,7 @@ class TestReentry(unittest.TestCase):
 
         return p
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_partials(self):
         p = self.make_problem(constrained=True, transcription=Radau, optimizer='SLSQP', numseg=5)
         p.run_model()
@@ -88,6 +95,7 @@ class TestReentry(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_constrained_radau(self):
         p = self.make_problem(constrained=True, transcription=Radau, optimizer='IPOPT')
+
         p.run_driver()
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
                           expected_results['constrained']['time'],
@@ -100,6 +108,7 @@ class TestReentry(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_constrained_gauss_lobatto(self):
         p = self.make_problem(constrained=True, transcription=GaussLobatto, optimizer='IPOPT')
+
         p.run_driver()
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
                           expected_results['constrained']['time'],
@@ -112,6 +121,7 @@ class TestReentry(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_unconstrained_radau(self):
         p = self.make_problem(constrained=False, transcription=Radau, optimizer='IPOPT')
+
         p.run_driver()
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
                           expected_results['unconstrained']['time'],
@@ -124,6 +134,7 @@ class TestReentry(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_unconstrained_gauss_lobatto(self):
         p = self.make_problem(constrained=False, transcription=GaussLobatto, optimizer='IPOPT')
+
         p.run_driver()
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
                           expected_results['unconstrained']['time'],
@@ -138,13 +149,17 @@ class TestReentry(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
-        p.driver.declare_coloring()
+        p.driver.declare_coloring(tol=1.0E-12)
         p.driver.options['optimizer'] = 'IPOPT'
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+        p.driver.opt_settings['print_level'] = 0
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+        p.driver.opt_settings['mu_strategy'] = 'monotone'
 
         traj = p.model.add_subsystem('traj', Trajectory())
         phase0 = traj.add_phase('phase0',
                                 Phase(ode_class=ShuttleODE,
-                                      transcription=GaussLobatto(num_segments=20, order=3)))
+                                      transcription=Radau(num_segments=30, order=3)))
 
         phase0.set_time_options(fix_initial=True, units='s', duration_ref=200)
         phase0.add_state('h', fix_initial=True, fix_final=True, units='ft', rate_source='hdot',
@@ -164,10 +179,11 @@ class TestReentry(unittest.TestCase):
                          rate_source='vdot', targets=['v'], lower=500, ref0=2500, ref=25000)
         phase0.add_control('alpha', units='rad', opt=True,
                            lower=-np.pi / 2, upper=np.pi / 2)
-        phase0.add_polynomial_control('beta', order=5, units='rad', opt=True,
+        phase0.add_polynomial_control('beta', order=9, units='rad', opt=True,
                                       lower=-89 * np.pi / 180, upper=1 * np.pi / 180)
 
         phase0.add_objective('theta', loc='final', ref=-0.01)
+        phase0.add_path_constraint('q', lower=0, upper=70, ref=70)
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -191,27 +207,37 @@ class TestReentry(unittest.TestCase):
         p.set_val('traj.phase0.t_initial', 0, units='s')
         p.set_val('traj.phase0.t_duration', 2000, units='s')
         p.set_val('traj.phase0.controls:alpha',
-                  phase0.interp('alpha', [17.4 * np.pi / 180, 17.4 * np.pi / 180]), units='rad')
-        p.set_val('traj.phase0.polynomial_controls:beta', np.radians(-75))
+                  phase0.interp('alpha', [17.4, 17.4]), units='deg')
+        p.set_val('traj.phase0.polynomial_controls:beta',
+                  phase0.interp('beta', [-20, 0]), units='deg')
 
-        p.run_driver()
+        run_problem(p, simulate=True)
 
-        exp_out = traj.simulate()
+        sol = om.CaseReader('dymos_solution.db').get_case('final')
+        sim = om.CaseReader('dymos_simulation.db').get_case('final')
 
         from scipy.interpolate import interp1d
 
-        t_sol = p.get_val('traj.phase0.timeseries.time')
-        beta_sol = p.get_val('traj.phase0.timeseries.polynomial_controls:beta')
+        t_sol = sol.get_val('traj.phase0.timeseries.time')
+        beta_sol = sol.get_val('traj.phase0.timeseries.polynomial_controls:beta', units='deg')
 
-        t_sim = exp_out.get_val('traj.phase0.timeseries.time')
-        beta_sim = exp_out.get_val('traj.phase0.timeseries.polynomial_controls:beta')
+        t_sim = sim.get_val('traj.phase0.timeseries.time')
+        beta_sim = sim.get_val('traj.phase0.timeseries.polynomial_controls:beta', units='deg')
 
         sol_interp = interp1d(t_sol.ravel(), beta_sol.ravel())
         sim_interp = interp1d(t_sim.ravel(), beta_sim.ravel())
 
-        t = np.linspace(0, t_sol.ravel()[-1], 100)
+        t = np.linspace(0, t_sol.ravel()[-1], 1000)
 
-        assert_near_equal(sim_interp(t), sol_interp(t), tolerance=1.0E-3)
+        assert_near_equal(sim_interp(t), sol_interp(t), tolerance=0.01)
+
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
+                          expected_results['constrained']['time'],
+                          tolerance=1e-2)
+
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
+                          expected_results['constrained']['theta'],
+                          tolerance=1e-2)
 
 
 if __name__ == '___main__':

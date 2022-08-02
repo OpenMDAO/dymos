@@ -30,9 +30,12 @@ class ODEIntegrationInterface(object):
         The parameter options for the phase being simulated.
     ode_init_kwargs : dict
         Keyword argument dictionary passed to the ODE at initialization.
+    reports : bool or None or str or Sequence
+        The reports argument to be passed to the subproblems.  By default, no subproblem reports are generated.
     """
     def __init__(self, ode_class, time_options, state_options, control_options,
-                 polynomial_control_options, parameter_options, ode_init_kwargs=None):
+                 polynomial_control_options, parameter_options, ode_init_kwargs=None,
+                 reports=False):
 
         # Get the state vector.  This isn't necessarily ordered
         # so just pick the default ordering and go with it.
@@ -67,7 +70,8 @@ class ODEIntegrationInterface(object):
                                                                    control_options=control_options,
                                                                    polynomial_control_options=polynomial_control_options,
                                                                    parameter_options=parameter_options,
-                                                                   ode_init_kwargs=ode_init_kwargs))
+                                                                   ode_init_kwargs=ode_init_kwargs),
+                               reports=reports)
 
     def _unpack_state_vec(self, x):
         """

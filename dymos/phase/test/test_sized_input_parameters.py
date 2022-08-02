@@ -25,9 +25,9 @@ class TestParameterConnections(unittest.TestCase):
                 nn = self.options['num_nodes']
 
                 self.add_subsystem('sum', om.ExecComp('m_tot = sum(m)',
-                                                      m={'value': np.zeros((nn, 2, 2)),
+                                                      m={'val': np.zeros((nn, 2, 2)),
                                                          'units': 'kg'},
-                                                      m_tot={'value': np.zeros(nn),
+                                                      m_tot={'val': np.zeros(nn),
                                                              'units': 'kg'}))
 
                 self.add_subsystem('eom', FlightPathEOM2D(num_nodes=nn))
@@ -45,11 +45,6 @@ class TestParameterConnections(unittest.TestCase):
         p.driver.declare_coloring()
 
         seg_ends, _ = lgl(num_segments + 1)
-
-        # @dm.declare_time(units='s')
-        # @dm.declare_state('v', rate_source='eom.v_dot', units='m/s')
-        # @dm.declare_state('h', rate_source='eom.h_dot', units='m')
-        # @dm.declare_parameter('m', targets='sum.m', units='kg', shape=(2, 2))
 
         phase = dm.Phase(ode_class=TrajectoryODE,
                          transcription=dm.Radau(num_segments=num_segments, order=transcription_order,
@@ -91,9 +86,9 @@ class TestParameterConnections(unittest.TestCase):
                 nn = self.options['num_nodes']
 
                 self.add_subsystem('sum', om.ExecComp('m_tot = sum(m)',
-                                                      m={'value': np.zeros((2, 2)),
+                                                      m={'val': np.zeros((2, 2)),
                                                          'units': 'kg'},
-                                                      m_tot={'value': np.zeros(nn),
+                                                      m_tot={'val': np.zeros(nn),
                                                              'units': 'kg'}))
 
                 self.add_subsystem('eom', FlightPathEOM2D(num_nodes=nn))
@@ -152,9 +147,9 @@ class TestParameterConnections(unittest.TestCase):
                 nn = self.options['num_nodes']
 
                 self.add_subsystem('sum', om.ExecComp('m_tot = sum(m)',
-                                                      m={'value': np.zeros((nn, 2, 2)),
+                                                      m={'val': np.zeros((nn, 2, 2)),
                                                          'units': 'kg'},
-                                                      m_tot={'value': np.zeros(nn),
+                                                      m_tot={'val': np.zeros(nn),
                                                              'units': 'kg'}))
 
                 self.add_subsystem('eom', FlightPathEOM2D(num_nodes=nn))
@@ -220,9 +215,9 @@ class TestParameterConnections(unittest.TestCase):
                 nn = self.options['num_nodes']
 
                 self.add_subsystem('sum', om.ExecComp('m_tot = sum(m)',
-                                                      m={'value': np.zeros((2, 2)),
+                                                      m={'val': np.zeros((2, 2)),
                                                          'units': 'kg'},
-                                                      m_tot={'value': np.zeros(nn),
+                                                      m_tot={'val': np.zeros(nn),
                                                              'units': 'kg'}))
 
                 self.add_subsystem('eom', FlightPathEOM2D(num_nodes=nn))

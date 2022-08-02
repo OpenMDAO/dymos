@@ -1,39 +1,9 @@
+from collections.abc import Iterable
+
 import numpy as np
 
-
-class _ReprClass(object):
-    """
-    Class for defining objects with a simple constant string __repr__.
-
-    This is useful for constants used in arg lists when you want them to appear in
-    automatically generated source documentation as a certain string instead of python's
-    default representation.
-    """
-
-    def __init__(self, repr_string):
-        """
-        Initialize the __repr__ string.
-
-        Parameters
-        ----------
-        repr_string : str
-            The string to be returned by __repr__
-        """
-        self._repr_string = repr_string
-
-    def __repr__(self):
-        """
-        Return our _repr_string.
-
-        Returns
-        -------
-        str
-            Whatever string we were initialized with.
-        """
-        return self._repr_string
-
-    def __str__(self):
-        return self._repr_string
+from .constants import INF_BOUND
+from openmdao.core.constants import _ReprClass
 
 
 # unique object to check if default is given (when None is an allowed value)
@@ -73,181 +43,6 @@ def get_rate_units(units, time_units, deriv=1):
     else:
         rate_units = None
     return rate_units
-
-
-def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspecified,
-                        user_shape=_unspecified, control_rate=False, user_static_target=_unspecified):
-    """
-    Return the targets of a state variable in a given ODE system.
-
-    If the targets of the state is _unspecified, and the state name is a top level input name
-    in the ODE, then the state values are automatically connected to that top-level input.
-    If _unspecified and not a top-level input of the ODE, no connection is made.
-    If targets is explicitly None, then no connection is made.
-    Otherwise, if the user specified some other string or sequence of strings as targets, then
-    those are returned.
-
-    Parameters
-    ----------
-    ode : om.System
-        The OpenMDAO system which serves as the ODE for dymos.  This system should already have
-        had its setup and configure methods called.
-    name : str
-        The name of the variable whose targets are desired.
-    user_targets : str or None or Sequence or _unspecified
-        Targets for the variable as given by the user.
-    user_units : str or None or _unspecified
-        Units for the variable as given by the user.
-    user_shape : None or Sequence or _unspecified
-        Shape for the variable as given by the user.
-    control_rate : bool
-        When True, check for the control rate if the name is not in the ODE.
-    user_static_target : bool or None or _unspecified
-        When False, assume the shape of the target in the ODE includes the number of nodes as the
-        first dimension.  If True, the connecting parameter does not need to be "fanned out" to
-        connect to each node.  If _unspecified, attempt to resolve by the presence of a tag
-        `dymos.static_target` on the target variable, which is the same as `static_target=True`.
-
-    Returns
-    -------
-    shape : tuple
-        The shape of the variable.  If not specified, shape is taken from the ODE targets.
-    units : str
-        The units of the variable.  If not specified, units are taken from the ODE targets.
-
-    Notes
-    -----
-    This method requires that the ODE has run its setup and configure methods.  Thus,
-    this method should be called from configure of some parent Group, and the ODE should
-    be a system within that Group.
-    """
-    rate_src = False
-    ode_inputs = {opts['prom_name']: opts for (k, opts) in
-                  ode.get_io_metadata(iotypes=('input',), get_remote=True).items()}
-
-    if user_targets is _unspecified:
-        if name in ode_inputs:
-            targets = [name]
-        elif control_rate and f'{name}_rate' in ode_inputs:
-            targets = [f'{name}_rate']
-            rate_src = True
-        else:
-            targets = []
-    elif user_targets:
-        if isinstance(user_targets, str):
-            targets = [user_targets]
-        else:
-            targets = user_targets
-    else:
-        targets = []
-
-    if user_units is _unspecified:
-        target_units_set = {ode_inputs[tgt]['units'] for tgt in targets}
-        if len(target_units_set) == 1:
-            units = next(iter(target_units_set))
-            if rate_src:
-                units = f"{units}*s"
-        else:
-            raise ValueError(f'Unable to automatically assign units to {name}. '
-                             f'Targets have multiple units: {target_units_set}. '
-                             f'Either promote targets and use set_input_defaults to assign common '
-                             f'units, or explicitly provide them to {name}.')
-    else:
-        units = user_units
-
-    # Resolve whether the targets is static or dynamic
-    static_target_tags = [tgt for tgt in targets if 'dymos.static_target' in ode_inputs[tgt]['tags']]
-    if static_target_tags:
-        static_target = True
-        if not user_static_target:
-            raise ValueError(f"User has specified 'static_target = False' for parameter {name},"
-                             f"but one or more targets is tagged with "
-                             f"'dymos.static_target': {' '.join(static_target_tags)}")
-    else:
-        if user_static_target is _unspecified:
-            static_target = False
-        else:
-            static_target = user_static_target
-
-    if user_shape in {None, _unspecified}:
-        # Resolve target shape
-        target_shape_set = {ode_inputs[tgt]['shape'] for tgt in targets}
-        if len(target_shape_set) == 1:
-            shape = next(iter(target_shape_set))
-            if not static_target:
-                if len(shape) == 1:
-                    shape = (1,)
-                else:
-                    shape = shape[1:]
-        elif len(target_shape_set) == 0:
-            raise ValueError(f'Unable to automatically assign a shape to {name}.\n'
-                             'Targets for this variable either do not exist or have no shape set.\n'
-                             'The shape for this variable must be set explicitly via the '
-                             '`shape=<tuple>` argument.')
-        else:
-            raise ValueError(f'Unable to automatically assign a shape to {name} based on targets. '
-                             f'Targets have multiple shapes assigned: {target_shape_set}. '
-                             f'Change targets such that all have common shapes.')
-    else:
-        shape = user_shape
-
-    return shape, units, static_target
-
-
-def get_source_metadata(ode, src, user_units, user_shape):
-    """
-    Return the targets of a state variable in a given ODE system.
-
-    If the targets of the state is _unspecified, and the state name is a top level input name
-    in the ODE, then the state values are automatically connected to that top-level input.
-    If _unspecified and not a top-level input of the ODE, no connection is made.
-    If targets is explicitly None, then no connection is made.
-    Otherwise, if the user specified some other string or sequence of strings as targets, then
-    those are returned.
-
-    Parameters
-    ----------
-    ode : om.System
-        The OpenMDAO system which serves as the ODE for dymos.  This system should already have
-        had its setup and configure methods called.
-    src : str
-        The relative path in the ODE to the source variable whose metadata is requested.
-    user_units : str or None or Sequence or _unspecified
-        Units for the variable as given by the user.
-    user_shape : str or None or Sequence or _unspecified
-        Shape for the variable as given by the user.
-
-    Returns
-    -------
-    shape : tuple
-        The shape of the variable.  If not specified, shape is taken from the ODE targets.
-    units : str
-        The units of the variable.  If not specified, units are taken from the ODE targets.
-
-    Notes
-    -----
-    This method requires that the ODE has run its setup and configure methods.  Thus,
-    this method should be called from configure of some parent Group, and the ODE should
-    be a system within that Group.
-    """
-    ode_outputs = {opts['prom_name']: opts for (k, opts) in
-                   ode.get_io_metadata(iotypes=('output',), get_remote=True).items()}
-
-    if src not in ode_outputs:
-        raise ValueError(f'Unable to find the source {src} in the ODE at {ode.pathname}.')
-
-    if user_units in {None, _unspecified}:
-        units = ode_outputs[src]['units']
-    else:
-        units = user_units
-
-    if user_shape in {None, _unspecified}:
-        ode_shape = ode_outputs[src]['shape']
-        shape = (1,) if len(ode_shape) == 1 else ode_shape[1:]
-    else:
-        shape = user_shape
-
-    return shape, units
 
 
 def reshape_val(val, shape, num_input_nodes):
@@ -295,8 +90,32 @@ class CoerceDesvar(object):
     options : dict
         Variable options dictionary, should contain "shape".
     """
-    def __init__(self, num_input_nodes, desvar_indices, options):
+    def __init__(self, num_input_nodes, desvar_indices=None, options=None):
         self.num_input_nodes = num_input_nodes
+        shape = options['shape']
+        size = np.prod(shape, dtype=int)
+        fix_initial = options['fix_initial']
+        fix_final = options['fix_final']
+
+        if desvar_indices is None:
+            desvar_indices = list(range(size * num_input_nodes))
+
+            if fix_initial:
+                if isinstance(fix_initial, Iterable):
+                    idxs_to_fix = np.where(np.asarray(fix_initial))[0]
+                    for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                        del desvar_indices[idx_to_fix]
+                else:
+                    del desvar_indices[:size]
+
+            if fix_final:
+                if isinstance(fix_final, Iterable):
+                    idxs_to_fix = np.where(np.asarray(fix_final))[0]
+                    for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                        del desvar_indices[-size + idx_to_fix]
+                else:
+                    del desvar_indices[-size:]
+
         self.desvar_indices = desvar_indices
         self.options = options
 
@@ -322,6 +141,16 @@ class CoerceDesvar(object):
 
         """
         val = self.options[option]
+        if option == 'lower':
+            lb = np.zeros_like(self.desvar_indices, dtype=float)
+            lb[:] = -INF_BOUND if self.options['lower'] is None else val
+            return lb
+
+        if option == 'upper':
+            ub = np.zeros_like(self.desvar_indices, dtype=float)
+            ub[:] = INF_BOUND if self.options['upper'] is None else val
+            return ub
+
         if val is None or np.isscalar(val):
             return val
         # Handle value for vector/matrix valued variables

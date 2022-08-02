@@ -9,8 +9,6 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-SHOW_PLOTS = True
-
 
 class BrachistochroneArclengthODE(om.ExplicitComponent):
 

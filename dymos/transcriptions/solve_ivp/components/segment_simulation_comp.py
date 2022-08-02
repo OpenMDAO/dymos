@@ -62,7 +62,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
                                   'parent Phase.')
 
         self.options.declare('ode_integration_interface', default=None, allow_none=True,
-                             types=ODEIntegrationInterface,
+                             types=ODEIntegrationInterface, recordable=False,
                              desc='The instance of the ODE integration interface used to provide '
                                   'the ODE to scipy.integrate.solve_ivp in the segment.  If None,'
                                   ' a new one will be instantiated for this segment.')
@@ -71,6 +71,8 @@ class SegmentSimulationComp(om.ExplicitComponent):
                              desc='If None, results are provided at the all nodes within each'
                                   'segment.  If an int (n) then results are provided at n '
                                   'equally distributed points in time within each segment.')
+
+        self.options.declare('reports', default=False, desc='Reports setting for the subproblem.')
 
         self.recording_options['options_excludes'] = ['ode_integration_interface']
 
@@ -106,7 +108,8 @@ class SegmentSimulationComp(om.ExplicitComponent):
                 control_options=self.options['control_options'],
                 polynomial_control_options=self.options['polynomial_control_options'],
                 parameter_options=self.options['parameter_options'],
-                ode_init_kwargs=self.options['ode_init_kwargs'])
+                ode_init_kwargs=self.options['ode_init_kwargs'],
+                reports=self.options['reports'])
 
         self.add_input(name='time', val=np.ones(nnps_i),
                        units=self.options['time_options']['units'],
@@ -210,11 +213,11 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         # Set the values of t_initial and t_duration
         iface_prob.set_val('t_initial',
-                           value=inputs['t_initial'],
+                           val=inputs['t_initial'],
                            units=self.options['time_options']['units'])
 
         iface_prob.set_val('t_duration',
-                           value=inputs['t_duration'],
+                           val=inputs['t_duration'],
                            units=self.options['time_options']['units'])
 
         # Set the values of the phase parameters
@@ -222,7 +225,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
             for param_name, options in self.options['parameter_options'].items():
                 val = inputs['parameters:{0}'.format(param_name)]
                 iface_prob.set_val('parameters:{0}'.format(param_name),
-                                   value=val,
+                                   val=val,
                                    units=options['units'])
 
         # Setup the evaluation times.

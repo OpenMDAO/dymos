@@ -80,6 +80,12 @@ class TestContinuityComp(unittest.TestCase):
                 state_options['y']['shape'] = (1,)
                 control_options['v']['shape'] = (1,)
 
+                control_options['u']['rate_continuity'] = True
+                control_options['v']['rate_continuity'] = True
+
+                control_options['u']['rate2_continuity'] = True
+                control_options['v']['rate2_continuity'] = True
+
                 if transcription == 'gauss-lobatto':
                     cnty_comp = GaussLobattoContinuityComp(grid_data=gd, time_units='s',
                                                            state_options=state_options,
@@ -98,8 +104,8 @@ class TestContinuityComp(unittest.TestCase):
                                               newshape=(num_seg_ends, 1))
 
                 if compressed != 'compressed':
-                    self.p.model.connect('x', 'cnty_comp.states:x', src_indices=segment_end_idxs)
-                    self.p.model.connect('y', 'cnty_comp.states:y', src_indices=segment_end_idxs)
+                    self.p.model.connect('x', 'cnty_comp.states:x', src_indices=(segment_end_idxs,))
+                    self.p.model.connect('y', 'cnty_comp.states:y', src_indices=(segment_end_idxs,))
 
                 self.p.model.connect('t_duration', 'cnty_comp.t_duration')
 
@@ -110,6 +116,9 @@ class TestContinuityComp(unittest.TestCase):
                 size_v = nn * np.prod(control_options['v']['shape'])
                 src_idxs_v = np.arange(size_v).reshape((nn,) + control_options['v']['shape'])
                 src_idxs_v = src_idxs_v[gd.subset_node_indices['segment_ends'], ...]
+
+                src_idxs_u = (src_idxs_u,)
+                src_idxs_v = (src_idxs_v,)
 
                 # if transcription =='radau-ps' or compressed != 'compressed':
                 self.p.model.connect('u', 'cnty_comp.controls:u', src_indices=src_idxs_u,

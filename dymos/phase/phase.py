@@ -13,10 +13,16 @@ from openmdao.core.system import System
 import dymos as dm
 
 from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
-    StateOptionsDictionary, TimeOptionsDictionary, \
-    PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary
+    StateOptionsDictionary, TimeOptionsDictionary, ConstraintOptionsDictionary, \
+    PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary, \
+    TimeseriesOutputOptionsDictionary
+
 
 from ..transcriptions.transcription_base import TranscriptionBase
+from ..utils.indexing import get_constraint_flat_idxs
+from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
+    configure_controls_introspection, configure_parameters_introspection, configure_states_introspection, \
+    classify_var, get_promoted_vars
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
 
@@ -64,13 +70,12 @@ class Phase(om.Group):
         # Dictionaries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE
         if from_phase is None:
-            self._initial_boundary_constraints = {}
-            self._final_boundary_constraints = {}
-            self._path_constraints = {}
-            self._timeseries = {}
-            self._timeseries['timeseries'] = {'transcription': None,
-                                              'subset': 'all',
-                                              'outputs': {}}
+            self._initial_boundary_constraints = []
+            self._final_boundary_constraints = []
+            self._path_constraints = []
+            self._timeseries = {'timeseries': {'transcription': None,
+                                               'subset': 'all',
+                                               'outputs': {}}}
             self._objectives = {}
         else:
             self.time_options.update(from_phase.time_options)
@@ -104,8 +109,6 @@ class Phase(om.Group):
                              desc='Keyword arguments provided when initializing the ODE System')
         self.options.declare('transcription', types=TranscriptionBase,
                              desc='Transcription technique of the optimal control problem.')
-        self.options.declare('timeseries', types=(dict,),
-                             desc='Alternative timeseries.')
 
     def add_state(self, name, units=_unspecified, shape=_unspecified,
                   rate_source=_unspecified, targets=_unspecified,
@@ -321,18 +324,17 @@ class Phase(om.Group):
             Raised if the parameter of the given name is previously assigned or
             incompatible with the type of control to which it is assigned.
         """
-        # ode_params = None if self.ode_options is None else self.ode_options._parameters
         if name in ['time', 'time_phase', 't_initial', 't_duration']:
-            raise ValueError('The name {0} is reserved for the independent variable of integration'
+            raise ValueError(f'The name {name} is reserved for the independent variable of integration'
                              ' in Dymos and may not be used as a state, control, or parameter name')
         elif name in self.state_options:
-            raise ValueError('{0} has already been added as a state.'.format(name))
+            raise ValueError(f'{name} has already been added as a state.')
         elif name in self.control_options:
-            raise ValueError('{0} has already been added as a control.'.format(name))
+            raise ValueError(f'{name} has already been added as a control.')
         elif name in self.parameter_options:
-            raise ValueError('{0} has already been added as a parameter.'.format(name))
+            raise ValueError(f'{name} has already been added as a parameter.')
         elif name in self.polynomial_control_options:
-            raise ValueError('{0} has already been added as a polynomial control.'.format(name))
+            raise ValueError(f'{name} has already been added as a polynomial control.')
 
     def add_control(self, name, units=_unspecified, desc=_unspecified, opt=_unspecified,
                     fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
@@ -611,7 +613,7 @@ class Phase(om.Group):
         name : str
             Name of the controllable parameter in the ODE.
         order : int
-            The order of the interpolating polynomial used to represent the control valeu in
+            The order of the interpolating polynomial used to represent the control value in
             phase tau space.
         desc : str
             A description of the polynomial control.
@@ -961,7 +963,7 @@ class Phase(om.Group):
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
-                                scaler=None, adder=None, ref=None, ref0=None, linear=False):
+                                scaler=None, adder=None, ref=None, ref0=None, linear=False, flat_indices=False):
         r"""
         Add a boundary constraint to a variable in the phase.
 
@@ -984,10 +986,11 @@ class Phase(om.Group):
             The shape of the variable being boundary-constrained.  This can be inferred
             automatically for time, states, controls, and parameters, but is required
             if the constrained variable is an output of the ODE system.
-        indices : tuple, list, ndarray, or None
-            The indices of the output variable to be boundary constrained.  Indices assumes C-order
-            flattening.  For instance, when constraining element [0, 1] of a variable of shape
-            [2, 2], indices would be [3].
+        indices : tuple, list, ndarray, slice, or None
+            The indices of the output variable to be boundary constrained at either the initial or final time in the
+            phase. When the variable is multi-dimensional, this should be a list of lists, one for each dimension,
+            containing the indices to be constrained.  Note the behavior of indices changes depending on the value
+            of the flat_indices option.
         lower : float or ndarray, optional
             Lower boundary for the variable.
         upper : float or ndarray, optional
@@ -1005,7 +1008,11 @@ class Phase(om.Group):
         ref0 : float or ndarray, optional
             Value of response variable that scales to 0.0 in the driver.
         linear : bool
-            Set to True if constraint is linear. Default is False.
+            Set to True if constraint is linear. Setting this to True when the constraint is not a linear function
+            of the design variables will result in a failure of the optimization.
+        flat_indices : bool
+            If True, treat indices as flattened C-ordered indices of elements to constrain. Otherwise,
+            indices should be a tuple or list giving the elements to constrain at each point in time.
         """
         if loc not in ['initial', 'final']:
             raise ValueError('Invalid boundary constraint location "{0}". Must be '
@@ -1014,29 +1021,41 @@ class Phase(om.Group):
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
 
-        bc_dict = self._initial_boundary_constraints \
-            if loc == 'initial' else self._final_boundary_constraints
+        bc_list = self._initial_boundary_constraints if loc == 'initial' else self._final_boundary_constraints
 
-        bc_dict[name] = {}
-        bc_dict[name]['constraint_name'] = constraint_name
+        existing_bc = [bc for bc in bc_list if bc['name'] == name and bc['indices'] is None and indices is None]
 
-        bc_dict[name]['shape'] = shape
-        bc_dict[name]['indices'] = indices
-        bc_dict[name]['lower'] = lower
-        bc_dict[name]['upper'] = upper
-        bc_dict[name]['equals'] = equals
-        bc_dict[name]['scaler'] = scaler
-        bc_dict[name]['adder'] = adder
-        bc_dict[name]['ref0'] = ref0
-        bc_dict[name]['ref'] = ref
-        bc_dict[name]['linear'] = linear
-        bc_dict[name]['units'] = units
+        if existing_bc:
+            raise ValueError(f'Cannot add new {loc} boundary constraint for variable `{name}` and indices {indices}. '
+                             f'One already exists.')
 
-        self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+        bc = ConstraintOptionsDictionary()
+        bc_list.append(bc)
+
+        bc['name'] = name
+        bc['constraint_name'] = constraint_name
+        bc['lower'] = lower
+        bc['upper'] = upper
+        bc['equals'] = equals
+        bc['scaler'] = scaler
+        bc['adder'] = adder
+        bc['ref0'] = ref0
+        bc['ref'] = ref
+        bc['indices'] = indices
+        bc['shape'] = shape
+        bc['linear'] = linear
+        bc['units'] = units
+        bc['flat_indices'] = flat_indices
+
+        # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
+        var_type = self.classify_var(name)
+        if var_type == 'ode':
+            if constraint_name not in self._timeseries['timeseries']['outputs']:
+                self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
-                            ref0=None, linear=False):
+                            ref0=None, linear=False, flat_indices=False):
         r"""
         Add a path constraint to a variable in the phase.
 
@@ -1057,9 +1076,10 @@ class Phase(om.Group):
             automatically for time, states, controls, and parameters, but is required
             if the constrained variable is an output of the ODE system.
         indices : tuple, list, ndarray, or None
-            The indices of the output variable to be path constrained.  Indices assumes C-order
-            flattening.  For instance, when constraining element [0, 1] of a variable of shape
-            [2, 2], indices would be [3].
+            The indices of the output variable to be constrained at each point in time in the phase.
+            When the variable is multi-dimensional, this should be a list of lists, one for each dimension,
+            containing the indices to be constrained.  Note the behavior of indices changes depending on the value
+            of the flat_indices option.
         lower : float or ndarray, optional
             Lower boundary for the variable.
         upper : float or ndarray, optional
@@ -1077,29 +1097,47 @@ class Phase(om.Group):
         ref0 : float or ndarray, optional
             Value of response variable that scales to 0.0 in the driver.
         linear : bool
-            Set to True if constraint is linear. Default is False.
+            Set to True if constraint is linear. If set to True and the constrained output is not a linear function
+            of the design variables, the optimization will fail.
+        flat_indices : bool
+            If True, treat indices as flattened C-ordered indices of elements to constrain at each given point in time.
+            Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.
         """
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
 
-        if name not in self._path_constraints:
-            self._path_constraints[name] = {}
-            self._path_constraints[name]['constraint_name'] = constraint_name
+        existing_pc = [pc for pc in self._path_constraints
+                       if pc['name'] == name and pc['indices'] == indices and pc['flat_indices'] == flat_indices]
 
-        self._path_constraints[name]['lower'] = lower
-        self._path_constraints[name]['upper'] = upper
-        self._path_constraints[name]['equals'] = equals
-        self._path_constraints[name]['scaler'] = scaler
-        self._path_constraints[name]['adder'] = adder
-        self._path_constraints[name]['ref0'] = ref0
-        self._path_constraints[name]['ref'] = ref
-        self._path_constraints[name]['indices'] = indices
-        self._path_constraints[name]['shape'] = shape
-        self._path_constraints[name]['linear'] = linear
-        self._path_constraints[name]['units'] = units
-        self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+        if existing_pc:
+            raise ValueError(f'Cannot add new path constraint for variable `{name}` and indices {indices}. '
+                             f'One already exists.')
 
-    def add_timeseries_output(self, name, output_name=None, units=None, shape=None,
+        pc = ConstraintOptionsDictionary()
+        self._path_constraints.append(pc)
+
+        pc['name'] = name
+        pc['constraint_name'] = constraint_name
+        pc['lower'] = lower
+        pc['upper'] = upper
+        pc['equals'] = equals
+        pc['scaler'] = scaler
+        pc['adder'] = adder
+        pc['ref0'] = ref0
+        pc['ref'] = ref
+        pc['indices'] = indices
+        pc['shape'] = shape
+        pc['linear'] = linear
+        pc['units'] = units
+        pc['flat_indices'] = flat_indices
+
+        # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
+        var_type = self.classify_var(name)
+        if var_type == 'ode':
+            if constraint_name not in self._timeseries['timeseries']['outputs']:
+                self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+
+    def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                               timeseries='timeseries'):
         r"""
         Add a variable to the timeseries outputs of the phase.
@@ -1109,17 +1147,18 @@ class Phase(om.Group):
         name : str, or list of str
             The name(s) of the variable to be used as a timeseries output.  Must be one of
             'time', 'time_phase', one of the states, controls, control rates, or parameters,
-            in the phase, or the path to an output variable in the ODE.
+            in the phase, the path to an output variable in the ODE, or a glob pattern
+            matching some outputs in the ODE.
         output_name : str or None or list or dict
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
             override the constraint name if splitting the path causes name collisions.
-        units : str or None
+        units : str or None or _unspecified
             The units to express the timeseries output.  If None, use the
             units associated with the target.  If provided, must be compatible with
             the target units.
             If a list of names is provided, units can be a matching list or dictionary.
-        shape : tuple
+        shape : tuple or _unspecified
             The shape of the timeseries output variable.  This must be provided (if not scalar)
             since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
         timeseries : str or None
@@ -1134,27 +1173,83 @@ class Phase(om.Group):
                 else:
                     unit = units
 
-                self._add_timeseries_output(name_i, output_name=output_name,
-                                            units=unit,
-                                            shape=shape,
-                                            timeseries=timeseries)
+                oname = self._add_timeseries_output(name_i, output_name=output_name,
+                                                    units=unit,
+                                                    shape=shape,
+                                                    timeseries=timeseries,
+                                                    rate=False)
 
                 # Handle specific units for wildcard names.
-                if '*' in name_i:
-                    self._timeseries[timeseries]['outputs'][name_i]['wildcard_units'] = units
+                if oname is not None and '*' in name_i:
+                    self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
 
         else:
             self._add_timeseries_output(name, output_name=output_name,
                                         units=units,
                                         shape=shape,
-                                        timeseries=timeseries)
+                                        timeseries=timeseries,
+                                        rate=False)
 
-    def _add_timeseries_output(self, name, output_name=None, units=None, shape=None,
-                               timeseries='timeseries'):
+    def add_timeseries_rate_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
+                                   timeseries='timeseries'):
         r"""
-        Add a single variable to the timeseries outputs of the phase.
+        Add the rate of a variable to the timeseries outputs of the phase.
 
-        This is called by add_timeseries_output for each variable that is added.
+        Parameters
+        ----------
+        name : str, or list of str
+            The name(s) of the variable to be used as a timeseries output.  Must be one of
+            'time', 'time_phase', one of the states, controls, control rates, or parameters,
+            in the phase, the path to an output variable in the ODE, or a glob pattern
+            matching some outputs in the ODE.
+        output_name : str or None or list or dict
+            The name of the variable as listed in the phase timeseries outputs.  By
+            default this is the last element in `name` when split by dots.  The user may
+            override the constraint name if splitting the path causes name collisions.
+        units : str or None or _unspecified
+            The units to express the timeseries output.  If None, use the
+            units associated with the target.  If provided, must be compatible with
+            the target units.
+            If a list of names is provided, units can be a matching list or dictionary.
+        shape : tuple or _unspecified
+            The shape of the timeseries output variable.  This must be provided (if not scalar)
+            since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
+        timeseries : str or None
+            The name of the timeseries to which the output is being added.
+        """
+        if type(name) is list:
+            for i, name_i in enumerate(name):
+                if type(units) is dict:  # accept dict for units when using array of name
+                    unit = units.get(name_i, None)
+                elif type(units) is list:  # allow matching list for units
+                    unit = units[i]
+                else:
+                    unit = units
+
+                oname = self._add_timeseries_output(name_i, output_name=output_name,
+                                                    units=unit,
+                                                    shape=shape,
+                                                    timeseries=timeseries,
+                                                    rate=True)
+
+                # Handle specific units for wildcard names.
+                if oname is not None and '*' in name_i:
+                    self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
+
+        else:
+            self._add_timeseries_output(name, output_name=output_name,
+                                        units=units,
+                                        shape=shape,
+                                        timeseries=timeseries,
+                                        rate=True)
+
+    def _add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
+                               timeseries='timeseries', rate=False):
+        r"""
+        Add a single variable or rate to the timeseries outputs of the phase.
+
+        This is called by add_timeseries_output or add_timeseries_rate_output for each variable or rate
+        that is added.
 
         Parameters
         ----------
@@ -1165,7 +1260,8 @@ class Phase(om.Group):
         output_name : str or None
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
-            override the constraint name if splitting the path causes name collisions.
+            override the constraint name if splitting the path causes name collisions.  If rate
+            is True, the rate name will be this name + _rate.
         units : str or None
             The units to express the timeseries output.  If None, use the
             units associated with the target.  If provided, must be compatible with
@@ -1175,20 +1271,39 @@ class Phase(om.Group):
             since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
         timeseries : str or None
             The name of the timeseries to which the output is being added.
+        rate : bool
+            If True, add the rate of change of the named variable to the timeseries outputs of the
+            phase.  The rate variable will be named f'{name}_rate'.  Defaults to False.
+
+        Returns
+        -------
+        str or None
+           Name of output that was added to the timeseries or None if nothing was added.
         """
+        if timeseries not in self._timeseries:
+            raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
+
         if output_name is None:
             output_name = name.split('.')[-1]
 
-        if timeseries not in self._timeseries:
-            raise ValueError('Timeseries {0} does not exist in phase {1}'.format(timeseries, self.pathname))
+            if rate:
+                output_name = output_name + '_rate'
 
-        if name not in self._timeseries[timeseries]['outputs']:
-            self._timeseries[timeseries]['outputs'][name] = {}
-            self._timeseries[timeseries]['outputs'][name]['output_name'] = output_name
-            self._timeseries[timeseries]['outputs'][name]['wildcard_units'] = {}
+        if output_name in self._timeseries[timeseries]['outputs']:
+            om.issue_warning(f'Output name `{output_name}` is already in timeseries `{timeseries}`. '
+                             f'New output ignored.')
+        else:
+            ts_output = TimeseriesOutputOptionsDictionary()
+            ts_output['name'] = name
+            ts_output['output_name'] = output_name
+            ts_output['wildcard_units'] = {}
+            ts_output['units'] = units
+            ts_output['shape'] = shape
+            ts_output['is_rate'] = rate
 
-        self._timeseries[timeseries]['outputs'][name]['units'] = units
-        self._timeseries[timeseries]['outputs'][name]['shape'] = shape
+            self._timeseries[timeseries]['outputs'][output_name] = ts_output
+
+            return output_name
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""
@@ -1412,39 +1527,15 @@ class Phase(om.Group):
         -------
         str
             The classification of the given variable, which is one of
-            'time', 'time_phase', 'state', 'input_control', 'indep_control', 'control_rate',
-            'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
+            'time', 'time_phase', 'state', 'control', 'control_rate',
+            'control_rate2', 'polynomial_control',
             'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
             or 'ode'.
         """
-        if var == 'time':
-            return 'time'
-        elif var == 'time_phase':
-            return 'time_phase'
-        elif var in self.state_options:
-            return 'state'
-        elif var in self.control_options:
-            if self.control_options[var]['opt']:
-                return 'indep_control'
-            else:
-                return 'input_control'
-        elif var in self.polynomial_control_options:
-            if self.polynomial_control_options[var]['opt']:
-                return 'indep_polynomial_control'
-            else:
-                return 'input_polynomial_control'
-        elif var in self.parameter_options:
-            return 'parameter'
-        elif var.endswith('_rate') and var[:-5] in self.control_options:
-            return 'control_rate'
-        elif var.endswith('_rate2') and var[:-6] in self.control_options:
-            return 'control_rate2'
-        elif var.endswith('_rate') and var[:-5] in self.polynomial_control_options:
-            return 'polynomial_control_rate'
-        elif var.endswith('_rate2') and var[:-6] in self.polynomial_control_options:
-            return 'polynomial_control_rate2'
-        else:
-            return 'ode'
+        return classify_var(var, state_options=self.state_options,
+                            parameter_options=self.parameter_options,
+                            control_options=self.control_options,
+                            polynomial_control_options=self.polynomial_control_options)
 
     def _check_ode(self):
         """
@@ -1494,12 +1585,9 @@ class Phase(om.Group):
         transcription.setup_states(self)
         self._check_ode()
         transcription.setup_ode(self)
-        transcription.setup_defects(self)
 
-        transcription.setup_boundary_constraints('initial', self)
-        transcription.setup_boundary_constraints('final', self)
-        transcription.setup_path_constraints(self)
         transcription.setup_timeseries_outputs(self)
+        transcription.setup_defects(self)
         transcription.setup_solvers(self)
 
     def configure(self):
@@ -1509,29 +1597,103 @@ class Phase(om.Group):
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']
-        transcription.configure_time(self)
+        ode = transcription._get_ode(self)
+
+        configure_time_introspection(self.time_options, ode)
 
         # The control interpolation comp to which we'll connect controls
         if self.control_options:
-            transcription.configure_controls(self)
+            configure_controls_introspection(self.control_options, ode,
+                                             time_units=self.time_options['units'])
 
         if self.polynomial_control_options:
-            transcription.configure_polynomial_controls(self)
+            configure_controls_introspection(self.polynomial_control_options, ode,
+                                             time_units=self.time_options['units'])
 
         if self.parameter_options:
-            transcription.configure_parameters(self)
+            try:
+                configure_parameters_introspection(self.parameter_options, ode)
+            except ValueError as e:
+                raise ValueError(f'Invalid parameter in phase `{self.pathname}`.\n{str(e)}') from e
 
-        transcription.configure_state_discovery(self)
+        self.configure_state_discovery()
+
+        try:
+            configure_states_introspection(self.state_options, self.time_options, self.control_options,
+                                           self.parameter_options, self.polynomial_control_options,
+                                           ode)
+        except RuntimeError as val_err:
+            raise RuntimeError(f'Error during configure_states_introspection in phase {self.pathname}.') from val_err
+
+        transcription.configure_time(self)
+        transcription.configure_controls(self)
+        transcription.configure_polynomial_controls(self)
+        transcription.configure_parameters(self)
         transcription.configure_states(self)
+
         transcription.configure_ode(self)
+
         transcription.configure_defects(self)
 
-        transcription.configure_boundary_constraints('initial', self)
-        transcription.configure_boundary_constraints('final', self)
+        _configure_constraint_introspection(self)
+
+        transcription._configure_boundary_constraints(self)
+
         transcription.configure_path_constraints(self)
+
         transcription.configure_objective(self)
+
         transcription.configure_timeseries_outputs(self)
+
         transcription.configure_solvers(self)
+
+    def configure_state_discovery(self):
+        """
+        Searches phase output metadata for any declared states and adds them.
+        """
+        transcription = self.options['transcription']
+        state_options = self.state_options
+        out_meta = get_promoted_vars(transcription._get_ode(self), 'output', metadata_keys=('tags',))
+
+        for prom_name, meta in out_meta.items():
+            state = None
+            for tag in sorted(meta['tags']):
+
+                # Declared as rate_source.
+                if tag.startswith('dymos.state_rate_source:') or tag.startswith('state_rate_source:'):
+                    state = tag.split(':')[-1]
+                    if tag.startswith('state_rate_source:'):
+                        msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
+                              f"dymos version 2.0.0. Use 'dymos.state_rate_source:{state}' instead."
+                        om.issue_warning(msg, category=om.OMDeprecationWarning)
+                    if state not in state_options:
+                        state_options[state] = StateOptionsDictionary()
+                        state_options[state]['name'] = state
+
+                    if state_options[state]['rate_source'] is not None:
+                        if state_options[state]['rate_source'] != prom_name:
+                            raise ValueError(f"rate_source has been declared twice for state "
+                                             f"'{state}' which is tagged on '{prom_name}'.")
+
+                    state_options[state]['rate_source'] = prom_name
+
+                # Declares units for state.
+                if tag.startswith('dymos.state_units:') or tag.startswith('state_units:'):
+                    tagged_state_units = tag.split(':')[-1]
+                    if tag.startswith('state_units:'):
+                        msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
+                              f"dymos version 2.0.0. Use 'dymos.{tag}' instead."
+                        om.issue_warning(msg, category=om.OMDeprecationWarning)
+                    if state is None:
+                        raise ValueError(f"'{tag}' tag declared on '{prom_name}' also requires "
+                                         f"that the 'dymos.state_rate_source:{tagged_state_units}' "
+                                         f"tag be declared.")
+                    state_options[state]['units'] = tagged_state_units
+
+        # Check over all existing states and make sure we aren't missing any rate sources.
+        for name, options in state_options.items():
+            if options['rate_source'] is None:
+                raise ValueError(f"State '{name}' is missing a rate_source.")
 
     def check_time_options(self):
         """
@@ -1542,6 +1704,8 @@ class Phase(om.Group):
         RuntimeWarning
             RuntimeWarning is issued in the case of one or more invalid time options.
         """
+        phase_name = self.pathname
+
         if self.time_options['fix_initial'] or self.time_options['input_initial']:
             invalid_options = []
             init_bounds = self.time_options['initial_bounds']
@@ -1551,17 +1715,15 @@ class Phase(om.Group):
                 if self.time_options[opt] is not None:
                     invalid_options.append(opt)
             if invalid_options:
-                warnings.warn('Phase time options have no effect because fix_initial=True or '
-                              'input_initial=True for '
-                              'phase \'{0}\': {1}'.format(self.name, ', '.join(invalid_options)),
-                              RuntimeWarning)
+                str_invalid_opts = ', '.join(invalid_options)
+                warnings.warn(f'Phase time options have no effect because fix_initial=True '
+                              f'or input_initial=True for phase \'{phase_name}\': {str_invalid_opts}')
 
-        if self.time_options['fix_initial'] and self.time_options['input_initial']:
-            warnings.warn('Phase \'{0}\' initial time is an externally-connected input, '
-                          'therefore fix_initial has no effect.'.format(self.name),
-                          RuntimeWarning)
+        if self.time_options['input_initial']:
+            warnings.warn(f'Phase \'{self.name}\' initial time is an externally-connected input, '
+                          'therefore fix_initial has no effect.', RuntimeWarning)
 
-        if self.time_options['fix_duration'] or self.time_options['input_duration']:
+        if self.time_options['fix_duration'] or self.time_options['input_initial']:
             invalid_options = []
             duration_bounds = self.time_options['duration_bounds']
             if duration_bounds is not None and duration_bounds != (None, None):
@@ -1570,14 +1732,13 @@ class Phase(om.Group):
                 if self.time_options[opt] is not None:
                     invalid_options.append(opt)
             if invalid_options:
-                warnings.warn('Phase time options have no effect because fix_duration=True or '
-                              'input_duration=True for '
-                              'phase \'{0}\': {1}'.format(self.name, ', '.join(invalid_options)))
+                str_invalid_opts = ', '.join(invalid_options)
+                warnings.warn(f'Phase time options have no effect because fix_duration=True '
+                              f'or input_duration=True for phase \'{phase_name}\': {str_invalid_opts}')
 
-        if self.time_options['fix_duration'] and self.time_options['input_duration']:
-            warnings.warn('Phase \'{0}\' time duration is an externally-connected input, '
-                          'therefore fix_duration has no effect.'.format(self.name),
-                          RuntimeWarning)
+        if self.time_options['input_duration']:
+            warnings.warn(f'Phase \'{self.name}\' time duration is an externally-connected input, '
+                          'therefore fix_duration has no effect.', RuntimeWarning)
 
     def _check_control_options(self):
         """
@@ -1603,6 +1764,26 @@ class Phase(om.Group):
                 self.control_options[name]['continuity'] = False
                 self.control_options[name]['rate_continuity'] = False
                 self.control_options[name]['rate2_continuity'] = False
+
+    def _check_polynomial_control_options(self):
+        """
+        Check that polynomial control options are valid and issue warnings if invalid options are provided.
+
+        Warns
+        -----
+        RuntimeWarning
+            RuntimeWarning is issued in the case of one or more invalid time options.
+        """
+        for name, options in self.control_options.items():
+            if not options['opt']:
+                invalid_options = []
+                for opt in 'lower', 'upper', 'scaler', 'adder', 'ref', 'ref0':
+                    if options[opt] is not None:
+                        invalid_options.append(opt)
+                if invalid_options:
+                    warnings.warn('Invalid options for non-optimal polynoimal control  \'{0}\' in'
+                                  ' phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
+                                  RuntimeWarning)
 
     def _check_parameter_options(self):
         """
@@ -1752,7 +1933,12 @@ class Phase(om.Group):
                                  'variable to be interpolated was not provided.\nPlease specify '
                                  'the name of the interpolated variable or a node subset.')
             elif name in self.state_options:
-                node_locations = gd.node_ptau[gd.subset_node_indices['state_input']]
+                # For states in explicit shooting phases, interp should just return the initial
+                # value.
+                if isinstance(self.options['transcription'], dm.ExplicitShooting):
+                    node_locations = np.array([-1.0])
+                else:
+                    node_locations = gd.node_ptau[gd.subset_node_indices['state_input']]
             elif name in self.control_options:
                 node_locations = gd.node_ptau[gd.subset_node_indices['control_input']]
             elif name in self.polynomial_control_options:
@@ -1777,7 +1963,8 @@ class Phase(om.Group):
         return res
 
     def get_simulation_phase(self, times_per_seg=None, method=_unspecified, atol=_unspecified,
-                             rtol=_unspecified, first_step=_unspecified, max_step=_unspecified):
+                             rtol=_unspecified, first_step=_unspecified, max_step=_unspecified,
+                             reports=False):
         """
         Return a SolveIVPPhase instance.
 
@@ -1802,6 +1989,8 @@ class Phase(om.Group):
             Initial step size for the integration.
         max_step : float or _unspecified
             Maximum step size for the integration.
+        reports : bool or None or str or Sequence
+            The reports setting for the subproblem run under each simulation segment.
 
         Returns
         -------
@@ -1815,7 +2004,8 @@ class Phase(om.Group):
 
         sim_phase = dm.Phase(from_phase=self,
                              transcription=SolveIVP(grid_data=t.grid_data,
-                                                    output_nodes_per_seg=times_per_seg))
+                                                    output_nodes_per_seg=times_per_seg,
+                                                    reports=reports))
 
         # Copy over any simulation options from the simulate call.  The fallback will be to
         # phase.simulate_options, which are copied from the original phase.
@@ -1862,36 +2052,37 @@ class Phase(om.Group):
 
         # Set the integration times
         op = op_dict['timeseries.time']
-        prob.set_val(f'{self_path}t_initial', op['value'][0, ...])
-        prob.set_val(f'{self_path}t_duration', op['value'][-1, ...] - op['value'][0, ...])
+        prob.set_val(f'{self_path}t_initial', op['val'][0, ...])
+        prob.set_val(f'{self_path}t_duration', op['val'][-1, ...] - op['val'][0, ...])
 
         # Assign initial state values
         for name in phs.state_options:
             op = op_dict[f'timeseries.states:{name}']
-            prob[f'{self_path}initial_states:{name}'][...] = op['value'][0, ...]
+            prob[f'{self_path}initial_states:{name}'][...] = op['val'][0, ...]
 
         # Assign control values
         for name, options in phs.control_options.items():
             if options['opt']:
                 op = op_dict[f'control_group.indep_controls.controls:{name}']
-                prob[f'{self_path}controls:{name}'][...] = op['value']
+                prob[f'{self_path}controls:{name}'][...] = op['val']
             else:
                 ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
-                prob['{0}controls:{1}'.format(self_path, name)][...] = ip['value']
+                prob[f'{self_path}controls:{name}'][...] = ip['val']
 
         # Assign polynomial control values
         for name, options in phs.polynomial_control_options.items():
             if options['opt']:
                 op = op_dict[f'polynomial_control_group.indep_polynomial_controls.'
                              f'polynomial_controls:{name}']
-                prob[f'{self_path}polynomial_controls:{name}'][...] = op['value']
+                prob[f'{self_path}polynomial_controls:{name}'][...] = op['val']
             else:
                 ip = ip_dict[f'{phs_path}polynomial_control_group.interp_comp.'
                              f'polynomial_controls:{name}']
-                prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
+                prob[f'{self_path}polynomial_controls:{name}'][...] = ip['val']
 
         # Assign parameter values
         for name in phs.parameter_options:
+            units = phs.parameter_options[name]['units']
 
             if skip_params and name in skip_params:
                 continue
@@ -1899,14 +2090,14 @@ class Phase(om.Group):
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.
             if om_version < (3, 4, 1):
-                val = phs.get_val(f'parameters:{name}')[0, ...]
+                val = phs.get_val(f'parameters:{name}', units=units)[0, ...]
             else:
-                val = phs.get_val(f'parameters:{name}')
+                val = phs.get_val(f'parameters:{name}', units=units)
 
             if phase_path:
-                prob_path = '{0}.{1}.parameters:{2}'.format(phase_path, self.name, name)
+                prob_path = f'{phase_path}.{self.name}.parameters:{name}'
             else:
-                prob_path = '{0}.parameters:{1}'.format(self.name, name)
+                prob_path = f'{self.name}.parameters:{name}'
             prob[prob_path][...] = val
 
     def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
@@ -1955,9 +2146,9 @@ class Phase(om.Group):
         sim_prob.setup(check=True)
         sim_phase.initialize_values_from_phase(sim_prob, self)
 
-        print('\nSimulating phase {0}'.format(self.pathname))
+        print(f'\nSimulating phase {self.pathname}')
         sim_prob.run_model()
-        print('Done simulating phase {0}'.format(self.pathname))
+        print(f'Done simulating phase {self.pathname}')
         sim_prob.record('final')
 
         sim_prob.cleanup()
@@ -2045,23 +2236,15 @@ class Phase(om.Group):
         """
         fix_initial = self.time_options['fix_initial']
         fix_duration = self.time_options['fix_duration']
-        input_initial = self.time_options['input_initial']
-        input_duration = self.time_options['input_duration']
         initial_bounds = self.time_options['initial_bounds']
         duration_bounds = self.time_options['duration_bounds']
 
         if loc == 'initial':
-            if input_initial:
-                res = False
-            else:
-                res = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0.0)
+            res = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0.0)
         elif loc == 'final':
-            if input_initial or input_duration:
-                res = False
-            else:
-                initial_fixed = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0)
-                duration_fixed = fix_duration or (duration_bounds != (None, None) and np.diff(duration_bounds)[0] == 0)
-                res = initial_fixed and duration_fixed
+            initial_fixed = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0)
+            duration_fixed = fix_duration or (duration_bounds != (None, None) and np.diff(duration_bounds)[0] == 0)
+            res = initial_fixed and duration_fixed
         else:
             raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
                              f'"final" but got {loc}')
@@ -2091,3 +2274,91 @@ class Phase(om.Group):
             raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
                              f'"final" but got {loc}')
         return res
+
+    def is_control_fixed(self, name, loc):
+        """
+        Test if the control of the given name is guaranteed to be fixed at the initial or final time.
+
+        Parameters
+        ----------
+        name : str
+            The name of the control to be tested.
+        loc : str
+            The location of time to be tested: either 'initial' or 'final'.
+
+        Returns
+        -------
+        bool
+            True if the state of the given name is guaranteed to be fixed at the given location.
+        """
+        if loc == 'initial':
+            res = self.control_options[name]['fix_initial']
+        elif loc == 'final':
+            res = self.control_options[name]['fix_final']
+        else:
+            raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
+                             f'"final" but got {loc}')
+        return res
+
+    def is_polynomial_control_fixed(self, name, loc):
+        """
+        Test if the polynomial control of the given name is guaranteed to be fixed at the initial or final time.
+
+        Parameters
+        ----------
+        name : str
+            The name of the polynomial control to be tested.
+        loc : str
+            The location of time to be tested: either 'initial' or 'final'.
+
+        Returns
+        -------
+        bool
+            True if the state of the given name is guaranteed to be fixed at the given location.
+        """
+        if loc == 'initial':
+            res = self.polynomial_control_options[name]['fix_initial']
+        elif loc == 'final':
+            res = self.polynomial_control_options[name]['fix_final']
+        else:
+            raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
+                             f'"final" but got {loc}')
+        return res
+
+    def _indices_in_constraints(self, name, loc):
+        """
+        Returns a set of the C-order flattened indices involving constraint of the given name at the given loc.
+
+        Parameters
+        ----------
+        name : str
+            The pathname of the constrained quantity.
+        loc : str
+            The type of constraint to search: 'initial', 'final', or 'path'.
+
+        Returns
+        -------
+        all_flat_idxs : set
+            A C-order flattened set of indices that apply to the constraint.
+        """
+        cons = {'initial': self._initial_boundary_constraints,
+                'final': self._final_boundary_constraints,
+                'path': self._path_constraints}
+
+        all_flat_idxs = set()
+
+        for con in cons[loc]:
+            if con['name'] != name:
+                continue
+
+            flat_idxs = get_constraint_flat_idxs(con)
+            duplicate_idxs = all_flat_idxs.intersection(flat_idxs)
+            if duplicate_idxs:
+                s = {'initial': 'initial boundary', 'final': 'final boundary', 'path': 'path'}
+                raise ValueError(f'Duplicate constraint in phase {self.pathname}. '
+                                 f'The following indices of `{name}` are used in '
+                                 f'multiple {s[loc]} constraints:\n{duplicate_idxs}')
+
+            all_flat_idxs.update(flat_idxs)
+
+        return all_flat_idxs
