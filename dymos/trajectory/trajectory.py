@@ -422,7 +422,7 @@ class Trajectory(om.Group):
             if options['units'] is _unspecified:
                 tgt_units_set = set(tgt_units.values())
                 if len(tgt_units_set) == 1:
-                    options['units'] = list(tgt_units_set)[0]
+                    options['units'] = tgt_units_set.pop()
                 else:
                     ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
                                f'targets in multiple phases that have different units. You must '
@@ -1008,7 +1008,6 @@ class Trajectory(om.Group):
         # Resolve linkage pairs from the phases sequence
         a, b = itertools.tee(phases)
         next(b, None)
-        phase_pairs = list(zip(a, b))
 
         if len(locs) == 1:
             _locs = num_links * locs
@@ -1021,8 +1020,7 @@ class Trajectory(om.Group):
                              f'the number of phases specified.  There are {num_links} phase pairs '
                              f'but {len(locs)} location tuples specified.')
 
-        for i in range(len(phase_pairs)):
-            phase_name_a, phase_name_b = phase_pairs[i]
+        for i, (phase_name_a, phase_name_b) in enumerate(zip(a, b)):
             loc_a, loc_b = _locs[i]
             for var in _vars:
                 self.add_linkage_constraint(phase_a=phase_name_a, phase_b=phase_name_b,
