@@ -10,7 +10,7 @@ import sys
 
 import openmdao.api as om
 import openmdao
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
