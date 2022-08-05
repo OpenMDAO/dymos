@@ -72,5 +72,8 @@ The software has two primary objectives:
     ],
     extras_require=optional_dependencies,
     zip_safe=False,
-    package_data={'dymos.examples.aircraft_steady_flight.aero': ['data/CRM_aero_inputs.dat', 'data/CRM_aero_outputs.dat']},
+    package_data={
+        'dymos.examples.aircraft_steady_flight.aero': ['data/CRM_aero_inputs.dat', 'data/CRM_aero_outputs.dat'],
+        'dymos.visualization.linkage': ['report_template.html', 'js/*', 'style/*']
+    },
 )
