@@ -247,6 +247,7 @@ current_test = 1
 
 
 @unittest.skipUnless(Version(openmdao.__version__) >= Version("3.19"), "reports API is too old")
+@require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
 class dymos_linkage_gui_test_case(_GuiTestCase):
     def setUp(self):
