@@ -4,24 +4,19 @@ import json
 IGNORE_LIST = []
 
 packages = [
-    'approximation_schemes',
-    'components',
-    'core',
-    'drivers',
-    'error_checking',
-    'jacobians',
-    'matrices',
-    'proc_allocators',
-    'recorders',
-    'solvers.linear',
-    'solvers.linesearch',
-    'solvers.nonlinear',
-    'surrogate_models',
-    'test_suite.components',
-    'test_suite.scripts',
+    'grid_refinement',
+    'grid_refinement.hp_adaptive',
+    'grid_refinement.ph_adaptive',
+    'models',
+    'models.atmosphere',
+    'phase',
+    'trajectory',
+    'transcriptions',
+    'transcriptions.common',
+    'transcriptions.explicit_shooting',
+    'transcriptions.pseudospectral',
+    'transcriptions.solve_ivp',
     'utils',
-    'vectors',
-    'visualization',
 ]
 
 index_top = """
@@ -82,7 +77,7 @@ def _header_cell():
     return template
 
 
-def build_src_docs(top, src_dir, project_name='openmdao'):
+def build_src_docs(top, src_dir, project_name='dymos'):
     # docs_dir = os.path.dirname(src_dir)
 
     doc_dir = os.path.join(top, "_srcdocs")
@@ -189,4 +184,4 @@ def build_src_docs(top, src_dir, project_name='openmdao'):
 
 
 if __name__ == '__main__':
-    build_src_docs("openmdao_book/", "..")
+    build_src_docs("dymos_book/", "../dymos")

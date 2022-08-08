@@ -66,7 +66,7 @@ parts:
   chapters:
   - file: api/api
     sections:
-    - file: api/run_problem
+    - file: api/run_problem_function
     - file: api/phase_api
     - file: api/transcriptions_api
     - file: api/trajectory_api
