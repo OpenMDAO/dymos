@@ -1,4 +1,6 @@
 import io
+import pathlib
+from packaging.version import Version
 
 import numpy as np
 
@@ -6,6 +8,7 @@ from scipy.interpolate import interp1d
 
 import openmdao.api as om
 import openmdao.utils.assert_utils as _om_assert_utils
+from openmdao import __version__ as openmdao_version
 
 
 def assert_check_partials(data, atol=1.0E-6, rtol=1.0E-6):
@@ -121,147 +124,6 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
 
     if err_msg:
         raise AssertionError(err_msg)
-
-#
-#
-# def assert_timeseries_near_equal_old(t1, x1, t2, x2, tolerance=1.0E-6):
-#     """
-#     Assert that two timeseries of data are approximately equal.
-#
-#     This is done by fitting a 1D interpolant to each index of each timeseries, and then comparing
-#     the values of the two interpolants at some equally spaced number of points.
-#
-#     Parameters
-#     ----------
-#     t1 : np.array
-#         Time values for the first timeseries.
-#     x1 : np.array
-#         Data values for the first timeseries.
-#     t2 : np.array
-#         Time values for the second timeseries.
-#     x2 : np.array
-#         Data values for the second timeseries.
-#     tolerance : float
-#         The tolerance for any errors along at each point checked.
-#
-#     Raises
-#     ------
-#     AssertionError
-#         When one or more elements of the interpolated timeseries are not within the
-#         desired tolerance.
-#     """
-#     shape1 = x1.shape[1:]
-#     shape2 = x2.shape[1:]
-#
-#     if shape1 != shape2:
-#         raise ValueError('The shape of the variable in the two timeseries is not equal '
-#                          f'x1 is {shape1}  x2 is {shape2}')
-#
-#     if abs(t1[0] - t2[0]) > 1.0E-12:
-#         raise ValueError('The initial time of the two timeseries is not the same. '
-#                          f't1[0]={t1[0]}  t2[0]={t2[0]}  difference: {t2[0] - t1[0]}')
-#
-#     if abs(t1[-1] - t2[-1]) > 1.0E-12:
-#         raise ValueError('The final time of the two timeseries is not the same. '
-#                          f't1[0]={t1[-1]}  t2[0]={t2[-1]}  difference: {t2[-1] - t1[-1]}')
-#
-#     size = np.prod(shape1)
-#
-#     nn1 = x1.shape[0]
-#     a1 = np.reshape(x1, newshape=(nn1, size))
-#     t1_unique, idxs1 = np.unique(t1.ravel(), return_index=True)
-#
-#     nn2 = x2.shape[0]
-#     a2 = np.reshape(x2, newshape=(nn2, size))
-#     t2_unique, idxs2 = np.unique(t2.ravel(), return_index=True)
-#
-#     if nn1 > nn2:
-#         # The first timeseries is more dense
-#         t_unique = t1_unique
-#         x_to_interp = a1[idxs1, ...]
-#         t_check = t2.ravel()
-#         x_check = x2
-#     else:
-#         # The second timeseries is more dense
-#         t_unique = t2_unique
-#         x_to_interp = a2[idxs2, ...]
-#         t_check = t1.ravel()
-#         x_check = x1
-#
-#     interp = interp1d(x=t_unique, y=x_to_interp, kind='slinear', axis=0)
-#     num_points = np.prod(t_check.shape)
-#
-#     x_ref_interp = np.reshape(interp(t_check), newshape=(num_points,) + shape1)
-#
-#     _om_assert_utils.assert_near_equal(x_ref_interp, x_check, tolerance=tolerance)
-#
-
-def assert_timeseries_near_equal_v1(t1, x1, t2, x2, tolerance=1.0E-6):
-    """
-    Assert that two timeseries of data are approximately equal.
-
-    This is done by fitting a 1D interpolant to each index of each timeseries, and then comparing
-    the values of the two interpolants at some equally spaced number of points.
-
-    The first timeseries, defined by t1, x1, serves as the reference.
-
-    Parameters
-    ----------
-    t1 : np.array
-        Time values for the reference timeseries.
-    x1 : np.array
-        Data values for the reference timeseries.
-    t2 : np.array
-        Time values for the timeseries that is compared to the reference.
-    x2 : np.array
-        Data values for the timeseries that is compared to the reference.
-    tolerance : float
-        The tolerance for any errors along at each point checked.
-
-    Raises
-    ------
-    AssertionError
-        When one or more elements of the interpolated timeseries are not within the
-        desired tolerance.
-    """
-    shape1 = x1.shape[1:]
-    shape2 = x2.shape[1:]
-
-    if shape1 != shape2:
-        raise ValueError('The shape of the variable in the two timeseries is not equal '
-                         f'x1 is {shape1}  x2 is {shape2}')
-
-    if abs(t1[0] - t2[0]) > 1.0E-12:
-        raise ValueError('The initial time of the two timeseries is not the same. '
-                         f't1[0]={t1[0]}  t2[0]={t2[0]}  difference: {t2[0] - t1[0]}')
-
-    if abs(t1[-1] - t2[-1]) > 1.0E-12:
-        raise ValueError('The final time of the two timeseries is not the same. '
-                         f't1[0]={t1[-1]}  t2[0]={t2[-1]}  difference: {t2[-1] - t1[-1]}')
-
-    size = np.prod(shape1)
-
-    nn1 = x1.shape[0]
-    a1 = np.reshape(x1, newshape=(nn1, size))
-    t1_unique, idxs1 = np.unique(t1.ravel(), return_index=True)
-
-    nn2 = x2.shape[0]
-    # a2 = np.reshape(x2, newshape=(nn2, size))
-    # t2_unique, idxs2 = np.unique(t2.ravel(), return_index=True)
-
-    # Assuming that The first timeseries is the reference and therefore more dense
-    t_unique = t1_unique
-    x_to_interp = a1[idxs1, ...]
-    t_check = t2.ravel()
-    x_check = x2
-
-    interp = interp1d(x=t_unique, y=x_to_interp, kind='slinear', axis=0)
-    num_points = np.prod(t_check.shape)
-
-    x_ref_interp = np.reshape(interp(t_check), newshape=(num_points,) + shape1)
-
-    _om_assert_utils.assert_near_equal(x_ref_interp, x_check, tolerance=tolerance)
-
 
 def _write_out_timeseries_values_out_of_tolerance(isclose, x_check, x_ref):
     err_msg = ''
@@ -394,3 +256,13 @@ def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=N
             out_of_tol_msg = _write_out_timeseries_values_out_of_tolerance(isclose, x_check, x_ref_interp)
             err_msg + out_of_tol_msg
             raise AssertionError(err_msg)
+
+def _get_reports_dir(prob):
+    # need this to work with older OM versions with old reports system API
+    # reports API changed between 3.18 and 3.19, so handle it here in order to be able to test against older
+    # versions of openmdao
+    if Version(openmdao_version) > Version("3.18"):
+        return prob.get_reports_dir()
+
+    from openmdao.utils.reports_system import get_reports_dir
+    return get_reports_dir(prob)

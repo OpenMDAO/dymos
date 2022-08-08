@@ -20,8 +20,8 @@ class DynamicPressureCompFD(om.ExplicitComponent):
         self.declare_partials(of='q', wrt='v', method='fd')
 
         if self.options['partial_coloring']:
-            self.declare_coloring(wrt=['*'], method='fd', tol=1.0E-6, num_full_jacs=2,
-                                  show_summary=True, show_sparsity=True, min_improve_pct=10.)
+            self.declare_coloring(wrt=['*'], method='cs', tol=1.0E-6, num_full_jacs=2,
+                                  show_summary=True, show_sparsity=False, min_improve_pct=10.)
 
     def compute(self, inputs, outputs):
         outputs['q'] = 0.5 * inputs['rho'] * inputs['v'] ** 2

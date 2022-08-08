@@ -38,7 +38,6 @@ class LintJupyterOutputsTestCase(unittest.TestCase):
 
     def test_output(self):
         this_file = pathlib.PurePath(__file__)
-        book_dir = this_file.parent.parent
 
         for file in _get_files():
             print(file)
