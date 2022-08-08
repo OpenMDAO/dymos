@@ -276,9 +276,12 @@ def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=N
 
     The first timeseries, defined by t_ref, x_ref, serves as the reference.
 
-    This is done by fitting a 1D interpolant to the reference, and then comparing
-    the values of the two interpolants at some equally spaced number of points.
+    The second timeseries, defined by t_check, x_check is what is checked for near equality.
 
+    The check is done by fitting a 1D interpolant to the reference, and then comparing
+    the values of the interpolant at the times in t_check.
+
+    Only where the time series overlap is used for the check.
 
     Parameters
     ----------
@@ -318,16 +321,7 @@ def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=N
     if t_begin > t_end:
         raise ValueError("There is no overlapping time between the two time series")
 
-    # if abs(t_ref[0] - t_check[0]) > 1.0E-12:
-    #     raise ValueError('The initial time of the two timeseries is not the same. '
-    #                      f't_ref[0]={t_ref[0]}  t_check[0]={t_check[0]}  difference: {t_check[0] - t_ref[0]}')
-    #
-    # if abs(t_ref[-1] - t_check[-1]) > 1.0E-12:
-    #     raise ValueError('The final time of the two timeseries is not the same. '
-    #                      f't_ref[0]={t_ref[-1]}  t_check[0]={t_check[-1]}  difference: {t_check[-1] - t_ref[-1]}')
-
     size = np.prod(shape_ref)
-
     nn1 = x_ref.shape[0]
     a_ref = np.reshape(x_ref, newshape=(nn1, size))
     t_ref_unique, idxs_ref = np.unique(t_ref.ravel(), return_index=True)
@@ -335,58 +329,31 @@ def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=N
     t_unique = t_ref_unique
     x_to_interp = a_ref[idxs_ref, ...]
     t_check = t_check.ravel()
-    x_check = x_check
+    # x_check = x_check
 
     interp = interp1d(x=t_unique, y=x_to_interp, kind='slinear', axis=0)
-    num_points = np.prod(t_check.shape)
+    # num_points = np.prod(t_check.shape)
 
     # only want t_check in the range of t_begin and t_end
-
-
-
-
-
     t_check_in_range_condition = np.logical_and(t_check >= t_begin, t_check <= t_end)
-    # t_check = np.extract(t_check_in_range_condition, t_check)
-    # x_check = np.extract(t_check_in_range_condition, x_check)
     t_check = np.compress(t_check_in_range_condition, t_check)
     x_check = np.compress(t_check_in_range_condition, x_check, axis=0)
     num_points = np.prod(t_check.shape)
-    #
 
-
-
+    # get the interpolated values of the reference at the values of t_check
     x_ref_interp = np.reshape(interp(t_check), newshape=(num_points,) + shape_ref)
 
-    # Need to only use values from between t_begin and t_end
-    # So filter out x_check and x_ref_interp based on that
-    # below_t_begin_condition = np.logical_and(t_unique >= t_begin, t_unique <= t_end)
-    # x_check = np.extract(below_t_begin_condition, x_check)
-    # x_ref_interp = np.extract(below_t_begin_condition, x_ref_interp)
-
-    if abs_tolerance is None:
-        # need to use rel_tolerance
-        # _om_assert_utils.assert_near_equal(x_ref_interp, x_check, tolerance=rel_tolerance)
+    if abs_tolerance is None:  # so only have rel_tolerance
         isclose = np.isclose(x_check, x_ref_interp, rtol=rel_tolerance, atol=0.0)
-
         all_close = np.all(isclose)
-
-        # all_close = np.allclose(x_check, x_ref_interp, rtol=rel_tolerance, atol=0.0)
         if not all_close:
             err_msg = f"timeseries not equal within relative tolerance of {rel_tolerance}\n" + \
                       "The following values are out of tolerance:\n"
             out_of_tol_msg = _write_out_timeseries_values_out_of_tolerance(isclose, x_check, x_ref_interp)
             err_msg + out_of_tol_msg
             raise AssertionError(err_msg)
-        # assert all_close, f"timeseries not equal within relative tolerance of {rel_tolerance}"
-    elif rel_tolerance is None:
-        # need to use abs_tolerance
-        # error = x_check - x_ref_interp
-        # For assert_near_equal, actual followed by desired. If `desired` is zero, then use absolute error
-        # _om_assert_utils.assert_near_equal(error, 0.0, tolerance=abs_tolerance)
-        # all_close = np.allclose(x_check, x_ref_interp, rtol=0.0, atol=abs_tolerance)
+    elif rel_tolerance is None:  # so only have abs_tolerance
         isclose = np.isclose(x_check, x_ref_interp, rtol=0.0, atol=abs_tolerance)
-
         all_close = np.all(isclose)
         if not all_close:
             err_msg = f"timeseries not equal within absolute tolerance of {abs_tolerance}\n" + \
@@ -394,20 +361,14 @@ def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=N
             out_of_tol_msg = _write_out_timeseries_values_out_of_tolerance(isclose, x_check, x_ref_interp)
             err_msg + out_of_tol_msg
             raise AssertionError(err_msg)
-
-    else:
-        # need to use a hybrid of abs and rel
+    else:  # need to use a hybrid of abs and rel
+        # At what value of x does the check switch between using the absolute vs relative tolerance
         transition_tolerance = abs_tolerance / rel_tolerance
 
         # for values > transition_tolerance, use rel_tolerance
         transition_condition = abs(x_ref_interp) >= transition_tolerance
         above_transition_x_ref_interp = np.extract(transition_condition, x_ref_interp)
         above_transition_x_check = np.extract(transition_condition, x_check)
-        # _om_assert_utils.assert_near_equal(above_transition_x_ref_interp, above_transition_x_check,
-        #                                    tolerance=rel_tolerance)
-
-
-        # all_close = np.allclose(above_transition_x_check, above_transition_x_ref_interp, rtol=rel_tolerance, atol=0.0)
 
         # TODO ???? Need to handle the fact that these arrays were extracted!
         isclose = np.isclose(above_transition_x_check, above_transition_x_ref_interp, rtol=rel_tolerance, atol=0.0)
@@ -425,8 +386,6 @@ def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=N
         below_transition_x_check = np.extract(transition_condition, x_check)
 
         error = below_transition_x_check - below_transition_x_ref_interp
-        # _om_assert_utils.assert_near_equal(error, np.zeros(error.shape), tolerance=abs_tolerance)
-        # all_close = np.allclose(below_transition_x_check, below_transition_x_ref_interp, rtol=0.0, atol=abs_tolerance)
         isclose = np.isclose(below_transition_x_check, below_transition_x_ref_interp, rtol=0.0, atol=abs_tolerance)
         all_close = np.all(isclose)
         if not all_close:
@@ -435,5 +394,3 @@ def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=N
             out_of_tol_msg = _write_out_timeseries_values_out_of_tolerance(isclose, x_check, x_ref_interp)
             err_msg + out_of_tol_msg
             raise AssertionError(err_msg)
-
-        # assert all_close, f"timeseries not equal within absolute tolerance of {abs_tolerance}"
