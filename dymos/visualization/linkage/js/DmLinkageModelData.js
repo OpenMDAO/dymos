@@ -1,5 +1,5 @@
 // <<hpp_insert gen/ModelData.js>>
-// <<hpp_insert js/DmLinkageTreenode.js>>
+// <<hpp_insert js/DmLinkageTreeNode.js>>
 
 /** Process the tree, connections, and other info provided about the model. */
 class DmLinkageModelData extends ModelData {
