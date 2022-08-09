@@ -107,7 +107,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
 
     if make_plots:
         _sim_record_file = None if not simulate else simulation_record_file
-        timeseries_plots(solution_record_file, simulation_record_file=simulation_record_file,
+        timeseries_plots(solution_record_file, simulation_record_file=_sim_record_file,
                          plot_dir=plot_dir, problem=problem)
 
     return failed
