@@ -186,6 +186,32 @@ class TestLoadCase(unittest.TestCase):
                           q.model.phase0.interp(xs=time_val, ys=theta_val, nodes='all'),
                           tolerance=1.0E-2)
 
+    def test_load_case_warn_fix_final(self):
+        import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_warnings
+        import dymos as dm
+
+        p = setup_problem(dm.Radau(num_segments=20))
+
+        # Solve for the optimal trajectory
+        dm.run_problem(p)
+
+        # Load the solution
+        case = om.CaseReader('dymos_solution.db').get_case('final')
+
+        # create a problem with a different transcription with a different number of variables
+        q = setup_problem(dm.GaussLobatto(num_segments=50))
+
+        msgs = []
+
+        # Load the values from the previous solution
+        for state_name in ['x', 'y']:
+            msgs.append((UserWarning, f"{state_name} specifies 'fix_final = True'. If the given restart file has a"
+                        f" different final value this will overwrite the user-specified value"))
+        print(msgs)
+        with assert_warnings(msgs):
+            dm.load_case(q, case)
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()
