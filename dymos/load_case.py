@@ -2,6 +2,7 @@ import openmdao.api as om
 from openmdao.recorders.case import Case
 from .phase.phase import Phase
 from .trajectory import Trajectory
+from warnings import warn
 
 
 def find_phases(sys):
@@ -148,6 +149,11 @@ def load_case(problem, previous_solution):
             init_val_path = [s for s in phase_vars if s.endswith(f'{phase_name}.initial_states:{state_name}')]
             if init_val_path:
                 problem.set_val(init_val_path[0], prev_state_val[0, ...], units=prev_state_units)
+
+            if options['fix_final']:
+                warning_message = f"{state_name} specifies 'fix_final = True'. If the given restart file has a" \
+                                  f" different final value this will overwrite the user-specified value"
+                warn(warning_message)
 
         # Interpolate the timeseries control outputs from the previous solution onto the new grid.
         for control_name, options in phase.control_options.items():
