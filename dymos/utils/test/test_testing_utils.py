@@ -42,7 +42,7 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
                                          rel_tolerance=rel_tolerance)
 
-        start_of_expected_errmsg = f"timeseries not equal within relative tolerance of {rel_tolerance}"
+        start_of_expected_errmsg = f"Timeseries data not equal within relative tolerance of {rel_tolerance}"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with f{start_of_expected_errmsg} but instead was f{actual_errmsg}")
@@ -66,7 +66,7 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
                                          abs_tolerance=abs_tolerance)
 
-        start_of_expected_errmsg = f"timeseries not equal within absolute tolerance of {abs_tolerance}"
+        start_of_expected_errmsg = f"Timeseries data not equal within absolute tolerance of {abs_tolerance}"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with f{start_of_expected_errmsg} but instead was f{actual_errmsg}")
@@ -101,10 +101,10 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
                                          rel_tolerance=rel_tolerance
                                          )
 
-        start_of_expected_errmsg = f"timeseries not equal within absolute tolerance of {abs_tolerance}"
+        start_of_expected_errmsg = f"Timeseries data not equal within absolute tolerance of {abs_tolerance}"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with f{start_of_expected_errmsg} but instead was f{actual_errmsg}")
+                        f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
 
         # for > 100, uses the rel, x_check[15] is ~ 150
         x_check[5] = x_check_5_orig
@@ -126,10 +126,10 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
                                          )
 
 
-        start_of_expected_errmsg = f"timeseries not equal within relative tolerance of {rel_tolerance}"
+        start_of_expected_errmsg = f"Timeseries data not equal within relative tolerance of {rel_tolerance}"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with f{start_of_expected_errmsg} but instead was f{actual_errmsg}")
+                        f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
 
     def test_no_overlapping_time(self):
         t_ref, x_ref = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
@@ -173,21 +173,55 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
 
     def test_multi_dimensional_unequal(self):
         t_ref, x_ref_1 = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
-        t_ref, x_ref_2 = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0) # change this array
+        t_ref, x_ref_2 = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
         x_ref = np.stack((x_ref_1, x_ref_2), axis=1)
 
-        t_check, x_check_1 = create_linear_time_series(100, 0.0, 500.0, 0.0, 999.0)
-        t_check, x_check_2 = create_linear_time_series(100, 0.0, 500.0, 0.0, 999.0)
+        # change the timeseries data values to be checked a little
+        t_check, x_check_1 = create_linear_time_series(100, 0.0, 500.0, 0.0, 990.0)
+        t_check, x_check_2 = create_linear_time_series(100, 0.0, 500.0, 0.0, 990.0)
         x_check = np.stack((x_check_1, x_check_2), axis=1)
 
+
         rel_tolerance = 1.0E-3
+
         with self.assertRaises(AssertionError) as e:
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance)
 
-        start_of_expected_errmsg = f"timeseries not equal within relative tolerance of {rel_tolerance}"
+        start_of_expected_errmsg = f"Timeseries data not equal within relative tolerance of {rel_tolerance}"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with f{start_of_expected_errmsg} but instead was f{actual_errmsg}")
+                        f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
+
+    def test_multi_dimensional_unequal_abs_and_rel(self):
+        t_ref, x_ref_1 = create_linear_time_series(10, 0.0, 500.0, 0.0, 1000.0)
+        t_ref, x_ref_2 = create_linear_time_series(10, 0.0, 500.0, 0.0, 1000.0)
+        x_ref = np.stack((x_ref_1, x_ref_2), axis=1)
+
+        # change the timeseries data values to be checked a little
+        t_check, x_check_1 = create_linear_time_series(10, 0.0, 500.0, 0.0, 990.0)
+        t_check, x_check_2 = create_linear_time_series(10, 0.0, 500.0, 0.0, 990.0)
+        x_check = np.stack((x_check_1, x_check_2), axis=1)
+
+
+        abs_tolerance = 1.0E-3
+        rel_tolerance = 0.5E-5
+
+
+
+
+        assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance,
+                                     abs_tolerance=abs_tolerance)
+
+
+
+
+        with self.assertRaises(AssertionError) as e:
+            assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance, abs_tolerance=abs_tolerance)
+
+        start_of_expected_errmsg = f"Timeseries data not equal within relative tolerance of {rel_tolerance}"
+        actual_errmsg = str(e.exception)
+        self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
+                        f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
 
     def test_multi_dimensional_with_overlapping_times(self):
         t_ref, x_ref_1 = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
@@ -199,6 +233,28 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         x_check = np.stack((x_check_1, x_check_2), axis=1)
 
         assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=1.0E-3)
+
+    def test_multi_dimensional_unequal_with_overlapping_times(self):
+        t_ref, x_ref_1 = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
+        t_ref, x_ref_2 = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
+        x_ref = np.stack((x_ref_1, x_ref_2), axis=1)
+
+        t_check, x_check_1 = create_linear_time_series(100, 250.0, 750.0, 500.0, 1000.0)
+        t_check, x_check_2 = create_linear_time_series(100, 250.0, 750.0, 500.0, 1000.0)
+        x_check = np.stack((x_check_1, x_check_2), axis=1)
+
+        rel_tolerance = 1.0E-3
+
+        assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance)
+
+        with self.assertRaises(AssertionError) as e:
+            assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance)
+
+        start_of_expected_errmsg = f"Timeseries data not equal within relative tolerance of {rel_tolerance}"
+        actual_errmsg = str(e.exception)
+        self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
+                        f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
+
 
 
 if __name__ == '__main__':  # pragma: no cover

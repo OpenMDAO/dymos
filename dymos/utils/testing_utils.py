@@ -125,14 +125,35 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
     if err_msg:
         raise AssertionError(err_msg)
 
-def _write_out_timeseries_values_out_of_tolerance(isclose, x_check, x_ref):
-    err_msg = ''
+def _write_out_timeseries_values_out_of_tolerance(isclose, tolerance_type, tolerance,
+                                                  t_check, x_check, x_ref):
+    err_msg = f"\nTimeseries data not equal within {tolerance_type} tolerance of {tolerance}\n" + \
+              "The following timeseries data are out of tolerance.\n" + \
+              "  The data is shown as:\n"
+    header = f"{'time_index':10s} | " + \
+             f"{'data_indices':12s} | " + \
+             f"{'time':13s} | " + \
+             f"{'ref_data':13s} | " + \
+             f"{'checked_data':13s} | " + \
+             f"{'abs_error':14s} | " + \
+             f"{'rel_error':14s}\n"
+    err_msg += header
+             # f"time_index | data_indices |   time       | ref_data       | checked_data       | abs     |        err\n"
     for idx, item_close in np.ndenumerate(isclose):
         if not item_close:
-            err_msg += f"{idx}: {x_check[idx]} != {x_ref[idx]}\n"
+            if tolerance_type == 'absolute':
+                abs_error_indicator = '*'
+                rel_error_indicator = ' '
+            else:
+                abs_error_indicator = ' '
+                rel_error_indicator = '*'
+            abs_error = abs(x_check[idx] - x_ref[idx])
+            rel_error = abs(x_check[idx] - x_ref[idx]) / abs(x_ref[idx])
+            err_msg += f"{idx[0]:10,d} | {str(idx[1:]):>12s} | {t_check[idx[0]]:13.6e} | {x_ref[idx]:13.6e} | {x_check[idx]:13.6e} | {abs_error:13.6e}{abs_error_indicator} | {rel_error:13.6e}{rel_error_indicator}\n"
     return err_msg
 
-def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=None, rel_tolerance=None):
+def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=None,
+                                 rel_tolerance=None):
     """
     Assert that two timeseries of data are approximately equal.
 
@@ -144,6 +165,12 @@ def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=N
     the values of the interpolant at the times in t_check.
 
     Only where the time series overlap is used for the check.
+
+    When both abs_tolerance and rel_tolerance are given, only one is actually used for any given
+    data point. When the absolute values of the data values are small, the abs_tolerance is used,
+    otherwise the rel_tolerance is used. The transition point is given by
+
+        abs_tolerance / rel_tolerance
 
     Parameters
     ----------
@@ -166,6 +193,7 @@ def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=N
         When one or more elements of the interpolated timeseries are not within the
         desired tolerance.
     """
+    # get shapes for the time series values
     shape_ref = x_ref.shape[1:]
     shape_check = x_check.shape[1:]
 
@@ -183,78 +211,113 @@ def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=N
     if t_begin > t_end:
         raise ValueError("There is no overlapping time between the two time series")
 
-    size = np.prod(shape_ref)
-    nn1 = x_ref.shape[0]
-    a_ref = np.reshape(x_ref, newshape=(nn1, size))
-    t_ref_unique, idxs_ref = np.unique(t_ref.ravel(), return_index=True)
-
-    t_unique = t_ref_unique
-    x_to_interp = a_ref[idxs_ref, ...]
+    # Flatten the timeseries data arrays
+    num_elements = np.prod(shape_ref)
+    time_series_len = x_ref.shape[0]
+    x_ref_data_flattened = np.reshape(x_ref, newshape=(time_series_len, num_elements))
+    t_ref_unique, idxs_unique_ref = np.unique(t_ref.ravel(), return_index=True)
+    x_to_interp = x_ref_data_flattened[idxs_unique_ref, ...]
     t_check = t_check.ravel()
-    # x_check = x_check
 
-    interp = interp1d(x=t_unique, y=x_to_interp, kind='slinear', axis=0)
+    interp = interp1d(x=t_ref_unique, y=x_to_interp, kind='slinear', axis=0)
     # num_points = np.prod(t_check.shape)
 
-    # only want t_check in the range of t_begin and t_end
+    # only want t_check in the overlapping range of t_begin and t_end
     t_check_in_range_condition = np.logical_and(t_check >= t_begin, t_check <= t_end)
     t_check = np.compress(t_check_in_range_condition, t_check)
     x_check = np.compress(t_check_in_range_condition, x_check, axis=0)
-    num_points = np.prod(t_check.shape)
 
     # get the interpolated values of the reference at the values of t_check
-    x_ref_interp = np.reshape(interp(t_check), newshape=(num_points,) + shape_ref)
+    # Reshape back to unflattened data values
+    x_ref_interp = np.reshape(interp(t_check), newshape=(t_check.size,) + shape_ref)
 
     if abs_tolerance is None:  # so only have rel_tolerance
         isclose = np.isclose(x_check, x_ref_interp, rtol=rel_tolerance, atol=0.0)
         all_close = np.all(isclose)
         if not all_close:
-            err_msg = f"timeseries not equal within relative tolerance of {rel_tolerance}\n" + \
-                      "The following values are out of tolerance:\n"
-            out_of_tol_msg = _write_out_timeseries_values_out_of_tolerance(isclose, x_check, x_ref_interp)
-            err_msg + out_of_tol_msg
+            err_msg = _write_out_timeseries_values_out_of_tolerance(isclose,
+                                                                           'relative',
+                                                                           rel_tolerance,
+                                                                           t_check,
+                                                                           x_check,
+                                                                           x_ref_interp,
+                                                                           )
             raise AssertionError(err_msg)
     elif rel_tolerance is None:  # so only have abs_tolerance
         isclose = np.isclose(x_check, x_ref_interp, rtol=0.0, atol=abs_tolerance)
         all_close = np.all(isclose)
         if not all_close:
-            err_msg = f"timeseries not equal within absolute tolerance of {abs_tolerance}\n" + \
-                      "The following values are out of tolerance:\n"
-            out_of_tol_msg = _write_out_timeseries_values_out_of_tolerance(isclose, x_check, x_ref_interp)
-            err_msg + out_of_tol_msg
+            err_msg = _write_out_timeseries_values_out_of_tolerance(isclose,
+                                                                           'absolute',
+                                                                           abs_tolerance,
+                                                                           t_check,
+                                                                           x_check,
+                                                                           x_ref_interp,
+                                                                           )
             raise AssertionError(err_msg)
     else:  # need to use a hybrid of abs and rel
+
+        err_msg = ''
+
         # At what value of x does the check switch between using the absolute vs relative tolerance
         transition_tolerance = abs_tolerance / rel_tolerance
 
         # for values > transition_tolerance, use rel_tolerance
         transition_condition = abs(x_ref_interp) >= transition_tolerance
-        above_transition_x_ref_interp = np.extract(transition_condition, x_ref_interp)
-        above_transition_x_check = np.extract(transition_condition, x_check)
+
+        above_transition_x_ref_interp = np.full(x_ref_interp.shape, np.nan)
+        np.copyto(above_transition_x_ref_interp, x_ref_interp, where=transition_condition)
+        above_transition_x_check = np.full(x_ref_interp.shape, np.nan)
+        np.copyto(above_transition_x_check, x_check, where=transition_condition)
+
+
+        # old way
+        # above_transition_x_ref_interp = np.extract(transition_condition, x_ref_interp)
+        # above_transition_x_check = np.extract(transition_condition, x_check)
 
         # TODO ???? Need to handle the fact that these arrays were extracted!
-        isclose = np.isclose(above_transition_x_check, above_transition_x_ref_interp, rtol=rel_tolerance, atol=0.0)
+        isclose = np.isclose(above_transition_x_check, above_transition_x_ref_interp,
+                             rtol=rel_tolerance, atol=0.0, equal_nan=True)
+
+
+
+
         all_close = np.all(isclose)
         if not all_close:
-            err_msg = f"timeseries not equal within relative tolerance of {rel_tolerance}\n" + \
-                      "The following values are out of tolerance:\n"
-            out_of_tol_msg = _write_out_timeseries_values_out_of_tolerance(isclose, x_check, x_ref_interp)
-            err_msg + out_of_tol_msg
-            raise AssertionError(err_msg)
-
+            err_msg += _write_out_timeseries_values_out_of_tolerance(isclose,
+                                                                    'relative',
+                                                                    rel_tolerance,
+                                                                    t_check,
+                                                                    x_check,
+                                                                    x_ref_interp,
+                                                                    )
         # for values < transition_tolerance, use abs_tolerance
         transition_condition = abs(x_ref_interp) < transition_tolerance
-        below_transition_x_ref_interp = np.extract(transition_condition, x_ref_interp)
-        below_transition_x_check = np.extract(transition_condition, x_check)
 
-        error = below_transition_x_check - below_transition_x_ref_interp
-        isclose = np.isclose(below_transition_x_check, below_transition_x_ref_interp, rtol=0.0, atol=abs_tolerance)
+        below_transition_x_ref_interp = np.full(x_ref_interp.shape, np.nan)
+        np.copyto(below_transition_x_ref_interp, x_ref_interp, where=transition_condition)
+        below_transition_x_check = np.full(x_ref_interp.shape, np.nan)
+        np.copyto(below_transition_x_check, x_check, where=transition_condition)
+
+
+
+
+        # below_transition_x_ref_interp = np.extract(transition_condition, x_ref_interp)
+        # below_transition_x_check = np.extract(transition_condition, x_check)
+
+        # error = below_transition_x_check - below_transition_x_ref_interp
+        isclose = np.isclose(below_transition_x_check, below_transition_x_ref_interp, rtol=0.0,
+                             atol=abs_tolerance, equal_nan=True)
         all_close = np.all(isclose)
         if not all_close:
-            err_msg = f"timeseries not equal within absolute tolerance of {abs_tolerance}\n" + \
-                      "The following values are out of tolerance:\n"
-            out_of_tol_msg = _write_out_timeseries_values_out_of_tolerance(isclose, x_check, x_ref_interp)
-            err_msg + out_of_tol_msg
+            err_msg += _write_out_timeseries_values_out_of_tolerance(isclose,
+                                                                           'absolute',
+                                                                           abs_tolerance,
+                                                                           t_check,
+                                                                           x_check,
+                                                                           x_ref_interp,
+                                                                           )
+        if err_msg:
             raise AssertionError(err_msg)
 
 def _get_reports_dir(prob):
