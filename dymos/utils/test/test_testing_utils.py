@@ -42,10 +42,15 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
                                          rel_tolerance=rel_tolerance)
 
-        start_of_expected_errmsg = f"Timeseries data not equal within relative tolerance of {rel_tolerance}"
+        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute (None) or relative ({rel_tolerance}) tolerance violations"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with f{start_of_expected_errmsg} but instead was f{actual_errmsg}")
+                        f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
+
+        # Also look for errors being listed. Look for >REL_TOL but not >ABS_TOL
+        self.assertEquals(actual_errmsg.count('>REL_TOL'), 2)
+        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 0)
+
 
     def test_unequal_time_series_abs_only(self):
         # slightly modify the "to be checked" time series and check that the assert is working
@@ -66,10 +71,14 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
                                          abs_tolerance=abs_tolerance)
 
-        start_of_expected_errmsg = f"Timeseries data not equal within absolute tolerance of {abs_tolerance}"
+        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute ({abs_tolerance}) or relative (None) tolerance violations"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with f{start_of_expected_errmsg} but instead was f{actual_errmsg}")
+                        f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
+
+        # Also look for errors being listed. Look for >ABS_TOL but not >REL_TOL
+        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 2)
+        self.assertEquals(actual_errmsg.count('>REL_TOL'), 0)
 
     def test_unequal_time_series_abs_and_rel(self):
         # slightly modify the "to be checked" time series and check that the assert is working
@@ -84,8 +93,10 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
 
         transition_tolerance = abs_tolerance / rel_tolerance
 
-        # for < 100, uses the abs, x_check[5] is ~ 50
         x_check_5_orig = float(x_check[5])
+        x_check_15_orig = float(x_check[15])
+
+        # for < 100, uses the abs, x_check[5] is ~ 50
 
         x_check[5] = x_check_5_orig + abs_tolerance * 0.9  # should not cause an error since rel error will be less than tolerance
         assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
@@ -93,7 +104,20 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
                                      rel_tolerance=rel_tolerance
                                      )
 
+
+
         x_check[5] = x_check_5_orig + abs_tolerance * 1.1  # should cause an error since rel error will be less than tolerance
+
+
+
+        #
+        # assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
+        #                              abs_tolerance=abs_tolerance,
+        #                              rel_tolerance=rel_tolerance
+        #                              )
+
+
+
 
         with self.assertRaises(AssertionError) as e:
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
@@ -101,10 +125,14 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
                                          rel_tolerance=rel_tolerance
                                          )
 
-        start_of_expected_errmsg = f"Timeseries data not equal within absolute tolerance of {abs_tolerance}"
+        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
+                        f"Error message expected to start with '{start_of_expected_errmsg}' but instead was '{actual_errmsg}'")
+
+        # Also look for errors being listed. Look for >ABS_TOL and >REL_TOL
+        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 2)
+        self.assertEquals(actual_errmsg.count('>REL_TOL'), 2)
 
         # for > 100, uses the rel, x_check[15] is ~ 150
         x_check[5] = x_check_5_orig
@@ -126,10 +154,39 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
                                          )
 
 
-        start_of_expected_errmsg = f"Timeseries data not equal within relative tolerance of {rel_tolerance}"
+        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
+                        f"Error message expected to start with '{start_of_expected_errmsg}' but instead was '{actual_errmsg}'")
+
+        # Also look for errors being listed. Look for >ABS_TOL and >REL_TOL
+        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 2)
+        self.assertEquals(actual_errmsg.count('>REL_TOL'), 2)
+
+        # Combine the two cases where one data paint fails because of abs error and one because of rel error
+        x_check[5] = x_check_5_orig + abs_tolerance * 1.1  # should cause an error since rel error will be less than tolerance
+        tolerance = x_check_15_orig * rel_tolerance
+        x_check[15] = x_check_15_orig + tolerance * 1.1  # should cause an error since rel error will be less than tolerance
+
+        # Add a case where the relative error is exceeded in the
+
+        with self.assertRaises(AssertionError) as e:
+            assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
+                                         abs_tolerance=abs_tolerance,
+                                         rel_tolerance=rel_tolerance
+                                         )
+
+
+        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute"
+        actual_errmsg = str(e.exception)
+        self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
+                        f"Error message expected to start with '{start_of_expected_errmsg}' but instead was '{actual_errmsg}'")
+
+        # Also look for errors being listed. Look for >ABS_TOL and >REL_TOL
+        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 3)
+        self.assertEquals(actual_errmsg.count('>REL_TOL'), 3)
+
+
 
     def test_no_overlapping_time(self):
         t_ref, x_ref = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
@@ -137,7 +194,8 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=1)
         expected_msg = f"There is no overlapping time between the two time series"
-        self.assertEqual(str(e.exception), expected_msg)
+        actual_errmsg = str(e.exception)
+        self.assertEqual(actual_errmsg, expected_msg)
 
     def test_with_overlapping_times(self):
         # checked time series shifted to the right
@@ -184,13 +242,20 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
 
         rel_tolerance = 1.0E-3
 
+        # assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance)
+
         with self.assertRaises(AssertionError) as e:
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance)
 
-        start_of_expected_errmsg = f"Timeseries data not equal within relative tolerance of {rel_tolerance}"
+        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute (None) or relative ({rel_tolerance}) tolerance violations"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
+
+        # Also look for errors being listed. Look for >ABS_TOL and >REL_TOL
+        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 0)
+        self.assertEquals(actual_errmsg.count('>REL_TOL'), 199)
+
 
     def test_multi_dimensional_unequal_abs_and_rel(self):
         t_ref, x_ref_1 = create_linear_time_series(10, 0.0, 500.0, 0.0, 1000.0)
@@ -209,8 +274,8 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
 
 
 
-        assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance,
-                                     abs_tolerance=abs_tolerance)
+        # assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance,
+        #                              abs_tolerance=abs_tolerance)
 
 
 
@@ -218,10 +283,14 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         with self.assertRaises(AssertionError) as e:
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance, abs_tolerance=abs_tolerance)
 
-        start_of_expected_errmsg = f"Timeseries data not equal within relative tolerance of {rel_tolerance}"
+        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute ({abs_tolerance}) or relative ({rel_tolerance}) tolerance violations"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
+
+        # Also look for errors being listed. Look for >ABS_TOL and >REL_TOL
+        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 19)
+        self.assertEquals(actual_errmsg.count('>REL_TOL'), 19)
 
     def test_multi_dimensional_with_overlapping_times(self):
         t_ref, x_ref_1 = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
@@ -245,16 +314,19 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
 
         rel_tolerance = 1.0E-3
 
-        assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance)
+        # assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance)
 
         with self.assertRaises(AssertionError) as e:
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance)
 
-        start_of_expected_errmsg = f"Timeseries data not equal within relative tolerance of {rel_tolerance}"
+        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute (None) or relative ({rel_tolerance}) tolerance violations"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
 
+        # Also look for errors being listed. Look for >ABS_TOL and >REL_TOL
+        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 0)
+        self.assertEquals(actual_errmsg.count('>REL_TOL'), 99)
 
 
 if __name__ == '__main__':  # pragma: no cover
