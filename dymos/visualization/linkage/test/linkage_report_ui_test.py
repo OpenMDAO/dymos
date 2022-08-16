@@ -10,7 +10,7 @@ import sys
 
 import openmdao.api as om
 import openmdao
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
@@ -246,7 +246,8 @@ resize_dirs = {
 current_test = 1
 
 
-@unittest.skipUnless(Version(openmdao.__version__) >= Version("3.19"), "reports API is too old")
+@unittest.skipUnless(Version(openmdao.__version__) > Version("3.19"), "reports API is too old")
+@require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
 class dymos_linkage_gui_test_case(_GuiTestCase):
     def setUp(self):
