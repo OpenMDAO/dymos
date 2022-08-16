@@ -644,13 +644,16 @@ class SolveIVP(TranscriptionBase):
 
             if '*' in var:  # match outputs from the ODE
                 # TODO: is filter still case INSENSTIVE on windows?  If so, fix this
-                matches = filter(ode_outputs.keys(), var)
+                if var == '*':
+                    matches = ode_outputs
+                else:
+                    matches = filter(ode_outputs, var)
             else:
                 matches = [var]
 
             for v in matches:
                 if '*' in var:
-                    output_name = v.split('.')[-1]
+                    output_name = v.rpartition('.')[-1]
                     units = ode_outputs[v]['units']
                     # check for wildcard_units override of ODE units
                     if v in wildcard_units:

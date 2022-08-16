@@ -57,6 +57,7 @@ def get_constraint_flat_idxs(con):
         flat_idxs = np.arange(np.prod(con['shape'], dtype=int), dtype=int)
     else:
         # Use shaped_array to force all indices to be non-negative.
-        flat_idxs = indexer(con['indices'], src_shape=con['shape'], flat_src=con['flat_indices']).shaped_array()
+        flat_idxs = indexer(con['indices'], src_shape=con['shape'],
+                            flat_src=con['flat_indices']).shaped_array(flat=True)
 
     return flat_idxs

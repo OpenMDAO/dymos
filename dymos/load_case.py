@@ -102,8 +102,8 @@ def load_case(problem, previous_solution):
                        for k, v in phase_io['outputs']})
 
     for traj_abs_path, traj in traj_paths.items():
-        traj_name = traj_abs_path.split('.')[-1]
-        for param_name, options in traj.parameter_options.items():
+        traj_name = traj_abs_path.rpartition('.')[-1]
+        for param_name in traj.parameter_options:
             prev_match = [s for s in prev_vars if s.endswith(f'{traj_name}.parameters:{param_name}')]
             if prev_match:
                 # In previous outputs
@@ -115,7 +115,7 @@ def load_case(problem, previous_solution):
             problem.set_val(f'{traj.pathname}.parameters:{param_name}', prev_val[0, ...], units=prev_units)
 
     for phase_abs_path, phase in phase_paths.items():
-        phase_name = phase_abs_path.split('.')[-1]
+        phase_name = phase_abs_path.rpartition('.')[-1]
 
         # Get the initial time and duration from the previous result and set them into the new phase.
         prev_time_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.time')][0]

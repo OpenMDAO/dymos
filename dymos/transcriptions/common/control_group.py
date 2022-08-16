@@ -308,23 +308,41 @@ class ControlGroup(om.Group):
             size = np.prod(shape)
             if options['opt']:
                 num_input_nodes = gd.subset_num_nodes['control_input']
-                desvar_indices = list(range(size * num_input_nodes))
+                fix_initial = options['fix_initial']
+                fix_final = options['fix_final']
+                if fix_initial or fix_final:
+                    start = end = mask = None
+                    # end = size * num_input_nodes
 
-                if options['fix_initial']:
-                    if isinstance(options['fix_initial'], Iterable):
-                        idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
-                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[idx_to_fix]
-                    else:
-                        del desvar_indices[:size]
+                    if fix_initial:
+                        if isinstance(fix_initial, Iterable):
+                            idxs_to_fix = np.where(np.asarray(fix_initial))[0]
+                            mask = np.ones(size * num_input_nodes, dtype=bool)
+                            mask[idxs_to_fix] = False
+                        else:
+                            start = size
 
-                if options['fix_final']:
-                    if isinstance(options['fix_final'], Iterable):
-                        idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
-                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[-size + idx_to_fix]
+                    if fix_final:
+                        if isinstance(fix_final, Iterable):
+                            idxs_to_fix = np.where(np.asarray(fix_final))[0] - size
+                            if mask is None:
+                                mask = np.ones(size * num_input_nodes, dtype=bool)
+                            mask[idxs_to_fix] = False
+                        else:
+                            end = size * (num_input_nodes - 1)
+
+                    if mask is None:
+                        start = 0 if start is None else start
+                        end = size * num_input_nodes if end is None else end
+                        desvar_indices = np.arange(start, end)
                     else:
-                        del desvar_indices[-size:]
+                        if start is not None:
+                            mask[:start] = False
+                        if end is not None:
+                            mask[end:] = False
+                        desvar_indices = np.arange(size * num_input_nodes)[mask]
+                else:
+                    desvar_indices = np.arange(size * num_input_nodes)
 
                 if len(desvar_indices) > 0:
                     coerce_desvar_option = CoerceDesvar(num_input_nodes, options=options)

@@ -63,8 +63,8 @@ class PhaseLinkageComp(om.ExplicitComponent):
         phase_b = lnk['phase_b']
         shape = lnk['shape']
 
-        var_a = lnk['constraint_name'] if lnk['constraint_name'] else lnk['var_a'].split('.')[-1]
-        var_b = lnk['constraint_name'] if lnk['constraint_name'] else lnk['var_b'].split('.')[-1]
+        var_a = lnk['constraint_name'] if lnk['constraint_name'] else lnk['var_a'].rpartition('.')[-1]
+        var_b = lnk['constraint_name'] if lnk['constraint_name'] else lnk['var_b'].rpartition('.')[-1]
 
         loc_a = lnk['loc_a']
         loc_b = lnk['loc_b']

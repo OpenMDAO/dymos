@@ -526,7 +526,10 @@ class GaussLobatto(PseudospectralBase):
                 is_rate = ts_output['is_rate']
 
                 if '*' in var:  # match outputs from the ODE
-                    matches = filter(list(ode_outputs.keys()), var)
+                    if var == '*':
+                        matches = ode_outputs
+                    else:
+                        matches = filter(ode_outputs, var)
 
                     # A nested ODE can have multiple outputs at different levels that share
                     #   the same name.
@@ -536,8 +539,7 @@ class GaussLobatto(PseudospectralBase):
                     # Find the duplicate timeseries names by looking at the last part of the names.
                     output_name_groups = defaultdict(list)
                     for v in matches:
-                        output_name = v.split('.')[-1]
-                        output_name_groups[output_name].append(v)
+                        output_name_groups[v.rpartition('.')[-1]].append(v)
 
                     # If there are duplicates, warn the user
                     for output_name, var_list in output_name_groups.items():
@@ -552,7 +554,7 @@ class GaussLobatto(PseudospectralBase):
 
                 for v in matches:
                     if '*' in var:
-                        output_name = v.split('.')[-1]
+                        output_name = v.rpartition('.')[-1]
                         units = ode_outputs[v]['units']
                         # check for wildcard_units override of ODE units
                         if v in wildcard_units:

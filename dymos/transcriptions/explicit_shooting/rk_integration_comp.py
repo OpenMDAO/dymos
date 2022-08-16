@@ -594,12 +594,12 @@ class RKIntegrationComp(om.ExplicitComponent):
                 if var in explicit_requests:
                     ts_output = next((output for output in ts_opts['outputs'].values() if output['name'] == var))
                     # var explicitly matched
-                    output_name = ts_output['output_name'] if ts_output['output_name'] else ts_output['name'].split('.')[-1]
+                    output_name = ts_output['output_name'] if ts_output['output_name'] else ts_output['name'].rpartition('.')[-1]
                     units = ts_output['units'] or var_meta.get('units', None)
                     shape = var_meta['shape']
                 else:
                     # var matched via wildcard
-                    output_name = var.split('.')[-1]
+                    output_name = var.rpartition('.')[-1]
                     units = var_meta['units']
                     shape = var_meta['shape']
 
