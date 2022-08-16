@@ -581,7 +581,7 @@ class RKIntegrationComp(om.ExplicitComponent):
             patterns = [output['name'] for output in ts_opts['outputs'].values()]
             matching_outputs = filter_outputs(patterns, ode_outputs)
 
-            explicit_requests = set([var for var in patterns if '*' not in var])
+            explicit_requests = {var for var in patterns if '*' not in var}
 
             unmatched_requests = explicit_requests.difference(matching_outputs)
 

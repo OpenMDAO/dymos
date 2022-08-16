@@ -408,7 +408,7 @@ class Trajectory(om.Group):
                 # Find the reason
                 if targets is None:
                     reason = f'Option `targets=None` but no phase in the trajectory has a parameter named `{name}`.'
-                elif all([t is None for t in targets.values()]) and set(targets.keys()) == set(self._phases.keys()):
+                elif all([t is None for t in targets.values()]) and targets.keys() == self._phases.keys():
                     reason = f'Option `targets` is a dictionary keyed by phase name but target for each phase is None.'
                 raise ValueError(f'No target was found for trajectory parameter `{name}` in any phase.\n{reason}')
 
@@ -1189,7 +1189,7 @@ class Trajectory(om.Group):
                     if targets_phase is not None:
                         if isinstance(targets_phase, str):
                             targets_phase = [targets_phase]
-                        skip_params = skip_params.union(targets_phase)
+                        skip_params.update(targets_phase)
 
             phs.initialize_values_from_phase(sim_prob, self._phases[phase_name],
                                              phase_path=traj_name,

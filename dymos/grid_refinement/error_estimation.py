@@ -306,7 +306,7 @@ def compute_state_quadratures(x_hat, f_hat, t_duration, transcription):
 
     left_end_idxs = gd.subset_node_indices['segment_ends'][0::2]
     all_idxs = gd.subset_node_indices['all']
-    not_left_end_idxs = np.array(sorted(set(all_idxs).difference(set(left_end_idxs))))
+    not_left_end_idxs = np.array(sorted(set(all_idxs).difference(left_end_idxs)))
 
     dt_dstau = np.atleast_2d(0.5 * t_duration * gd.node_dptau_dstau[not_left_end_idxs]).T
 
