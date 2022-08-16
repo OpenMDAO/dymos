@@ -1,9 +1,20 @@
+import difflib
+import os
 import unittest
 import numpy as np
+
+import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
+
+import dymos as dm
 from dymos.utils.misc import get_rate_units
-from dymos.utils.testing_utils import assert_timeseries_near_equal
+from dymos.utils.testing_utils import assert_cases_equal, assert_timeseries_near_equal
+
 
 def create_linear_time_series(n, t_begin, t_end, x_begin, x_end):
+    '''
+    Simple little function to generate a time series to be used for the tests in this file
+    '''
     slope = (x_end - x_begin) / (t_end - t_begin)
     line = lambda t: slope * (t - t_begin) + x_begin
 
@@ -11,14 +22,29 @@ def create_linear_time_series(n, t_begin, t_end, x_begin, x_end):
     x = line(t)
     return t, x
 
+
 class TestAssertTimeseriesNearEqual(unittest.TestCase):
+
+    def test_assert_different_shape(self):
+        t_ref = np.linspace(0, 100, 50)
+        t_check = np.linspace(0, 100, 60)
+
+        x_ref = np.atleast_2d(np.sin(t_ref)).T
+        x_check = np.atleast_3d(np.sin(t_check)).T
+
+        with self.assertRaises(ValueError) as e:
+            assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=1.0E-03)
+        expected = "The shape of the variable in the two timeseries is not equal x_ref is (1," \
+                   ")  x_check is (60, 1)"
+        self.assertEqual(expected, str(e.exception))
 
     def test_equal_time_series(self):
         # use the same time series and see if the assert correctly says they are the same
         t_ref, x_ref = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
         t_check, x_check = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
 
-        assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=1.0E-3, abs_tolerance=10.0)
+        assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=1.0E-3,
+                                     abs_tolerance=10.0)
         assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=1.0E-3)
         assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=10.0)
 
@@ -33,24 +59,28 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         x_check_5_orig = float(x_check[5])
         tolerance = x_check_5_orig * rel_tolerance
 
-        x_check[5] = x_check_5_orig + tolerance * 0.9  # should not cause an error since rel error will be less than tolerance
+        x_check[
+            5] = x_check_5_orig + tolerance * 0.9  # should not cause an error since rel error
+        # will be less than tolerance
         assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance)
 
-        x_check[5] = x_check_5_orig + tolerance * 1.1  # should cause an error since rel error will be less than tolerance
+        x_check[
+            5] = x_check_5_orig + tolerance * 1.1  # should cause an error since rel error will
+        # be less than tolerance
 
         with self.assertRaises(AssertionError) as e:
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
                                          rel_tolerance=rel_tolerance)
 
-        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute (None) or relative ({rel_tolerance}) tolerance violations"
+        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to " \
+                                   f"absolute (None) or relative ({rel_tolerance}) tolerance " \
+                                   f"violations"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
-
-        # Also look for errors being listed. Look for >REL_TOL but not >ABS_TOL
+                        f"Error message expected to start with {start_of_expected_errmsg} but "
+                        f"instead was {actual_errmsg}")
         self.assertEquals(actual_errmsg.count('>REL_TOL'), 2)
         self.assertEquals(actual_errmsg.count('>ABS_TOL'), 0)
-
 
     def test_unequal_time_series_abs_only(self):
         # slightly modify the "to be checked" time series and check that the assert is working
@@ -58,25 +88,26 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         # Only use absolute tolerance
         t_ref, x_ref = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
         t_check, x_check = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
-        abs_tolerance = 10.0
-
         x_check_5_orig = float(x_check[5])
 
-        x_check[5] = x_check_5_orig + abs_tolerance * 0.9  # should not cause an error since rel error will be less than tolerance
+        abs_tolerance = 10.0
+
+        # should not cause an error since rel error will be less than tolerance
+        x_check[5] = x_check_5_orig + abs_tolerance * 0.9
         assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=abs_tolerance)
 
-        x_check[5] = x_check_5_orig + abs_tolerance * 1.1  # should cause an error since rel error will be less than tolerance
-
+        # should cause an error since rel error will be less than tolerance
+        x_check[5] = x_check_5_orig + abs_tolerance * 1.1
         with self.assertRaises(AssertionError) as e:
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
                                          abs_tolerance=abs_tolerance)
-
-        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute ({abs_tolerance}) or relative (None) tolerance violations"
+        start_of_expected_errmsg = "The following timeseries data are out of tolerance due to " \
+                                   f"absolute ({abs_tolerance}) or relative (None) tolerance " \
+                                   "violations"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
-
-        # Also look for errors being listed. Look for >ABS_TOL but not >REL_TOL
+                        f"Error message expected to start with {start_of_expected_errmsg} but "
+                        f"instead was {actual_errmsg}")
         self.assertEquals(actual_errmsg.count('>ABS_TOL'), 2)
         self.assertEquals(actual_errmsg.count('>REL_TOL'), 0)
 
@@ -88,49 +119,34 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         #   also relative tolerance (large values)
         t_ref, x_ref = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
         t_check, x_check = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
-        abs_tolerance = 10.0
-        rel_tolerance = 0.1
-
-        transition_tolerance = abs_tolerance / rel_tolerance
-
         x_check_5_orig = float(x_check[5])
         x_check_15_orig = float(x_check[15])
 
-        # for < 100, uses the abs, x_check[5] is ~ 50
+        abs_tolerance = 10.0
+        rel_tolerance = 0.1
+        transition_tolerance = abs_tolerance / rel_tolerance
 
-        x_check[5] = x_check_5_orig + abs_tolerance * 0.9  # should not cause an error since rel error will be less than tolerance
+        # for < 100, uses the abs, x_check[5] is ~ 50
+        # should not cause an error since rel error will be less than tolerance
+        x_check[5] = x_check_5_orig + abs_tolerance * 0.9
         assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
                                      abs_tolerance=abs_tolerance,
                                      rel_tolerance=rel_tolerance
                                      )
 
-
-
-        x_check[5] = x_check_5_orig + abs_tolerance * 1.1  # should cause an error since rel error will be less than tolerance
-
-
-
-        #
-        # assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
-        #                              abs_tolerance=abs_tolerance,
-        #                              rel_tolerance=rel_tolerance
-        #                              )
-
-
-
-
+        # should cause an error since rel error will be less than tolerance
+        x_check[5] = x_check_5_orig + abs_tolerance * 1.1
         with self.assertRaises(AssertionError) as e:
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
                                          abs_tolerance=abs_tolerance,
                                          rel_tolerance=rel_tolerance
                                          )
-
-        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute"
+        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to " \
+                                   f"absolute"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with '{start_of_expected_errmsg}' but instead was '{actual_errmsg}'")
-
-        # Also look for errors being listed. Look for >ABS_TOL and >REL_TOL
+                        f"Error message expected to start with '{start_of_expected_errmsg}' but "
+                        f"instead was '{actual_errmsg}'")
         self.assertEquals(actual_errmsg.count('>ABS_TOL'), 2)
         self.assertEquals(actual_errmsg.count('>REL_TOL'), 2)
 
@@ -138,55 +154,49 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         x_check[5] = x_check_5_orig
         x_check_15_orig = float(x_check[15])
         tolerance = x_check_15_orig * rel_tolerance
-
-        x_check[15] = x_check_15_orig + tolerance * 0.9  # should not cause an error since rel error will be less than tolerance
+        # should not cause an error since rel error will be less than tolerance
+        x_check[15] = x_check_15_orig + tolerance * 0.9
         assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
                                      abs_tolerance=abs_tolerance,
                                      rel_tolerance=rel_tolerance
                                      )
 
-        x_check[15] = x_check_15_orig + tolerance * 1.1  # should cause an error since rel error will be less than tolerance
-
+        # should cause an error since rel error will be greater than tolerance
+        x_check[15] = x_check_15_orig + tolerance * 1.1
         with self.assertRaises(AssertionError) as e:
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
                                          abs_tolerance=abs_tolerance,
                                          rel_tolerance=rel_tolerance
                                          )
-
-
-        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute"
+        start_of_expected_errmsg = "The following timeseries data are out of tolerance due to " \
+                                   "absolute"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with '{start_of_expected_errmsg}' but instead was '{actual_errmsg}'")
-
-        # Also look for errors being listed. Look for >ABS_TOL and >REL_TOL
+                        f"Error message expected to start with '{start_of_expected_errmsg}' but "
+                        f"instead was '{actual_errmsg}'")
         self.assertEquals(actual_errmsg.count('>ABS_TOL'), 2)
         self.assertEquals(actual_errmsg.count('>REL_TOL'), 2)
 
-        # Combine the two cases where one data paint fails because of abs error and one because of rel error
-        x_check[5] = x_check_5_orig + abs_tolerance * 1.1  # should cause an error since rel error will be less than tolerance
+        # Combine the two cases where one data paint fails because of abs error and one because
+        #   of rel error
+        # should cause an error since rel error will be less than tolerance
+        x_check[5] = x_check_5_orig + abs_tolerance * 1.1
         tolerance = x_check_15_orig * rel_tolerance
-        x_check[15] = x_check_15_orig + tolerance * 1.1  # should cause an error since rel error will be less than tolerance
-
-        # Add a case where the relative error is exceeded in the
-
+        # should cause an error since rel error will be less than tolerance
+        x_check[15] = x_check_15_orig + tolerance * 1.1
         with self.assertRaises(AssertionError) as e:
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
                                          abs_tolerance=abs_tolerance,
                                          rel_tolerance=rel_tolerance
                                          )
-
-
-        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute"
+        start_of_expected_errmsg = "The following timeseries data are out of tolerance due to " \
+                                   "absolute"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with '{start_of_expected_errmsg}' but instead was '{actual_errmsg}'")
-
-        # Also look for errors being listed. Look for >ABS_TOL and >REL_TOL
+                        f"Error message expected to start with '{start_of_expected_errmsg}' but "
+                        f"instead was '{actual_errmsg}'")
         self.assertEquals(actual_errmsg.count('>ABS_TOL'), 3)
         self.assertEquals(actual_errmsg.count('>REL_TOL'), 3)
-
-
 
     def test_no_overlapping_time(self):
         t_ref, x_ref = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
@@ -239,23 +249,20 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         t_check, x_check_2 = create_linear_time_series(100, 0.0, 500.0, 0.0, 990.0)
         x_check = np.stack((x_check_1, x_check_2), axis=1)
 
-
         rel_tolerance = 1.0E-3
 
-        # assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance)
-
         with self.assertRaises(AssertionError) as e:
-            assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance)
-
-        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute (None) or relative ({rel_tolerance}) tolerance violations"
+            assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
+                                         rel_tolerance=rel_tolerance)
+        start_of_expected_errmsg = "The following timeseries data are out of tolerance due to " \
+                                   f"absolute (None) or relative ({rel_tolerance}) tolerance " \
+                                   "violations"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
-
-        # Also look for errors being listed. Look for >ABS_TOL and >REL_TOL
+                        f"Error message expected to start with {start_of_expected_errmsg} but "
+                        f"instead was {actual_errmsg}")
         self.assertEquals(actual_errmsg.count('>ABS_TOL'), 0)
         self.assertEquals(actual_errmsg.count('>REL_TOL'), 199)
-
 
     def test_multi_dimensional_unequal_abs_and_rel(self):
         t_ref, x_ref_1 = create_linear_time_series(10, 0.0, 500.0, 0.0, 1000.0)
@@ -267,28 +274,19 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         t_check, x_check_2 = create_linear_time_series(10, 0.0, 500.0, 0.0, 990.0)
         x_check = np.stack((x_check_1, x_check_2), axis=1)
 
-
         abs_tolerance = 1.0E-3
         rel_tolerance = 0.5E-5
 
-
-
-
-        # assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance,
-        #                              abs_tolerance=abs_tolerance)
-
-
-
-
         with self.assertRaises(AssertionError) as e:
-            assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance, abs_tolerance=abs_tolerance)
-
-        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute ({abs_tolerance}) or relative ({rel_tolerance}) tolerance violations"
+            assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
+                                         rel_tolerance=rel_tolerance, abs_tolerance=abs_tolerance)
+        start_of_expected_errmsg = "The following timeseries data are out of tolerance due to " \
+                                   f"absolute ({abs_tolerance}) or relative ({rel_tolerance}) " \
+                                   "tolerance violations"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
-
-        # Also look for errors being listed. Look for >ABS_TOL and >REL_TOL
+                        f"Error message expected to start with {start_of_expected_errmsg} but "
+                        f"instead was {actual_errmsg}")
         self.assertEquals(actual_errmsg.count('>ABS_TOL'), 19)
         self.assertEquals(actual_errmsg.count('>REL_TOL'), 19)
 
@@ -314,31 +312,18 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
 
         rel_tolerance = 1.0E-3
 
-        # assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance)
-
         with self.assertRaises(AssertionError) as e:
-            assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance)
-
-        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to absolute (None) or relative ({rel_tolerance}) tolerance violations"
+            assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check,
+                                         rel_tolerance=rel_tolerance)
+        start_of_expected_errmsg = "The following timeseries data are out of tolerance due to " \
+                                   f"absolute (None) or relative ({rel_tolerance}) tolerance " \
+                                   "violations"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
-                        f"Error message expected to start with {start_of_expected_errmsg} but instead was {actual_errmsg}")
-
-        # Also look for errors being listed. Look for >ABS_TOL and >REL_TOL
+                        f"Error message expected to start with {start_of_expected_errmsg} but "
+                        f"instead was {actual_errmsg}")
         self.assertEquals(actual_errmsg.count('>ABS_TOL'), 0)
         self.assertEquals(actual_errmsg.count('>REL_TOL'), 99)
-
-
-import difflib
-import os
-import unittest
-
-import numpy as np
-import openmdao.api as om
-from openmdao.utils.testing_utils import use_tempdirs
-import dymos as dm
-
-from dymos.utils.testing_utils import assert_cases_equal, assert_timeseries_near_equal
 
 
 @use_tempdirs
@@ -386,6 +371,7 @@ class TestAssertCasesEqual(unittest.TestCase):
             assert_cases_equal(c1, c2)
 
         expected = "\nrequire_same_vars=True but cases contain different variables.\nVariables in " \
+                   "" \
                    "case1 but not in case2: ['a', 'b', 'c']\nVariables in case2 but not in " \
                    "case1: ['y', 'z']"
 
@@ -503,73 +489,6 @@ class TestAssertCasesEqual(unittest.TestCase):
             assert_cases_equal(c1, c2)
 
         self.assertEqual(str(e.exception), expected)
-
-
-@use_tempdirs
-class TestAssertTimeseriesNearEqual(unittest.TestCase):
-
-    def test_assert_different_shape(self):
-
-        t_ref = np.linspace(0, 100, 50)
-        t_check = np.linspace(0, 100, 60)
-
-        x_ref = np.atleast_2d(np.sin(t_ref)).T
-        x_check = np.atleast_3d(np.sin(t_check)).T
-
-        with self.assertRaises(ValueError) as e:
-            assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=1.0E-03)
-
-        expected = "The shape of the variable in the two timeseries is not equal x_ref is (1,)  x_check is (60, 1)"
-
-        self.assertEqual(expected, str(e.exception))
-
-    # def test_assert_different_initial_time(self):
-    #
-    #     t1 = np.linspace(0, 100, 50)
-    #     t2 = np.linspace(5, 100, 50)
-    #
-    #     x1 = np.atleast_2d(np.sin(t1)).T
-    #     x2 = np.atleast_2d(np.sin(t2)).T
-    #
-    #     with self.assertRaises(ValueError) as e:
-    #         assert_timeseries_near_equal(t1, x1, t2, x2)
-    #
-    #     expected = "The initial time of the two timeseries is not the same. t1[0]=0.0  " \
-    #                "t2[0]=5.0  difference: 5.0"
-    #
-    #     self.assertEqual(str(e.exception), expected)
-
-    # def test_assert_different_final_time(self):
-    #
-    #     t1 = np.linspace(0, 100, 50)
-    #     t2 = np.linspace(0, 102, 50)
-    #
-    #     x1 = np.atleast_2d(np.sin(t1)).T
-    #     x2 = np.atleast_2d(np.sin(t2)).T
-    #
-    #     with self.assertRaises(ValueError) as e:
-    #         assert_timeseries_near_equal(t1, x1, t2, x2)
-    #
-    #     expected = "The final time of the two timeseries is not the same. t1[0]=100.0  " \
-    #                "t2[0]=102.0  difference: 2.0"
-    #
-    #     self.assertEqual(str(e.exception), expected)
-
-    # def test_assert_different_values(self):
-    #
-    #     t = np.linspace(0, 100, 50)
-    #     t2 = np.linspace(0, 100, 50)
-    #
-    #     x1 = np.atleast_2d(np.sin(t1)).T
-    #     x2 = np.atleast_2d(np.cos(t2)).T
-    #
-    #     with self.assertRaises(ValueError) as e:
-    #         assert_timeseries_near_equal(t1, x1, t2, x2)
-    #
-    #     expected = "The shape of the variable in the two timeseries is not equal x_ref is (1,)  x_check is (60, 1)"
-    #
-    #     self.assertEqual(expected, str(e.exception))
-
 
 
 if __name__ == '__main__':  # pragma: no cover
