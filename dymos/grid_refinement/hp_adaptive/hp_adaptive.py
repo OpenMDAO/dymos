@@ -24,11 +24,11 @@ def split_segments(old_seg_ends, B):
     ndarray
         Segment ends of refined grid.
     """
-    new_segment_ends = []
-    for q in range(0, B.size):
-        new_segment_ends.extend(np.linspace(old_seg_ends[q], old_seg_ends[q + 1], B[q] + 1)[:-1])
-    new_segment_ends.append(1)
-    return np.asarray(new_segment_ends)
+    new_segment_ends = [
+        np.linspace(old_seg_ends[q], old_seg_ends[q + 1], B[q] + 1)[:-1] for q in range(0, B.size)
+    ]
+    new_segment_ends.append([1])
+    return np.concatenate(new_segment_ends)
 
 
 def merge_segments(old_seg_ends, seg_merge):
@@ -53,8 +53,7 @@ def merge_segments(old_seg_ends, seg_merge):
             continue
         new_seg_ends.append(old_seg_ends[q])
     new_seg_ends.append(1)
-    new_seg_ends = np.asarray(new_seg_ends)
-    return new_seg_ends
+    return np.asarray(new_seg_ends)
 
 
 class HPAdaptive:
@@ -366,6 +365,7 @@ class HPAdaptive:
                     P_hat[state_name][k] = np.amax(np.fabs(interp.eval(xdd_max_time)))
                     if P[state_name][k] / P_hat[state_name][k] > R[k]:
                         R[k] = P[state_name][k] / P_hat[state_name][k]
+
             non_smooth_idxs = np.where(R > phase.refine_options['smoothness_factor'])[0]
             smooth_need_refine_idxs = np.setdiff1d(refine_seg_idxs, non_smooth_idxs)
 
