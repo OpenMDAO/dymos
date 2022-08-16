@@ -85,50 +85,11 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         t_sol = sol_case.get_val('traj.phase0.timeseries.time')
         t_sim = sim_case.get_val('traj.phase0.timeseries.time')
 
-
-
-        var = 'state_rates:v'
-        sol = sol_case.get_val(f'traj.phase0.timeseries.{var}')
-        sim = sim_case.get_val(f'traj.phase0.timeseries.{var}')
-
-        rel_tolerance = 1.0E-3
-        abs_tolerance = 0.01
-        rel_err_ub = sol + rel_tolerance * abs(sol)
-        rel_err_lb = sol - rel_tolerance * abs(sol)
-
-        abs_err_ub = sol + abs_tolerance
-        abs_err_lb = sol - abs_tolerance
-
-
-        import matplotlib.pyplot as plt
-        # plt.plot(t_sol, sol, color='black', label='ref/sol')
-        # plt.plot(t_sim, sim, color='g', label='check/sim')
-        plt.scatter(t_sim, sim, color='red',  s=10, marker='d', label=f'check/sim {len(sim)} pts')
-        plt.scatter(t_sol, sol, color='black', s=10, marker='s', label=f'ref/sol {len(sol)} pts')
-        # plt.plot(t_sol, rel_err_ub, color='r', label='rel_err_ub')
-        # plt.plot(t_sol, rel_err_lb, color='r', label='rel_err_lb')
-        # plt.plot(t_sol, abs_err_ub, color='blue', label='abs_err_ub')
-        # plt.plot(t_sol, abs_err_lb, color='blue', label='abs_err_lb')
-
-        # Naming the x-axis, y-axis and the whole graph
-        plt.xlabel("time")
-        plt.ylabel("series")
-        plt.title("compare timeseries ")
-        # plt.xlim([0.45, 0.55])
-        plt.legend()
-        plt.show()
-
-        # assert_timeseries_near_equal(t_sim, sim, t_sol, sol, rel_tolerance=1.0E-3,
-        #                              abs_tolerance=0.01)
-
-
-        assert_timeseries_near_equal(t_sim, sim, t_sol, sol, rel_tolerance=1.0E-3,
-                                     abs_tolerance=0.01)
-
-        # for var in ['states:x', 'states:v', 'state_rates:x', 'state_rates:v', 'controls:u']:
-        #     sol = sol_case.get_val(f'traj.phase0.timeseries.{var}')
-        #     sim = sim_case.get_val(f'traj.phase0.timeseries.{var}')
-        #     assert_timeseries_near_equal(t_sol, sol, t_sim, sim, rel_tolerance=1.0E-3, abs_tolerance=0.01)
+        for var in ['states:x', 'states:v', 'state_rates:x', 'state_rates:v', 'controls:u']:
+            sol = sol_case.get_val(f'traj.phase0.timeseries.{var}')
+            sim = sim_case.get_val(f'traj.phase0.timeseries.{var}')
+            assert_timeseries_near_equal(t_sim, sim, t_sol, sol, rel_tolerance=1.0E-3,
+                                         abs_tolerance=0.01)
 
     def test_timeseries_units_radau(self):
         double_integrator_direct_collocation(dm.Radau, compressed=True)
