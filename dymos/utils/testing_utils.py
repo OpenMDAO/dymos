@@ -1,5 +1,4 @@
 import io
-import pathlib
 from packaging.version import Version
 
 import numpy as np
@@ -124,33 +123,6 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
 
     if err_msg:
         raise AssertionError(err_msg)
-#
-# def _write_out_timeseries_values_out_of_tolerance_v1(isclose, tolerance_type, tolerance,
-#                                                   t_check, x_check, x_ref):
-#     err_msg = f"Timeseries data not equal within {tolerance_type} tolerance of {tolerance}\n" + \
-#               "The following timeseries data are out of tolerance.\n" + \
-#               "  The data is shown as:\n"
-#     header = f"{'time_index':10s} | " + \
-#              f"{'data_indices':12s} | " + \
-#              f"{'time':13s} | " + \
-#              f"{'ref_data':13s} | " + \
-#              f"{'checked_data':13s} | " + \
-#              f"{'abs_error':14s} | " + \
-#              f"{'rel_error':14s}\n"
-#     err_msg += header
-#              # f"time_index | data_indices |   time       | ref_data       | checked_data       | abs     |        err\n"
-#     for idx, item_close in np.ndenumerate(isclose):
-#         if not item_close:
-#             if tolerance_type == 'absolute':
-#                 abs_error_indicator = '*'
-#                 rel_error_indicator = ' '
-#             else:
-#                 abs_error_indicator = ' '
-#                 rel_error_indicator = '*'
-#             abs_error = abs(x_check[idx] - x_ref[idx])
-#             rel_error = abs(x_check[idx] - x_ref[idx]) / abs(x_ref[idx])
-#             err_msg += f"{idx[0]:10,d} | {str(idx[1:]):>12s} | {t_check[idx[0]]:13.6e} | {x_ref[idx]:13.6e} | {x_check[idx]:13.6e} | {abs_error:13.6e}{abs_error_indicator} | {rel_error:13.6e}{rel_error_indicator}\n"
-#     return err_msg
 
 def _write_out_timeseries_values_out_of_tolerance(isclose, rel_tolerance, abs_tolerance,
                                                   t_check, x_check, x_ref):
@@ -165,9 +137,9 @@ def _write_out_timeseries_values_out_of_tolerance(isclose, rel_tolerance, abs_to
              f" ABS or REL error "
     err_msg += f"{header}\n"
     err_msg += len(header) * '-' + '\n'
-    # f"time_index | data_indices |   time       | ref_data       | checked_data       | abs     |        err\n"
 
     rel_error_max = 0.0
+    err_line_max = 0
     for idx, item_close in np.ndenumerate(isclose):
         if not item_close:
             error_string = ''
@@ -194,7 +166,6 @@ def _write_out_timeseries_values_out_of_tolerance(isclose, rel_tolerance, abs_to
     # show the item with the max rel error
     max_rel_error_header_txt = 'Time series data value with the largest relative error'
     max_rel_error_msg = f"\n{len(max_rel_error_header_txt)*'#'}\n{max_rel_error_header_txt}\n{len(max_rel_error_header_txt)*'#'}\n"
-    # max_rel_error_msg = '\n' + 40 * '#' + '\n' + '\n ' + 40 * '#' + '\n'
 
     max_rel_error_msg += f"{header}\n"
     max_rel_error_msg += len(header) * '-' + '\n'
