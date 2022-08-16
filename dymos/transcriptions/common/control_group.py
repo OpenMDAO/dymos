@@ -312,7 +312,6 @@ class ControlGroup(om.Group):
                 fix_final = options['fix_final']
                 if fix_initial or fix_final:
                     start = end = mask = None
-                    # end = size * num_input_nodes
 
                     if fix_initial:
                         if isinstance(fix_initial, Iterable):
