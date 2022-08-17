@@ -36,30 +36,25 @@ class SegmentStateMuxComp(om.ExplicitComponent):
         else:
             num_nodes = num_seg * self.options['output_nodes_per_seg']
 
-        self._vars = {}
-
         for name, options in self.options['state_options'].items():
-            self._vars[name] = {'inputs': {},
-                                'output': f'states:{name}',
-                                'shape': {}}
+            oname = f'states:{name}'
 
             for i in range(num_seg):
                 if self.options['output_nodes_per_seg'] is None:
                     nnps_i = gd.subset_num_nodes_per_segment['all'][i]
                 else:
                     nnps_i = self.options['output_nodes_per_seg']
-                self._vars[name]['inputs'][i] = f'segment_{i}_states:{name}'
-                self._vars[name]['shape'][i] = (nnps_i,) + options['shape']
 
-                self.add_input(name=self._vars[name]['inputs'][i],
-                               val=np.ones(self._vars[name]['shape'][i]),
-                               units=options['units'])
+                iname = f'segment_{i}_states:{name}'
+                shape = (nnps_i,) + options['shape']
+
+                self.add_input(name=iname, val=np.ones(shape), units=options['units'])
 
                 self.declare_partials(of=self._vars[name]['output'],
                                       wrt=self._vars[name]['inputs'][i],
                                       method='fd')
 
-            self.add_output(name=self._vars[name]['output'],
+            self.add_output(name=oname,
                             val=np.ones((num_nodes,) + options['shape']),
                             units=options['units'])
 
