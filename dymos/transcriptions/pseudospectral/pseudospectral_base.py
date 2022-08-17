@@ -333,7 +333,7 @@ class PseudospectralBase(TranscriptionBase):
                                      f' Either set fix_final=False or set solve_segments=\'reverse\'')
 
             # Backward propagation
-            if options['solve_segments'] in {'backward'}:
+            if options['solve_segments'] == 'backward':
                 # Neither 'fix_initial' nor 'connected_initial' may be True.
                 if options['fix_initial']:
                     raise ValueError(f'Cannot use solve_segments in phase ({phase.name}) with '
@@ -546,7 +546,7 @@ class PseudospectralBase(TranscriptionBase):
                 linear = True
             elif solve_segments in {'forward'} and not connected_initial and loc == 'initial':
                 linear = True
-            elif solve_segments in {'backward'} and loc == 'final':
+            elif solve_segments == 'backward' and loc == 'final':
                 linear = True
             else:
                 linear = False
