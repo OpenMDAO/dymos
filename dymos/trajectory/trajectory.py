@@ -497,8 +497,6 @@ class Trajectory(om.Group):
         phase_name_b = linkage_options['phase_b']
         var_a = linkage_options['var_a']
         var_b = linkage_options['var_b']
-        loc_a = linkage_options['loc_a']
-        loc_b = linkage_options['loc_b']
 
         info_str = f'Error in linking {var_a} from {phase_name_a} to {var_b} in {phase_name_b}'
 

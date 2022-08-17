@@ -1,5 +1,3 @@
-from collections.abc import Iterable
-
 import numpy as np
 import scipy.sparse as sp
 
@@ -7,6 +5,7 @@ import openmdao.api as om
 
 from ..grid_data import GridData
 from ...utils.misc import get_rate_units, CoerceDesvar, reshape_val
+from ...utils.indexing import get_desvar_indices
 from ...utils.constants import INF_BOUND
 from ...options import options as dymos_options
 
@@ -308,43 +307,12 @@ class ControlGroup(om.Group):
             size = np.prod(shape)
             if options['opt']:
                 num_input_nodes = gd.subset_num_nodes['control_input']
-                fix_initial = options['fix_initial']
-                fix_final = options['fix_final']
-                if fix_initial or fix_final:
-                    start = end = mask = None
-
-                    if fix_initial:
-                        if isinstance(fix_initial, Iterable):
-                            idxs_to_fix = np.where(np.asarray(fix_initial))[0]
-                            mask = np.ones(size * num_input_nodes, dtype=bool)
-                            mask[idxs_to_fix] = False
-                        else:
-                            start = size
-
-                    if fix_final:
-                        if isinstance(fix_final, Iterable):
-                            idxs_to_fix = np.where(np.asarray(fix_final))[0] - size
-                            if mask is None:
-                                mask = np.ones(size * num_input_nodes, dtype=bool)
-                            mask[idxs_to_fix] = False
-                        else:
-                            end = size * (num_input_nodes - 1)
-
-                    if mask is None:
-                        start = 0 if start is None else start
-                        end = size * num_input_nodes if end is None else end
-                        desvar_indices = np.arange(start, end)
-                    else:
-                        if start is not None:
-                            mask[:start] = False
-                        if end is not None:
-                            mask[end:] = False
-                        desvar_indices = np.arange(size * num_input_nodes)[mask]
-                else:
-                    desvar_indices = np.arange(size * num_input_nodes)
+                desvar_indices = get_desvar_indices(size, num_input_nodes,
+                                                    options['fix_initial'], options['fix_final'])
 
                 if len(desvar_indices) > 0:
-                    coerce_desvar_option = CoerceDesvar(num_input_nodes, options=options)
+                    coerce_desvar_option = CoerceDesvar(num_input_nodes, desvar_indices,
+                                                        options=options)
 
                     lb = np.zeros_like(desvar_indices, dtype=float)
                     lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \

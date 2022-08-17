@@ -3,6 +3,7 @@ from collections.abc import Iterable
 import numpy as np
 
 from .constants import INF_BOUND
+from .indexing import get_desvar_indices
 from openmdao.core.constants import _ReprClass
 
 
@@ -94,45 +95,10 @@ class CoerceDesvar(object):
         self.num_input_nodes = num_input_nodes
         shape = options['shape']
         size = np.prod(shape, dtype=int)
-        fix_initial = options['fix_initial']
-        fix_final = options['fix_final']
 
         if desvar_indices is None:
-            desvar_indices = np.arange(size * num_input_nodes)
-
-            if fix_initial or fix_final:
-                start = end = mask = None
-
-                if fix_initial:
-                    if isinstance(fix_initial, Iterable):
-                        idxs_to_fix = np.where(np.asarray(fix_initial))[0]
-                        mask = np.ones(size * num_input_nodes, dtype=bool)
-                        mask[idxs_to_fix] = False
-                    else:
-                        start = size
-
-                if fix_final:
-                    if isinstance(fix_final, Iterable):
-                        idxs_to_fix = np.where(np.asarray(fix_final))[0] - size
-                        if mask is None:
-                            mask = np.ones(size * num_input_nodes, dtype=bool)
-                        mask[idxs_to_fix] = False
-                    else:
-                        end = size * (num_input_nodes - 1)
-
-                if mask is None:
-                    start = 0 if start is None else start
-                    end = size * num_input_nodes if end is None else end
-                    desvar_indices = np.arange(start, end)
-                else:
-                    if start is not None:
-                        mask[:start] = False
-                    if end is not None:
-                        mask[end:] = False
-                    desvar_indices = np.arange(size * num_input_nodes)[mask]
-            else:
-                desvar_indices = np.arange(size * num_input_nodes)
-
+            desvar_indices = get_desvar_indices(size, num_input_nodes,
+                                                options['fix_initial'], options['fix_final'])
         self.desvar_indices = desvar_indices
         self.options = options
 

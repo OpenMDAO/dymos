@@ -332,8 +332,9 @@ class PseudospectralBase(TranscriptionBase):
                                      f'({state_name}) with forward propagation when fix_final=True.'
                                      f' Either set fix_final=False or set solve_segments=\'reverse\'')
 
-            # If solve_segments is 'backward', neither 'fix_initial' nor 'connected_initial' may be True.
-            if options['solve_segments'] == 'backward':
+            # Backward propagation
+            if options['solve_segments'] in {'backward'}:
+                # Neither 'fix_initial' nor 'connected_initial' may be True.
                 if options['fix_initial']:
                     raise ValueError(f'Cannot use solve_segments in phase ({phase.name}) with '
                                      f'backward propagation when fix_initial=True. Either set '
@@ -343,20 +344,6 @@ class PseudospectralBase(TranscriptionBase):
                                      f'backward propagation when connected_initial=True. Either set '
                                      f'connected_initial=False or set solve_segments=\'forward\'')
 
-            # Forward propagation
-            if options['solve_segments'] in {True, 'forward'}:
-                if compressed:
-                    self.state_idx_map[state_name]['solver'] = np.arange(1, num_state_input_nodes, dtype=int)
-                    self.state_idx_map[state_name]['indep'] = np.zeros((1,), dtype=int)
-                else:
-                    left_idxs = self.grid_data.subset_node_indices['segment_ends'][0::2]
-                    self.state_idx_map[state_name]['solver'] = [i for i in range(num_state_input_nodes)
-                                                                if state_input_idxs[i] not in left_idxs]
-                    self.state_idx_map[state_name]['indep'] = [i for i in range(num_state_input_nodes)
-                                                               if state_input_idxs[i] in left_idxs]
-
-            # Backward propagation
-            elif options['solve_segments'] in {'backward'}:
                 if compressed:
                     # The optimizer controls the last state input node, all others are solver-controlled
                     self.state_idx_map[state_name]['indep'] = np.array([num_state_input_nodes - 1], dtype=int)
@@ -368,6 +355,17 @@ class PseudospectralBase(TranscriptionBase):
                                                                if state_input_idxs[i] in right_idxs]
                     self.state_idx_map[state_name]['solver'] = [i for i in range(num_state_input_nodes)
                                                                 if state_input_idxs[i] not in right_idxs]
+            # Forward propagation
+            elif options['solve_segments'] in {'forward'}:
+                if compressed:
+                    self.state_idx_map[state_name]['solver'] = np.arange(1, num_state_input_nodes, dtype=int)
+                    self.state_idx_map[state_name]['indep'] = np.zeros((1,), dtype=int)
+                else:
+                    left_idxs = self.grid_data.subset_node_indices['segment_ends'][0::2]
+                    self.state_idx_map[state_name]['solver'] = [i for i in range(num_state_input_nodes)
+                                                                if state_input_idxs[i] not in left_idxs]
+                    self.state_idx_map[state_name]['indep'] = [i for i in range(num_state_input_nodes)
+                                                               if state_input_idxs[i] in left_idxs]
         else:
             # No solver used to solve these nodes.  All state input nodes are the indep nodes.
             self.state_idx_map[state_name]['solver'] = []
@@ -546,9 +544,9 @@ class PseudospectralBase(TranscriptionBase):
             connected_initial = phase.state_options[var]['connected_initial']
             if not solve_segments and not connected_initial:
                 linear = True
-            elif solve_segments in {True, 'forward'} and not connected_initial and loc == 'initial':
+            elif solve_segments in {'forward'} and not connected_initial and loc == 'initial':
                 linear = True
-            elif solve_segments == 'backward' and loc == 'final':
+            elif solve_segments in {'backward'} and loc == 'final':
                 linear = True
             else:
                 linear = False

@@ -2235,13 +2235,13 @@ class Phase(om.Group):
             True if both the initial time and duration are not inputs and are fixed.
         """
         fix_initial = self.time_options['fix_initial']
-        fix_duration = self.time_options['fix_duration']
         initial_bounds = self.time_options['initial_bounds']
-        duration_bounds = self.time_options['duration_bounds']
 
         if loc == 'initial':
             res = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0.0)
         elif loc == 'final':
+            fix_duration = self.time_options['fix_duration']
+            duration_bounds = self.time_options['duration_bounds']
             initial_fixed = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0)
             duration_fixed = fix_duration or (duration_bounds != (None, None) and np.diff(duration_bounds)[0] == 0)
             res = initial_fixed and duration_fixed

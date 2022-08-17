@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 import numpy as np
 
 from openmdao.utils.indexer import indexer
@@ -61,3 +62,57 @@ def get_constraint_flat_idxs(con):
                             flat_src=con['flat_indices']).shaped_array(flat=True)
 
     return flat_idxs
+
+
+def get_desvar_indices(size, num_nodes, fix_initial, fix_final):
+    """
+    Compute design var index array.
+
+    Parameters
+    ----------
+    size : int
+        Size of one node of the design var array.
+    num_nodes : int
+        Number of nodes in the design var array.
+    fix_initial : bool
+        If True, the initial value of the array is fixed and not a design variable.
+    fix_final : bool
+        If True, the final value of the array is fixed and not a design variable.
+
+    Returns
+    -------
+    ndarray
+        The design var index array.
+    """
+    if fix_initial or fix_final:
+        start = end = mask = None
+
+        if fix_initial:
+            if isinstance(fix_initial, Iterable):
+                idxs_to_fix = np.where(np.asarray(fix_initial))[0]
+                mask = np.ones(size * num_nodes, dtype=bool)
+                mask[idxs_to_fix] = False
+            else:
+                start = size
+
+        if fix_final:
+            if isinstance(fix_final, Iterable):
+                idxs_to_fix = np.where(np.asarray(fix_final))[0] - size
+                if mask is None:
+                    mask = np.ones(size * num_nodes, dtype=bool)
+                mask[idxs_to_fix] = False
+            else:
+                end = size * (num_nodes - 1)
+
+        if mask is None:
+            start = 0 if start is None else start
+            end = size * num_nodes if end is None else end
+            return np.arange(start, end)
+        else:
+            if start is not None:
+                mask[:start] = False
+            if end is not None:
+                mask[end:] = False
+            return np.arange(size * num_nodes)[mask]
+
+    return np.arange(size * num_nodes)
