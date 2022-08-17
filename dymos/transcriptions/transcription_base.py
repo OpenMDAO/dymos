@@ -93,7 +93,7 @@ class TranscriptionBase(object):
         time_options = phase.time_options
 
         # Determine the time unit.
-        if time_options['units'] in (None, _unspecified):
+        if time_options['units'] in {None, _unspecified}:
             if time_options['targets']:
                 ode = phase._get_subsystem(self._rhs_source)
 

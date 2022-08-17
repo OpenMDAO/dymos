@@ -37,10 +37,8 @@ def classify_var(var, state_options, parameter_options, control_options, polynom
         'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
         or 'ode'.
     """
-    if var == 'time':
-        return 'time'
-    elif var == 'time_phase':
-        return 'time_phase'
+    if var in {'time', 'time_phase'}:
+        return var
     elif var in state_options:
         return 'state'
     elif var in control_options:
@@ -55,16 +53,18 @@ def classify_var(var, state_options, parameter_options, control_options, polynom
             return 'input_polynomial_control'
     elif var in parameter_options:
         return 'parameter'
-    elif var.endswith('_rate') and var[:-5] in control_options:
-        return 'control_rate'
-    elif var.endswith('_rate2') and var[:-6] in control_options:
-        return 'control_rate2'
-    elif var.endswith('_rate') and var[:-5] in polynomial_control_options:
-        return 'polynomial_control_rate'
-    elif var.endswith('_rate2') and var[:-6] in polynomial_control_options:
-        return 'polynomial_control_rate2'
-    else:
-        return 'ode'
+    elif var.endswith('_rate'):
+        if var[:-5] in control_options:
+            return 'control_rate'
+        elif var[:-5] in polynomial_control_options:
+            return 'polynomial_control_rate'
+    elif var.endswith('_rate2'):
+        if var[:-6] in control_options:
+            return 'control_rate2'
+        elif var[:-6] in polynomial_control_options:
+            return 'polynomial_control_rate2'
+
+    return 'ode'
 
 
 def get_promoted_vars(ode, iotypes, metadata_keys=None, get_remote=True):
@@ -89,8 +89,8 @@ def get_promoted_vars(ode, iotypes, metadata_keys=None, get_remote=True):
         A dictionary mapping the promoted names of inputs in the system to their associated metadata.
     """
     _iotypes = (iotypes,) if isinstance(iotypes, str) else iotypes
-    return {opts['prom_name']: opts for (k, opts) in ode.get_io_metadata(iotypes=_iotypes, get_remote=get_remote,
-                                                                         metadata_keys=metadata_keys).items()}
+    return {opts['prom_name']: opts for opts in ode.get_io_metadata(iotypes=_iotypes, get_remote=get_remote,
+                                                                    metadata_keys=metadata_keys).values()}
 
 
 def get_targets(ode, name, user_targets, control_rates=False):
@@ -132,27 +132,23 @@ def get_targets(ode, name, user_targets, control_rates=False):
     if isinstance(ode, dict):
         ode_inputs = ode
     else:
-        ode_inputs = {opts['prom_name']: opts for (k, opts) in
-                      ode.get_io_metadata(iotypes=('input',), get_remote=True).items()}
+        ode_inputs = {opts['prom_name']: opts for opts in
+                      ode.get_io_metadata(iotypes=('input',), get_remote=True).values()}
 
     if user_targets is _unspecified:
-        if control_rates not in (1, 2) and name in ode_inputs:
-            targets = [name]
+        if name in ode_inputs and control_rates not in {1, 2}:
+            return [name]
         elif control_rates == 1 and f'{name}_rate' in ode_inputs:
-            targets = [f'{name}_rate']
+            return [f'{name}_rate']
         elif control_rates == 2 and f'{name}_rate2' in ode_inputs:
-            targets = [f'{name}_rate2']
-        else:
-            targets = []
+            return [f'{name}_rate2']
     elif user_targets:
         if isinstance(user_targets, str):
-            targets = [user_targets]
+            return [user_targets]
         else:
-            targets = user_targets
-    else:
-        targets = []
+            return user_targets
 
-    return targets
+    return []
 
 
 def _configure_constraint_introspection(phase):
@@ -174,19 +170,14 @@ def _configure_constraint_introspection(phase):
             var = con['name']
             var_type = phase.classify_var(var)
 
-            if con['name'] != con['constraint_name'] is not None and var_type != 'ode':
+            if var != con['constraint_name'] is not None and var_type != 'ode':
                 om.issue_warning(f"Option 'constraint_name' on {constraint_type} constraint {var} is only "
                                  f"valid for ODE outputs. The option is being ignored.", om.UnusedOptionWarning)
 
-            if var_type == 'time':
+            if var_type in {'time', 'time_phase'}:
                 con['shape'] = (1,)
                 con['units'] = time_units if con['units'] is None else con['units']
-                con['constraint_path'] = 'timeseries.time'
-
-            elif var_type == 'time_phase':
-                con['shape'] = (1,)
-                con['units'] = time_units if con['units'] is None else con['units']
-                con['constraint_path'] = 'timeseries.time_phase'
+                con['constraint_path'] = f'timeseries.{var_type}'
 
             elif var_type == 'state':
                 state_shape = phase.state_options[var]['shape']
@@ -489,7 +480,7 @@ def configure_states_introspection(state_options, time_options, control_options,
         rate_src_type = classify_var(rate_src, state_options, parameter_options, control_options,
                                      polynomial_control_options)
 
-        if rate_src_type in ['time', 'time_phase']:
+        if rate_src_type in {'time', 'time_phase'}:
             rate_src_units = time_options['units']
             rate_src_shape = (1,)
         elif rate_src_type == 'state':
@@ -533,7 +524,7 @@ def configure_states_introspection(state_options, time_options, control_options,
             rate_src_shape = (1,)
             rate_src_units = None
 
-        if options['shape'] in (None, _unspecified):
+        if options['shape'] in {None, _unspecified}:
             options['shape'] = rate_src_shape
 
         if options['units'] is _unspecified:
@@ -616,7 +607,8 @@ def filter_outputs(patterns, sys):
         A dictionary where the matching output names are the keys and the associated dict provides
         the 'units' and 'shapes' metadata.
     """
-    outputs = sys if isinstance(sys, dict) else get_promoted_vars(sys, iotypes='output', metadata_keys=['shape', 'units'])
+    outputs = sys if isinstance(sys, dict) else get_promoted_vars(sys, iotypes='output',
+                                                                  metadata_keys=['shape', 'units'])
 
     if '*' in patterns:  # shortcut for '*'
         filtered = outputs

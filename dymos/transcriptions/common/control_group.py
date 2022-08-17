@@ -231,7 +231,7 @@ class ControlInterpComp(om.ExplicitComponent):
         dstau_dt2 = (dstau_dt ** 2)[:, np.newaxis]
         dstau_dt3 = (dstau_dt ** 3)[:, np.newaxis]
 
-        for name, options in control_options.items():
+        for name in control_options:
             control_name = self._input_names[name]
 
             size = self.sizes[name]
@@ -282,7 +282,7 @@ class ControlGroup(om.Group):
         if len(control_options) < 1:
             return
 
-        opt_controls = [name for (name, opts) in control_options.items() if opts['opt']]
+        opt_controls = [name for name, opts in control_options.items() if opts['opt']]
 
         if len(opt_controls) > 0:
             self.add_subsystem('indep_controls', subsys=om.IndepVarComp(), promotes_outputs=['*'])
@@ -310,6 +310,7 @@ class ControlGroup(om.Group):
                 desvar_indices = get_desvar_indices(size, num_input_nodes,
                                                     options['fix_initial'], options['fix_final'])
 
+                dvname = f'controls:{name}'
                 if len(desvar_indices) > 0:
                     coerce_desvar_option = CoerceDesvar(num_input_nodes, desvar_indices,
                                                         options=options)
@@ -322,7 +323,7 @@ class ControlGroup(om.Group):
                     ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
                         coerce_desvar_option('upper')
 
-                    self.add_design_var(name='controls:{0}'.format(name),
+                    self.add_design_var(name=dvname,
                                         lower=lb,
                                         upper=ub,
                                         scaler=coerce_desvar_option('scaler'),
@@ -334,7 +335,7 @@ class ControlGroup(om.Group):
 
                 default_val = reshape_val(options['val'], shape, num_input_nodes)
 
-                self.indep_controls.add_output(name=f'controls:{name}',
+                self.indep_controls.add_output(name=dvname,
                                                val=default_val,
                                                shape=(num_input_nodes,) + shape,
                                                units=options['units'])

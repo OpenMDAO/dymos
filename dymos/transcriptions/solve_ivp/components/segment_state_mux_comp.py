@@ -40,7 +40,7 @@ class SegmentStateMuxComp(om.ExplicitComponent):
 
         for name, options in self.options['state_options'].items():
             self._vars[name] = {'inputs': {},
-                                'output': 'states:{0}'.format(name),
+                                'output': f'states:{name}',
                                 'shape': {}}
 
             for i in range(num_seg):
@@ -48,7 +48,7 @@ class SegmentStateMuxComp(om.ExplicitComponent):
                     nnps_i = gd.subset_num_nodes_per_segment['all'][i]
                 else:
                     nnps_i = self.options['output_nodes_per_seg']
-                self._vars[name]['inputs'][i] = 'segment_{0}_states:{1}'.format(i, name)
+                self._vars[name]['inputs'][i] = f'segment_{i}_states:{name}'
                 self._vars[name]['shape'][i] = (nnps_i,) + options['shape']
 
                 self.add_input(name=self._vars[name]['inputs'][i],
@@ -74,9 +74,4 @@ class SegmentStateMuxComp(om.ExplicitComponent):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        for name in self._vars:
-            input_names = self._vars[name]['inputs']
-            output_name = self._vars[name]['output']
-
-            outputs[output_name] = \
-                np.concatenate([inputs[input_names[i]] for i in range(len(input_names))])
+        outputs.set_val(inputs.asarray())

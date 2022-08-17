@@ -117,7 +117,7 @@ class ParameterComp(ExplicitComponent):
         """
         _out_name = output_name if output_name is not None else f'parameter_vals:{name}'
 
-        if shape in (None, _unspecified):
+        if shape in {None, _unspecified}:
             _shape = (1,)
             size = np.asarray(val).size
         else:

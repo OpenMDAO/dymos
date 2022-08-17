@@ -135,7 +135,7 @@ def load_case(problem, previous_solution):
             problem.set_val(td_path[0], t_duration, units=prev_time_units)
 
         # Interpolate the timeseries state outputs from the previous solution onto the new grid.
-        for state_name, options in phase.state_options.items():
+        for state_name in phase.state_options:
             state_path = [s for s in phase_vars if s.endswith(f'{phase_name}.states:{state_name}')][0]
             prev_state_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.states:{state_name}')][0]
             prev_state_val = prev_vars[prev_state_path]['val']
@@ -150,7 +150,7 @@ def load_case(problem, previous_solution):
                 problem.set_val(init_val_path[0], prev_state_val[0, ...], units=prev_state_units)
 
         # Interpolate the timeseries control outputs from the previous solution onto the new grid.
-        for control_name, options in phase.control_options.items():
+        for control_name in phase.control_options:
             control_path = [s for s in phase_vars if s.endswith(f'{phase_name}.controls:{control_name}')][0]
             prev_control_path = [s for s in prev_vars
                                  if s.endswith(f'{phase_name}.timeseries.controls:{control_name}')][0]
@@ -162,7 +162,7 @@ def load_case(problem, previous_solution):
                             units=prev_control_units)
 
         # Set the output polynomial control outputs from the previous solution as the value
-        for pc_name, options in phase.polynomial_control_options.items():
+        for pc_name in phase.polynomial_control_options:
             pc_path = [s for s in phase_vars if
                        s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
             prev_pc_path = [s for s in prev_vars if s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
@@ -171,7 +171,7 @@ def load_case(problem, previous_solution):
             problem.set_val(pc_path, prev_pc_val, units=prev_pc_units)
 
         # Set the timeseries parameter outputs from the previous solution as the parameter value
-        for param_name, options in phase.parameter_options.items():
+        for param_name in phase.parameter_options:
             prev_match = [s for s in prev_vars if s.endswith(f'{phase_name}.parameters:{param_name}')]
             if prev_match:
                 # In previous outputs

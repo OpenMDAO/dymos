@@ -1665,7 +1665,7 @@ class RKIntegrationComp(om.ExplicitComponent):
                 partials[of_rate, wrt] = dy_dZ[idxs, of_rate_rows, wrt_cols]
                 partials[of_rate2, wrt] = dy_dZ[idxs, of_rate2_rows, wrt_cols]
 
-        for name, options in self._filtered_timeseries_outputs.items():
+        for name in self._filtered_timeseries_outputs:
             of = self._timeseries_output_names[name]
             of_rows = self._timeseries_idxs_in_y[name]
 

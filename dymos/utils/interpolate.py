@@ -149,7 +149,7 @@ class LagrangeBarycentricInterpolant(object):
             polynomial.
         """
         if len(f_j) != self.num_nodes:
-            raise ValueError("f_j must have {0} values".format(self.num_nodes))
+            raise ValueError(f"f_j must have {self.num_nodes} values")
         self.f_j[...] = f_j
         self.x0 = x0
         self.xf = xf

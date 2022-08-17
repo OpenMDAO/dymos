@@ -82,7 +82,7 @@ class PseudospectralBase(TranscriptionBase):
 
         self.any_solved_segs = False
         self.any_connected_opt_segs = False
-        for name, options in phase.state_options.items():
+        for options in phase.state_options.values():
             # Transcription solve_segments overrides state solve_segments if its not set
             if options['solve_segments'] is None:
                 options['solve_segments'] = self.options['solve_segments']
@@ -239,8 +239,8 @@ class PseudospectralBase(TranscriptionBase):
         if self.any_solved_segs or self.any_connected_opt_segs:
             for name, options in phase.state_options.items():
                 if options['solve_segments']:
-                    phase.connect('collocation_constraint.defects:{0}'.format(name),
-                                  'indep_states.defects:{0}'.format(name))
+                    phase.connect(f'collocation_constraint.defects:{name}',
+                                  f'indep_states.defects:{name}')
 
     def setup_ode(self, phase):
         """
@@ -275,7 +275,7 @@ class PseudospectralBase(TranscriptionBase):
         phase.connect('dt_dstau', 'state_interp.dt_dstau',
                       src_indices=grid_data.subset_node_indices['col'], flat_src_indices=True)
 
-        for name, _ in phase.state_options.items():
+        for name in phase.state_options:
             phase.connect(f'states:{name}',
                           f'state_interp.state_disc:{name}',
                           src_indices=om.slicer[map_input_indices_to_disc, ...])

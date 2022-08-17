@@ -388,7 +388,7 @@ def check_error(phases):
         E = {}  # The absolute error computed in each state at each node (Eq. 20 pt 1)
         e = {}  # The relative error computed in each state at each node (Eq. 20 pt 2)
 
-        for state_name, options in phase.state_options.items():
+        for state_name in phase.state_options:
             E[state_name] = np.abs(x_hat[state_name] - x[state_name])  # Equation 20.1
             e[state_name] = np.zeros_like(E[state_name])               # Equation 20.2
             for k in range(numseg):

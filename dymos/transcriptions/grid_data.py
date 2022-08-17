@@ -259,7 +259,7 @@ class GridData(object):
         elif self.transcription == 'radau-ps':
             get_subsets_and_nodes = radau_pseudospectral_subsets_and_nodes
         else:
-            raise ValueError('Unknown transcription: {0}'.format(transcription))
+            raise ValueError(f'Unknown transcription: {transcription}')
 
         # Make sure transcription_order is a vector
         if isinstance(transcription_order, str):

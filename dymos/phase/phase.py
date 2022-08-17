@@ -1015,8 +1015,8 @@ class Phase(om.Group):
             indices should be a tuple or list giving the elements to constrain at each point in time.
         """
         if loc not in ['initial', 'final']:
-            raise ValueError('Invalid boundary constraint location "{0}". Must be '
-                             '"initial" or "final".'.format(loc))
+            raise ValueError(f'Invalid boundary constraint location "{loc}". Must be '
+                             '"initial" or "final".')
 
         if constraint_name is None:
             constraint_name = name.rpartition('.')[-1]
@@ -1756,8 +1756,8 @@ class Phase(om.Group):
                     if options[opt] is not None:
                         invalid_options.append(opt)
                 if invalid_options:
-                    warnings.warn('Invalid options for non-optimal control \'{0}\' in phase \'{1}\': '
-                                  '{2}'.format(name, self.name, ', '.join(invalid_options)),
+                    warnings.warn(f"Invalid options for non-optimal control '{name}' in phase "
+                                  f"'{self.name}': {', '.join(invalid_options)}",
                                   RuntimeWarning)
 
                 # Do not enforce rate continuity/rate continuity for non-optimal controls
@@ -1781,8 +1781,8 @@ class Phase(om.Group):
                     if options[opt] is not None:
                         invalid_options.append(opt)
                 if invalid_options:
-                    warnings.warn('Invalid options for non-optimal polynoimal control  \'{0}\' in'
-                                  ' phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
+                    warnings.warn(f"Invalid options for non-optimal polynoimal control '{name}' in "
+                                  f"phase '{self.name}': {', '.join(invalid_options)}",
                                   RuntimeWarning)
 
     def _check_parameter_options(self):
@@ -1802,8 +1802,8 @@ class Phase(om.Group):
                     if options[opt] is not None:
                         invalid_options.append(opt)
                 if invalid_options:
-                    warnings.warn('Invalid options for non-optimal parameter \'{0}\' in '
-                                  'phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
+                    warnings.warn(f"Invalid options for non-optimal parameter '{name}' in "
+                                  f"phase '{self.name}': {', '.join(invalid_options)}",
                                   RuntimeWarning)
 
     def interpolate(self, xs=None, ys=None, nodes='all', kind='linear', axis=0):
