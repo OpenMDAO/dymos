@@ -1,4 +1,3 @@
-import difflib
 import os
 import unittest
 import numpy as np
@@ -6,15 +5,13 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 
-import dymos as dm
-from dymos.utils.misc import get_rate_units
 from dymos.utils.testing_utils import assert_cases_equal, assert_timeseries_near_equal
 
 
 def create_linear_time_series(n, t_begin, t_end, x_begin, x_end):
-    '''
+    """
     Simple little function to generate a time series to be used for the tests in this file
-    '''
+    """
     slope = (x_end - x_begin) / (t_end - t_begin)
     line = lambda t: slope * (t - t_begin) + x_begin
 
@@ -120,11 +117,9 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         t_ref, x_ref = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
         t_check, x_check = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
         x_check_5_orig = float(x_check[5])
-        x_check_15_orig = float(x_check[15])
 
         abs_tolerance = 10.0
         rel_tolerance = 0.1
-        transition_tolerance = abs_tolerance / rel_tolerance
 
         # for < 100, uses the abs, x_check[5] is ~ 50
         # should not cause an error since rel error will be less than tolerance
@@ -370,7 +365,7 @@ class TestAssertCasesEqual(unittest.TestCase):
         with self.assertRaises(AssertionError) as e:
             assert_cases_equal(c1, c2)
 
-        expected = "\nrequire_same_vars=True but cases contain different variables.\nVariables in " \
+        expected = "\nrequire_same_vars=True but cases contain different variables.\nVariables in "\
                    "" \
                    "case1 but not in case2: ['a', 'b', 'c']\nVariables in case2 but not in " \
                    "case1: ['y', 'z']"
