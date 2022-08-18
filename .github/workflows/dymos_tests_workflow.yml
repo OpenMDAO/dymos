@@ -166,6 +166,7 @@ jobs:
           else
             mamba install mpi4py petsc4py=${{ matrix.PETSc }} -q -y
           fi
+          export OMPI_MCA_rmaps_base_oversubscribe=1
           echo "OMPI_MCA_rmaps_base_oversubscribe=1" >> $GITHUB_ENV
           echo "-----------------------"
           echo "Quick test of mpi4py:"
