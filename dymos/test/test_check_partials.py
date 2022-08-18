@@ -1,7 +1,7 @@
 import unittest
 import openmdao.api as om
+from openmdao.utils.testing_utils import set_env_vars
 import dymos as dm
-from dymos.utils.testing_utils import no_testflo_context
 
 
 class TestCheckPartials(unittest.TestCase):
@@ -389,6 +389,7 @@ class TestCheckPartials(unittest.TestCase):
 
         assert(len(partials.keys()) > 0)
 
+    @set_env_vars(GITHUB_ACTION='0', TRAVIS='0')  # Make sure _no_check_partials isn't disabled
     def test_check_partials_no(self):
         """
         Run check_partials on a series of dymos problems and verify that partials information
@@ -402,9 +403,8 @@ class TestCheckPartials(unittest.TestCase):
                  self.min_time_climb_partials_gl]
 
         partials = {}
-        with no_testflo_context():
-            for c in cases:
-                partials.update(c())
+        for c in cases:
+            partials.update(c())
 
         dm.options['include_check_partials'] = cp_save
 

@@ -1,7 +1,5 @@
 import io
-import os
 from packaging.version import Version
-from contextlib import contextmanager
 
 import numpy as np
 
@@ -208,21 +206,3 @@ def _get_reports_dir(prob):
 
     from openmdao.utils.reports_system import get_reports_dir
     return get_reports_dir(prob)
-
-
-# the following code duplicates code in OpenMDAO, but rather than forcing dymos to be tied
-# to a newer version of OpenMDAO where this is defined, just redefine it here.  This can
-# be removed at some point in the future.
-@contextmanager
-def no_testflo_context():
-    """
-    Temporarily remove the TESTFLO_RUNNING environment variable.
-    """
-    save = os.environ.get('TESTFLO_RUNNING')
-    if save is not None:
-        del os.environ['TESTFLO_RUNNING']
-    try:
-        yield
-    finally:
-        if save is not None:
-            os.environ['TESTFLO_RUNNING'] = save
