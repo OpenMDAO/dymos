@@ -2,7 +2,7 @@ import openmdao.api as om
 from openmdao.recorders.case import Case
 from .phase.phase import Phase
 from .trajectory import Trajectory
-from warnings import warn
+from openmdao.utils.om_warnings import issue_warning
 
 
 def find_phases(sys):
@@ -154,7 +154,7 @@ def load_case(problem, previous_solution):
                 warning_message = f"{phase_name}.states:{state_name} specifies 'fix_final=True'. " \
                                   f"If the given restart file has a" \
                                   f" different final value this will overwrite the user-specified value"
-                warn(warning_message)
+                issue_warning(warning_message)
 
         # Interpolate the timeseries control outputs from the previous solution onto the new grid.
         for control_name, options in phase.control_options.items():
@@ -171,7 +171,7 @@ def load_case(problem, previous_solution):
                 warning_message = f"{phase_name}.controls:{control_name} specifies 'fix_final=True'. " \
                                   f"If the given restart file has a" \
                                   f" different final value this will overwrite the user-specified value"
-                warn(warning_message)
+                issue_warning(warning_message)
 
         # Set the output polynomial control outputs from the previous solution as the value
         for pc_name, options in phase.polynomial_control_options.items():
@@ -185,7 +185,7 @@ def load_case(problem, previous_solution):
                 warning_message = f"{phase_name}.polynomial_controls:{pc_name} specifies 'fix_final=True'. " \
                                   f"If the given restart file has a" \
                                   f" different final value this will overwrite the user-specified value"
-                warn(warning_message)
+                issue_warning(warning_message)
 
         # Set the timeseries parameter outputs from the previous solution as the parameter value
         for param_name, options in phase.parameter_options.items():
