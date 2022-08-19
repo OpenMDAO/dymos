@@ -2,6 +2,7 @@ import openmdao.api as om
 from openmdao.recorders.case import Case
 from .phase.phase import Phase
 from .trajectory import Trajectory
+from openmdao.utils.om_warnings import issue_warning
 
 
 def find_phases(sys):
@@ -149,6 +150,12 @@ def load_case(problem, previous_solution):
             if init_val_path:
                 problem.set_val(init_val_path[0], prev_state_val[0, ...], units=prev_state_units)
 
+            if options['fix_final']:
+                warning_message = f"{phase_name}.states:{state_name} specifies 'fix_final=True'. " \
+                                  f"If the given restart file has a" \
+                                  f" different final value this will overwrite the user-specified value"
+                issue_warning(warning_message)
+
         # Interpolate the timeseries control outputs from the previous solution onto the new grid.
         for control_name, options in phase.control_options.items():
             control_path = [s for s in phase_vars if s.endswith(f'{phase_name}.controls:{control_name}')][0]
@@ -160,6 +167,11 @@ def load_case(problem, previous_solution):
                             phase.interp(xs=prev_time_val, ys=prev_control_val,
                                          nodes='control_input', kind='slinear'),
                             units=prev_control_units)
+            if options['fix_final']:
+                warning_message = f"{phase_name}.controls:{control_name} specifies 'fix_final=True'. " \
+                                  f"If the given restart file has a" \
+                                  f" different final value this will overwrite the user-specified value"
+                issue_warning(warning_message)
 
         # Set the output polynomial control outputs from the previous solution as the value
         for pc_name, options in phase.polynomial_control_options.items():
@@ -169,6 +181,11 @@ def load_case(problem, previous_solution):
             prev_pc_val = prev_vars[prev_pc_path]['val']
             prev_pc_units = prev_vars[prev_pc_path]['units']
             problem.set_val(pc_path, prev_pc_val, units=prev_pc_units)
+            if options['fix_final']:
+                warning_message = f"{phase_name}.polynomial_controls:{pc_name} specifies 'fix_final=True'. " \
+                                  f"If the given restart file has a" \
+                                  f" different final value this will overwrite the user-specified value"
+                issue_warning(warning_message)
 
         # Set the timeseries parameter outputs from the previous solution as the parameter value
         for param_name, options in phase.parameter_options.items():
