@@ -1,8 +1,9 @@
 import unittest
 
-from openmdao.utils.testing_utils import use_tempdirs, set_env_vars
+from openmdao.utils.testing_utils import use_tempdirs
 import dymos as dm
 from dymos.examples.brachistochrone.test.ex_brachistochrone import brachistochrone_min_time
+from dymos.utils.testing_utils import set_env_vars
 
 
 @use_tempdirs

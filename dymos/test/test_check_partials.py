@@ -1,7 +1,7 @@
 import unittest
 import openmdao.api as om
-from openmdao.utils.testing_utils import set_env_vars
 import dymos as dm
+from dymos.utils.testing_utils import set_env_vars
 
 
 class TestCheckPartials(unittest.TestCase):

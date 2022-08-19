@@ -1,4 +1,5 @@
 import io
+import os
 from packaging.version import Version
 
 import numpy as np
@@ -206,3 +207,54 @@ def _get_reports_dir(prob):
 
     from openmdao.utils.reports_system import get_reports_dir
     return get_reports_dir(prob)
+
+
+# This duplicates OpenMDAO code and is needed for older versions of OpenMDAO (<= 3.19).
+# Once support is dropped for < 3.19 we can get rid of this and use the version from OpenMDAO.
+class set_env_vars(object):
+    """
+    Decorate a function to temporarily set some environment variables.
+
+    Parameters
+    ----------
+    **envs : dict
+        Keyword args corresponding to environment variables to set.
+
+    Attributes
+    ----------
+    envs : dict
+        Saved mapping of environment var name to value.
+    """
+
+    def __init__(self, **envs):
+        """
+        Initialize attributes.
+        """
+        self.envs = envs
+
+    def __call__(self, fnc):
+        """
+        Apply the decorator.
+
+        Parameters
+        ----------
+        fnc : function
+            The function being wrapped.
+        """
+        def wrap(*args, **kwargs):
+            saved = {}
+            try:
+                for k, v in self.envs.items():
+                    saved[k] = os.environ.get(k)
+                    os.environ[k] = v  # will raise exception if v is not a string
+
+                return fnc(*args, **kwargs)
+            finally:
+                # put environment back as it was
+                for k, v in saved.items():
+                    if v is None:
+                        del os.environ[k]
+                    else:
+                        os.environ[k] = v
+
+        return wrap
