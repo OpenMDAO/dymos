@@ -56,13 +56,11 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         x_check_5_orig = float(x_check[5])
         tolerance = x_check_5_orig * rel_tolerance
 
-        x_check[
-            5] = x_check_5_orig + tolerance * 0.9  # should not cause an error since rel error
+        x_check[5] = x_check_5_orig + tolerance * 0.9  # should not cause an error since rel error
         # will be less than tolerance
         assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, rel_tolerance=rel_tolerance)
 
-        x_check[
-            5] = x_check_5_orig + tolerance * 1.1  # should cause an error since rel error will
+        x_check[5] = x_check_5_orig + tolerance * 1.1  # should cause an error since rel error will
         # be less than tolerance
 
         with self.assertRaises(AssertionError) as e:
