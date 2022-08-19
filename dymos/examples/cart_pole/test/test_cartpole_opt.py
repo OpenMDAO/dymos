@@ -60,18 +60,19 @@ class TestCartPoleOptimization(unittest.TestCase):
 
         # --- configure optimizer ---
         p.driver = om.pyOptSparseDriver()
-        p.driver.options["optimizer"] = "SNOPT"
-        p.driver.options["print_results"] = False
-        # SNOPT options
-        p.driver.opt_settings["Function precision"] = 1e-14
-        p.driver.opt_settings["Major optimality tolerance"] = 1e-7
-        p.driver.opt_settings["Major feasibility tolerance"] = 1e-7
-        p.driver.opt_settings["Major iterations limit"] = 100
-        p.driver.opt_settings["Minor iterations limit"] = 100_000_000
-        p.driver.opt_settings["Iterations limit"] = 10000
-        p.driver.opt_settings["Hessian full memory"] = 1
-        p.driver.opt_settings["Hessian frequency"] = 100
-        p.driver.opt_settings["Verify level"] = -1
+        p.driver.options["optimizer"] = "IPOPT"
+        # IPOPT options
+        p.driver.opt_settings['mu_init'] = 1e-1
+        p.driver.opt_settings['max_iter'] = 600
+        p.driver.opt_settings['constr_viol_tol'] = 1e-6
+        p.driver.opt_settings['compl_inf_tol'] = 1e-6
+        p.driver.opt_settings['tol'] = 1e-5
+        p.driver.opt_settings['print_level'] = 0
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+        p.driver.opt_settings['mu_strategy'] = 'monotone'
+        p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
+        p.driver.options['print_results'] = False
 
         # declare total derivative coloring to accelerate the UDE linear solves
         p.driver.declare_coloring()
@@ -82,13 +83,12 @@ class TestCartPoleOptimization(unittest.TestCase):
         # The initial condition of cart-pole (i.e., state values at time 0) is set here
         # because we set `fix_initial=True` when declaring the states.
         p.set_val("traj.phase.t_initial", 0.0)  # set initial time to 0.
-        # linearly interpolate the states between initial and terminal conditions.
-        p.set_val("traj.phase.states:x", phase.interp(ys=[0.0, 1.0], nodes="state_input"), units="m")
-        p.set_val("traj.phase.states:x_dot", phase.interp(ys=[0.0, 0.0], nodes="state_input"), units="m/s")
-        p.set_val("traj.phase.states:theta", phase.interp(ys=[0.0, np.pi], nodes="state_input"), units="rad")
-        p.set_val("traj.phase.states:theta_dot", phase.interp(ys=[0.0, 0.0], nodes="state_input"), units="rad/s")
-        p.set_val("traj.phase.states:energy", phase.interp(ys=[0.0, 100.0], nodes="state_input"))  # start "energy" from 0.
-        p.set_val("traj.phase.controls:f", phase.interp(ys=[1.0, 0.0], nodes="control_input"), units="N")
+        p.set_val("traj.phase.states:x", phase.interp(xs=[0, 1, 2], ys=[0, 1, 1], nodes="state_input"), units="m")
+        p.set_val("traj.phase.states:x_dot", phase.interp(xs=[0, 1, 2], ys=[0, 0.1, 0], nodes="state_input"), units="m/s")
+        p.set_val("traj.phase.states:theta", phase.interp(xs=[0, 1, 2], ys=[0, np.pi/2, np.pi], nodes="state_input"), units="rad")
+        p.set_val("traj.phase.states:theta_dot", phase.interp(xs=[0, 1, 2], ys=[0, 1, 0], nodes="state_input"), units="rad/s")
+        p.set_val("traj.phase.states:energy", phase.interp(xs=[0, 1, 2], ys=[0, 30, 60], nodes="state_input"))
+        p.set_val("traj.phase.controls:f", phase.interp(xs=[0, 1, 2], ys=[3, -1, 0], nodes="control_input"), units="N")
 
         # --- run optimization ---
         dm.run_problem(p, run_driver=True, simulate=False, simulate_kwargs={"method": "Radau", "times_per_seg": 10})
@@ -96,7 +96,7 @@ class TestCartPoleOptimization(unittest.TestCase):
         # --- check outputs ---
         # objective value
         obj = p.get_val("traj.phase.states:energy", units="N**2*s")[-1]
-        assert_near_equal(obj, 58.83924863, tolerance=1e-3)
+        assert_near_equal(obj, 58.8839489745, tolerance=1e-3)
 
 
 if __name__ == "___main__":
