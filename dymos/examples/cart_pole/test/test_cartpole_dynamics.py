@@ -34,8 +34,6 @@ class TestCartPoleDynamics(unittest.TestCase):
         partials = p.check_partials(compact_print=True, method="cs")
         assert_check_partials(partials, atol=1e-5, rtol=1e-5)
 
-        print("eyeye")
-
 
 if __name__ == "___main__":
     unittest.main()
