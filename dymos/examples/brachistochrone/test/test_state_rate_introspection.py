@@ -455,7 +455,6 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sol, int_theta_sol, t_sim, int_theta_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
-        # assert_timeseries_near_equal(t_sol, theta_rate_sol, t_sim, theta_rate_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sim, theta_rate_sim, t_sol, theta_rate_sol, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
 
     def _test_integrate_polynomial_control_rate(self, transcription):
@@ -564,29 +563,6 @@ class TestIntegratePolynomialControl(unittest.TestCase):
                                      rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
 
         assert_timeseries_near_equal(t_sol, int_theta_sol, t_sol, theta_sol, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
-
-        #
-        # import matplotlib.pyplot as plt
-        # # plt.plot(t_sol, sol, color='black', label='ref/sol')
-        # # plt.plot(t_sim, sim, color='g', label='check/sim')
-        # plt.scatter(t_sim, int_theta_sim, color='red',  s=10, marker='d', label=f'int_theta_sim {len(int_theta_sim)} pts')
-        # plt.scatter(t_sol, theta_sim, color='black', s=10, marker='s', label=f'theta_sim {len(theta_sim)} pts')
-        # # plt.plot(t_sol, rel_err_ub, color='r', label='rel_err_ub')
-        # # plt.plot(t_sol, rel_err_lb, color='r', label='rel_err_lb')
-        # # plt.plot(t_sol, abs_err_ub, color='blue', label='abs_err_ub')
-        # # plt.plot(t_sol, abs_err_lb, color='blue', label='abs_err_lb')
-        #
-        # # Naming the x-axis, y-axis and the whole graph
-        # plt.xlabel("time")
-        # plt.ylabel("series")
-        # plt.title("compare timeseries ")
-        # # plt.xlim([0.45, 0.55])
-        # plt.legend()
-        # plt.show()
-        #
-        #
-        #
-        # assert_timeseries_near_equal(t_sim, int_theta_sim, t_sol, theta_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
 
     @require_pyoptsparse(optimizer='SLSQP')
     def _test_integrate_polynomial_control_rate2(self, transcription):
