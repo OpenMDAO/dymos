@@ -214,14 +214,6 @@ jobs:
           echo "============================================================="
           mamba install jupyter-book jupyter -q -y
 
-      - name: Install juptyter-book and jupyter
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
-        shell: bash -l {0}
-        run: |
-          echo "============================================================="
-          echo "Install Numpy/Scipy"
-          echo "============================================================="
-          mamba install jupyter-book jupyter -q -y
 
       - name: Install optional dependencies
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.OPTIONAL == '[all]'
