@@ -3,6 +3,7 @@ from setuptools import find_packages, setup
 # Setup optional dependencies
 optional_dependencies = {
     'docs': [
+        'matplotlib',
         'jupyter',
         'jupyter-book',
         'nbconvert',
