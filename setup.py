@@ -3,14 +3,16 @@ from setuptools import find_packages, setup
 # Setup optional dependencies
 optional_dependencies = {
     'docs': [
+        'matplotlib',
         'jupyter',
-        'jupyter-book',
         'nbconvert',
-        'notebook',
-        'ipython',
-        'numpydoc>=0.9.1',
-        'redbaron',
+        'testflo',
+        'ipyparallel',
+        'numpydoc>=1.1',
         'tabulate',
+        'jupyter-book<0.13',
+        'jupyter-sphinx',
+        'sphinx-sitemap'
         'jaxlib',
         'jax'
     ],
