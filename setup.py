@@ -12,7 +12,7 @@ optional_dependencies = {
         'tabulate',
         'jupyter-book<0.13',
         'jupyter-sphinx',
-        'sphinx-sitemap'
+        'sphinx-sitemap',
         'jaxlib',
         'jax'
     ],
