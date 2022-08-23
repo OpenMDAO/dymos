@@ -31,7 +31,7 @@ jobs:
             PYOPTSPARSE: 'v2.8.3'
             MBI: 1
             OPENMDAO: 'latest'
-            OPTIONAL: '[all]'
+            OPTIONAL: '[docs]'
             JAX: True
             PUBLISH_DOCS: 1
 
@@ -45,7 +45,7 @@ jobs:
             SNOPT: 7.7
             MBI: 1
             OPENMDAO: 'dev'
-            OPTIONAL: '[all]'
+            OPTIONAL: '[docs]'
             JAX: True
             PUBLISH_DOCS: 0
 
@@ -204,6 +204,16 @@ jobs:
           else
             pip install openmdao==${{ matrix.OPENMDAO }}
           fi
+
+      - name: Install juptyter-book and jupyter
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
+        shell: bash -l {0}
+        run: |
+          echo "============================================================="
+          echo "Install jupyter-book and jupyter"
+          echo "============================================================="
+          mamba install jupyter-book jupyter -q -y
+
 
       - name: Install optional dependencies
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.OPTIONAL == '[all]'
