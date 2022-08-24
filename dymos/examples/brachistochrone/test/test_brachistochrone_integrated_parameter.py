@@ -153,10 +153,10 @@ class TestBrachistochroneIntegratedParameter(unittest.TestCase):
         v_sim = sim_out.get_val('phase0.timeseries.states:v')
         theta_sim = sim_out.get_val('phase0.timeseries.states:theta')
 
-        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, tolerance=5.0E-3)
-        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, tolerance=5.0E-3)
-        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, tolerance=5.0E-3)
-        assert_timeseries_near_equal(t_sol, theta_sol, t_sim, theta_sim, tolerance=5.0E-3)
+        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=5.0E-3, abs_tolerance=0.01)
+        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=5.0E-3, abs_tolerance=0.01)
+        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rel_tolerance=5.0E-3, abs_tolerance=0.01)
+        assert_timeseries_near_equal(t_sol, theta_sol, t_sim, theta_sim, rel_tolerance=5.0E-3, abs_tolerance=0.01)
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_integrated_parameter_radau_ps(self):
@@ -223,10 +223,10 @@ class TestBrachistochroneIntegratedParameter(unittest.TestCase):
         v_sim = sim_out.get_val('phase0.timeseries.states:v')
         theta_sim = sim_out.get_val('phase0.timeseries.states:theta')
 
-        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, tolerance=1.0E-3)
-        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, tolerance=1.0E-3)
-        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, tolerance=1.0E-3)
-        assert_timeseries_near_equal(t_sol, theta_sol, t_sim, theta_sim, tolerance=1.0E-3)
+        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=1.0E-3, abs_tolerance=0.01)
+        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=1.0E-3, abs_tolerance=0.01)
+        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rel_tolerance=1.0E-3, abs_tolerance=0.01)
+        assert_timeseries_near_equal(t_sol, theta_sol, t_sim, theta_sim, rel_tolerance=1.0E-3, abs_tolerance=0.01)
 
 
 if __name__ == '__main__':  # pragma: no cover

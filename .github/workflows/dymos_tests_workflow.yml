@@ -34,7 +34,7 @@ jobs:
             SNOPT: 7.7
             MBI: 1
             OPENMDAO: 'latest'
-            OPTIONAL: '[all]'
+            OPTIONAL: '[test]'
             JAX: True
             DOCS: 0
 
@@ -46,7 +46,7 @@ jobs:
             PETSc: 3.17
             MBI: 1
             OPENMDAO: 'latest'
-            OPTIONAL: '[all]'
+            OPTIONAL: '[test]'
             DOCS: 0
 
           # baseline versions except with pyoptsparse but no SNOPT
@@ -59,7 +59,7 @@ jobs:
             PYOPTSPARSE: 'v2.8.3'
             MBI: 1
             OPENMDAO: 'latest'
-            OPTIONAL: '[all]'
+            OPTIONAL: '[test]'
             DOCS: 0
 
           # try latest versions
@@ -68,7 +68,7 @@ jobs:
             NUMPY: 1
             SCIPY: 1
             PETSc: 3
-            PYOPTSPARSE: 'main'
+            PYOPTSPARSE: 'latest'
             SNOPT: 7.7
             MBI: 1
             OPENMDAO: 'dev'
@@ -88,7 +88,7 @@ jobs:
             SNOPT: 7.2
             MBI: 1
             OPENMDAO: 3.17.0
-            OPTIONAL: '[all]'
+            OPTIONAL: '[test]'
             DOCS: 0
 
     steps:
@@ -183,30 +183,44 @@ jobs:
           echo "============================================================="
           echo "Install pyoptsparse"
           echo "============================================================="
-          git clone -q https://github.com/OpenMDAO/build_pyoptsparse
-          cd build_pyoptsparse
-          chmod 755 ./build_pyoptsparse.sh
-          if [[ "${{ matrix.PETSc }}" && "${{ matrix.PYOPTSPARSE }}" == "v1.2" ]]; then
-            PAROPT=-a
-          fi
-          if [[ "${{ matrix.SNOPT }}" == "7.7" && "${{ secrets.SNOPT_LOCATION_77 }}" ]]; then
-            echo "  > Secure copying SNOPT 7.7 over SSH"
-            mkdir SNOPT
-            scp -qr ${{ secrets.SNOPT_LOCATION_77 }} SNOPT
-            ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}" -s SNOPT/src
-          elif [[ "${{ matrix.SNOPT }}" == "7.2" && "${{ secrets.SNOPT_LOCATION_72 }}" ]]; then
-            echo "  > Secure copying SNOPT 7.2 over SSH"
-            mkdir SNOPT
-            scp -qr ${{ secrets.SNOPT_LOCATION_72 }} SNOPT
-            ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}" -s SNOPT/source
-          else
+
+          if [[ "${{ matrix.PYOPTSPARSE }}" == "conda-forge" ]]; then
             if [[ "${{ matrix.SNOPT }}" ]]; then
+              echo "SNOPT ${{ matrix.SNOPT }} was requested but is not available on conda-forge"
+            fi
+
+            conda install -c conda-forge pyoptsparse
+          else
+            pip install git+https://github.com/OpenMDAO/build_pyoptsparse
+
+            if [[ "${{ matrix.PYOPTSPARSE }}" == "latest" ]]; then
+              LATEST_URL=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/mdolab/pyoptsparse/releases/latest`
+              LATEST_VER=`echo $LATEST_URL | awk '{split($0,a,"/tag/"); print a[2]}'`
+              BRANCH="-b $LATEST_VER"
+            else
+              BRANCH="-b ${{ matrix.PYOPTSPARSE }}"
+            fi
+
+            if [[ "${{ matrix.PAROPT }}" ]]; then
+              PAROPT="-a"
+            fi
+
+            if [[ "${{ matrix.SNOPT }}" == "7.7" && "${{ secrets.SNOPT_LOCATION_77 }}" ]]; then
+              echo "  > Secure copying SNOPT 7.7 over SSH"
+              mkdir SNOPT
+              scp -qr ${{ secrets.SNOPT_LOCATION_77 }} SNOPT
+              SNOPT="-s SNOPT/src"
+            elif [[ "${{ matrix.SNOPT }}" == "7.2" && "${{ secrets.SNOPT_LOCATION_72 }}" ]]; then
+              echo "  > Secure copying SNOPT 7.2 over SSH"
+              mkdir SNOPT
+              scp -qr ${{ secrets.SNOPT_LOCATION_72 }} SNOPT
+              SNOPT="-s SNOPT/source"
+            elif [[ "${{ matrix.SNOPT }}" ]]; then
               echo "SNOPT version ${{ matrix.SNOPT }} was requested but source is not available"
             fi
-            ./build_pyoptsparse.sh $PAROPT -b "${{ matrix.PYOPTSPARSE }}"
+
+            build_pyoptsparse $BRANCH $PAROPT $SNOPT
           fi
-          cd ..
-          echo "LD_LIBRARY_PATH=$HOME/ipopt/lib" >> $GITHUB_ENV
 
       - name: Install MBI
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.MBI

@@ -8,7 +8,8 @@ import dymos as dm
 om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
-def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=False):
+def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=False,
+                  fix_final_state=True, fix_final_control=False):
     from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
     p = om.Problem(model=om.Group())
@@ -20,15 +21,16 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=Fal
 
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-    phase.add_state('x', fix_initial=True, fix_final=True)
-    phase.add_state('y', fix_initial=True, fix_final=True)
+    phase.add_state('x', fix_initial=True, fix_final=fix_final_state)
+    phase.add_state('y', fix_initial=True, fix_final=fix_final_state)
     phase.add_state('v', fix_initial=True)
 
     if not polynomial_control:
         phase.add_control('theta', units='deg',
-                          rate_continuity=False, lower=0.01, upper=179.9)
+                          rate_continuity=False, lower=0.01, upper=179.9, fix_final=fix_final_control)
     else:
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     fix_final=fix_final_control)
 
     phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -185,6 +187,77 @@ class TestLoadCase(unittest.TestCase):
         assert_near_equal(q['phase0.timeseries.controls:theta'],
                           q.model.phase0.interp(xs=time_val, ys=theta_val, nodes='all'),
                           tolerance=1.0E-2)
+
+    def test_load_case_warn_fix_final_states(self):
+        import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_warnings
+        import dymos as dm
+
+        p = setup_problem(dm.Radau(num_segments=20))
+
+        # Solve for the optimal trajectory
+        dm.run_problem(p)
+
+        # Load the solution
+        case = om.CaseReader('dymos_solution.db').get_case('final')
+
+        # create a problem with a different transcription with a different number of variables
+        q = setup_problem(dm.GaussLobatto(num_segments=50))
+
+        msgs = []
+
+        # Load the values from the previous solution
+        for state_name in ['x', 'y']:
+            msgs.append((UserWarning, f"phase0.states:{state_name} specifies 'fix_final=True'."
+                                      f" If the given restart file has a different final value"
+                                      f" this will overwrite the user-specified value"))
+
+        with assert_warnings(msgs):
+            dm.load_case(q, case)
+
+    def test_load_case_warn_fix_final_control(self):
+        import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_warning
+        import dymos as dm
+        p = setup_problem(dm.Radau(num_segments=10))
+
+        # Solve for the optimal trajectory
+        dm.run_problem(p)
+
+        # Load the solution
+        case = om.CaseReader('dymos_solution.db').get_case('final')
+
+        # create a problem with a different transcription with a different number of variables
+        q = setup_problem(dm.Radau(num_segments=10), fix_final_state=False, fix_final_control=True)
+
+        msg = f"phase0.controls:theta specifies 'fix_final=True'. If the given restart file has a" \
+              f" different final value this will overwrite the user-specified value"
+
+        with assert_warning(UserWarning, msg):
+            dm.load_case(q, case)
+
+    def test_load_case_warn_fix_final_polynomial_control(self):
+        import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_warning
+        import dymos as dm
+        p = setup_problem(dm.Radau(num_segments=10), polynomial_control=True,)
+
+        # Solve for the optimal trajectory
+        dm.run_problem(p)
+
+        # Load the solution
+        case = om.CaseReader('dymos_solution.db').get_case('final')
+
+        # create a problem with a different transcription with a different number of variables
+        q = setup_problem(dm.Radau(num_segments=10), polynomial_control=True,
+                          fix_final_state=False, fix_final_control=True)
+
+        # Load the values from the previous solution
+        msg = f"phase0.polynomial_controls:theta specifies 'fix_final=True'. If the given restart file has a" \
+              f" different final value this will overwrite the user-specified value"
+
+        with assert_warning(UserWarning, msg):
+            dm.load_case(q, case)
 
 
 if __name__ == '__main__':  # pragma: no cover
