@@ -102,28 +102,23 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
             input_units = self._units[input_name] = units
             added_source = True
 
-        output_name = name
-        self.add_output(output_name,
-                        shape=(output_num_nodes,) + shape,
-                        units=units, desc=desc)
+        self.add_output(name, shape=(output_num_nodes,) + shape, units=units, desc=desc)
 
-        self._vars[name] = (input_name, output_name, shape, rate)
+        self._vars[name] = (input_name, name, shape, rate)
 
         size = np.prod(shape)
         rs = cs = np.arange(output_num_nodes * size, dtype=int)
 
         # There's a chance that the input for this output was pulled from another variable with
         # different units, so account for that with a conversion.
-        if None in {input_units, units}:
+        if units is None or input_units is None:
             scale = 1.0
             offset = 0
         else:
             scale, offset = unit_conversion(input_units, units)
-            self._conversion_factors[output_name] = scale, offset
+            self._conversion_factors[name] = scale, offset
 
-        self.declare_partials(of=output_name,
-                              wrt=input_name,
-                              rows=rs, cols=cs, val=scale)
+        self.declare_partials(of=name, wrt=input_name, rows=rs, cols=cs, val=scale)
 
         return added_source
 

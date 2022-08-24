@@ -1,4 +1,4 @@
-from collections.abc import Iterable, Sequence, Callable
+from collections.abc import Iterable, Callable
 import inspect
 import warnings
 
@@ -1015,11 +1015,11 @@ class Phase(om.Group):
             indices should be a tuple or list giving the elements to constrain at each point in time.
         """
         if loc not in ['initial', 'final']:
-            raise ValueError('Invalid boundary constraint location "{0}". Must be '
-                             '"initial" or "final".'.format(loc))
+            raise ValueError(f'Invalid boundary constraint location "{loc}". Must be '
+                             '"initial" or "final".')
 
         if constraint_name is None:
-            constraint_name = name.split('.')[-1]
+            constraint_name = name.rpartition('.')[-1]
 
         bc_list = self._initial_boundary_constraints if loc == 'initial' else self._final_boundary_constraints
 
@@ -1104,7 +1104,7 @@ class Phase(om.Group):
             Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.
         """
         if constraint_name is None:
-            constraint_name = name.split('.')[-1]
+            constraint_name = name.rpartition('.')[-1]
 
         existing_pc = [pc for pc in self._path_constraints
                        if pc['name'] == name and pc['indices'] == indices and pc['flat_indices'] == flat_indices]
@@ -1284,7 +1284,7 @@ class Phase(om.Group):
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
         if output_name is None:
-            output_name = name.split('.')[-1]
+            output_name = name.rpartition('.')[-1]
 
             if rate:
                 output_name = output_name + '_rate'
@@ -1661,7 +1661,7 @@ class Phase(om.Group):
 
                 # Declared as rate_source.
                 if tag.startswith('dymos.state_rate_source:') or tag.startswith('state_rate_source:'):
-                    state = tag.split(':')[-1]
+                    state = tag.rpartition(':')[-1]
                     if tag.startswith('state_rate_source:'):
                         msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
                               f"dymos version 2.0.0. Use 'dymos.state_rate_source:{state}' instead."
@@ -1679,7 +1679,7 @@ class Phase(om.Group):
 
                 # Declares units for state.
                 if tag.startswith('dymos.state_units:') or tag.startswith('state_units:'):
-                    tagged_state_units = tag.split(':')[-1]
+                    tagged_state_units = tag.rpartition(':')[-1]
                     if tag.startswith('state_units:'):
                         msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
                               f"dymos version 2.0.0. Use 'dymos.{tag}' instead."
@@ -1756,8 +1756,8 @@ class Phase(om.Group):
                     if options[opt] is not None:
                         invalid_options.append(opt)
                 if invalid_options:
-                    warnings.warn('Invalid options for non-optimal control \'{0}\' in phase \'{1}\': '
-                                  '{2}'.format(name, self.name, ', '.join(invalid_options)),
+                    warnings.warn(f"Invalid options for non-optimal control '{name}' in phase "
+                                  f"'{self.name}': {', '.join(invalid_options)}",
                                   RuntimeWarning)
 
                 # Do not enforce rate continuity/rate continuity for non-optimal controls
@@ -1781,8 +1781,8 @@ class Phase(om.Group):
                     if options[opt] is not None:
                         invalid_options.append(opt)
                 if invalid_options:
-                    warnings.warn('Invalid options for non-optimal polynoimal control  \'{0}\' in'
-                                  ' phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
+                    warnings.warn(f"Invalid options for non-optimal polynoimal control '{name}' in "
+                                  f"phase '{self.name}': {', '.join(invalid_options)}",
                                   RuntimeWarning)
 
     def _check_parameter_options(self):
@@ -1802,8 +1802,8 @@ class Phase(om.Group):
                     if options[opt] is not None:
                         invalid_options.append(opt)
                 if invalid_options:
-                    warnings.warn('Invalid options for non-optimal parameter \'{0}\' in '
-                                  'phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
+                    warnings.warn(f"Invalid options for non-optimal parameter '{name}' in "
+                                  f"phase '{self.name}': {', '.join(invalid_options)}",
                                   RuntimeWarning)
 
     def interpolate(self, xs=None, ys=None, nodes='all', kind='linear', axis=0):
@@ -2042,10 +2042,10 @@ class Phase(om.Group):
 
         phs_path = phs.pathname + '.' if phs.pathname else ''
 
-        if self.pathname.split('.')[0] == self.name:
+        if self.pathname.partition('.')[0] == self.name:
             self_path = self.name + '.'
         else:
-            self_path = self.pathname.split('.')[0] + '.' + self.name + '.'
+            self_path = self.pathname.partition('.')[0] + '.' + self.name + '.'
 
         if MPI:
             op_dict = MPI.COMM_WORLD.bcast(op_dict, root=0)
@@ -2235,13 +2235,13 @@ class Phase(om.Group):
             True if both the initial time and duration are not inputs and are fixed.
         """
         fix_initial = self.time_options['fix_initial']
-        fix_duration = self.time_options['fix_duration']
         initial_bounds = self.time_options['initial_bounds']
-        duration_bounds = self.time_options['duration_bounds']
 
         if loc == 'initial':
             res = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0.0)
         elif loc == 'final':
+            fix_duration = self.time_options['fix_duration']
+            duration_bounds = self.time_options['duration_bounds']
             initial_fixed = fix_initial or (initial_bounds != (None, None) and np.diff(initial_bounds)[0] == 0)
             duration_fixed = fix_duration or (duration_bounds != (None, None) and np.diff(duration_bounds)[0] == 0)
             res = initial_fixed and duration_fixed

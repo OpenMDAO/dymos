@@ -149,7 +149,7 @@ class LagrangeBarycentricInterpolant(object):
             polynomial.
         """
         if len(f_j) != self.num_nodes:
-            raise ValueError("f_j must have {0} values".format(self.num_nodes))
+            raise ValueError(f"f_j must have {self.num_nodes} values")
         self.f_j[...] = f_j
         self.x0 = x0
         self.xf = xf
@@ -183,9 +183,8 @@ class LagrangeBarycentricInterpolant(object):
 
         for i in range(self.num_nodes):
             for j in range(self.num_nodes):
-                if j == i:
-                    continue
-                l[i] *= g[j]
+                if j != i:
+                    l[i] *= g[j]
 
         result = np.reshape(np.dot(l, self.wbfj_flat), newshape=self.wbfj.shape[1:])
 
@@ -225,9 +224,8 @@ class LagrangeBarycentricInterpolant(object):
                         continue
                     prod = 1.0
                     for k in range(n):
-                        if k in {i, j}:
-                            continue
-                        prod *= g[k]
+                        if k != i and k != j:
+                            prod *= g[k]
                     lprime[i] += prod
             # df_dtau = np.dot(lprime, self.wbfj)
             df_dtau = np.reshape(np.dot(lprime, self.wbfj_flat), newshape=self.wbfj.shape[1:])
@@ -238,13 +236,12 @@ class LagrangeBarycentricInterpolant(object):
                     if j == i:
                         continue
                     for k in range(n):
-                        if k in {i, j}:
+                        if k == i or k == j:
                             continue
                         prod = 1.0
                         for ii in range(n):
-                            if ii in {i, j, k}:
-                                continue
-                            prod *= g[ii]
+                            if ii != i and ii != j and ii != k:
+                                prod *= g[ii]
                         lprime[i] += prod
             df_dtau = np.reshape(np.dot(lprime, self.wbfj_flat), newshape=self.wbfj.shape[1:])
             return df_dtau / self.dx_dtau**2

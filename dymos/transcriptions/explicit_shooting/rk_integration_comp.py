@@ -581,7 +581,7 @@ class RKIntegrationComp(om.ExplicitComponent):
             patterns = [output['name'] for output in ts_opts['outputs'].values()]
             matching_outputs = filter_outputs(patterns, ode_outputs)
 
-            explicit_requests = set([var for var in patterns if '*' not in var])
+            explicit_requests = {var for var in patterns if '*' not in var}
 
             unmatched_requests = explicit_requests.difference(matching_outputs)
 
@@ -594,12 +594,12 @@ class RKIntegrationComp(om.ExplicitComponent):
                 if var in explicit_requests:
                     ts_output = next((output for output in ts_opts['outputs'].values() if output['name'] == var))
                     # var explicitly matched
-                    output_name = ts_output['output_name'] if ts_output['output_name'] else ts_output['name'].split('.')[-1]
+                    output_name = ts_output['output_name'] if ts_output['output_name'] else ts_output['name'].rpartition('.')[-1]
                     units = ts_output['units'] or var_meta.get('units', None)
                     shape = var_meta['shape']
                 else:
                     # var matched via wildcard
-                    output_name = var.split('.')[-1]
+                    output_name = var.rpartition('.')[-1]
                     units = var_meta['units']
                     shape = var_meta['shape']
 
@@ -1665,7 +1665,7 @@ class RKIntegrationComp(om.ExplicitComponent):
                 partials[of_rate, wrt] = dy_dZ[idxs, of_rate_rows, wrt_cols]
                 partials[of_rate2, wrt] = dy_dZ[idxs, of_rate2_rows, wrt_cols]
 
-        for name, options in self._filtered_timeseries_outputs.items():
+        for name in self._filtered_timeseries_outputs:
             of = self._timeseries_output_names[name]
             of_rows = self._timeseries_idxs_in_y[name]
 

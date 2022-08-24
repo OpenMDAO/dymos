@@ -55,9 +55,9 @@ class CollocationComp(om.ExplicitComponent):
         self.var_names = var_names = {}
         for state_name in state_options:
             var_names[state_name] = {
-                'f_approx': 'f_approx:{0}'.format(state_name),
-                'f_computed': 'f_computed:{0}'.format(state_name),
-                'defect': 'defects:{0}'.format(state_name),
+                'f_approx': f'f_approx:{state_name}',
+                'f_computed': f'f_computed:{state_name}',
+                'defect': f'defects:{state_name}',
             }
 
         for state_name, options in state_options.items():
@@ -71,21 +71,19 @@ class CollocationComp(om.ExplicitComponent):
             self.add_input(
                 name=var_names['f_approx'],
                 shape=(num_col_nodes,) + shape,
-                desc='Estimated derivative of state {0} '
-                     'at the collocation nodes'.format(state_name),
+                desc=f'Estimated derivative of state {state_name} at the collocation nodes',
                 units=rate_units)
 
             self.add_input(
                 name=var_names['f_computed'],
                 shape=(num_col_nodes,) + shape,
-                desc='Computed derivative of state {0} '
-                     'at the collocation nodes'.format(state_name),
+                desc=f'Computed derivative of state {state_name} at the collocation nodes',
                 units=rate_units)
 
             self.add_output(
                 name=var_names['defect'],
                 shape=(num_col_nodes,) + shape,
-                desc='Interior defects of state {0}'.format(state_name),
+                desc=f'Interior defects of state {state_name}',
                 units=units)
 
             if 'defect_ref' in options and options['defect_ref'] is not None:

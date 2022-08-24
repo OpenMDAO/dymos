@@ -373,7 +373,7 @@ class GaussLobatto(PseudospectralBase):
         if any((any_state_cnty, any_control_cnty, any_control_rate_cnty)):
             phase._get_subsystem('continuity_comp').configure_io()
 
-        for name, options in phase.state_options.items():
+        for name in phase.state_options:
             phase.connect(f'state_interp.staterate_col:{name}',
                           f'collocation_constraint.f_approx:{name}')
 
@@ -394,7 +394,7 @@ class GaussLobatto(PseudospectralBase):
         """
         ode_outputs = get_promoted_vars(self._get_ode(phase), 'output')
 
-        for timeseries_name, timeseries_options in phase._timeseries.items():
+        for timeseries_name in phase._timeseries:
             timeseries_comp = phase._get_subsystem(timeseries_name)
             time_units = phase.time_options['units']
 
@@ -526,7 +526,10 @@ class GaussLobatto(PseudospectralBase):
                 is_rate = ts_output['is_rate']
 
                 if '*' in var:  # match outputs from the ODE
-                    matches = filter(list(ode_outputs.keys()), var)
+                    if var == '*':
+                        matches = ode_outputs
+                    else:
+                        matches = filter(ode_outputs, var)
 
                     # A nested ODE can have multiple outputs at different levels that share
                     #   the same name.
@@ -536,8 +539,7 @@ class GaussLobatto(PseudospectralBase):
                     # Find the duplicate timeseries names by looking at the last part of the names.
                     output_name_groups = defaultdict(list)
                     for v in matches:
-                        output_name = v.split('.')[-1]
-                        output_name_groups[output_name].append(v)
+                        output_name_groups[v.rpartition('.')[-1]].append(v)
 
                     # If there are duplicates, warn the user
                     for output_name, var_list in output_name_groups.items():
@@ -552,7 +554,7 @@ class GaussLobatto(PseudospectralBase):
 
                 for v in matches:
                     if '*' in var:
-                        output_name = v.split('.')[-1]
+                        output_name = v.rpartition('.')[-1]
                         units = ode_outputs[v]['units']
                         # check for wildcard_units override of ODE units
                         if v in wildcard_units:
@@ -626,8 +628,7 @@ class GaussLobatto(PseudospectralBase):
         try:
             var = phase.state_options[state_name]['rate_source']
         except RuntimeError:
-            raise ValueError('state \'{0}\' in phase \'{1}\' was not given a '
-                             'rate_source'.format(state_name, phase.name))
+            raise ValueError(f"state '{state_name}' in phase '{phase.name}' was not given a rate_source")
         var_type = phase.classify_var(var)
 
         # Determine the path to the variable
@@ -686,8 +687,8 @@ class GaussLobatto(PseudospectralBase):
                 rate_path = f'rhs_disc.{var}'
                 node_idxs = np.arange(gd.subset_num_nodes[nodes], dtype=int)
             else:
-                raise ValueError('Unabled to find rate path for variable {0} at '
-                                 'node subset {1}'.format(var, nodes))
+                raise ValueError(f'Unabled to find rate path for variable {var} at '
+                                 f'node subset {nodes}')
         src_idxs = om.slicer[node_idxs, ...]
 
         return rate_path, src_idxs

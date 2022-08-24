@@ -66,14 +66,14 @@ class ControlEndpointDefectComp(om.ExplicitComponent):
 
             self.add_input(name=self._input_str[control_name],
                            shape=(num_nodes,) + shape,
-                           desc='Values of control {0} at all nodes'.format(control_name),
+                           desc=f'Values of control {control_name} at all nodes',
                            units=units)
 
             self.add_output(
                 name=self._output_str[control_name],
                 shape=(1,) + shape,
                 units=units,
-                desc='Interpolated value of {0} at endpoint'.format(control_name))
+                desc=f'Interpolated value of {control_name} at endpoint')
 
             self.add_constraint(name=self._output_str[control_name],
                                 equals=0.0,
