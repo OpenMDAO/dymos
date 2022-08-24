@@ -136,7 +136,7 @@ def load_case(problem, previous_solution):
             problem.set_val(td_path[0], t_duration, units=prev_time_units)
 
         # Interpolate the timeseries state outputs from the previous solution onto the new grid.
-        for state_name in phase.state_options:
+        for state_name, options in phase.state_options.items():
             state_path = [s for s in phase_vars if s.endswith(f'{phase_name}.states:{state_name}')][0]
             prev_state_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.states:{state_name}')][0]
             prev_state_val = prev_vars[prev_state_path]['val']
@@ -157,7 +157,7 @@ def load_case(problem, previous_solution):
                 issue_warning(warning_message)
 
         # Interpolate the timeseries control outputs from the previous solution onto the new grid.
-        for control_name in phase.control_options:
+        for control_name, options in phase.control_options.items():
             control_path = [s for s in phase_vars if s.endswith(f'{phase_name}.controls:{control_name}')][0]
             prev_control_path = [s for s in prev_vars
                                  if s.endswith(f'{phase_name}.timeseries.controls:{control_name}')][0]
