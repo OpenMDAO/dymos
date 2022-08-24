@@ -36,31 +36,23 @@ class SegmentStateMuxComp(om.ExplicitComponent):
         else:
             num_nodes = num_seg * self.options['output_nodes_per_seg']
 
-        self._vars = {}
-
         for name, options in self.options['state_options'].items():
-            self._vars[name] = {'inputs': {},
-                                'output': 'states:{0}'.format(name),
-                                'shape': {}}
+            oname = f'states:{name}'
 
             for i in range(num_seg):
                 if self.options['output_nodes_per_seg'] is None:
                     nnps_i = gd.subset_num_nodes_per_segment['all'][i]
                 else:
                     nnps_i = self.options['output_nodes_per_seg']
-                self._vars[name]['inputs'][i] = 'segment_{0}_states:{1}'.format(i, name)
-                self._vars[name]['shape'][i] = (nnps_i,) + options['shape']
 
-                self.add_input(name=self._vars[name]['inputs'][i],
-                               val=np.ones(self._vars[name]['shape'][i]),
-                               units=options['units'])
+                iname = f'segment_{i}_states:{name}'
+                shape = (nnps_i,) + options['shape']
 
-                self.declare_partials(of=self._vars[name]['output'],
-                                      wrt=self._vars[name]['inputs'][i],
-                                      method='fd')
+                self.add_input(name=iname, val=np.ones(shape), units=options['units'])
 
-            self.add_output(name=self._vars[name]['output'],
-                            val=np.ones((num_nodes,) + options['shape']),
+                self.declare_partials(of=oname,  wrt=iname, method='fd')
+
+            self.add_output(name=oname, val=np.ones((num_nodes,) + options['shape']),
                             units=options['units'])
 
     def compute(self, inputs, outputs):
@@ -74,9 +66,4 @@ class SegmentStateMuxComp(om.ExplicitComponent):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        for name in self._vars:
-            input_names = self._vars[name]['inputs']
-            output_name = self._vars[name]['output']
-
-            outputs[output_name] = \
-                np.concatenate([inputs[input_names[i]] for i in range(len(input_names))])
+        outputs.set_val(inputs.asarray())

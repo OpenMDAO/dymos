@@ -408,7 +408,7 @@ class Trajectory(om.Group):
                 # Find the reason
                 if targets is None:
                     reason = f'Option `targets=None` but no phase in the trajectory has a parameter named `{name}`.'
-                elif all([t is None for t in targets.values()]) and set(targets.keys()) == set(self._phases.keys()):
+                elif all([t is None for t in targets.values()]) and targets.keys() == self._phases.keys():
                     reason = f'Option `targets` is a dictionary keyed by phase name but target for each phase is None.'
                 raise ValueError(f'No target was found for trajectory parameter `{name}` in any phase.\n{reason}')
 
@@ -422,7 +422,7 @@ class Trajectory(om.Group):
             if options['units'] is _unspecified:
                 tgt_units_set = set(tgt_units.values())
                 if len(tgt_units_set) == 1:
-                    options['units'] = list(tgt_units_set)[0]
+                    options['units'] = tgt_units_set.pop()
                 else:
                     ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
                                f'targets in multiple phases that have different units. You must '
@@ -452,7 +452,7 @@ class Trajectory(om.Group):
         Called during configure if we are under MPI. Loops over all phases and broadcasts the shape
         and units options to all procs for all dymos variables.
         """
-        for name, phase in self._phases.items():
+        for phase in self._phases.values():
             all_dicts = [phase.state_options, phase.control_options, phase.parameter_options,
                          phase.polynomial_control_options]
 
@@ -461,7 +461,7 @@ class Trajectory(om.Group):
 
                     all_ranks = self.comm.allgather(options['shape'])
                     for item in all_ranks:
-                        if item not in [None, _unspecified]:
+                        if item not in {None, _unspecified}:
                             options['shape'] = item
                             break
                     else:
@@ -497,8 +497,6 @@ class Trajectory(om.Group):
         phase_name_b = linkage_options['phase_b']
         var_a = linkage_options['var_a']
         var_b = linkage_options['var_b']
-        loc_a = linkage_options['loc_a']
-        loc_b = linkage_options['loc_b']
 
         info_str = f'Error in linking {var_a} from {phase_name_a} to {var_b} in {phase_name_b}'
 
@@ -608,7 +606,7 @@ class Trajectory(om.Group):
                                                 var_b='time', loc_a=options['loc_a'],
                                                 loc_b=options['loc_b'], sign_a=options['sign_a'],
                                                 sign_b=options['sign_b'])
-                    for state_name, state_options in phase_b.state_options.items():
+                    for state_name in phase_b.state_options:
                         self.add_linkage_constraint(phase_name_a, phase_name_b, var_a=state_name,
                                                     var_b=state_name, loc_a=options['loc_a'],
                                                     loc_b=options['loc_b'],
@@ -1008,7 +1006,6 @@ class Trajectory(om.Group):
         # Resolve linkage pairs from the phases sequence
         a, b = itertools.tee(phases)
         next(b, None)
-        phase_pairs = list(zip(a, b))
 
         if len(locs) == 1:
             _locs = num_links * locs
@@ -1021,9 +1018,8 @@ class Trajectory(om.Group):
                              f'the number of phases specified.  There are {num_links} phase pairs '
                              f'but {len(locs)} location tuples specified.')
 
-        for i in range(len(phase_pairs)):
-            phase_name_a, phase_name_b = phase_pairs[i]
-            loc_a, loc_b = _locs[i]
+        for phase_name_a, phase_name_b, loctup in zip(a, b, _locs):
+            loc_a, loc_b = loctup
             for var in _vars:
                 self.add_linkage_constraint(phase_a=phase_name_a, phase_b=phase_name_b,
                                             var_a=var, var_b=var, loc_a=loc_a, loc_b=loc_b,
@@ -1191,15 +1187,15 @@ class Trajectory(om.Group):
                     if targets_phase is not None:
                         if isinstance(targets_phase, str):
                             targets_phase = [targets_phase]
-                        skip_params = skip_params.union(targets_phase)
+                        skip_params.update(targets_phase)
 
             phs.initialize_values_from_phase(sim_prob, self._phases[phase_name],
                                              phase_path=traj_name,
                                              skip_params=skip_params)
 
-        print('\nSimulating trajectory {0}'.format(self.pathname))
+        print(f'\nSimulating trajectory {self.pathname}')
         sim_prob.run_model(case_prefix=case_prefix, reset_iter_counts=reset_iter_counts)
-        print('Done simulating trajectory {0}'.format(self.pathname))
+        print(f'Done simulating trajectory {self.pathname}')
         if record_file:
             _case_prefix = '' if case_prefix is None else f'{case_prefix}_'
             sim_prob.record(f'{_case_prefix}final')

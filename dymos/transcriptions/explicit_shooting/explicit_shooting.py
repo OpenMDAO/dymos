@@ -360,7 +360,7 @@ class ExplicitShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         gd = self.grid_data
-        for name, options in phase._timeseries.items():
+        for name in phase._timeseries:
             timeseries_comp = ExplicitTimeseriesComp(input_grid_data=gd,
                                                      output_subset='segment_ends')
             phase.add_subsystem(name, subsys=timeseries_comp)
@@ -603,7 +603,7 @@ class ExplicitShooting(TranscriptionBase):
             control_rate_units = get_rate_units(control_units, time_units, deriv=d)
             units = control_rate_units
             linear = False
-            obj_path = 'control_rates:{0}'.format(var)
+            obj_path = f'control_rates:{var}'
         elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
             control_var = var[:-5]
             shape = phase.polynomial_control_options[control_var]['shape']

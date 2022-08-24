@@ -75,8 +75,7 @@ def _lgl(n, tol=np.finfo(float).eps):
 
         x = xold - (x * P[:, n] - P[:, n - 1]) / (n1 * P[:, n])
     else:
-        raise RuntimeError('Failed to converge LGL nodes '
-                           'for order {0}'.format(n))
+        raise RuntimeError(f'Failed to converge LGL nodes for order {n}')
 
     x.sort()
 

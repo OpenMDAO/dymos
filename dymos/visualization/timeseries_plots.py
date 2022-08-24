@@ -51,7 +51,7 @@ def _get_phases_node_in_problem_metadata(node, path=""):
     return None, None
 
 
-def _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
+def _mpl_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
                           last_solution_case, last_simulation_case, plot_dir_path):
     # get ready to plot
     backend_save = plt.get_backend()
@@ -60,13 +60,13 @@ def _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_n
     cm = plt.cm.get_cmap('tab20')
     plotfiles = []
 
-    for var_name in varnames:
+    for var_name, var_unit in var_units.items():
         # start a new plot
         fig, ax = plt.subplots()
 
         # Get the labels
         time_label = f'time ({time_units[var_name]})'
-        var_label = f'{var_name} ({var_units[var_name]})'
+        var_label = f'{var_name} ({var_unit})'
         title = f'timeseries.{var_name}'
 
         # add labels, title, and legend
@@ -141,7 +141,7 @@ def _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_n
     return plotfiles
 
 
-def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
+def _bokeh_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
                             last_solution_case, last_simulation_case, plot_dir_path, num_cols=2,
                             bg_fill_color='#282828', grid_line_color='#666666', open_browser=False):
     from bokeh.io import output_notebook, output_file, save, show
@@ -176,10 +176,10 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
         max_time = max(max_time, np.max(last_solution_case.outputs[time_name]))
         colors[phase_name] = cmap[iphase]
 
-    for var_name in varnames:
+    for var_name, var_unit in var_units.items():
         # Get the labels
         time_label = f'time ({time_units[var_name]})'
-        var_label = f'{var_name} ({var_units[var_name]})'
+        var_label = f'{var_name} ({var_unit})'
         title = f'timeseries.{var_name}'
 
         # add labels, title, and legend
@@ -407,18 +407,17 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
                 varname = timeseries_node_child['name']
                 var_units[varname] = timeseries_node_child['units']
                 time_units[varname] = units_for_time
-    varnames = list(var_units.keys())
 
     # Check to see if there is anything to plot
-    if len(varnames) == 0:
+    if len(var_units) == 0:
         warnings.warn('There are no timeseries variables to plot', RuntimeWarning)
         return
 
     if dymos_options['plots'] == 'bokeh':
-        _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
+        _bokeh_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
                                 last_solution_case, last_simulation_case, plot_dir_path)
     elif dymos_options['plots'] == 'matplotlib':
-        fnames = _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
+        fnames = _mpl_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
                                        last_solution_case, last_simulation_case, plot_dir_path)
         if problem is not None:
             for name in fnames:

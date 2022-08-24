@@ -99,7 +99,7 @@ class StateInterpComp(om.ExplicitComponent):
                     desc=f'Interpolated values of state {state_name} at collocation nodes')
 
             self.add_output(
-                name='staterate_col:{0}'.format(state_name),
+                name=f'staterate_col:{state_name}',
                 shape=(num_col_nodes,) + shape,
                 units=rate_units,
                 desc=f'Interpolated rate of state {state_name} at collocation nodes')
@@ -117,8 +117,7 @@ class StateInterpComp(om.ExplicitComponent):
             Bi = Bd = sp.csr_matrix(np.zeros(shape=(num_col_nodes, num_disc_nodes)))
 
         else:
-            raise ValueError('unhandled transcription type: '
-                             '{0}'.format(self.options['transcription']))
+            raise ValueError(f"unhandled transcription type: {self.options['transcription']}")
 
         self.matrices = {'Ai': Ai, 'Bi': Bi, 'Ad': Ad, 'Bd': Bd}
         self.jacs = {'Ai': {}, 'Bi': {}, 'Ad': {}, 'Bd': {}}
@@ -254,7 +253,7 @@ class StateInterpComp(om.ExplicitComponent):
         dstau_dt = np.reciprocal(inputs['dt_dstau'])
         dstau_dt2 = dstau_dt ** 2
 
-        for name, options in self.options['state_options'].items():
+        for name in self.options['state_options']:
             size = self.sizes[name]
 
             xdotc_name = self.xdotc_str[name]
@@ -297,7 +296,7 @@ class StateInterpComp(om.ExplicitComponent):
         elif transcription == 'radau-ps':
             self._compute_radau(inputs, outputs)
         else:
-            raise ValueError('Invalid transcription: {0}'.format(transcription))
+            raise ValueError(f'Invalid transcription: {transcription}')
 
     def compute_partials(self, inputs, partials):
         """
@@ -316,4 +315,4 @@ class StateInterpComp(om.ExplicitComponent):
         elif transcription == 'radau-ps':
             self._compute_partials_radau(inputs, partials)
         else:
-            raise ValueError('Invalid transcription: {0}'.format(transcription))
+            raise ValueError(f'Invalid transcription: {transcription}')

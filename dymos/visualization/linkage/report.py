@@ -143,22 +143,22 @@ def _trajectory_to_dict(traj):
             child['time'] = _tree_var('time', phase, loc)
 
         # States
-        for state_name, s in phase.state_options.items():
+        for state_name in phase.state_options:
             for loc, child in condition_children.items():
                 child[state_name] = _tree_var(state_name, phase, loc, 'states:')
 
         # Controls
-        for control_name, c in phase.control_options.items():
+        for control_name in phase.control_options:
             for loc, child in condition_children.items():
                 child[control_name] = _tree_var(control_name, phase, loc, 'controls:')
 
         # Polynomial Controls
-        for pc_name, pc in phase.polynomial_control_options.items():
+        for pc_name in phase.polynomial_control_options:
             for loc, child in condition_children.items():
                 child[pc_name] = _tree_var(pc_name, phase, loc, 'polynomial_controls:')
 
         # Parameters
-        for param_name, par in phase.parameter_options.items():
+        for param_name in phase.parameter_options:
             for loc, child in condition_children.items():
                 child[param_name] = _tree_var(param_name, phase, loc, 'parameters:')
 
@@ -231,7 +231,7 @@ def _convert_dicts_to_lists(tree_dict, show_all_vars):
     """ Convert all children_by_name dicts to lists. """
     if CBN in tree_dict:
         tree_dict['children'] = []
-        for child_name, child in tree_dict[CBN].items():
+        for child in tree_dict[CBN].values():
             _convert_dicts_to_lists(child, show_all_vars)
             if _display_child(child, show_all_vars):
                 tree_dict['children'].append(child)

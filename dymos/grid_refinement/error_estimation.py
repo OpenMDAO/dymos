@@ -306,7 +306,7 @@ def compute_state_quadratures(x_hat, f_hat, t_duration, transcription):
 
     left_end_idxs = gd.subset_node_indices['segment_ends'][0::2]
     all_idxs = gd.subset_node_indices['all']
-    not_left_end_idxs = np.array(sorted(list(set(all_idxs).difference(set(left_end_idxs)))))
+    not_left_end_idxs = np.array(sorted(set(all_idxs).difference(left_end_idxs)))
 
     dt_dstau = np.atleast_2d(0.5 * t_duration * gd.node_dptau_dstau[not_left_end_idxs]).T
 
@@ -388,7 +388,7 @@ def check_error(phases):
         E = {}  # The absolute error computed in each state at each node (Eq. 20 pt 1)
         e = {}  # The relative error computed in each state at each node (Eq. 20 pt 2)
 
-        for state_name, options in phase.state_options.items():
+        for state_name in phase.state_options:
             E[state_name] = np.abs(x_hat[state_name] - x[state_name])  # Equation 20.1
             e[state_name] = np.zeros_like(E[state_name])               # Equation 20.2
             for k in range(numseg):

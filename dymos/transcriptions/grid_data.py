@@ -259,7 +259,7 @@ class GridData(object):
         elif self.transcription == 'radau-ps':
             get_subsets_and_nodes = radau_pseudospectral_subsets_and_nodes
         else:
-            raise ValueError('Unknown transcription: {0}'.format(transcription))
+            raise ValueError(f'Unknown transcription: {transcription}')
 
         # Make sure transcription_order is a vector
         if isinstance(transcription_order, str):
@@ -283,10 +283,9 @@ class GridData(object):
                                                        compressed=compressed)
 
             if iseg == 0:
-                subset_names = list(subsets_i.keys())
-                subset_ind0 = {name: 0 for name in subset_names}
+                subset_ind0 = {name: 0 for name in subsets_i}
                 # index of the first node in the segment for each subset
-                subset_ind1 = {name: 0 for name in subset_names}
+                subset_ind1 = subset_ind0.copy()
                 # index of the last node in the segment for each subset
 
             num_nodes_i = len(nodes_i)

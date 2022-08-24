@@ -81,10 +81,10 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
 
             self._matrices[name] = L_de, D_de, D2_de
 
-            self._input_names[name] = 'polynomial_controls:{0}'.format(name)
-            self._output_val_names[name] = 'polynomial_control_values:{0}'.format(name)
-            self._output_rate_names[name] = 'polynomial_control_rates:{0}_rate'.format(name)
-            self._output_rate2_names[name] = 'polynomial_control_rates:{0}_rate2'.format(name)
+            self._input_names[name] = f'polynomial_controls:{name}'
+            self._output_val_names[name] = f'polynomial_control_values:{name}'
+            self._output_rate_names[name] = f'polynomial_control_rates:{name}_rate'
+            self._output_rate2_names[name] = f'polynomial_control_rates:{name}_rate2'
 
             self.add_input(self._input_names[name], val=np.ones(input_shape), units=units)
             self.add_output(self._output_val_names[name], shape=output_shape, units=units)
@@ -153,7 +153,7 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
         """
         dt_dptau = 0.5 * inputs['t_duration']
 
-        for name, options in self.options['polynomial_control_options'].items():
+        for name in self.options['polynomial_control_options']:
             L_de, D_de, D2_de = self._matrices[name]
 
             u = inputs[self._input_names[name]]
@@ -179,6 +179,8 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
         """
         nn = self.options['grid_data'].num_nodes
 
+        t_duration = inputs['t_duration']
+
         for name, options in self.options['polynomial_control_options'].items():
             control_name = self._input_names[name]
             num_input_nodes = options['order'] + 1
@@ -191,7 +193,6 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
             # Unroll matrix-shaped controls into an array at each node
             u_d = np.reshape(inputs[control_name], (num_input_nodes, size))
 
-            t_duration = inputs['t_duration']
             t_duration_tile = np.tile(t_duration, size * nn)
 
             partials[rate_name, 't_duration'] = \
@@ -238,7 +239,7 @@ class PolynomialControlGroup(om.Group):
 
         # Pull out the interpolated controls
         num_opt = 0
-        for name, options in opts['polynomial_control_options'].items():
+        for options in opts['polynomial_control_options'].values():
             if options['order'] < 1:
                 raise ValueError('Interpolation order must be >= 1 (linear)')
             if options['opt']:
@@ -276,16 +277,16 @@ class PolynomialControlGroup(om.Group):
                                                           val=default_val,
                                                           units=options['units'])
 
-                desvar_indices = list(range(num_input_nodes))
+                desvar_indices = np.arange(num_input_nodes, dtype=int)
                 if options['fix_initial']:
-                    desvar_indices.pop(0)
+                    desvar_indices = desvar_indices[1:]
                 if options['fix_final']:
-                    desvar_indices.pop()
+                    desvar_indices = desvar_indices[:-1]
 
                 lb = -INF_BOUND if options['lower'] is None else options['lower']
                 ub = INF_BOUND if options['upper'] is None else options['upper']
 
-                self.add_design_var('polynomial_controls:{0}'.format(name),
+                self.add_design_var(f'polynomial_controls:{name}',
                                     lower=lb,
                                     upper=ub,
                                     ref=options['ref'],
