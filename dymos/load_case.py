@@ -174,7 +174,7 @@ def load_case(problem, previous_solution):
                 issue_warning(warning_message)
 
         # Set the output polynomial control outputs from the previous solution as the value
-        for pc_name in phase.polynomial_control_options:
+        for pc_name, options in phase.polynomial_control_options.items():
             pc_path = [s for s in phase_vars if
                        s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
             prev_pc_path = [s for s in prev_vars if s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
