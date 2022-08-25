@@ -56,13 +56,13 @@ class ODEIntegrationInterfaceSystem(om.Group):
 
         self.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
-        self.connect('time', ['ode.{0}'.format(tgt) for tgt in time_options['targets']])
+        self.connect('time', [f'ode.{tgt}' for tgt in time_options['targets']])
 
-        self.connect('time_phase', ['ode.{0}'.format(tgt) for tgt in time_options['time_phase_targets']])
+        self.connect('time_phase', [f'ode.{tgt}' for tgt in time_options['time_phase_targets']])
 
-        self.connect('t_initial', ['ode.{0}'.format(tgt) for tgt in time_options['t_initial_targets']])
+        self.connect('t_initial', [f'ode.{tgt}' for tgt in time_options['t_initial_targets']])
 
-        self.connect('t_duration', ['ode.{0}'.format(tgt) for tgt in time_options['t_duration_targets']])
+        self.connect('t_duration', [f'ode.{tgt}' for tgt in time_options['t_duration_targets']])
 
         if self.options['control_options'] or self.options['polynomial_control_options']:
             self._interp_comp = \

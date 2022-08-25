@@ -614,4 +614,4 @@ class TestDuplicateConstraints(unittest.TestCase):
             warnings.simplefilter("error")
             phase.add_path_constraint('check', constraint_name='bounded_check', upper=100, lower=-100)
 
-        self.assertIn('bounded_check', phase._timeseries['timeseries']['outputs'])
+        self.assertIn('bounded_check', [op['output_name'] for op in phase._timeseries['timeseries']['outputs'].values()])

@@ -8,7 +8,8 @@ import dymos as dm
 from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
 
 
-def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=True, solvesegs=False):
+def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=True, solvesegs=False,
+                                       make_plots=False):
     p = om.Problem()
 
     _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
@@ -20,7 +21,7 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
     p.driver.options['optimizer'] = optimizer
     p.driver.options['print_results'] = False
     if optimizer == 'IPOPT':
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 0
 
     # First Phase: Brake release to V1 - both engines operable
     br_to_v1 = dm.Phase(ode_class=BalancedFieldODEComp,
@@ -238,7 +239,7 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
     p.set_val('traj.climb.states:gam', climb.interp('gam', [0, 5.0]), units='deg')
     p.set_val('traj.climb.controls:alpha', 5.0, units='deg')
 
-    dm.run_problem(p, run_driver=True, simulate=sim)
+    dm.run_problem(p, run_driver=True, simulate=sim, make_plots=make_plots)
 
     # Test this example in Dymos' continuous integration
     assert_near_equal(p.get_val('traj.rto.states:r')[-1], 2188.2, tolerance=0.01)
@@ -267,3 +268,6 @@ class BenchmarkBalancedFieldLength(unittest.TestCase):
     def benchmark_radau_notimeseries_nosim_solveseg(self):
         _run_balanced_field_length_problem(tx=dm.Radau, timeseries=False, sim=False,
                                            solvesegs='forward')
+
+if __name__ == '__main__':
+    _run_balanced_field_length_problem(make_plots=True)

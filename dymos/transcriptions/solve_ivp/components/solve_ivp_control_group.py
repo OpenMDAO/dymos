@@ -70,11 +70,11 @@ class SolveIVPControlInterpComp(om.ExplicitComponent):
         time_units = self.options['time_units']
 
         for name, options in control_options.items():
-            self._input_names[name] = 'controls:{0}'.format(name)
-            self._output_val_all_names[name] = 'control_values_all:{0}'.format(name)
-            self._output_val_names[name] = 'control_values:{0}'.format(name)
-            self._output_rate_names[name] = 'control_rates:{0}_rate'.format(name)
-            self._output_rate2_names[name] = 'control_rates:{0}_rate2'.format(name)
+            self._input_names[name] = f'controls:{name}'
+            self._output_val_all_names[name] = f'control_values_all:{name}'
+            self._output_val_names[name] = f'control_values:{name}'
+            self._output_rate_names[name] = f'control_rates:{name}_rate'
+            self._output_rate2_names[name] = f'control_rates:{name}_rate2'
             shape = options['shape']
             input_shape = (num_control_input_nodes,) + shape
             all_shape = (num_nodes_all,) + shape
@@ -191,7 +191,7 @@ class SolveIVPControlInterpComp(om.ExplicitComponent):
         """
         control_options = self.options['control_options']
 
-        for name, options in control_options.items():
+        for name in control_options:
 
             u = inputs[self._input_names[name]]
 
@@ -266,7 +266,7 @@ class SolveIVPControlGroup(om.Group):
             if options['opt']:
                 num_input_nodes = gd.subset_num_nodes['control_input']
 
-                self.indep_controls.add_output(name='controls:{0}'.format(name),
+                self.indep_controls.add_output(name=f'controls:{name}',
                                                val=options['val'],
                                                shape=(num_input_nodes, np.prod(options['shape'])),
                                                units=options['units'])

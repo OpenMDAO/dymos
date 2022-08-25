@@ -577,29 +577,29 @@ class RKIntegrationComp(om.ExplicitComponent):
         self._timeseries_idxs_in_y = {}
         self._filtered_timeseries_outputs = {}
 
-        for ts_name, ts_opts in self.timeseries_options.items():
-            patterns = [output['name'] for output in ts_opts['outputs']]
+        for ts_opts in self.timeseries_options.values():
+            patterns = [output['name'] for output in ts_opts['outputs'].values()]
             matching_outputs = filter_outputs(patterns, ode_outputs)
 
-            explicit_requests = set([var for var in patterns if '*' not in var])
+            explicit_requests = {var for var in patterns if '*' not in var}
 
-            unmatched_requests = sorted(list(set(explicit_requests) - set(matching_outputs.keys())))
+            unmatched_requests = explicit_requests.difference(matching_outputs)
 
             if unmatched_requests:
                 om.issue_warning(msg='The following timeseries outputs were requested but '
-                                     f'not found in the ODE: {", ".join(unmatched_requests)}',
+                                     f'not found in the ODE: {", ".join(sorted(unmatched_requests))}',
                                  category=om.OpenMDAOWarning)
 
             for var, var_meta in matching_outputs.items():
                 if var in explicit_requests:
-                    ts_output = next((output for output in ts_opts['outputs'] if output['name'] == var))
+                    ts_output = next((output for output in ts_opts['outputs'].values() if output['name'] == var))
                     # var explicitly matched
-                    output_name = ts_output['output_name'] if ts_output['output_name'] else ts_output['name'].split('.')[-1]
+                    output_name = ts_output['output_name'] if ts_output['output_name'] else ts_output['name'].rpartition('.')[-1]
                     units = ts_output['units'] or var_meta.get('units', None)
                     shape = var_meta['shape']
                 else:
                     # var matched via wildcard
-                    output_name = var.split('.')[-1]
+                    output_name = var.rpartition('.')[-1]
                     units = var_meta['units']
                     shape = var_meta['shape']
 
@@ -1545,12 +1545,12 @@ class RKIntegrationComp(om.ExplicitComponent):
         outputs['time_phase'] = self._t[idxs, ...] - inputs['t_initial']
 
         # Extract the state values
-        for state_name, options in self.state_options.items():
+        for state_name in self.state_options:
             of = self._state_output_names[state_name]
             outputs[of] = self._x[idxs, self.state_idxs[state_name]]
 
         # Extract the control values and rates
-        for control_name, options in self.control_options.items():
+        for control_name in self.control_options:
             oname = self._control_output_names[control_name]
             rate_name = self._control_rate_names[control_name]
             rate2_name = self._control_rate2_names[control_name]
@@ -1559,7 +1559,7 @@ class RKIntegrationComp(om.ExplicitComponent):
             outputs[rate2_name] = self._y[idxs, self._control_rate2_idxs_in_y[control_name]]
 
         # Extract the control values and rates
-        for control_name, options in self.polynomial_control_options.items():
+        for control_name in self.polynomial_control_options:
             oname = self._polynomial_control_output_names[control_name]
             rate_name = self._polynomial_control_rate_names[control_name]
             rate2_name = self._polynomial_control_rate2_names[control_name]
@@ -1568,7 +1568,7 @@ class RKIntegrationComp(om.ExplicitComponent):
             outputs[rate2_name] = self._y[idxs, self._polynomial_control_rate2_idxs_in_y[control_name]]
 
         # Extract the timeseries outputs
-        for name, options in self._filtered_timeseries_outputs.items():
+        for name in self._filtered_timeseries_outputs:
             oname = self._timeseries_output_names[name]
             outputs[oname] = self._y[idxs, self._timeseries_idxs_in_y[name]]
 
@@ -1665,7 +1665,7 @@ class RKIntegrationComp(om.ExplicitComponent):
                 partials[of_rate, wrt] = dy_dZ[idxs, of_rate_rows, wrt_cols]
                 partials[of_rate2, wrt] = dy_dZ[idxs, of_rate2_rows, wrt_cols]
 
-        for name, options in self._filtered_timeseries_outputs.items():
+        for name in self._filtered_timeseries_outputs:
             of = self._timeseries_output_names[name]
             of_rows = self._timeseries_idxs_in_y[name]
 

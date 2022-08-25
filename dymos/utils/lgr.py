@@ -105,7 +105,7 @@ def lgr(n, include_endpoint=False, tol=1.0E-15):
         x[free] = xold[free] - f / fprime
 
     else:
-        raise RuntimeError('Failed to converge LGR nodes for order {0}'.format(n))
+        raise RuntimeError(f'Failed to converge LGR nodes for order {n}')
 
     # Compute the weights
     w = np.zeros(n1)

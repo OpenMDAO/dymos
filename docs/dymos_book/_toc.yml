@@ -38,6 +38,7 @@ parts:
     - file: examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls
     - file: examples/robertson_problem/robertson_problem
     - file: examples/water_rocket/water_rocket
+    - file: examples/cart_pole/cart_pole
 - caption: Feature Reference
   chapters:
   - file: features/phases/phases_list
@@ -66,7 +67,7 @@ parts:
   chapters:
   - file: api/api
     sections:
-    - file: api/run_problem
+    - file: api/run_problem_function
     - file: api/phase_api
     - file: api/transcriptions_api
     - file: api/trajectory_api

@@ -3,12 +3,13 @@ from setuptools import find_packages, setup
 # Setup optional dependencies
 optional_dependencies = {
     'docs': [
+        'matplotlib',
         'jupyter',
         'jupyter-book',
         'nbconvert',
         'notebook',
         'ipython',
-        'numpydoc>=0.9.1',
+        'numpydoc>=1.1',
         'redbaron',
         'tabulate',
         'jaxlib',
@@ -24,6 +25,8 @@ optional_dependencies = {
         'testflo>=1.3.6',
         'matplotlib',
         'numpydoc>=1.1',
+        'playwright>=1.20',
+        'aiounittest'
     ]
 }
 
@@ -62,13 +65,16 @@ The software has two primary objectives:
     ],
     license='Apache License',
     packages=find_packages(),
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     install_requires=[
         'openmdao>=3.17.0',
-        'numpy>=1.17',
-        'scipy>=1.2'
+        'numpy',
+        'scipy'
     ],
     extras_require=optional_dependencies,
     zip_safe=False,
-    package_data={'dymos.examples.aircraft_steady_flight.aero': ['data/CRM_aero_inputs.dat', 'data/CRM_aero_outputs.dat']},
+    package_data={
+        'dymos.examples.aircraft_steady_flight.aero': ['data/CRM_aero_inputs.dat', 'data/CRM_aero_outputs.dat'],
+        'dymos.visualization.linkage': ['report_template.html', 'js/*', 'style/*']
+    },
 )

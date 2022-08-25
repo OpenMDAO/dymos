@@ -78,7 +78,7 @@ def lg(n, tol=1.0E-15):
         x0 = x
         x = x0 - L[:, n1] / Lp
     else:
-        raise RuntimeError('Failed to converge LG nodes for order {0}'.format(n))
+        raise RuntimeError(f'Failed to converge LG nodes for order {n}')
 
     # Put the nodes in ascending order
     x = -x

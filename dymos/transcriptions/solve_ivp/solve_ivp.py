@@ -521,6 +521,23 @@ class SolveIVP(TranscriptionBase):
 
         for ts_output_name, ts_output in phase._timeseries['timeseries']['outputs'].items():
             name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
+            if options['include_timeseries']:
+                phase.timeseries._add_output_configure(prom_name,
+                                                       desc='',
+                                                       shape=options['shape'],
+                                                       units=options['units'])
+
+                if output_nodes_per_seg is None:
+                    src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                else:
+                    src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape']).ravel()
+
+                phase.connect(f'parameter_vals:{name}', f'timeseries.all_values:parameters:{name}',
+                              src_indices=src_idxs, flat_src_indices=True)
+
+        for output_name, ts_output in phase._timeseries['timeseries']['outputs'].items():
+            var = ts_output['name']
             units = ts_output['units']
             shape = ts_output['shape']
             src = ts_output['src']
@@ -534,6 +551,7 @@ class SolveIVP(TranscriptionBase):
 
             if added_src:
                 phase.connect(src_name=src, tgt_name=f'timeseries.input_values:{name}', src_indices=src_idxs)
+
 
     def get_parameter_connections(self, name, phase):
         """

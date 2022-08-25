@@ -360,7 +360,7 @@ class ExplicitShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         gd = self.grid_data
-        for name, options in phase._timeseries.items():
+        for name in phase._timeseries:
             timeseries_comp = ExplicitTimeseriesComp(input_grid_data=gd,
                                                      output_subset='segment_ends')
             phase.add_subsystem(name, subsys=timeseries_comp)
@@ -570,7 +570,7 @@ class ExplicitShooting(TranscriptionBase):
             units = phase.state_options[var]['units']
             linear = loc == 'initial'
             obj_path = f'integrator.states_out:{var}'
-        elif var_type in 'indep_control':
+        elif var_type == 'indep_control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
             linear = True
@@ -580,7 +580,7 @@ class ExplicitShooting(TranscriptionBase):
             units = phase.control_options[var]['units']
             linear = False
             obj_path = f'control_values:{var}'
-        elif var_type in 'indep_polynomial_control':
+        elif var_type == 'indep_polynomial_control':
             shape = phase.polynomial_control_options[var]['shape']
             units = phase.polynomial_control_options[var]['units']
             linear = True
@@ -603,7 +603,7 @@ class ExplicitShooting(TranscriptionBase):
             control_rate_units = get_rate_units(control_units, time_units, deriv=d)
             units = control_rate_units
             linear = False
-            obj_path = 'control_rates:{0}'.format(var)
+            obj_path = f'control_rates:{var}'
         elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
             control_var = var[:-5]
             shape = phase.polynomial_control_options[control_var]['shape']
@@ -625,53 +625,6 @@ class ExplicitShooting(TranscriptionBase):
             linear = False
 
         return obj_path, shape, units, linear
-
-    def get_rate_source_path(self, state_var, phase):
-        """
-        Return the rate source location for a given state name.
-
-        Parameters
-        ----------
-        state_var : str
-            Name of the state.
-        phase : dymos.Phase
-            Phase object containing the rate source.
-
-        Returns
-        -------
-        str
-            Path to the rate source.
-        """
-        var = phase.state_options[state_var]['rate_source']
-
-        if var == 'time':
-            rate_path = 'time'
-        elif var == 'time_phase':
-            rate_path = 'time_phase'
-        elif phase.state_options is not None and var in phase.state_options:
-            rate_path = f'state_mux_comp.states:{var}'
-        elif phase.control_options is not None and var in phase.control_options:
-            rate_path = f'control_values:{var}'
-        elif phase.polynomial_control_options is not None and var in phase.polynomial_control_options:
-            rate_path = f'polynomial_control_values:{var}'
-        elif phase.parameter_options is not None and var in phase.parameter_options:
-            rate_path = f'parameters:{var}'
-        elif var.endswith('_rate') and phase.control_options is not None and \
-                var[:-5] in phase.control_options:
-            rate_path = f'control_rates:{var}'
-        elif var.endswith('_rate2') and phase.control_options is not None and \
-                var[:-6] in phase.control_options:
-            rate_path = f'control_rates:{var}'
-        elif var.endswith('_rate') and phase.polynomial_control_options is not None and \
-                var[:-5] in phase.polynomial_control_options:
-            rate_path = f'polynomial_control_rates:{var}'
-        elif var.endswith('_rate2') and phase.polynomial_control_options is not None and \
-                var[:-6] in phase.polynomial_control_options:
-            rate_path = f'polynomial_control_rates:{var}'
-        else:
-            rate_path = f'ode.{var}'
-
-        return rate_path
 
     def _requires_continuity_constraints(self, phase):
         """

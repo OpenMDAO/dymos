@@ -1,8 +1,15 @@
+import io
+import os
+
+from packaging.version import Version
+
 import numpy as np
 
 from scipy.interpolate import interp1d
 
+import openmdao.api as om
 import openmdao.utils.assert_utils as _om_assert_utils
+from openmdao import __version__ as openmdao_version
 
 
 def assert_check_partials(data, atol=1.0E-6, rtol=1.0E-6):
@@ -59,15 +66,18 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
         and case2 contain the same variable but the variable has a different size/shape in the two
         cases, or if the variables have the same shape but different values (as given by tol).
     """
+    _case1 = case1.model if isinstance(case1, om.Problem) else case1
+    _case2 = case2.model if isinstance(case2, om.Problem) else case2
+
     case1_vars = {t[1]['prom_name']: t[1] for t in
-                  case1.list_inputs(values=True, units=True, prom_name=True, out_stream=None)}
+                  _case1.list_inputs(val=True, units=True, prom_name=True, out_stream=None)}
     case1_vars.update({t[1]['prom_name']: t[1] for t in
-                       case1.list_outputs(values=True, units=True, prom_name=True, out_stream=None)})
+                       _case1.list_outputs(val=True, units=True, prom_name=True, out_stream=None)})
 
     case2_vars = {t[1]['prom_name']: t[1] for t in
-                  case2.list_inputs(values=True, units=True, prom_name=True, out_stream=None)}
+                  _case2.list_inputs(val=True, units=True, prom_name=True, out_stream=None)}
     case2_vars.update({t[1]['prom_name']: t[1] for t in
-                       case2.list_outputs(values=True, units=True, prom_name=True, out_stream=None)})
+                       _case2.list_outputs(val=True, units=True, prom_name=True, out_stream=None)})
 
     # Warn if a and b don't contain the same sets of variables
     diff_err_msg = ''
@@ -82,9 +92,9 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
             diff_err_msg += f'\nVariables in case2 but not in case1: {sorted(case2_minus_case1)}'
 
     shape_errors = set()
-    val_errors = set()
+    val_errors = {}
     shape_err_msg = '\nThe following variables have different shapes/sizes:'
-    val_err_msg = '\nThe following variables contain different values:\nvar: error'
+    val_err_msg = io.StringIO()
 
     for var in sorted(set(case1_vars.keys()).intersection(case2_vars.keys())):
         a = case1_vars[var]['val']
@@ -94,9 +104,10 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
             shape_err_msg += f'\n{var} has shape {a.shape} in case1 but shape {b.shape} in case2'
             continue
         err = np.abs(a - b)
-        if np.any(err > tol):
-            val_errors.add(var)
-            val_err_msg += f'\n{var}: {err}'
+        max_err = np.max(err)
+        mean_err = np.mean(err)
+        if np.any(max_err > tol):
+            val_errors[var] = (max_err, mean_err)
 
     err_msg = ''
     if diff_err_msg:
@@ -104,79 +115,298 @@ def assert_cases_equal(case1, case2, tol=1.0E-12, require_same_vars=True):
     if shape_errors:
         err_msg += shape_err_msg
     if val_errors:
-        err_msg += val_err_msg
+        val_err_msg.write('\nThe following variables contain different values:\n')
+        max_var_len = max(3, max([len(s) for s in val_errors.keys()]))
+        val_err_msg.write(
+            f"{'var'.rjust(max_var_len)} {'max error'.rjust(16)} {'mean error'.rjust(16)}\n")
+        val_err_msg.write(max_var_len * '-' + ' ' + 16 * '-' + ' ' + 16 * '-' + '\n')
+        for varname, (max_err, mean_err) in val_errors.items():
+            val_err_msg.write(f"{varname.rjust(max_var_len)} {max_err:16.9e} {mean_err:16.9e}\n")
+        err_msg += val_err_msg.getvalue()
 
     if err_msg:
         raise AssertionError(err_msg)
 
 
-def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6):
+def _write_out_timeseries_values_out_of_tolerance(isclose, rel_tolerance, abs_tolerance,
+                                                  t_check, x_check, x_ref):
     """
-    Assert that two timeseries of data are approximately equal.
-
-    This is done by fitting a 1D interpolant to each index of each timeseries, and then comparing
-    the values of the two interpolants at some equally spaced number of points.
+    Helper function used to write out a table of values indicating which timeseries values
+    were out of tolerance.
 
     Parameters
     ----------
-    t1 : np.array
-        Time values for the first timeseries.
-    x1 : np.array
-        Data values for the first timeseries.
-    t2 : np.array
-        Time values for the second timeseries.
-    x2 : np.array
-        Data values for the second timeseries.
-    tolerance : float
-        The tolerance for any errors along at each point checked.
+    isclose : array of bool
+        Boolean array indicating where data value is in tolerance. Has same shape as the
+        time series array
+    rel_tolerance : float
+        Allowed relative tolerance error
+    abs_tolerance : float
+        Allowed absolute tolerance error
+    t_check : np.array
+        Array of time values for the timeseries
+    x_check : np.array
+        Array of data values for the timeseries to be check/compared to the reference value, x_ref
+    x_ref : np.array
+        Array of data values for the timeseries to be used as the reference
+    """
+    err_msg = f"The following timeseries data are out of tolerance due to absolute (" \
+              f"{abs_tolerance}) or relative ({rel_tolerance}) tolerance violations\n"
+    header = f"{'time_index':10s} | " + \
+             f"{'data_indices':12s} | " + \
+             f"{'time':13s} | " + \
+             f"{'ref_data':13s} | " + \
+             f"{'checked_data':13s} | " + \
+             f"{'abs_error':13s} | " + \
+             f"{'rel_error':13} | " + \
+             f" ABS or REL error "
+    err_msg += f"{header}\n"
+    err_msg += len(header) * '-' + '\n'
+
+    rel_error_max = 0.0
+    err_line_max = 0
+    for idx, item_close in np.ndenumerate(isclose):
+        if not item_close:
+            error_string = ''
+            abs_error = abs(x_check[idx] - x_ref[idx])
+            if x_ref[idx] != 0.0:
+                rel_error = abs(x_check[idx] - x_ref[idx]) / abs(x_ref[idx])
+            else:
+                rel_error = float('nan')
+            if abs_tolerance is not None:
+                if abs_error > abs_tolerance:
+                    error_string += ' >ABS_TOL'
+
+            if rel_tolerance is not None:
+                if rel_error > rel_tolerance:
+                    error_string += ' >REL_TOL'
+
+            err_line = f"{idx[0]:10,d} | {str(idx[1:]):>12s} | {t_check[idx[0]]:13.6e} |" \
+                       f"{x_ref[idx]:13.6e} | {x_check[idx]:13.6e} | {abs_error:13.6e} | " \
+                       f"{rel_error:13.6e} | {error_string}\n"
+            err_msg += err_line
+
+            if rel_error > rel_error_max:
+                rel_error_max = rel_error
+                err_line_max = err_line
+
+    # show the item with the max rel error
+    max_rel_error_header_txt = 'Time series data value with the largest relative error'
+    max_rel_error_msg = f"\n{len(max_rel_error_header_txt) * '#'}\n{max_rel_error_header_txt}\n" \
+                        f"{len(max_rel_error_header_txt) * '#'}\n"
+
+    max_rel_error_msg += f"{header}\n"
+    max_rel_error_msg += len(header) * '-' + '\n'
+    max_rel_error_msg += err_line_max
+
+    err_msg += max_rel_error_msg
+
+    return err_msg
+
+
+def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=None,
+                                 rel_tolerance=None):
+    """
+    Assert that two timeseries of data are approximately equal.
+
+    The first timeseries, defined by t_ref, x_ref, serves as the reference.
+
+    The second timeseries, defined by t_check, x_check is what is checked for near equality.
+
+    The check is done by fitting a 1D interpolant to the reference, and then comparing
+    the values of the interpolant at the times in t_check. The check for errors within
+    tolerance are done on a point-by-point basis. If any point is out of tolerance, throw
+    an AssertionError.
+
+    Only the times where the two timeseries overlap are used for the check.
+
+    When both abs_tolerance and rel_tolerance are given, only one is actually used for any given
+    data point. When the absolute values of the data values are small, the abs_tolerance is used,
+    otherwise the rel_tolerance is used. The transition point is given by
+
+        abs_tolerance / rel_tolerance
+
+    Parameters
+    ----------
+    t_ref : np.array
+        Time values for the reference timeseries.
+    x_ref : np.array
+        Data values for the reference timeseries.
+    t_check : np.array
+        Time values for the timeseries that is compared to the reference.
+    x_check : np.array
+        Data values for the timeseries that is compared to the reference.
+    abs_tolerance : float
+        The absolute tolerance for any errors along at each point checked.
+    rel_tolerance : float
+        The relative tolerance for any errors along at each point checked.
 
     Raises
     ------
     AssertionError
-        When one or more elements of the interpolated timeseries are not within the
-        desired tolerance.
+        When one or more elements of the timeseries to be checked are not with in the desired
+        tolerance of the interpolated reference timeseries, an AssertionError is raised.
     """
-    shape1 = x1.shape[1:]
-    shape2 = x2.shape[1:]
+    # get shapes for the time series values
+    shape_ref = x_ref.shape[1:]
+    shape_check = x_check.shape[1:]
 
-    if shape1 != shape2:
+    if abs_tolerance is None and rel_tolerance is None:
+        raise ValueError('abs_tolerance and rel_tolerance cannot be both None')
+
+    if shape_ref != shape_check:
         raise ValueError('The shape of the variable in the two timeseries is not equal '
-                         f'x1 is {shape1}  x2 is {shape2}')
+                         f'x_ref is {shape_ref}  x_check is {shape_check}')
 
-    if abs(t1[0] - t2[0]) > 1.0E-12:
-        raise ValueError('The initial time of the two timeseries is not the same. '
-                         f't1[0]={t1[0]}  t2[0]={t2[0]}  difference: {t2[0] - t1[0]}')
+    # get the overlapping time period between t_ref and t_check
+    t_begin = max(t_ref[0], t_check[0])
+    t_end = min(t_ref[-1], t_check[-1])
 
-    if abs(t1[-1] - t2[-1]) > 1.0E-12:
-        raise ValueError('The final time of the two timeseries is not the same. '
-                         f't1[0]={t1[-1]}  t2[0]={t2[-1]}  difference: {t2[-1] - t1[-1]}')
+    if t_begin > t_end:
+        raise ValueError("There is no overlapping time between the two time series")
 
-    size = np.prod(shape1)
+    # Flatten the timeseries data arrays
+    num_elements = np.prod(shape_ref)
+    time_series_len = x_ref.shape[0]
+    x_ref_data_flattened = np.reshape(x_ref, newshape=(time_series_len, num_elements))
+    t_ref_unique, idxs_unique_ref = np.unique(t_ref.ravel(), return_index=True)
+    x_to_interp = x_ref_data_flattened[idxs_unique_ref, ...]
+    t_check = t_check.ravel()
 
-    nn1 = x1.shape[0]
-    a1 = np.reshape(x1, newshape=(nn1, size))
-    t1_unique, idxs1 = np.unique(t1.ravel(), return_index=True)
+    interp = interp1d(x=t_ref_unique, y=x_to_interp, kind='slinear', axis=0)
 
-    nn2 = x2.shape[0]
-    a2 = np.reshape(x2, newshape=(nn2, size))
-    t2_unique, idxs2 = np.unique(t2.ravel(), return_index=True)
+    # only want t_check in the overlapping range of t_begin and t_end
+    t_check_in_range_condition = np.logical_and(t_check >= t_begin, t_check <= t_end)
+    t_check = np.compress(t_check_in_range_condition, t_check)
+    x_check = np.compress(t_check_in_range_condition, x_check, axis=0)
 
-    if nn1 > nn2:
-        # The first timeseries is more dense
-        t_unique = t1_unique
-        x_to_interp = a1[idxs1, ...]
-        t_check = t2.ravel()
-        x_check = x2
-    else:
-        # The second timeseries is more dense
-        t_unique = t2_unique
-        x_to_interp = a2[idxs2, ...]
-        t_check = t1.ravel()
-        x_check = x1
+    # get the interpolated values of the reference at the values of t_check
+    # Reshape back to unflattened data values
+    x_ref_interp = np.reshape(interp(t_check), newshape=(t_check.size,) + shape_ref)
 
-    interp = interp1d(x=t_unique, y=x_to_interp, kind='slinear', axis=0)
-    num_points = np.prod(t_check.shape)
+    if abs_tolerance is None:  # so only have rel_tolerance
+        isclose = np.isclose(x_check, x_ref_interp, rtol=rel_tolerance, atol=0.0)
+        all_close = np.all(isclose)
+        if not all_close:
+            err_msg = _write_out_timeseries_values_out_of_tolerance(isclose,
+                                                                    rel_tolerance,
+                                                                    abs_tolerance,
+                                                                    t_check,
+                                                                    x_check,
+                                                                    x_ref_interp,
+                                                                    )
+            raise AssertionError(err_msg)
+    elif rel_tolerance is None:  # so only have abs_tolerance
+        isclose = np.isclose(x_check, x_ref_interp, rtol=0.0, atol=abs_tolerance)
+        all_close = np.all(isclose)
+        if not all_close:
+            err_msg = _write_out_timeseries_values_out_of_tolerance(isclose,
+                                                                    rel_tolerance,
+                                                                    abs_tolerance,
+                                                                    t_check,
+                                                                    x_check,
+                                                                    x_ref_interp,
+                                                                    )
+            raise AssertionError(err_msg)
+    else:  # need to use a hybrid of abs and rel tolerances
+        err_msg = ''
 
-    y_interp = np.reshape(interp(t_check), newshape=(num_points,) + shape1)
+        # At what value of absolute value of the data does the tolerance check switch between
+        #    using the absolute vs relative tolerance
+        transition_tolerance = abs_tolerance / rel_tolerance
 
-    _om_assert_utils.assert_near_equal(y_interp, x_check, tolerance=tolerance)
+        # for values > transition_tolerance, use rel_tolerance
+        transition_condition = abs(x_ref_interp) >= transition_tolerance
+        above_transition_x_ref_interp = np.full(x_ref_interp.shape, np.nan)
+        np.copyto(above_transition_x_ref_interp, x_ref_interp, where=transition_condition)
+        above_transition_x_check = np.full(x_ref_interp.shape, np.nan)
+        np.copyto(above_transition_x_check, x_check, where=transition_condition)
+        isclose_using_rel_tolerance = np.isclose(above_transition_x_check,
+                                                 above_transition_x_ref_interp,
+                                                 rtol=rel_tolerance, atol=0.0, equal_nan=True)
+
+        # for values < transition_tolerance, use abs_tolerance
+        transition_condition = abs(x_ref_interp) < transition_tolerance
+        below_transition_x_ref_interp = np.full(x_ref_interp.shape, np.nan)
+        np.copyto(below_transition_x_ref_interp, x_ref_interp, where=transition_condition)
+        below_transition_x_check = np.full(x_ref_interp.shape, np.nan)
+        np.copyto(below_transition_x_check, x_check, where=transition_condition)
+        isclose_using_abs_tolerance = np.isclose(below_transition_x_check,
+                                                 below_transition_x_ref_interp, rtol=0.0,
+                                                 atol=abs_tolerance, equal_nan=True)
+
+        # combine the two
+        isclose_using_both_tolerance = isclose_using_rel_tolerance & isclose_using_abs_tolerance
+        all_close = np.all(isclose_using_both_tolerance)
+        if not all_close:
+            err_msg += _write_out_timeseries_values_out_of_tolerance(isclose_using_both_tolerance,
+                                                                     rel_tolerance,
+                                                                     abs_tolerance,
+                                                                     t_check,
+                                                                     x_check,
+                                                                     x_ref_interp,
+                                                                     )
+        if err_msg:
+            raise AssertionError(err_msg)
+
+
+def _get_reports_dir(prob):
+    # need this to work with older OM versions with old reports system API
+    # reports API changed between 3.18 and 3.19, so handle it here in order to be able to
+    #  test against older versions of openmdao
+    if Version(openmdao_version) > Version("3.18"):
+        return prob.get_reports_dir()
+
+    from openmdao.utils.reports_system import get_reports_dir
+    return get_reports_dir(prob)
+
+
+# This duplicates OpenMDAO code and is needed for older versions of OpenMDAO (<= 3.19).
+# Once support is dropped for < 3.19 we can get rid of this and use the version from OpenMDAO.
+class set_env_vars(object):
+    """
+    Decorate a function to temporarily set some environment variables.
+
+    Parameters
+    ----------
+    **envs : dict
+        Keyword args corresponding to environment variables to set.
+
+    Attributes
+    ----------
+    envs : dict
+        Saved mapping of environment var name to value.
+    """
+
+    def __init__(self, **envs):
+        """
+        Initialize attributes.
+        """
+        self.envs = envs
+
+    def __call__(self, fnc):
+        """
+        Apply the decorator.
+
+        Parameters
+        ----------
+        fnc : function
+            The function being wrapped.
+        """
+        def wrap(*args, **kwargs):
+            saved = {}
+            try:
+                for k, v in self.envs.items():
+                    saved[k] = os.environ.get(k)
+                    os.environ[k] = v  # will raise exception if v is not a string
+
+                return fnc(*args, **kwargs)
+            finally:
+                # put environment back as it was
+                for k, v in saved.items():
+                    if v is None:
+                        del os.environ[k]
+                    else:
+                        os.environ[k] = v
+
+        return wrap

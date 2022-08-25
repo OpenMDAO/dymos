@@ -45,13 +45,13 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        time_units = phase.time_options['units']
         grid_data = self.grid_data
 
         super(PseudospectralBase, self).setup_time(phase)
 
         time_comp = TimeComp(num_nodes=grid_data.num_nodes, node_ptau=grid_data.node_ptau,
-                             node_dptau_dstau=grid_data.node_dptau_dstau, units=time_units,
+                             node_dptau_dstau=grid_data.node_dptau_dstau,
+                             units=phase.time_options['units'],
                              initial_val=phase.time_options['initial_val'],
                              duration_val=phase.time_options['duration_val'])
 
@@ -84,7 +84,7 @@ class PseudospectralBase(TranscriptionBase):
 
         self.any_solved_segs = False
         self.any_connected_opt_segs = False
-        for name, options in phase.state_options.items():
+        for options in phase.state_options.values():
             # Transcription solve_segments overrides state solve_segments if its not set
             if options['solve_segments'] is None:
                 options['solve_segments'] = self.options['solve_segments']
@@ -241,8 +241,8 @@ class PseudospectralBase(TranscriptionBase):
         if self.any_solved_segs or self.any_connected_opt_segs:
             for name, options in phase.state_options.items():
                 if options['solve_segments']:
-                    phase.connect('collocation_constraint.defects:{0}'.format(name),
-                                  'indep_states.defects:{0}'.format(name))
+                    phase.connect(f'collocation_constraint.defects:{name}',
+                                  f'indep_states.defects:{name}')
 
     def setup_ode(self, phase):
         """
@@ -254,14 +254,11 @@ class PseudospectralBase(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
-        transcription = grid_data.transcription
-        time_units = phase.time_options['units']
-
         phase.add_subsystem('state_interp',
                             subsys=StateInterpComp(grid_data=grid_data,
                                                    state_options=phase.state_options,
-                                                   time_units=time_units,
-                                                   transcription=transcription))
+                                                   time_units=phase.time_options['units'],
+                                                   transcription=grid_data.transcription))
 
     def configure_ode(self, phase):
         """
@@ -280,7 +277,7 @@ class PseudospectralBase(TranscriptionBase):
         phase.connect('dt_dstau', 'state_interp.dt_dstau',
                       src_indices=grid_data.subset_node_indices['col'], flat_src_indices=True)
 
-        for name, _ in phase.state_options.items():
+        for name in phase.state_options:
             phase.connect(f'states:{name}',
                           f'state_interp.state_disc:{name}',
                           src_indices=om.slicer[map_input_indices_to_disc, ...])
@@ -294,14 +291,10 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        grid_data = self.grid_data
-
-        time_units = phase.time_options['units']
-
         phase.add_subsystem('collocation_constraint',
-                            CollocationComp(grid_data=grid_data,
+                            CollocationComp(grid_data=self.grid_data,
                                             state_options=phase.state_options,
-                                            time_units=time_units))
+                                            time_units=phase.time_options['units']))
 
     def _configure_solve_segments(self, state_name, options, phase):
         """
@@ -341,8 +334,9 @@ class PseudospectralBase(TranscriptionBase):
                                      f'({state_name}) with forward propagation when fix_final=True.'
                                      f' Either set fix_final=False or set solve_segments=\'reverse\'')
 
-            # If solve_segments is 'backward', neither 'fix_initial' nor 'connected_initial' may be True.
+            # Backward propagation
             if options['solve_segments'] == 'backward':
+                # Neither 'fix_initial' nor 'connected_initial' may be True.
                 if options['fix_initial']:
                     raise ValueError(f'Cannot use solve_segments in phase ({phase.name}) with '
                                      f'backward propagation when fix_initial=True. Either set '
@@ -352,20 +346,6 @@ class PseudospectralBase(TranscriptionBase):
                                      f'backward propagation when connected_initial=True. Either set '
                                      f'connected_initial=False or set solve_segments=\'forward\'')
 
-            # Forward propagation
-            if options['solve_segments'] in {True, 'forward'}:
-                if compressed:
-                    self.state_idx_map[state_name]['solver'] = np.arange(1, num_state_input_nodes, dtype=int)
-                    self.state_idx_map[state_name]['indep'] = np.zeros((1,), dtype=int)
-                else:
-                    left_idxs = self.grid_data.subset_node_indices['segment_ends'][0::2]
-                    self.state_idx_map[state_name]['solver'] = [i for i in range(num_state_input_nodes)
-                                                                if state_input_idxs[i] not in left_idxs]
-                    self.state_idx_map[state_name]['indep'] = [i for i in range(num_state_input_nodes)
-                                                               if state_input_idxs[i] in left_idxs]
-
-            # Backward propagation
-            elif options['solve_segments'] in {'backward'}:
                 if compressed:
                     # The optimizer controls the last state input node, all others are solver-controlled
                     self.state_idx_map[state_name]['indep'] = np.array([num_state_input_nodes - 1], dtype=int)
@@ -377,6 +357,17 @@ class PseudospectralBase(TranscriptionBase):
                                                                if state_input_idxs[i] in right_idxs]
                     self.state_idx_map[state_name]['solver'] = [i for i in range(num_state_input_nodes)
                                                                 if state_input_idxs[i] not in right_idxs]
+            # Forward propagation
+            elif options['solve_segments'] in {'forward'}:
+                if compressed:
+                    self.state_idx_map[state_name]['solver'] = np.arange(1, num_state_input_nodes, dtype=int)
+                    self.state_idx_map[state_name]['indep'] = np.zeros((1,), dtype=int)
+                else:
+                    left_idxs = self.grid_data.subset_node_indices['segment_ends'][0::2]
+                    self.state_idx_map[state_name]['solver'] = [i for i in range(num_state_input_nodes)
+                                                                if state_input_idxs[i] not in left_idxs]
+                    self.state_idx_map[state_name]['indep'] = [i for i in range(num_state_input_nodes)
+                                                               if state_input_idxs[i] in left_idxs]
         else:
             # No solver used to solve these nodes.  All state input nodes are the indep nodes.
             self.state_idx_map[state_name]['solver'] = []
@@ -500,8 +491,11 @@ class PseudospectralBase(TranscriptionBase):
 
             timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=gd,
                                                                  output_grid_data=ogd,
-                                                                 output_subset=options['subset'])
+                                                                 output_subset=options['subset'],
+                                                                 time_units=phase.time_options['units'])
             phase.add_subsystem(name, subsys=timeseries_comp)
+
+            phase.connect('dt_dstau', (f'{name}.dt_dstau'), flat_src_indices=True)
 
     def _get_objective_src(self, var, loc, phase, ode_outputs=None):
         """
@@ -552,14 +546,14 @@ class PseudospectralBase(TranscriptionBase):
             connected_initial = phase.state_options[var]['connected_initial']
             if not solve_segments and not connected_initial:
                 linear = True
-            elif solve_segments in {True, 'forward'} and not connected_initial and loc == 'initial':
+            elif solve_segments in {'forward'} and not connected_initial and loc == 'initial':
                 linear = True
             elif solve_segments == 'backward' and loc == 'final':
                 linear = True
             else:
                 linear = False
             constraint_path = f'states:{var}'
-        elif var_type in 'indep_control':
+        elif var_type == 'indep_control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
             linear = True
@@ -569,7 +563,7 @@ class PseudospectralBase(TranscriptionBase):
             units = phase.control_options[var]['units']
             linear = False
             constraint_path = f'control_values:{var}'
-        elif var_type in 'indep_polynomial_control':
+        elif var_type == 'indep_polynomial_control':
             shape = phase.polynomial_control_options[var]['shape']
             units = phase.polynomial_control_options[var]['units']
             linear = True

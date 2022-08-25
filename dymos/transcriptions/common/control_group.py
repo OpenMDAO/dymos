@@ -1,5 +1,3 @@
-from collections.abc import Iterable
-
 import numpy as np
 import scipy.sparse as sp
 
@@ -7,6 +5,7 @@ import openmdao.api as om
 
 from ..grid_data import GridData
 from ...utils.misc import get_rate_units, CoerceDesvar, reshape_val
+from ...utils.indexing import get_desvar_indices
 from ...utils.constants import INF_BOUND
 from ...options import options as dymos_options
 
@@ -232,7 +231,7 @@ class ControlInterpComp(om.ExplicitComponent):
         dstau_dt2 = (dstau_dt ** 2)[:, np.newaxis]
         dstau_dt3 = (dstau_dt ** 3)[:, np.newaxis]
 
-        for name, options in control_options.items():
+        for name in control_options:
             control_name = self._input_names[name]
 
             size = self.sizes[name]
@@ -283,7 +282,7 @@ class ControlGroup(om.Group):
         if len(control_options) < 1:
             return
 
-        opt_controls = [name for (name, opts) in control_options.items() if opts['opt']]
+        opt_controls = [name for name, opts in control_options.items() if opts['opt']]
 
         if len(opt_controls) > 0:
             self.add_subsystem('indep_controls', subsys=om.IndepVarComp(), promotes_outputs=['*'])
@@ -308,26 +307,13 @@ class ControlGroup(om.Group):
             size = np.prod(shape)
             if options['opt']:
                 num_input_nodes = gd.subset_num_nodes['control_input']
-                desvar_indices = list(range(size * num_input_nodes))
+                desvar_indices = get_desvar_indices(size, num_input_nodes,
+                                                    options['fix_initial'], options['fix_final'])
 
-                if options['fix_initial']:
-                    if isinstance(options['fix_initial'], Iterable):
-                        idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
-                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[idx_to_fix]
-                    else:
-                        del desvar_indices[:size]
-
-                if options['fix_final']:
-                    if isinstance(options['fix_final'], Iterable):
-                        idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
-                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[-size + idx_to_fix]
-                    else:
-                        del desvar_indices[-size:]
-
+                dvname = f'controls:{name}'
                 if len(desvar_indices) > 0:
-                    coerce_desvar_option = CoerceDesvar(num_input_nodes, options=options)
+                    coerce_desvar_option = CoerceDesvar(num_input_nodes, desvar_indices,
+                                                        options=options)
 
                     lb = np.zeros_like(desvar_indices, dtype=float)
                     lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
@@ -337,7 +323,7 @@ class ControlGroup(om.Group):
                     ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
                         coerce_desvar_option('upper')
 
-                    self.add_design_var(name='controls:{0}'.format(name),
+                    self.add_design_var(name=dvname,
                                         lower=lb,
                                         upper=ub,
                                         scaler=coerce_desvar_option('scaler'),
@@ -349,7 +335,7 @@ class ControlGroup(om.Group):
 
                 default_val = reshape_val(options['val'], shape, num_input_nodes)
 
-                self.indep_controls.add_output(name=f'controls:{name}',
+                self.indep_controls.add_output(name=dvname,
                                                val=default_val,
                                                shape=(num_input_nodes,) + shape,
                                                units=options['units'])

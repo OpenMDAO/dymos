@@ -92,10 +92,10 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
 
             self._matrices[name] = L_do, D_do, D2_do
 
-            self._input_names[name] = 'polynomial_controls:{0}'.format(name)
-            self._output_val_names[name] = 'polynomial_control_values:{0}'.format(name)
-            self._output_rate_names[name] = 'polynomial_control_rates:{0}_rate'.format(name)
-            self._output_rate2_names[name] = 'polynomial_control_rates:{0}_rate2'.format(name)
+            self._input_names[name] = f'polynomial_controls:{name}'
+            self._output_val_names[name] = f'polynomial_control_values:{name}'
+            self._output_rate_names[name] = f'polynomial_control_rates:{name}_rate'
+            self._output_rate2_names[name] = f'polynomial_control_rates:{name}_rate2'
 
             self.add_input(self._input_names[name], val=np.ones(input_shape), units=units)
             self.add_output(self._output_val_names[name], shape=output_shape, units=units)
@@ -134,7 +134,7 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
                                   wrt=self._input_names[name],
                                   rows=rs, cols=cs, val=self.val_jacs[name][rs, cs])
 
-            rs = np.concatenate([np.arange(0, num_nodes * size, size, dtype=int) + i
+            rs = np.concatenate([np.arange(i, num_nodes * size + i, size, dtype=int)
                                  for i in range(size)])
 
             self.declare_partials(of=self._output_rate_names[name],
@@ -164,7 +164,7 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
         """
         dt_dptau = 0.5 * inputs['t_duration']
 
-        for name, options in self.options['polynomial_control_options'].items():
+        for name in self.options['polynomial_control_options']:
             L_do, D_do, D2_do = self._matrices[name]
 
             u = inputs[self._input_names[name]]
@@ -257,7 +257,7 @@ class SolveIVPPolynomialControlGroup(om.Group):
 
         # Pull out the interpolated controls
         num_opt = 0
-        for name, options in opts['polynomial_control_options'].items():
+        for options in opts['polynomial_control_options'].values():
             if options['order'] < 1:
                 raise ValueError('Interpolation order must be >= 1 (linear)')
             if options['opt']:
@@ -288,6 +288,6 @@ class SolveIVPPolynomialControlGroup(om.Group):
             num_input_nodes = options['order'] + 1
             shape = options['shape']
             if options['opt']:
-                ivc.add_output('polynomial_controls:{0}'.format(name),
+                ivc.add_output(f'polynomial_controls:{name}',
                                val=np.ones((num_input_nodes,) + shape),
                                units=options['units'])

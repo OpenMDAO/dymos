@@ -158,7 +158,7 @@ class TestBalancedFieldFuncComp(unittest.TestCase):
         p.driver.options['optimizer'] = 'IPOPT'
         p.driver.options['print_results'] = True
 
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 0
         p.driver.opt_settings['mu_strategy'] = 'adaptive'
 
         p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'

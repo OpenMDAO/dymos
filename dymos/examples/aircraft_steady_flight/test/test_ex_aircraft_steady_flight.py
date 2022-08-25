@@ -1,4 +1,3 @@
-import os
 import unittest
 
 import openmdao.api as om

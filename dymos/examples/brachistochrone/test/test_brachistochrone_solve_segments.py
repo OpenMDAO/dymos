@@ -27,7 +27,7 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
     elif optimizer == 'IPOPT':
         p.driver.opt_settings['mu_init'] = 1e-3
         p.driver.opt_settings['max_iter'] = 500
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 0
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
         p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
         p.driver.opt_settings['mu_strategy'] = 'monotone'

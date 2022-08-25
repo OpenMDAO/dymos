@@ -31,7 +31,6 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
         # from another variable has potentially different units
         self._units = {}
         self._conversion_factors = {}
-        self._vars = {}
 
         self._no_check_partials = not dymos_options['include_check_partials']
 
@@ -50,7 +49,7 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
         self.input_num_nodes = igd.subset_num_nodes['segment_ends']
         self.output_num_nodes = self.input_num_nodes
 
-    def _add_output_configure(self, name, units, shape, desc='', src=None):
+    def _add_output_configure(self, name, units, shape, desc='', src=None, rate=False):
         """
         Add a single timeseries output.
 
@@ -70,12 +69,18 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
             description of the timeseries output variable.
         src : str
             The src path of the variables input, used to prevent redundant inputs.
+        rate : bool
+            If True, timeseries output is a rate.
 
         Returns
         -------
         bool
             True if a new input was added for the output, or False if it reuses an existing input.
         """
+        if rate:
+            raise NotImplementedError("Timeseries output rates are not currently supported for "
+                                      "ExplicitShooting transcriptions.")
+
         input_num_nodes = self.input_num_nodes
         output_num_nodes = self.output_num_nodes
         added_source = False
@@ -97,28 +102,23 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
             input_units = self._units[input_name] = units
             added_source = True
 
-        output_name = name
-        self.add_output(output_name,
-                        shape=(output_num_nodes,) + shape,
-                        units=units, desc=desc)
+        self.add_output(name, shape=(output_num_nodes,) + shape, units=units, desc=desc)
 
-        self._vars[name] = (input_name, output_name, shape)
+        self._vars[name] = (input_name, name, shape, rate)
 
         size = np.prod(shape)
         rs = cs = np.arange(output_num_nodes * size, dtype=int)
 
         # There's a chance that the input for this output was pulled from another variable with
         # different units, so account for that with a conversion.
-        if None in {input_units, units}:
+        if units is None or input_units is None:
             scale = 1.0
             offset = 0
         else:
             scale, offset = unit_conversion(input_units, units)
-        self._conversion_factors[output_name] = scale, offset
+            self._conversion_factors[name] = scale, offset
 
-        self.declare_partials(of=output_name,
-                              wrt=input_name,
-                              rows=rs, cols=cs, val=scale)
+        self.declare_partials(of=name, wrt=input_name, rows=rs, cols=cs, val=scale)
 
         return added_source
 
@@ -133,6 +133,9 @@ class ExplicitTimeseriesComp(TimeseriesOutputCompBase):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        for (input_name, output_name, _) in self._vars.values():
-            scale, offset = self._conversion_factors[output_name]
-            outputs[output_name] = scale * (inputs[input_name] + offset)
+        for (input_name, output_name, _, _) in self._vars.values():
+            if output_name in self._conversion_factors:
+                scale, offset = self._conversion_factors[output_name]
+                outputs[output_name] = scale * (inputs[input_name] + offset)
+            else:
+                outputs[output_name] = inputs[input_name]

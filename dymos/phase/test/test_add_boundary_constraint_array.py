@@ -53,7 +53,7 @@ class BrachistochroneVectorStatesODE(om.ExplicitComponent):
 @use_tempdirs
 class TestAddBoundaryConstraint(unittest.TestCase):
 
-    @require_pyoptsparse
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_simple_no_exception(self):
         p = om.Problem(model=om.Group())
 
@@ -64,8 +64,7 @@ class TestAddBoundaryConstraint(unittest.TestCase):
 
         transcription = dm.GaussLobatto(num_segments=3,
                                         order=3,
-                                        compressed=True, solve_segments='forward')
-        fix_final = True
+                                        compressed=True)
 
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
@@ -83,8 +82,6 @@ class TestAddBoundaryConstraint(unittest.TestCase):
 
         # test add_boundary_constraint with arrays:
         expected = np.array([10, 5])
-        phase.add_boundary_constraint(name='pos', loc='final', lower=expected-1)
-        phase.add_boundary_constraint(name='pos', loc='final', upper=expected+1)
         phase.add_boundary_constraint(name='pos', loc='final', equals=expected)
 
         phase.add_state('v',

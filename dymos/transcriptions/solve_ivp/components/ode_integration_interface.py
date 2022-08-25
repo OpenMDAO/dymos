@@ -91,7 +91,7 @@ class ODEIntegrationInterface(object):
         for state_name, state_options in self.state_options.items():
             pos = state_options['pos']
             size = state_options['size']
-            self.prob['states:{0}'.format(state_name)][0, ...] = x[pos:pos + size]
+            self.prob[f'states:{state_name}'][0, ...] = x[pos:pos + size]
 
     def _pack_state_rate_vec(self):
         """
