@@ -39,7 +39,7 @@ class TestCartPoleOptimization(unittest.TestCase):
         )  # integration of force**2. This does not have the energy unit, but I call it "energy" anyway.
 
         # declare control inputs
-        phase.add_control("f", fix_initial=False, rate_continuity=False, lower=-20, upper=20, shape=(1,), ref=10, units="N")
+        phase.add_control("f", fix_initial=False, rate_continuity=False, lower=-20, upper=20, shape=(1,), ref=0.01, units="N")
 
         # add cart-pole parameters (set static_target=True because these params are not time-depencent)
         phase.add_parameter("m_cart", val=1.0, units="kg", static_target=True)
@@ -51,12 +51,12 @@ class TestCartPoleOptimization(unittest.TestCase):
         phase.add_boundary_constraint("x", loc="final", equals=1, ref=1.0, units="m")  # final horizontal displacement
         phase.add_boundary_constraint("theta", loc="final", equals=np.pi, ref=1.0, units="rad")  # final pole angle
         phase.add_boundary_constraint("x_dot", loc="final", equals=0, ref=1.0, units="m/s")  # 0 velocity at the and
-        phase.add_boundary_constraint("theta_dot", loc="final", equals=0, ref=0.1, units="rad/s")  # 0 angular velocity at the end
+        phase.add_boundary_constraint("theta_dot", loc="final", equals=0, ref=1.0, units="rad/s")  # 0 angular velocity at the end
         phase.add_boundary_constraint("f", loc="final", equals=0, ref=1.0, units="N")  # 0 force at the end
 
         # --- set objective function ---
         # we minimize the integral of force**2.
-        phase.add_objective("energy", loc="final", ref=100)
+        phase.add_objective("energy", loc="final", ref=1.0)
 
         # --- configure optimizer ---
         p.driver = om.pyOptSparseDriver()
