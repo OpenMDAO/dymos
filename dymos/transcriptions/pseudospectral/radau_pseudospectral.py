@@ -314,7 +314,7 @@ class Radau(PseudospectralBase):
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'parameter':
             rate_path = f'parameter_vals:{var}'
-            dynamic = phase.parameter_options[var]['dynamic']
+            dynamic = not phase.parameter_options[var]['static_target']
             if dynamic:
                 node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
             else:
@@ -362,6 +362,8 @@ class Radau(PseudospectralBase):
 
         # The default for node_idxs, applies to everything except states and parameters.
         node_idxs = gd.subset_node_indices['all']
+
+        static_target = False
 
         # Determine the path to the variable
         if var_type == 'time':
@@ -426,11 +428,8 @@ class Radau(PseudospectralBase):
             src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'
-            dynamic = phase.parameter_options[var]['dynamic']
-            if dynamic:
-                node_idxs = np.zeros(gd.subset_num_nodes['all'], dtype=int)
-            else:
-                node_idxs = np.zeros(1, dtype=int)
+            # Timeseries are never a static_target
+            node_idxs = np.zeros(gd.subset_num_nodes['all'], dtype=int)
             src_units = phase.parameter_options[var]['units']
             src_shape = phase.parameter_options[var]['shape']
         else:
