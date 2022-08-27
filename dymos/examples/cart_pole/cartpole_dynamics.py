@@ -70,7 +70,6 @@ class CartPoleDynamics(om.ExplicitComponent):
         # partials of outputs w.r.t. cart-pole parameters. We will use complex-step, but still declare the sparsity structure.
         # NOTE: since the cart-pole parameters are fixed during optimization, these partials are not necessary to declare.
         self.declare_partials(of=["*"], wrt=["m_cart", "m_pole", "l_pole"], method="cs", rows=np.arange(nn), cols=np.zeros(nn))
-        self.declare_coloring(wrt=["m_cart", "m_pole", "l_pole"], method="cs", show_summary=False)
         self.set_check_partial_options(wrt=["m_cart", "m_pole", "l_pole"], method="fd", step=1e-7)
 
     def compute(self, inputs, outputs):
