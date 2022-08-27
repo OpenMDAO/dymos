@@ -581,8 +581,8 @@ class GaussLobatto(PseudospectralBase):
             # Failed to find variable, assume it is in the ODE
             path = f'interleave_comp.all_values:{output_name}'
             src_shape, src_units, src_tags = get_source_metadata(ode_outputs, src=var)
-            if 'dymos.no_timeseries' in src_tags:
-                raise RuntimeError(f'ODE output {var} is tagged with "dymos.no_timeseries" and cannot be a timeseries output.')
+            if 'dymos.static_output' in src_tags:
+                raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" and cannot be a timeseries output.')
 
         src_idxs = om.slicer[node_idxs, ...]
 

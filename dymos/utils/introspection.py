@@ -615,7 +615,7 @@ def configure_timeseries_output_glob_expansion(phase):
                 matching_outputs = filter_outputs(output_name, ode_outputs)
 
                 for op, meta in matching_outputs.items():
-                    if op not in explicit_requests and 'dymos.no_timeseries' not in meta['tags']:
+                    if op not in explicit_requests and 'dymos.static_output' not in meta['tags']:
                         new_output = TimeseriesOutputOptionsDictionary()
                         new_output['name'] = op
                         new_output['output_name'] = opname = op.split('.')[-1]
@@ -624,7 +624,8 @@ def configure_timeseries_output_glob_expansion(phase):
                         if opname in explicit_requests:
                             pass
                         elif opname in new_outputs:
-                            raise RuntimeError(f'The glob pattern `{output_name}` matches multiple outputs in the ODE.\n'
+                            raise RuntimeError(f'{phase.pathname}: The glob pattern `{output_name}` matches multiple '
+                                               f'outputs in the ODE.\n'
                                                f'Add these outputs explicitly with unique output names using the\n'
                                                f'output_name argument to avoid this error.\n'
                                                f'Colliding names: {op}  {new_outputs[opname]["name"]}')
@@ -655,7 +656,6 @@ def configure_timeseries_output_introspection(phase):
             output_meta = transcription._get_timeseries_var_source(output_options['name'],
                                                                    output_options['output_name'],
                                                                    phase=phase)
-
             output_options['src'] = output_meta['src']
             output_options['src_idxs'] = output_meta['src_idxs']
 

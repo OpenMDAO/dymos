@@ -21,7 +21,7 @@ class TestCartPoleOptimization(unittest.TestCase):
         traj = dm.Trajectory()
         p.model.add_subsystem("traj", traj)
         phase = dm.Phase(
-            transcription=dm.GaussLobatto(num_segments=40, order=3, compressed=True, solve_segments=False),
+            transcription=dm.GaussLobatto(num_segments=200, order=3, compressed=False, solve_segments=False),
             ode_class=CartPoleDynamics,
         )
         # NOTE: set solve_segments=True to do solver-based shooting
@@ -64,10 +64,10 @@ class TestCartPoleOptimization(unittest.TestCase):
         # IPOPT options
         p.driver.opt_settings['mu_init'] = 1e-1
         p.driver.opt_settings['max_iter'] = 600
-        p.driver.opt_settings['constr_viol_tol'] = 1e-6
-        p.driver.opt_settings['compl_inf_tol'] = 1e-6
-        p.driver.opt_settings['tol'] = 1e-5
-        p.driver.opt_settings['print_level'] = 0
+        p.driver.opt_settings['constr_viol_tol'] = 1e-8
+        p.driver.opt_settings['compl_inf_tol'] = 1e-8
+        p.driver.opt_settings['tol'] = 1e-8
+        p.driver.opt_settings['print_level'] = 5
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
         p.driver.opt_settings['mu_strategy'] = 'monotone'
@@ -91,12 +91,28 @@ class TestCartPoleOptimization(unittest.TestCase):
         p.set_val("traj.phase.controls:f", phase.interp(xs=[0, 1, 2], ys=[3, -1, 0], nodes="control_input"), units="N")
 
         # --- run optimization ---
-        dm.run_problem(p, run_driver=True, simulate=False, simulate_kwargs={"method": "Radau", "times_per_seg": 10})
+        dm.run_problem(p, run_driver=True, simulate=True, refine_iteration_limit=0)
 
         # --- check outputs ---
         # objective value
         obj = p.get_val("traj.phase.states:energy", units="N**2*s")[-1]
-        assert_near_equal(obj, 58.8839489745, tolerance=1e-3)
+        # assert_near_equal(obj, 58.8839489745, tolerance=1e-3)
+
+        import matplotlib.pyplot as plt
+        sol_case = om.CaseReader('dymos_solution.db').get_case('final')
+        sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
+        t_sol = sol_case.get_val('traj.phase.timeseries.time')
+        t_sim = sim_case.get_val('traj.phase.timeseries.time')
+        for var in ['states:x', 'states:x_dot', 'states:theta', 'states:theta_dot', 'states:energy', 'controls:f',
+                    'parameters:m_cart', 'parameters:m_pole', 'parameters:l_pole']:
+            y_sol = sol_case.get_val(f'traj.phase.timeseries.{var}')
+            y_sim = sim_case.get_val(f'traj.phase.timeseries.{var}')
+            fig = plt.figure()
+            fig.suptitle(var)
+            plt.plot(t_sol, y_sol, 'o')
+            plt.plot(t_sim, y_sim, '-')
+
+        plt.show()
 
 
 if __name__ == "___main__":

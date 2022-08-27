@@ -343,14 +343,11 @@ class Radau(PseudospectralBase):
 
         Returns
         -------
-        str
-            Path to the variable source relative to the phase.
-        ndarray
-            Array of source indices.
-        src_units
-            The units of the variable.
-        src_shape
-            The shape of the variable, ignoring a dimension for the nodes.
+        meta : dict
+            Metadata pertaining to the variable at the given path. This dict contains 'src' (the path to the
+            timeseries source), 'src_idxs' (an array of the
+            source indices), 'units' (the units of the source variable), and 'shape' (the shape of the variable at
+            a given node).
         """
         gd = self.grid_data
         var_type = phase.classify_var(var)
@@ -363,7 +360,7 @@ class Radau(PseudospectralBase):
         # The default for node_idxs, applies to everything except states and parameters.
         node_idxs = gd.subset_node_indices['all']
 
-        static_target = False
+        meta = {}
 
         # Determine the path to the variable
         if var_type == 'time':
@@ -436,12 +433,17 @@ class Radau(PseudospectralBase):
             # Failed to find variable, assume it is in the ODE
             path = f'rhs_all.{var}'
             src_shape, src_units, src_tags = get_source_metadata(ode_outputs, src=var)
-            if 'dymos.no_timeseries' in src_tags:
-                raise RuntimeError(f'ODE output {var} is tagged with "dymos.no_timeseries" and cannot be a timeseries output.')
+            if 'dymos.static_output' in src_tags:
+                raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" and cannot be a timeseries output.')
 
         src_idxs = om.slicer[node_idxs, ...]
 
-        return path, src_idxs, src_units, src_shape
+        meta['src'] = path
+        meta['src_idxs'] = src_idxs
+        meta['units'] = src_units
+        meta['shape'] = src_shape
+
+        return meta
 
     def get_parameter_connections(self, name, phase):
         """

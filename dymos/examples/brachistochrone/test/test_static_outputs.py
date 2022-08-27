@@ -41,7 +41,7 @@ class BrachODEStaticOutput(om.ExplicitComponent):
                         units='m/s')
 
         self.add_output('foo', val=np.eye(2), desc='a static matrix to be output', units='m/s**2',
-                        tags=['dymos.no_timeseries'])
+                        tags=['dymos.static_output'])
 
         self.declare_partials(of='*', wrt='*', method='cs')
         self.declare_coloring(wrt='*', method='cs', show_summary=True, show_sparsity=True)

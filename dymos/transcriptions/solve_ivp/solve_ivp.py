@@ -749,20 +749,16 @@ class SolveIVP(TranscriptionBase):
             src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'
-            dynamic = phase.parameter_options[var]['dynamic']
-            if dynamic:
-                num_seg = self.grid_data.num_segments
-                node_idxs = np.zeros(num_seg * self.options['output_nodes_per_seg'], dtype=int)
-            else:
-                node_idxs = np.zeros(1, dtype=int)
+            num_seg = self.grid_data.num_segments
+            node_idxs = np.zeros(num_seg * self.options['output_nodes_per_seg'], dtype=int)
             src_units = phase.parameter_options[var]['units']
             src_shape = phase.parameter_options[var]['shape']
         else:
             # Failed to find variable, assume it is in the ODE
             path = f'ode.{var}'
             src_shape, src_units, src_tags = get_source_metadata(ode_outputs, src=var)
-            if 'dymos.static' in src_tags:
-                raise RuntimeError(f'ODE output {var} is tagged with "dymos.no_timeseries" and cannot be a '
+            if 'dymos.static_output' in src_tags:
+                raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" and cannot be a '
                                    f'timeseries output.')
 
         src_idxs = None if node_idxs is None else om.slicer[node_idxs, ...]
