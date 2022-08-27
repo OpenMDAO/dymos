@@ -652,14 +652,18 @@ def configure_timeseries_output_introspection(phase):
     for ts_name, ts_opts in phase._timeseries.items():
 
         for output_name, output_options in ts_opts['outputs'].items():
-            output_options['src'], output_options['src_idxs'], src_units, src_shape = \
-                transcription._get_timeseries_var_source(output_options['name'], output_options['output_name'], phase=phase)
-    
+            output_meta = transcription._get_timeseries_var_source(output_options['name'],
+                                                                   output_options['output_name'],
+                                                                   phase=phase)
+
+            output_options['src'] = output_meta['src']
+            output_options['src_idxs'] = output_meta['src_idxs']
+
             if output_options['shape'] in (None, _unspecified):
-                output_options['shape'] = src_shape
+                output_options['shape'] = output_meta['shape']
     
             if output_options['units'] is _unspecified:
-                output_options['units'] = src_units
+                output_options['units'] = output_meta['units']
 
 
 def filter_outputs(patterns, sys):

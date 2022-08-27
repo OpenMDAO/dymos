@@ -510,14 +510,11 @@ class GaussLobatto(PseudospectralBase):
 
         Returns
         -------
-        str
-            Path to the variable source relative to the phase.
-        ndarray
-            Array of source indices.
-        src_units
-            The units of the variable.
-        src_shape
-            The shape of the variable, ignoring a dimension for the nodes.
+        meta : dict
+            Metadata pertaining to the variable at the given path. This dict contains 'src' (the path to the
+            timeseries source), 'src_idxs' (an array of the
+            source indices), 'units' (the units of the source variable), and 'shape' (the shape of the variable at
+            a given node).
         """
         gd = self.grid_data
         var_type = phase.classify_var(var)
@@ -529,6 +526,7 @@ class GaussLobatto(PseudospectralBase):
 
         # The default for node_idxs, applies to everything except states and parameters.
         node_idxs = gd.subset_node_indices['all']
+        meta = {}
 
         # Determine the path to the variable
         if var_type == 'time':
@@ -576,11 +574,7 @@ class GaussLobatto(PseudospectralBase):
             src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'
-            dynamic = phase.parameter_options[var]['dynamic']
-            if dynamic:
-                node_idxs = np.zeros(gd.subset_num_nodes['all'], dtype=int)
-            else:
-                node_idxs = np.zeros(1, dtype=int)
+            node_idxs = np.zeros(gd.subset_num_nodes['all'], dtype=int)
             src_units = phase.parameter_options[var]['units']
             src_shape = phase.parameter_options[var]['shape']
         else:
@@ -592,7 +586,12 @@ class GaussLobatto(PseudospectralBase):
 
         src_idxs = om.slicer[node_idxs, ...]
 
-        return path, src_idxs, src_units, src_shape
+        meta['src'] = path
+        meta['src_idxs'] = src_idxs
+        meta['units'] = src_units
+        meta['shape'] = src_shape
+
+        return meta
 
     def get_parameter_connections(self, name, phase):
         """

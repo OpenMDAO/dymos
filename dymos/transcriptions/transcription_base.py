@@ -337,6 +337,8 @@ class TranscriptionBase(object):
                 shape = ts_output['shape']
                 src = ts_output['src']
 
+                print('adding timeseries output', name, src)
+
                 added_src = timeseries_comp._add_output_configure(name,
                                                                   shape=shape,
                                                                   units=units,

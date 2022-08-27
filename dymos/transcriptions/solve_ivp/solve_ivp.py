@@ -508,49 +508,50 @@ class SolveIVP(TranscriptionBase):
 
         phase.add_subsystem('timeseries', subsys=timeseries_comp)
 
-    def configure_timeseries_outputs(self, phase):
-        """
-        Create connections from time series to all post-introspection sources.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        timeseries_comp = phase._get_subsystem('timeseries')
-
-        for ts_output_name, ts_output in phase._timeseries['timeseries']['outputs'].items():
-            name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
-            if options['include_timeseries']:
-                phase.timeseries._add_output_configure(prom_name,
-                                                       desc='',
-                                                       shape=options['shape'],
-                                                       units=options['units'])
-
-                if output_nodes_per_seg is None:
-                    src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                else:
-                    src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape']).ravel()
-
-                phase.connect(f'parameter_vals:{name}', f'timeseries.all_values:parameters:{name}',
-                              src_indices=src_idxs, flat_src_indices=True)
-
-        for output_name, ts_output in phase._timeseries['timeseries']['outputs'].items():
-            var = ts_output['name']
-            units = ts_output['units']
-            shape = ts_output['shape']
-            src = ts_output['src']
-            src_idxs = ts_output['src_idxs']
-
-            added_src = timeseries_comp._add_output_configure(name,
-                                                              shape=shape,
-                                                              units=units,
-                                                              desc='',
-                                                              src=src)
-
-            if added_src:
-                phase.connect(src_name=src, tgt_name=f'timeseries.input_values:{name}', src_indices=src_idxs)
+    # def configure_timeseries_outputs(self, phase):
+    #     """
+    #     Create connections from time series to all post-introspection sources.
+    #
+    #     Parameters
+    #     ----------
+    #     phase : dymos.Phase
+    #         The phase object to which this transcription instance applies.
+    #     """
+    #     timeseries_comp = phase._get_subsystem('timeseries')
+    #
+    #     for param_name in phase.parameter_options:
+    #         for ts_output_name, ts_output in phase._timeseries['timeseries']['outputs'].items():
+    #             name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
+    #             if ts_output['include_timeseries']:
+    #                 phase.timeseries._add_output_configure(prom_name,
+    #                                                        desc='',
+    #                                                        shape=options['shape'],
+    #                                                        units=options['units'])
+    #
+    #                 if output_nodes_per_seg is None:
+    #                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+    #                 else:
+    #                     src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
+    #                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape']).ravel()
+    #
+    #                 phase.connect(f'parameter_vals:{name}', f'timeseries.all_values:parameters:{name}',
+    #                               src_indices=src_idxs, flat_src_indices=True)
+    #
+    #     for output_name, ts_output in phase._timeseries['timeseries']['outputs'].items():
+    #         var = ts_output['name']
+    #         units = ts_output['units']
+    #         shape = ts_output['shape']
+    #         src = ts_output['src']
+    #         src_idxs = ts_output['src_idxs']
+    #
+    #         added_src = timeseries_comp._add_output_configure(name,
+    #                                                           shape=shape,
+    #                                                           units=units,
+    #                                                           desc='',
+    #                                                           src=src)
+    #
+    #         if added_src:
+    #             phase.connect(src_name=src, tgt_name=f'timeseries.input_values:{name}', src_indices=src_idxs)
 
 
     def get_parameter_connections(self, name, phase):
@@ -684,14 +685,11 @@ class SolveIVP(TranscriptionBase):
 
         Returns
         -------
-        str
-            Path to the variable source relative to the phase.
-        ndarray
-            Array of source indices.
-        src_units
-            The units of the variable.
-        src_shape
-            The shape of the variable, ignoring a dimension for the nodes.
+        meta : dict
+            Metadata pertaining to the variable at the given path. This dict contains 'src' (the path to the
+            timeseries source), 'src_idxs' (an array of the
+            source indices), 'units' (the units of the source variable), and 'shape' (the shape of the variable at
+            a given node).
         """
         gd = self.grid_data
         var_type = phase.classify_var(var)
@@ -703,6 +701,7 @@ class SolveIVP(TranscriptionBase):
 
         # The default for node_idxs, applies to everything except states and parameters.
         node_idxs = None
+        meta = {}
 
         # Determine the path to the variable
         if var_type == 'time':
@@ -768,4 +767,9 @@ class SolveIVP(TranscriptionBase):
 
         src_idxs = None if node_idxs is None else om.slicer[node_idxs, ...]
 
-        return path, src_idxs, src_units, src_shape
+        meta['src'] = path
+        meta['src_idxs'] = src_idxs
+        meta['units'] = src_units
+        meta['shape'] = src_shape
+
+        return meta

@@ -25,13 +25,14 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         """
         Define the independent variables as output variables.
         """
-        grid_data = self.options['input_grid_data']
-        if self.options['output_nodes_per_seg'] is None:
-            self.num_nodes = grid_data.num_nodes
-        else:
-            self.num_nodes = grid_data.num_segments * self.options['output_nodes_per_seg']
+        igd = self.options['input_grid_data']
 
-        for (name, kwargs) in self._timeseries_outputs:
+        if self.options['output_nodes_per_seg'] is None:
+            self.output_num_nodes = self.input_num_nodes = igd.num_nodes
+        else:
+            self.output_num_nodes = self.input_num_nodes = igd.num_segments * self.options['output_nodes_per_seg']
+
+        for (name, kwargs) in self._vars:
             units = kwargs['units']
             desc = kwargs['units']
             shape = kwargs['shape']
@@ -63,12 +64,30 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         if rate:
             raise NotImplementedError("Timeseries output rates are not currently supported for "
                                       "SolveIVP transcriptions.")
+        input_num_nodes = self.input_num_nodes
+        output_num_nodes = self.output_num_nodes
+        added_source = False
 
-        nodeshape = (self.num_nodes,)
-        input_name = f'all_values:{name}'
+        input_name = f'input_values:{name}'
 
-        self.add_input(input_name, shape=nodeshape + shape,  units=units, desc=desc)
-        self.add_output(name, shape=nodeshape + shape, units=units, desc=desc)
+        if name in self._vars:
+            return False
+
+        if src in self._sources:
+            # If we're already pulling the source into this timeseries, use that as the
+            # input for this output.
+            input_name = self._sources[src]
+            input_units = self._units[input_name]
+        else:
+            input_name = f'input_values:{name}'
+            self.add_input(input_name,
+                           shape=(input_num_nodes,) + shape,
+                           units=units, desc=desc)
+            self._sources[src] = input_name
+            input_units = self._units[input_name] = units
+            added_source = True
+
+        self.add_output(name, shape=(self.output_num_nodes,) + shape, units=units, desc=desc)
 
         self._vars[name] = (input_name, name, shape, rate)
 
