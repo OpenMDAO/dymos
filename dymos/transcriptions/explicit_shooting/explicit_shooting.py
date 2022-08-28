@@ -667,7 +667,7 @@ class ExplicitShooting(TranscriptionBase):
         """
         return self.grid_data.subset_num_nodes['segment_ends']
 
-    def _get_timeseries_var_source(self, var, phase):
+    def _get_timeseries_var_source(self, var, output_name, phase):
         """
         Return the source path and indices for a given variable to be connected to a timeseries.
 
@@ -675,6 +675,8 @@ class ExplicitShooting(TranscriptionBase):
         ----------
         var : str
             Name of the timeseries variable whose source is desired.
+        output_name : str
+            Name of the timeseries output whose source is desired.
         phase : dymos.Phase
             Phase object containing the variable, either as state, time, control, etc., or as an ODE output.
 
