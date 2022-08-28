@@ -708,7 +708,10 @@ class SolveIVP(TranscriptionBase):
         else:
             # Failed to find variable, assume it is in the ODE
             path = f'ode.{var}'
-            src_shape, src_units, src_tags = get_source_metadata(ode_outputs, src=var)
+            meta = get_source_metadata(ode_outputs, src=var)
+            src_shape = meta['shape']
+            src_units = meta['units']
+            src_tags = meta['tags']
             if 'dymos.static_output' in src_tags:
                 raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" and cannot be a '
                                    f'timeseries output.')

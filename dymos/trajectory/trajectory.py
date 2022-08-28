@@ -557,9 +557,10 @@ class Trajectory(om.Group):
                 rhs_source = phases[i].options['transcription']._rhs_source
                 sources[i] = f'{rhs_source}.{vars[i]}'
                 try:
-                    shapes[i], units[i] = get_source_metadata(phases[i]._get_subsystem(rhs_source),
-                                                              vars[i], user_units=units[i],
-                                                              user_shape=_unspecified)
+                    meta = get_source_metadata(phases[i]._get_subsystem(rhs_source), vars[i], user_units=units[i],
+                                               user_shape=_unspecified)
+                    shapes[i] = meta['shape']
+                    units[i] = meta['units']
                 except RuntimeError as e:
                     raise RuntimeError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
                                        f'phase \'{phases[i].pathname}\' or its ODE.')

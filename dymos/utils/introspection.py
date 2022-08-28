@@ -265,11 +265,10 @@ def _configure_constraint_introspection(phase):
                 # Failed to find variable, assume it is in the ODE. This requires introspection.
                 ode = phase.options['transcription']._get_ode(phase)
 
-                shape, units, _ = get_source_metadata(ode, src=var,
-                                                      user_units=con['units'],
-                                                      user_shape=con['shape'])
-                con['shape'] = shape
-                con['units'] = units
+                meta = get_source_metadata(ode, src=var, user_units=con['units'], user_shape=con['shape'])
+
+                con['shape'] = meta['shape']
+                con['units'] = meta['units']
                 con['constraint_path'] = f'timeseries.{con["constraint_name"]}'
 
 
@@ -518,10 +517,10 @@ def configure_states_introspection(state_options, time_options, control_options,
             rate_src_units = get_rate_units(control['units'], time_units, deriv=2)
             rate_src_shape = control['shape']
         elif rate_src_type == 'ode':
-            rate_src_shape, rate_src_units, _ = get_source_metadata(ode_outputs,
-                                                                    src=rate_src,
-                                                                    user_units=options['units'],
-                                                                    user_shape=options['shape'])
+            meta = get_source_metadata(ode_outputs, src=rate_src,
+                                       user_units=options['units'], user_shape=options['shape'])
+            rate_src_shape = meta['shape']
+            rate_src_units = meta['units']
         else:
             rate_src_shape = (1,)
             rate_src_units = None
@@ -958,12 +957,8 @@ def get_source_metadata(ode, src, user_units=_unspecified, user_shape=_unspecifi
 
     Returns
     -------
-    shape : tuple
-        The shape of the variable.  If not specified, shape is taken from the ODE targets.
-    units : str
-        The units of the variable.  If not specified, units are taken from the ODE targets.
-    tags : Sequence of str
-        Any tags associated with the output.
+    meta : dict
+        A dictionary containing the metadata for the source. This consists of shape, units, and tags.
 
     Notes
     -----
@@ -971,20 +966,23 @@ def get_source_metadata(ode, src, user_units=_unspecified, user_shape=_unspecifi
     this method should be called from configure of some parent Group, and the ODE should
     be a system within that Group.
     """
+    meta = {}
     ode_outputs = ode if isinstance(ode, dict) else get_promoted_vars(ode, iotypes='output')
 
     if src not in ode_outputs:
         raise RuntimeError(f'Unable to find the source {src} in the ODE.')
 
     if user_units in {None, _unspecified}:
-        units = ode_outputs[src]['units']
+        meta['units'] = ode_outputs[src]['units']
     else:
-        units = user_units
+        meta['units'] = user_units
 
     if user_shape in {None, _unspecified}:
         ode_shape = ode_outputs[src]['shape']
-        shape = (1,) if len(ode_shape) == 1 else ode_shape[1:]
+        meta['shape'] = (1,) if len(ode_shape) == 1 else ode_shape[1:]
     else:
-        shape = user_shape
+        meta['shape'] = user_shape
 
-    return shape, units, ode_outputs[src]['tags']
+    meta['tags'] = ode_outputs[src]['tags']
+
+    return meta

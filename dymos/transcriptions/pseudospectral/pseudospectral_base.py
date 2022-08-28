@@ -599,7 +599,9 @@ class PseudospectralBase(TranscriptionBase):
         else:
             # Failed to find variable, assume it is in the ODE. This requires introspection.
             constraint_path = f'{self._rhs_source}.{var}'
-            shape, units = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
+            meta = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
+            shape = meta['shape']
+            units = meta['units']
             linear = False
 
         return constraint_path, shape, units, linear

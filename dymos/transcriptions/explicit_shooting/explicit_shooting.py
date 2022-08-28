@@ -621,10 +621,10 @@ class ExplicitShooting(TranscriptionBase):
                 ode = self._get_ode(phase)
             else:
                 ode = ode_outputs
-            shape, units = get_source_metadata(ode, var, user_units=None, user_shape=None)
+            meta = get_source_metadata(ode, var, user_units=None, user_shape=None)
             linear = False
 
-        return obj_path, shape, units, linear
+        return obj_path, meta['shape'], meta['units'], linear
 
     def _requires_continuity_constraints(self, phase):
         """
@@ -750,7 +750,10 @@ class ExplicitShooting(TranscriptionBase):
         else:
             # Failed to find variable, assume it is in the ODE
             path = f'ode.{var}'
-            src_shape, src_units, src_tags = get_source_metadata(ode_outputs, src=var)
+            meta = get_source_metadata(ode_outputs, src=var)
+            src_shape = meta['shape']
+            src_units = meta['units']
+            src_tags = meta['tags']
             if 'dymos.static_output' in src_tags:
                 raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" and cannot be a '
                                    f'timeseries output.')
@@ -763,80 +766,3 @@ class ExplicitShooting(TranscriptionBase):
         meta['shape'] = src_shape
 
         return meta
-
-
-        # time_units = phase.time_options['units']
-        # var_type = phase.classify_var(var)
-        #
-        # if var_type == 'time':
-        #     shape = (1,)
-        #     units = time_units
-        #     linear = True
-        #     if loc == 'initial':
-        #         obj_path = 't_initial'
-        #     else:
-        #         obj_path = 'integrator.t_final'
-        # elif var_type == 'time_phase':
-        #     shape = (1,)
-        #     units = time_units
-        #     linear = True
-        #     obj_path = 'integrator.time_phase'
-        # elif var_type == 'state':
-        #     shape = phase.state_options[var]['shape']
-        #     units = phase.state_options[var]['units']
-        #     linear = loc == 'initial'
-        #     obj_path = f'integrator.states_out:{var}'
-        # elif var_type == 'indep_control':
-        #     shape = phase.control_options[var]['shape']
-        #     units = phase.control_options[var]['units']
-        #     linear = True
-        #     obj_path = f'control_values:{var}'
-        # elif var_type == 'input_control':
-        #     shape = phase.control_options[var]['shape']
-        #     units = phase.control_options[var]['units']
-        #     linear = False
-        #     obj_path = f'control_values:{var}'
-        # elif var_type == 'indep_polynomial_control':
-        #     shape = phase.polynomial_control_options[var]['shape']
-        #     units = phase.polynomial_control_options[var]['units']
-        #     linear = True
-        #     obj_path = f'polynomial_control_values:{var}'
-        # elif var_type == 'input_polynomial_control':
-        #     shape = phase.polynomial_control_options[var]['shape']
-        #     units = phase.polynomial_control_options[var]['units']
-        #     linear = False
-        #     obj_path = f'polynomial_control_values:{var}'
-        # elif var_type == 'parameter':
-        #     shape = phase.parameter_options[var]['shape']
-        #     units = phase.parameter_options[var]['units']
-        #     linear = True
-        #     obj_path = f'parameter_vals:{var}'
-        # elif var_type in ('control_rate', 'control_rate2'):
-        #     control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
-        #     shape = phase.control_options[control_var]['shape']
-        #     control_units = phase.control_options[control_var]['units']
-        #     d = 2 if var_type == 'control_rate2' else 1
-        #     control_rate_units = get_rate_units(control_units, time_units, deriv=d)
-        #     units = control_rate_units
-        #     linear = False
-        #     obj_path = f'control_rates:{var}'
-        # elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
-        #     control_var = var[:-5]
-        #     shape = phase.polynomial_control_options[control_var]['shape']
-        #     control_units = phase.polynomial_control_options[control_var]['units']
-        #     d = 2 if var_type == 'polynomial_control_rate2' else 1
-        #     control_rate_units = get_rate_units(control_units, time_units, deriv=d)
-        #     units = control_rate_units
-        #     linear = False
-        #     obj_path = f'polynomial_control_rates:{var}'
-        # else:
-        #     # Failed to find variable, assume it is in the ODE. This requires introspection.
-        #     raise NotImplementedError('cannot yet constrain/optimize an ODE output using explicit shooting')
-        #     obj_path = f'{self._rhs_source}.{var}'
-        #     if ode_outputs is None:
-        #         ode = self._get_ode(phase)
-        #     else:
-        #         ode = ode_outputs
-        #     shape, units = get_source_metadata(ode, var, user_units=None, user_shape=None)
-        #     linear = False
-        #
