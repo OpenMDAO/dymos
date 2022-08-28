@@ -508,52 +508,6 @@ class SolveIVP(TranscriptionBase):
 
         phase.add_subsystem('timeseries', subsys=timeseries_comp)
 
-    # def configure_timeseries_outputs(self, phase):
-    #     """
-    #     Create connections from time series to all post-introspection sources.
-    #
-    #     Parameters
-    #     ----------
-    #     phase : dymos.Phase
-    #         The phase object to which this transcription instance applies.
-    #     """
-    #     timeseries_comp = phase._get_subsystem('timeseries')
-    #
-    #     for param_name in phase.parameter_options:
-    #         for ts_output_name, ts_output in phase._timeseries['timeseries']['outputs'].items():
-    #             name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
-    #             if ts_output['include_timeseries']:
-    #                 phase.timeseries._add_output_configure(prom_name,
-    #                                                        desc='',
-    #                                                        shape=options['shape'],
-    #                                                        units=options['units'])
-    #
-    #                 if output_nodes_per_seg is None:
-    #                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-    #                 else:
-    #                     src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
-    #                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape']).ravel()
-    #
-    #                 phase.connect(f'parameter_vals:{name}', f'timeseries.all_values:parameters:{name}',
-    #                               src_indices=src_idxs, flat_src_indices=True)
-    #
-    #     for output_name, ts_output in phase._timeseries['timeseries']['outputs'].items():
-    #         var = ts_output['name']
-    #         units = ts_output['units']
-    #         shape = ts_output['shape']
-    #         src = ts_output['src']
-    #         src_idxs = ts_output['src_idxs']
-    #
-    #         added_src = timeseries_comp._add_output_configure(name,
-    #                                                           shape=shape,
-    #                                                           units=units,
-    #                                                           desc='',
-    #                                                           src=src)
-    #
-    #         if added_src:
-    #             phase.connect(src_name=src, tgt_name=f'timeseries.input_values:{name}', src_indices=src_idxs)
-
-
     def get_parameter_connections(self, name, phase):
         """
         Returns info about a parameter's target connections in the phase.
@@ -670,16 +624,14 @@ class SolveIVP(TranscriptionBase):
 
         return rate_path, node_idxs
 
-    def _get_timeseries_var_source(self, var, output_name, phase):
+    def _get_timeseries_var_source(self, var, phase):
         """
         Return the source path and indices for a given variable to be connected to a timeseries.
 
         Parameters
         ----------
         var : str
-            Name of the whose source is desired.
-        output_name : str
-            The name of the variable as it appears in the timeseries.
+            Name of the timeseries variable whose source is desired.
         phase : dymos.Phase
             Phase object containing the variable, either as state, time, control, etc., or as an ODE output.
 

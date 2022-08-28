@@ -654,7 +654,6 @@ def configure_timeseries_output_introspection(phase):
 
         for output_name, output_options in ts_opts['outputs'].items():
             output_meta = transcription._get_timeseries_var_source(output_options['name'],
-                                                                   output_options['output_name'],
                                                                    phase=phase)
             output_options['src'] = output_meta['src']
             output_options['src_idxs'] = output_meta['src_idxs']

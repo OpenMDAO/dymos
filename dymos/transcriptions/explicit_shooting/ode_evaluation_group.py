@@ -81,7 +81,7 @@ class ODEEvaluationGroup(om.Group):
         """
         gd = self.grid_data
 
-        # All states, controls, parameters, and polyomial controls need to exist
+        # All states, controls, parameters, and polynomial controls need to exist
         # in the ODE evaluation group regardless of whether or not they have targets in the ODE.
         # This makes taking the derivatives more consistent without Exceptions.
         self._ivc = self.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
