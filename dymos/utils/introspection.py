@@ -660,7 +660,7 @@ def configure_timeseries_output_introspection(phase):
 
             if output_options['shape'] in (None, _unspecified):
                 output_options['shape'] = output_meta['shape']
-    
+
             if output_options['units'] in (None, _unspecified):
                 output_options['units'] = output_meta['units']
 

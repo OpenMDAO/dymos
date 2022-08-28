@@ -570,7 +570,7 @@ class GaussLobatto(PseudospectralBase):
             control_name = var[:-6]
             path = f'polynomial_control_rates:{control_name}_rate2'
             control = phase.polynomial_control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=1)
+            src_units = get_rate_units(control['units'], time_units, deriv=2)
             src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'

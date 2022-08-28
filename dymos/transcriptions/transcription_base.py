@@ -207,9 +207,9 @@ class TranscriptionBase(object):
                     if f'polynomial_controls:{name}' not in ts_options['outputs']:
                         phase.add_timeseries_output(name, output_name=f'polynomial_controls:{name}')
                     if f'polynomial_control_rates:{name}_rate' not in ts_options['outputs']:
-                        phase.add_timeseries_output(name, output_name=f'polynomial_control_rates:{name}_rate')
+                        phase.add_timeseries_output(f'{name}_rate', output_name=f'polynomial_control_rates:{name}_rate')
                     if f'polynomial_control_rates:{name}_rate2' not in ts_options['outputs']:
-                        phase.add_timeseries_output(name, output_name=f'polynomial_control_rates:{name}_rate2')
+                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'polynomial_control_rates:{name}_rate2')
 
     def configure_polynomial_controls(self, phase):
         """
