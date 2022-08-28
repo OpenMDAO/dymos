@@ -167,7 +167,6 @@ class SolveIVP(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super().setup_states(phase)
         phase.add_subsystem('indep_states', om.IndepVarComp(),
                             promotes_outputs=['*'])
 
@@ -180,6 +179,7 @@ class SolveIVP(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        super().configure_states(phase)
         num_seg = self.grid_data.num_segments
 
         for state_name, options in phase.state_options.items():

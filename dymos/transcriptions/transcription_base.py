@@ -60,8 +60,7 @@ class TranscriptionBase(object):
         """
         Setup the GridData object for the Transcription.
         """
-        raise NotImplementedError('Transcription {0} does not implement method'
-                                  'init_grid.'.format(self.__class__.__name__))
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method init_grid.')
 
     def setup_time(self, phase):
         """
@@ -282,6 +281,9 @@ class TranscriptionBase(object):
                         phase.connect(f'parameter_vals:{name}', tgts)
 
     def setup_states(self, phase):
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_states.')
+
+    def configure_states(self, phase):
         """
         Setup the states for this transcription.
 
@@ -295,7 +297,7 @@ class TranscriptionBase(object):
                 if f'states:{name}' not in ts_options['outputs']:
                     phase.add_timeseries_output(name, output_name=f'states:{name}')
                 if f'state_rates:{name}' not in ts_options['outputs']:
-                    phase.add_timeseries_output(options['rate_source'], output_name=f'state_rates:{name}')
+                    phase.add_timeseries_output(name=options['rate_source'], output_name=f'state_rates:{name}')
 
     def setup_ode(self, phase):
         """
@@ -306,8 +308,7 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        raise NotImplementedError('Transcription {0} does not implement method '
-                                  'setup_ode.'.format(self.__class__.__name__))
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_ode.')
 
     def setup_timeseries_outputs(self, phase):
         """
@@ -318,8 +319,8 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        raise NotImplementedError('Transcription {0} does not implement method '
-                                  'setup_timeseries_outputs.'.format(self.__class__.__name__))
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
+                                  f'setup_timeseries_outputs.')
 
     def configure_timeseries_outputs(self, phase):
         """
@@ -579,8 +580,8 @@ class TranscriptionBase(object):
             A list containing a tuple of target paths and corresponding src_indices to which the
             given design variable is to be connected.
         """
-        raise NotImplementedError('Transcription {0} does not implement method '
-                                  'get_parameter_connections.'.format(self.__class__.__name__))
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method'
+                                  f'get_parameter_connections.')
 
     def is_static_ode_output(self, var, phase, num_nodes):
         """

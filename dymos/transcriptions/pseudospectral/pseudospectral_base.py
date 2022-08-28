@@ -78,8 +78,6 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super().setup_states(phase)
-
         grid_data = self.grid_data
 
         self.any_solved_segs = False
@@ -132,6 +130,7 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        super().configure_states(phase)
         grid_data = self.grid_data
         num_state_input_nodes = grid_data.subset_num_nodes['state_input']
         indep = phase.indep_states

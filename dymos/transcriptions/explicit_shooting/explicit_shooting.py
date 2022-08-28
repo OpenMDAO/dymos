@@ -125,6 +125,7 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        super().configure_states(phase)
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_states_io()
 
