@@ -76,18 +76,15 @@ class TestTimeseriesOutput(unittest.TestCase):
                           p.get_val('phase0.timeseries.time_phase')[:, 0])
 
         for state in ('x', 'y', 'v'):
-            assert_near_equal(p.get_val('phase0.states:{0}'.format(state)),
-                              p.get_val('phase0.timeseries.states:'
-                                        '{0}'.format(state))[state_input_idxs])
+            assert_near_equal(p.get_val(f'phase0.states:{state}'),
+                              p.get_val(f'phase0.timeseries.states:{state}')[state_input_idxs])
 
-            assert_near_equal(p.get_val('phase0.state_interp.state_col:{0}'.format(state)),
-                              p.get_val('phase0.timeseries.states:'
-                                        '{0}'.format(state))[col_idxs])
+            assert_near_equal(p.get_val(f'phase0.state_interp.state_col:{state}'),
+                              p.get_val(f'phase0.timeseries.states:{state}')[col_idxs])
 
         for control in ('theta',):
-            assert_near_equal(p.get_val('phase0.controls:{0}'.format(control)),
-                              p.get_val('phase0.timeseries.controls:'
-                                        '{0}'.format(control))[control_input_idxs])
+            assert_near_equal(p.get_val(f'phase0.controls:{control}'),
+                              p.get_val(f'phase0.timeseries.controls:{control}')[control_input_idxs])
 
         for dp in ('g',):
             for i in range(gd.subset_num_nodes['all']):
@@ -102,9 +99,9 @@ class TestTimeseriesOutput(unittest.TestCase):
         exp_out = phase.simulate()
         if test_smaller_timeseries:
             with self.assertRaises(KeyError):
-                exp_out.get_val('phase0.timeseries.parameters:{0}'.format(dp))
+                exp_out.get_val(f'phase0.timeseries.parameters:{dp}')
         else:  # no error accessing timseries.parameter
-            exp_out.get_val('phase0.timeseries.parameters:{0}'.format(dp))
+            exp_out.get_val(f'phase0.timeseries.parameters:{dp}')
 
     def test_timeseries_gl_smaller_timeseries(self):
         self.test_timeseries_gl(test_smaller_timeseries=True)
@@ -165,44 +162,41 @@ class TestTimeseriesOutput(unittest.TestCase):
                           p.get_val('phase0.timeseries.time_phase')[:, 0])
 
         for state in ('x', 'y', 'v'):
-            assert_near_equal(p.get_val('phase0.states:{0}'.format(state)),
-                              p.get_val('phase0.timeseries.states:'
-                                        '{0}'.format(state))[state_input_idxs])
+            assert_near_equal(p.get_val(f'phase0.states:{state}'),
+                              p.get_val(f'phase0.timeseries.states:{state}')[state_input_idxs])
 
         for control in ('theta',):
-            assert_near_equal(p.get_val('phase0.controls:{0}'.format(control)),
-                              p.get_val('phase0.timeseries.controls:'
-                                        '{0}'.format(control))[control_input_idxs])
+            assert_near_equal(p.get_val(f'phase0.controls:{control}'),
+                              p.get_val(f'phase0.timeseries.controls:{control}')[control_input_idxs])
 
         for dp in ('g',):
             for i in range(gd.subset_num_nodes['all']):
                 if test_smaller_timeseries:
                     with self.assertRaises(KeyError):
-                        p.get_val('phase0.timeseries.parameters:{0}'.format(dp))
+                        p.get_val(f'phase0.timeseries.parameters:{dp}')
                 else:
-                    assert_near_equal(p.get_val('phase0.parameters:{0}'.format(dp))[0],
-                                      p.get_val('phase0.timeseries.parameters:'
-                                                '{0}'.format(dp))[i])
+                    assert_near_equal(p.get_val(f'phase0.parameters:{dp}')[0],
+                                      p.get_val(f'phase0.timeseries.parameters:{dp}')[i])
 
         # call simulate to test SolveIVP transcription
         exp_out = phase.simulate()
         if test_smaller_timeseries:
             with self.assertRaises(KeyError):
-                exp_out.get_val('phase0.timeseries.parameters:{0}'.format(dp))
+                exp_out.get_val(f'phase0.timeseries.parameters:{dp}')
         else:  # no error accessing timseries.parameter
-            exp_out.get_val('phase0.timeseries.parameters:{0}'.format(dp))
+            exp_out.get_val(f'phase0.timeseries.parameters:{dp}')
 
         # Test that the state rates are output in both the radau and solveivp timeseries outputs
         t_sol = p.get_val('phase0.timeseries.time')
         t_sim = exp_out.get_val('phase0.timeseries.time')
 
-        # for state_name in ('x', 'y', 'v'):
-        #     rate_sol = p.get_val(f'phase0.timeseries.state_rates:{state_name}')
-        #     rate_sim = exp_out.get_val(f'phase0.timeseries.state_rates:{state_name}')
-        #
-        #     rate_t_sim = interp1d(t_sim.ravel(), rate_sim.ravel())
-        #
-        #     assert_near_equal(rate_t_sim(t_sol), rate_sol, tolerance=1.0E-3)
+        for state_name in ('x', 'y', 'v'):
+            rate_sol = p.get_val(f'phase0.timeseries.state_rates:{state_name}')
+            rate_sim = exp_out.get_val(f'phase0.timeseries.state_rates:{state_name}')
+
+            rate_t_sim = interp1d(t_sim.ravel(), rate_sim.ravel())
+
+            assert_near_equal(rate_t_sim(t_sol), rate_sol, tolerance=1.0E-3)
 
     def test_timeseries_radau_smaller_timeseries(self):
         self.test_timeseries_radau(test_smaller_timeseries=True)

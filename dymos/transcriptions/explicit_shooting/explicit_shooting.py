@@ -623,9 +623,11 @@ class ExplicitShooting(TranscriptionBase):
             else:
                 ode = ode_outputs
             meta = get_source_metadata(ode, var, user_units=None, user_shape=None)
+            shape = meta['shape']
+            units = meta['units']
             linear = False
 
-        return obj_path, meta['shape'], meta['units'], linear
+        return obj_path, shape, units, linear
 
     def _requires_continuity_constraints(self, phase):
         """

@@ -143,7 +143,9 @@ class ParameterComp(ExplicitComponent):
 
         if np.ndim(val) == 0 or val.shape == (1,):
             in_val = np.full(_shape, val)
-            out_val = np.expand_dims(in_val, axis=0)
+        else:
+            in_val = val
+        out_val = np.expand_dims(in_val, axis=0)
 
         i_meta = self.add_input(name=f'parameters:{name}', val=in_val, shape=_shape, units=units, desc=desc,
                                 src_indices=src_indices, flat_src_indices=flat_src_indices, tags=tags + input_tags,
