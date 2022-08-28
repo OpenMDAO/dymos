@@ -8,7 +8,7 @@ from .common import ControlGroup, PolynomialControlGroup, ParameterComp
 from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.misc import _unspecified
-from ..utils.introspection import get_promoted_vars, get_target_metadata
+from ..utils.introspection import get_promoted_vars, get_rate_units, get_target_metadata
 
 
 class TranscriptionBase(object):
@@ -294,6 +294,10 @@ class TranscriptionBase(object):
             for ts_name, ts_options in phase._timeseries.items():
                 if f'states:{name}' not in ts_options['outputs']:
                     phase.add_timeseries_output(name, output_name=f'states:{name}')
+                rate_units = get_rate_units(options['units'], phase.time_options['units'], deriv=1)
+                if f'state_rates:{name}' not in ts_options['outputs']:
+                    phase.add_timeseries_output(options['rate_source'], output_name=f'state_rates:{name}',
+                                                units=rate_units)
 
     def setup_ode(self, phase):
         """

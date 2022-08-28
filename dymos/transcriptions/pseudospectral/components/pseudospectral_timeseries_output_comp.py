@@ -204,7 +204,6 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
                 if len(inp.shape) > 2:
                     # Dot product always performs the sum product over axis 2.
                     inp = inp.swapaxes(0, 1)
-
                 interp_vals = self.interpolation_matrix.dot(inp)
 
             if is_rate:

@@ -1,3 +1,4 @@
+from openmdao.utils.units import unit_conversion
 from dymos.transcriptions.common.timeseries_output_comp import TimeseriesOutputCompBase
 
 
@@ -68,8 +69,6 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         output_num_nodes = self.output_num_nodes
         added_source = False
 
-        input_name = f'input_values:{name}'
-
         if name in self._vars:
             return False
 
@@ -87,11 +86,20 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
             input_units = self._units[input_name] = units
             added_source = True
 
-        self.add_output(name, shape=(self.output_num_nodes,) + shape, units=units, desc=desc)
+        output_name = name
+        self.add_output(output_name, shape=(output_num_nodes,) + shape, units=units, desc=desc)
 
-        self._vars[name] = (input_name, name, shape, rate)
+        self._vars[name] = (input_name, output_name, shape, rate)
 
-        return True
+        # There's a chance that the input for this output was pulled from another variable with
+        # different units, so account for that with a conversion.
+        if input_units is None or units is None:
+            pass
+        else:
+            scale, offset = unit_conversion(input_units, units)
+            self._conversion_factors[output_name] = scale, offset
+
+        return added_source
 
     def compute(self, inputs, outputs):
         """
@@ -104,4 +112,14 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        outputs.set_val(inputs.asarray())
+        for (input_name, output_name, _, is_rate) in self._vars.values():
+            input_vals = inputs[input_name]
+
+            # if is_rate:
+            #     interp_vals = self.differentiation_matrix.dot(interp_vals) / dt_dstau
+
+            if output_name in self._conversion_factors:
+                scale, offset = self._conversion_factors[output_name]
+                outputs[output_name] = scale * (input_vals + offset)
+            else:
+                outputs[output_name] = input_vals

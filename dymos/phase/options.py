@@ -695,9 +695,5 @@ class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
         self.declare(name='val', types=bool, default=True,
                      desc='If True, include the value of this variable as a timeseries output.')
 
-        # self.declare(name='rate', types=bool, default=False,
-        #              desc='If True, include the approximate rate of this variable as a timeseries output. The name'
-        #                   'of the timeseries output will be {output_name}_rate.')
-
         self.declare(name='is_rate', default=False, allow_none=False,
                      desc='If True this is a rate.')

@@ -110,7 +110,6 @@ class SolveIVP(TranscriptionBase):
         grid_data = self.grid_data
         output_nodes_per_seg = self.options['output_nodes_per_seg']
         ode = self._get_ode(phase)
-        ode_inputs = get_promoted_vars(ode, 'input')
 
         phase.time.configure_io()
 
@@ -168,6 +167,7 @@ class SolveIVP(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        super().setup_states(phase)
         phase.add_subsystem('indep_states', om.IndepVarComp(),
                             promotes_outputs=['*'])
 
