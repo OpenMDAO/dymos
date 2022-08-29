@@ -3,8 +3,10 @@ import numpy as np
 from numpy.polynomial import Polynomial as P
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from dymos.utils.testing_utils import assert_timeseries_near_equal
 import dymos as dm
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
+
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
@@ -148,14 +150,26 @@ class TestMinTimeClimb(unittest.TestCase):
         ts = {k: v for k, v in output_dict.items() if 'timeseries.' in k}
         self.assertTrue('traj.phases.phase0.timeseries.mach_rate' in ts)
 
-        time = p['traj.phases.phase0.timeseries.time'][:, 0]
-        mach = p['traj.phases.phase0.timeseries.mach'][:, 0]
-        mach_rate = p['traj.phases.phase0.timeseries.mach_rate'][:, 0]
+        case = om.CaseReader('dymos_solution.db').get_case('final')
+
+        time = case['traj.phases.phase0.timeseries.time'][:, 0]
+        mach = case['traj.phases.phase0.timeseries.mach'][:, 0]
+        mach_rate = case['traj.phases.phase0.timeseries.mach_rate'][:, 0]
+
+        sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        sim_time = sim_case['traj.phases.phase0.timeseries.time'][:, 0]
+        sim_mach = sim_case['traj.phases.phase0.timeseries.mach'][:, 0]
+        sim_mach_rate = sim_case['traj.phases.phase0.timeseries.mach_rate'][:, 0]
 
         # Fit a numpy polynomial segment by segment to mach vs time, and compare the derivatives to mach_rate
         gd = p.model.traj.phases.phase0.options['transcription'].grid_data
         seg_idxs = gd.subset_segment_indices['all']
         num_seg = seg_idxs.shape[0]
+
+        sim_seg_idxs = np.zeros_like(seg_idxs)
+        sim_seg_idxs[:, 0] = np.arange(0, 10*num_seg, 10, dtype=int)
+        sim_seg_idxs[:, 1] = sim_seg_idxs[:, 0] + 10
 
         if plot:
             import matplotlib.pyplot as plt
@@ -176,6 +190,9 @@ class TestMinTimeClimb(unittest.TestCase):
             time_nodes = time[seg_idxs[i, 0]: seg_idxs[i, 1]]
             mach_nodes = mach[seg_idxs[i, 0]: seg_idxs[i, 1]]
             mach_rate_nodes = mach_rate[seg_idxs[i, 0]: seg_idxs[i, 1]]
+            sim_time_nodes = sim_time[sim_seg_idxs[i, 0]: sim_seg_idxs[i, 1]]
+            sim_mach_rate_nodes = sim_mach_rate[sim_seg_idxs[i, 0]: sim_seg_idxs[i, 1]]
+
 
             if plot:
                 c = next(color)
@@ -188,8 +205,18 @@ class TestMinTimeClimb(unittest.TestCase):
                 axes[0].plot(time[seg_idxs[i, 0]: seg_idxs[i, 1]], mach[seg_idxs[i, 0]: seg_idxs[i, 1]], 'o', c=c)
                 axes[1].plot(time[seg_idxs[i, 0]: seg_idxs[i, 1]], mach_rate[seg_idxs[i, 0]: seg_idxs[i, 1]], 'o', c=c)
 
+                axes[0].plot(sim_time[sim_seg_idxs[i, 0]: sim_seg_idxs[i, 1]],
+                             sim_mach[sim_seg_idxs[i, 0]: sim_seg_idxs[i, 1]], ':', c=c)
+                axes[1].plot(sim_time[sim_seg_idxs[i, 0]: sim_seg_idxs[i, 1]],
+                             sim_mach_rate[sim_seg_idxs[i, 0]: sim_seg_idxs[i, 1]], ':', c=c)
+
             assert_near_equal(mach_nodes, p(time_nodes), tolerance=1.0E-9)
             assert_near_equal(mach_rate_nodes, deriv(time_nodes), tolerance=1.0E-9)
+
+        # Comparing the mach rate over the entire trajectory since it is expected to be off at some points due to
+        # the equidistant time-spacing of nodes in SolveIVP's timeseries outputs.
+        assert_timeseries_near_equal(t_ref=time, x_ref=mach_rate, t_check=sim_time, x_check=sim_mach_rate,
+                                     abs_tolerance=0.02, rel_tolerance=0.02)
 
         if plot:
             plt.show()
@@ -222,7 +249,7 @@ class TestMinTimeClimb(unittest.TestCase):
 
         self._test_timeseries_units(p)
 
-        self._test_mach_rate(p)
+        self._test_mach_rate(p, plot=True)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

@@ -158,6 +158,8 @@ class SolveIVP(TranscriptionBase):
                                          val=np.ones((1,)),
                                          units=options['units'])
 
+        phase.connect('dt_dstau', 'timeseries.dt_dstau')
+
     def setup_states(self, phase):
         """
         Setup the states for this transcription.
@@ -504,7 +506,8 @@ class SolveIVP(TranscriptionBase):
 
         timeseries_comp = \
             SolveIVPTimeseriesOutputComp(input_grid_data=gd,
-                                         output_nodes_per_seg=self.options['output_nodes_per_seg'])
+                                         output_nodes_per_seg=self.options['output_nodes_per_seg'],
+                                         time_units=phase.time_options['units'])
 
         phase.add_subsystem('timeseries', subsys=timeseries_comp)
 

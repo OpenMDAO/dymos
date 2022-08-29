@@ -610,19 +610,19 @@ def configure_timeseries_output_glob_expansion(phase):
         explicit_requests = set([output['name'] for output in ts_meta['outputs'].values() if '*' not in output['name']])
 
         for output_name, output_options in ts_meta['outputs'].items():
+
             if '*' in output_name:
                 matching_outputs = filter_outputs(output_name, ode_outputs)
+                wildcard_units = {} if output_options['wildcard_units'] is None else output_options['wildcard_units']
 
                 for op, meta in matching_outputs.items():
                     if op not in explicit_requests and 'dymos.static_output' not in meta['tags']:
                         new_output = TimeseriesOutputOptionsDictionary()
                         new_output['name'] = op
                         new_output['output_name'] = opname = op.split('.')[-1]
-                        new_output['units'] = _unspecified
+                        new_output['units'] = _unspecified if op not in wildcard_units else wildcard_units[op]
                         new_output['shape'] = _unspecified
-                        if opname in explicit_requests:
-                            pass
-                        elif opname in new_outputs:
+                        if opname not in explicit_requests and opname in new_outputs:
                             raise RuntimeError(f'{phase.pathname}: The glob pattern `{output_name}` matches multiple '
                                                f'outputs in the ODE.\n'
                                                f'Add these outputs explicitly with unique output names using the\n'

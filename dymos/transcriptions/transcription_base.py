@@ -356,12 +356,14 @@ class TranscriptionBase(object):
                 units = ts_output['units']
                 shape = ts_output['shape']
                 src = ts_output['src']
+                is_rate = ts_output['is_rate']
 
                 added_src = timeseries_comp._add_output_configure(name,
                                                                   shape=shape,
                                                                   units=units,
                                                                   desc='',
-                                                                  src=src)
+                                                                  src=src,
+                                                                  rate=is_rate)
 
                 if added_src:
                     phase.connect(src_name=src, tgt_name=f'{timeseries_name}.input_values:{name}',

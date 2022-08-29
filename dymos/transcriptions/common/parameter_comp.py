@@ -117,9 +117,11 @@ class ParameterComp(ExplicitComponent):
         """
         _out_name = output_name if output_name is not None else f'parameter_vals:{name}'
 
+        _val = np.asarray(val)
+
         if shape in {None, _unspecified}:
             _shape = (1,)
-            size = np.asarray(val).size
+            size = _val.size
         else:
             _shape = shape
             size = np.prod(shape)
@@ -141,10 +143,10 @@ class ParameterComp(ExplicitComponent):
         elif isinstance(output_tags, str):
             output_tags = [output_tags]
 
-        if np.ndim(val) == 0 or val.shape == (1,):
-            in_val = np.full(_shape, val)
+        if np.ndim(val) == 0 or _val.shape == (1,):
+            in_val = np.full(_shape, _val)
         else:
-            in_val = val
+            in_val = _val
         out_val = np.expand_dims(in_val, axis=0)
 
         i_meta = self.add_input(name=f'parameters:{name}', val=in_val, shape=_shape, units=units, desc=desc,
