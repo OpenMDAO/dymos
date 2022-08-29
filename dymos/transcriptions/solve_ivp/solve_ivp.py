@@ -508,6 +508,11 @@ class SolveIVP(TranscriptionBase):
 
         phase.add_subsystem('timeseries', subsys=timeseries_comp)
 
+        # Remove all subsequent timeseries
+        for ts_name in list(phase._timeseries.keys()):
+            if ts_name != 'timeseries':
+                phase._timeseries.pop(ts_name)
+
     def get_parameter_connections(self, name, phase):
         """
         Returns info about a parameter's target connections in the phase.

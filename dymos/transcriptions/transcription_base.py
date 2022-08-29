@@ -169,11 +169,14 @@ class TranscriptionBase(object):
             for name, options in phase.control_options.items():
                 for ts_name, ts_options in phase._timeseries.items():
                     if f'controls:{name}' not in ts_options['outputs']:
-                        phase.add_timeseries_output(name, output_name=f'controls:{name}')
+                        phase.add_timeseries_output(name, output_name=f'controls:{name}',
+                                                    timeseries=ts_name)
                     if f'control_rates:{name}_rate' not in ts_options['outputs']:
-                        phase.add_timeseries_output(f'{name}_rate', output_name=f'control_rates:{name}_rate')
+                        phase.add_timeseries_output(f'{name}_rate', output_name=f'control_rates:{name}_rate',
+                                                    timeseries=ts_name)
                     if f'control_rates:{name}_rate2' not in ts_options['outputs']:
-                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'control_rates:{name}_rate2')
+                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'control_rates:{name}_rate2',
+                                                    timeseries=ts_name)
 
     def configure_controls(self, phase):
         """
@@ -205,11 +208,14 @@ class TranscriptionBase(object):
             for name, options in phase.polynomial_control_options.items():
                 for ts_name, ts_options in phase._timeseries.items():
                     if f'polynomial_controls:{name}' not in ts_options['outputs']:
-                        phase.add_timeseries_output(name, output_name=f'polynomial_controls:{name}')
+                        phase.add_timeseries_output(name, output_name=f'polynomial_controls:{name}',
+                                                    timeseries=ts_name)
                     if f'polynomial_control_rates:{name}_rate' not in ts_options['outputs']:
-                        phase.add_timeseries_output(f'{name}_rate', output_name=f'polynomial_control_rates:{name}_rate')
+                        phase.add_timeseries_output(f'{name}_rate', output_name=f'polynomial_control_rates:{name}_rate',
+                                                    timeseries=ts_name)
                     if f'polynomial_control_rates:{name}_rate2' not in ts_options['outputs']:
-                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'polynomial_control_rates:{name}_rate2')
+                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'polynomial_control_rates:{name}_rate2',
+                                                    timeseries=ts_name)
 
     def configure_polynomial_controls(self, phase):
         """
@@ -242,7 +248,8 @@ class TranscriptionBase(object):
             if options['include_timeseries']:
                 for ts_name, ts_options in phase._timeseries.items():
                     if f'parameters:{name}' not in ts_options['outputs']:
-                        phase.add_timeseries_output(name, output_name=f'parameters:{name}')
+                        phase.add_timeseries_output(name, output_name=f'parameters:{name}',
+                                                    timeseries=ts_name)
 
     def configure_parameters(self, phase):
         """
@@ -295,9 +302,11 @@ class TranscriptionBase(object):
         for name, options in phase.state_options.items():
             for ts_name, ts_options in phase._timeseries.items():
                 if f'states:{name}' not in ts_options['outputs']:
-                    phase.add_timeseries_output(name, output_name=f'states:{name}')
+                    phase.add_timeseries_output(name, output_name=f'states:{name}',
+                                                timeseries=ts_name)
                 if f'state_rates:{name}' not in ts_options['outputs']:
-                    phase.add_timeseries_output(name=options['rate_source'], output_name=f'state_rates:{name}')
+                    phase.add_timeseries_output(name=options['rate_source'], output_name=f'state_rates:{name}',
+                                                timeseries=ts_name)
 
     def setup_ode(self, phase):
         """
