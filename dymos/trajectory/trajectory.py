@@ -561,7 +561,7 @@ class Trajectory(om.Group):
                                                user_shape=_unspecified)
                     shapes[i] = meta['shape']
                     units[i] = meta['units']
-                except NameError as e:
+                except ValueError as e:
                     raise RuntimeError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
                                        f'phase \'{phases[i].pathname}\' or its ODE.')
 

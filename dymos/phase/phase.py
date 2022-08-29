@@ -1624,7 +1624,7 @@ class Phase(om.Group):
             configure_states_introspection(self.state_options, self.time_options, self.control_options,
                                            self.parameter_options, self.polynomial_control_options,
                                            ode)
-        except (NameError, RuntimeError) as e:
+        except (ValueError, RuntimeError) as e:
             raise RuntimeError(f'Error during configure_states_introspection in phase {self.pathname}.') from e
 
         transcription.configure_time(self)

@@ -657,7 +657,7 @@ def configure_timeseries_output_introspection(phase):
                 output_meta = transcription._get_timeseries_var_source(output_options['name'],
                                                                        output_options['output_name'],
                                                                        phase=phase)
-            except NameError as e:
+            except ValueError as e:
                 not_found.add(output_name)
 
             output_options['src'] = output_meta['src']
@@ -985,7 +985,7 @@ def get_source_metadata(ode, src, user_units=_unspecified, user_shape=_unspecifi
     ode_outputs = ode if isinstance(ode, dict) else get_promoted_vars(ode, iotypes='output')
 
     if src not in ode_outputs:
-        raise NameError(f'Unable to find the source {src} in the ODE.')
+        raise ValueError(f'Unable to find the source {src} in the ODE.')
 
     if user_units in {None, _unspecified}:
         meta['units'] = ode_outputs[src]['units']
