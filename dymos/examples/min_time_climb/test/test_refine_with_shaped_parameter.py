@@ -44,8 +44,7 @@ class _TestODE(om.Group):
         self.connect('aero.f_lift', 'flight_dynamics.L')
         self.connect('prop.thrust', 'flight_dynamics.T')
 
-        self.add_subsystem('testcomp', om.ExecComp('testout=test', shape=40), #testout={'tags': ['dymos.static_output']}),
-                           promotes=['*'])
+        self.add_subsystem('testcomp', om.ExecComp('testout=test', shape=40), promotes=['*'])
 
 
 @require_pyoptsparse(optimizer='SLSQP')

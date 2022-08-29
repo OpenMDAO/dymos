@@ -517,8 +517,7 @@ def configure_states_introspection(state_options, time_options, control_options,
             rate_src_units = get_rate_units(control['units'], time_units, deriv=2)
             rate_src_shape = control['shape']
         elif rate_src_type == 'ode':
-            meta = get_source_metadata(ode_outputs, src=rate_src,
-                                       user_units=options['units'], user_shape=options['shape'])
+            meta = get_source_metadata(ode_outputs, src=rate_src, user_units=options['units'], user_shape=options['shape'])
             rate_src_shape = meta['shape']
             rate_src_units = meta['units']
         else:
