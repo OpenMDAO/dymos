@@ -43,7 +43,7 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         else:
             self.output_num_nodes = self.input_num_nodes = igd.num_segments * self.options['output_nodes_per_seg']
             output_nodes_stau = np.linspace(-1, 1, self.options['output_nodes_per_seg'])
-            output_nodes_ptau = ogd.node_ptau[ogd.subset_node_indices['all']]
+            output_nodes_ptau = igd.node_ptau[igd.subset_node_indices['all']]
             ogd = None
 
         # Build the interpolation matrix which maps from the input grid to the output grid.
