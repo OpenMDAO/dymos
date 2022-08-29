@@ -288,11 +288,19 @@ class TranscriptionBase(object):
                         phase.connect(f'parameter_vals:{name}', tgts)
 
     def setup_states(self, phase):
+        """
+        Setup the states for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_states.')
 
     def configure_states(self, phase):
         """
-        Setup the states for this transcription.
+        Configure the states for this transcription.
 
         Parameters
         ----------

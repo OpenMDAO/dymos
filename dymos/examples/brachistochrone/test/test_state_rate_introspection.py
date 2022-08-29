@@ -11,7 +11,7 @@ from dymos.utils.testing_utils import assert_timeseries_near_equal
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestIntegrateControl(unittest.TestCase):
 
     def _test_integrate_control(self, transcription):

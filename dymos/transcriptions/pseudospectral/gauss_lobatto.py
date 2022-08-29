@@ -97,6 +97,14 @@ class GaussLobatto(PseudospectralBase):
                                          units=options['units'])
 
     def configure_timeseries_outputs(self, phase):
+        """
+        Configure the IO of the timeseries.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
         super().configure_timeseries_outputs(phase)
         self.configure_interleave_comp(phase)
 

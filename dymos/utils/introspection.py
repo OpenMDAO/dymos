@@ -958,7 +958,7 @@ def get_source_metadata(ode, src, user_units=_unspecified, user_shape=_unspecifi
 
     Returns
     -------
-    meta : dict
+    dict
         A dictionary containing the metadata for the source. This consists of shape, units, and tags.
 
     Notes
