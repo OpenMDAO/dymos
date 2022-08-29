@@ -1283,11 +1283,13 @@ class Phase(om.Group):
         if timeseries not in self._timeseries:
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
-        if output_name is None:
+        if '*' in name:
+            output_name = name
+        elif output_name is None:
             output_name = name.rpartition('.')[-1]
 
-            if rate:
-                output_name = output_name + '_rate'
+        if rate:
+            output_name = output_name + '_rate'
 
         if output_name in self._timeseries[timeseries]['outputs']:
             om.issue_warning(f'Output name `{output_name}` is already in timeseries `{timeseries}`. '

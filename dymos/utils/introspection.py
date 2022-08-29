@@ -699,12 +699,13 @@ def filter_outputs(patterns, sys):
         the 'units' and 'shapes' metadata.
     """
     outputs = sys if isinstance(sys, dict) else get_promoted_vars(sys, iotypes='output', metadata_keys=['shape', 'units', 'tags'])
+    _patterns = [patterns] if isinstance(patterns, str) else patterns
 
     output_names = list(outputs.keys())
     filtered = []
     results = {}
 
-    for pattern in patterns:
+    for pattern in _patterns:
         filtered.extend(fnmatch.filter(output_names, pattern))
     filtered = list(set(filtered))  # de-dupe
 
