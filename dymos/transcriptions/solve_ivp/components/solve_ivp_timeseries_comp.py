@@ -36,49 +36,51 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         Define the independent variables as output variables.
         """
         igd = self.options['input_grid_data']
-        ogd = igd
-        output_nodes_stau = np.linspace(-1, 1, self.options['output_nodes_per_seg'])
 
         if self.options['output_nodes_per_seg'] is None:
             self.output_num_nodes = self.input_num_nodes = igd.num_nodes
+            ogd = igd
         else:
             self.output_num_nodes = self.input_num_nodes = igd.num_segments * self.options['output_nodes_per_seg']
+            output_nodes_stau = np.linspace(-1, 1, self.options['output_nodes_per_seg'])
+            output_nodes_ptau = ogd.node_ptau[ogd.subset_node_indices['all']]
+            ogd = None
 
         # Build the interpolation matrix which maps from the input grid to the output grid.
         # Rather than a single phase-wide interpolating polynomial, map each segment.
         # To do this, find the nodes in the output grid which fall in each segment of the input
         # grid.  Then build a Lagrange interpolating polynomial for that segment
-        L_blocks = []
+        # L_blocks = []
         D_blocks = []
-        # output_nodes_ptau = ogd.node_ptau[ogd.subset_node_indices[output_subset]]
 
         for iseg in range(igd.num_segments):
-            i1, i2 = igd.segment_indices[iseg]
-            # iptau_segi = igd.node_ptau[i1:i2]
-            istau_segi = igd.node_stau[i1:i2]
-
-            # # The indices of the output grid that fall within this segment of the input grid
-            # if ogd is igd:
-            #     # optau_segi = iptau_segi
-            # else:
-            #     # ptau_hi = igd.segment_ends[iseg+1]
-            #     # if iseg < igd.num_segments - 1:
-            #     #     optau_segi = output_nodes_ptau[output_nodes_ptau <= ptau_hi]
-            #     # else:
-            #     #     optau_segi = output_nodes_ptau
-            #
-            #     # Remove the captured nodes so we don't accidentally include them again
-            #     # output_nodes_ptau = output_nodes_ptau[len(optau_segi):]
-
-            # # Now get the output nodes which fall in iseg in iseg's segment tau space.
-            # ostau_segi = 2.0 * (optau_segi - iptau_segi[0]) / (iptau_segi[-1] - iptau_segi[0]) - 1
-
             # Create the interpolation matrix and add it to the blocks
-            _, D = lagrange_matrices(output_nodes_stau, output_nodes_stau)
-            # L_blocks.append(L)
+            if self.options['output_nodes_per_seg'] is None:
+                i1, i2 = igd.segment_indices[iseg]
+                iptau_segi = igd.node_ptau[i1:i2]
+                istau_segi = igd.node_stau[i1:i2]
+
+                # The indices of the output grid that fall within this segment of the input grid
+                if ogd is igd:
+                    optau_segi = iptau_segi
+                else:
+                    ptau_hi = igd.segment_ends[iseg + 1]
+                    if iseg < igd.num_segments - 1:
+                        optau_segi = output_nodes_ptau[output_nodes_ptau <= ptau_hi]
+                    else:
+                        optau_segi = output_nodes_ptau
+
+                    # Remove the captured nodes so we don't accidentally include them again
+                    output_nodes_ptau = output_nodes_ptau[len(optau_segi):]
+
+                # # Now get the output nodes which fall in iseg in iseg's segment tau space.
+                ostau_segi = 2.0 * (optau_segi - iptau_segi[0]) / (iptau_segi[-1] - iptau_segi[0]) - 1
+
+                _, D = lagrange_matrices(istau_segi, ostau_segi)
+            else:
+                _, D = lagrange_matrices(output_nodes_stau, output_nodes_stau)
             D_blocks.append(D)
 
-        # self.interpolation_matrix = sp.block_diag(L_blocks, format='csr')
         self.differentiation_matrix = sp.block_diag(D_blocks, format='csr')
 
         for (name, kwargs) in self._vars:
@@ -89,8 +91,7 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
             rate = kwargs['rate']
             self._add_output_configure(name, units, shape, desc, src, rate)
 
-        self.add_input('dt_dstau', shape=(igd.num_segments * self.options['output_nodes_per_seg'],),
-                       units=self.options['time_units'])
+        self.add_input('dt_dstau', shape=(self.output_num_nodes,), units=self.options['time_units'])
 
     def _add_output_configure(self, name, units, shape, desc, src=None, rate=False):
         """
@@ -165,12 +166,12 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        dt_dstau = inputs['dt_dstau']
+        dt_dstau = inputs['dt_dstau'][:, np.newaxis]
         for (input_name, output_name, _, is_rate) in self._vars.values():
             interp_vals = inputs[input_name]
 
             if is_rate:
-                interp_vals = self.differentiation_matrix.dot(interp_vals) / dt_dstau[:, np.newaxis]
+                interp_vals = self.differentiation_matrix.dot(interp_vals) / dt_dstau
 
             if output_name in self._conversion_factors:
                 scale, offset = self._conversion_factors[output_name]

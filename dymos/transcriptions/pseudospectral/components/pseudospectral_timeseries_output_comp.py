@@ -149,9 +149,6 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
 
         self._vars[name] = (input_name, output_name, shape, rate)
 
-        if name == 'mach_rate':
-            print('mach rate added:', rate)
-
         size = np.prod(shape)
         jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
 

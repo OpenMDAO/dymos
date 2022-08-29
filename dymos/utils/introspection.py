@@ -651,10 +651,16 @@ def configure_timeseries_output_introspection(phase):
 
     for ts_name, ts_opts in phase._timeseries.items():
 
+        not_found = set()
+
         for output_name, output_options in ts_opts['outputs'].items():
-            output_meta = transcription._get_timeseries_var_source(output_options['name'],
-                                                                   output_options['output_name'],
-                                                                   phase=phase)
+            try:
+                output_meta = transcription._get_timeseries_var_source(output_options['name'],
+                                                                       output_options['output_name'],
+                                                                       phase=phase)
+            except NameError as e:
+                not_found.add(output_name)
+
             output_options['src'] = output_meta['src']
             output_options['src_idxs'] = output_meta['src_idxs']
 
@@ -663,6 +669,14 @@ def configure_timeseries_output_introspection(phase):
 
             if output_options['units'] in (None, _unspecified):
                 output_options['units'] = output_meta['units']
+
+        if not_found:
+            sorted_list = ' '.join(sorted(not_found))
+            om.issue_warning(f'{phase.pathname}: The following timeseries outputs were requested but not found in the '
+                             f'ODE: {sorted_list}')
+
+        for s in not_found:
+            ts_opts['outputs'].pop(s)
 
 
 def filter_outputs(patterns, sys):
@@ -971,7 +985,7 @@ def get_source_metadata(ode, src, user_units=_unspecified, user_shape=_unspecifi
     ode_outputs = ode if isinstance(ode, dict) else get_promoted_vars(ode, iotypes='output')
 
     if src not in ode_outputs:
-        raise RuntimeError(f'Unable to find the source {src} in the ODE.')
+        raise NameError(f'Unable to find the source {src} in the ODE.')
 
     if user_units in {None, _unspecified}:
         meta['units'] = ode_outputs[src]['units']

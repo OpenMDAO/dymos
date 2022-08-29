@@ -190,9 +190,6 @@ class TestMinTimeClimb(unittest.TestCase):
             time_nodes = time[seg_idxs[i, 0]: seg_idxs[i, 1]]
             mach_nodes = mach[seg_idxs[i, 0]: seg_idxs[i, 1]]
             mach_rate_nodes = mach_rate[seg_idxs[i, 0]: seg_idxs[i, 1]]
-            sim_time_nodes = sim_time[sim_seg_idxs[i, 0]: sim_seg_idxs[i, 1]]
-            sim_mach_rate_nodes = sim_mach_rate[sim_seg_idxs[i, 0]: sim_seg_idxs[i, 1]]
-
 
             if plot:
                 c = next(color)
@@ -206,9 +203,9 @@ class TestMinTimeClimb(unittest.TestCase):
                 axes[1].plot(time[seg_idxs[i, 0]: seg_idxs[i, 1]], mach_rate[seg_idxs[i, 0]: seg_idxs[i, 1]], 'o', c=c)
 
                 axes[0].plot(sim_time[sim_seg_idxs[i, 0]: sim_seg_idxs[i, 1]],
-                             sim_mach[sim_seg_idxs[i, 0]: sim_seg_idxs[i, 1]], ':', c=c)
+                             sim_mach[sim_seg_idxs[i, 0]: sim_seg_idxs[i, 1]], ':', c=c, lw=2)
                 axes[1].plot(sim_time[sim_seg_idxs[i, 0]: sim_seg_idxs[i, 1]],
-                             sim_mach_rate[sim_seg_idxs[i, 0]: sim_seg_idxs[i, 1]], ':', c=c)
+                             sim_mach_rate[sim_seg_idxs[i, 0]: sim_seg_idxs[i, 1]], ':', c=c, lw=2)
 
             assert_near_equal(mach_nodes, p(time_nodes), tolerance=1.0E-9)
             assert_near_equal(mach_rate_nodes, deriv(time_nodes), tolerance=1.0E-9)
@@ -249,7 +246,7 @@ class TestMinTimeClimb(unittest.TestCase):
 
         self._test_timeseries_units(p)
 
-        self._test_mach_rate(p, plot=True)
+        self._test_mach_rate(p)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()
