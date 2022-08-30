@@ -433,15 +433,6 @@ def configure_states_introspection(state_options, time_options, control_options,
 
     Parameters
     ----------
-    state_name : str
-        The name of the state variable of interest.
-    options : OptionsDictionary
-        The options dictionary for the state variable of interest.
-    phase : dymos.Phase
-        The phase associated with the transcription.
-
-    Parameters
-    ----------
     state_options : dict of {str: StateOptionsDictionary}
         The state variables to be configured.
     time_options : TimeOptionsDictionary
