@@ -420,8 +420,7 @@ def configure_time_introspection(time_options, ode):
 def configure_states_introspection(state_options, time_options, control_options, parameter_options,
                                    polynomial_control_options, ode):
     """
-    Modifies state options in-place, automatically determining 'targets', 'units', and 'shape'
-    if necessary.
+    Modifies state options in-place, automatically determining 'targets', 'units', and 'shape' if necessary.
 
     The precedence rules for the state shape and units are as follows:
     1. If the user has specified units and shape in the state options, use those.
@@ -445,10 +444,6 @@ def configure_states_introspection(state_options, time_options, control_options,
         The options for each polynomial control.
     ode : System
         The OpenMDAO system which provides the state rates as outputs.
-
-    Returns
-    -------
-    None
     """
     time_units = time_options['units']
     ode_inputs = get_promoted_vars(ode, 'input')
