@@ -351,8 +351,7 @@ class GaussLobatto(PseudospectralBase):
                               src_indices=col_src_idxs)
 
         for timeseries_name, timeseries_options in phase._timeseries.items():
-
-            for ts_output_name, ts_output in phase._timeseries[timeseries_name]['outputs'].items():
+            for ts_output_name, ts_output in timeseries_options['outputs'].items():
                 var_type = phase.classify_var(ts_output['name'])
                 if var_type == 'ode':
                     units = ts_output['units']

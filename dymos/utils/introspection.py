@@ -656,7 +656,7 @@ def configure_timeseries_output_introspection(phase):
                 output_options['units'] = output_meta['units']
 
         if not_found:
-            sorted_list = ' '.join(sorted(not_found))
+            sorted_list = ', '.join(sorted(not_found))
             om.issue_warning(f'{phase.pathname}: The following timeseries outputs were requested but not found in the '
                              f'ODE: {sorted_list}')
 
@@ -687,12 +687,11 @@ def filter_outputs(patterns, sys):
     _patterns = [patterns] if isinstance(patterns, str) else patterns
 
     output_names = list(outputs.keys())
-    filtered = []
+    filtered = set()
     results = {}
 
     for pattern in _patterns:
-        filtered.extend(fnmatch.filter(output_names, pattern))
-    filtered = list(set(filtered))  # de-dupe
+        filtered.update(fnmatch.filter(output_names, pattern))
 
     for var in filtered:
         results[var] = {'units': outputs[var]['units'], 'shape': outputs[var]['shape'], 'tags': outputs[var]['tags']}

@@ -351,7 +351,7 @@ class TranscriptionBase(object):
         for timeseries_name, timeseries_options in phase._timeseries.items():
             timeseries_comp = phase._get_subsystem(timeseries_name)
 
-            for ts_output_name, ts_output in phase._timeseries[timeseries_name]['outputs'].items():
+            for ts_output_name, ts_output in timeseries_options['outputs'].items():
                 name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
                 units = ts_output['units']
                 shape = ts_output['shape']
