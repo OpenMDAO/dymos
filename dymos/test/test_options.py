@@ -9,7 +9,7 @@ from dymos.utils.testing_utils import set_env_vars
 @use_tempdirs
 class TestOptions(unittest.TestCase):
 
-    @set_env_vars(GITHUB_ACTION='0', TRAVIS='0')
+    @set_env_vars(CI='0')
     def test_include_check_partials_false_radau(self):
         dm.options['include_check_partials'] = False
         p = brachistochrone_min_time(transcription='radau-ps', compressed=False,
@@ -17,7 +17,7 @@ class TestOptions(unittest.TestCase):
         cpd = p.check_partials(out_stream=None)
         self.assertSetEqual(set(cpd.keys()), {'traj0.phases.phase0.rhs_all'})
 
-    @set_env_vars(GITHUB_ACTION='0', TRAVIS='0')
+    @set_env_vars(CI='0')
     def test_include_check_partials_false_gl(self):
         dm.options['include_check_partials'] = False
         p = brachistochrone_min_time(transcription='gauss-lobatto', compressed=False,

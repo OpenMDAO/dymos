@@ -76,35 +76,32 @@ class TestTimeseriesOutput(unittest.TestCase):
                           p.get_val('phase0.timeseries.time_phase')[:, 0])
 
         for state in ('x', 'y', 'v'):
-            assert_near_equal(p.get_val('phase0.states:{0}'.format(state)),
-                              p.get_val('phase0.timeseries.states:'
-                                        '{0}'.format(state))[state_input_idxs])
+            assert_near_equal(p.get_val(f'phase0.states:{state}'),
+                              p.get_val(f'phase0.timeseries.states:{state}')[state_input_idxs])
 
-            assert_near_equal(p.get_val('phase0.state_interp.state_col:{0}'.format(state)),
-                              p.get_val('phase0.timeseries.states:'
-                                        '{0}'.format(state))[col_idxs])
+            assert_near_equal(p.get_val(f'phase0.state_interp.state_col:{state}'),
+                              p.get_val(f'phase0.timeseries.states:{state}')[col_idxs])
 
         for control in ('theta',):
-            assert_near_equal(p.get_val('phase0.controls:{0}'.format(control)),
-                              p.get_val('phase0.timeseries.controls:'
-                                        '{0}'.format(control))[control_input_idxs])
+            assert_near_equal(p.get_val(f'phase0.controls:{control}'),
+                              p.get_val(f'phase0.timeseries.controls:{control}')[control_input_idxs])
 
         for dp in ('g',):
             for i in range(gd.subset_num_nodes['all']):
                 if test_smaller_timeseries:
                     with self.assertRaises(KeyError):
-                        p.get_val('phase0.timeseries.parameters:{0}'.format(dp))
+                        p.get_val(f'phase0.timeseries.parameters:{dp}')
                 else:
-                    assert_near_equal(p.get_val('phase0.parameters:{0}'.format(dp))[0],
-                                      p.get_val('phase0.timeseries.parameters:{0}'.format(dp))[i])
+                    assert_near_equal(p.get_val(f'phase0.parameters:{dp}')[0],
+                                      p.get_val(f'phase0.timeseries.parameters:{dp}')[i])
 
         # call simulate to test SolveIVP transcription
         exp_out = phase.simulate()
         if test_smaller_timeseries:
             with self.assertRaises(KeyError):
-                exp_out.get_val('phase0.timeseries.parameters:{0}'.format(dp))
+                exp_out.get_val(f'phase0.timeseries.parameters:{dp}')
         else:  # no error accessing timseries.parameter
-            exp_out.get_val('phase0.timeseries.parameters:{0}'.format(dp))
+            exp_out.get_val(f'phase0.timeseries.parameters:{dp}')
 
     def test_timeseries_gl_smaller_timeseries(self):
         self.test_timeseries_gl(test_smaller_timeseries=True)
@@ -165,32 +162,29 @@ class TestTimeseriesOutput(unittest.TestCase):
                           p.get_val('phase0.timeseries.time_phase')[:, 0])
 
         for state in ('x', 'y', 'v'):
-            assert_near_equal(p.get_val('phase0.states:{0}'.format(state)),
-                              p.get_val('phase0.timeseries.states:'
-                                        '{0}'.format(state))[state_input_idxs])
+            assert_near_equal(p.get_val(f'phase0.states:{state}'),
+                              p.get_val(f'phase0.timeseries.states:{state}')[state_input_idxs])
 
         for control in ('theta',):
-            assert_near_equal(p.get_val('phase0.controls:{0}'.format(control)),
-                              p.get_val('phase0.timeseries.controls:'
-                                        '{0}'.format(control))[control_input_idxs])
+            assert_near_equal(p.get_val(f'phase0.controls:{control}'),
+                              p.get_val(f'phase0.timeseries.controls:{control}')[control_input_idxs])
 
         for dp in ('g',):
             for i in range(gd.subset_num_nodes['all']):
                 if test_smaller_timeseries:
                     with self.assertRaises(KeyError):
-                        p.get_val('phase0.timeseries.parameters:{0}'.format(dp))
+                        p.get_val(f'phase0.timeseries.parameters:{dp}')
                 else:
-                    assert_near_equal(p.get_val('phase0.parameters:{0}'.format(dp))[0],
-                                      p.get_val('phase0.timeseries.parameters:'
-                                                '{0}'.format(dp))[i])
+                    assert_near_equal(p.get_val(f'phase0.parameters:{dp}')[0],
+                                      p.get_val(f'phase0.timeseries.parameters:{dp}')[i])
 
         # call simulate to test SolveIVP transcription
         exp_out = phase.simulate()
         if test_smaller_timeseries:
             with self.assertRaises(KeyError):
-                exp_out.get_val('phase0.timeseries.parameters:{0}'.format(dp))
+                exp_out.get_val(f'phase0.timeseries.parameters:{dp}')
         else:  # no error accessing timseries.parameter
-            exp_out.get_val('phase0.timeseries.parameters:{0}'.format(dp))
+            exp_out.get_val(f'phase0.timeseries.parameters:{dp}')
 
         # Test that the state rates are output in both the radau and solveivp timeseries outputs
         t_sol = p.get_val('phase0.timeseries.time')
@@ -330,19 +324,23 @@ def min_time_climb(num_seg=3, transcription_class=dm.Radau, transcription_order=
 
 class TestDuplicateTimeseriesGlobName(unittest.TestCase):
 
-    def test_duplicate_timeseries_glob_name(self):
+    def test_duplicate_timeseries_glob_name_radau(self):
         """
         Test that the user gets a warning about multiple timeseries with the same name.
         """
+        msg = "Error during configure_timeseries_output_introspection in phase traj.phases.phase0."
+        with self.assertRaises(RuntimeError) as e:
+            min_time_climb(num_seg=12, transcription_class=dm.Radau, transcription_order=3)
+        self.assertEqual(str(e.exception), msg)
 
-        msg = "The timeseries variable name rho is duplicated in these variables: atmos.rho, " \
-              "foo.rho. Disambiguate by using the add_timeseries_output output_name option."
-        with assert_warning(UserWarning, msg):
-            p = min_time_climb(num_seg=12, transcription_class=dm.Radau, transcription_order=3)
-
-        with assert_warning(UserWarning, msg):
-            p = min_time_climb(num_seg=12, transcription_class=dm.GaussLobatto,
-                               transcription_order=3)
+    def test_duplicate_timeseries_glob_name_gl(self):
+        """
+        Test that the user gets a warning about multiple timeseries with the same name.
+        """
+        msg = "Error during configure_timeseries_output_introspection in phase traj.phases.phase0."
+        with self.assertRaises(RuntimeError) as e:
+            min_time_climb(num_seg=12, transcription_class=dm.GaussLobatto, transcription_order=3)
+        self.assertEqual(str(e.exception), msg)
 
 
 if __name__ == '__main__':  # pragma: no cover

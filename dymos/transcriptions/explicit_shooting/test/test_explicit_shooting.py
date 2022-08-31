@@ -581,7 +581,7 @@ class TestExplicitShooting(unittest.TestCase):
 
                 phase.add_objective('time', loc='final')
 
-                msg = "The following timeseries outputs were requested but not found in the " \
+                msg = "phase0: The following timeseries outputs were requested but not found in the " \
                       "ODE: foo"
 
                 with warnings.catch_warnings(record=True) as ctx:

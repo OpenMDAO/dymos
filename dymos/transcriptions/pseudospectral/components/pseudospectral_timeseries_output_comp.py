@@ -24,19 +24,6 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
     def __init__(self, **kwargs):
         super(PseudospectralTimeseriesOutputComp, self).__init__(**kwargs)
 
-        self.input_num_nodes = 0
-        self.output_num_nodes = 0
-
-        # Sources is used internally to map the source of a connection to the timeseries to
-        # the corresponding input variable.  This is used to ensure that we don't need to connect
-        # the same source to this timeseries multiple times.
-        self._sources = {}
-
-        # Used to track conversion factors for instances when one output that relies on an input
-        # from another variable has potentially different units
-        self._units = {}
-        self._conversion_factors = {}
-
         # Flag to set if no multiplication by the interpolation matrix is necessary
         self._no_interp = False
 
@@ -217,7 +204,6 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
                 if len(inp.shape) > 2:
                     # Dot product always performs the sum product over axis 2.
                     inp = inp.swapaxes(0, 1)
-
                 interp_vals = self.interpolation_matrix.dot(inp)
 
             if is_rate:

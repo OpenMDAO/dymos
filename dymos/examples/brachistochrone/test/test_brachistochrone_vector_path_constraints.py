@@ -157,8 +157,6 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         phase.add_path_constraint('pos_dot', indices=[1],
                                   lower=-4, upper=4)
 
-        phase.add_timeseries_output('pos_dot')
-
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 

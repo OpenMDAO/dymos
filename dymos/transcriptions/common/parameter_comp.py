@@ -117,12 +117,15 @@ class ParameterComp(ExplicitComponent):
         """
         _out_name = output_name if output_name is not None else f'parameter_vals:{name}'
 
+        _val = np.asarray(val)
+
         if shape in {None, _unspecified}:
             _shape = (1,)
-            size = np.asarray(val).size
+            size = _val.size
         else:
             _shape = shape
             size = np.prod(shape)
+        _out_shape = (1,) + tuple(shape)
         ar = np.arange(size, dtype=int)
 
         if tags is None:
@@ -140,14 +143,20 @@ class ParameterComp(ExplicitComponent):
         elif isinstance(output_tags, str):
             output_tags = [output_tags]
 
-        i_meta = self.add_input(name=f'parameters:{name}', val=val, shape=_shape, units=units, desc=desc,
+        if np.ndim(val) == 0 or _val.shape == (1,):
+            in_val = np.full(_shape, _val)
+        else:
+            in_val = _val
+        out_val = np.expand_dims(in_val, axis=0)
+
+        i_meta = self.add_input(name=f'parameters:{name}', val=in_val, shape=_shape, units=units, desc=desc,
                                 src_indices=src_indices, flat_src_indices=flat_src_indices, tags=tags + input_tags,
                                 shape_by_conn=input_shape_by_conn, copy_shape=input_copy_shape, distributed=distributed)
 
-        o_meta = self.add_output(name=_out_name, val=val, shape=_shape, units=units, desc=desc, tags=tags + output_tags,
-                                 res_units=res_units, ref=ref, ref0=ref0, res_ref=res_ref, lower=lower, upper=upper,
-                                 shape_by_conn=output_shape_by_conn, copy_shape=output_copy_shape,
-                                 distributed=distributed)
+        o_meta = self.add_output(name=_out_name, val=out_val, shape=_out_shape, units=units,
+                                 desc=desc, tags=tags + output_tags, res_units=res_units, ref=ref, ref0=ref0,
+                                 res_ref=res_ref, lower=lower, upper=upper, shape_by_conn=output_shape_by_conn,
+                                 copy_shape=output_copy_shape, distributed=distributed)
 
         self.declare_partials(of=_out_name, wrt=f'parameters:{name}', rows=ar, cols=ar, val=1.0)
 

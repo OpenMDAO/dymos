@@ -389,7 +389,7 @@ class TestCheckPartials(unittest.TestCase):
 
         assert(len(partials.keys()) > 0)
 
-    @set_env_vars(GITHUB_ACTION='0', TRAVIS='0')  # Make sure _no_check_partials isn't disabled
+    @set_env_vars(CI='0')  # Make sure _no_check_partials isn't disabled
     def test_check_partials_no(self):
         """
         Run check_partials on a series of dymos problems and verify that partials information

@@ -39,6 +39,7 @@ parts:
     - file: examples/robertson_problem/robertson_problem
     - file: examples/water_rocket/water_rocket
     - file: examples/cart_pole/cart_pole
+    - file: examples/brachistochrone/brachistochrone_tandem_phases
 - caption: Feature Reference
   chapters:
   - file: features/phases/phases_list

@@ -266,7 +266,7 @@ def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=N
         raise ValueError("There is no overlapping time between the two time series")
 
     # Flatten the timeseries data arrays
-    num_elements = np.prod(shape_ref)
+    num_elements = np.prod(shape_ref, dtype=int)
     time_series_len = x_ref.shape[0]
     x_ref_data_flattened = np.reshape(x_ref, newshape=(time_series_len, num_elements))
     t_ref_unique, idxs_unique_ref = np.unique(t_ref.ravel(), return_index=True)

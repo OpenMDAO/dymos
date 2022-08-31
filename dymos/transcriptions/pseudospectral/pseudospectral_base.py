@@ -130,6 +130,7 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        super().configure_states(phase)
         grid_data = self.grid_data
         num_state_input_nodes = grid_data.subset_num_nodes['state_input']
         indep = phase.indep_states
@@ -597,7 +598,9 @@ class PseudospectralBase(TranscriptionBase):
         else:
             # Failed to find variable, assume it is in the ODE. This requires introspection.
             constraint_path = f'{self._rhs_source}.{var}'
-            shape, units = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
+            meta = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
+            shape = meta['shape']
+            units = meta['units']
             linear = False
 
         return constraint_path, shape, units, linear
