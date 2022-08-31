@@ -541,27 +541,14 @@ class SolveIVP(TranscriptionBase):
 
         if name in phase.parameter_options:
             options = phase.parameter_options[name]
-            # ode_tgts = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
 
             static = options['static_target']
             shape = options['shape']
 
             # Get connections to each segment
-            #
             gd = self.grid_data
-            #
-            # # We also need to take care of the segments.
-            # segs = phase._get_subsystem('segments')
 
-            # for name, options in phase.parameter_options.items():
-            #     prom_name = f'parameters:{name}'
-            #     shape = options['shape']
-            #     units = options['units']
-            #
             for i in range(gd.num_segments):
-                # seg_comp = segs._get_subsystem(f'segment_{i}')
-                # seg_comp.add_input(name=f'parameters:{name}', val=np.ones(shape), units=units,
-                #                    desc=f'values of parameter {name}.')
                 phase.connect(f'parameter_vals:{name}', f'segment_{i}.parameters:{name}')
 
             # Connections to the final ODE
@@ -579,58 +566,6 @@ class SolveIVP(TranscriptionBase):
             connection_info.append(([f'ode.{tgt}' for tgt in ode_tgts], (src_idxs,)))
 
         return connection_info
-
-    def _get_rate_source_path(self, state_var, nodes, phase):
-        """
-        Return the rate source location for a given state name.
-        Parameters
-        ----------
-        state_var : str
-            Name of the state.
-        nodes : str
-            The nodes subset which we are connecting from the rate source. Note used in SolveIVP.
-        phase : dymos.Phase
-            Phase object containing the rate source.
-        Returns
-        -------
-        str
-            Path to the rate source.
-        np.array
-            Source indices for the connection from the rate source to the target.
-        """
-        var = phase.state_options[state_var]['rate_source']
-        node_idxs = None
-
-        if var == 'time':
-            rate_path = 'time'
-        elif var == 'time_phase':
-            rate_path = 'time_phase'
-        elif phase.state_options is not None and var in phase.state_options:
-            rate_path = f'state_mux_comp.states:{var}'
-        elif phase.control_options is not None and var in phase.control_options:
-            rate_path = f'control_values:{var}'
-        elif phase.polynomial_control_options is not None and var in phase.polynomial_control_options:
-            rate_path = f'polynomial_control_values:{var}'
-        elif phase.parameter_options is not None and var in phase.parameter_options:
-            rate_path = f'parameter_vals:{var}'
-            num_seg = self.grid_data.num_segments
-            node_idxs = np.zeros(num_seg * self.options['output_nodes_per_seg'], dtype=int)
-        elif var.endswith('_rate') and phase.control_options is not None and \
-                var[:-5] in phase.control_options:
-            rate_path = f'control_rates:{var}'
-        elif var.endswith('_rate2') and phase.control_options is not None and \
-                var[:-6] in phase.control_options:
-            rate_path = f'control_rates:{var}'
-        elif var.endswith('_rate') and phase.polynomial_control_options is not None and \
-                var[:-5] in phase.polynomial_control_options:
-            rate_path = f'polynomial_control_rates:{var}'
-        elif var.endswith('_rate2') and phase.polynomial_control_options is not None and \
-                var[:-6] in phase.polynomial_control_options:
-            rate_path = f'polynomial_control_rates:{var}'
-        else:
-            rate_path = f'ode.{var}'
-
-        return rate_path, node_idxs
 
     def _get_timeseries_var_source(self, var, output_name, phase):
         """
