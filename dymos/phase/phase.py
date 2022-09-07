@@ -2037,9 +2037,13 @@ class Phase(om.Group):
             The pathname of the system in prob that contains the phases.
         skip_params : None or set
             Parameter names that will be skipped because they have already been initialized at the
-            trajetory level.
+            trajetory level. (Deprecated)
         """
         phs = from_phase
+
+        if skip_params is not None:
+            om.issue_warning(f'{self.pathname}: Option `skip_params` to Phase.initialize_values_from_phase` is '
+                             f'deprecated and will be removed dymos 2.0.0', category=om.OMDeprecationWarning)
 
         op_dict = dict([(name, options) for (name, options) in phs.list_outputs(units=True,
                                                                                 list_autoivcs=True,
@@ -2091,9 +2095,6 @@ class Phase(om.Group):
         for name in phs.parameter_options:
             units = phs.parameter_options[name]['units']
 
-            if skip_params and name in skip_params:
-                continue
-
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.
             if om_version < (3, 4, 1):
@@ -2105,7 +2106,7 @@ class Phase(om.Group):
                 prob_path = f'{phase_path}.{self.name}.parameters:{name}'
             else:
                 prob_path = f'{self.name}.parameters:{name}'
-            prob[prob_path][...] = val
+            prob.set_val(prob_path, val)
 
     def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None):
