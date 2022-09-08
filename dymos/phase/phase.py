@@ -2037,7 +2037,7 @@ class Phase(om.Group):
             The pathname of the system in prob that contains the phases.
         skip_params : None or set
             Parameter names that will be skipped because they have already been initialized at the
-            trajetory level (Deprecated).
+            trajectory level (Deprecated).
         """
         phs = from_phase
 
