@@ -1,15 +1,19 @@
 import dymos as dm
-from openmdao.visualization.htmlpp import HtmlPreprocessor
 from collections import OrderedDict
 import inspect
 import os
+import pathlib
+from openmdao.visualization.htmlpp import HtmlPreprocessor
+from openmdao.utils.reports_system import register_report, get_reports_dir
 
 CBN = 'children_by_name'
+_default_linkage_report_title = 'Dymos Linkage Report'
+_default_linkage_report_filename = 'linkage_report.html'
 
 
-def create_linkage_report(traj, output_file: str = 'linkage_report.html',
+def create_linkage_report(traj, output_file: str = _default_linkage_report_filename,
                           show_all_vars=False,
-                          title='Dymos Linkage Report', embedded=False):
+                          title=_default_linkage_report_title, embedded=False):
     """
     Create a tree based on the trajectory and linkages, then export as HTML.
 
@@ -237,3 +241,21 @@ def _convert_dicts_to_lists(tree_dict, show_all_vars):
                 tree_dict['children'].append(child)
 
         tree_dict.pop(CBN)
+
+
+def _run_linkage_report(prob):
+    """ Function invoked by the reports system """
+
+    # Find all Trajectory objects in the Problem. Usually, there's only one
+    for sysname,sysinfo in prob.model._subsystems_allprocs.items():
+        if isinstance(sysinfo.system, dm.Trajectory):
+            traj = sysinfo.system
+            # Only create a report for a trajectory with multiple phases
+            if len(traj._phases) > 1:
+                report_filepath = str(pathlib.Path(prob.get_reports_dir()).joinpath(f'{sysname}_{_default_linkage_report_filename}'))
+                create_linkage_report(traj, report_filepath)
+
+
+def _linkage_report_register():
+    register_report('linkage', _run_linkage_report, _default_linkage_report_title,
+                    'Problem', 'final_setup', 'post')
