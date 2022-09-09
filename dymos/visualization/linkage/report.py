@@ -1,10 +1,9 @@
 import dymos as dm
 from collections import OrderedDict
 import inspect
-import os
-import pathlib
+from pathlib import Path
 from openmdao.visualization.htmlpp import HtmlPreprocessor
-from openmdao.utils.reports_system import register_report, get_reports_dir
+import openmdao.utils.reports_system as rptsys
 
 CBN = 'children_by_name'
 _default_linkage_report_title = 'Dymos Linkage Report'
@@ -42,15 +41,15 @@ def create_linkage_report(traj, output_file: str = _default_linkage_report_filen
     }
 
     import openmdao
-    openmdao_dir = os.path.dirname(inspect.getfile(openmdao))
-    vis_dir = os.path.join(openmdao_dir, "visualization", "n2_viewer")
+    openmdao_dir = Path(inspect.getfile(openmdao)).parent
+    vis_dir = openmdao_dir / 'visualization' / 'n2_viewer'
 
-    dymos_dir = os.path.dirname(inspect.getfile(dm))
-    reports_dir = os.path.join(dymos_dir, "visualization", "linkage")
+    dymos_dir = Path(inspect.getfile(dm)).parent
+    reports_dir = dymos_dir / 'visualization' / 'linkage'
 
-    HtmlPreprocessor(os.path.join(reports_dir, "report_template.html"), output_file,
-                     search_path=[vis_dir, reports_dir], allow_overwrite=True, var_dict=html_vars,
-                     verbose=False).run()
+    HtmlPreprocessor(str(reports_dir / 'report_template.html'), output_file,
+                     search_path=[str(vis_dir), str(reports_dir)], allow_overwrite=True,
+                     var_dict=html_vars, verbose=False).run()
 
 
 def _is_fixed(var_name: str, class_name: str, phase, loc: str):
@@ -252,10 +251,12 @@ def _run_linkage_report(prob):
             traj = sysinfo.system
             # Only create a report for a trajectory with multiple phases
             if len(traj._phases) > 1:
-                report_filepath = str(pathlib.Path(prob.get_reports_dir()).joinpath(f'{sysname}_{_default_linkage_report_filename}'))
-                create_linkage_report(traj, report_filepath)
+                report_filename = f'{sysname}_{_default_linkage_report_filename}'
+                report_path = str(Path(prob.get_reports_dir()) / report_filename)
+                create_linkage_report(traj, report_path)
 
 
 def _linkage_report_register():
-    register_report('linkage', _run_linkage_report, _default_linkage_report_title,
+    rptsys.register_report('linkage', _run_linkage_report, _default_linkage_report_title,
                     'Problem', 'final_setup', 'post')
+    rptsys._default_reports.append('linkage')
