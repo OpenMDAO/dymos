@@ -246,7 +246,7 @@ def _run_linkage_report(prob):
     """ Function invoked by the reports system """
 
     # Find all Trajectory objects in the Problem. Usually, there's only one
-    for sysname,sysinfo in prob.model._subsystems_allprocs.items():
+    for sysname, sysinfo in prob.model._subsystems_allprocs.items():
         if isinstance(sysinfo.system, dm.Trajectory):
             traj = sysinfo.system
             # Only create a report for a trajectory with multiple phases
@@ -258,5 +258,5 @@ def _run_linkage_report(prob):
 
 def _linkage_report_register():
     rptsys.register_report('linkage', _run_linkage_report, _default_linkage_report_title,
-                    'Problem', 'final_setup', 'post')
+                           'Problem', 'final_setup', 'post')
     rptsys._default_reports.append('linkage')
