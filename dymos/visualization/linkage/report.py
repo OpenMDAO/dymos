@@ -257,6 +257,6 @@ def _run_linkage_report(prob):
 
 
 def _linkage_report_register():
-    rptsys.register_report('linkage', _run_linkage_report, _default_linkage_report_title,
+    rptsys.register_report('dymos.linkage', _run_linkage_report, _default_linkage_report_title,
                            'Problem', 'final_setup', 'post')
-    rptsys._default_reports.append('linkage')
+    rptsys._default_reports.append('dymos.linkage')

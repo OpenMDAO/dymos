@@ -79,7 +79,7 @@ The software has two primary objectives:
     },
     entry_points = {
         'openmdao_report': [
-            'linkage=dymos.visualization.linkage.report:_linkage_report_register'
+            'dymos.linkage=dymos.visualization.linkage.report:_linkage_report_register'
         ],
     },
 )
