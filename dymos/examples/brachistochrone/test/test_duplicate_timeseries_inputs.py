@@ -61,6 +61,7 @@ class TestDuplicateTimeseriesInput(unittest.TestCase):
         phase.add_control(name='theta', units='rad', lower=0.01, upper=np.pi-0.01, shape=(1,))
 
         phase.add_timeseries_output('*')
+        phase.add_timeseries_output('x', output_name='state_x')
 
         # Minimize final time.
         phase.add_objective('time', loc='final')
@@ -111,15 +112,10 @@ class TestDuplicateTimeseriesInput(unittest.TestCase):
             raise AssertionError('Multiple inputs connected to the same source exist')
 
         # Now check that the outputs are still the same.
-        x_rate_vals = p.get_val('traj.phase0.timeseries.state_rates:x')
-        xdot_vals = p.get_val('traj.phase0.timeseries.xdot')
+        nom_x = p.get_val('traj.phase0.timeseries.states:x').T
+        added_x = p.get_val('traj.phase0.timeseries.state_x').T
 
-        print(p.get_val('traj.phase0.timeseries.states:x').T)
-        print(p.get_val('traj.phase0.timeseries.states:y').T)
-        print(p.get_val('traj.phase0.timeseries.states:v').T)
-        print(p.get_val('traj.phase0.timeseries.controls:theta').T)
-
-        assert_near_equal(x_rate_vals, xdot_vals)
+        assert_near_equal(nom_x, added_x)
 
     def test_duplicate_timeseries_input_radau(self):
         p = self._make_problem(dm.Radau)
@@ -136,7 +132,7 @@ class TestDuplicateTimeseriesInput(unittest.TestCase):
             raise AssertionError('Multiple inputs connected to the same source exist')
 
         # Now check that the outputs are still the same.
-        x_rate_vals = p.get_val('traj.phase0.timeseries.state_rates:x')
-        xdot_vals = p.get_val('traj.phase0.timeseries.xdot')
+        nom_x = p.get_val('traj.phase0.timeseries.states:x').T
+        added_x = p.get_val('traj.phase0.timeseries.state_x').T
 
-        assert_near_equal(x_rate_vals, xdot_vals)
+        assert_near_equal(nom_x, added_x)

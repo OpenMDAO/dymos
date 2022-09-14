@@ -557,10 +557,11 @@ class Trajectory(om.Group):
                 rhs_source = phases[i].options['transcription']._rhs_source
                 sources[i] = f'{rhs_source}.{vars[i]}'
                 try:
-                    shapes[i], units[i] = get_source_metadata(phases[i]._get_subsystem(rhs_source),
-                                                              vars[i], user_units=units[i],
-                                                              user_shape=_unspecified)
-                except RuntimeError as e:
+                    meta = get_source_metadata(phases[i]._get_subsystem(rhs_source), vars[i], user_units=units[i],
+                                               user_shape=_unspecified)
+                    shapes[i] = meta['shape']
+                    units[i] = meta['units']
+                except ValueError as e:
                     raise RuntimeError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
                                        f'phase \'{phases[i].pathname}\' or its ODE.')
 
@@ -1167,31 +1168,13 @@ class Trajectory(om.Group):
         sim_prob.setup()
 
         # Assign trajectory parameter values
-        param_names = [key for key in self.parameter_options.keys()]
-        for name in param_names:
-            prom_path = f'{self.name}.parameters:{name}'
-            src = self.get_source(prom_path)
-
-            # We use this private function to grab the correctly sized variable from the
-            # auto_ivc source.
-            val = self._abs_get_val(src, False, None, 'nonlinear', 'output', False, from_root=True)
+        for name in self.parameter_options:
             sim_prob_prom_path = f'{traj_name}.parameters:{name}'
-            sim_prob[sim_prob_prom_path][...] = val
+            sim_prob.set_val(sim_prob_prom_path, self.get_val(f'parameters:{name}'))
 
         for phase_name, phs in sim_traj._phases.items():
-            skip_params = set(param_names)
-            for name in param_names:
-                targets = self.parameter_options[name]['targets']
-                if targets and phase_name in targets:
-                    targets_phase = targets[phase_name]
-                    if targets_phase is not None:
-                        if isinstance(targets_phase, str):
-                            targets_phase = [targets_phase]
-                        skip_params.update(targets_phase)
-
             phs.initialize_values_from_phase(sim_prob, self._phases[phase_name],
-                                             phase_path=traj_name,
-                                             skip_params=skip_params)
+                                             phase_path=traj_name)
 
         print(f'\nSimulating trajectory {self.pathname}')
         sim_prob.run_model(case_prefix=case_prefix, reset_iter_counts=reset_iter_counts)

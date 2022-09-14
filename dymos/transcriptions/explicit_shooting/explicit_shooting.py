@@ -7,8 +7,8 @@ from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import GridData
 from .rk_integration_comp import RKIntegrationComp, rk_methods
-from ...utils.misc import get_rate_units, CoerceDesvar, _unspecified
-from ...utils.introspection import get_source_metadata
+from ...utils.misc import get_rate_units, CoerceDesvar
+from ...utils.introspection import get_promoted_vars, get_source_metadata
 from ...utils.constants import INF_BOUND
 
 
@@ -125,6 +125,7 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        super().configure_states(phase)
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_states_io()
 
@@ -621,7 +622,9 @@ class ExplicitShooting(TranscriptionBase):
                 ode = self._get_ode(phase)
             else:
                 ode = ode_outputs
-            shape, units = get_source_metadata(ode, var, user_units=None, user_shape=None)
+            meta = get_source_metadata(ode, var, user_units=None, user_shape=None)
+            shape = meta['shape']
+            units = meta['units']
             linear = False
 
         return obj_path, shape, units, linear
@@ -666,3 +669,105 @@ class ExplicitShooting(TranscriptionBase):
             The number of nodes in the default timeseries for this transcription.
         """
         return self.grid_data.subset_num_nodes['segment_ends']
+
+    def _get_timeseries_var_source(self, var, output_name, phase):
+        """
+        Return the source path and indices for a given variable to be connected to a timeseries.
+
+        Parameters
+        ----------
+        var : str
+            Name of the timeseries variable whose source is desired.
+        output_name : str
+            Name of the timeseries output whose source is desired.
+        phase : dymos.Phase
+            Phase object containing the variable, either as state, time, control, etc., or as an ODE output.
+
+        Returns
+        -------
+        meta : dict
+            Metadata pertaining to the variable at the given path. This dict contains 'src' (the path to the
+            timeseries source), 'src_idxs' (an array of the
+            source indices), 'units' (the units of the source variable), and 'shape' (the shape of the variable at
+            a given node).
+        """
+        var_type = phase.classify_var(var)
+        time_units = phase.time_options['units']
+
+        transcription = phase.options['transcription']
+        ode = transcription._get_ode(phase)
+        ode_outputs = get_promoted_vars(ode, 'output')
+
+        # The default for node_idxs, applies to everything except states and parameters.
+        node_idxs = None
+        meta = {}
+
+        # Determine the path to the variable
+        if var_type == 'time':
+            path = 'integrator.time'
+            src_units = time_units
+            src_shape = (1,)
+        elif var_type == 'time_phase':
+            path = 'integrator.time_phase'
+            src_units = time_units
+            src_shape = (1,)
+        elif var_type == 'state':
+            path = f'integrator.states_out:{var}'
+            src_units = phase.state_options[var]['units']
+            src_shape = phase.state_options[var]['shape']
+        elif var_type in ['indep_control', 'input_control']:
+            path = f'integrator.control_interp.control_values:{var}'
+            src_units = phase.control_options[var]['units']
+            src_shape = phase.control_options[var]['shape']
+        elif var_type == 'control_rate':
+            control_name = var[:-5]
+            path = f'integrator.control_interp.control_rates:{control_name}_rate'
+            control_name = var[:-5]
+            src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=1)
+            src_shape = phase.control_options[control_name]['shape']
+        elif var_type == 'control_rate2':
+            control_name = var[:-6]
+            path = f'integrator.control_interp.control_rates:{control_name}_rate2'
+            src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=2)
+            src_shape = phase.control_options[control_name]['shape']
+        elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
+            path = f'integrator.control_interp.polynomial_control_values:{var}'
+            src_units = phase.polynomial_control_options[var]['units']
+            src_shape = phase.polynomial_control_options[var]['shape']
+        elif var_type == 'polynomial_control_rate':
+            control_name = var[:-5]
+            path = f'integrator.control_interp.polynomial_control_rates:{control_name}_rate'
+            control = phase.polynomial_control_options[control_name]
+            src_units = get_rate_units(control['units'], time_units, deriv=1)
+            src_shape = control['shape']
+        elif var_type == 'polynomial_control_rate2':
+            control_name = var[:-6]
+            path = f'integrator.control_interp.polynomial_control_rates:{control_name}_rate2'
+            control = phase.polynomial_control_options[control_name]
+            src_units = get_rate_units(control['units'], time_units, deriv=1)
+            src_shape = control['shape']
+        elif var_type == 'parameter':
+            path = f'parameter_vals:{var}'
+            num_seg = self.grid_data.num_segments
+            node_idxs = np.zeros(2 * num_seg, dtype=int)
+            src_units = phase.parameter_options[var]['units']
+            src_shape = phase.parameter_options[var]['shape']
+        else:
+            # Failed to find variable, assume it is in the ODE
+            path = f'ode.{var}'
+            meta = get_source_metadata(ode_outputs, src=var)
+            src_shape = meta['shape']
+            src_units = meta['units']
+            src_tags = meta['tags']
+            if 'dymos.static_output' in src_tags:
+                raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" and cannot be a '
+                                   f'timeseries output.')
+
+        src_idxs = None if node_idxs is None else om.slicer[node_idxs, ...]
+
+        meta['src'] = path
+        meta['src_idxs'] = src_idxs
+        meta['units'] = src_units
+        meta['shape'] = src_shape
+
+        return meta

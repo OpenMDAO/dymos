@@ -60,8 +60,7 @@ class TranscriptionBase(object):
         """
         Setup the GridData object for the Transcription.
         """
-        raise NotImplementedError('Transcription {0} does not implement method'
-                                  'init_grid.'.format(self.__class__.__name__))
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method init_grid.')
 
     def setup_time(self, phase):
         """
@@ -80,6 +79,12 @@ class TranscriptionBase(object):
         if not time_options['input_initial'] or not time_options['input_duration']:
             phase.add_subsystem('time_extents', om.IndepVarComp(),
                                 promotes_outputs=['*'])
+
+        for ts_name, ts_options in phase._timeseries.items():
+            if 'time' not in ts_options['outputs']:
+                phase.add_timeseries_output('time', timeseries=ts_name)
+            if 'time_phase' not in ts_options['outputs']:
+                phase.add_timeseries_output('time_phase', timeseries=ts_name)
 
     def configure_time(self, phase):
         """
@@ -161,6 +166,18 @@ class TranscriptionBase(object):
             phase.add_subsystem('control_group',
                                 subsys=control_group)
 
+            for name, options in phase.control_options.items():
+                for ts_name, ts_options in phase._timeseries.items():
+                    if f'controls:{name}' not in ts_options['outputs']:
+                        phase.add_timeseries_output(name, output_name=f'controls:{name}',
+                                                    timeseries=ts_name)
+                    if f'control_rates:{name}_rate' not in ts_options['outputs']:
+                        phase.add_timeseries_output(f'{name}_rate', output_name=f'control_rates:{name}_rate',
+                                                    timeseries=ts_name)
+                    if f'control_rates:{name}_rate2' not in ts_options['outputs']:
+                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'control_rates:{name}_rate2',
+                                                    timeseries=ts_name)
+
     def configure_controls(self, phase):
         """
         Configure the inputs/outputs for the controls.
@@ -188,6 +205,18 @@ class TranscriptionBase(object):
             phase.add_subsystem('polynomial_control_group', subsys=sys,
                                 promotes_inputs=['*'], promotes_outputs=['*'])
 
+            for name, options in phase.polynomial_control_options.items():
+                for ts_name, ts_options in phase._timeseries.items():
+                    if f'polynomial_controls:{name}' not in ts_options['outputs']:
+                        phase.add_timeseries_output(name, output_name=f'polynomial_controls:{name}',
+                                                    timeseries=ts_name)
+                    if f'polynomial_control_rates:{name}_rate' not in ts_options['outputs']:
+                        phase.add_timeseries_output(f'{name}_rate', output_name=f'polynomial_control_rates:{name}_rate',
+                                                    timeseries=ts_name)
+                    if f'polynomial_control_rates:{name}_rate2' not in ts_options['outputs']:
+                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'polynomial_control_rates:{name}_rate2',
+                                                    timeseries=ts_name)
+
     def configure_polynomial_controls(self, phase):
         """
         Configure the inputs/outputs for the polynomial controls.
@@ -214,6 +243,13 @@ class TranscriptionBase(object):
         if phase.parameter_options:
             param_comp = ParameterComp()
             phase.add_subsystem('param_comp', subsys=param_comp, promotes_inputs=['*'], promotes_outputs=['*'])
+
+        for name, options in phase.parameter_options.items():
+            if options['include_timeseries']:
+                for ts_name, ts_options in phase._timeseries.items():
+                    if f'parameters:{name}' not in ts_options['outputs']:
+                        phase.add_timeseries_output(name, output_name=f'parameters:{name}',
+                                                    timeseries=ts_name)
 
     def configure_parameters(self, phase):
         """
@@ -260,8 +296,25 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        raise NotImplementedError('Transcription {0} does not implement method '
-                                  'setup_states.'.format(self.__class__.__name__))
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_states.')
+
+    def configure_states(self, phase):
+        """
+        Configure the states for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        for name, options in phase.state_options.items():
+            for ts_name, ts_options in phase._timeseries.items():
+                if f'states:{name}' not in ts_options['outputs']:
+                    phase.add_timeseries_output(name, output_name=f'states:{name}',
+                                                timeseries=ts_name)
+                if f'state_rates:{name}' not in ts_options['outputs']:
+                    phase.add_timeseries_output(name=options['rate_source'], output_name=f'state_rates:{name}',
+                                                timeseries=ts_name)
 
     def setup_ode(self, phase):
         """
@@ -272,8 +325,7 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        raise NotImplementedError('Transcription {0} does not implement method '
-                                  'setup_ode.'.format(self.__class__.__name__))
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_ode.')
 
     def setup_timeseries_outputs(self, phase):
         """
@@ -284,8 +336,38 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        raise NotImplementedError('Transcription {0} does not implement method '
-                                  'setup_timeseries_outputs.'.format(self.__class__.__name__))
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
+                                  f'setup_timeseries_outputs.')
+
+    def configure_timeseries_outputs(self, phase):
+        """
+        Create connections from time series to all post-introspection sources.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        for timeseries_name, timeseries_options in phase._timeseries.items():
+            timeseries_comp = phase._get_subsystem(timeseries_name)
+
+            for ts_output_name, ts_output in timeseries_options['outputs'].items():
+                name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
+                units = ts_output['units']
+                shape = ts_output['shape']
+                src = ts_output['src']
+                is_rate = ts_output['is_rate']
+
+                added_src = timeseries_comp._add_output_configure(name,
+                                                                  shape=shape,
+                                                                  units=units,
+                                                                  desc='',
+                                                                  src=src,
+                                                                  rate=is_rate)
+
+                if added_src:
+                    phase.connect(src_name=src, tgt_name=f'{timeseries_name}.input_values:{name}',
+                                  src_indices=ts_output['src_idxs'])
 
     def _configure_boundary_constraints(self, phase):
         """
@@ -517,8 +599,8 @@ class TranscriptionBase(object):
             A list containing a tuple of target paths and corresponding src_indices to which the
             given design variable is to be connected.
         """
-        raise NotImplementedError('Transcription {0} does not implement method '
-                                  'get_parameter_connections.'.format(self.__class__.__name__))
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method'
+                                  f'get_parameter_connections.')
 
     def is_static_ode_output(self, var, phase, num_nodes):
         """

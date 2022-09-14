@@ -24,12 +24,30 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
         super().__init__(**kwargs)
         self._no_check_partials = not dymos_options['include_check_partials']
 
+        # _vars keeps track of the name of each output and maps to its metadata;
+        # a tuple of (input_name, name, shape, rate)
+        self._vars = {}
+
+        # _sources is used internally to map the source of a connection to the timeseries to
+        # the corresponding input variable.  This is used to ensure that we don't need to connect
+        # the same source to this timeseries multiple times.
+        self._sources = {}
+
+        # the number of nodes from the source (this is generally all nodes)
+        self.input_num_nodes = 0
+
+        # the number of nodes in the output
+        self.output_num_nodes = 0
+
+        # Used to track conversion factors for instances when one output that relies on an input
+        # from another variable has potentially different units
+        self._units = {}
+        self._conversion_factors = {}
+
     def initialize(self):
         """
         Declare component options.
         """
-        self._vars = {}
-
         self.options.declare('input_grid_data',
                              types=GridData,
                              desc='Container object for grid on which inputs are provided.')

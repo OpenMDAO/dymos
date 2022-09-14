@@ -22,7 +22,7 @@ from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, configure_states_introspection, \
-    classify_var, get_promoted_vars
+    configure_timeseries_output_introspection, classify_var, get_promoted_vars
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
 
@@ -1283,11 +1283,13 @@ class Phase(om.Group):
         if timeseries not in self._timeseries:
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
-        if output_name is None:
+        if '*' in name:
+            output_name = name
+        elif output_name is None:
             output_name = name.rpartition('.')[-1]
 
-            if rate:
-                output_name = output_name + '_rate'
+        if rate:
+            output_name = output_name + '_rate'
 
         if output_name in self._timeseries[timeseries]['outputs']:
             om.issue_warning(f'Output name `{output_name}` is already in timeseries `{timeseries}`. '
@@ -1622,8 +1624,8 @@ class Phase(om.Group):
             configure_states_introspection(self.state_options, self.time_options, self.control_options,
                                            self.parameter_options, self.polynomial_control_options,
                                            ode)
-        except RuntimeError as val_err:
-            raise RuntimeError(f'Error during configure_states_introspection in phase {self.pathname}.') from val_err
+        except (ValueError, RuntimeError) as e:
+            raise RuntimeError(f'Error during configure_states_introspection in phase {self.pathname}.') from e
 
         transcription.configure_time(self)
         transcription.configure_controls(self)
@@ -1642,6 +1644,11 @@ class Phase(om.Group):
         transcription.configure_path_constraints(self)
 
         transcription.configure_objective(self)
+
+        try:
+            configure_timeseries_output_introspection(self)
+        except RuntimeError as val_err:
+            raise RuntimeError(f'Error during configure_timeseries_output_introspection in phase {self.pathname}.') from val_err
 
         transcription.configure_timeseries_outputs(self)
 
@@ -2030,9 +2037,13 @@ class Phase(om.Group):
             The pathname of the system in prob that contains the phases.
         skip_params : None or set
             Parameter names that will be skipped because they have already been initialized at the
-            trajetory level.
+            trajectory level (Deprecated).
         """
         phs = from_phase
+
+        if skip_params is not None:
+            om.issue_warning(f'{self.pathname}: Option `skip_params` to Phase.initialize_values_from_phase` is '
+                             f'deprecated and will be removed dymos 2.0.0', category=om.OMDeprecationWarning)
 
         op_dict = dict([(name, options) for (name, options) in phs.list_outputs(units=True,
                                                                                 list_autoivcs=True,
@@ -2084,9 +2095,6 @@ class Phase(om.Group):
         for name in phs.parameter_options:
             units = phs.parameter_options[name]['units']
 
-            if skip_params and name in skip_params:
-                continue
-
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.
             if om_version < (3, 4, 1):
@@ -2098,7 +2106,7 @@ class Phase(om.Group):
                 prob_path = f'{phase_path}.{self.name}.parameters:{name}'
             else:
                 prob_path = f'{self.name}.parameters:{name}'
-            prob[prob_path][...] = val
+            prob.set_val(prob_path, val)
 
     def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None):

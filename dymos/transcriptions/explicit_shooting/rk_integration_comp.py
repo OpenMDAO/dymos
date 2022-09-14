@@ -583,13 +583,6 @@ class RKIntegrationComp(om.ExplicitComponent):
 
             explicit_requests = {var for var in patterns if '*' not in var}
 
-            unmatched_requests = explicit_requests.difference(matching_outputs)
-
-            if unmatched_requests:
-                om.issue_warning(msg='The following timeseries outputs were requested but '
-                                     f'not found in the ODE: {", ".join(sorted(unmatched_requests))}',
-                                 category=om.OpenMDAOWarning)
-
             for var, var_meta in matching_outputs.items():
                 if var in explicit_requests:
                     ts_output = next((output for output in ts_opts['outputs'].values() if output['name'] == var))

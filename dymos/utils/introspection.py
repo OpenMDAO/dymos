@@ -1,8 +1,10 @@
+from collections.abc import Iterable
+import copy
 import fnmatch
 
 import openmdao.api as om
 from dymos.utils.misc import _unspecified
-from ..phase.options import StateOptionsDictionary
+from ..phase.options import StateOptionsDictionary, TimeseriesOutputOptionsDictionary
 from .misc import get_rate_units
 
 
@@ -263,11 +265,10 @@ def _configure_constraint_introspection(phase):
                 # Failed to find variable, assume it is in the ODE. This requires introspection.
                 ode = phase.options['transcription']._get_ode(phase)
 
-                shape, units = get_source_metadata(ode, src=var,
-                                                   user_units=con['units'],
-                                                   user_shape=con['shape'])
-                con['shape'] = shape
-                con['units'] = units
+                meta = get_source_metadata(ode, src=var, user_units=con['units'], user_shape=con['shape'])
+
+                con['shape'] = meta['shape']
+                con['units'] = meta['units']
                 con['constraint_path'] = f'timeseries.{con["constraint_name"]}'
 
 
@@ -419,8 +420,7 @@ def configure_time_introspection(time_options, ode):
 def configure_states_introspection(state_options, time_options, control_options, parameter_options,
                                    polynomial_control_options, ode):
     """
-    Modifies state options in-place, automatically determining 'targets', 'units', and 'shape'
-    if necessary.
+    Modifies state options in-place, automatically determining 'targets', 'units', and 'shape' if necessary.
 
     The precedence rules for the state shape and units are as follows:
     1. If the user has specified units and shape in the state options, use those.
@@ -429,15 +429,6 @@ def configure_states_introspection(state_options, time_options, control_options,
     2c. If shape cannot be inferred, assume (1,)
     3a. If the user has not specified units, first try to pull units from a target
     3b. If there are no targets, pull units from the rate source and multiply by time units.
-
-    Parameters
-    ----------
-    state_name : str
-        The name of the state variable of interest.
-    options : OptionsDictionary
-        The options dictionary for the state variable of interest.
-    phase : dymos.Phase
-        The phase associated with the transcription.
 
     Parameters
     ----------
@@ -453,10 +444,6 @@ def configure_states_introspection(state_options, time_options, control_options,
         The options for each polynomial control.
     ode : System
         The OpenMDAO system which provides the state rates as outputs.
-
-    Returns
-    -------
-    None
     """
     time_units = time_options['units']
     ode_inputs = get_promoted_vars(ode, 'input')
@@ -516,10 +503,9 @@ def configure_states_introspection(state_options, time_options, control_options,
             rate_src_units = get_rate_units(control['units'], time_units, deriv=2)
             rate_src_shape = control['shape']
         elif rate_src_type == 'ode':
-            rate_src_shape, rate_src_units = get_source_metadata(ode_outputs,
-                                                                 src=rate_src,
-                                                                 user_units=options['units'],
-                                                                 user_shape=options['shape'])
+            meta = get_source_metadata(ode_outputs, src=rate_src, user_units=options['units'], user_shape=options['shape'])
+            rate_src_shape = meta['shape']
+            rate_src_units = meta['units']
         else:
             rate_src_shape = (1,)
             rate_src_units = None
@@ -588,6 +574,96 @@ def configure_states_discovery(state_options, ode):
             raise ValueError(f"State '{name}' is missing a rate_source.")
 
 
+def configure_timeseries_output_glob_expansion(phase):
+    """
+    Modify timeseries outputs in-place using introspection to expand any glob patterns.
+
+    Parameters
+    ----------
+    phase : Phase
+        The phase object whose boundary and path constraints are to be introspected.
+    """
+    transcription = phase.options['transcription']
+    ode = transcription._get_ode(phase)
+    ode_outputs = get_promoted_vars(ode, 'output')
+
+    new_outputs = {}
+
+    # Step 1: Expand globs
+    for ts_name, ts_meta in phase._timeseries.items():
+
+        explicit_requests = set([output['name'] for output in ts_meta['outputs'].values() if '*' not in output['name']])
+
+        for output_name, output_options in ts_meta['outputs'].items():
+
+            if '*' in output_name:
+                matching_outputs = filter_outputs(output_name, ode_outputs)
+                wildcard_units = {} if output_options['wildcard_units'] is None else output_options['wildcard_units']
+
+                for op, meta in matching_outputs.items():
+                    if op not in explicit_requests and 'dymos.static_output' not in meta['tags']:
+                        new_output = TimeseriesOutputOptionsDictionary()
+                        new_output['name'] = op
+                        new_output['output_name'] = opname = op.split('.')[-1]
+                        new_output['units'] = _unspecified if op not in wildcard_units else wildcard_units[op]
+                        new_output['shape'] = _unspecified
+                        if opname not in explicit_requests and opname in new_outputs:
+                            raise RuntimeError(f'{phase.pathname}: The glob pattern `{output_name}` matches multiple '
+                                               f'outputs in the ODE.\n'
+                                               f'Add these outputs explicitly with unique output names using the\n'
+                                               f'output_name argument to avoid this error.\n'
+                                               f'Colliding names: {op}  {new_outputs[opname]["name"]}')
+                        else:
+                            new_outputs[new_output['output_name']] = new_output
+            else:
+                new_outputs[output_name] = output_options
+
+        phase._timeseries[ts_name]['outputs'] = new_outputs
+
+
+def configure_timeseries_output_introspection(phase):
+    """
+    Modify timeseries outputs in-place using introspection to find output units and shape.
+
+    Parameters
+    ----------
+    phase : Phase
+        The phase object whose timeseries outputs are to be introspected.
+    """
+    configure_timeseries_output_glob_expansion(phase)
+
+    transcription = phase.options['transcription']
+
+    for ts_name, ts_opts in phase._timeseries.items():
+
+        not_found = set()
+
+        for output_name, output_options in ts_opts['outputs'].items():
+            try:
+                output_meta = transcription._get_timeseries_var_source(output_options['name'],
+                                                                       output_options['output_name'],
+                                                                       phase=phase)
+            except ValueError as e:
+                not_found.add(output_name)
+
+            output_options['src'] = output_meta['src']
+            output_options['src_idxs'] = output_meta['src_idxs']
+
+            if output_options['shape'] in (None, _unspecified):
+                output_options['shape'] = output_meta['shape']
+
+            if output_options['units'] in (None, _unspecified):
+                output_options['units'] = output_meta['units']
+
+        if not_found:
+            sorted_list = ', '.join(sorted(not_found))
+            om.issue_warning(f'{phase.pathname}: The following timeseries outputs were requested but not found in the '
+                             f'ODE: {sorted_list}')
+
+        for s in not_found:
+            ts_opts['outputs'].pop(s)
+
+
 def filter_outputs(patterns, sys):
     """
     Find all outputs of the given system that match one or more of the strings given in patterns.
@@ -607,19 +683,20 @@ def filter_outputs(patterns, sys):
         A dictionary where the matching output names are the keys and the associated dict provides
         the 'units' and 'shapes' metadata.
     """
-    outputs = sys if isinstance(sys, dict) else get_promoted_vars(sys, iotypes='output',
-                                                                  metadata_keys=['shape', 'units'])
+    outputs = sys if isinstance(sys, dict) else get_promoted_vars(sys, iotypes='output', metadata_keys=['shape', 'units', 'tags'])
+    _patterns = [patterns] if isinstance(patterns, str) else patterns
 
-    if '*' in patterns:  # shortcut for '*'
-        filtered = outputs
-    else:
-        filtered = set()
-        for pattern in patterns:
-            filtered.update(fnmatch.filter(outputs, pattern))
+    output_names = list(outputs.keys())
+    filtered = set()
+    results = {}
 
-    return {
-        var: {'units': outputs[var]['units'], 'shape': outputs[var]['shape']} for var in filtered
-    }
+    for pattern in _patterns:
+        filtered.update(fnmatch.filter(output_names, pattern))
+
+    for var in filtered:
+        results[var] = {'units': outputs[var]['units'], 'shape': outputs[var]['shape'], 'tags': outputs[var]['tags']}
+
+    return results
 
 
 def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspecified,
@@ -854,7 +931,7 @@ def _get_targets_metadata(ode, name, user_targets=_unspecified, user_units=_unsp
     return targets, shape, units, static_target
 
 
-def get_source_metadata(ode, src, user_units, user_shape):
+def get_source_metadata(ode, src, user_units=_unspecified, user_shape=_unspecified):
     """
     Return the units and shape of output src in the given ODE.
 
@@ -880,10 +957,8 @@ def get_source_metadata(ode, src, user_units, user_shape):
 
     Returns
     -------
-    shape : tuple
-        The shape of the variable.  If not specified, shape is taken from the ODE targets.
-    units : str
-        The units of the variable.  If not specified, units are taken from the ODE targets.
+    dict
+        A dictionary containing the metadata for the source. This consists of shape, units, and tags.
 
     Notes
     -----
@@ -891,20 +966,23 @@ def get_source_metadata(ode, src, user_units, user_shape):
     this method should be called from configure of some parent Group, and the ODE should
     be a system within that Group.
     """
+    meta = {}
     ode_outputs = ode if isinstance(ode, dict) else get_promoted_vars(ode, iotypes='output')
 
     if src not in ode_outputs:
-        raise RuntimeError(f'Unable to find the source {src} in the ODE.')
+        raise ValueError(f'Unable to find the source {src} in the ODE.')
 
     if user_units in {None, _unspecified}:
-        units = ode_outputs[src]['units']
+        meta['units'] = ode_outputs[src]['units']
     else:
-        units = user_units
+        meta['units'] = user_units
 
     if user_shape in {None, _unspecified}:
         ode_shape = ode_outputs[src]['shape']
-        shape = (1,) if len(ode_shape) == 1 else ode_shape[1:]
+        meta['shape'] = (1,) if len(ode_shape) == 1 else ode_shape[1:]
     else:
-        shape = user_shape
+        meta['shape'] = user_shape
 
-    return shape, units
+    meta['tags'] = ode_outputs[src]['tags']
+
+    return meta

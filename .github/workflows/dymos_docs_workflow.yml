@@ -202,14 +202,14 @@ jobs:
           mamba install jupyter-book jupyter -q -y
 
 
-      - name: Install optional dependencies
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.OPTIONAL == '[all]'
+      - name: Install bokeh
+        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install additional packages for testing/coverage"
           echo "============================================================="
-          pip install bokeh
+          mamba install bokeh
 
       - name: Install Dymos
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')

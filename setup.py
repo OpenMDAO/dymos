@@ -77,4 +77,9 @@ The software has two primary objectives:
         'dymos.examples.aircraft_steady_flight.aero': ['data/CRM_aero_inputs.dat', 'data/CRM_aero_outputs.dat'],
         'dymos.visualization.linkage': ['report_template.html', 'js/*', 'style/*']
     },
+    entry_points = {
+        'openmdao_report': [
+            'dymos.linkage=dymos.visualization.linkage.report:_linkage_report_register'
+        ],
+    },
 )
