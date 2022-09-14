@@ -9,16 +9,10 @@ from openmdao.utils.testing_utils import use_tempdirs
 from dymos.examples.aircraft_steady_flight.aero.interpND_aero_coef_comp import setup_surrogates_all, \
     InterpNDAeroCoeffComp
 
-# try:
-#     import MBI
-# except ImportError:
-#     MBI = None
-
 
 @use_tempdirs
 class TestAeroCoefComp(unittest.TestCase):
 
-    # @unittest.skipIf(MBI is None, "MBI not available")
     def test_aero_coefs(self):
 
         NUM_NODES = 100
