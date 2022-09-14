@@ -6,6 +6,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.components.interp_util.interp import InterpND
 
+
 def setup_surrogates_all(model_name='CRM'):
     data_dir = os.path.split(os.path.realpath(__file__))[0]
     raw = np.loadtxt(os.path.join(data_dir, 'data', '{0}_aero_inputs.dat'.format(model_name)))
@@ -32,9 +33,12 @@ def setup_surrogates_all(model_name='CRM'):
                     mbi_CM[i][j][k][l] = CM[count]
                     count += 1
 
-    interpND_CL = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr), values=mbi_CL)
-    interpND_CD = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr), values=mbi_CD)
-    interpND_CM = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr), values=mbi_CM)
+    interpND_CL = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr),
+                           values=mbi_CL)
+    interpND_CD = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr),
+                           values=mbi_CD)
+    interpND_CM = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr),
+                           values=mbi_CM)
 
     nums = {
         'M': M_num,
@@ -77,7 +81,7 @@ class InterpNDAeroCoeffComp(om.ExplicitComponent):
         interpND_CD = self.options['interpND_CD']
         interpND_CM = self.options['interpND_CM']
 
-        self.mbi_tup = ((0, 'CL', interpND_CL), (1, 'CD', interpND_CD), (2, 'CM', interpND_CM))
+        self.interp_tup = ((0, 'CL', interpND_CL), (1, 'CD', interpND_CD), (2, 'CM', interpND_CM))
 
         ar = np.arange(nn)
         self.declare_partials('CL', 'M', rows=ar, cols=ar)
@@ -111,46 +115,10 @@ class InterpNDAeroCoeffComp(om.ExplicitComponent):
         self.inputs[:, 2] = inputs['h'] * 3.28e3   # convert km to ft
         self.inputs[:, 3] = np.degrees(inputs['eta'])  # convert to deg
 
-        for ind, name, mbi in self.mbi_tup:
+        for ind, name, interp in self.interp_tup:
             # compute_derivative
-
-            if name != 'CqqqqqM':
-            # if name != 'CM':
-
-                # data = mbi.evaluate(self.inputs, 1, 0)[:, 0]
-                values, derivs = mbi.interpolate(self.inputs, compute_derivative=True)[:]
-                # partials[name, 'M'] = data
-                partials[name, 'M'] = derivs[:,0]
-
-                # data = mbi.interpolate(self.inputs, compute_derivative=True)[:]
-                data = derivs[:,1]
-                data = np.degrees(data)
-                partials[name, 'alpha'] = data
-
-                # data = np.degrees(mbi.evaluate(self.inputs, 2, 0)[:, 0])
-                # partials[name, 'alpha'] = data
-
-                partials[name, 'h'] = derivs[:,2] * 3.28e3
-
-                # data = mbi.evaluate(self.inputs, 3, 0)[:, 0] * 3.28e3
-                # partials[name, 'h'] = data
-
-                # data = np.degrees(mbi.evaluate(self.inputs, 4, 0)[:, 0])
-                # partials[name, 'eta'] = data
-
-                data = derivs[:,3]
-                data = np.degrees(data)
-                partials[name, 'eta'] = data
-            else:
-                data = mbi.evaluate(self.inputs, 1, 0)[:, 0]
-                partials[name, 'M'] = data
-
-                data = np.degrees(mbi.evaluate(self.inputs, 2, 0)[:, 0])
-                partials[name, 'alpha'] = data
-
-                data = mbi.evaluate(self.inputs, 3, 0)[:, 0] * 3.28e3
-                partials[name, 'h'] = data
-
-                data = np.degrees(mbi.evaluate(self.inputs, 4, 0)[:, 0])
-                partials[name, 'eta'] = data
-
+            values, derivs = interp.interpolate(self.inputs, compute_derivative=True)[:]
+            partials[name, 'M'] = derivs[:, 0]
+            partials[name, 'alpha'] = np.degrees(derivs[:, 1])
+            partials[name, 'h'] = derivs[:, 2] * 3.28e3
+            partials[name, 'eta'] = np.degrees(derivs[:, 3])
