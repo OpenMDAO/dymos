@@ -15,12 +15,12 @@ class AerodynamicsGroup(om.Group):
     def setup(self):
         n = self.options['num_nodes']
 
-        interpND_CL, interpND_CD, interpND_CM, mbi_num = setup_surrogates_all()
+        interpND_CL, interpND_CD, interpND_CM, interp_tup_num = setup_surrogates_all()
 
         self.add_subsystem(name='aero_coef_comp',
                            subsys=InterpNDAeroCoeffComp(vec_size=n, interpND_CL=interpND_CL, interpND_CD=interpND_CD,
                                                         interpND_CM=interpND_CM,
-                                                        mbi_num=mbi_num),
+                                                        interp_tup_num=interp_tup_num),
                            promotes_inputs=[('M', 'mach'), 'alpha', ('h', 'alt'), 'eta'],
                            promotes_outputs=['CL', 'CD', 'CM'])
 

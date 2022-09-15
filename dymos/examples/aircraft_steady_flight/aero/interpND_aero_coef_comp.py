@@ -19,26 +19,26 @@ def setup_surrogates_all(model_name='CRM'):
     h_surr = raw[4 + M_num + a_num:4 + M_num + a_num + h_num]
     e_surr = raw[4 + M_num + a_num + h_num:]
 
-    mbi_CL = np.zeros((M_num, a_num, h_num, e_num))
-    mbi_CD = np.zeros((M_num, a_num, h_num, e_num))
-    mbi_CM = np.zeros((M_num, a_num, h_num, e_num))
+    interp_CL = np.zeros((M_num, a_num, h_num, e_num))
+    interp_CD = np.zeros((M_num, a_num, h_num, e_num))
+    interp_CM = np.zeros((M_num, a_num, h_num, e_num))
 
     count = 0
     for i in range(M_num):
         for j in range(a_num):
             for k in range(h_num):
                 for l in range(e_num):
-                    mbi_CL[i][j][k][l] = CL[count]
-                    mbi_CD[i][j][k][l] = CD[count]
-                    mbi_CM[i][j][k][l] = CM[count]
+                    interp_CL[i][j][k][l] = CL[count]
+                    interp_CD[i][j][k][l] = CD[count]
+                    interp_CM[i][j][k][l] = CM[count]
                     count += 1
 
     interpND_CL = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr),
-                           values=mbi_CL)
+                           values=interp_CL)
     interpND_CD = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr),
-                           values=mbi_CD)
+                           values=interp_CD)
     interpND_CM = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr),
-                           values=mbi_CM)
+                           values=interp_CM)
 
     nums = {
         'M': M_num,
@@ -57,7 +57,7 @@ class InterpNDAeroCoeffComp(om.ExplicitComponent):
         self.options.declare('interpND_CL')
         self.options.declare('interpND_CD')
         self.options.declare('interpND_CM')
-        self.options.declare('mbi_num')
+        self.options.declare('interp_num')
 
     def setup(self):
         nn = self.options['vec_size']
@@ -76,7 +76,7 @@ class InterpNDAeroCoeffComp(om.ExplicitComponent):
         # Initialization
         self.inputs = np.zeros((nn, 4))
 
-        # mbi_CL = self.options['mbi_CL']
+        # interp_CL = self.options['interp_CL']
         interpND_CL = self.options['interpND_CL']
         interpND_CD = self.options['interpND_CD']
         interpND_CM = self.options['interpND_CM']

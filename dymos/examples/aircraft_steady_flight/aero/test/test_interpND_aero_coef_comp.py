@@ -20,20 +20,14 @@ class TestAeroCoefComp(unittest.TestCase):
 
         prob = om.Problem(model=om.Group())
 
-        # mbi_CL, mbi_CD, mbi_CM, mbi_num = setup_surrogates_all(MODEL)
-        # interp_CL, interp_CD, mbi_CL, mbi_CD, mbi_CM, mbi_num = setup_surrogates_all(MODEL)
-        interpND_CL, interpND_CD, interpND_CM, mbi_num = setup_surrogates_all(MODEL)
+        interpND_CL, interpND_CD, interpND_CM, interp_num = setup_surrogates_all(MODEL)
 
         prob.model.add_subsystem(name='aero',
-                                 # subsys=MBIAeroCoeffComp(vec_size=NUM_NODES, mbi_CL=mbi_CL,
                                  subsys=InterpNDAeroCoeffComp(vec_size=NUM_NODES,
-                                                              # mbi_CL=mbi_CL,
                                                               interpND_CL=interpND_CL,
                                                               interpND_CD=interpND_CD,
                                                               interpND_CM=interpND_CM,
-                                                              # mbi_CD=mbi_CD,
-                                                              # mbi_CM=mbi_CM,
-                                                              mbi_num=mbi_num))
+                                                              interp_num=interp_num))
 
         prob.model.add_subsystem(name='M_ivc',
                                  subsys=om.IndepVarComp('M', val=np.zeros(NUM_NODES), units=None),
@@ -158,8 +152,6 @@ class TestAeroCoefComp(unittest.TestCase):
                                 0.068645329742, 0.069316017853, 0.069896140873, 0.070403409938])
 
         prob.run_model()
-
-        # import openmdao.utils.assert_utils.assert_no_approx_partials
 
         CL_data = np.array([0.082888007941,  0.089072273825,  0.095950354327,  0.103682321645,
                             0.112464008649,  0.122536141064,  0.134190540205,  0.147763949092,
