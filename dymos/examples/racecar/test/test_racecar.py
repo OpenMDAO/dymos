@@ -268,7 +268,7 @@ class TestRaceCarForDocs(unittest.TestCase):
                              solid_capstyle="projecting", antialiased=True)
 
             clb = plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), fraction=0.02,
-                               pad=0.04)  # add colorbar
+                                ax=ax, pad=0.04)  # add colorbar
 
             if np.array_equal(state, V[:, 0]):
                 clb.set_label('Velocity (m/s)')
