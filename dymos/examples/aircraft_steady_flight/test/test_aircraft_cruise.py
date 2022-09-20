@@ -10,11 +10,6 @@ from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
 
-try:
-    import MBI
-except:
-    MBI = None
-
 
 @use_tempdirs
 class TestAircraftCruise(unittest.TestCase):

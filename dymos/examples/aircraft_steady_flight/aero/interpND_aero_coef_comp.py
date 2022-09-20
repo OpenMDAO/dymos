@@ -4,11 +4,7 @@ import os.path
 
 import numpy as np
 import openmdao.api as om
-try:
-    import MBI
-except ImportError:
-    print("MBI is not available")
-    MBI = None
+from openmdao.components.interp_util.interp import InterpND
 
 
 def setup_surrogates_all(model_name='CRM'):
@@ -23,29 +19,26 @@ def setup_surrogates_all(model_name='CRM'):
     h_surr = raw[4 + M_num + a_num:4 + M_num + a_num + h_num]
     e_surr = raw[4 + M_num + a_num + h_num:]
 
-    mbi_CL = np.zeros((M_num, a_num, h_num, e_num))
-    mbi_CD = np.zeros((M_num, a_num, h_num, e_num))
-    mbi_CM = np.zeros((M_num, a_num, h_num, e_num))
+    interp_CL = np.zeros((M_num, a_num, h_num, e_num))
+    interp_CD = np.zeros((M_num, a_num, h_num, e_num))
+    interp_CM = np.zeros((M_num, a_num, h_num, e_num))
 
     count = 0
     for i in range(M_num):
         for j in range(a_num):
             for k in range(h_num):
                 for l in range(e_num):
-                    mbi_CL[i][j][k][l] = CL[count]
-                    mbi_CD[i][j][k][l] = CD[count]
-                    mbi_CM[i][j][k][l] = CM[count]
+                    interp_CL[i][j][k][l] = CL[count]
+                    interp_CD[i][j][k][l] = CD[count]
+                    interp_CM[i][j][k][l] = CM[count]
                     count += 1
 
-    CL_arr = MBI.MBI(mbi_CL, [M_surr, a_surr, h_surr, e_surr],
-                             [M_num,  a_num,  h_num,  e_num],
-                             [4, 4, 4, 4])
-    CD_arr = MBI.MBI(mbi_CD, [M_surr, a_surr, h_surr, e_surr],
-                             [M_num,  a_num,  h_num,  e_num],
-                             [4, 4, 4, 4])
-    CM_arr = MBI.MBI(mbi_CM, [M_surr, a_surr, h_surr, e_surr],
-                             [M_num,  a_num,  h_num,  e_num],
-                             [4, 4, 4, 4])
+    interpND_CL = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr),
+                           values=interp_CL)
+    interpND_CD = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr),
+                           values=interp_CD)
+    interpND_CM = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr),
+                           values=interp_CM)
 
     nums = {
         'M': M_num,
@@ -54,17 +47,17 @@ def setup_surrogates_all(model_name='CRM'):
         'e': e_num,
     }
 
-    return [CL_arr, CD_arr, CM_arr, nums]
+    return [interpND_CL, interpND_CD, interpND_CM, nums]
 
 
-class MBIAeroCoeffComp(om.ExplicitComponent):
+class InterpNDAeroCoeffComp(om.ExplicitComponent):
     """ Compute the lift, drag, and moment coefficients of the aircraft """
     def initialize(self):
         self.options.declare('vec_size', types=int)
-        self.options.declare('mbi_CL')
-        self.options.declare('mbi_CD')
-        self.options.declare('mbi_CM')
-        self.options.declare('mbi_num')
+        self.options.declare('interpND_CL')
+        self.options.declare('interpND_CD')
+        self.options.declare('interpND_CM')
+        self.options.declare('interp_num')
 
     def setup(self):
         nn = self.options['vec_size']
@@ -83,11 +76,12 @@ class MBIAeroCoeffComp(om.ExplicitComponent):
         # Initialization
         self.inputs = np.zeros((nn, 4))
 
-        mbi_CL = self.options['mbi_CL']
-        mbi_CD = self.options['mbi_CD']
-        mbi_CM = self.options['mbi_CM']
+        # interp_CL = self.options['interp_CL']
+        interpND_CL = self.options['interpND_CL']
+        interpND_CD = self.options['interpND_CD']
+        interpND_CM = self.options['interpND_CM']
 
-        self.mbi_tup = ((0, 'CL', mbi_CL), (1, 'CD', mbi_CD), (2, 'CM', mbi_CM))
+        self.interp_tup = ((0, 'CL', interpND_CL), (1, 'CD', interpND_CD), (2, 'CM', interpND_CM))
 
         ar = np.arange(nn)
         self.declare_partials('CL', 'M', rows=ar, cols=ar)
@@ -111,9 +105,9 @@ class MBIAeroCoeffComp(om.ExplicitComponent):
         self.inputs[:, 2] = inputs['h'] * 3.28e3   # convert km to ft
         self.inputs[:, 3] = np.degrees(inputs['eta'])  # convert to deg
 
-        outputs['CL'][:] = self.options['mbi_CL'].evaluate(self.inputs)[:, 0]
-        outputs['CD'][:] = self.options['mbi_CD'].evaluate(self.inputs)[:, 0] + 0.015
-        outputs['CM'][:] = self.options['mbi_CM'].evaluate(self.inputs)[:, 0]
+        outputs['CL'][:] = self.options['interpND_CL'].interpolate(self.inputs)[:]
+        outputs['CD'][:] = self.options['interpND_CD'].interpolate(self.inputs)[:] + 0.015
+        outputs['CM'][:] = self.options['interpND_CM'].interpolate(self.inputs)[:]
 
     def compute_partials(self, inputs, partials):
         self.inputs[:, 0] = inputs['M']
@@ -121,16 +115,10 @@ class MBIAeroCoeffComp(om.ExplicitComponent):
         self.inputs[:, 2] = inputs['h'] * 3.28e3   # convert km to ft
         self.inputs[:, 3] = np.degrees(inputs['eta'])  # convert to deg
 
-        for ind, name, mbi in self.mbi_tup:
-
-            data = mbi.evaluate(self.inputs, 1, 0)[:, 0]
-            partials[name, 'M'] = data
-
-            data = np.degrees(mbi.evaluate(self.inputs, 2, 0)[:, 0])
-            partials[name, 'alpha'] = data
-
-            data = mbi.evaluate(self.inputs, 3, 0)[:, 0] * 3.28e3
-            partials[name, 'h'] = data
-
-            data = np.degrees(mbi.evaluate(self.inputs, 4, 0)[:, 0])
-            partials[name, 'eta'] = data
+        for ind, name, interp in self.interp_tup:
+            # compute_derivative
+            values, derivs = interp.interpolate(self.inputs, compute_derivative=True)[:]
+            partials[name, 'M'] = derivs[:, 0]
+            partials[name, 'alpha'] = np.degrees(derivs[:, 1])
+            partials[name, 'h'] = derivs[:, 2] * 3.28e3
+            partials[name, 'eta'] = np.degrees(derivs[:, 3])

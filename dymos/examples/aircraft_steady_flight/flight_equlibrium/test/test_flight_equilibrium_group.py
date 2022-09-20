@@ -13,13 +13,6 @@ from dymos.examples.aircraft_steady_flight.flight_equlibrium.steady_flight_equil
     import SteadyFlightEquilibriumGroup
 
 
-try:
-    import MBI
-except:
-    MBI = None
-
-
-@unittest.skipIf(MBI is None, 'MBI not available')
 @use_tempdirs
 class TestFlightEquilibriumGroup(unittest.TestCase):
 

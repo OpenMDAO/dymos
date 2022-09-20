@@ -29,7 +29,6 @@ jobs:
             SCIPY: 1.7
             PETSc: 3.17
             PYOPTSPARSE: 'v2.8.3'
-            MBI: 1
             OPENMDAO: 'latest'
             OPTIONAL: '[docs]'
             JAX: True
@@ -43,7 +42,6 @@ jobs:
             PETSc: 3
             PYOPTSPARSE: 'latest'
             SNOPT: 7.7
-            MBI: 1
             OPENMDAO: 'dev'
             OPTIONAL: '[docs]'
             JAX: True
@@ -178,17 +176,6 @@ jobs:
 
             build_pyoptsparse $BRANCH $PAROPT $SNOPT
           fi
-
-      - name: Install MBI
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.MBI
-        shell: bash -l {0}
-        run: |
-          echo "============================================================="
-          echo "Install MBI"
-          echo "============================================================="
-          git clone -q https://github.com/OpenMDAO/MBI
-          cd MBI
-          pip install .
 
       - name: Install OpenMDAO
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.OPENMDAO

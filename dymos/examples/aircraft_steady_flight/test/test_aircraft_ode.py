@@ -8,13 +8,6 @@ from openmdao.utils.testing_utils import use_tempdirs
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 
-try:
-    import MBI
-except:
-    MBI = None
-
-
-@unittest.skipIf(MBI is None, 'MBI not available')
 @use_tempdirs
 class TestAircraftODEGroup(unittest.TestCase):
 

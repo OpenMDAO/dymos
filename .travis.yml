@@ -122,12 +122,6 @@ install:
     cd ..;
     echo $PWD
 
-    git clone https://github.com/OpenMDAO/MBI.git;
-    cd MBI;
-    python setup.py build install;
-    cd ..;
-    echo $PWD
-
     if [ "$PETSc" ]; then
       echo " >> Installing parallel processing dependencies";
       conda install --yes petsc4py=$PETSc;
