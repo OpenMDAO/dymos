@@ -1,5 +1,5 @@
 name: Bug Report
-description: Submit a report if you believe you've found a bug in OpenMDAO.
+description: Submit a report if you believe you've found a bug in Dymos.
 labels: ["bug"]
 assignees:
   - robfalck
@@ -20,11 +20,11 @@ body:
     validations:
       required: true
   - type: input
-    id: openmdao-version
+    id: dymos-version
     attributes:
-      label: OpenMDAO Version
-      description: What version of OpenMDAO is being used.
-      placeholder: "3.20.1-dev"
+      label: Dymos Version
+      description: What version of Dymos is being used.
+      placeholder: "1.5.1-dev"
     validations:
       required: true
   - type: textarea
