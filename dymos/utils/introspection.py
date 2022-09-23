@@ -517,6 +517,69 @@ def configure_states_introspection(state_options, time_options, control_options,
             options['units'] = time_units if rate_src_units is None else f'{rate_src_units}*{time_units}'
 
 
+def configure_analytic_states_introspection(state_options, time_options, control_options, parameter_options,
+                                            polynomial_control_options, ode):
+    """
+    Modifies state options in-place, automatically determining 'targets', 'units', and 'shape' if necessary.
+
+    The precedence rules for the state shape and units are as follows:
+    1. If the user has specified units and shape in the state options, use those.
+    2a. If the user has not specified shape, and targets exist, then pull the shape from the targets.
+    2b. If the user has not specified shape and no targets exist, then pull the shape from the rate source.
+    2c. If shape cannot be inferred, assume (1,)
+    3a. If the user has not specified units, first try to pull units from a target
+    3b. If there are no targets, pull units from the rate source and multiply by time units.
+
+    Parameters
+    ----------
+    state_options : dict of {str: StateOptionsDictionary}
+        The state variables to be configured.
+    time_options : TimeOptionsDictionary
+        The time options.
+    control_options : dict of {str: ControlOptionsDictionary}
+        The options for each control.
+    parameter_options : dict of {str: ParameterOptionsDictionary}
+        The options for each parameter.
+    polynomial_control_options : dict of {str: PolynomialControlOptionsDictionary}
+        The options for each polynomial control.
+    ode : System
+        The OpenMDAO system which provides the state rates as outputs.
+    """
+    time_units = time_options['units']
+    ode_inputs = get_promoted_vars(ode, 'input')
+    ode_outputs = get_promoted_vars(ode, 'output')
+
+    for state_name, options in state_options.items():
+        # Automatically determine targets of state if left _unspecified
+        targets, tgt_shape, tgt_units, static_target = _get_targets_metadata(ode_inputs,
+                                                                             state_name,
+                                                                             user_targets=options['targets'],
+                                                                             user_units=options['units'],
+                                                                             user_shape=options['shape'])
+
+        options['targets'] = targets
+        if targets:
+            options['shape'] = tgt_shape
+            options['units'] = tgt_units
+
+        # 3. Attempt rate-source introspection
+        sol_src = options['sol_source']
+
+        meta = get_source_metadata(ode_outputs, src=sol_src, user_units=options['units'], user_shape=options['shape'])
+        sol_src_shape = meta['shape']
+        sol_src_units = meta['units']
+
+        if options['shape'] in {None, _unspecified}:
+            options['shape'] = sol_src_shape
+
+        if options['units'] is _unspecified:
+            options['units'] = sol_src_units
+
+        print(state_name, sol_src_shape, sol_src_units)
+
+
+
+
 def configure_states_discovery(state_options, ode):
     """
     Searches phase output metadata for any declared states and adds them.

@@ -19,6 +19,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 
 
 from ..transcriptions.transcription_base import TranscriptionBase
+from ..transcriptions import Analytic
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, configure_states_introspection, \
@@ -105,8 +106,13 @@ class Phase(om.Group):
         self.options.declare('ode_class', default=None,
                              desc='System defining the ODE',
                              recordable=False)
+        self.options.declare('rhs_class', default=None,
+                             desc='System defining the solution to the ODE if the transcription is Analytic',
+                             recordable=False)
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
+        self.options.declare('rhs_init_kwargs', types=dict, default={},
+                             desc='Keyword arguments provided when initializing the RHS System')
         self.options.declare('transcription', types=TranscriptionBase,
                              desc='Transcription technique of the optimal control problem.')
 
@@ -115,7 +121,8 @@ class Phase(om.Group):
                   val=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
                   lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
                   ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
-                  defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified):
+                  defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified,
+                  sol_source=_unspecified):
         """
         Add a state variable to be integrated by the phase.
 
@@ -171,6 +178,9 @@ class Phase(om.Group):
         connected_initial : bool
             If True, then the initial value for this state comes from an externally connected
             source.
+        sol_source : str
+            The path to the ODE output which provides the solution for this state variable when using an
+            Analytic transcription.
         """
         if name not in self.state_options:
             self.state_options[name] = StateOptionsDictionary()
@@ -181,14 +191,15 @@ class Phase(om.Group):
                                fix_final=fix_final, lower=lower, upper=upper, scaler=scaler,
                                adder=adder, ref0=ref0, ref=ref, defect_scaler=defect_scaler,
                                defect_ref=defect_ref, solve_segments=solve_segments,
-                               connected_initial=connected_initial)
+                               connected_initial=connected_initial, sol_source=sol_source)
 
     def set_state_options(self, name, units=_unspecified, shape=_unspecified,
                           rate_source=_unspecified, targets=_unspecified,
                           val=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
                           lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
                           ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
-                          defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified):
+                          defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified,
+                          sol_source=_unspecified):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -244,6 +255,9 @@ class Phase(om.Group):
         connected_initial : bool
             If True, then the initial value for this state comes from an externally connected
             source.
+        sol_source : str
+            The path to the ODE output which provides the solution for this state variable when using an
+            Analytic transcription.
         """
         if name not in self.state_options:
             # This state option will be picked up automatically from tags.
@@ -303,6 +317,9 @@ class Phase(om.Group):
 
         if connected_initial is not _unspecified:
             self.state_options[name]['connected_initial'] = connected_initial
+
+        if sol_source is not _unspecified:
+            self.state_options[name]['sol_source'] = sol_source
 
     def check_parameter(self, name):
         """
@@ -1553,7 +1570,7 @@ class Phase(om.Group):
             ValueError is raised if the ODE does not meet one of the the requirements above.
 
         """
-        ode_class = self.options['ode_class']
+        ode_class = self.options['ode_class'] or self.options['rhs_class']
         if not inspect.isclass(ode_class):
             if not isinstance(ode_class, Callable):
                 raise ValueError('ode_class must be given as a callable object that returns an '
@@ -1620,13 +1637,7 @@ class Phase(om.Group):
 
         self.configure_state_discovery()
 
-        try:
-            configure_states_introspection(self.state_options, self.time_options, self.control_options,
-                                           self.parameter_options, self.polynomial_control_options,
-                                           ode)
-        except (ValueError, RuntimeError) as e:
-            raise RuntimeError(f'Error during configure_states_introspection in phase {self.pathname}.') from e
-
+        transcription.configure_states_introspection(self)
         transcription.configure_time(self)
         transcription.configure_controls(self)
         transcription.configure_polynomial_controls(self)
@@ -1699,8 +1710,12 @@ class Phase(om.Group):
 
         # Check over all existing states and make sure we aren't missing any rate sources.
         for name, options in state_options.items():
-            if options['rate_source'] is None:
-                raise ValueError(f"State '{name}' is missing a rate_source.")
+            if isinstance(self.options['transcription'], Analytic):
+                if options['sol_source'] is None:
+                    raise ValueError(f"{self.pathname}: State '{name}' is missing a sol_source with an Analytic "
+                                     f"transcription.")
+            elif options['rate_source'] is None:
+                raise ValueError(f"{self.pathname}: State '{name}' is missing a rate_source.")
 
     def check_time_options(self):
         """

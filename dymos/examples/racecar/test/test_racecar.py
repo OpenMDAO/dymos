@@ -4,7 +4,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestRaceCarForDocs(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')

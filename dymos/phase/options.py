@@ -381,6 +381,9 @@ class StateOptionsDictionary(om.OptionsDictionary):
         self.declare(name='rate_source', types=str, allow_none=True, default=None,
                      desc='ODE-path to the derivative of the state variable')
 
+        self.declare(name='sol_source', types=str, allow_none=True, default=None,
+                     desc='RHS-path to the soltuion of the state variable, for analytic transcriptions')
+
         self.declare(name='targets', allow_none=True, default=_unspecified,
                      desc='Targets in the ODE to which the state is connected')
 

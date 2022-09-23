@@ -8,7 +8,7 @@ from .common import ControlGroup, PolynomialControlGroup, ParameterComp
 from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.misc import _unspecified
-from ..utils.introspection import get_promoted_vars, get_target_metadata
+from ..utils.introspection import configure_states_introspection, get_promoted_vars, get_target_metadata
 
 
 class TranscriptionBase(object):
@@ -297,6 +297,23 @@ class TranscriptionBase(object):
             The phase object to which this transcription instance applies.
         """
         raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_states.')
+
+    def configure_states_introspection(self, phase):
+        """
+        Perform introspection on the RHS system for the states for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        ode = self._get_ode(phase)
+        try:
+            configure_states_introspection(phase.state_options, phase.time_options, phase.control_options,
+                                           phase.parameter_options, phase.polynomial_control_options, ode)
+        except (ValueError, RuntimeError) as e:
+            raise RuntimeError(f'Error during configure_states_introspection in phase {phase.pathname}.') from e
+
 
     def configure_states(self, phase):
         """
