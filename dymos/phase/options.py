@@ -379,10 +379,11 @@ class StateOptionsDictionary(om.OptionsDictionary):
                      desc='shape of the state variable, as determined by introspection')
 
         self.declare(name='rate_source', types=str, allow_none=True, default=None,
-                     desc='ODE-path to the derivative of the state variable')
+                     desc='ODE-path or phase variable providing the derivative of the state variable')
 
-        self.declare(name='sol_source', types=str, allow_none=True, default=None,
-                     desc='RHS-path to the soltuion of the state variable, for analytic transcriptions')
+        self.declare(name='source', types=str, allow_none=True, default=None,
+                     desc='RHS-path or phase variable providing value of the state variable, for Analytic '
+                          'transcription only!')
 
         self.declare(name='targets', allow_none=True, default=_unspecified,
                      desc='Targets in the ODE to which the state is connected')
@@ -457,7 +458,15 @@ class StateOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='connected_initial', default=False, types=bool,
                      desc='Whether an input is created to pass in the initial state. This may be '
+                          'set by a trajectory that links phases.',
+                     deprecation="State option 'connected_initial' is deprecated. Please use 'input_initial' instead.")
+
+        self.declare(name='input_initial', default=False, types=bool,
+                     desc='Whether an input is created to pass in the initial state. This may be '
                           'set by a trajectory that links phases.')
+
+        self.declare(name='initial_targets', allow_none=True, default=_unspecified,
+                     desc='Targets in the ODE to which the initial value of the state are connected')
 
 
 class TimeOptionsDictionary(om.OptionsDictionary):

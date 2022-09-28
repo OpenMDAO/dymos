@@ -14,7 +14,7 @@ from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 from .analytic_states_comp import AnalyticStatesComp
 from .analytic_timeseries_output_comp import AnalyticTimeseriesOutputComp
-
+from ..common.time_comp import TimeComp
 
 class Analytic(TranscriptionBase):
     """
@@ -43,10 +43,31 @@ class Analytic(TranscriptionBase):
         Setup the GridData object for the Transcription.
         """
         self.grid_data = GridData(num_segments=self.options['num_segments'],
-                                  transcription='radau-ps',
+                                  transcription=self.options['grid'],
                                   transcription_order=self.options['order'],
                                   segment_ends=self.options['segment_ends'],
                                   compressed=self.options['compressed'])
+
+    def setup_time(self, phase):
+        """
+        Setup the time component.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        grid_data = self.grid_data
+
+        super().setup_time(phase)
+
+        time_comp = TimeComp(num_nodes=grid_data.num_nodes, node_ptau=grid_data.node_ptau,
+                             node_dptau_dstau=grid_data.node_dptau_dstau,
+                             units=phase.time_options['units'],
+                             initial_val=phase.time_options['initial_val'],
+                             duration_val=phase.time_options['duration_val'])
+
+        phase.add_subsystem('time', time_comp, promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure_time(self, phase):
         """
@@ -62,6 +83,8 @@ class Analytic(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         super(Analytic, self).configure_time(phase)
+        phase.time.configure_io()
+
         options = phase.time_options
         ode = phase._get_subsystem(self._rhs_source)
         ode_inputs = get_promoted_vars(ode, iotypes='input')
@@ -71,7 +94,7 @@ class Analytic(TranscriptionBase):
                                        ('time_phase', options['time_phase_targets'], True)]:
             if targets:
                 src_idxs = self.grid_data.subset_node_indices['all'] if dynamic else None
-                phase.connect(name, [f'rhs_all.{t}' for t in targets], src_indices=src_idxs,
+                phase.connect(name, [f'rhs.{t}' for t in targets], src_indices=src_idxs,
                               flat_src_indices=True if dynamic else None)
 
         for name, targets in [('t_initial', options['t_initial_targets']),
@@ -88,7 +111,7 @@ class Analytic(TranscriptionBase):
                     flat_src_idxs = True
                     src_shape = (1,)
 
-                phase.promotes('rhs_all', inputs=[(t, name)], src_indices=src_idxs,
+                phase.promotes('rhs', inputs=[(t, name)], src_indices=src_idxs,
                                flat_src_indices=flat_src_idxs, src_shape=src_shape)
             if targets:
                 phase.set_input_defaults(name=name,
@@ -153,7 +176,8 @@ class Analytic(TranscriptionBase):
         self.any_solved_segs = False
         self.any_connected_opt_segs = False
 
-        phase.add_subsystem('states_comp', AnalyticStatesComp(), promotes_inputs=['initial_states:*'])
+        phase.add_subsystem('states_comp', AnalyticStatesComp(),
+                            promotes_inputs=['initial_states:*'], promotes_outputs=['initial_state_vals:*'])
 
     def configure_states_introspection(self, phase):
         """
@@ -180,12 +204,15 @@ class Analytic(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        super().configure_states(phase)
         states_comp = phase._get_subsystem('states_comp')
         for state_name, options in phase.state_options.items():
             if options['fix_final']:
                 raise ValueError('fix_final is not a valid option for states when using the '
                                  'Analytic transcription.')
-            states_comp.add_state(state_name, val=options['val'], shape=options['shape'])
+
+            states_comp.add_state(state_name, options)
+
             if options['opt'] and not options['fix_initial']:
                 phase.add_design_var(name=f'initial_states:{state_name}',
                                      lower=options['lower'],
@@ -204,10 +231,10 @@ class Analytic(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        ODEClass = phase.options['rhs_class']
+        ODEClass = phase.options['ode_class']
         grid_data = self.grid_data
 
-        kwargs = phase.options['rhs_init_kwargs']
+        kwargs = phase.options['ode_init_kwargs']
         phase.add_subsystem('rhs',
                             subsys=ODEClass(num_nodes=grid_data.subset_num_nodes['all'],
                                             **kwargs))
@@ -225,11 +252,11 @@ class Analytic(TranscriptionBase):
         ode_inputs = get_promoted_vars(phase.rhs, 'input')
 
         for name, options in phase.state_options.items():
+            initial_targets = get_targets(ode_inputs, name=name, user_targets=options['initial_targets'])
 
-            targets = get_targets(ode_inputs, name=name, user_targets=options['targets'])
-            if targets:
+            if initial_targets:
                 phase.connect(f'initial_state_vals:{name}',
-                              [f'rhs.{tgt}' for tgt in targets])
+                              [f'rhs.{tgt}' for tgt in initial_targets])
 
     def setup_defects(self, phase):
         """
@@ -288,7 +315,7 @@ class Analytic(TranscriptionBase):
 
             phase.add_subsystem(name, subsys=timeseries_comp)
 
-            # phase.connect('dt_dstau', (f'{name}.dt_dstau'), flat_src_indices=True)
+            phase.connect('dt_dstau', (f'{name}.dt_dstau'), flat_src_indices=True)
 
     def configure_defects(self, phase):
         """
@@ -300,105 +327,6 @@ class Analytic(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         pass
-
-    def _get_rate_source_path(self, state_name, nodes, phase):
-        """
-        Return the rate source location and indices for a given state name.
-
-        Parameters
-        ----------
-        state_name : str
-            Name of the state.
-        nodes : str
-            One of ['col', 'all'].
-        phase : dymos.Phase
-            Phase object containing the rate source.
-
-        Returns
-        -------
-        str
-            Path to the rate source.
-        ndarray
-            Array of source indices.
-        """
-        gd = self.grid_data
-        try:
-            var = phase.state_options[state_name]['rate_source']
-        except RuntimeError:
-            raise ValueError(f"state '{state_name}' in phase '{ phase.name}' was not given a "
-                             "rate_source")
-
-        # Note the rate source must be shape-compatible with the state
-        var_type = phase.classify_var(var)
-
-        # Determine the path to the variable
-        if var_type == 'time':
-            rate_path = 'time'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'time_phase':
-            rate_path = 'time_phase'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'state':
-            rate_path = f'states:{var}'
-            # Find the state_input indices which occur at segment endpoints, and repeat them twice
-            state_input_idxs = gd.subset_node_indices['state_input']
-            repeat_idxs = np.ones_like(state_input_idxs)
-            if self.options['compressed']:
-                segment_end_idxs = gd.subset_node_indices['segment_ends'][1:-1]
-                # Repeat nodes that are on segment bounds (but not the first or last nodes in the phase)
-                nodes_to_repeat = list(set(state_input_idxs).intersection(segment_end_idxs))
-                # Now find these nodes in the state input indices
-                idxs_of_ntr_in_state_inputs = np.where(np.in1d(state_input_idxs, nodes_to_repeat))[0]
-                # All state input nodes are used once, but nodes_to_repeat are used twice
-                repeat_idxs[idxs_of_ntr_in_state_inputs] = 2
-            # Now we have a way of mapping the state input indices to all nodes
-            map_input_node_idxs_to_all = np.repeat(np.arange(gd.subset_num_nodes['state_input'],
-                                                             dtype=int), repeats=repeat_idxs)
-            # Now select the subset of nodes we want to use.
-            node_idxs = map_input_node_idxs_to_all[gd.subset_node_indices[nodes]]
-        elif var_type == 'indep_control':
-            rate_path = f'control_values:{var}'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'input_control':
-            rate_path = f'control_values:{var}'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'control_rate':
-            control_name = var[:-5]
-            rate_path = f'control_rates:{control_name}_rate'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'control_rate2':
-            control_name = var[:-6]
-            rate_path = f'control_rates:{control_name}_rate2'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'indep_polynomial_control':
-            rate_path = f'polynomial_control_values:{var}'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'input_polynomial_control':
-            rate_path = f'polynomial_control_values:{var}'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'polynomial_control_rate':
-            control_name = var[:-5]
-            rate_path = f'polynomial_control_rates:{control_name}_rate'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'polynomial_control_rate2':
-            control_name = var[:-6]
-            rate_path = f'polynomial_control_rates:{control_name}_rate2'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'parameter':
-            rate_path = f'parameter_vals:{var}'
-            dynamic = not phase.parameter_options[var]['static_target']
-            if dynamic:
-                node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
-            else:
-                node_idxs = np.zeros(1, dtype=int)
-        else:
-            # Failed to find variable, assume it is in the ODE
-            rate_path = f'rhs_all.{var}'
-            node_idxs = gd.subset_node_indices[nodes]
-
-        src_idxs = om.slicer[node_idxs, ...]
-
-        return rate_path, src_idxs
 
     def _get_timeseries_var_source(self, var, output_name, phase):
         """
@@ -443,27 +371,6 @@ class Analytic(TranscriptionBase):
             path = 'time_phase'
             src_units = time_units
             src_shape = (1,)
-        elif var_type == 'state':
-            path = f'states:{var}'
-            src_units = phase.state_options[var]['units']
-            src_shape = phase.state_options[var]['shape']
-
-            # Find the state_input indices which occur at segment endpoints, and repeat them twice
-            state_input_idxs = gd.subset_node_indices['state_input']
-            repeat_idxs = np.ones_like(state_input_idxs)
-            if self.options['compressed']:
-                segment_end_idxs = gd.subset_node_indices['segment_ends'][1:-1]
-                # Repeat nodes that are on segment bounds (but not the first or last nodes in the phase)
-                nodes_to_repeat = list(set(state_input_idxs).intersection(set(segment_end_idxs)))
-                # Now find these nodes in the state input indices
-                idxs_of_ntr_in_state_inputs = np.where(np.in1d(state_input_idxs, nodes_to_repeat))[0]
-                # All state input nodes are used once, but nodes_to_repeat are used twice
-                repeat_idxs[idxs_of_ntr_in_state_inputs] = 2
-            # Now we have a way of mapping the state input indices to all nodes
-            map_input_node_idxs_to_all = np.repeat(np.arange(gd.subset_num_nodes['state_input'],
-                                                             dtype=int), repeats=repeat_idxs)
-            # Now select the subset of nodes we want to use.
-            node_idxs = map_input_node_idxs_to_all[gd.subset_node_indices['all']]
         elif var_type in ['indep_control', 'input_control']:
             path = f'control_values:{var}'
             src_units = phase.control_options[var]['units']
@@ -503,7 +410,7 @@ class Analytic(TranscriptionBase):
             src_shape = phase.parameter_options[var]['shape']
         else:
             # Failed to find variable, assume it is in the ODE
-            path = f'rhs_all.{var}'
+            path = f'rhs.{var}'
             meta = get_source_metadata(ode_outputs, src=var)
             src_shape = meta['shape']
             src_units = meta['units']

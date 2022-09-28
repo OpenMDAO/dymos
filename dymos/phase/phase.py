@@ -122,7 +122,7 @@ class Phase(om.Group):
                   lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
                   ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
                   defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified,
-                  sol_source=_unspecified):
+                  source=_unspecified, input_initial=_unspecified, initial_targets=_unspecified):
         """
         Add a state variable to be integrated by the phase.
 
@@ -177,10 +177,14 @@ class Phase(om.Group):
             handled by the optimizer.
         connected_initial : bool
             If True, then the initial value for this state comes from an externally connected
-            source.
-        sol_source : str
+            source. Deprecated - use input_initial.
+        source : str
             The path to the ODE output which provides the solution for this state variable when using an
             Analytic transcription.
+        input_initial : bool
+            If True, then the initial value for this state comes is an input.
+        initial_targets : str
+            The path to the ODE inputs to which the initial value of this state should be connected.
         """
         if name not in self.state_options:
             self.state_options[name] = StateOptionsDictionary()
@@ -191,7 +195,8 @@ class Phase(om.Group):
                                fix_final=fix_final, lower=lower, upper=upper, scaler=scaler,
                                adder=adder, ref0=ref0, ref=ref, defect_scaler=defect_scaler,
                                defect_ref=defect_ref, solve_segments=solve_segments,
-                               connected_initial=connected_initial, sol_source=sol_source)
+                               connected_initial=connected_initial, source=source, input_initial=input_initial,
+                               initial_targets=initial_targets)
 
     def set_state_options(self, name, units=_unspecified, shape=_unspecified,
                           rate_source=_unspecified, targets=_unspecified,
@@ -199,7 +204,7 @@ class Phase(om.Group):
                           lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
                           ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
                           defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified,
-                          sol_source=_unspecified):
+                          source=_unspecified, input_initial=_unspecified, initial_targets=_unspecified):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -254,10 +259,14 @@ class Phase(om.Group):
             handled by the optimizer.
         connected_initial : bool
             If True, then the initial value for this state comes from an externally connected
-            source.
-        sol_source : str
+            source. Deprecated - use input_initial.
+        source : str
             The path to the ODE output which provides the solution for this state variable when using an
             Analytic transcription.
+        input_initial : bool
+            If True, then the initial value for this state comes is an input.
+        initial_targets : str or Sequence of str
+            The path to the ODE inputs to which the initial value of this state should be connected.
         """
         if name not in self.state_options:
             # This state option will be picked up automatically from tags.
@@ -317,9 +326,18 @@ class Phase(om.Group):
 
         if connected_initial is not _unspecified:
             self.state_options[name]['connected_initial'] = connected_initial
+            om.issue_warning(f'{self.pathname}: State option `connected_initial` is deprecated. Use input_initial',
+                             om.OMDeprecationWarning)
+            self.state_options[name]['input_initial'] = connected_initial
 
-        if sol_source is not _unspecified:
-            self.state_options[name]['sol_source'] = sol_source
+        if source is not _unspecified:
+            self.state_options[name]['source'] = source
+
+        if input_initial is not _unspecified:
+            self.state_options[name]['input_initial'] = input_initial
+
+        if initial_targets is not _unspecified:
+            self.state_options[name]['initial_targets'] = initial_targets
 
     def check_parameter(self, name):
         """
@@ -1711,8 +1729,8 @@ class Phase(om.Group):
         # Check over all existing states and make sure we aren't missing any rate sources.
         for name, options in state_options.items():
             if isinstance(self.options['transcription'], Analytic):
-                if options['sol_source'] is None:
-                    raise ValueError(f"{self.pathname}: State '{name}' is missing a sol_source with an Analytic "
+                if options['source'] is None:
+                    raise ValueError(f"{self.pathname}: State '{name}' is missing a source with an Analytic "
                                      f"transcription.")
             elif options['rate_source'] is None:
                 raise ValueError(f"{self.pathname}: State '{name}' is missing a rate_source.")

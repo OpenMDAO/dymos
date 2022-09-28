@@ -251,15 +251,18 @@ class GridData(object):
         self.input_maps = {'state_input_to_disc': np.empty(0, dtype=int),
                            'dynamic_control_input_to_disc': np.empty(0, dtype=int)}
 
-        self.transcription = transcription.lower()
+        if transcription.lower() in ['radau', 'radau-ps']:
+            self.transcription = 'radau-ps'
+        elif transcription.lower() in ['gausslobatto', 'gauss-lobatto', 'lgl']:
+            self.transcription = 'gauss-lobatto'
+        else:
+            raise ValueError(f'Unknown transcription: {transcription}')
 
         # Define get_subsets and node points based on the transcription scheme
         if self.transcription == 'gauss-lobatto':
             get_subsets_and_nodes = gauss_lobatto_subsets_and_nodes
         elif self.transcription == 'radau-ps':
             get_subsets_and_nodes = radau_pseudospectral_subsets_and_nodes
-        else:
-            raise ValueError(f'Unknown transcription: {transcription}')
 
         # Make sure transcription_order is a vector
         if isinstance(transcription_order, str):

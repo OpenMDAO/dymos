@@ -329,7 +329,7 @@ class TranscriptionBase(object):
                 if f'states:{name}' not in ts_options['outputs']:
                     phase.add_timeseries_output(name, output_name=f'states:{name}',
                                                 timeseries=ts_name)
-                if f'state_rates:{name}' not in ts_options['outputs']:
+                if options['rate_source'] and f'state_rates:{name}' not in ts_options['outputs']:
                     phase.add_timeseries_output(name=options['rate_source'], output_name=f'state_rates:{name}',
                                                 timeseries=ts_name)
 

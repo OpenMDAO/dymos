@@ -136,7 +136,6 @@ def get_targets(ode, name, user_targets, control_rates=False):
     else:
         ode_inputs = {opts['prom_name']: opts for opts in
                       ode.get_io_metadata(iotypes=('input',), get_remote=True).values()}
-
     if user_targets is _unspecified:
         if name in ode_inputs and control_rates not in {1, 2}:
             return [name]
@@ -563,21 +562,17 @@ def configure_analytic_states_introspection(state_options, time_options, control
             options['units'] = tgt_units
 
         # 3. Attempt rate-source introspection
-        sol_src = options['sol_source']
+        source = options['source']
 
-        meta = get_source_metadata(ode_outputs, src=sol_src, user_units=options['units'], user_shape=options['shape'])
-        sol_src_shape = meta['shape']
-        sol_src_units = meta['units']
+        meta = get_source_metadata(ode_outputs, src=source, user_units=options['units'], user_shape=options['shape'])
+        src_shape = meta['shape']
+        src_units = meta['units']
 
         if options['shape'] in {None, _unspecified}:
-            options['shape'] = sol_src_shape
+            options['shape'] = src_shape
 
         if options['units'] is _unspecified:
-            options['units'] = sol_src_units
-
-        print(state_name, sol_src_shape, sol_src_units)
-
-
+            options['units'] = src_units
 
 
 def configure_states_discovery(state_options, ode):

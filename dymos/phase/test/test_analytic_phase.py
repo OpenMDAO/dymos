@@ -15,8 +15,8 @@ class SimpleIVPSolution(om.ExplicitComponent):
     def setup(self):
         nn = self.options['num_nodes']
         self.add_input('t', shape=(nn,), units='s')
-        self.add_input('y0', shape=(1,), units='unitless', tags=['dymos.initial_state_target:y'])
-        self.add_output('y', shape=(nn,), units='unitless', tags=['dymos.state_sol_source:y'])
+        self.add_input('y0', shape=(1,), units='unitless', tags=['dymos.state_initial_target:y'])
+        self.add_output('y', shape=(nn,), units='unitless', tags=['dymos.state_source:y'])
 
     def setup_partials(self):
         nn = self.options['num_nodes']
@@ -61,8 +61,8 @@ class SimpleBVPSolution(om.ExplicitComponent):
     def setup(self):
         nn = self.options['num_nodes']
         self.add_input('t', shape=(nn,), units='s')
-        self.add_input('y0', shape=(1,), units='unitless', tags=['dymos.initial_state_target:y'])
-        self.add_output('y', shape=(nn,), units='unitless', tags=['dymos.state_sol_source:y'])
+        self.add_input('y0', shape=(1,), units='unitless', tags=['dymos.state_initial_target:y'])
+        self.add_output('y', shape=(nn,), units='unitless', tags=['dymos.state_source:y'])
         self.declare_coloring(method='cs', tol=1.0E-12)
 
     def compute(self, inputs, outputs):
@@ -102,26 +102,26 @@ class TestAnalyticPhaseSimpleSystem(unittest.TestCase):
         p = om.Problem()
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
-        phase = dm.Phase(rhs_class=SimpleIVPSolution,
-                         transcription=dm.Analytic(grid='radau', num_segments=10, order=3))
+        phase = dm.Phase(ode_class=SimpleIVPSolution,
+                         transcription=dm.Analytic(grid='radau', num_segments=5, order=3))
         traj.add_phase('phase', phase)
 
         phase.set_time_options(units='s', targets=['t'], fix_initial=True, fix_duration=True)
-        phase.add_state('y', sol_source='y')
-
-        # phase.add_control -> Error
-        # phase.add_polynomial_control -> Error
-
-        phase.add_timeseries_output('y', output_name='states:y', units='unitless')
+        phase.add_state('y', source='y', input_initial=True, initial_targets=['y0'])
 
         p.setup()
 
+        p.final_setup()
+
         p.set_val('traj.phase.t_initial', 0.0, units='s')
         p.set_val('traj.phase.t_duration', 2.0, units='s')
-        p.set_val('traj.phase.parameters:y0', 0.0, units='unitless')
+        p.set_val('traj.phase.initial_states:y', 0.5, units='unitless')
 
         p.run_model()
 
+        t = p.get_val('traj.phase.timeseries.time', units='s')
+        y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
 
+        expected_y = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
 
-
+        assert_near_equal(y, expected_y)
