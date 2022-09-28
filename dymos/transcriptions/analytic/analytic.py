@@ -176,8 +176,8 @@ class Analytic(TranscriptionBase):
         self.any_solved_segs = False
         self.any_connected_opt_segs = False
 
-        phase.add_subsystem('states_comp', AnalyticStatesComp(),
-                            promotes_inputs=['initial_states:*'], promotes_outputs=['initial_state_vals:*'])
+        # phase.add_subsystem('states_comp', AnalyticStatesComp(),
+        #                     promotes_inputs=['initial_states:*'], promotes_outputs=['initial_state_vals:*'])
 
     def configure_states_introspection(self, phase):
         """
@@ -205,22 +205,22 @@ class Analytic(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         super().configure_states(phase)
-        states_comp = phase._get_subsystem('states_comp')
-        for state_name, options in phase.state_options.items():
-            if options['fix_final']:
-                raise ValueError('fix_final is not a valid option for states when using the '
-                                 'Analytic transcription.')
+        # states_comp = phase._get_subsystem('states_comp')
+        # for state_name, options in phase.state_options.items():
+        #     if options['fix_final']:
+        #         raise ValueError('fix_final is not a valid option for states when using the '
+        #                          'Analytic transcription.')
+        #
+        #     states_comp.add_state(state_name, options)
 
-            states_comp.add_state(state_name, options)
-
-            if options['opt'] and not options['fix_initial']:
-                phase.add_design_var(name=f'initial_states:{state_name}',
-                                     lower=options['lower'],
-                                     upper=options['upper'],
-                                     scaler=options['scaler'],
-                                     adder=options['adder'],
-                                     ref0=options['ref0'],
-                                     ref=options['ref'])
+            # if options['opt'] and not options['fix_initial']:
+            #     phase.add_design_var(name=f'initial_states:{state_name}',
+            #                          lower=options['lower'],
+            #                          upper=options['upper'],
+            #                          scaler=options['scaler'],
+            #                          adder=options['adder'],
+            #                          ref0=options['ref0'],
+            #                          ref=options['ref'])
 
     def setup_ode(self, phase):
         """
@@ -458,8 +458,8 @@ class Analytic(TranscriptionBase):
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
                 src_idxs = np.squeeze(src_idxs, axis=0)
 
-            rhs_all_tgts = [f'rhs_all.{t}' for t in options['targets']]
-            connection_info.append((rhs_all_tgts, (src_idxs,)))
+            rhs_tgts = [f'rhs.{t}' for t in options['targets']]
+            connection_info.append((rhs_tgts, (src_idxs,)))
 
         return connection_info
 

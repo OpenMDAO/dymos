@@ -550,19 +550,9 @@ def configure_analytic_states_introspection(state_options, time_options, control
 
     for state_name, options in state_options.items():
         # Automatically determine targets of state if left _unspecified
-        targets, tgt_shape, tgt_units, static_target = _get_targets_metadata(ode_inputs,
-                                                                             state_name,
-                                                                             user_targets=options['targets'],
-                                                                             user_units=options['units'],
-                                                                             user_shape=options['shape'])
-
-        options['targets'] = targets
-        if targets:
-            options['shape'] = tgt_shape
-            options['units'] = tgt_units
 
         # 3. Attempt rate-source introspection
-        source = options['source']
+        source = options['source'] if options['source'] else state_name
 
         meta = get_source_metadata(ode_outputs, src=source, user_units=options['units'], user_shape=options['shape'])
         src_shape = meta['shape']

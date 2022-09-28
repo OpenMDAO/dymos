@@ -1726,14 +1726,10 @@ class Phase(om.Group):
                                          f"tag be declared.")
                     state_options[state]['units'] = tagged_state_units
 
-        # Check over all existing states and make sure we aren't missing any rate sources.
-        for name, options in state_options.items():
-            if isinstance(self.options['transcription'], Analytic):
-                if options['source'] is None:
-                    raise ValueError(f"{self.pathname}: State '{name}' is missing a source with an Analytic "
-                                     f"transcription.")
-            elif options['rate_source'] is None:
-                raise ValueError(f"{self.pathname}: State '{name}' is missing a rate_source.")
+        # # Check over all existing states and make sure we aren't missing any rate sources.
+        # for name, options in state_options.items():
+        #     if options['rate_source'] is None:
+        #         raise ValueError(f"{self.pathname}: State '{name}' is missing a rate_source.")
 
     def check_time_options(self):
         """

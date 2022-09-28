@@ -18,8 +18,6 @@ class SimpleIVPSolution(om.ExplicitComponent):
         self.add_input('y0', shape=(1,), units='unitless', tags=['dymos.state_initial_target:y'])
         self.add_output('y', shape=(nn,), units='unitless', tags=['dymos.state_source:y'])
 
-    def setup_partials(self):
-        nn = self.options['num_nodes']
         ar = np.arange(nn, dtype=int)
         self.declare_partials(of='y', wrt='t', rows=ar, cols=ar)
         self.declare_partials(of='y', wrt='y0', rows=ar, cols=np.zeros_like(ar))
@@ -107,15 +105,47 @@ class TestAnalyticPhaseSimpleSystem(unittest.TestCase):
         traj.add_phase('phase', phase)
 
         phase.set_time_options(units='s', targets=['t'], fix_initial=True, fix_duration=True)
-        phase.add_state('y', source='y', input_initial=True, initial_targets=['y0'])
+        phase.add_state('y', input_initial=True, initial_targets=['y0'])
 
         p.setup()
-
-        p.final_setup()
 
         p.set_val('traj.phase.t_initial', 0.0, units='s')
         p.set_val('traj.phase.t_duration', 2.0, units='s')
         p.set_val('traj.phase.initial_states:y', 0.5, units='unitless')
+
+        p.run_model()
+
+        t = p.get_val('traj.phase.timeseries.time', units='s')
+        y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
+
+        expected_y = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
+
+        assert_near_equal(y, expected_y)
+
+    # Integration constants determined via parameters.
+    def test_solution_params_only(self):
+
+        p = om.Problem()
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+
+        # Option A
+        phase = dm.Phase(ode_class=SimpleIVPSolution,
+                         transcription=dm.Analytic(grid='radau', num_segments=5, order=3))
+
+        # Option B
+        # phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, grid='radau', num_segments=5, order=3)
+
+        traj.add_phase('phase', phase)
+
+        phase.set_time_options(units='s', targets=['t'], fix_initial=True, fix_duration=True)
+        phase.add_state('y')
+        phase.add_parameter('y0', opt=False, units='unitless', static_target=True)
+
+        p.setup()
+
+        p.set_val('traj.phase.t_initial', 0.0, units='s')
+        p.set_val('traj.phase.t_duration', 2.0, units='s')
+        p.set_val('traj.phase.parameters:y0', 0.5, units='unitless')
 
         p.run_model()
 
