@@ -35,15 +35,12 @@ class Analytic(TranscriptionBase):
         super(Analytic, self).__init__(**kwargs)
         self._rhs_source = 'rhs'
 
-    def initialize(self):
-        self.options.declare('grid')
-
     def init_grid(self):
         """
         Setup the GridData object for the Transcription.
         """
-        self.grid_data = GridData(num_segments=self.options['num_segments'],
-                                  transcription=self.options['grid'],
+        self.grid_data = GridData(num_segments=1,
+                                  transcription='gauss-lobatto',
                                   transcription_order=self.options['order'],
                                   segment_ends=self.options['segment_ends'],
                                   compressed=self.options['compressed'])

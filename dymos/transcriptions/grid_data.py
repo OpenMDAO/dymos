@@ -40,8 +40,8 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
     Subset 'state_input' is the same as subset 'state_disc' if `compressed == False` or
     `first_seg == True`.  The same is true of subsets 'control_input' and 'control_disc'.
     """
-    if n % 2 == 0:
-        raise ValueError('A Gauss-Lobatto scheme must use an odd number of points')
+    if n < 2:
+        raise ValueError('The number of nodes must be larger than 1.')
 
     subsets = {
         'state_disc': np.arange(0, n, 2, dtype=int),

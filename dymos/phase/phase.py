@@ -106,13 +106,8 @@ class Phase(om.Group):
         self.options.declare('ode_class', default=None,
                              desc='System defining the ODE',
                              recordable=False)
-        self.options.declare('rhs_class', default=None,
-                             desc='System defining the solution to the ODE if the transcription is Analytic',
-                             recordable=False)
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
-        self.options.declare('rhs_init_kwargs', types=dict, default={},
-                             desc='Keyword arguments provided when initializing the RHS System')
         self.options.declare('transcription', types=TranscriptionBase,
                              desc='Transcription technique of the optimal control problem.')
 

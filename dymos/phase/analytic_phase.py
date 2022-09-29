@@ -11,21 +11,9 @@ class AnalyticPhase(Phase):
         """
         Declare instantiation options for the phase.
         """
-        self.options.declare('ode_class', default=None,
-                             desc='System providing the outputs of the analytic solution.',
-                             recordable=False)
-        self.options.declare('ode_init_kwargs', types=dict, default={},
-                             desc='Keyword arguments provided when initializing the ODE System')
-        self.options.declare('ode_init_kwargs', types=dict, default={},
-                             desc='Keyword arguments provided when initializing the ODE System')
-        self.options.declare('grid', types=(str,), default='radau',
-                             desc='The type of grid used to define the nodes, one of \'radau\' or \'gauss-lobatto\'.')
-        self.options.declare('num_segments', types=int, default=10,
-                             desc='The number of segments used to define the grid.')
-        self.options.declare('order', types=int, default=3,
-                             desc='Order of the segments used to define the grid.')
-        self.options.declare('transcription', types=TranscriptionBase,
-                             desc='Transcription technique of the optimal control problem.')
+        super().initialize()
+        self.options.declare('num_nodes', types=int, default=2,
+                             desc='Number of points in time at which to evaluate the solution to the ODE.')
 
     # def add_state(self, name, units=_unspecified, shape=_unspecified,
     #               rate_source=_unspecified, targets=_unspecified,
@@ -44,6 +32,7 @@ class AnalyticPhase(Phase):
     #                       defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified):
     #     raise NotImplementedError('AnalyticPhase does not support state as special variables. Initial values of '
     #                               'states can be provided as parameters.')
+
 
     def add_control(self, name, units=_unspecified, desc=_unspecified, opt=_unspecified,
                     fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
@@ -87,9 +76,7 @@ class AnalyticPhase(Phase):
         """
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
-        transcription = self.options['transcription'] =  Analytic(grid=self.options['grid'],
-                                                                  num_segments=self.options['num_segments'],
-                                                                  order=self.options['order'])
+        transcription = self.options['transcription'] =  Analytic(order=self.options['num_nodes'])
         transcription.setup_time(self)
 
         if self.control_options:

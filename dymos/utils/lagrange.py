@@ -5,8 +5,8 @@ def lagrange_matrices(x_disc, x_interp):
     """
     Compute the lagrange matrices.
 
-    The lagrange matrics are given 'cardinal' nodes at which
-    values are specified and 'interior' nodes at which values will be desired,
+    The lagrange matrics are given 'discretization' nodes at which
+    values are specified and 'interpolation' nodes at which values will be desired,
     returns interpolation and differentiation matrices which provide polynomial
     values and derivatives.
 
