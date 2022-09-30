@@ -1,8 +1,8 @@
 from collections.abc import Iterable
-import copy
 import fnmatch
 
 import openmdao.api as om
+from openmdao.utils.array_utils import shape_to_len
 from dymos.utils.misc import _unspecified
 from ..phase.options import StateOptionsDictionary, TimeseriesOutputOptionsDictionary
 from .misc import get_rate_units
@@ -516,8 +516,7 @@ def configure_states_introspection(state_options, time_options, control_options,
             options['units'] = time_units if rate_src_units is None else f'{rate_src_units}*{time_units}'
 
 
-def configure_analytic_states_introspection(state_options, time_options, control_options, parameter_options,
-                                            polynomial_control_options, ode):
+def configure_analytic_states_introspection(state_options, ode):
     """
     Modifies state options in-place, automatically determining 'targets', 'units', and 'shape' if necessary.
 
@@ -533,30 +532,22 @@ def configure_analytic_states_introspection(state_options, time_options, control
     ----------
     state_options : dict of {str: StateOptionsDictionary}
         The state variables to be configured.
-    time_options : TimeOptionsDictionary
-        The time options.
-    control_options : dict of {str: ControlOptionsDictionary}
-        The options for each control.
-    parameter_options : dict of {str: ParameterOptionsDictionary}
-        The options for each parameter.
-    polynomial_control_options : dict of {str: PolynomialControlOptionsDictionary}
-        The options for each polynomial control.
     ode : System
         The OpenMDAO system which provides the state rates as outputs.
     """
-    time_units = time_options['units']
-    ode_inputs = get_promoted_vars(ode, 'input')
     ode_outputs = get_promoted_vars(ode, 'output')
 
     for state_name, options in state_options.items():
         # Automatically determine targets of state if left _unspecified
-
-        # 3. Attempt rate-source introspection
         source = options['source'] if options['source'] else state_name
 
         meta = get_source_metadata(ode_outputs, src=source, user_units=options['units'], user_shape=options['shape'])
         src_shape = meta['shape']
         src_units = meta['units']
+
+        if 'dymos.static_output' in meta['tags']:
+            raise RuntimeError(f'ODE output {source} is tagged with `dymos.static_output` and cannot be used as a '
+                               f'state variable in an AnalyticPhase.')
 
         if options['shape'] in {None, _unspecified}:
             options['shape'] = src_shape
@@ -620,6 +611,55 @@ def configure_states_discovery(state_options, ode):
     for name, options in state_options.items():
         if options['rate_source'] is None:
             raise ValueError(f"State '{name}' is missing a rate_source.")
+
+
+def configure_analytic_states_discovery(state_options, ode):
+    """
+    Searches phase output metadata for any declared states and adds them.
+
+    Parameters
+    ----------
+    state_options : dict
+        The dictionary of options for each state in the phase.
+    ode : System
+        The System instance providing the ODE for the phase.
+    """
+    out_meta = ode.get_io_metadata(iotypes='output', metadata_keys=['tags'],
+                                   get_remote=True)
+
+    for name, meta in out_meta.items():
+        tags = meta['tags']
+        prom_name = meta['prom_name']
+        state = None
+        for tag in sorted(tags):
+
+            # Declared as rate_source.
+            if tag.startswith('dymos.state_source:'):
+                state = tag.rpartition(':')[-1]
+                if state not in state_options:
+                    state_options[state] = StateOptionsDictionary()
+                    state_options[state]['name'] = state
+
+                if state_options[state]['source'] is not None:
+                    if state_options[state]['source'] != prom_name:
+                        raise ValueError(f"source has been declared twice for state "
+                                         f"'{state}' which is tagged on '{name}'.")
+
+                state_options[state]['source'] = prom_name
+
+            # Declares units for state.
+            if tag.startswith('dymos.state_units:') or tag.startswith('state_units:'):
+                tagged_state_units = tag.rpartition(':')[-1]
+                if state is None:
+                    raise ValueError(f"'{tag}' tag declared on '{prom_name}' also requires "
+                                     f"that the 'dymos.state_source:{tagged_state_units}' "
+                                     f"tag be declared.")
+                state_options[state]['units'] = tagged_state_units
+
+    # Check over all existing states and make sure we aren't missing any rate sources.
+    for name, options in state_options.items():
+        if options['source'] is None:
+            raise ValueError(f"State '{name}' is missing a source.")
 
 
 def configure_timeseries_output_glob_expansion(phase):

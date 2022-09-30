@@ -1,18 +1,12 @@
-from collections import defaultdict
-from fnmatch import filter
-import warnings
-
 import numpy as np
 import openmdao.api as om
-from openmdao.utils.om_warnings import issue_warning
 
 from ..transcription_base import TranscriptionBase
-from ...utils.misc import get_rate_units, _unspecified
+from ...utils.misc import get_rate_units
 from ...utils.introspection import configure_analytic_states_introspection, get_promoted_vars, get_targets, \
-    get_source_metadata
+    get_source_metadata, configure_analytic_states_discovery
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
-from .analytic_states_comp import AnalyticStatesComp
 from .analytic_timeseries_output_comp import AnalyticTimeseriesOutputComp
 from ..common.time_comp import TimeComp
 
@@ -168,13 +162,23 @@ class Analytic(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        grid_data = self.grid_data
-
         self.any_solved_segs = False
         self.any_connected_opt_segs = False
 
-        # phase.add_subsystem('states_comp', AnalyticStatesComp(),
-        #                     promotes_inputs=['initial_states:*'], promotes_outputs=['initial_state_vals:*'])
+    def configure_states_discovery(self, phase):
+        """
+        Configure state introspection to determine properties of states.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        ode = self._get_ode(phase)
+        try:
+            configure_analytic_states_discovery(phase.state_options, ode)
+        except (ValueError, RuntimeError) as e:
+            raise RuntimeError(f'Error during configure_states_discovery in phase {phase.pathname}.') from e
 
     def configure_states_introspection(self, phase):
         """
@@ -187,37 +191,9 @@ class Analytic(TranscriptionBase):
         """
         ode = self._get_ode(phase)
         try:
-            configure_analytic_states_introspection(phase.state_options, phase.time_options, phase.control_options,
-                                                    phase.parameter_options, phase.polynomial_control_options, ode)
+            configure_analytic_states_introspection(phase.state_options, ode)
         except (ValueError, RuntimeError) as e:
             raise RuntimeError(f'Error during configure_states_introspection in phase {phase.pathname}.') from e
-
-    def configure_states(self, phase):
-        """
-        Configure state connections post-introspection.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        super().configure_states(phase)
-        # states_comp = phase._get_subsystem('states_comp')
-        # for state_name, options in phase.state_options.items():
-        #     if options['fix_final']:
-        #         raise ValueError('fix_final is not a valid option for states when using the '
-        #                          'Analytic transcription.')
-        #
-        #     states_comp.add_state(state_name, options)
-
-            # if options['opt'] and not options['fix_initial']:
-            #     phase.add_design_var(name=f'initial_states:{state_name}',
-            #                          lower=options['lower'],
-            #                          upper=options['upper'],
-            #                          scaler=options['scaler'],
-            #                          adder=options['adder'],
-            #                          ref0=options['ref0'],
-            #                          ref=options['ref'])
 
     def setup_ode(self, phase):
         """
@@ -245,7 +221,6 @@ class Analytic(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        grid_data = self.grid_data
         ode_inputs = get_promoted_vars(phase.rhs, 'input')
 
         for name, options in phase.state_options.items():

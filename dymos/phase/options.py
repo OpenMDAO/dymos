@@ -465,9 +465,6 @@ class StateOptionsDictionary(om.OptionsDictionary):
                      desc='Whether an input is created to pass in the initial state. This may be '
                           'set by a trajectory that links phases.')
 
-        self.declare(name='initial_targets', allow_none=True, default=_unspecified,
-                     desc='Targets in the ODE to which the initial value of the state are connected')
-
 
 class TimeOptionsDictionary(om.OptionsDictionary):
     """

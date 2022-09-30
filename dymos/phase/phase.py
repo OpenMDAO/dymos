@@ -117,7 +117,8 @@ class Phase(om.Group):
                   lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
                   ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
                   defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified,
-                  source=_unspecified, input_initial=_unspecified, initial_targets=_unspecified):
+                  source=_unspecified, input_initial=_unspecified, initial_targets=_unspecified,
+                  opt=_unspecified, initial_bounds=_unspecified, final_bounds=_unspecified):
         """
         Add a state variable to be integrated by the phase.
 
@@ -180,6 +181,13 @@ class Phase(om.Group):
             If True, then the initial value for this state comes is an input.
         initial_targets : str
             The path to the ODE inputs to which the initial value of this state should be connected.
+        opt : bool
+            If True, state values are fixed at the input values and the optimizer resolves defect constraints by
+            varying the other design variables in the phase.
+        initial_bounds : tuple
+            The bounds (lower, upper) of the state variable at the initial point in the phase.
+        final_bounds : tuple
+            The bounds (lower, upper) of the state variable at the final point in the phase.
         """
         if name not in self.state_options:
             self.state_options[name] = StateOptionsDictionary()
@@ -191,7 +199,8 @@ class Phase(om.Group):
                                adder=adder, ref0=ref0, ref=ref, defect_scaler=defect_scaler,
                                defect_ref=defect_ref, solve_segments=solve_segments,
                                connected_initial=connected_initial, source=source, input_initial=input_initial,
-                               initial_targets=initial_targets)
+                               initial_targets=initial_targets, opt=opt, initial_bounds=initial_bounds,
+                               final_bounds=final_bounds)
 
     def set_state_options(self, name, units=_unspecified, shape=_unspecified,
                           rate_source=_unspecified, targets=_unspecified,
@@ -262,6 +271,13 @@ class Phase(om.Group):
             If True, then the initial value for this state comes is an input.
         initial_targets : str or Sequence of str
             The path to the ODE inputs to which the initial value of this state should be connected.
+        opt : bool
+            If True, state values are fixed at the input values and the optimizer resolves defect constraints by
+            varying the other design variables in the phase.
+        initial_bounds : tuple
+            The bounds (lower, upper) of the state variable at the initial point in the phase.
+        final_bounds : tuple
+            The bounds (lower, upper) of the state variable at the final point in the phase.
         """
         if name not in self.state_options:
             # This state option will be picked up automatically from tags.
@@ -331,8 +347,17 @@ class Phase(om.Group):
         if input_initial is not _unspecified:
             self.state_options[name]['input_initial'] = input_initial
 
-        if initial_targets is not _unspecified:
-            self.state_options[name]['initial_targets'] = initial_targets
+        if opt is not _unspecified:
+            raise NotImplementedError('States in AnalyticPhase are strictly outputs of the ODE solution system. '
+                                      'Option `opt` is not a valid option for states in AnalyticPhase.')
+
+        if initial_bounds is not _unspecified:
+            raise NotImplementedError('States in AnalyticPhase are strictly outputs of the ODE solution system. '
+                                      'Option `initial_bounds` is not a valid option for states in AnalyticPhase.')
+
+        if final_bounds is not _unspecified:
+            raise NotImplementedError('States in AnalyticPhase are strictly outputs of the ODE solution system. '
+                                      'Option `final_bounds` is not a valid option for states in AnalyticPhase.')
 
     def check_parameter(self, name):
         """
@@ -698,7 +723,7 @@ class Phase(om.Group):
                                             scaler, adder, ref0, ref,
                                             targets, rate_targets, rate2_targets, shape)
 
-    def set_polynomial_control_options(self, name, order, desc=_unspecified, val=_unspecified,
+    def set_polynomial_control_options(self, name, order=_unspecified, desc=_unspecified, val=_unspecified,
                                        units=_unspecified, opt=_unspecified, fix_initial=_unspecified,
                                        fix_final=_unspecified, lower=_unspecified, upper=_unspecified,
                                        scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
@@ -1648,7 +1673,7 @@ class Phase(om.Group):
             except ValueError as e:
                 raise ValueError(f'Invalid parameter in phase `{self.pathname}`.\n{str(e)}') from e
 
-        self.configure_state_discovery()
+        transcription.configure_states_discovery(self)
 
         transcription.configure_states_introspection(self)
         transcription.configure_time(self)

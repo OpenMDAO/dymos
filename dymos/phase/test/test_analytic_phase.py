@@ -182,3 +182,72 @@ class TestAnalyticPhaseInvalidOptions(unittest.TestCase):
             phase.set_polynomial_control_options('foo', lower=0)
 
         self.assertEqual('AnalyticPhase does not support polynomial controls.', str(e.exception))
+
+    def test_invalid_add_state_options(self):
+        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=11)
+
+        invalid_state_options = [('opt', False),
+                                 ('fix_initial', True),
+                                 ('fix_final', True),
+                                 ('initial_bounds', (0, 0)),
+                                 ('final_bounds', (0, 0)),
+                                 ('val', 0.0),
+                                 # ('desc', 'Foo'),
+                                 ('rate_source', 'foo.bar'),
+                                 ('targets', ['y']),
+                                 ('lower', 0.0),
+                                 ('upper', 0.0),
+                                 ('scaler', 1.0),
+                                 ('adder', 0.0),
+                                 ('ref0', 0.0),
+                                 ('ref', 1.0),
+                                 ('defect_scaler', 1.0),
+                                 ('defect_ref', 1.0),
+                                 # ('continuity', True),
+                                 ('solve_segments', False),
+                                 ('input_initial', False)]
+
+        for opt, val in invalid_state_options:
+            kwargs = {opt: val}
+
+            with self.assertRaises(NotImplementedError) as e:
+                phase.add_state('y', **kwargs)
+
+            expected = f'States in AnalyticPhase are strictly outputs of the ODE solution system. Option `{opt}` is ' \
+                       'not a valid option for states in AnalyticPhase.'
+
+            self.assertEqual(expected, str(e.exception))
+
+    def test_invalid_set_state_options(self):
+        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=11)
+        phase.add_state('y')
+
+        invalid_state_options = [('opt', False),
+                                 ('fix_initial', True),
+                                 ('fix_final', True),
+                                 ('initial_bounds', (0, 0)),
+                                 ('final_bounds', (0, 0)),
+                                 ('val', 0.0),
+                                 ('rate_source', 'foo.bar'),
+                                 ('targets', ['y']),
+                                 ('lower', 0.0),
+                                 ('upper', 0.0),
+                                 ('scaler', 1.0),
+                                 ('adder', 0.0),
+                                 ('ref0', 0.0),
+                                 ('ref', 1.0),
+                                 ('defect_scaler', 1.0),
+                                 ('defect_ref', 1.0),
+                                 ('solve_segments', False),
+                                 ('input_initial', False)]
+
+        for opt, val in invalid_state_options:
+            kwargs = {opt: val}
+
+            with self.assertRaises(NotImplementedError) as e:
+                phase.set_state_options('y', **kwargs)
+
+            expected = f'States in AnalyticPhase are strictly outputs of the ODE solution system. Option `{opt}` is ' \
+                       'not a valid option for states in AnalyticPhase.'
+
+            self.assertEqual(expected, str(e.exception))
