@@ -15,8 +15,8 @@ class SimpleIVPSolution(om.ExplicitComponent):
     def setup(self):
         nn = self.options['num_nodes']
         self.add_input('t', shape=(nn,), units='s')
-        self.add_input('y0', shape=(1,), units='unitless', tags=['dymos.state_initial_target:y'])
-        self.add_output('y', shape=(nn,), units='unitless', tags=['dymos.state_source:y'])
+        self.add_input('y0', shape=(1,), units='unitless', tags=['dymos.static_target'])
+        self.add_output('y', shape=(nn,), units='unitless')
 
         ar = np.arange(nn, dtype=int)
         self.declare_partials(of='y', wrt='t', rows=ar, cols=ar)
@@ -58,21 +58,22 @@ class SimpleBVPSolution(om.ExplicitComponent):
 
     def setup(self):
         nn = self.options['num_nodes']
-        self.add_input('t', shape=(nn,), units='s')
-        self.add_input('y0', shape=(1,), units='unitless', tags=['dymos.state_initial_target:y'])
+        self.add_input('x', shape=(nn,), units='s')
+        self.add_input('y0', shape=(1,), units='unitless', tags=['dymos.static_target'])
+        self.add_input('y1', shape=(1,), units='unitless', tags=['dymos.static_target'])
         self.add_output('y', shape=(nn,), units='unitless', tags=['dymos.state_source:y'])
         self.declare_coloring(method='cs', tol=1.0E-12)
 
     def compute(self, inputs, outputs):
-        t = inputs['t']
+        x = inputs['x']
         y_0 = inputs['y0']
         y_1 = inputs['y1']
-        c_2 = y0
-        c_1 = -1 / 12 + 1/6
+        c_2 = y_0
+        c_1 = y_1 - 1/12 + 1/6 - c_2
         outputs['y'] = x ** 4 / 12 - x ** 3 / 6 + c_1 * x + c_2
 
 
-class TestAnalyticPhaseSimpleSystem(unittest.TestCase):
+class TestAnalyticPhaseSimpleResults(unittest.TestCase):
 
     def test_simple_ivp_system(self):
 
@@ -94,52 +95,20 @@ class TestAnalyticPhaseSimpleSystem(unittest.TestCase):
 
         p.check_partials(compact_print=True, method='cs')
 
-    # No integrated states in an analytic phase, they're just outputs!
-    def test_solution(self):
+    def test_simple_ivp(self):
 
         p = om.Problem()
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
-        phase = dm.Phase(ode_class=SimpleIVPSolution,
-                         transcription=dm.Analytic(grid='radau', num_segments=5, order=3))
-        traj.add_phase('phase', phase)
-
-        phase.set_time_options(units='s', targets=['t'], fix_initial=True, fix_duration=True)
-        phase.add_state('y', input_initial=True, initial_targets=['y0'])
-
-        p.setup()
-
-        p.set_val('traj.phase.t_initial', 0.0, units='s')
-        p.set_val('traj.phase.t_duration', 2.0, units='s')
-        p.set_val('traj.phase.initial_states:y', 0.5, units='unitless')
-
-        p.run_model()
-
-        t = p.get_val('traj.phase.timeseries.time', units='s')
-        y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
-
-        expected_y = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
-
-        assert_near_equal(y, expected_y)
-
-    # Integration constants determined via parameters.
-    def test_solution_params_only(self):
-
-        p = om.Problem()
-        traj = p.model.add_subsystem('traj', dm.Trajectory())
-
-        # Option B
-        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=100)
+        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=10)
 
         traj.add_phase('phase', phase)
 
         phase.set_time_options(units='s', targets=['t'], fix_initial=True, fix_duration=True)
         phase.add_state('y')
-        phase.add_parameter('y0', opt=False, units='unitless', static_target=True)
+        phase.add_parameter('y0', opt=False)
 
         p.setup()
-
-        return
 
         p.set_val('traj.phase.t_initial', 0.0, units='s')
         p.set_val('traj.phase.t_duration', 2.0, units='s')
@@ -150,12 +119,66 @@ class TestAnalyticPhaseSimpleSystem(unittest.TestCase):
         t = p.get_val('traj.phase.timeseries.time', units='s')
         y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
 
-        expected = lambda t: t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
+        expected = lambda x: x ** 2 + 2 * x + 1 - 0.5 * np.exp(x)
 
         assert_near_equal(y, expected(t))
 
-        # import matplotlib.pyplot as plt
-        # t_dense = np.linspace(0, 2, 100)
-        # plt.plot(t_dense, expected(t_dense), '-')
-        # plt.plot(t, expected(t), 'o')
-        # plt.show()
+    def test_simple_bvp(self):
+
+        p = om.Problem()
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+
+        phase = dm.AnalyticPhase(ode_class=SimpleBVPSolution, num_nodes=11)
+
+        traj.add_phase('phase', phase)
+
+        phase.set_time_options(units='s', targets=['x'], fix_initial=True, fix_duration=True,
+                               initial_val=0.0, duration_val=1.0)
+        phase.add_parameter('y0', opt=False, val=0.0)
+        phase.add_parameter('y1', opt=False, val=0.0)
+
+        p.setup()
+
+        p.run_model()
+
+        t = p.get_val('traj.phase.timeseries.time', units='s')
+        y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
+
+        expected = lambda x: x * (1 - x) * (1 + x - x**2) / 12
+
+        assert_near_equal(y, expected(t))
+
+
+class TestAnalyticPhaseInvalidOptions(unittest.TestCase):
+
+    def test_add_control(self):
+        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=11)
+
+        with self.assertRaises(NotImplementedError) as e:
+            phase.add_control('foo')
+
+        self.assertEqual('AnalyticPhase does not support controls.', str(e.exception))
+
+    def test_set_control_options(self):
+        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=11)
+
+        with self.assertRaises(NotImplementedError) as e:
+            phase.set_control_options('foo', lower=0)
+
+        self.assertEqual('AnalyticPhase does not support controls.', str(e.exception))
+
+    def test_add_polynomial_control(self):
+        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=11)
+
+        with self.assertRaises(NotImplementedError) as e:
+            phase.add_polynomial_control('foo', order=2)
+
+        self.assertEqual('AnalyticPhase does not support polynomial controls.', str(e.exception))
+
+    def test_set_polynomial_control_options(self):
+        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=11)
+
+        with self.assertRaises(NotImplementedError) as e:
+            phase.set_polynomial_control_options('foo', lower=0)
+
+        self.assertEqual('AnalyticPhase does not support polynomial controls.', str(e.exception))
