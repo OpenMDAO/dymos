@@ -19,10 +19,9 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 
 
 from ..transcriptions.transcription_base import TranscriptionBase
-from ..transcriptions import Analytic
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
-    configure_controls_introspection, configure_parameters_introspection, configure_states_introspection, \
+    configure_controls_introspection, configure_parameters_introspection, \
     configure_timeseries_output_introspection, classify_var, get_promoted_vars
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
@@ -208,7 +207,8 @@ class Phase(om.Group):
                           lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
                           ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
                           defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified,
-                          source=_unspecified, input_initial=_unspecified, initial_targets=_unspecified):
+                          source=_unspecified, input_initial=_unspecified, initial_targets=_unspecified,
+                          opt=_unspecified, initial_bounds=_unspecified, final_bounds=_unspecified):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -348,16 +348,13 @@ class Phase(om.Group):
             self.state_options[name]['input_initial'] = input_initial
 
         if opt is not _unspecified:
-            raise NotImplementedError('States in AnalyticPhase are strictly outputs of the ODE solution system. '
-                                      'Option `opt` is not a valid option for states in AnalyticPhase.')
+            self.state_options[name]['opt'] = opt
 
         if initial_bounds is not _unspecified:
-            raise NotImplementedError('States in AnalyticPhase are strictly outputs of the ODE solution system. '
-                                      'Option `initial_bounds` is not a valid option for states in AnalyticPhase.')
+            self.state_options[name]['initial_bounds'] = initial_bounds
 
         if final_bounds is not _unspecified:
-            raise NotImplementedError('States in AnalyticPhase are strictly outputs of the ODE solution system. '
-                                      'Option `final_bounds` is not a valid option for states in AnalyticPhase.')
+            self.state_options[name]['final_bounds'] = final_bounds
 
     def check_parameter(self, name):
         """

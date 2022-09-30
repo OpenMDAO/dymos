@@ -331,7 +331,6 @@ class TranscriptionBase(object):
         except (ValueError, RuntimeError) as e:
             raise RuntimeError(f'Error during configure_states_introspection in phase {phase.pathname}.') from e
 
-
     def configure_states(self, phase):
         """
         Configure the states for this transcription.

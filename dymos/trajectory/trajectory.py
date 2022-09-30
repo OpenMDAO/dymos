@@ -318,9 +318,9 @@ class Trajectory(om.Group):
                     elif var2 == '*':
                         phase2.set_time_options(input_initial=True)
                         for state_name in phase2.state_options:
-                            phase2.set_state_options(state_name, conected_initial=True)
+                            phase2.set_state_options(state_name, input_initial=True)
                     elif var2 in phase2.state_options:
-                        phase2.set_state_options(var2, connected_initial=True)
+                        phase2.set_state_options(var2, input_initial=True)
                 else:
                     has_linkage_constraints = True
 

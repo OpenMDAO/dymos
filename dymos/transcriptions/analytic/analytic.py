@@ -10,6 +10,7 @@ from ..grid_data import GridData
 from .analytic_timeseries_output_comp import AnalyticTimeseriesOutputComp
 from ..common.time_comp import TimeComp
 
+
 class Analytic(TranscriptionBase):
     """
     Radau Pseudospectral Method Transcription.
