@@ -249,8 +249,8 @@ def _run_linkage_report(prob):
     for sysname, sysinfo in prob.model._subsystems_allprocs.items():
         if isinstance(sysinfo.system, dm.Trajectory):
             traj = sysinfo.system
-            # Only create a report for a trajectory with multiple phases
-            if len(traj._phases) > 1:
+            # Only create a report for a trajectory with linkages
+            if traj._linkages:
                 report_filename = f'{sysname}_{_default_linkage_report_filename}'
                 report_path = str(Path(prob.get_reports_dir()) / report_filename)
                 create_linkage_report(traj, report_path)

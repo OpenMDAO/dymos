@@ -42,9 +42,6 @@ class AerodynamicHeating(om.ExplicitComponent):
         c_2 = 0.21286289e-3
         c_3 = -0.10117249e-5
 
-        if np.any(v < 0):
-            raise om.AnalysisError('Negative velocity magnitude encountered')
-
         q_r = 17700.0 * np.sqrt(rho) * (0.0001 * v) ** 3.07
         q_a = c_0 + c_1 * alpha + c_2 * alpha ** 2 + c_3 * alpha ** 3
 
@@ -58,9 +55,6 @@ class AerodynamicHeating(om.ExplicitComponent):
         c_1 = -.19213774e-1
         c_2 = .21286289e-3
         c_3 = -.10117249e-5
-
-        if np.any(v < 0):
-            raise om.AnalysisError('Negative velocity magnitude encountered')
 
         sqrt_rho = np.sqrt(rho)
 
