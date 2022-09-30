@@ -38,12 +38,13 @@ class GaussLobatto(PseudospectralBase):
         """
         Setup the GridData object for the Transcription.
         """
-        if self.options['order'] % 2 == 0:
+        order = np.asarray(self.options['order'])
+        if np.any(order % 2 == 0):
             raise ValueError('A Gauss-Lobatto scheme must use an odd order for state interpolation.')
 
         self.grid_data = GridData(num_segments=self.options['num_segments'],
                                   transcription='gauss-lobatto',
-                                  transcription_order=self.options['order'],
+                                  transcription_order=order,
                                   segment_ends=self.options['segment_ends'],
                                   compressed=self.options['compressed'])
 

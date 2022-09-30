@@ -222,14 +222,7 @@ class Analytic(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        ode_inputs = get_promoted_vars(phase.rhs, 'input')
-
-        for name, options in phase.state_options.items():
-            initial_targets = get_targets(ode_inputs, name=name, user_targets=options['initial_targets'])
-
-            if initial_targets:
-                phase.connect(f'initial_state_vals:{name}',
-                              [f'rhs.{tgt}' for tgt in initial_targets])
+        pass
 
     def setup_defects(self, phase):
         """

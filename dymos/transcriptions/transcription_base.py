@@ -310,10 +310,10 @@ class TranscriptionBase(object):
         """
         ode = self._get_ode(phase)
         try:
-            configure_states_discovery(phase.state_options, phase.time_options, phase.control_options,
-                                       phase.parameter_options, phase.polynomial_control_options, ode)
+            configure_states_introspection(phase.state_options, phase.time_options, phase.control_options,
+                                           phase.parameter_options, phase.polynomial_control_options, ode)
         except (ValueError, RuntimeError) as e:
-            raise RuntimeError(f'Error during configure_states_discovery in phase {phase.pathname}.') from e
+            raise RuntimeError(f'Error during configure_states_introspection in phase {phase.pathname}.') from e
 
     def configure_states_discovery(self, phase):
         """
@@ -326,10 +326,9 @@ class TranscriptionBase(object):
         """
         ode = self._get_ode(phase)
         try:
-            configure_states_introspection(phase.state_options, phase.time_options, phase.control_options,
-                                           phase.parameter_options, phase.polynomial_control_options, ode)
+            configure_states_discovery(phase.state_options, ode)
         except (ValueError, RuntimeError) as e:
-            raise RuntimeError(f'Error during configure_states_introspection in phase {phase.pathname}.') from e
+            raise RuntimeError(f'Error during configure_states_discovery in phase {phase.pathname}.') from e
 
     def configure_states(self, phase):
         """

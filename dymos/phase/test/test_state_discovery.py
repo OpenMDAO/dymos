@@ -165,12 +165,11 @@ class TestStateDiscovery(unittest.TestCase):
                          transcription=dm.GaussLobatto(num_segments=2))
         p.model.add_subsystem('phase', phase)
 
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(RuntimeError) as cm:
             p.setup()
 
-        msg = ("'dymos.state_units:x' tag declared on 'xdot' also requires "
-               "that the 'dymos.state_rate_source:x' tag be declared.")
-        self.assertEqual(str(cm.exception), msg)
+        msg = "Error during configure_states_discovery in phase phase."
+        self.assertEqual(msg, str(cm.exception))
 
         class BadComp(om.ExplicitComponent):
 
@@ -190,12 +189,10 @@ class TestStateDiscovery(unittest.TestCase):
 
         p.model.add_subsystem('phase', phase)
 
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(RuntimeError) as cm:
             p.setup()
 
-        msg = ("rate_source has been declared twice for state "
-               "'x' which is tagged on 'xdot'.")
-        self.assertEqual(str(cm.exception), msg)
+        self.assertEqual(msg, str(cm.exception))
 
         class BadComp(om.ExplicitComponent):
 
@@ -215,11 +212,10 @@ class TestStateDiscovery(unittest.TestCase):
 
         p.model.add_subsystem('phase', phase)
 
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(RuntimeError) as cm:
             p.setup()
 
-        msg = ("State 'x' is missing a rate_source.")
-        self.assertEqual(str(cm.exception), msg)
+        self.assertEqual(msg, str(cm.exception))
 
     def test_deprecations(self):
 

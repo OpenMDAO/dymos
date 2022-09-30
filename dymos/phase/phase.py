@@ -1671,7 +1671,6 @@ class Phase(om.Group):
                 raise ValueError(f'Invalid parameter in phase `{self.pathname}`.\n{str(e)}') from e
 
         transcription.configure_states_discovery(self)
-
         transcription.configure_states_introspection(self)
         transcription.configure_time(self)
         transcription.configure_controls(self)
@@ -1699,54 +1698,6 @@ class Phase(om.Group):
         transcription.configure_timeseries_outputs(self)
 
         transcription.configure_solvers(self)
-
-    def configure_state_discovery(self):
-        """
-        Searches phase output metadata for any declared states and adds them.
-        """
-        transcription = self.options['transcription']
-        state_options = self.state_options
-        out_meta = get_promoted_vars(transcription._get_ode(self), 'output', metadata_keys=('tags',))
-
-        for prom_name, meta in out_meta.items():
-            state = None
-            for tag in sorted(meta['tags']):
-
-                # Declared as rate_source.
-                if tag.startswith('dymos.state_rate_source:') or tag.startswith('state_rate_source:'):
-                    state = tag.rpartition(':')[-1]
-                    if tag.startswith('state_rate_source:'):
-                        msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
-                              f"dymos version 2.0.0. Use 'dymos.state_rate_source:{state}' instead."
-                        om.issue_warning(msg, category=om.OMDeprecationWarning)
-                    if state not in state_options:
-                        state_options[state] = StateOptionsDictionary()
-                        state_options[state]['name'] = state
-
-                    if state_options[state]['rate_source'] is not None:
-                        if state_options[state]['rate_source'] != prom_name:
-                            raise ValueError(f"rate_source has been declared twice for state "
-                                             f"'{state}' which is tagged on '{prom_name}'.")
-
-                    state_options[state]['rate_source'] = prom_name
-
-                # Declares units for state.
-                if tag.startswith('dymos.state_units:') or tag.startswith('state_units:'):
-                    tagged_state_units = tag.rpartition(':')[-1]
-                    if tag.startswith('state_units:'):
-                        msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
-                              f"dymos version 2.0.0. Use 'dymos.{tag}' instead."
-                        om.issue_warning(msg, category=om.OMDeprecationWarning)
-                    if state is None:
-                        raise ValueError(f"'{tag}' tag declared on '{prom_name}' also requires "
-                                         f"that the 'dymos.state_rate_source:{tagged_state_units}' "
-                                         f"tag be declared.")
-                    state_options[state]['units'] = tagged_state_units
-
-        # # Check over all existing states and make sure we aren't missing any rate sources.
-        # for name, options in state_options.items():
-        #     if options['rate_source'] is None:
-        #         raise ValueError(f"{self.pathname}: State '{name}' is missing a rate_source.")
 
     def check_time_options(self):
         """
