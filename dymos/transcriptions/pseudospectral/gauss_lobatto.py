@@ -48,7 +48,7 @@ class GaussLobatto(PseudospectralBase):
         else:
             self.options['order'] = np.asarray(self.options['order'], dtype=int)
 
-        if np.any(order % 2 == 0):
+        if np.any(self.options['order'] % 2 == 0):
             raise ValueError('A Gauss-Lobatto scheme must use an odd order for state interpolation.')
 
         self.grid_data = GridData(num_segments=self.options['num_segments'],
