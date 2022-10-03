@@ -47,7 +47,6 @@ class _TestODE(om.Group):
         self.add_subsystem('testcomp', om.ExecComp('testout=test', shape=40), promotes=['*'])
 
 
-@require_pyoptsparse(optimizer='SLSQP')
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                    transcription_order=3, force_alloc_complex=False):
 
@@ -83,8 +82,8 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                     ref=1.0E3, defect_ref=1.0E3, units='m',
                     rate_source='flight_dynamics.r_dot')
 
-    phase.add_state('h', fix_initial=True, lower=0, upper=20000.0,
-                    ref=1.0E2, defect_ref=1.0E2, units='m',
+    phase.add_state('h', fix_initial=True, lower=0, upper=20_000.0,
+                    ref=20_000.0, defect_ref=20_000.0, units='m',
                     rate_source='flight_dynamics.h_dot', targets=['h'])
 
     phase.add_state('v', fix_initial=True, lower=10.0,
@@ -96,7 +95,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                     rate_source='flight_dynamics.gam_dot', targets=['gam'])
 
     phase.add_state('m', fix_initial=True, lower=10.0, upper=1.0E5,
-                    ref=1.0E3, defect_ref=1.0E3, units='kg',
+                    ref=1.0E4, defect_ref=1.0E4, units='kg',
                     rate_source='prop.m_dot', targets=['m'])
 
     phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
@@ -149,6 +148,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 @use_tempdirs
 class TestRefineShapedStaticParam(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_refine_shaped_static_param_gl(self):
         p = min_time_climb(optimizer='SLSQP', num_seg=8, transcription_order=3,
                            transcription='gauss-lobatto')
@@ -159,6 +159,7 @@ class TestRefineShapedStaticParam(unittest.TestCase):
         # Verify that ODE output mach is added to the timeseries
         assert_near_equal(p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_refine_shaped_static_param_radau(self):
         p = min_time_climb(optimizer='SLSQP', num_seg=8, transcription_order=3,
                            transcription='radau-ps')
