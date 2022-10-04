@@ -300,6 +300,12 @@ class Trajectory(om.Group):
 
     def _setup_linkages(self):
         has_linkage_constraints = False
+
+        err_template = '{traj}: Phase `{phase1}` links variable `{var1}` to phase ' \
+                       '`{phase2}` state variable `{var2}` by connection, but phase `{phase2}` ' \
+                       'is an AnalyticPhase and does not support linking initial state ' \
+                       'values with option `connected=True`.'
+
         for pair, var_dict in self._linkages.items():
 
             for name in pair:
@@ -314,13 +320,24 @@ class Trajectory(om.Group):
 
                 if options['connected']:
                     if var2 == 'time':
-                        phase2.set_time_options(input_initial=True)
+                        phase2.set_time_options(input_initial=True, fix_initial=False)
                     elif var2 == '*':
-                        phase2.set_time_options(input_initial=True)
+                        phase2.set_time_options(input_initial=True, fix_initial=False)
                         for state_name in phase2.state_options:
-                            phase2.set_state_options(state_name, input_initial=True)
+                            if isinstance(phase2, AnalyticPhase):
+                                try:
+                                    phase2.set_state_options(state_name, input_initial=True, fix_initial=_unspecified)
+                                except NotImplementedError as e:
+                                    raise RuntimeError(err_template.format(traj=self.pathname, phase1=pair[0],
+                                                                           phase2=pair[1], var1=var1, var2=var2)) from e
                     elif var2 in phase2.state_options:
-                        phase2.set_state_options(var2, input_initial=True)
+                        try:
+                            phase2.set_state_options(var2, input_initial=True, fix_initial=False)
+                        except NotImplementedError as e:
+                            raise RuntimeError(err_template.format(traj=self.pathname, phase1=pair[0],
+                                                                   phase2=pair[1], var1=var1, var2=var2)) from e
+                    elif var2 in phase2.parameter_options:
+                        phase2.set_parameter_options(var2, opt=False)
                 else:
                     has_linkage_constraints = True
 
@@ -550,7 +567,7 @@ class Trajectory(om.Group):
                 units[i] = get_rate_units(control_units, time_units, deriv=deriv)
                 shapes[i] = phases[i].polynomial_control_options[control_name]['shape']
             elif classes[i] == 'parameter':
-                sources[i] = f'timeseries.parameters:{vars[i]}'
+                sources[i] = f'parameter_vals:{vars[i]}'
                 units[i] = phases[i].parameter_options[vars[i]]['units']
                 shapes[i] = phases[i].parameter_options[vars[i]]['shape']
             else:
@@ -772,11 +789,16 @@ class Trajectory(om.Group):
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.{tgt_b}',
                                      src_indices=om.slicer[-1, ...])
+                    elif class_b == 'parameter':
+                        tgt_b = f'parameters:{var_b}'
+                        self.connect(f'{phase_name_a}.{src_a}',
+                                     f'{phase_name_b}.{tgt_b}',
+                                     src_indices=om.slicer[-1, ...])
                     else:
                         msg = f'Could not create connection linkage from phase `{phase_name_a}` ' \
                               f'variable `{var_a}` to phase `{phase_name_b}` variable `{var_b}`. ' \
-                              f'For direct connections, the target variable must be `time` or a ' \
-                              f'state in the phase.\nEither remove the linkage or specify ' \
+                              f'For direct connections, the target variable must be `time`, a ' \
+                              f'state, or a parameter in the phase.\nEither remove the linkage or specify ' \
                               f'`connected=False` to enforce it via an optimization constraint.'
                         raise om.OpenMDAOWarning(msg)
                     _print_on_rank(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ->  '

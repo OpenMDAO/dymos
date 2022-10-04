@@ -1723,11 +1723,11 @@ class Phase(om.Group):
                 warnings.warn(f'Phase time options have no effect because fix_initial=True '
                               f'or input_initial=True for phase \'{phase_name}\': {str_invalid_opts}')
 
-        if self.time_options['input_initial']:
+        if self.time_options['input_initial'] and self.time_options['fix_initial']:
             warnings.warn(f'Phase \'{self.name}\' initial time is an externally-connected input, '
                           'therefore fix_initial has no effect.', RuntimeWarning)
 
-        if self.time_options['fix_duration'] or self.time_options['input_initial']:
+        if self.time_options['fix_duration'] or self.time_options['input_duration']:
             invalid_options = []
             duration_bounds = self.time_options['duration_bounds']
             if duration_bounds is not None and duration_bounds != (None, None):
@@ -1740,7 +1740,7 @@ class Phase(om.Group):
                 warnings.warn(f'Phase time options have no effect because fix_duration=True '
                               f'or input_duration=True for phase \'{phase_name}\': {str_invalid_opts}')
 
-        if self.time_options['input_duration']:
+        if self.time_options['input_duration'] and self.time_options['fix_duration']:
             warnings.warn(f'Phase \'{self.name}\' time duration is an externally-connected input, '
                           'therefore fix_duration has no effect.', RuntimeWarning)
 

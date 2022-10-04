@@ -458,3 +458,78 @@ class Analytic(TranscriptionBase):
         any_rate_continuity = any_rate_continuity and num_seg > 1
 
         return any_state_continuity, any_control_continuity, any_rate_continuity
+
+    def _get_num_timeseries_nodes(self):
+        """
+        Returns the number of nodes in the default timeseries for this transcription.
+
+        Returns
+        -------
+        int
+            The number of nodes in the default timeseries for this transcription.
+        """
+        return self.options['order']
+
+    def _get_objective_src(self, var, loc, phase, ode_outputs=None):
+        """
+        Return the path to the variable that will be used as the objective.
+
+        Parameters
+        ----------
+        var : str
+            Name of the variable to be used as the objective.
+        loc : str
+            The location of the objective in the phase ['initial', 'final'].
+        phase : dymos.Phase
+            Phase object containing in which the objective resides.
+        ode_outputs : dict or None
+            A dictionary of ODE outputs as returned by get_promoted_vars.
+
+        Returns
+        -------
+        obj_path : str
+            Path to the source.
+        shape : tuple
+            Source shape.
+        units : str
+            Source units.
+        linear : bool
+            True if the objective quantity1 is linear.
+        """
+        time_units = phase.time_options['units']
+        var_type = phase.classify_var(var)
+
+        if ode_outputs is None:
+            ode_outputs = get_promoted_vars(phase._get_subsystem(self._rhs_source), 'output')
+
+        if var_type == 'time':
+            shape = (1,)
+            units = time_units
+            linear = True
+            constraint_path = 'time'
+        elif var_type == 'time_phase':
+            shape = (1,)
+            units = time_units
+            linear = True
+            constraint_path = 'time_phase'
+        elif var_type == 'state':
+            constraint_path = f'{self._rhs_source}.{var}'
+            src_path = phase.state_options[var]['source']
+            meta = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
+            shape = meta['shape']
+            units = meta['units']
+            linear = False
+        elif var_type == 'parameter':
+            shape = phase.parameter_options[var]['shape']
+            units = phase.parameter_options[var]['units']
+            linear = True
+            constraint_path = f'parameter_vals:{var}'
+        else:
+            # Failed to find variable, assume it is in the ODE. This requires introspection.
+            constraint_path = f'{self._rhs_source}.{var}'
+            meta = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
+            shape = meta['shape']
+            units = meta['units']
+            linear = False
+
+        return constraint_path, shape, units, linear

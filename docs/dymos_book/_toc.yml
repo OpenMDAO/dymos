@@ -45,6 +45,7 @@ parts:
   - file: features/phases/phases_list
     sections:
     - file: features/phases/phases
+    - file: features/phases/analytic_phases
     - file: features/phases/segments
     - file: features/phases/variables
     - file: features/phases/constraints

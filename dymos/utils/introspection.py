@@ -540,7 +540,6 @@ def configure_analytic_states_introspection(state_options, ode):
     for state_name, options in state_options.items():
         # Automatically determine targets of state if left _unspecified
         source = options['source'] if options['source'] else state_name
-
         meta = get_source_metadata(ode_outputs, src=source, user_units=options['units'], user_shape=options['shape'])
         src_shape = meta['shape']
         src_units = meta['units']
