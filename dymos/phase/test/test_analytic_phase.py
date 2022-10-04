@@ -459,3 +459,111 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         assert_near_equal(0.5338712554624387, t_1[-1, 0], tolerance=1.0E-6)
         assert_near_equal(2.0, t_2[-1, 0], tolerance=1.0E-6)
         assert_near_equal(5.305471950533106, x_2[-1, 0], tolerance=1.0E-6)
+
+    def test_link_params_connected_false(self):
+        p = om.Problem()
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+
+        first_phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=10)
+        first_phase.set_time_options(units='s', targets=['t'], fix_initial=True, duration_bounds=(0.5, 10.0))
+        first_phase.add_state('y')
+        first_phase.add_parameter('y0', opt=False)
+
+        first_phase.add_boundary_constraint('y', loc='final', equals=1.5, units='unitless')
+
+        second_phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=10)
+        second_phase.set_time_options(units='s', targets=['t'], fix_initial=False, duration_bounds=(0.1, 10.0))
+        second_phase.add_state('y')
+        second_phase.add_parameter('y0', opt=True)
+        second_phase.add_boundary_constraint('time', loc='final', equals=2.0, units='s')
+
+        # Since we're using constraints to enforce continuity between the two phases, we need a
+        # driver and a dummy objective.  As usual, time works well for a dummy objective here.
+        first_phase.add_objective('time', loc='final')
+        p.driver = om.pyOptSparseDriver()
+
+        traj.add_phase('first_phase', first_phase)
+        traj.add_phase('second_phase', second_phase)
+
+        # We can link time with a connection, since initial time is an input to the second phase.
+        traj.link_phases(['first_phase', 'second_phase'], ['time'], connected=True)
+        traj.link_phases(['first_phase', 'second_phase'], ['y0'], connected=False)
+
+        p.setup()
+
+        p.set_val('traj.first_phase.t_initial', 0.0, units='s')
+        p.set_val('traj.first_phase.t_duration', 2.0, units='s')
+        p.set_val('traj.first_phase.parameters:y0', 0.5, units='unitless')
+
+        p.run_driver()
+
+        t_1 = p.get_val('traj.first_phase.timeseries.time', units='s')
+        x_1 = p.get_val('traj.first_phase.timeseries.states:y', units='unitless')
+        y0_1 = p.get_val('traj.first_phase.parameter_vals:y0')
+
+        t_2 = p.get_val('traj.second_phase.timeseries.time', units='s')
+        x_2 = p.get_val('traj.second_phase.timeseries.states:y', units='unitless')
+        y0_2 = p.get_val('traj.second_phase.parameter_vals:y0')
+
+        # A dense version of the analytic solution for plot comparison.
+        expected = lambda time: time ** 2 + 2 * time + 1 - y0_1 * np.exp(time)
+        t_dense = np.linspace(t_1[0], t_2[-1], 100)
+
+        assert_near_equal(1.500000, x_1[-1, 0], tolerance=1.0E-6)
+        assert_near_equal(0.5338712554624387, t_1[-1, 0], tolerance=1.0E-6)
+        assert_near_equal(2.0, t_2[-1, 0], tolerance=1.0E-6)
+        assert_near_equal(5.305471950533106, x_2[-1, 0], tolerance=1.0E-6)
+
+    def test_link_params_connected_true(self):
+        p = om.Problem()
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+
+        first_phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=10)
+        first_phase.set_time_options(units='s', targets=['t'], fix_initial=True, duration_bounds=(0.5, 10.0))
+        first_phase.add_state('y')
+        first_phase.add_parameter('y0', opt=False)
+
+        first_phase.add_boundary_constraint('y', loc='final', equals=1.5, units='unitless')
+
+        second_phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=10)
+        second_phase.set_time_options(units='s', targets=['t'], fix_initial=False, duration_bounds=(0.1, 10.0))
+        second_phase.add_state('y')
+        second_phase.add_parameter('y0', opt=True)
+        second_phase.add_boundary_constraint('time', loc='final', equals=2.0, units='s')
+
+        # Since we're using constraints to enforce continuity between the two phases, we need a
+        # driver and a dummy objective.  As usual, time works well for a dummy objective here.
+        first_phase.add_objective('time', loc='final')
+        p.driver = om.pyOptSparseDriver()
+
+        traj.add_phase('first_phase', first_phase)
+        traj.add_phase('second_phase', second_phase)
+
+        # We can link time with a connection, since initial time is an input to the second phase.
+        traj.link_phases(['first_phase', 'second_phase'], ['time'], connected=True)
+        traj.link_phases(['first_phase', 'second_phase'], ['y0'], connected=True)
+
+        p.setup()
+
+        p.set_val('traj.first_phase.t_initial', 0.0, units='s')
+        p.set_val('traj.first_phase.t_duration', 2.0, units='s')
+        p.set_val('traj.first_phase.parameters:y0', 0.5, units='unitless')
+
+        p.run_driver()
+
+        t_1 = p.get_val('traj.first_phase.timeseries.time', units='s')
+        x_1 = p.get_val('traj.first_phase.timeseries.states:y', units='unitless')
+        y0_1 = p.get_val('traj.first_phase.parameter_vals:y0')
+
+        t_2 = p.get_val('traj.second_phase.timeseries.time', units='s')
+        x_2 = p.get_val('traj.second_phase.timeseries.states:y', units='unitless')
+        y0_2 = p.get_val('traj.second_phase.parameter_vals:y0')
+
+        # A dense version of the analytic solution for plot comparison.
+        expected = lambda time: time ** 2 + 2 * time + 1 - y0_1 * np.exp(time)
+        t_dense = np.linspace(t_1[0], t_2[-1], 100)
+
+        assert_near_equal(1.500000, x_1[-1, 0], tolerance=1.0E-6)
+        assert_near_equal(0.5338712554624387, t_1[-1, 0], tolerance=1.0E-6)
+        assert_near_equal(2.0, t_2[-1, 0], tolerance=1.0E-6)
+        assert_near_equal(5.305471950533106, x_2[-1, 0], tolerance=1.0E-6)
