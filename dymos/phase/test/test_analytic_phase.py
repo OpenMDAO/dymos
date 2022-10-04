@@ -424,7 +424,7 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         # Since we're using constraints to enforce continuity between the two phases, we need a
         # driver and a dummy objective.  As usual, time works well for a dummy objective here.
         first_phase.add_objective('time', loc='final')
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
         traj.add_phase('first_phase', first_phase)
         traj.add_phase('second_phase', second_phase)
@@ -480,7 +480,7 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         # Since we're using constraints to enforce continuity between the two phases, we need a
         # driver and a dummy objective.  As usual, time works well for a dummy objective here.
         first_phase.add_objective('time', loc='final')
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
         traj.add_phase('first_phase', first_phase)
         traj.add_phase('second_phase', second_phase)
@@ -534,7 +534,7 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         # Since we're using constraints to enforce continuity between the two phases, we need a
         # driver and a dummy objective.  As usual, time works well for a dummy objective here.
         first_phase.add_objective('time', loc='final')
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
         traj.add_phase('first_phase', first_phase)
         traj.add_phase('second_phase', second_phase)
