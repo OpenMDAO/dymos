@@ -1171,6 +1171,9 @@ class Trajectory(om.Group):
         sim_traj = Trajectory(sim_mode=True)
 
         for name, phs in self._phases.items():
+            if phs.simulate_options is None:
+                continue
+
             sim_phs = phs.get_simulation_phase(times_per_seg=times_per_seg, method=method,
                                                atol=atol, rtol=rtol, first_step=first_step,
                                                max_step=max_step, reports=reports)

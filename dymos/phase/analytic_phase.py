@@ -22,6 +22,10 @@ class AnalyticPhase(Phase):
         Dictionary of optional phase arguments.
     """
 
+    def __init__(self, from_phase=None, **kwargs):
+        super().__init__(from_phase=from_phase, **kwargs)
+        self.simulate_options = None
+
     def initialize(self):
         """
         Declare instantiation options for the phase.
@@ -618,3 +622,69 @@ class AnalyticPhase(Phase):
         transcription.setup_timeseries_outputs(self)
         transcription.setup_defects(self)
         transcription.setup_solvers(self)
+
+    def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
+                 first_step=_unspecified, max_step=_unspecified, record_file=None):
+        """
+        Stub to make sure users are informed that simulate cannot be done on AnalyticPhase.
+
+        Parameters
+        ----------
+        times_per_seg : int or None
+            Number of equally spaced times per segment at which output is requested.  If None,
+            output will be provided at all Nodes.
+        method : str
+            The scipy.integrate.solve_ivp integration method.
+        atol : float
+            Absolute convergence tolerance for scipy.integrate.solve_ivp.
+        rtol : float
+            Relative convergence tolerance for scipy.integrate.solve_ivp.
+        first_step : float
+            Initial step size for the integration.
+        max_step : float
+            Maximum step size for the integration.
+        record_file : str or None
+            If a string, the file to which the result of the simulation will be saved.
+            If None, no record of the simulation will be saved.
+
+        Returns
+        -------
+        problem
+            An OpenMDAO Problem in which the simulation is implemented.  This Problem interface
+            can be interrogated to obtain timeseries outputs in the same manner as other Phases
+            to obtain results at the requested times.
+        """
+        raise NotImplementedError('Method `simulate` is not available for AnalyticPhase.')
+
+    def set_simulate_options(self, method=_unspecified, atol=_unspecified, rtol=_unspecified,
+                             first_step=_unspecified, max_step=_unspecified):
+        """
+        Stub to make sure users are informed that simulate cannot be done on AnalyticPhase.
+
+        Parameters
+        ----------
+        times_per_seg : int or None
+            Number of equally spaced times per segment at which output is requested.  If None,
+            output will be provided at all Nodes.
+        method : str
+            The scipy.integrate.solve_ivp integration method.
+        atol : float
+            Absolute convergence tolerance for scipy.integrate.solve_ivp.
+        rtol : float
+            Relative convergence tolerance for scipy.integrate.solve_ivp.
+        first_step : float
+            Initial step size for the integration.
+        max_step : float
+            Maximum step size for the integration.
+        record_file : str or None
+            If a string, the file to which the result of the simulation will be saved.
+            If None, no record of the simulation will be saved.
+
+        Returns
+        -------
+        problem
+            An OpenMDAO Problem in which the simulation is implemented.  This Problem interface
+            can be interrogated to obtain timeseries outputs in the same manner as other Phases
+            to obtain results at the requested times.
+        """
+        raise NotImplementedError('Method set_simulate_options is not available for AnalyticPhase.')
