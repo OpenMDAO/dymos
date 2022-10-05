@@ -1,0 +1,34 @@
+name: Bug Report
+description: Submit a report if you believe you've found a bug in Dymos.
+labels: ["bug"]
+assignees:
+  - robfalck
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please explain what is happening and how it differs from the expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example
+      description: Please provide an example of the code that triggers the unexpected behavior. If possible, we would appreciate a minimal test case that reproduces the issue. Alternatively, link to a file in another repository where the issue is demonstrated.
+      render: python
+    validations:
+      required: true
+  - type: input
+    id: dymos-version
+    attributes:
+      label: Dymos Version
+      description: What version of Dymos is being used.
+      placeholder: "1.5.1-dev"
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Relevant environment information
+      description: If applicable, please provide versions of relevant dependencies (numpy, scipy, MPI, etc).  This can be obtained from `pip freeze`.
