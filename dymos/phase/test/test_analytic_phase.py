@@ -549,7 +549,7 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         p.set_val('traj.first_phase.t_duration', 2.0, units='s')
         p.set_val('traj.first_phase.parameters:y0', 0.5, units='unitless')
 
-        p.run_driver()
+        dm.run_problem(p, simulate=False)
 
         t_1 = p.get_val('traj.first_phase.timeseries.time', units='s')
         x_1 = p.get_val('traj.first_phase.timeseries.states:y', units='unitless')
@@ -567,3 +567,9 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         assert_near_equal(0.5338712554624387, t_1[-1, 0], tolerance=1.0E-6)
         assert_near_equal(2.0, t_2[-1, 0], tolerance=1.0E-6)
         assert_near_equal(5.305471950533106, x_2[-1, 0], tolerance=1.0E-6)
+
+        with self.assertRaises(RuntimeError) as e:
+            dm.run_problem(p, simulate=True)
+
+        expected = 'Trajectory `traj` has no phases that support simulation.'
+        self.assertEqual(expected, str(e.exception))

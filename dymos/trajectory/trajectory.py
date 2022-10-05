@@ -1179,6 +1179,9 @@ class Trajectory(om.Group):
                                                max_step=max_step, reports=reports)
             sim_traj.add_phase(name, sim_phs)
 
+        if not sim_traj._phases:
+            raise RuntimeError(f'Trajectory `{self.pathname}` has no phases that support simulation.')
+
         sim_traj.parameter_options.update(self.parameter_options)
 
         sim_prob = om.Problem(model=om.Group(), reports=reports)
