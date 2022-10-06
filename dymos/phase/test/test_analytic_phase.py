@@ -185,75 +185,6 @@ class TestAnalyticPhaseInvalidOptions(unittest.TestCase):
 
         self.assertEqual('AnalyticPhase does not support polynomial controls.', str(e.exception))
 
-    def test_invalid_add_state_options(self):
-        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=11)
-
-        invalid_state_options = [('opt', False),
-                                 ('fix_initial', True),
-                                 ('fix_final', True),
-                                 ('initial_bounds', (0, 0)),
-                                 ('final_bounds', (0, 0)),
-                                 ('val', 0.0),
-                                 # ('desc', 'Foo'),
-                                 ('rate_source', 'foo.bar'),
-                                 ('targets', ['y']),
-                                 ('lower', 0.0),
-                                 ('upper', 0.0),
-                                 ('scaler', 1.0),
-                                 ('adder', 0.0),
-                                 ('ref0', 0.0),
-                                 ('ref', 1.0),
-                                 ('defect_scaler', 1.0),
-                                 ('defect_ref', 1.0),
-                                 # ('continuity', True),
-                                 ('solve_segments', False),
-                                 ('input_initial', False)]
-
-        for opt, val in invalid_state_options:
-            kwargs = {opt: val}
-
-            with self.assertRaises(NotImplementedError) as e:
-                phase.add_state('y', **kwargs)
-
-            expected = f'States in AnalyticPhase are strictly outputs of the ODE solution system. Option `{opt}` is ' \
-                       'not a valid option for states in AnalyticPhase.'
-
-            self.assertEqual(expected, str(e.exception))
-
-    def test_invalid_set_state_options(self):
-        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=11)
-        phase.add_state('y')
-
-        invalid_state_options = [('opt', False),
-                                 ('fix_initial', True),
-                                 ('fix_final', True),
-                                 ('initial_bounds', (0, 0)),
-                                 ('final_bounds', (0, 0)),
-                                 ('val', 0.0),
-                                 ('rate_source', 'foo.bar'),
-                                 ('targets', ['y']),
-                                 ('lower', 0.0),
-                                 ('upper', 0.0),
-                                 ('scaler', 1.0),
-                                 ('adder', 0.0),
-                                 ('ref0', 0.0),
-                                 ('ref', 1.0),
-                                 ('defect_scaler', 1.0),
-                                 ('defect_ref', 1.0),
-                                 ('solve_segments', False),
-                                 ('input_initial', False)]
-
-        for opt, val in invalid_state_options:
-            kwargs = {opt: val}
-
-            with self.assertRaises(NotImplementedError) as e:
-                phase.set_state_options('y', **kwargs)
-
-            expected = f'States in AnalyticPhase are strictly outputs of the ODE solution system. Option `{opt}` is ' \
-                       'not a valid option for states in AnalyticPhase.'
-
-            self.assertEqual(expected, str(e.exception))
-
 
 class TestLinkedAnalyticPhases(unittest.TestCase):
 
@@ -553,15 +484,9 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
 
         t_1 = p.get_val('traj.first_phase.timeseries.time', units='s')
         x_1 = p.get_val('traj.first_phase.timeseries.states:y', units='unitless')
-        y0_1 = p.get_val('traj.first_phase.parameter_vals:y0')
 
         t_2 = p.get_val('traj.second_phase.timeseries.time', units='s')
         x_2 = p.get_val('traj.second_phase.timeseries.states:y', units='unitless')
-        y0_2 = p.get_val('traj.second_phase.parameter_vals:y0')
-
-        # A dense version of the analytic solution for plot comparison.
-        expected = lambda time: time ** 2 + 2 * time + 1 - y0_1 * np.exp(time)
-        t_dense = np.linspace(t_1[0], t_2[-1], 100)
 
         assert_near_equal(1.500000, x_1[-1, 0], tolerance=1.0E-6)
         assert_near_equal(0.5338712554624387, t_1[-1, 0], tolerance=1.0E-6)

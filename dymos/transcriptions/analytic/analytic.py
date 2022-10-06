@@ -13,18 +13,15 @@ from ..common.time_comp import TimeComp
 
 class Analytic(TranscriptionBase):
     """
-    Radau Pseudospectral Method Transcription.
+    Analytic transcription.
+
+    The Analytic transcription supports portions of the time history where the value of the states
+    are known analytically as a function of time and parameters.
 
     Parameters
     ----------
     **kwargs : dict
         Dictionary of optional arguments.
-
-    References
-    ----------
-    Garg, Divya et al. "Direct Trajectory Optimization and Costate Estimation of General Optimal
-    Control Problems Using a Radau Pseudospectral Method." American Institute of Aeronautics
-    and Astronautics, 2009.
     """
     def __init__(self, **kwargs):
         super(Analytic, self).__init__(**kwargs)
@@ -337,37 +334,6 @@ class Analytic(TranscriptionBase):
             path = 'time_phase'
             src_units = time_units
             src_shape = (1,)
-        elif var_type in ['indep_control', 'input_control']:
-            path = f'control_values:{var}'
-            src_units = phase.control_options[var]['units']
-            src_shape = phase.control_options[var]['shape']
-        elif var_type == 'control_rate':
-            control_name = var[:-5]
-            path = f'control_rates:{control_name}_rate'
-            control_name = var[:-5]
-            src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=1)
-            src_shape = phase.control_options[control_name]['shape']
-        elif var_type == 'control_rate2':
-            control_name = var[:-6]
-            path = f'control_rates:{control_name}_rate2'
-            src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=2)
-            src_shape = phase.control_options[control_name]['shape']
-        elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-            path = f'polynomial_control_values:{var}'
-            src_units = phase.polynomial_control_options[var]['units']
-            src_shape = phase.polynomial_control_options[var]['shape']
-        elif var_type == 'polynomial_control_rate':
-            control_name = var[:-5]
-            path = f'polynomial_control_rates:{control_name}_rate'
-            control = phase.polynomial_control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=1)
-            src_shape = control['shape']
-        elif var_type == 'polynomial_control_rate2':
-            control_name = var[:-6]
-            path = f'polynomial_control_rates:{control_name}_rate2'
-            control = phase.polynomial_control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=2)
-            src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'
             # Timeseries are never a static_target

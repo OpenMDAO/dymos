@@ -18,6 +18,7 @@ from ..utils.constants import INF_BOUND
 
 from .options import LinkageOptionsDictionary
 from .phase_linkage_comp import PhaseLinkageComp
+from ..phase.analytic_phase import AnalyticPhase
 from ..phase.options import TrajParameterOptionsDictionary
 from ..transcriptions.common import ParameterComp
 from ..utils.misc import get_rate_units, _unspecified
@@ -325,17 +326,16 @@ class Trajectory(om.Group):
                         phase2.set_time_options(input_initial=True, fix_initial=False)
                         for state_name in phase2.state_options:
                             if isinstance(phase2, AnalyticPhase):
-                                try:
-                                    phase2.set_state_options(state_name, input_initial=True, fix_initial=_unspecified)
-                                except NotImplementedError as e:
-                                    raise RuntimeError(err_template.format(traj=self.pathname, phase1=pair[0],
-                                                                           phase2=pair[1], var1=var1, var2=var2)) from e
+                                raise RuntimeError(err_template.format(traj=self.pathname, phase1=pair[0],
+                                                                       phase2=pair[1], var1=var1, var2=var2))
+                            else:
+                                phase2.set_state_options(state_name, input_initial=True, fix_initial=_unspecified)
                     elif var2 in phase2.state_options:
-                        try:
-                            phase2.set_state_options(var2, input_initial=True, fix_initial=False)
-                        except NotImplementedError as e:
+                        if isinstance(phase2, AnalyticPhase):
                             raise RuntimeError(err_template.format(traj=self.pathname, phase1=pair[0],
-                                                                   phase2=pair[1], var1=var1, var2=var2)) from e
+                                                                   phase2=pair[1], var1=var1, var2=var2))
+                        else:
+                            phase2.set_state_options(var2, input_initial=True, fix_initial=False)
                     elif var2 in phase2.parameter_options:
                         phase2.set_parameter_options(var2, opt=False)
                 else:

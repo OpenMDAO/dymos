@@ -317,7 +317,7 @@ class TranscriptionBase(object):
 
     def configure_states_discovery(self, phase):
         """
-        Perform introspection on the RHS system for the states for this transcription.
+        Perform introspection on the RHS system to automatically discover states for this transcription.
 
         Parameters
         ----------

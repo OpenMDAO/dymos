@@ -14,7 +14,7 @@ _USE_SPARSE = True
 
 class AnalyticTimeseriesOutputComp(TimeseriesOutputCompBase):
     """
-    Class definition of the PseudospectralTimeseriesOutputComp.
+    Class definition of the timeseries output comp for AnalyticPhase.
 
     Parameters
     ----------
