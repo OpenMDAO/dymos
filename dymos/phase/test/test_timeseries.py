@@ -15,7 +15,7 @@ from dymos.models.atmosphere import USatm1976Comp
 from dymos.examples.min_time_climb.aero import AeroGroup
 from dymos.examples.min_time_climb.prop import PropGroup
 from dymos.models.eom import FlightPathEOM2D
-
+from dymos.utils.testing_utils import assert_timeseries_near_equal
 
 @use_tempdirs
 class TestTimeseriesOutput(unittest.TestCase):
@@ -241,7 +241,7 @@ class MinTimeClimbODEDuplicateOutput(om.Group):
 
 @require_pyoptsparse(optimizer='SLSQP')
 def min_time_climb(num_seg=3, transcription_class=dm.Radau, transcription_order=3,
-                   force_alloc_complex=False):
+                   force_alloc_complex=False, timeseries_expr=False):
 
     p = om.Problem(model=om.Group())
 
@@ -304,6 +304,8 @@ def min_time_climb(num_seg=3, transcription_class=dm.Radau, transcription_order=
 
     # Add all ODE outputs to the timeseries
     phase.add_timeseries_output('*')
+    if timeseries_expr:
+        phase.add_timeseries_output('R = atmos.pres / (atmos.temp * atmos.rho)')
 
     p.model.linear_solver = om.DirectSolver()
 
@@ -341,6 +343,254 @@ class TestDuplicateTimeseriesGlobName(unittest.TestCase):
         with self.assertRaises(RuntimeError) as e:
             min_time_climb(num_seg=12, transcription_class=dm.GaussLobatto, transcription_order=3)
         self.assertEqual(str(e.exception), msg)
+
+
+class TestTimeseriesExprBrachistochrone(unittest.TestCase):
+
+    @staticmethod
+    def make_problem_brachistochrone(transcription, polynomial_control=False):
+        p = om.Problem(model=om.Group())
+
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
+
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=transcription)
+
+        p.model.add_subsystem('phase0', phase)
+
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.set_state_options('x', fix_initial=True)
+        phase.set_state_options('y', fix_initial=True)
+        phase.set_state_options('v', fix_initial=True)
+
+        if polynomial_control:
+            phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+            control_name = 'polynomial_controls:theta'
+        else:
+            phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
+                              units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
+            control_name = 'controls:theta'
+        phase.add_boundary_constraint('x', loc='final', equals=10.0)
+        phase.add_boundary_constraint('y', loc='final', equals=5.0)
+
+        phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665, include_timeseries=True)
+
+        phase.add_objective('time_phase', loc='final', scaler=10)
+        phase.add_timeseries_output('z=states:x*states:y', units='m**2')
+        phase.add_timeseries_output(f'f=3*parameter_vals:g*cos({control_name})**2', units='deg**2')
+
+        p.model.options['assembled_jac_type'] = 'csc'
+        p.model.linear_solver = om.DirectSolver()
+        p.setup(check=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 2.0
+
+        p['phase0.states:x'] = phase.interp('x', [0, 10])
+        p['phase0.states:y'] = phase.interp('y', [10, 5])
+        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p[f'phase0.{control_name}'] = phase.interp('theta', [5, 100])
+        p['phase0.parameters:g'] = 9.80665
+        return p
+
+    def test_timeseries_expr_radau(self):
+        tx = dm.Radau(num_segments=5, order=3, compressed=True)
+        p = self.make_problem_brachistochrone(transcription=tx)
+        p.run_driver()
+
+        x = p.get_val('phase0.timeseries.states:x')
+        y = p.get_val('phase0.timeseries.states:y')
+        theta = p.get_val('phase0.timeseries.controls:theta')
+        g = p.get_val('phase0.timeseries.parameters:g')
+
+        z_computed = x * y
+        f_computed = 3 * g * np.cos(theta)**2
+        z_ts = p.get_val('phase0.timeseries.z')
+        f_ts = p.get_val('phase0.timeseries.f')
+        assert_near_equal(z_computed, z_ts, tolerance=1e-12)
+        assert_near_equal(f_computed, f_ts, tolerance=1e-12)
+
+    def test_timeseries_expr_radau_polynomial_control(self):
+        tx = dm.Radau(num_segments=5, order=3, compressed=True)
+        p = self.make_problem_brachistochrone(transcription=tx, polynomial_control=True)
+        p.run_driver()
+
+        x = p.get_val('phase0.timeseries.states:x')
+        y = p.get_val('phase0.timeseries.states:y')
+        theta = p.get_val('phase0.timeseries.polynomial_controls:theta')
+        g = p.get_val('phase0.timeseries.parameters:g')
+
+        z_computed = x * y
+        f_computed = 3 * g * np.cos(theta)**2
+        z_ts = p.get_val('phase0.timeseries.z')
+        f_ts = p.get_val('phase0.timeseries.f')
+        assert_near_equal(z_computed, z_ts, tolerance=1e-12)
+        assert_near_equal(f_computed, f_ts, tolerance=1e-12)
+
+    def test_timeseries_expr_gl(self):
+        tx = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
+        p = self.make_problem_brachistochrone(transcription=tx)
+        p.run_driver()
+        x = p.get_val('phase0.timeseries.states:x')
+        y = p.get_val('phase0.timeseries.states:y')
+        theta = p.get_val('phase0.timeseries.controls:theta')
+        g = p.get_val('phase0.timeseries.parameters:g')
+
+        z_computed = x * y
+        f_computed = 3 * g * np.cos(theta) ** 2
+
+        z_ts = p.get_val('phase0.timeseries.z')
+        f_ts = p.get_val('phase0.timeseries.f')
+        assert_near_equal(z_computed, z_ts, tolerance=1e-12)
+        assert_near_equal(f_computed, f_ts, tolerance=1e-12)
+
+    def test_timeseries_expr_gl_polynomial_control(self):
+        tx = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
+        p = self.make_problem_brachistochrone(transcription=tx, polynomial_control=True)
+        p.run_driver()
+
+        x = p.get_val('phase0.timeseries.states:x')
+        y = p.get_val('phase0.timeseries.states:y')
+        theta = p.get_val('phase0.timeseries.polynomial_controls:theta')
+        g = p.get_val('phase0.timeseries.parameters:g')
+
+        z_computed = x * y
+        f_computed = 3 * g * np.cos(theta)**2
+        z_ts = p.get_val('phase0.timeseries.z')
+        f_ts = p.get_val('phase0.timeseries.f')
+        assert_near_equal(z_computed, z_ts, tolerance=1e-12)
+        assert_near_equal(f_computed, f_ts, tolerance=1e-12)
+
+    def test_timeseries_expr_explicit_shooting(self):
+        tx = dm.ExplicitShooting(num_segments=3, grid='gauss-lobatto',
+                                 method='rk4', order=5,
+                                 num_steps_per_segment=5,
+                                 compressed=True)
+
+        p = self.make_problem_brachistochrone(transcription=tx)
+        p.run_driver()
+        x = p.get_val('phase0.timeseries.states:x')
+        y = p.get_val('phase0.timeseries.states:y')
+        theta = p.get_val('phase0.timeseries.controls:theta')
+        g = p.get_val('phase0.timeseries.parameters:g')
+
+        z_computed = x * y
+        f_computed = 3 * g * np.cos(theta) ** 2
+
+        z_ts = p.get_val('phase0.timeseries.z')
+        f_ts = p.get_val('phase0.timeseries.f')
+        assert_near_equal(z_computed, z_ts, tolerance=1e-12)
+        assert_near_equal(f_computed, f_ts, tolerance=1e-12)
+
+    def test_timeseries_expr_explicit_shooting_polynomial_controls(self):
+        tx = dm.ExplicitShooting(num_segments=3, grid='gauss-lobatto',
+                                 method='rk4', order=5,
+                                 num_steps_per_segment=5,
+                                 compressed=True)
+
+        p = self.make_problem_brachistochrone(transcription=tx, polynomial_control=True)
+        p.run_driver()
+        x = p.get_val('phase0.timeseries.states:x')
+        y = p.get_val('phase0.timeseries.states:y')
+        theta = p.get_val('phase0.timeseries.polynomial_controls:theta')
+        g = p.get_val('phase0.timeseries.parameters:g')
+
+        z_computed = x * y
+        f_computed = 3 * g * np.cos(theta) ** 2
+
+        z_ts = p.get_val('phase0.timeseries.z')
+        f_ts = p.get_val('phase0.timeseries.f')
+        assert_near_equal(z_computed, z_ts, tolerance=1e-12)
+        assert_near_equal(f_computed, f_ts, tolerance=1e-12)
+
+    def test_timeseries_expr_solve_ivp(self):
+        tx = dm.Radau(num_segments=5, order=3, compressed=True)
+
+        p = self.make_problem_brachistochrone(transcription=tx)
+        p.run_driver()
+        x = p.get_val('phase0.timeseries.states:x')
+        y = p.get_val('phase0.timeseries.states:y')
+        theta = p.get_val('phase0.timeseries.controls:theta')
+        g = p.get_val('phase0.timeseries.parameters:g')
+        t = p.get_val('phase0.timeseries.time')
+
+        phase0 = p.model._get_subsystem('phase0')
+        sim = phase0.simulate()
+
+        z_computed = x * y
+        f_computed = 3 * g * np.cos(theta) ** 2
+
+        z_sim = sim.get_val('phase0.timeseries.z')
+        f_sim = sim.get_val('phase0.timeseries.f')
+        t_sim = sim.get_val('phase0.timeseries.time')
+        assert_timeseries_near_equal(t, z_computed, t_sim, z_sim, tolerance=1e-3)
+        assert_timeseries_near_equal(t, f_computed, t_sim, f_sim, tolerance=1e-3)
+
+    def test_timeseries_expr_solve_ivp_polynomial_controls(self):
+        tx = dm.Radau(num_segments=5, order=3, compressed=True)
+
+        p = self.make_problem_brachistochrone(transcription=tx, polynomial_control=True)
+        p.run_driver()
+        x = p.get_val('phase0.timeseries.states:x')
+        y = p.get_val('phase0.timeseries.states:y')
+        theta = p.get_val('phase0.timeseries.polynomial_controls:theta')
+        g = p.get_val('phase0.timeseries.parameters:g')
+        t = p.get_val('phase0.timeseries.time')
+
+        phase0 = p.model._get_subsystem('phase0')
+        sim = phase0.simulate()
+
+        z_computed = x * y
+        f_computed = 3 * g * np.cos(theta) ** 2
+
+        z_sim = sim.get_val('phase0.timeseries.z')
+        f_sim = sim.get_val('phase0.timeseries.f')
+        t_sim = sim.get_val('phase0.timeseries.time')
+        assert_timeseries_near_equal(t, z_computed, t_sim, z_sim, tolerance=1e-3)
+        assert_timeseries_near_equal(t, f_computed, t_sim, f_sim, tolerance=1e-3)
+
+
+class TestTimeseriesMinTimeClimb(unittest.TestCase):
+
+    def test_timeseries_expr_radau(self):
+        p = min_time_climb(transcription_class=dm.Radau, num_seg=12, transcription_order=3, timeseries_expr=True)
+        p.run_model()
+
+        pres = p.get_val('traj.phase0.timeseries.pres')
+        temp = p.get_val('traj.phase0.timeseries.temp')
+        rho = p.get_val('traj.phase0.timeseries.rho')
+
+        R_computed = pres / (temp * rho)
+        R_ts = p.get_val('traj.phase0.timeseries.R')
+        assert_near_equal(R_computed, R_ts, tolerance=1e-12)
+
+    def test_timeseries_expr_gl(self):
+        p = min_time_climb(transcription_class=dm.GaussLobatto, num_seg=12,
+                           transcription_order=3, timeseries_expr=True)
+        p.run_driver()
+
+        pres = p.get_val('traj.phase0.timeseries.pres')
+        temp = p.get_val('traj.phase0.timeseries.temp')
+        rho = p.get_val('traj.phase0.timeseries.rho')
+
+        R_computed = pres / (temp * rho)
+        R_ts = p.get_val('traj.phase0.timeseries.R')
+        assert_near_equal(R_computed, R_ts, tolerance=1e-12)
+
+    def test_timeseries_expr_explicit_shooting(self):
+        p = min_time_climb(transcription_class=dm.ExplicitShooting, num_seg=12,
+                           transcription_order=3, timeseries_expr=True)
+        p.run_model()
+
+        pres = p.get_val('traj.phase0.timeseries.pres')
+        temp = p.get_val('traj.phase0.timeseries.temp')
+        rho = p.get_val('traj.phase0.timeseries.rho')
+
+        R_computed = pres / (temp * rho)
+        R_ts = p.get_val('traj.phase0.timeseries.R')
+        assert_near_equal(R_computed, R_ts, tolerance=1e-12)
 
 
 if __name__ == '__main__':  # pragma: no cover
