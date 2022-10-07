@@ -89,7 +89,7 @@ class PseudospectralBase(TranscriptionBase):
 
             if options['solve_segments']:
                 self.any_solved_segs = True
-            elif options['connected_initial']:
+            elif options['input_initial']:
                 self.any_connected_opt_segs = True
 
         if self.any_solved_segs or self.any_connected_opt_segs:
@@ -98,7 +98,7 @@ class PseudospectralBase(TranscriptionBase):
         else:
             indep = om.IndepVarComp()
 
-        num_connected = len([s for (s, opts) in phase.state_options.items() if opts['connected_initial']])
+        num_connected = len([s for (s, opts) in phase.state_options.items() if opts['input_initial']])
         prom_inputs = ['initial_states:*'] if num_connected > 0 else None
         phase.add_subsystem('indep_states', indep, promotes_inputs=prom_inputs,
                             promotes_outputs=['*'])
@@ -184,16 +184,16 @@ class PseudospectralBase(TranscriptionBase):
                     if options['initial_bounds'] is not None:
                         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
                                          f'initial_bounds for state {name} in phase {phase.name}')
-                    if options['connected_initial']:
+                    if options['input_initial']:
                         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
                                          f'\'connected_initial=True\' for state {name} '
                                          f'in phase {phase.name}')
                     idx_mask[0, ...] = np.asarray(np.logical_not(options['fix_initial']), dtype=int)
-                elif options['connected_initial']:
+                elif options['input_initial']:
                     if options['initial_bounds'] is not None:
                         raise ValueError('Cannot specify \'connected_initial=True\' and specify '
                                          f'initial_bounds for state {name} in phase {phase.name}')
-                    idx_mask[0, ...] = np.asarray(np.logical_not(options['connected_initial']), dtype=int)
+                    idx_mask[0, ...] = np.asarray(np.logical_not(options['input_initial']), dtype=int)
 
                 if options['fix_final']:
                     if options['final_bounds'] is not None:
@@ -321,9 +321,9 @@ class PseudospectralBase(TranscriptionBase):
                 raise ValueError(f'Can not use solve_segments for state ({state_name}) '
                                  f'in phase ({phase.name}) with both "fix_initial" and '
                                  '"fix_final" set to True.')
-            if options['connected_initial'] and options['fix_final']:
+            if options['input_initial'] and options['fix_final']:
                 raise ValueError(f'Can not use solve_segments for state ({state_name}) '
-                                 f'in phase ({phase.name}) with both "connected_initial" '
+                                 f'in phase ({phase.name}) with both "input_initial" '
                                  f'and "fix_final" set to True .')
 
             # If solve_segments is 'forward', 'fix_final' may not be True
@@ -335,15 +335,15 @@ class PseudospectralBase(TranscriptionBase):
 
             # Backward propagation
             if options['solve_segments'] == 'backward':
-                # Neither 'fix_initial' nor 'connected_initial' may be True.
+                # Neither 'fix_initial' nor 'input_initial' may be True.
                 if options['fix_initial']:
                     raise ValueError(f'Cannot use solve_segments in phase ({phase.name}) with '
                                      f'backward propagation when fix_initial=True. Either set '
                                      f'fix_final=False or set solve_segments=\'reverse\'')
-                elif options['connected_initial']:
+                elif options['input_initial']:
                     raise ValueError(f'Cannot use solve_segments in phase ({phase.name}) with '
-                                     f'backward propagation when connected_initial=True. Either set '
-                                     f'connected_initial=False or set solve_segments=\'forward\'')
+                                     f'backward propagation when input_initial=True. Either set '
+                                     f'input_initial=False or set solve_segments=\'forward\'')
 
                 if compressed:
                     # The optimizer controls the last state input node, all others are solver-controlled
@@ -542,7 +542,7 @@ class PseudospectralBase(TranscriptionBase):
             shape = phase.state_options[var]['shape']
             units = phase.state_options[var]['units']
             solve_segments = phase.state_options[var]['solve_segments']
-            connected_initial = phase.state_options[var]['connected_initial']
+            connected_initial = phase.state_options[var]['input_initial']
             if not solve_segments and not connected_initial:
                 linear = True
             elif solve_segments in {'forward'} and not connected_initial and loc == 'initial':

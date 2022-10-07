@@ -89,7 +89,7 @@ class StateIndependentsComp(om.ImplicitComponent):
                             units=units)
 
             # Input for continuity, which can come from an external source.
-            if options['connected_initial']:
+            if options['input_initial']:
                 input_name = f'initial_states:{state_name}'
                 self.add_input(name=input_name, shape=(1, ) + shape, units=units)
 
@@ -122,7 +122,7 @@ class StateIndependentsComp(om.ImplicitComponent):
                 self.declare_partials(of=state_var_name, wrt=state_var_name,
                                       rows=row, cols=row, val=-1.0)
 
-                if options['connected_initial']:
+                if options['input_initial']:
                     wrt = f'initial_states:{state_name}'
                     row_col = np.arange(np.prod(shape))
                     self.declare_partials(of=state_var_name, wrt=wrt, rows=row_col, cols=row_col,
@@ -142,7 +142,7 @@ class StateIndependentsComp(om.ImplicitComponent):
                 self.declare_partials(of=state_var_name, wrt=state_var_name,
                                       rows=row_col, cols=row_col, val=-1.0)
 
-                if options['connected_initial']:
+                if options['input_initial']:
                     wrt = f'initial_states:{state_name}'
                     row_col = np.arange(np.prod(shape))
                     self.declare_partials(of=state_var_name, wrt=wrt, rows=row_col, cols=row_col,
@@ -185,7 +185,7 @@ class StateIndependentsComp(om.ImplicitComponent):
             #       but don't believe it!
             residuals[state_var_name][indep_idx, ...] = 0.0
 
-            if options['connected_initial']:
+            if options['input_initial']:
                 ic_state_name = f'initial_states:{state_name}'
 
                 residuals[state_var_name][0, ...] = \
@@ -208,7 +208,7 @@ class StateIndependentsComp(om.ImplicitComponent):
         state_options = self.options['state_options']
 
         for state_name, options in state_options.items():
-            if options['connected_initial']:
+            if options['input_initial']:
                 output_name = f'states:{state_name}'
                 input_name = f'initial_states:{state_name}'
                 outputs[output_name][0, ...] = inputs[input_name]

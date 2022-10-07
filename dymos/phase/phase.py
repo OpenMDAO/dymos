@@ -21,7 +21,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
-    configure_controls_introspection, configure_parameters_introspection, configure_states_introspection, \
+    configure_controls_introspection, configure_parameters_introspection, \
     configure_timeseries_output_introspection, classify_var, get_promoted_vars
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
@@ -115,7 +115,9 @@ class Phase(om.Group):
                   val=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
                   lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
                   ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
-                  defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified):
+                  defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified,
+                  source=_unspecified, input_initial=_unspecified, initial_targets=_unspecified,
+                  opt=_unspecified, initial_bounds=_unspecified, final_bounds=_unspecified):
         """
         Add a state variable to be integrated by the phase.
 
@@ -170,7 +172,21 @@ class Phase(om.Group):
             handled by the optimizer.
         connected_initial : bool
             If True, then the initial value for this state comes from an externally connected
-            source.
+            source. Deprecated - use input_initial.
+        source : str
+            The path to the ODE output which provides the solution for this state variable when using an
+            Analytic transcription.
+        input_initial : bool
+            If True, then the initial value for this state comes is an input.
+        initial_targets : str
+            The path to the ODE inputs to which the initial value of this state should be connected.
+        opt : bool
+            If True, state values are fixed at the input values and the optimizer resolves defect constraints by
+            varying the other design variables in the phase.
+        initial_bounds : tuple
+            The bounds (lower, upper) of the state variable at the initial point in the phase.
+        final_bounds : tuple
+            The bounds (lower, upper) of the state variable at the final point in the phase.
         """
         if name not in self.state_options:
             self.state_options[name] = StateOptionsDictionary()
@@ -181,14 +197,18 @@ class Phase(om.Group):
                                fix_final=fix_final, lower=lower, upper=upper, scaler=scaler,
                                adder=adder, ref0=ref0, ref=ref, defect_scaler=defect_scaler,
                                defect_ref=defect_ref, solve_segments=solve_segments,
-                               connected_initial=connected_initial)
+                               connected_initial=connected_initial, source=source, input_initial=input_initial,
+                               initial_targets=initial_targets, opt=opt, initial_bounds=initial_bounds,
+                               final_bounds=final_bounds)
 
     def set_state_options(self, name, units=_unspecified, shape=_unspecified,
                           rate_source=_unspecified, targets=_unspecified,
                           val=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
                           lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
                           ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
-                          defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified):
+                          defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified,
+                          source=_unspecified, input_initial=_unspecified, initial_targets=_unspecified,
+                          opt=_unspecified, initial_bounds=_unspecified, final_bounds=_unspecified):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -243,7 +263,21 @@ class Phase(om.Group):
             handled by the optimizer.
         connected_initial : bool
             If True, then the initial value for this state comes from an externally connected
-            source.
+            source. Deprecated - use input_initial.
+        source : str
+            The path to the ODE output which provides the solution for this state variable when using an
+            Analytic transcription.
+        input_initial : bool
+            If True, then the initial value for this state comes is an input.
+        initial_targets : str or Sequence of str
+            The path to the ODE inputs to which the initial value of this state should be connected.
+        opt : bool
+            If True, state values are fixed at the input values and the optimizer resolves defect constraints by
+            varying the other design variables in the phase.
+        initial_bounds : tuple
+            The bounds (lower, upper) of the state variable at the initial point in the phase.
+        final_bounds : tuple
+            The bounds (lower, upper) of the state variable at the final point in the phase.
         """
         if name not in self.state_options:
             # This state option will be picked up automatically from tags.
@@ -303,6 +337,24 @@ class Phase(om.Group):
 
         if connected_initial is not _unspecified:
             self.state_options[name]['connected_initial'] = connected_initial
+            om.issue_warning(f'{self.pathname}: State option `connected_initial` is deprecated. Use input_initial',
+                             om.OMDeprecationWarning)
+            self.state_options[name]['input_initial'] = connected_initial
+
+        if source is not _unspecified:
+            self.state_options[name]['source'] = source
+
+        if input_initial is not _unspecified:
+            self.state_options[name]['input_initial'] = input_initial
+
+        if opt is not _unspecified:
+            self.state_options[name]['opt'] = opt
+
+        if initial_bounds is not _unspecified:
+            self.state_options[name]['initial_bounds'] = initial_bounds
+
+        if final_bounds is not _unspecified:
+            self.state_options[name]['final_bounds'] = final_bounds
 
     def check_parameter(self, name):
         """
@@ -668,7 +720,7 @@ class Phase(om.Group):
                                             scaler, adder, ref0, ref,
                                             targets, rate_targets, rate2_targets, shape)
 
-    def set_polynomial_control_options(self, name, order, desc=_unspecified, val=_unspecified,
+    def set_polynomial_control_options(self, name, order=_unspecified, desc=_unspecified, val=_unspecified,
                                        units=_unspecified, opt=_unspecified, fix_initial=_unspecified,
                                        fix_final=_unspecified, lower=_unspecified, upper=_unspecified,
                                        scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
@@ -1553,7 +1605,7 @@ class Phase(om.Group):
             ValueError is raised if the ODE does not meet one of the the requirements above.
 
         """
-        ode_class = self.options['ode_class']
+        ode_class = self.options['ode_class'] or self.options['rhs_class']
         if not inspect.isclass(ode_class):
             if not isinstance(ode_class, Callable):
                 raise ValueError('ode_class must be given as a callable object that returns an '
@@ -1618,15 +1670,8 @@ class Phase(om.Group):
             except ValueError as e:
                 raise ValueError(f'Invalid parameter in phase `{self.pathname}`.\n{str(e)}') from e
 
-        self.configure_state_discovery()
-
-        try:
-            configure_states_introspection(self.state_options, self.time_options, self.control_options,
-                                           self.parameter_options, self.polynomial_control_options,
-                                           ode)
-        except (ValueError, RuntimeError) as e:
-            raise RuntimeError(f'Error during configure_states_introspection in phase {self.pathname}.') from e
-
+        transcription.configure_states_discovery(self)
+        transcription.configure_states_introspection(self)
         transcription.configure_time(self)
         transcription.configure_controls(self)
         transcription.configure_polynomial_controls(self)
@@ -1654,54 +1699,6 @@ class Phase(om.Group):
 
         transcription.configure_solvers(self)
 
-    def configure_state_discovery(self):
-        """
-        Searches phase output metadata for any declared states and adds them.
-        """
-        transcription = self.options['transcription']
-        state_options = self.state_options
-        out_meta = get_promoted_vars(transcription._get_ode(self), 'output', metadata_keys=('tags',))
-
-        for prom_name, meta in out_meta.items():
-            state = None
-            for tag in sorted(meta['tags']):
-
-                # Declared as rate_source.
-                if tag.startswith('dymos.state_rate_source:') or tag.startswith('state_rate_source:'):
-                    state = tag.rpartition(':')[-1]
-                    if tag.startswith('state_rate_source:'):
-                        msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
-                              f"dymos version 2.0.0. Use 'dymos.state_rate_source:{state}' instead."
-                        om.issue_warning(msg, category=om.OMDeprecationWarning)
-                    if state not in state_options:
-                        state_options[state] = StateOptionsDictionary()
-                        state_options[state]['name'] = state
-
-                    if state_options[state]['rate_source'] is not None:
-                        if state_options[state]['rate_source'] != prom_name:
-                            raise ValueError(f"rate_source has been declared twice for state "
-                                             f"'{state}' which is tagged on '{prom_name}'.")
-
-                    state_options[state]['rate_source'] = prom_name
-
-                # Declares units for state.
-                if tag.startswith('dymos.state_units:') or tag.startswith('state_units:'):
-                    tagged_state_units = tag.rpartition(':')[-1]
-                    if tag.startswith('state_units:'):
-                        msg = f"The tag '{tag}' has a deprecated format and will no longer work in " \
-                              f"dymos version 2.0.0. Use 'dymos.{tag}' instead."
-                        om.issue_warning(msg, category=om.OMDeprecationWarning)
-                    if state is None:
-                        raise ValueError(f"'{tag}' tag declared on '{prom_name}' also requires "
-                                         f"that the 'dymos.state_rate_source:{tagged_state_units}' "
-                                         f"tag be declared.")
-                    state_options[state]['units'] = tagged_state_units
-
-        # Check over all existing states and make sure we aren't missing any rate sources.
-        for name, options in state_options.items():
-            if options['rate_source'] is None:
-                raise ValueError(f"State '{name}' is missing a rate_source.")
-
     def check_time_options(self):
         """
         Check that time options are valid and issue warnings if invalid options are provided.
@@ -1726,11 +1723,11 @@ class Phase(om.Group):
                 warnings.warn(f'Phase time options have no effect because fix_initial=True '
                               f'or input_initial=True for phase \'{phase_name}\': {str_invalid_opts}')
 
-        if self.time_options['input_initial']:
+        if self.time_options['input_initial'] and self.time_options['fix_initial']:
             warnings.warn(f'Phase \'{self.name}\' initial time is an externally-connected input, '
                           'therefore fix_initial has no effect.', RuntimeWarning)
 
-        if self.time_options['fix_duration'] or self.time_options['input_initial']:
+        if self.time_options['fix_duration'] or self.time_options['input_duration']:
             invalid_options = []
             duration_bounds = self.time_options['duration_bounds']
             if duration_bounds is not None and duration_bounds != (None, None):
@@ -1743,7 +1740,7 @@ class Phase(om.Group):
                 warnings.warn(f'Phase time options have no effect because fix_duration=True '
                               f'or input_duration=True for phase \'{phase_name}\': {str_invalid_opts}')
 
-        if self.time_options['input_duration']:
+        if self.time_options['input_duration'] and self.time_options['fix_duration']:
             warnings.warn(f'Phase \'{self.name}\' time duration is an externally-connected input, '
                           'therefore fix_duration has no effect.', RuntimeWarning)
 

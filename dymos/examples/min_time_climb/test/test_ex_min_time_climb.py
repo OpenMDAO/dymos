@@ -1,6 +1,9 @@
 import unittest
 import numpy as np
 from numpy.polynomial import Polynomial as P
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from dymos.utils.testing_utils import assert_timeseries_near_equal
@@ -52,7 +55,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                     rate_source='flight_dynamics.r_dot')
 
     phase.add_state('h', fix_initial=True, lower=0, upper=20000.0,
-                    ref=1.0E2, defect_ref=1.0E2, units='m',
+                    ref=20_000, defect_ref=20_000, units='m',
                     rate_source='flight_dynamics.h_dot', targets=['h'])
 
     phase.add_state('v', fix_initial=True, lower=10.0,
@@ -64,7 +67,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                     rate_source='flight_dynamics.gam_dot', targets=['gam'])
 
     phase.add_state('m', fix_initial=True, lower=10.0, upper=1.0E5,
-                    ref=1.0E3, defect_ref=1.0E3, units='kg',
+                    ref=10_000, defect_ref=10_000, units='kg',
                     rate_source='prop.m_dot', targets=['m'])
 
     phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
@@ -103,7 +106,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p.setup(check=True, force_alloc_complex=force_alloc_complex)
 
     p['traj.phase0.t_initial'] = 0.0
-    p['traj.phase0.t_duration'] = 300.0
+    p['traj.phase0.t_duration'] = 350.0
 
     p['traj.phase0.states:r'] = phase.interp('r', [0.0, 111319.54])
     p['traj.phase0.states:h'] = phase.interp('h', [100.0, 20000.0])
@@ -172,8 +175,6 @@ class TestMinTimeClimb(unittest.TestCase):
         sim_seg_idxs[:, 1] = sim_seg_idxs[:, 0] + 10
 
         if plot:
-            import matplotlib.pyplot as plt
-            import matplotlib.cm as cm
             fig, axes = plt.subplots(2, 1, sharex=True)
             color = iter(cm.viridis(np.linspace(0, 1, num_seg)))
             axes[0].set_ylabel('Mach')
@@ -235,7 +236,7 @@ class TestMinTimeClimb(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_results_radau(self):
-        NUM_SEG = 12
+        NUM_SEG = 15
         ORDER = 3
         p = min_time_climb(optimizer='SLSQP', num_seg=NUM_SEG, transcription_order=ORDER,
                            transcription='radau-ps', add_rate=True)
@@ -246,7 +247,7 @@ class TestMinTimeClimb(unittest.TestCase):
 
         self._test_timeseries_units(p)
 
-        self._test_mach_rate(p)
+        self._test_mach_rate(p, plot=False)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

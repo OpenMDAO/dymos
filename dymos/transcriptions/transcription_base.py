@@ -8,7 +8,8 @@ from .common import ControlGroup, PolynomialControlGroup, ParameterComp
 from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.misc import _unspecified
-from ..utils.introspection import get_promoted_vars, get_target_metadata
+from ..utils.introspection import configure_states_introspection, get_promoted_vars, get_target_metadata, \
+    configure_states_discovery
 
 
 class TranscriptionBase(object):
@@ -298,6 +299,37 @@ class TranscriptionBase(object):
         """
         raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_states.')
 
+    def configure_states_introspection(self, phase):
+        """
+        Perform introspection on the RHS system for the states for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        ode = self._get_ode(phase)
+        try:
+            configure_states_introspection(phase.state_options, phase.time_options, phase.control_options,
+                                           phase.parameter_options, phase.polynomial_control_options, ode)
+        except (ValueError, RuntimeError) as e:
+            raise RuntimeError(f'Error during configure_states_introspection in phase {phase.pathname}.') from e
+
+    def configure_states_discovery(self, phase):
+        """
+        Perform introspection on the RHS system to automatically discover states for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        ode = self._get_ode(phase)
+        try:
+            configure_states_discovery(phase.state_options, ode)
+        except (ValueError, RuntimeError) as e:
+            raise RuntimeError(f'Error during configure_states_discovery in phase {phase.pathname}.') from e
+
     def configure_states(self, phase):
         """
         Configure the states for this transcription.
@@ -312,7 +344,7 @@ class TranscriptionBase(object):
                 if f'states:{name}' not in ts_options['outputs']:
                     phase.add_timeseries_output(name, output_name=f'states:{name}',
                                                 timeseries=ts_name)
-                if f'state_rates:{name}' not in ts_options['outputs']:
+                if options['rate_source'] and f'state_rates:{name}' not in ts_options['outputs']:
                     phase.add_timeseries_output(name=options['rate_source'], output_name=f'state_rates:{name}',
                                                 timeseries=ts_name)
 
