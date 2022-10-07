@@ -690,13 +690,15 @@ class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
                           'with wildcards.')
 
         self.declare(name='shape', default=None, allow_none=True,
-                     desc='The shape of the timeseries output variable. This is generally determined automatically by dymos.')
+                     desc='The shape of the timeseries output variable.'
+                          ' This is generally determined automatically by dymos.')
 
         self.declare(name='units', default=None, allow_none=True,
                      desc='Units to be used for the timeseries output, or None to leave the units unchanged.')
 
         self.declare(name='src', types=str, default=None, allow_none=True,
-                     desc='The phase-relative path of the source of this timeseries output, used when issuing connections.')
+                     desc='The phase-relative path of the source of this timeseries output,'
+                          ' used when issuing connections.')
 
         self.declare(name='src_idxs', types=(Iterable,), default=None, allow_none=True,
                      desc='The indices of the source of this timeseries output to be used when issuing connections.')
@@ -706,3 +708,6 @@ class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='is_rate', default=False, allow_none=False,
                      desc='If True this is a rate.')
+
+        self.declare(name='is_expr', default=False, allow_none=False,
+                     desc='If true the requested timeseries is a mathematical expression')
