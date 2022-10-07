@@ -1271,6 +1271,7 @@ class Phase(om.Group):
         """
         if type(name) is list:
             for i, name_i in enumerate(name):
+                expr = True if '=' in name_i else False
                 if type(units) is dict:  # accept dict for units when using array of name
                     unit = units.get(name_i, None)
                 elif type(units) is list:  # allow matching list for units
@@ -1282,21 +1283,24 @@ class Phase(om.Group):
                                                     units=unit,
                                                     shape=shape,
                                                     timeseries=timeseries,
-                                                    rate=True)
+                                                    rate=True,
+                                                    expr=expr)
 
                 # Handle specific units for wildcard names.
                 if oname is not None and '*' in name_i:
                     self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
 
         else:
+            expr = True if '=' in name else False
             self._add_timeseries_output(name, output_name=output_name,
                                         units=units,
                                         shape=shape,
                                         timeseries=timeseries,
-                                        rate=True)
+                                        rate=True,
+                                        expr=expr)
 
     def _add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
-                               timeseries='timeseries', rate=False):
+                               timeseries='timeseries', rate=False, expr=False):
         r"""
         Add a single variable or rate to the timeseries outputs of the phase.
 
@@ -1337,6 +1341,8 @@ class Phase(om.Group):
 
         if '*' in name:
             output_name = name
+        elif expr:
+            output_name = name.split()
         elif output_name is None:
             output_name = name.rpartition('.')[-1]
 
@@ -1354,6 +1360,7 @@ class Phase(om.Group):
             ts_output['units'] = units
             ts_output['shape'] = shape
             ts_output['is_rate'] = rate
+            ts_output['is_expr'] = expr
 
             self._timeseries[timeseries]['outputs'][output_name] = ts_output
 
