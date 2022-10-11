@@ -66,6 +66,7 @@ class Phase(om.Group):
         self.parameter_options = {}
         self.refine_options = GridRefinementOptionsDictionary()
         self.simulate_options = SimulateOptionsDictionary()
+        self.timeseries_ec_vars = {}
 
         # Dictionaries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE
@@ -1218,6 +1219,7 @@ class Phase(om.Group):
         """
         if type(name) is list:
             for i, name_i in enumerate(name):
+                expr = True if '=' in name_i else False
                 if type(units) is dict:  # accept dict for units when using array of name
                     unit = units.get(name_i, None)
                 elif type(units) is list:  # allow matching list for units
@@ -1229,18 +1231,21 @@ class Phase(om.Group):
                                                     units=unit,
                                                     shape=shape,
                                                     timeseries=timeseries,
-                                                    rate=False)
+                                                    rate=False,
+                                                    expr=expr)
 
                 # Handle specific units for wildcard names.
                 if oname is not None and '*' in name_i:
                     self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
 
         else:
+            expr = True if '=' in name else False
             self._add_timeseries_output(name, output_name=output_name,
                                         units=units,
                                         shape=shape,
                                         timeseries=timeseries,
-                                        rate=False)
+                                        rate=False,
+                                        expr=expr)
 
     def add_timeseries_rate_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                                    timeseries='timeseries'):
@@ -1291,13 +1296,11 @@ class Phase(om.Group):
                     self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
 
         else:
-            expr = True if '=' in name else False
             self._add_timeseries_output(name, output_name=output_name,
                                         units=units,
                                         shape=shape,
                                         timeseries=timeseries,
-                                        rate=True,
-                                        expr=expr)
+                                        rate=True)
 
     def _add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                                timeseries='timeseries', rate=False, expr=False):
@@ -1339,10 +1342,10 @@ class Phase(om.Group):
         if timeseries not in self._timeseries:
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
-        if '*' in name:
+        if expr:
+            output_name = name.split('=')[0]
+        elif '*' in name:
             output_name = name
-        elif expr:
-            output_name = name.split()
         elif output_name is None:
             output_name = name.rpartition('.')[-1]
 
@@ -1700,7 +1703,8 @@ class Phase(om.Group):
         try:
             configure_timeseries_output_introspection(self)
         except RuntimeError as val_err:
-            raise RuntimeError(f'Error during configure_timeseries_output_introspection in phase {self.pathname}.') from val_err
+            raise RuntimeError(f'Error during configure_timeseries_output_introspection in phase {self.pathname}.')\
+                from val_err
 
         transcription.configure_timeseries_outputs(self)
 

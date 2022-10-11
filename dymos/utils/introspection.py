@@ -2,6 +2,7 @@ from collections.abc import Iterable
 import fnmatch
 
 import openmdao.api as om
+import numpy as np
 from openmdao.utils.array_utils import shape_to_len
 from dymos.utils.misc import _unspecified
 from ..phase.options import StateOptionsDictionary, TimeseriesOutputOptionsDictionary
@@ -726,12 +727,16 @@ def configure_timeseries_output_introspection(phase):
         not_found = set()
 
         for output_name, output_options in ts_opts['outputs'].items():
-            try:
-                output_meta = transcription._get_timeseries_var_source(output_options['name'],
-                                                                       output_options['output_name'],
-                                                                       phase=phase)
-            except ValueError as e:
-                not_found.add(output_name)
+            if output_options['is_expr']:
+                output_meta = configure_timeseries_expr_introspection(phase, output_options)
+
+            else:
+                try:
+                    output_meta = transcription._get_timeseries_var_source(output_options['name'],
+                                                                           output_options['output_name'],
+                                                                           phase=phase)
+                except ValueError as e:
+                    not_found.add(output_name)
 
             output_options['src'] = output_meta['src']
             output_options['src_idxs'] = output_meta['src_idxs']
@@ -749,6 +754,86 @@ def configure_timeseries_output_introspection(phase):
 
         for s in not_found:
             ts_opts['outputs'].pop(s)
+
+
+def configure_timeseries_expr_introspection(phase, expr_options):
+    """
+    Introspect the timeseries expressions, add expressions to the exec comp, and make connections to the input variables
+
+    Parameters
+    ----------
+    phase : Phase
+        The phase object whose timeseries outputs are to be introspected.
+    expr_options : dict
+        Options for the expression to be added to the timeseries exec comp
+    """
+    import re
+    timeseries_ec = phase._get_subsystem('timeseries_exec_comp')
+    transcription = phase.options['transcription']
+    gd = transcription.grid_data
+    num_output_nodes = gd.subset_num_nodes['all']
+
+    expr = expr_options['name']
+    expr_lhs = expr.split('=')[0]
+    if '.' in expr_lhs or ':' in expr_lhs:
+        raise ValueError(f'{expr_lhs} is an invalid name for the timeseries LHS. Must use a valid variable name')
+    expr_reduced = expr
+    units = expr_options['units'] if expr_options['units'] is not _unspecified else None
+    shape = expr_options['shape'] if expr_options['shape'] is not _unspecified else (1,)
+
+    abs_names = [x.strip() for x in re.findall(re.compile(r'([_a-zA-Z]\w*[ ]*\(?:?[.]?)'), expr)
+                 if not x.endswith('(') and not x.endswith(':')]
+    for name in abs_names:
+        if name.endswith('.'):
+            idx = abs_names.index(name)
+            abs_names[idx + 1] = name + abs_names[idx + 1]
+            abs_names.remove(name)
+    for name in abs_names:
+        var_name = name.split('.')[-1]
+        if var_name not in phase.timeseries_ec_vars.keys():
+            phase.timeseries_ec_vars[var_name] = {'added_to_ec': False, 'abs_name': name}
+    expr_vars = {}
+    expr_kwargs = {}
+    meta = {'units': units, 'shape': shape}
+    for var in phase.timeseries_ec_vars:
+        if phase.timeseries_ec_vars[var]['added_to_ec']:
+            continue
+        elif var == expr_lhs:
+            var_units = units
+            var_shape = shape
+            meta['src'] = f'timeseries_exec_comp.{var}'
+            phase.timeseries_ec_vars[var]['added_to_ec'] = True
+        else:
+            try:
+                expr_vars[var] = transcription._get_timeseries_var_source(var, output_name=var, phase=phase)
+            except ValueError as e:
+                expr_vars[var] = transcription._get_timeseries_var_source(phase.timeseries_ec_vars[var]['abs_name'],
+                                                                          output_name=var, phase=phase)
+
+            var_units = expr_vars[var]['units']
+            var_shape = expr_vars[var]['shape']
+
+        expr_kwargs[var] = {'units': var_units, 'shape': (num_output_nodes,) + var_shape}
+
+    for input_var in expr_vars:
+        abs_name = phase.timeseries_ec_vars[input_var]['abs_name']
+        if '.' in abs_name:
+            expr_reduced = expr_reduced.replace(abs_name, input_var)
+
+    timeseries_ec.add_expr(expr_reduced, **expr_kwargs)
+
+    for var, options in expr_vars.items():
+        if phase.timeseries_ec_vars[var]['added_to_ec']:
+            continue
+        else:
+            phase.connect(src_name=options['src'], tgt_name=f'timeseries_exec_comp.{var}',
+                          src_indices=options['src_idxs'])
+
+        phase.timeseries_ec_vars[var]['added_to_ec'] = True
+
+    meta['src_idxs'] = None
+
+    return meta
 
 
 def filter_outputs(patterns, sys):
@@ -1057,7 +1142,7 @@ def get_source_metadata(ode, src, user_units=_unspecified, user_shape=_unspecifi
     ode_outputs = ode if isinstance(ode, dict) else get_promoted_vars(ode, iotypes='output')
 
     if src not in ode_outputs:
-        raise ValueError(f'Unable to find the source {src} in the ODE.')
+        raise ValueError(f"Unable to find the source '{src}' in the ODE.")
 
     if user_units in {None, _unspecified}:
         meta['units'] = ode_outputs[src]['units']

@@ -483,6 +483,15 @@ class PseudospectralBase(TranscriptionBase):
         gd = self.grid_data
 
         for name, options in phase._timeseries.items():
+            expr_ts = False
+            for _, output_options in options['outputs'].items():
+                if output_options['is_expr']:
+                    ts_exec_comp = om.ExecComp(has_diag_partials=True)
+                    phase.add_subsystem('timeseries_exec_comp', ts_exec_comp)
+                    expr_ts = True
+                if expr_ts:
+                    break
+
             if options['transcription'] is None:
                 ogd = None
             else:

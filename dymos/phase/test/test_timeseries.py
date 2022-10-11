@@ -231,8 +231,8 @@ class MinTimeClimbODEDuplicateOutput(om.Group):
                            subsys=FlightPathEOM2D(num_nodes=nn),
                            promotes_inputs=['m', 'v', 'gam', 'alpha'])
 
-        foo = self.add_subsystem('foo', om.IndepVarComp())
-        foo.add_output('rho', val=100 * np.ones(nn), units='g/cm**3')
+        # foo = self.add_subsystem('foo', om.IndepVarComp())
+        # foo.add_output('rho', val=100 * np.ones(nn), units='g/cm**3')
 
         self.connect('aero.f_drag', 'flight_dynamics.D')
         self.connect('aero.f_lift', 'flight_dynamics.L')
@@ -378,8 +378,8 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665, include_timeseries=True)
 
         phase.add_objective('time_phase', loc='final', scaler=10)
-        phase.add_timeseries_output('z=states:x*states:y', units='m**2')
-        phase.add_timeseries_output(f'f=3*parameter_vals:g*cos({control_name})**2', units='deg**2')
+        phase.add_timeseries_output('z=x*y + x**2', units='m**2')
+        phase.add_timeseries_output('f=3*g*cos(theta)**2', units='deg**2')
 
         p.model.options['assembled_jac_type'] = 'csc'
         p.model.linear_solver = om.DirectSolver()
@@ -405,7 +405,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         theta = p.get_val('phase0.timeseries.controls:theta')
         g = p.get_val('phase0.timeseries.parameters:g')
 
-        z_computed = x * y
+        z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta)**2
         z_ts = p.get_val('phase0.timeseries.z')
         f_ts = p.get_val('phase0.timeseries.f')
@@ -422,7 +422,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         theta = p.get_val('phase0.timeseries.polynomial_controls:theta')
         g = p.get_val('phase0.timeseries.parameters:g')
 
-        z_computed = x * y
+        z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta)**2
         z_ts = p.get_val('phase0.timeseries.z')
         f_ts = p.get_val('phase0.timeseries.f')
@@ -438,7 +438,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         theta = p.get_val('phase0.timeseries.controls:theta')
         g = p.get_val('phase0.timeseries.parameters:g')
 
-        z_computed = x * y
+        z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta) ** 2
 
         z_ts = p.get_val('phase0.timeseries.z')
@@ -456,7 +456,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         theta = p.get_val('phase0.timeseries.polynomial_controls:theta')
         g = p.get_val('phase0.timeseries.parameters:g')
 
-        z_computed = x * y
+        z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta)**2
         z_ts = p.get_val('phase0.timeseries.z')
         f_ts = p.get_val('phase0.timeseries.f')
@@ -476,7 +476,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         theta = p.get_val('phase0.timeseries.controls:theta')
         g = p.get_val('phase0.timeseries.parameters:g')
 
-        z_computed = x * y
+        z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta) ** 2
 
         z_ts = p.get_val('phase0.timeseries.z')
@@ -497,7 +497,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         theta = p.get_val('phase0.timeseries.polynomial_controls:theta')
         g = p.get_val('phase0.timeseries.parameters:g')
 
-        z_computed = x * y
+        z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta) ** 2
 
         z_ts = p.get_val('phase0.timeseries.z')
@@ -519,7 +519,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         phase0 = p.model._get_subsystem('phase0')
         sim = phase0.simulate()
 
-        z_computed = x * y
+        z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta) ** 2
 
         z_sim = sim.get_val('phase0.timeseries.z')
@@ -542,7 +542,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         phase0 = p.model._get_subsystem('phase0')
         sim = phase0.simulate()
 
-        z_computed = x * y
+        z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta) ** 2
 
         z_sim = sim.get_val('phase0.timeseries.z')
