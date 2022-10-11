@@ -9,7 +9,8 @@ from ..phase.options import StateOptionsDictionary, TimeseriesOutputOptionsDicti
 from .misc import get_rate_units
 
 
-def classify_var(var, state_options, parameter_options, control_options, polynomial_control_options):
+def classify_var(var, state_options, parameter_options, control_options,
+                 polynomial_control_options, timeseries_options=None):
     """
     Classifies a variable of the given name or path.
 
@@ -66,6 +67,11 @@ def classify_var(var, state_options, parameter_options, control_options, polynom
             return 'control_rate2'
         elif var[:-6] in polynomial_control_options:
             return 'polynomial_control_rate2'
+    elif timeseries_options is not None:
+        for timeseries in timeseries_options:
+            if var in timeseries_options[timeseries]['outputs']:
+                if timeseries_options[timeseries]['outputs'][var]['is_expr']:
+                    return 'timeseries_exec_comp_output'
 
     return 'ode'
 

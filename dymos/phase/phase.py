@@ -1599,7 +1599,8 @@ class Phase(om.Group):
         return classify_var(var, state_options=self.state_options,
                             parameter_options=self.parameter_options,
                             control_options=self.control_options,
-                            polynomial_control_options=self.polynomial_control_options)
+                            polynomial_control_options=self.polynomial_control_options,
+                            timeseries_options=self._timeseries)
 
     def _check_ode(self):
         """
