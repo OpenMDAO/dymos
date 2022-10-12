@@ -22,6 +22,10 @@ Other changes include a significant cleanup of the timeseries output code, allow
 Timeseries can now also provide approximate rates of outputs (based on fitting them on the current grid and interpolating the derivative of the resulting polynomial).
 In an upcoming release, the user will be able to easily apply constraints to these approximated rates.
 
+## Backwards Incompatible API Changes & Deprecations
+
+* State option `connected_initial` is deprecated in favor of `input_initial`. This is more in-line with the time option, and reflects the fact that there's no requirement that the user actually connect to the value.
+
 ## Enhancements
 
 * Refactored TimeComp to avoid unnecessary recalculation of partials. [#759](https://github.com/OpenMDAO/dymos/pull/759)
