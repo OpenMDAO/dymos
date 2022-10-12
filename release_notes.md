@@ -1,4 +1,69 @@
 *******************************
+# Release Notes for Dymos 1.6.0
+
+October 18, 2022
+
+Version 1.6.0 of Dymos implements many improvements since our last release.
+
+The new AnalyticPhase is useful for when the state values are analytically known as functions of time and other parameters.
+States are not only outputs and therefore values cannot be fixed or bounded, though they can be constrained with boundary and path constraints.
+AnalyticPhase does not support controls (or polynomial controls).
+Unlike other phase types which use the ODE solver in scipy.solve_ivp to propagate a trajectory based on the current control history, AnalyticPhase simply provides its outputs.
+AnalyticPhase does not have a notion of segments.
+Instead, it simply evaluates the value of the states at some set of `N` nodes, where `N` is given by the user and the node locations are the Legendre-Gauss-Lobatto nodes in non-dimensional phase time.
+
+It will also be the last version of the code before we introduce more tailored phase classes that are more closely coupled to their transcription.
+In the following 1.7.0 release, instantiating `Phase` will result in a deprecation warning and inform the user on how to change their phase instantiation calls.
+
+Dymos now automatically generates a linkage report html file when appropriate.
+This report looks similar to the N2, and helps to visualize the continuity of variables across phases within a trajectory.
+
+Other changes include a significant cleanup of the timeseries output code, allowing users to rename states/controls/etc. in the timeseries outputs as they see fit.
+Timeseries can now also provide approximate rates of outputs (based on fitting them on the current grid and interpolating the derivative of the resulting polynomial).
+In an upcoming release, the user will be able to easily apply constraints to these approximated rates.
+
+## Enhancements
+
+* Refactored TimeComp to avoid unnecessary recalculation of partials. [#759](https://github.com/OpenMDAO/dymos/pull/759)
+* Added a new N2-like linkage report to show continuity of variables between phases. [#764](https://github.com/OpenMDAO/dymos/pull/764)
+* Added timeseries rates for pseudospectral transcriptions. [#781](https://github.com/OpenMDAO/dymos/pull/781)
+* Trajectory.phases subgroup is now available before setup. [#782](https://github.com/OpenMDAO/dymos/pull/782)
+* Changed time series plots directory to be under the problem reports directory. [#784](https://github.com/OpenMDAO/dymos/pull/784)
+* `run_problem` argument `restart` now allows a specific Case to be provided. [#801](https://github.com/OpenMDAO/dymos/pull/801)
+* Added warning when restarting with fix_final=True. [#804](https://github.com/OpenMDAO/dymos/pull/804)
+* Added the classic cart-pole example problem - thank you @kanekosh! [#808](https://github.com/OpenMDAO/dymos/pull/808)
+* Updated assert_timeseries_near_equal to work with more general cases [#810](https://github.com/OpenMDAO/dymos/pull/810)
+* Refactored the timeseries handling to be more general and less transcription-specific. [#816](https://github.com/OpenMDAO/dymos/pull/816)
+* Added AnalyticPhase for phases in which no numerical integration is necessary. [#833](https://github.com/OpenMDAO/dymos/pull/833)
+
+## Bug Fixes
+
+* Fixed an error when an invalid rate source is provided for a state. [#761](https://github.com/OpenMDAO/dymos/pull/761)
+* Fixed a bug in size of trajectory parameters as passed to phases. [#770](https://github.com/OpenMDAO/dymos/pull/770)
+* Minor changes to fix occasional report testing failures. [#785](https://github.com/OpenMDAO/dymos/pull/785)
+* Fixed example code impacted by matplotlib change [#826](https://github.com/OpenMDAO/dymos/pull/826)
+* Fixed condition under which trajectory linkage reports are generated. [#828](https://github.com/OpenMDAO/dymos/pull/828)
+* Fixed issue in reentry example that was causing optimization to fail under SLSQP. [#831](https://github.com/OpenMDAO/dymos/pull/831)
+
+## Miscellaneous
+
+* Updated optimizer settings to improve convergence of the racecar example. [#752](https://github.com/OpenMDAO/dymos/pull/752)
+* Changed setup to use setuptools instead of distutils. [#757](https://github.com/OpenMDAO/dymos/pull/757)
+* Changes to use OpenMDAOs updated report system. [#763](https://github.com/OpenMDAO/dymos/pull/763)
+* Updated github workflow and setup.py. [#768](https://github.com/OpenMDAO/dymos/pull/768)
+* Switched to using mamba in CI workflow due to issues with conda. [#772](https://github.com/OpenMDAO/dymos/pull/772)
+* Updated optimizer settings to improve convergence of two-burn orbit raise example. [#775](https://github.com/OpenMDAO/dymos/pull/775)
+* Cleaned up error message from `assert_cases_equal` test utility a bit. [#779](https://github.com/OpenMDAO/dymos/pull/779)
+* Added minor changes to fix occasional report testing failures. [#785](https://github.com/OpenMDAO/dymos/pull/785)
+* Cleaned up CI and testing. [#788](https://github.com/OpenMDAO/dymos/pull/788)
+* Fixed two problems with the linkage report test [#793](https://github.com/OpenMDAO/dymos/pull/793)
+* Updated pyoptsparse build in github workflows [#805](https://github.com/OpenMDAO/dymos/pull/805)
+* Added small changes to improve coverage. [#809](https://github.com/OpenMDAO/dymos/pull/809)
+* Fixed CI dependency issues based on some broken jupyter-book dependencies. [#812](https://github.com/OpenMDAO/dymos/pull/812)
+* Various code cleanup items added. [#807](https://github.com/OpenMDAO/dymos/pull/807)
+* Made a few minor cleanups for the cartpole example. [#815](https://github.com/OpenMDAO/dymos/pull/815) 
+
+*******************************
 # Release Notes for Dymos 1.5.0
 
 May 05, 2022
