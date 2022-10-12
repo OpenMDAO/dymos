@@ -361,7 +361,15 @@ class ExplicitShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         gd = self.grid_data
-        for name in phase._timeseries:
+        for name, options in phase._timeseries.items():
+            expr_ts = False
+            for _, output_options in options['outputs'].items():
+                if output_options['is_expr']:
+                    ts_exec_comp = om.ExecComp(has_diag_partials=True)
+                    phase.add_subsystem('timeseries_exec_comp', ts_exec_comp)
+                    expr_ts = True
+                if expr_ts:
+                    break
             timeseries_comp = ExplicitTimeseriesComp(input_grid_data=gd,
                                                      output_subset='segment_ends')
             phase.add_subsystem(name, subsys=timeseries_comp)

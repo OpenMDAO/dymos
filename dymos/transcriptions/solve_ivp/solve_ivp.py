@@ -512,7 +512,7 @@ class SolveIVP(TranscriptionBase):
         phase.add_subsystem('timeseries', subsys=timeseries_comp)
 
         # Remove all subsequent timeseries
-        for ts_name in list(phase._timeseries.keys()):
+        for ts_name, options in phase._timeseries.items():
             if ts_name != 'timeseries':
                 phase._timeseries.pop(ts_name)
 
