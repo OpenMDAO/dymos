@@ -1,7 +1,7 @@
 *******************************
 # Release Notes for Dymos 1.6.0
 
-October 18, 2022
+October 17, 2022
 
 Version 1.6.0 of Dymos implements many improvements since our last release.
 
