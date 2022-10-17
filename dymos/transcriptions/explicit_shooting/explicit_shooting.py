@@ -130,11 +130,7 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        for name, options in phase.state_options.items():
-            for ts_name, ts_options in phase._timeseries.items():
-                if f'states:{name}' not in ts_options['outputs']:
-                    phase.add_timeseries_output(name, output_name=f'states:{name}',
-                                                timeseries=ts_name)
+        super().configure_states(phase)
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_states_io()
 
@@ -650,11 +646,19 @@ class ExplicitShooting(TranscriptionBase):
             src_shape = phase.parameter_options[var]['shape']
         else:
             # Failed to find variable, assume it is in the ODE
-            path = f'integrator.timeseries:{var}'
             meta = get_source_metadata(ode_outputs, src=var)
             src_shape = meta['shape']
             src_units = meta['units']
             src_tags = meta['tags']
+            if src_tags:
+                for tag in src_tags:
+                    if 'dymos.state_rate_source' in tag:
+                        path = f"integrator.timeseries:state_rates:{tag.split(':')[-1]}"
+                        break
+                    else:
+                        path = f'integrator.timeseries:{var}'
+            else:
+                path = f'integrator.timeseries:{var}'
             if 'dymos.static_output' in src_tags:
                 raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" and cannot be a '
                                    f'timeseries output.')
