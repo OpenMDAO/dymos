@@ -25,6 +25,7 @@ In an upcoming release, the user will be able to easily apply constraints to the
 ## Backwards Incompatible API Changes & Deprecations
 
 * State option `connected_initial` is deprecated in favor of `input_initial`. This is more in-line with the time option, and reflects the fact that there's no requirement that the user actually connect to the value.
+* The Lagrange interpolation and differentiation matrices are now generated much more efficiently, but change in the order of operations may result in small numerical differences in interpolatation of states and controls (generally on the order of 1E-12).
 
 ## Enhancements
 
