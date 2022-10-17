@@ -130,7 +130,11 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super().configure_states(phase)
+        for name, options in phase.state_options.items():
+            for ts_name, ts_options in phase._timeseries.items():
+                if f'states:{name}' not in ts_options['outputs']:
+                    phase.add_timeseries_output(name, output_name=f'states:{name}',
+                                                timeseries=ts_name)
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_states_io()
 
@@ -394,6 +398,20 @@ class ExplicitShooting(TranscriptionBase):
         """
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_timeseries_outputs()
+        for timeseries_name, timeseries_options in phase._timeseries.items():
+            timeseries_comp = phase._get_subsystem(timeseries_name)
+
+            for output_name, options in integrator_comp._filtered_timeseries_outputs.items():
+                added_src = timeseries_comp._add_output_configure(output_name,
+                                                                  shape=options['shape'],
+                                                                  units=options['units'],
+                                                                  src=options['path'])
+                phase.connect(src_name=f'integrator.timeseries:{output_name}',
+                              tgt_name=f'{timeseries_name}.input_values:{output_name}')
+
+                if options['path'].split('.')[-1] in timeseries_options['outputs']:
+                    timeseries_options['outputs'].pop(options['path'].split('.')[-1])
+
         super().configure_timeseries_outputs(phase)
 
     def get_parameter_connections(self, name, phase):
