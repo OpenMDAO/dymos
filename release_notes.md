@@ -58,7 +58,6 @@ In an upcoming release, the user will be able to easily apply constraints to the
 * Switched to using mamba in CI workflow due to issues with conda. [#772](https://github.com/OpenMDAO/dymos/pull/772)
 * Updated optimizer settings to improve convergence of two-burn orbit raise example. [#775](https://github.com/OpenMDAO/dymos/pull/775)
 * Cleaned up error message from `assert_cases_equal` test utility a bit. [#779](https://github.com/OpenMDAO/dymos/pull/779)
-* Added minor changes to fix occasional report testing failures. [#785](https://github.com/OpenMDAO/dymos/pull/785)
 * Cleaned up CI and testing. [#788](https://github.com/OpenMDAO/dymos/pull/788)
 * Fixed two problems with the linkage report test [#793](https://github.com/OpenMDAO/dymos/pull/793)
 * Updated pyoptsparse build in github workflows [#805](https://github.com/OpenMDAO/dymos/pull/805)
