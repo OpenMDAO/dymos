@@ -255,6 +255,19 @@ class ExplicitShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         phase._check_polynomial_control_options()
+        if phase.control_options:
+            for name, options in phase.polynomial_control_options.items():
+                for ts_name, ts_options in phase._timeseries.items():
+                    if f'polynomial_controls:{name}' not in ts_options['outputs']:
+                        phase.add_timeseries_output(name, output_name=f'polynomial_controls:{name}',
+                                                    timeseries=ts_name)
+                    if f'polynomial_control_rates:{name}_rate' not in ts_options['outputs']:
+                        phase.add_timeseries_output(f'{name}_rate', output_name=f'polynomial_control_rates:{name}_rate',
+                                                    timeseries=ts_name)
+                    if f'polynomial_control_rates:{name}_rate2' not in ts_options['outputs']:
+                        phase.add_timeseries_output(f'{name}_rate2',
+                                                    output_name=f'polynomial_control_rates:{name}_rate2',
+                                                    timeseries=ts_name)
 
     def configure_polynomial_controls(self, phase):
         """
