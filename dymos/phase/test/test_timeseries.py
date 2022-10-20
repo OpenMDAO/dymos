@@ -201,6 +201,63 @@ class TestTimeseriesOutput(unittest.TestCase):
     def test_timeseries_radau_smaller_timeseries(self):
         self.test_timeseries_radau(test_smaller_timeseries=True)
 
+    def test_timeseries_explicit_shooting(self, test_smaller_timeseries=False):
+        p = om.Problem(model=om.Group())
+
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
+
+        tx = dm.ExplicitShooting(num_segments=3, grid='gauss-lobatto',
+                                 method='rk4', order=5,
+                                 num_steps_per_segment=5)
+
+        phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
+
+        phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
+
+        # automatically discover states
+        phase.set_state_options('x', fix_initial=True)
+        phase.set_state_options('y', fix_initial=True)
+        phase.set_state_options('v', fix_initial=True)
+
+        phase.add_parameter('g', val=1.0, units='m/s**2', opt=True, lower=1, upper=9.80665)
+        phase.add_control('theta', val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9,
+                          ref=90., rate2_continuity=True)
+
+        phase.add_boundary_constraint('x', loc='final', equals=10.0)
+        phase.add_boundary_constraint('y', loc='final', equals=5.0)
+
+        p.model.add_subsystem('phase0', phase)
+
+        phase.add_objective('time', loc='final')
+
+        p.setup(force_alloc_complex=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 2.0
+
+        p['phase0.states:x'] = phase.interp('x', [0, 10])
+        p['phase0.states:y'] = phase.interp('y', [10, 5])
+        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
+        p['phase0.parameters:g'] = 9.80665
+
+        p.run_driver()
+
+        assert_near_equal(p.get_val('phase0.integrator.time'),
+                          p.get_val('phase0.timeseries.time'))
+
+        assert_near_equal(p.get_val('phase0.integrator.time_phase'),
+                          p.get_val('phase0.timeseries.time_phase'))
+
+        for state in ('x', 'y', 'v'):
+            assert_near_equal(p.get_val(f'phase0.integrator.states_out:{state}'),
+                              p.get_val(f'phase0.timeseries.states:{state}'))
+
+        for control in ('theta',):
+            assert_near_equal(p.get_val(f'phase0.integrator.control_values:{control}'),
+                              p.get_val(f'phase0.timeseries.controls:{control}'))
+
 
 class MinTimeClimbODEDuplicateOutput(om.Group):
 

@@ -64,6 +64,11 @@ class ExplicitShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         phase.check_time_options()
+        for ts_name, ts_options in phase._timeseries.items():
+            if 'time' not in ts_options['outputs']:
+                phase.add_timeseries_output('time', timeseries=ts_name)
+            if 'time_phase' not in ts_options['outputs']:
+                phase.add_timeseries_output('time_phase', timeseries=ts_name)
 
     def configure_time(self, phase):
         """
@@ -125,7 +130,11 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super().configure_states(phase)
+        for name, options in phase.state_options.items():
+            for ts_name, ts_options in phase._timeseries.items():
+                if f'states:{name}' not in ts_options['outputs']:
+                    phase.add_timeseries_output(name, output_name=f'states:{name}',
+                                                timeseries=ts_name)
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_states_io()
 
@@ -195,6 +204,18 @@ class ExplicitShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         phase._check_control_options()
+        if phase.control_options:
+            for name, options in phase.control_options.items():
+                for ts_name, ts_options in phase._timeseries.items():
+                    if f'controls:{name}' not in ts_options['outputs']:
+                        phase.add_timeseries_output(name, output_name=f'controls:{name}',
+                                                    timeseries=ts_name)
+                    if f'control_rates:{name}_rate' not in ts_options['outputs']:
+                        phase.add_timeseries_output(f'{name}_rate', output_name=f'control_rates:{name}_rate',
+                                                    timeseries=ts_name)
+                    if f'control_rates:{name}_rate2' not in ts_options['outputs']:
+                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'control_rates:{name}_rate2',
+                                                    timeseries=ts_name)
 
     def configure_controls(self, phase):
         """
@@ -385,132 +406,21 @@ class ExplicitShooting(TranscriptionBase):
         """
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_timeseries_outputs()
-
-        time_units = phase.time_options['units']
-
-        for timeseries_name in phase._timeseries:
+        for timeseries_name, timeseries_options in phase._timeseries.items():
             timeseries_comp = phase._get_subsystem(timeseries_name)
-
-            timeseries_comp._add_output_configure('time',
-                                                  shape=(1,),
-                                                  units=time_units,
-                                                  desc='',
-                                                  src='time')
-
-            timeseries_comp._add_output_configure('time_phase',
-                                                  shape=(1,),
-                                                  units=time_units,
-                                                  desc='',
-                                                  src='time_phase')
-
-            phase.connect(src_name='integrator.time',
-                          tgt_name=f'{timeseries_name}.input_values:time')
-
-            phase.connect(src_name='integrator.time_phase',
-                          tgt_name=f'{timeseries_name}.input_values:time_phase')
-
-            for state_name, options in phase.state_options.items():
-
-                timeseries_comp._add_output_configure(f'states:{state_name}',
-                                                      shape=options['shape'],
-                                                      units=options['units'],
-                                                      desc=options['desc'],
-                                                      src=f'states:{state_name}')
-
-                phase.connect(src_name=f'integrator.states_out:{state_name}',
-                              tgt_name=f'{timeseries_name}.input_values:states:{state_name}')
-
-            for control_name, options in phase.control_options.items():
-                control_units = options['units']
-
-                timeseries_comp._add_output_configure(f'controls:{control_name}',
-                                                      shape=options['shape'],
-                                                      units=control_units,
-                                                      desc=options['desc'],
-                                                      src=f'control_values:{control_name}')
-
-                phase.connect(src_name=f'integrator.control_values:{control_name}',
-                              tgt_name=f'{timeseries_name}.input_values:controls:{control_name}')
-
-                # Control rates
-                timeseries_comp._add_output_configure(f'control_rates:{control_name}_rate',
-                                                      shape=options['shape'],
-                                                      units=get_rate_units(control_units,
-                                                                           time_units, deriv=1),
-                                                      desc=f'first time-derivative of {control_name}',
-                                                      src=f'control_rates:{control_name}_rate')
-
-                phase.connect(src_name=f'integrator.control_rates:{control_name}_rate',
-                              tgt_name=f'{timeseries_name}.input_values:control_rates:{control_name}_rate')
-
-                # Control second derivatives
-                timeseries_comp._add_output_configure(f'control_rates:{control_name}_rate2',
-                                                      shape=options['shape'],
-                                                      units=get_rate_units(control_units,
-                                                                           time_units, deriv=2),
-                                                      desc=f'second time-derivative of {control_name}',
-                                                      src=f'control_rates:{control_name}_rate2')
-
-                phase.connect(src_name=f'integrator.control_rates:{control_name}_rate2',
-                              tgt_name=f'{timeseries_name}.input_values:control_rates:{control_name}_rate2')
-
-            for control_name, options in phase.polynomial_control_options.items():
-                control_units = options['units']
-
-                # Control values
-                timeseries_comp._add_output_configure(f'polynomial_controls:{control_name}',
-                                                      shape=options['shape'],
-                                                      units=control_units,
-                                                      desc=options['desc'],
-                                                      src=f'polynomial_control_values:{control_name}')
-
-                phase.connect(src_name=f'integrator.polynomial_control_values:{control_name}',
-                              tgt_name=f'{timeseries_name}.input_values:polynomial_controls:{control_name}')
-
-                # Control rates
-                timeseries_comp._add_output_configure(f'polynomial_control_rates:{control_name}_rate',
-                                                      shape=options['shape'],
-                                                      units=get_rate_units(control_units,
-                                                                           time_units, deriv=1),
-                                                      desc=f'first time-derivative of {control_name}',
-                                                      src=f'polynomial_control_rates:{control_name}_rate')
-
-                phase.connect(src_name=f'integrator.polynomial_control_rates:{control_name}_rate',
-                              tgt_name=f'{timeseries_name}.input_values:polynomial_control_rates:{control_name}_rate')
-
-                # Control second derivatives
-                timeseries_comp._add_output_configure(f'polynomial_control_rates:{control_name}_rate2',
-                                                      shape=options['shape'],
-                                                      units=get_rate_units(control_units,
-                                                                           time_units, deriv=2),
-                                                      desc=f'second time-derivative of {control_name}',
-                                                      src=f'polynomial_control_rates:{control_name}_rate2')
-
-                phase.connect(src_name=f'integrator.polynomial_control_rates:{control_name}_rate2',
-                              tgt_name=f'{timeseries_name}.input_values:polynomial_control_rates:{control_name}_rate2')
-
-            for param_name, options in phase.parameter_options.items():
-                if options['include_timeseries']:
-                    prom_name = f'parameters:{param_name}'
-                    tgt_name = f'input_values:parameters:{param_name}'
-
-                    # Add output.
-                    timeseries_comp = phase._get_subsystem(timeseries_name)
-                    timeseries_comp._add_output_configure(prom_name, shape=options['shape'],
-                                                          units=options['units'], src=prom_name)
-
-                    src_idxs = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
-                    phase.connect(f'parameter_vals:{param_name}', f'{timeseries_name}.{tgt_name}',
-                                  src_indices=om.slicer[src_idxs, ...])
 
             for output_name, options in integrator_comp._filtered_timeseries_outputs.items():
                 added_src = timeseries_comp._add_output_configure(output_name,
                                                                   shape=options['shape'],
                                                                   units=options['units'],
                                                                   src=options['path'])
-
                 phase.connect(src_name=f'integrator.timeseries:{output_name}',
                               tgt_name=f'{timeseries_name}.input_values:{output_name}')
+
+                if options['path'].split('.')[-1] in timeseries_options['outputs']:
+                    timeseries_options['outputs'].pop(options['path'].split('.')[-1])
+
+        super().configure_timeseries_outputs(phase)
 
     def get_parameter_connections(self, name, phase):
         """
@@ -724,33 +634,33 @@ class ExplicitShooting(TranscriptionBase):
             src_units = phase.state_options[var]['units']
             src_shape = phase.state_options[var]['shape']
         elif var_type in ['indep_control', 'input_control']:
-            path = f'integrator.control_interp.control_values:{var}'
+            path = f'integrator.control_values:{var}'
             src_units = phase.control_options[var]['units']
             src_shape = phase.control_options[var]['shape']
         elif var_type == 'control_rate':
             control_name = var[:-5]
-            path = f'integrator.control_interp.control_rates:{control_name}_rate'
+            path = f'integrator.control_rates:{control_name}_rate'
             control_name = var[:-5]
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=1)
             src_shape = phase.control_options[control_name]['shape']
         elif var_type == 'control_rate2':
             control_name = var[:-6]
-            path = f'integrator.control_interp.control_rates:{control_name}_rate2'
+            path = f'integrator.control_rates:{control_name}_rate2'
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=2)
             src_shape = phase.control_options[control_name]['shape']
         elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-            path = f'integrator.control_interp.polynomial_control_values:{var}'
+            path = f'integrator.polynomial_control_values:{var}'
             src_units = phase.polynomial_control_options[var]['units']
             src_shape = phase.polynomial_control_options[var]['shape']
         elif var_type == 'polynomial_control_rate':
             control_name = var[:-5]
-            path = f'integrator.control_interp.polynomial_control_rates:{control_name}_rate'
+            path = f'integrator.polynomial_control_rates:{control_name}_rate'
             control = phase.polynomial_control_options[control_name]
             src_units = get_rate_units(control['units'], time_units, deriv=1)
             src_shape = control['shape']
         elif var_type == 'polynomial_control_rate2':
             control_name = var[:-6]
-            path = f'integrator.control_interp.polynomial_control_rates:{control_name}_rate2'
+            path = f'integrator.polynomial_control_rates:{control_name}_rate2'
             control = phase.polynomial_control_options[control_name]
             src_units = get_rate_units(control['units'], time_units, deriv=1)
             src_shape = control['shape']
@@ -762,11 +672,19 @@ class ExplicitShooting(TranscriptionBase):
             src_shape = phase.parameter_options[var]['shape']
         else:
             # Failed to find variable, assume it is in the ODE
-            path = f'ode.{var}'
             meta = get_source_metadata(ode_outputs, src=var)
             src_shape = meta['shape']
             src_units = meta['units']
             src_tags = meta['tags']
+            if src_tags:
+                for tag in src_tags:
+                    if 'dymos.state_rate_source' in tag:
+                        path = f"integrator.timeseries:state_rates:{tag.split(':')[-1]}"
+                        break
+                    else:
+                        path = f'integrator.timeseries:{var}'
+            else:
+                path = f'integrator.timeseries:{var}'
             if 'dymos.static_output' in src_tags:
                 raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" and cannot be a '
                                    f'timeseries output.')
