@@ -476,7 +476,7 @@ class TestExplicitShooting(unittest.TestCase):
         y = prob.get_val('phase0.timeseries.states:y')
         t = prob.get_val('phase0.timeseries.time')
         tp = prob.get_val('phase0.timeseries.time_phase')
-        theta = prob.get_val('phase0.polynomial_controls:theta')
+        theta = prob.get_val('phase0.timeseries.polynomial_controls:theta')
 
         assert_near_equal(x[-1, ...], 10.0, tolerance=1.0E-5)
         assert_near_equal(y[-1, ...], 5.0, tolerance=1.0E-5)
