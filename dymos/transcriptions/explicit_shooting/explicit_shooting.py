@@ -255,7 +255,7 @@ class ExplicitShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         phase._check_polynomial_control_options()
-        if phase.control_options:
+        if phase.polynomial_control_options:
             for name, options in phase.polynomial_control_options.items():
                 for ts_name, ts_options in phase._timeseries.items():
                     if f'polynomial_controls:{name}' not in ts_options['outputs']:
@@ -675,7 +675,7 @@ class ExplicitShooting(TranscriptionBase):
             control_name = var[:-6]
             path = f'integrator.polynomial_control_rates:{control_name}_rate2'
             control = phase.polynomial_control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=1)
+            src_units = get_rate_units(control['units'], time_units, deriv=2)
             src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'
