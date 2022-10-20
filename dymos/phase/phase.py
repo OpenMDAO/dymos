@@ -1343,7 +1343,7 @@ class Phase(om.Group):
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
         if expr:
-            output_name = name.split('=')[0]
+            output_name = name.split('=')[0].strip()
         elif '*' in name:
             output_name = name
         elif output_name is None:

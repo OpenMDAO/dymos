@@ -569,7 +569,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p.run_driver()
         x = p.get_val('phase0.timeseries.states:x')
         y = p.get_val('phase0.timeseries.states:y')
-        theta = p.get_val('phase0.timeseries.controls:theta')
+        theta = p.get_val('phase0.timeseries.polynomial_controls:theta')
         g = p.get_val('phase0.timeseries.parameters:g')
         t = p.get_val('phase0.timeseries.time')
 

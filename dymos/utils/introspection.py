@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 import fnmatch
+import re
 
 import openmdao.api as om
 import numpy as np
@@ -773,14 +774,13 @@ def configure_timeseries_expr_introspection(phase, expr_options):
     expr_options : dict
         Options for the expression to be added to the timeseries exec comp
     """
-    import re
+
     timeseries_ec = phase._get_subsystem('timeseries_exec_comp')
     transcription = phase.options['transcription']
-    gd = transcription.grid_data
-    num_output_nodes = gd.subset_num_nodes['all']
+    num_output_nodes = transcription._get_num_timeseries_nodes()
 
     expr = expr_options['name']
-    expr_lhs = expr.split('=')[0]
+    expr_lhs = expr.split('=')[0].strip()
     if '.' in expr_lhs or ':' in expr_lhs:
         raise ValueError(f'{expr_lhs} is an invalid name for the timeseries LHS. Must use a valid variable name')
     expr_reduced = expr
