@@ -567,46 +567,39 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         p = self.make_problem_brachistochrone(transcription=tx)
         p.run_driver()
-        x = p.get_val('phase0.timeseries.states:x')
-        y = p.get_val('phase0.timeseries.states:y')
-        theta = p.get_val('phase0.timeseries.polynomial_controls:theta')
-        g = p.get_val('phase0.timeseries.parameters:g')
+
         t = p.get_val('phase0.timeseries.time')
+        z_ts = p.get_val('phase0.timeseries.z')
+        f_ts = p.get_val('phase0.timeseries.f')
 
         phase0 = p.model._get_subsystem('phase0')
         sim = phase0.simulate()
 
-        z_computed = x * y + x**2
-        f_computed = 3 * g * np.cos(theta) ** 2
-
         z_sim = sim.get_val('phase0.timeseries.z')
         f_sim = sim.get_val('phase0.timeseries.f')
         t_sim = sim.get_val('phase0.timeseries.time')
-        assert_timeseries_near_equal(t, z_computed, t_sim, z_sim, tolerance=1e-3)
-        assert_timeseries_near_equal(t, f_computed, t_sim, f_sim, tolerance=1e-3)
+
+        assert_timeseries_near_equal(t, z_ts, t_sim, z_sim, abs_tolerance=1e-1)
+        assert_timeseries_near_equal(t, f_ts, t_sim, f_sim, abs_tolerance=1e-1)
 
     def test_timeseries_expr_solve_ivp_polynomial_controls(self):
         tx = dm.Radau(num_segments=5, order=3, compressed=True)
 
         p = self.make_problem_brachistochrone(transcription=tx, polynomial_control=True)
         p.run_driver()
-        x = p.get_val('phase0.timeseries.states:x')
-        y = p.get_val('phase0.timeseries.states:y')
-        theta = p.get_val('phase0.timeseries.polynomial_controls:theta')
-        g = p.get_val('phase0.timeseries.parameters:g')
+
         t = p.get_val('phase0.timeseries.time')
+        z_ts = p.get_val('phase0.timeseries.z')
+        f_ts = p.get_val('phase0.timeseries.f')
 
         phase0 = p.model._get_subsystem('phase0')
         sim = phase0.simulate()
 
-        z_computed = x * y + x**2
-        f_computed = 3 * g * np.cos(theta) ** 2
-
         z_sim = sim.get_val('phase0.timeseries.z')
         f_sim = sim.get_val('phase0.timeseries.f')
         t_sim = sim.get_val('phase0.timeseries.time')
-        assert_timeseries_near_equal(t, z_computed, t_sim, z_sim, tolerance=1e-3)
-        assert_timeseries_near_equal(t, f_computed, t_sim, f_sim, tolerance=1e-3)
+        assert_timeseries_near_equal(t, z_ts, t_sim, z_sim, abs_tolerance=1e-3)
+        assert_timeseries_near_equal(t, f_ts, t_sim, f_sim, abs_tolerance=1e-3)
 
 
 class TestTimeseriesMinTimeClimb(unittest.TestCase):

@@ -503,6 +503,16 @@ class SolveIVP(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         gd = self.grid_data
+        # Remove all timeseries other than 'timeseries'
+        for ts_name, options in phase._timeseries.items():
+            if ts_name != 'timeseries':
+                phase._timeseries.pop(ts_name)
+                continue
+            ts_exec_comp = om.ExecComp(has_diag_partials=True)
+            phase.add_subsystem('timeseries_exec_comp', ts_exec_comp)
+            expr_ts = True
+            if expr_ts:
+                break
 
         timeseries_comp = \
             SolveIVPTimeseriesOutputComp(input_grid_data=gd,
@@ -510,11 +520,6 @@ class SolveIVP(TranscriptionBase):
                                          time_units=phase.time_options['units'])
 
         phase.add_subsystem('timeseries', subsys=timeseries_comp)
-
-        # Remove all subsequent timeseries
-        for ts_name, options in phase._timeseries.items():
-            if ts_name != 'timeseries':
-                phase._timeseries.pop(ts_name)
 
     def get_parameter_connections(self, name, phase):
         """
@@ -588,7 +593,6 @@ class SolveIVP(TranscriptionBase):
             source indices), 'units' (the units of the source variable), and 'shape' (the shape of the variable at
             a given node).
         """
-        gd = self.grid_data
         var_type = phase.classify_var(var)
         time_units = phase.time_options['units']
 
@@ -669,3 +673,14 @@ class SolveIVP(TranscriptionBase):
         meta['shape'] = src_shape
 
         return meta
+
+    def _get_num_timeseries_nodes(self):
+        """
+        Returns the number of nodes in the default timeseries for this transcription.
+
+        Returns
+        -------
+        int
+            The number of nodes in the default timeseries for this transcription.
+        """
+        return self.grid_data.num_segments * self.options['output_nodes_per_seg']
