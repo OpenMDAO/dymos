@@ -8,15 +8,13 @@ import scipy
 from dymos.examples.finite_burn_orbit_raise.finite_burn_orbit_raise_problem import two_burn_orbit_raise_problem
 from dymos.utils.testing_utils import assert_cases_equal
 
-scipy_version = tuple(int(s) for s in scipy.__version__.split('-')[0].split('.'))
-
 
 # This test is separate because connected phases aren't directly parallelizable.
 @require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
 
-    @unittest.skipIf(scipy_version >= (1, 9, 3), 'Skipped due to a change in interpolation in scipy')
+    @unittest.skip('Skipped due to a change in interpolation in scipy. Need to come up with better case loading.')
     def test_ex_two_burn_orbit_raise_connected(self):
         optimizer = 'IPOPT'
 
@@ -45,7 +43,7 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
         assert_cases_equal(case1, p, tol=1.0E-8)
         assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
 
-    @unittest.skipIf(scipy_version >= (1, 9, 3), 'Skipped due to a change in interpolation in scipy')
+    @unittest.skip('Skipped due to a change in interpolation in scipy. Need to come up with better case loading.')
     def test_restart_from_solution_radau(self):
         optimizer = 'IPOPT'
 
@@ -76,7 +74,7 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
-    @unittest.skipIf(scipy_version >= (1, 9, 3), 'Skipped due to a change in interpolation in scipy')
+    @unittest.skip('Skipped due to a change in interpolation in scipy. Need to come up with better case loading.')
     def test_ex_two_burn_orbit_raise_connected(self):
         optimizer = 'IPOPT'
 
@@ -103,7 +101,7 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
         assert_cases_equal(case1, p, tol=1.0E-8)
         assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
 
-    @unittest.skipIf(scipy_version >= (1, 9, 3), 'Skipped due to a change in interpolation in scipy')
+    @unittest.skip('Skipped due to a change in interpolation in scipy. Need to come up with better case loading.')
     def test_restart_from_solution_radau_to_connected(self):
         optimizer = 'IPOPT'
 
