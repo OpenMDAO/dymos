@@ -11,7 +11,6 @@ from dymos.utils.testing_utils import assert_cases_equal
 scipy_version = tuple(int(s) for s in scipy.__version__.split('-')[0].split('.'))
 
 
-
 # This test is separate because connected phases aren't directly parallelizable.
 @require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
