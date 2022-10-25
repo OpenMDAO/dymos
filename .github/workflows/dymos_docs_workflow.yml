@@ -80,12 +80,12 @@ jobs:
         run: |
           git fetch --prune --unshallow --tags
 
-      - name: Setup mamba
+      - name: Setup conda
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.PY }}
-          mamba-version: "*"
+          conda-version: "*"
           channels: conda-forge,defaults
           channel-priority: true
 
@@ -96,7 +96,7 @@ jobs:
           echo "============================================================="
           echo "Install Numpy/Scipy"
           echo "============================================================="
-          mamba install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
+          conda install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
 
       - name: Install jax
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.JAX
@@ -116,11 +116,11 @@ jobs:
           echo "Install PETSc"
           echo "============================================================="
           if [[ "${{ matrix.OPENMPI }}" && "${{ matrix.MPI4PY }}" ]]; then
-            mamba install openmpi=${{ matrix.OPENMPI }} mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
+            conda install openmpi=${{ matrix.OPENMPI }} mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
           elif [[ "${{ matrix.MPI4PY }}" ]]; then
-            mamba install mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
+            conda install mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
           else
-            mamba install mpi4py petsc4py=${{ matrix.PETSc }} -q -y
+            conda install mpi4py petsc4py=${{ matrix.PETSc }} -q -y
           fi
           echo "-----------------------"
           echo "Quick test of mpi4py:"
@@ -199,7 +199,7 @@ jobs:
           echo "============================================================="
           echo "Install jupyter-book and jupyter"
           echo "============================================================="
-          mamba install jupyter-book jupyter -q -y
+          conda install jupyter-book jupyter -q -y
 
 
       - name: Install bokeh
@@ -209,7 +209,7 @@ jobs:
           echo "============================================================="
           echo "Install additional packages for testing/coverage"
           echo "============================================================="
-          mamba install bokeh
+          conda install bokeh
 
       - name: Install Dymos
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
