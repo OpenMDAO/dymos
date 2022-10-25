@@ -197,9 +197,9 @@ jobs:
         shell: bash -l {0}
         run: |
           echo "============================================================="
-          echo "Install jupyter-book and jupyter"
+          echo "Install jupyter-book"
           echo "============================================================="
-          conda install jupyter-book jupyter -q -y
+          pip install git+https://github.com/executablebooks/jupyter-book
 
 
       - name: Install bokeh
