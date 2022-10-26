@@ -8,7 +8,7 @@ import openmdao.api as om
 from ..transcription_base import TranscriptionBase
 from .components import SegmentSimulationComp, SegmentStateMuxComp, \
     SolveIVPControlGroup, SolveIVPPolynomialControlGroup, SolveIVPTimeseriesOutputComp
-from ..common import TimeComp
+from ..common import TimeComp, TimeseriesOutputGroup
 from ...utils.misc import get_rate_units
 from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata, get_target_metadata
 from ...utils.indexing import get_src_indices_by_row
@@ -503,23 +503,26 @@ class SolveIVP(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         gd = self.grid_data
-        # Remove all timeseries other than 'timeseries'
-        for ts_name, options in phase._timeseries.items():
-            if ts_name != 'timeseries':
-                phase._timeseries.pop(ts_name)
-                continue
-            ts_exec_comp = om.ExecComp(has_diag_partials=True)
-            phase.add_subsystem('timeseries_exec_comp', ts_exec_comp)
-            expr_ts = True
-            if expr_ts:
+        # Check if timeseries contains an expression that needs to be evaluated
+        for _, output_options in phase._timeseries['timeseries']['outputs'].items():
+            if output_options['is_expr']:
+                has_expr = True
                 break
+            else:
+                has_expr = False
 
         timeseries_comp = \
             SolveIVPTimeseriesOutputComp(input_grid_data=gd,
                                          output_nodes_per_seg=self.options['output_nodes_per_seg'],
                                          time_units=phase.time_options['units'])
 
-        phase.add_subsystem('timeseries', subsys=timeseries_comp)
+        timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
+        phase.add_subsystem('timeseries', subsys=timeseries_group)
+
+        # Remove all subsequent timeseries
+        for ts_name in list(phase._timeseries.keys()):
+            if ts_name != 'timeseries':
+                phase._timeseries.pop(ts_name)
 
     def get_parameter_connections(self, name, phase):
         """

@@ -10,6 +10,7 @@ from .rk_integration_comp import RKIntegrationComp, rk_methods
 from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.introspection import get_promoted_vars, get_source_metadata
 from ...utils.constants import INF_BOUND
+from ..common import TimeseriesOutputGroup
 
 
 class ExplicitShooting(TranscriptionBase):
@@ -396,17 +397,15 @@ class ExplicitShooting(TranscriptionBase):
         """
         gd = self.grid_data
         for name, options in phase._timeseries.items():
-            expr_ts = False
+            has_expr = False
             for _, output_options in options['outputs'].items():
                 if output_options['is_expr']:
-                    ts_exec_comp = om.ExecComp(has_diag_partials=True)
-                    phase.add_subsystem('timeseries_exec_comp', ts_exec_comp)
-                    expr_ts = True
-                if expr_ts:
+                    has_expr = True
                     break
             timeseries_comp = ExplicitTimeseriesComp(input_grid_data=gd,
                                                      output_subset='segment_ends')
-            phase.add_subsystem(name, subsys=timeseries_comp)
+            timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
+            phase.add_subsystem(name, subsys=timeseries_group)
 
     def configure_timeseries_outputs(self, phase):
         """

@@ -735,7 +735,7 @@ def configure_timeseries_output_introspection(phase):
 
         for output_name, output_options in ts_opts['outputs'].items():
             if output_options['is_expr']:
-                output_meta = configure_timeseries_expr_introspection(phase, output_options)
+                output_meta = configure_timeseries_expr_introspection(phase, ts_name, output_options)
 
             else:
                 try:
@@ -763,7 +763,7 @@ def configure_timeseries_output_introspection(phase):
             ts_opts['outputs'].pop(s)
 
 
-def configure_timeseries_expr_introspection(phase, expr_options):
+def configure_timeseries_expr_introspection(phase, timeseries_name, expr_options):
     """
     Introspect the timeseries expressions, add expressions to the exec comp, and make connections to the input variables
 
@@ -771,11 +771,13 @@ def configure_timeseries_expr_introspection(phase, expr_options):
     ----------
     phase : Phase
         The phase object whose timeseries outputs are to be introspected.
+    timeseries_name : str
+        The name of the timeseries that the expr is to be added to
     expr_options : dict
         Options for the expression to be added to the timeseries exec comp
     """
 
-    timeseries_ec = phase._get_subsystem('timeseries_exec_comp')
+    timeseries_ec = phase._get_subsystem(f'{timeseries_name}.timeseries_exec_comp')
     transcription = phase.options['transcription']
     num_output_nodes = transcription._get_num_timeseries_nodes()
 
@@ -807,7 +809,7 @@ def configure_timeseries_expr_introspection(phase, expr_options):
         elif var == expr_lhs:
             var_units = units
             var_shape = shape
-            meta['src'] = f'timeseries_exec_comp.{var}'
+            meta['src'] = f'{timeseries_name}.timeseries_exec_comp.{var}'
             phase.timeseries_ec_vars[var]['added_to_ec'] = True
         else:
             try:
@@ -832,7 +834,7 @@ def configure_timeseries_expr_introspection(phase, expr_options):
         if phase.timeseries_ec_vars[var]['added_to_ec']:
             continue
         else:
-            phase.connect(src_name=options['src'], tgt_name=f'timeseries_exec_comp.{var}',
+            phase.connect(src_name=options['src'], tgt_name=f'{timeseries_name}.timeseries_exec_comp.{var}',
                           src_indices=options['src_idxs'])
 
         phase.timeseries_ec_vars[var]['added_to_ec'] = True

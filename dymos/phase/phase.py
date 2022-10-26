@@ -2071,13 +2071,13 @@ class Phase(om.Group):
             op_dict = MPI.COMM_WORLD.bcast(op_dict, root=0)
 
         # Set the integration times
-        op = op_dict['timeseries.time']
+        op = op_dict['timeseries.timeseries_comp.time']
         prob.set_val(f'{self_path}t_initial', op['val'][0, ...])
         prob.set_val(f'{self_path}t_duration', op['val'][-1, ...] - op['val'][0, ...])
 
         # Assign initial state values
         for name in phs.state_options:
-            op = op_dict[f'timeseries.states:{name}']
+            op = op_dict[f'timeseries.timeseries_comp.states:{name}']
             prob[f'{self_path}initial_states:{name}'][...] = op['val'][0, ...]
 
         # Assign control values

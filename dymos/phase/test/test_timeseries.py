@@ -10,6 +10,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 
 from dymos.models.atmosphere import USatm1976Comp
 from dymos.examples.min_time_climb.aero import AeroGroup
@@ -288,8 +289,8 @@ class MinTimeClimbODEDuplicateOutput(om.Group):
                            subsys=FlightPathEOM2D(num_nodes=nn),
                            promotes_inputs=['m', 'v', 'gam', 'alpha'])
 
-        # foo = self.add_subsystem('foo', om.IndepVarComp())
-        # foo.add_output('rho', val=100 * np.ones(nn), units='g/cm**3')
+        foo = self.add_subsystem('foo', om.IndepVarComp())
+        foo.add_output('rho', val=100 * np.ones(nn), units='g/cm**3')
 
         self.connect('aero.f_drag', 'flight_dynamics.D')
         self.connect('aero.f_lift', 'flight_dynamics.L')
@@ -308,7 +309,9 @@ def min_time_climb(num_seg=3, transcription_class=dm.Radau, transcription_order=
 
     traj = dm.Trajectory()
 
-    phase = dm.Phase(ode_class=MinTimeClimbODEDuplicateOutput, transcription=tx)
+    ode_class = MinTimeClimbODEDuplicateOutput if not timeseries_expr else MinTimeClimbODE
+
+    phase = dm.Phase(ode_class=ode_class, transcription=tx)
     traj.add_phase('phase0', phase)
 
     p.model.add_subsystem('traj', traj)
@@ -432,7 +435,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         phase.add_boundary_constraint('x', loc='final', equals=10.0)
         phase.add_boundary_constraint('y', loc='final', equals=5.0)
 
-        phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665, include_timeseries=True)
+        phase.add_parameter('g', opt=False, units='m/s**2', val=9.80665, include_timeseries=True)
 
         phase.add_objective('time_phase', loc='final', scaler=10)
         phase.add_timeseries_output('z=x*y + x**2', units='m**2')
@@ -568,19 +571,16 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p = self.make_problem_brachistochrone(transcription=tx)
         p.run_driver()
 
-        t = p.get_val('phase0.timeseries.time')
         z_ts = p.get_val('phase0.timeseries.z')
         f_ts = p.get_val('phase0.timeseries.f')
 
         phase0 = p.model._get_subsystem('phase0')
-        sim = phase0.simulate()
+        sim = phase0.simulate(times_per_seg=30)
 
         z_sim = sim.get_val('phase0.timeseries.z')
         f_sim = sim.get_val('phase0.timeseries.f')
-        t_sim = sim.get_val('phase0.timeseries.time')
-
-        assert_timeseries_near_equal(t, z_ts, t_sim, z_sim, abs_tolerance=1e-1)
-        assert_timeseries_near_equal(t, f_ts, t_sim, f_sim, abs_tolerance=1e-1)
+        assert_near_equal(z_ts[-1], z_sim[-1], tolerance=1e-3)
+        assert_near_equal(f_ts[-1], f_sim[-1], tolerance=1e-3)
 
     def test_timeseries_expr_solve_ivp_polynomial_controls(self):
         tx = dm.Radau(num_segments=5, order=3, compressed=True)
@@ -588,18 +588,16 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p = self.make_problem_brachistochrone(transcription=tx, polynomial_control=True)
         p.run_driver()
 
-        t = p.get_val('phase0.timeseries.time')
         z_ts = p.get_val('phase0.timeseries.z')
         f_ts = p.get_val('phase0.timeseries.f')
 
         phase0 = p.model._get_subsystem('phase0')
-        sim = phase0.simulate()
+        sim = phase0.simulate(times_per_seg=30)
 
         z_sim = sim.get_val('phase0.timeseries.z')
         f_sim = sim.get_val('phase0.timeseries.f')
-        t_sim = sim.get_val('phase0.timeseries.time')
-        assert_timeseries_near_equal(t, z_ts, t_sim, z_sim, abs_tolerance=1e-3)
-        assert_timeseries_near_equal(t, f_ts, t_sim, f_sim, abs_tolerance=1e-3)
+        assert_near_equal(z_ts[-1], z_sim[-1], tolerance=1e-3)
+        assert_near_equal(f_ts[-1], f_sim[-1], tolerance=1e-3)
 
 
 class TestTimeseriesMinTimeClimb(unittest.TestCase):

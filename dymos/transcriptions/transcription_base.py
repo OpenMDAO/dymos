@@ -381,7 +381,7 @@ class TranscriptionBase(object):
             The phase object to which this transcription instance applies.
         """
         for timeseries_name, timeseries_options in phase._timeseries.items():
-            timeseries_comp = phase._get_subsystem(timeseries_name)
+            timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
 
             for ts_output_name, ts_output in timeseries_options['outputs'].items():
                 name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
