@@ -419,7 +419,7 @@ class ExplicitShooting(TranscriptionBase):
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_timeseries_outputs()
         for timeseries_name, timeseries_options in phase._timeseries.items():
-            timeseries_comp = phase._get_subsystem(timeseries_name)
+            timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
 
             for output_name, options in integrator_comp._filtered_timeseries_outputs.items():
                 added_src = timeseries_comp._add_output_configure(output_name,

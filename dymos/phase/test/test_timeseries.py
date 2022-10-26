@@ -16,7 +16,7 @@ from dymos.models.atmosphere import USatm1976Comp
 from dymos.examples.min_time_climb.aero import AeroGroup
 from dymos.examples.min_time_climb.prop import PropGroup
 from dymos.models.eom import FlightPathEOM2D
-from dymos.utils.testing_utils import assert_timeseries_near_equal
+
 
 @use_tempdirs
 class TestTimeseriesOutput(unittest.TestCase):

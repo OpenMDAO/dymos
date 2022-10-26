@@ -32,6 +32,8 @@ def classify_var(var, state_options, parameter_options, control_options,
         For each control variable, a dictionary of its options, keyed by name.
     polynomial_control_options : dict of {str: OptionsDictionary}
         For each polynomial variable, a dictionary of its options, keyed by name.
+    timeseries_options : {str: OptionsDictionary}
+        For each timeseries, a dictionary of its options, keyed by name.
 
     Returns
     -------
@@ -765,16 +767,21 @@ def configure_timeseries_output_introspection(phase):
 
 def configure_timeseries_expr_introspection(phase, timeseries_name, expr_options):
     """
-    Introspect the timeseries expressions, add expressions to the exec comp, and make connections to the input variables
+    Introspect the timeseries expressions, add expressions to the exec comp, and make connections to the variables.
 
     Parameters
     ----------
     phase : Phase
         The phase object whose timeseries outputs are to be introspected.
     timeseries_name : str
-        The name of the timeseries that the expr is to be added to
+        The name of the timeseries that the expr is to be added to.
     expr_options : dict
-        Options for the expression to be added to the timeseries exec comp
+        Options for the expression to be added to the timeseries exec comp.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the metadata for the source. This consists of shape, units, and tags.
     """
 
     timeseries_ec = phase._get_subsystem(f'{timeseries_name}.timeseries_exec_comp')

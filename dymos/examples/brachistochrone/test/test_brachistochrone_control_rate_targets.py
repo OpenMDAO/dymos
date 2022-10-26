@@ -193,6 +193,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
         theta_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate')
 
         io_meta = p.model.phase0.timeseries.get_io_metadata(iotypes=('input', 'output'), get_remote=True)
+        print(io_meta)
         self.assertEqual(io_meta['controls:theta']['units'], 'rad*s')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
