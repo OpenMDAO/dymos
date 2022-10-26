@@ -629,19 +629,6 @@ class TestTimeseriesMinTimeClimb(unittest.TestCase):
         R_ts = p.get_val('traj.phase0.timeseries.R')
         assert_near_equal(R_computed, R_ts, tolerance=1e-12)
 
-    def test_timeseries_expr_explicit_shooting(self):
-        p = min_time_climb(transcription_class=dm.ExplicitShooting, num_seg=12,
-                           transcription_order=3, timeseries_expr=True)
-        p.run_model()
-
-        pres = p.get_val('traj.phase0.timeseries.pres')
-        temp = p.get_val('traj.phase0.timeseries.temp')
-        rho = p.get_val('traj.phase0.timeseries.rho')
-
-        R_computed = pres / (temp * rho)
-        R_ts = p.get_val('traj.phase0.timeseries.R')
-        assert_near_equal(R_computed, R_ts, tolerance=1e-12)
-
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()
