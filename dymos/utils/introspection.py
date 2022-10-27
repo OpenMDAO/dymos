@@ -144,8 +144,7 @@ def get_targets(ode, name, user_targets, control_rates=False):
     if isinstance(ode, dict):
         ode_inputs = ode
     else:
-        ode_inputs = {opts['prom_name']: opts for opts in
-                      ode.get_io_metadata(iotypes=('input',), get_remote=True).values()}
+        ode_inputs = get_promoted_vars(ode, iotypes=('input',))
     if user_targets is _unspecified:
         if name in ode_inputs and control_rates not in {1, 2}:
             return [name]
