@@ -7,7 +7,7 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, develop ]
   workflow_dispatch:
 
 jobs:
@@ -44,7 +44,7 @@ jobs:
             SNOPT: 7.7
             OPENMDAO: 'dev'
             OPTIONAL: '[docs]'
-            JAX: True
+            JAX: 'dev'
             PUBLISH_DOCS: 0
 
     steps:
@@ -80,12 +80,12 @@ jobs:
         run: |
           git fetch --prune --unshallow --tags
 
-      - name: Setup mamba
+      - name: Setup conda
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.PY }}
-          mamba-version: "*"
+          conda-version: "*"
           channels: conda-forge,defaults
           channel-priority: true
 
@@ -96,7 +96,7 @@ jobs:
           echo "============================================================="
           echo "Install Numpy/Scipy"
           echo "============================================================="
-          mamba install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
+          conda install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
 
       - name: Install jax
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.JAX
@@ -105,8 +105,13 @@ jobs:
           echo "============================================================="
           echo "Install jax"
           echo "============================================================="
-          pip install jax
-          pip install jaxlib
+          if [[ "${{ matrix.JAX }}" == "dev" ]]; then
+            python -m pip install git+https://github.com/google/jax
+          elif [[ "${{ matrix.OPENMDAO }}" == "latest" || "${{ matrix.JAX }}" == "True" ]]; then
+            python -m pip install jax jaxlib
+          else
+            python -m pip install jax=${{ matrix.JAX }} jaxlib=${{ matrix.JAX }}
+          fi
 
       - name: Install PETSc
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.PETSc
@@ -116,11 +121,11 @@ jobs:
           echo "Install PETSc"
           echo "============================================================="
           if [[ "${{ matrix.OPENMPI }}" && "${{ matrix.MPI4PY }}" ]]; then
-            mamba install openmpi=${{ matrix.OPENMPI }} mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
+            conda install openmpi=${{ matrix.OPENMPI }} mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
           elif [[ "${{ matrix.MPI4PY }}" ]]; then
-            mamba install mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
+            conda install mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
           else
-            mamba install mpi4py petsc4py=${{ matrix.PETSc }} -q -y
+            conda install mpi4py petsc4py=${{ matrix.PETSc }} -q -y
           fi
           echo "-----------------------"
           echo "Quick test of mpi4py:"
@@ -197,9 +202,9 @@ jobs:
         shell: bash -l {0}
         run: |
           echo "============================================================="
-          echo "Install jupyter-book and jupyter"
+          echo "Install jupyter-book"
           echo "============================================================="
-          mamba install jupyter-book jupyter -q -y
+          pip install git+https://github.com/executablebooks/jupyter-book
 
 
       - name: Install bokeh
@@ -209,7 +214,7 @@ jobs:
           echo "============================================================="
           echo "Install additional packages for testing/coverage"
           echo "============================================================="
-          mamba install bokeh
+          conda install bokeh
 
       - name: Install Dymos
         if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')

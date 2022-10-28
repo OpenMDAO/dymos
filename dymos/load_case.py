@@ -1,3 +1,5 @@
+import numpy as np
+
 import openmdao.api as om
 from openmdao.recorders.case import Case
 from .phase.phase import Phase
@@ -122,6 +124,7 @@ def load_case(problem, previous_solution):
         prev_time_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.time')][0]
 
         prev_time_val = prev_vars[prev_time_path]['val']
+        prev_time_val, unique_idxs = np.unique(prev_time_val, return_index=True)
         prev_time_units = prev_vars[prev_time_path]['units']
 
         t_initial = prev_time_val[0]
@@ -142,8 +145,10 @@ def load_case(problem, previous_solution):
             prev_state_val = prev_vars[prev_state_path]['val']
             prev_state_units = prev_vars[prev_state_path]['units']
             problem.set_val(state_path,
-                            phase.interp(xs=prev_time_val, ys=prev_state_val,
-                                         nodes='state_input', kind='slinear'),
+                            phase.interp(name=state_name,
+                                         xs=prev_time_val,
+                                         ys=prev_state_val[unique_idxs],
+                                         kind='slinear'),
                             units=prev_state_units)
 
             init_val_path = [s for s in phase_vars if s.endswith(f'{phase_name}.initial_states:{state_name}')]
@@ -164,8 +169,10 @@ def load_case(problem, previous_solution):
             prev_control_val = prev_vars[prev_control_path]['val']
             prev_control_units = prev_vars[prev_control_path]['units']
             problem.set_val(control_path,
-                            phase.interp(xs=prev_time_val, ys=prev_control_val,
-                                         nodes='control_input', kind='slinear'),
+                            phase.interp(name=control_name,
+                                         xs=prev_time_val,
+                                         ys=prev_control_val[unique_idxs],
+                                         kind='slinear'),
                             units=prev_control_units)
             if options['fix_final']:
                 warning_message = f"{phase_name}.controls:{control_name} specifies 'fix_final=True'. " \
