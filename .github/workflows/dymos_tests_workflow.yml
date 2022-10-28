@@ -10,7 +10,7 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, develop ]
   workflow_dispatch:
 
 jobs:
