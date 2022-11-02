@@ -711,3 +711,6 @@ class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='is_expr', default=False, allow_none=False,
                      desc='If true the requested timeseries is a mathematical expression')
+
+        self.declare(name='expr_kwargs', default={}, allow_none=False,
+                     desc='Options to be passed to the timeseries expression comp when adding the expression.')

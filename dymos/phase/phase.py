@@ -1191,16 +1191,19 @@ class Phase(om.Group):
                 self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
-                              timeseries='timeseries'):
+                              timeseries='timeseries', **kwargs):
         r"""
         Add a variable to the timeseries outputs of the phase.
+
+        If name is given as an expression, this expression will be passed to an OpenMDAO ExecComp and the result
+        computed and stored in the timeseries output under the variable name to the left of the equal sign.
 
         Parameters
         ----------
         name : str, or list of str
-            The name(s) of the variable to be used as a timeseries output.  Must be one of
-            'time', 'time_phase', one of the states, controls, control rates, or parameters,
-            in the phase, the path to an output variable in the ODE, or a glob pattern
+            The name(s) of the variable to be used as a timeseries output, or a mathematical expression to be used
+            as a timeseries output. If a name, it be one of 'time', 'time_phase', one of the states, controls,
+            control rates, or parameters, in the phase, the path to an output variable in the ODE, or a glob pattern
             matching some outputs in the ODE.
         output_name : str or None or list or dict
             The name of the variable as listed in the phase timeseries outputs.  By
@@ -1216,6 +1219,8 @@ class Phase(om.Group):
             since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
         timeseries : str or None
             The name of the timeseries to which the output is being added.
+        **kwargs
+            Additional arguments passed to the exec
         """
         if type(name) is list:
             for i, name_i in enumerate(name):
@@ -1245,7 +1250,8 @@ class Phase(om.Group):
                                         shape=shape,
                                         timeseries=timeseries,
                                         rate=False,
-                                        expr=expr)
+                                        expr=expr,
+                                        expr_kwargs=kwargs)
 
     def add_timeseries_rate_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                                    timeseries='timeseries'):
@@ -1303,7 +1309,7 @@ class Phase(om.Group):
                                         rate=True)
 
     def _add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
-                               timeseries='timeseries', rate=False, expr=False):
+                               timeseries='timeseries', rate=False, expr=False, expr_kwargs=None):
         r"""
         Add a single variable or rate to the timeseries outputs of the phase.
 
@@ -1333,6 +1339,7 @@ class Phase(om.Group):
         rate : bool
             If True, add the rate of change of the named variable to the timeseries outputs of the
             phase.  The rate variable will be named f'{name}_rate'.  Defaults to False.
+        expr :
 
         Returns
         -------
@@ -1364,6 +1371,7 @@ class Phase(om.Group):
             ts_output['shape'] = shape
             ts_output['is_rate'] = rate
             ts_output['is_expr'] = expr
+            ts_output['expr_kwargs'] = expr_kwargs
 
             self._timeseries[timeseries]['outputs'][output_name] = ts_output
 

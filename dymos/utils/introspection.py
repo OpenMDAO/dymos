@@ -737,7 +737,6 @@ def configure_timeseries_output_introspection(phase):
         for output_name, output_options in ts_opts['outputs'].items():
             if output_options['is_expr']:
                 output_meta = configure_timeseries_expr_introspection(phase, ts_name, output_options)
-
             else:
                 try:
                     output_meta = transcription._get_timeseries_var_source(output_options['name'],
@@ -782,7 +781,6 @@ def configure_timeseries_expr_introspection(phase, timeseries_name, expr_options
     dict
         A dictionary containing the metadata for the source. This consists of shape, units, and tags.
     """
-
     timeseries_ec = phase._get_subsystem(f'{timeseries_name}.timeseries_exec_comp')
     transcription = phase.options['transcription']
     num_output_nodes = transcription._get_num_timeseries_nodes()
@@ -792,6 +790,7 @@ def configure_timeseries_expr_introspection(phase, timeseries_name, expr_options
     if '.' in expr_lhs or ':' in expr_lhs:
         raise ValueError(f'{expr_lhs} is an invalid name for the timeseries LHS. Must use a valid variable name')
     expr_reduced = expr
+
     units = expr_options['units'] if expr_options['units'] is not _unspecified else None
     shape = expr_options['shape'] if expr_options['shape'] is not _unspecified else (1,)
 
@@ -807,9 +806,14 @@ def configure_timeseries_expr_introspection(phase, timeseries_name, expr_options
         if var_name not in phase.timeseries_ec_vars.keys():
             phase.timeseries_ec_vars[var_name] = {'added_to_ec': False, 'abs_name': name}
     expr_vars = {}
-    expr_kwargs = {}
+    expr_kwargs = expr_options['expr_kwargs']
     meta = {'units': units, 'shape': shape}
+
     for var in phase.timeseries_ec_vars:
+        if var in ('output_name', 'units', 'shape', 'timeseries'):
+            raise RuntimeError(f'{phase.pathname}: Timeseries expression `{expr}` uses the following disallowed '
+                               f'variable name in its definition: \'{var}\'.')
+
         if phase.timeseries_ec_vars[var]['added_to_ec']:
             continue
         elif var == expr_lhs:
@@ -827,7 +831,28 @@ def configure_timeseries_expr_introspection(phase, timeseries_name, expr_options
             var_units = expr_vars[var]['units']
             var_shape = expr_vars[var]['shape']
 
-        expr_kwargs[var] = {'units': var_units, 'shape': (num_output_nodes,) + var_shape}
+        if var not in expr_kwargs:
+            expr_kwargs[var] = {}
+
+        if 'units' not in expr_kwargs[var]:
+            expr_kwargs[var]['units'] = var_units
+        elif var == expr_lhs:
+            meta['units'] = expr_kwargs[var]['units']
+
+        if 'shape' in expr_kwargs[var] and var != expr_lhs:
+            om.issue_warning(f'{phase.pathname}: User-provided shape for timeseries expression input `{var}` ignored.\n'
+                             f'Using automatically determined shape {(num_output_nodes,) + var_shape}.',
+                             category=om.UnusedOptionWarning)
+        elif 'shape' in expr_kwargs[var] and var == expr_lhs:
+            if expr_options['shape'] is not _unspecified:
+                om.issue_warning(f'{phase.pathname}: User-provided shape for timeseries expression output `{var}`'
+                                 f'using both the\n`shape` keyword argument and the `{var}` keyword argument '
+                                 f'dictionary.\nThe latter will take precedence.',
+                                 category=om.SetupWarning)
+            var_shape = expr_kwargs[var]['shape']
+            meta['shape'] = var_shape
+
+        expr_kwargs[var]['shape'] = (num_output_nodes,) + var_shape
 
     for input_var in expr_vars:
         abs_name = phase.timeseries_ec_vars[input_var]['abs_name']
