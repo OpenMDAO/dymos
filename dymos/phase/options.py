@@ -666,6 +666,10 @@ class ConstraintOptionsDictionary(om.OptionsDictionary):
                      desc='If True, the given indices will be treated as indices into a C-order flattened array based '
                           'on the shaped of the constrained variable at a point in time.')
 
+        self.declare(name='is_expr', types=bool, default=False,
+                     desc='If True, the given constraint is an expression that must be evaluated rather than a'
+                          ' single variable.')
+
 
 class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
     """

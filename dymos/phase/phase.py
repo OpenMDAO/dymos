@@ -1028,9 +1028,9 @@ class Phase(om.Group):
         loc : str
             The location of the boundary constraint ('initial' or 'final').
         constraint_name : str or None
-            The name of the variable as provided to the boundary constraint comp.  By
-            default this is the last element in `name` when split by dots.  The user may
-            override the constraint name if splitting the path causes name collisions.
+            The name of the boundary constraint. By default, this is the left-hand side of
+            the given expression or "var_constraint" if var is a single variable. The user may
+            override the constraint name if desired.
         units : str or None
             The units in which the boundary constraint is to be applied.  If None, use the
             units associated with the constrained output.  If provided, must be compatible with
@@ -1071,6 +1071,16 @@ class Phase(om.Group):
             raise ValueError(f'Invalid boundary constraint location "{loc}". Must be '
                              '"initial" or "final".')
 
+        expr_operators = ['(', '+', '-', '/', '*', '&', '%']
+        if '=' in name:
+            is_expr = True
+        elif '=' not in name and any(opr in name for opr in expr_operators):
+            raise ValueError(f'The expression provided {name} has invalid format. '
+                             'Expression may be a single variable or an equation'
+                             'of the form "constraint_name = func(vars)"')
+        else:
+            is_expr = False
+
         if constraint_name is None:
             constraint_name = name.rpartition('.')[-1]
 
@@ -1081,6 +1091,13 @@ class Phase(om.Group):
         if existing_bc:
             raise ValueError(f'Cannot add new {loc} boundary constraint for variable `{name}` and indices {indices}. '
                              f'One already exists.')
+
+        existing_bc = [bc for bc in bc_list if bc['name'] == constraint_name and
+                       bc['indices'] is None and indices is None]
+
+        if existing_bc:
+            raise ValueError(f'Cannot add new {loc} boundary constraint named `{constraint_name}` and indices{indices}.'
+                             f' `{constraint_name}` is already in use as a {loc} boundary constraint')
 
         bc = ConstraintOptionsDictionary()
         bc_list.append(bc)
@@ -1099,6 +1116,7 @@ class Phase(om.Group):
         bc['linear'] = linear
         bc['units'] = units
         bc['flat_indices'] = flat_indices
+        bc['is_expr'] = is_expr
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
