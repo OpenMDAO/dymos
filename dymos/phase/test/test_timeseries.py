@@ -600,7 +600,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         phase.add_timeseries_output('sin_theta=sin(theta)', units='unitless', theta={'units': 'rad', 'shape': (1,)})
 
-        expected = 'User-provided shape for timeseries expression input `theta` ignored.\n' \
+        expected = 'phase0: User-provided shape for timeseries expression input `theta` ignored.\n' \
                    'Using automatically determined shape (20, 1).'
 
         with warnings.catch_warnings(record=True) as ctx:

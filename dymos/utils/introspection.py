@@ -807,6 +807,7 @@ def configure_timeseries_expr_introspection(phase, timeseries_name, expr_options
             phase.timeseries_ec_vars[var_name] = {'added_to_ec': False, 'abs_name': name}
     expr_vars = {}
     expr_kwargs = expr_options['expr_kwargs']
+    kwargs_rel_shape = {}
     meta = {'units': units, 'shape': shape}
 
     for var in phase.timeseries_ec_vars:
@@ -852,14 +853,16 @@ def configure_timeseries_expr_introspection(phase, timeseries_name, expr_options
             var_shape = expr_kwargs[var]['shape']
             meta['shape'] = var_shape
 
-        expr_kwargs[var]['shape'] = (num_output_nodes,) + var_shape
+        expr_kwargs[var]['shape'] = var_shape
+        kwargs_rel_shape[var] = {'units': expr_kwargs[var]['units'],
+                                 'shape': (num_output_nodes,) + expr_kwargs[var]['shape']}
 
     for input_var in expr_vars:
         abs_name = phase.timeseries_ec_vars[input_var]['abs_name']
         if '.' in abs_name:
             expr_reduced = expr_reduced.replace(abs_name, input_var)
 
-    timeseries_ec.add_expr(expr_reduced, **expr_kwargs)
+    timeseries_ec.add_expr(expr_reduced, **kwargs_rel_shape)
 
     for var, options in expr_vars.items():
         if phase.timeseries_ec_vars[var]['added_to_ec']:

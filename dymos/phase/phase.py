@@ -1220,7 +1220,7 @@ class Phase(om.Group):
         timeseries : str or None
             The name of the timeseries to which the output is being added.
         **kwargs
-            Additional arguments passed to the exec
+            Additional arguments passed to the exec comp.
         """
         if type(name) is list:
             for i, name_i in enumerate(name):
