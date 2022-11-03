@@ -2,6 +2,7 @@ import unittest
 import warnings
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from dymos.utils.introspection import get_promoted_vars
 
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
@@ -676,17 +677,15 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                           tolerance=2.0E-3)
 
         # check units
-        un = dict(p.model.list_outputs(units=True))
-        assert(un['traj.phases.burn1.timeseries.pos_x']['units'] == 'm')
-        assert(un['traj.phases.burn1.timeseries.pos_y']['units'] == 'DU')
-        assert(un['traj.phases.burn2.timeseries.pos_x']['units'] == 'm')
-        assert(un['traj.phases.burn2.timeseries.pos_y']['units'] == 'm')
+        un = get_promoted_vars(p.model, iotypes=('input', 'output'))
+        assert(un['traj.burn1.timeseries.pos_x']['units'] == 'm')
+        assert(un['traj.burn1.timeseries.pos_y']['units'] == 'DU')
+        assert(un['traj.burn2.timeseries.pos_x']['units'] == 'm')
+        assert(un['traj.burn2.timeseries.pos_y']['units'] == 'm')
 
     @use_tempdirs
     def test_two_burn_orbit_raise_gl_wildcard_add_timeseries_output(self):
         import numpy as np
-
-        import matplotlib.pyplot as plt
 
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal

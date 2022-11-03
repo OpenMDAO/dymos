@@ -10,6 +10,7 @@ from .rk_integration_comp import RKIntegrationComp, rk_methods
 from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.introspection import get_promoted_vars, get_source_metadata
 from ...utils.constants import INF_BOUND
+from ..common import TimeseriesOutputGroup
 
 
 class ExplicitShooting(TranscriptionBase):
@@ -395,10 +396,16 @@ class ExplicitShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         gd = self.grid_data
-        for name in phase._timeseries:
+        for name, options in phase._timeseries.items():
+            has_expr = False
+            for _, output_options in options['outputs'].items():
+                if output_options['is_expr']:
+                    has_expr = True
+                    break
             timeseries_comp = ExplicitTimeseriesComp(input_grid_data=gd,
                                                      output_subset='segment_ends')
-            phase.add_subsystem(name, subsys=timeseries_comp)
+            timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
+            phase.add_subsystem(name, subsys=timeseries_group)
 
     def configure_timeseries_outputs(self, phase):
         """
@@ -412,7 +419,7 @@ class ExplicitShooting(TranscriptionBase):
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_timeseries_outputs()
         for timeseries_name, timeseries_options in phase._timeseries.items():
-            timeseries_comp = phase._get_subsystem(timeseries_name)
+            timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
 
             for output_name, options in integrator_comp._filtered_timeseries_outputs.items():
                 added_src = timeseries_comp._add_output_configure(output_name,

@@ -185,6 +185,35 @@ class TestAnalyticPhaseInvalidOptions(unittest.TestCase):
 
         self.assertEqual('AnalyticPhase does not support polynomial controls.', str(e.exception))
 
+    def test_timeseries_expr(self):
+        p = om.Problem()
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+
+        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=10)
+
+        traj.add_phase('phase', phase)
+
+        phase.set_time_options(units='s', targets=['t'], fix_initial=True, fix_duration=True)
+        phase.add_state('y')
+        phase.add_parameter('y0', opt=False)
+        phase.add_timeseries_output('z = y0 + y**2')
+
+        p.setup()
+
+        p.set_val('traj.phase.t_initial', 0.0, units='s')
+        p.set_val('traj.phase.t_duration', 2.0, units='s')
+        p.set_val('traj.phase.parameters:y0', 0.5, units='unitless')
+
+        p.run_model()
+
+        y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
+        y0 = p.get_val('traj.phase.timeseries.parameters:y0', units='unitless')
+
+        expected_z = y0 + y**2
+        z = p.get_val('traj.phase.timeseries.z')
+
+        assert_near_equal(z, expected_z)
+
 
 class TestLinkedAnalyticPhases(unittest.TestCase):
 

@@ -7,6 +7,8 @@ import matplotlib.cm as cm
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from dymos.utils.testing_utils import assert_timeseries_near_equal
+from dymos.utils.introspection import get_promoted_vars
+
 import dymos as dm
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 
@@ -133,37 +135,37 @@ class TestMinTimeClimb(unittest.TestCase):
 
     def _test_wilcard_outputs(self, p):
         """ Test that all wilcard outputs are provided. """
-        output_dict = dict(p.model.list_outputs(units=True, out_stream=None))
+        output_dict = get_promoted_vars(p.model, iotypes=('output',))
         ts = {k: v for k, v in output_dict.items() if 'timeseries.' in k}
         for c in ['mach', 'CD0', 'kappa', 'CLa', 'CL', 'CD', 'q', 'f_lift', 'f_drag', 'thrust', 'm_dot']:
             assert(any([True for t in ts if 'timeseries.' + c in t]))
 
     def _test_timeseries_units(self, p):
         """ Test that the units from the timeseries are correct. """
-        output_dict = dict(p.model.list_outputs(units=True, out_stream=None))
-        assert(output_dict['traj.phases.phase0.timeseries.thrust']['units'] == 'lbf')  # no wildcard, from units dict
-        assert(output_dict['traj.phases.phase0.timeseries.m_dot']['units'] == 'kg/s')  # no wildcard, from ODE
-        assert(output_dict['traj.phases.phase0.timeseries.f_drag']['units'] == 'N')    # wildcard, from ODE
-        assert(output_dict['traj.phases.phase0.timeseries.f_lift']['units'] == 'lbf')  # wildcard, from units dict
+        output_dict = get_promoted_vars(p.model, iotypes=('output',))
+        assert(output_dict['traj.phase0.timeseries.thrust']['units'] == 'lbf')  # no wildcard, from units dict
+        assert(output_dict['traj.phase0.timeseries.m_dot']['units'] == 'kg/s')  # no wildcard, from ODE
+        assert(output_dict['traj.phase0.timeseries.f_drag']['units'] == 'N')    # wildcard, from ODE
+        assert(output_dict['traj.phase0.timeseries.f_lift']['units'] == 'lbf')  # wildcard, from units dict
 
     def _test_mach_rate(self, p, plot=False):
         """ Test that the mach rate is provided by the timeseries and is accurate. """
         # Verify correct timeseries output of mach_rate
-        output_dict = dict(p.model.list_outputs(units=True, out_stream=None))
+        output_dict = get_promoted_vars(p.model, iotypes=('output',))
         ts = {k: v for k, v in output_dict.items() if 'timeseries.' in k}
-        self.assertTrue('traj.phases.phase0.timeseries.mach_rate' in ts)
+        self.assertTrue('traj.phase0.timeseries.mach_rate' in ts)
 
         case = om.CaseReader('dymos_solution.db').get_case('final')
 
-        time = case['traj.phases.phase0.timeseries.time'][:, 0]
-        mach = case['traj.phases.phase0.timeseries.mach'][:, 0]
-        mach_rate = case['traj.phases.phase0.timeseries.mach_rate'][:, 0]
+        time = case['traj.phase0.timeseries.time'][:, 0]
+        mach = case['traj.phase0.timeseries.mach'][:, 0]
+        mach_rate = case['traj.phase0.timeseries.mach_rate'][:, 0]
 
         sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
 
-        sim_time = sim_case['traj.phases.phase0.timeseries.time'][:, 0]
-        sim_mach = sim_case['traj.phases.phase0.timeseries.mach'][:, 0]
-        sim_mach_rate = sim_case['traj.phases.phase0.timeseries.mach_rate'][:, 0]
+        sim_time = sim_case['traj.phase0.timeseries.time'][:, 0]
+        sim_mach = sim_case['traj.phase0.timeseries.mach'][:, 0]
+        sim_mach_rate = sim_case['traj.phase0.timeseries.mach_rate'][:, 0]
 
         # Fit a numpy polynomial segment by segment to mach vs time, and compare the derivatives to mach_rate
         gd = p.model.traj.phases.phase0.options['transcription'].grid_data
@@ -248,6 +250,7 @@ class TestMinTimeClimb(unittest.TestCase):
         self._test_timeseries_units(p)
 
         self._test_mach_rate(p, plot=False)
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

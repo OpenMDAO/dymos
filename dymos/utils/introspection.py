@@ -1,14 +1,17 @@
 from collections.abc import Iterable
 import fnmatch
+import re
 
 import openmdao.api as om
+import numpy as np
 from openmdao.utils.array_utils import shape_to_len
 from dymos.utils.misc import _unspecified
 from ..phase.options import StateOptionsDictionary, TimeseriesOutputOptionsDictionary
 from .misc import get_rate_units
 
 
-def classify_var(var, state_options, parameter_options, control_options, polynomial_control_options):
+def classify_var(var, state_options, parameter_options, control_options,
+                 polynomial_control_options, timeseries_options=None):
     """
     Classifies a variable of the given name or path.
 
@@ -29,6 +32,8 @@ def classify_var(var, state_options, parameter_options, control_options, polynom
         For each control variable, a dictionary of its options, keyed by name.
     polynomial_control_options : dict of {str: OptionsDictionary}
         For each polynomial variable, a dictionary of its options, keyed by name.
+    timeseries_options : {str: OptionsDictionary}
+        For each timeseries, a dictionary of its options, keyed by name.
 
     Returns
     -------
@@ -65,6 +70,11 @@ def classify_var(var, state_options, parameter_options, control_options, polynom
             return 'control_rate2'
         elif var[:-6] in polynomial_control_options:
             return 'polynomial_control_rate2'
+    elif timeseries_options is not None:
+        for timeseries in timeseries_options:
+            if var in timeseries_options[timeseries]['outputs']:
+                if timeseries_options[timeseries]['outputs'][var]['is_expr']:
+                    return 'timeseries_exec_comp_output'
 
     return 'ode'
 
@@ -134,8 +144,7 @@ def get_targets(ode, name, user_targets, control_rates=False):
     if isinstance(ode, dict):
         ode_inputs = ode
     else:
-        ode_inputs = {opts['prom_name']: opts for opts in
-                      ode.get_io_metadata(iotypes=('input',), get_remote=True).values()}
+        ode_inputs = get_promoted_vars(ode, iotypes=('input',))
     if user_targets is _unspecified:
         if name in ode_inputs and control_rates not in {1, 2}:
             return [name]
@@ -726,12 +735,15 @@ def configure_timeseries_output_introspection(phase):
         not_found = set()
 
         for output_name, output_options in ts_opts['outputs'].items():
-            try:
-                output_meta = transcription._get_timeseries_var_source(output_options['name'],
-                                                                       output_options['output_name'],
-                                                                       phase=phase)
-            except ValueError as e:
-                not_found.add(output_name)
+            if output_options['is_expr']:
+                output_meta = configure_timeseries_expr_introspection(phase, ts_name, output_options)
+            else:
+                try:
+                    output_meta = transcription._get_timeseries_var_source(output_options['name'],
+                                                                           output_options['output_name'],
+                                                                           phase=phase)
+                except ValueError as e:
+                    not_found.add(output_name)
 
             output_options['src'] = output_meta['src']
             output_options['src_idxs'] = output_meta['src_idxs']
@@ -749,6 +761,121 @@ def configure_timeseries_output_introspection(phase):
 
         for s in not_found:
             ts_opts['outputs'].pop(s)
+
+
+def configure_timeseries_expr_introspection(phase, timeseries_name, expr_options):
+    """
+    Introspect the timeseries expressions, add expressions to the exec comp, and make connections to the variables.
+
+    Parameters
+    ----------
+    phase : Phase
+        The phase object whose timeseries outputs are to be introspected.
+    timeseries_name : str
+        The name of the timeseries that the expr is to be added to.
+    expr_options : dict
+        Options for the expression to be added to the timeseries exec comp.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the metadata for the source. This consists of shape, units, and tags.
+    """
+    timeseries_ec = phase._get_subsystem(f'{timeseries_name}.timeseries_exec_comp')
+    transcription = phase.options['transcription']
+    num_output_nodes = transcription._get_num_timeseries_nodes()
+
+    expr = expr_options['name']
+    expr_lhs = expr.split('=')[0].strip()
+    if '.' in expr_lhs or ':' in expr_lhs:
+        raise ValueError(f'{expr_lhs} is an invalid name for the timeseries LHS. Must use a valid variable name')
+    expr_reduced = expr
+
+    units = expr_options['units'] if expr_options['units'] is not _unspecified else None
+    shape = expr_options['shape'] if expr_options['shape'] is not _unspecified else (1,)
+
+    abs_names = [x.strip() for x in re.findall(re.compile(r'([_a-zA-Z]\w*[ ]*\(?:?[.]?)'), expr)
+                 if not x.endswith('(') and not x.endswith(':')]
+    for name in abs_names:
+        if name.endswith('.'):
+            idx = abs_names.index(name)
+            abs_names[idx + 1] = name + abs_names[idx + 1]
+            abs_names.remove(name)
+    for name in abs_names:
+        var_name = name.split('.')[-1]
+        if var_name not in phase.timeseries_ec_vars.keys():
+            phase.timeseries_ec_vars[var_name] = {'added_to_ec': False, 'abs_name': name}
+    expr_vars = {}
+    expr_kwargs = expr_options['expr_kwargs']
+    kwargs_rel_shape = {}
+    meta = {'units': units, 'shape': shape}
+
+    for var in phase.timeseries_ec_vars:
+        if var in ('output_name', 'units', 'shape', 'timeseries'):
+            raise RuntimeError(f'{phase.pathname}: Timeseries expression `{expr}` uses the following disallowed '
+                               f'variable name in its definition: \'{var}\'.')
+
+        if phase.timeseries_ec_vars[var]['added_to_ec']:
+            continue
+        elif var == expr_lhs:
+            var_units = units
+            var_shape = shape
+            meta['src'] = f'{timeseries_name}.timeseries_exec_comp.{var}'
+            phase.timeseries_ec_vars[var]['added_to_ec'] = True
+        else:
+            try:
+                expr_vars[var] = transcription._get_timeseries_var_source(var, output_name=var, phase=phase)
+            except ValueError as e:
+                expr_vars[var] = transcription._get_timeseries_var_source(phase.timeseries_ec_vars[var]['abs_name'],
+                                                                          output_name=var, phase=phase)
+
+            var_units = expr_vars[var]['units']
+            var_shape = expr_vars[var]['shape']
+
+        if var not in expr_kwargs:
+            expr_kwargs[var] = {}
+
+        if 'units' not in expr_kwargs[var]:
+            expr_kwargs[var]['units'] = var_units
+        elif var == expr_lhs:
+            meta['units'] = expr_kwargs[var]['units']
+
+        if 'shape' in expr_kwargs[var] and var != expr_lhs:
+            om.issue_warning(f'{phase.pathname}: User-provided shape for timeseries expression input `{var}` ignored.\n'
+                             f'Using automatically determined shape {(num_output_nodes,) + var_shape}.',
+                             category=om.UnusedOptionWarning)
+        elif 'shape' in expr_kwargs[var] and var == expr_lhs:
+            if expr_options['shape'] is not _unspecified:
+                om.issue_warning(f'{phase.pathname}: User-provided shape for timeseries expression output `{var}`'
+                                 f'using both the\n`shape` keyword argument and the `{var}` keyword argument '
+                                 f'dictionary.\nThe latter will take precedence.',
+                                 category=om.SetupWarning)
+            var_shape = expr_kwargs[var]['shape']
+            meta['shape'] = var_shape
+
+        expr_kwargs[var]['shape'] = var_shape
+        kwargs_rel_shape[var] = {'units': expr_kwargs[var]['units'],
+                                 'shape': (num_output_nodes,) + expr_kwargs[var]['shape']}
+
+    for input_var in expr_vars:
+        abs_name = phase.timeseries_ec_vars[input_var]['abs_name']
+        if '.' in abs_name:
+            expr_reduced = expr_reduced.replace(abs_name, input_var)
+
+    timeseries_ec.add_expr(expr_reduced, **kwargs_rel_shape)
+
+    for var, options in expr_vars.items():
+        if phase.timeseries_ec_vars[var]['added_to_ec']:
+            continue
+        else:
+            phase.connect(src_name=options['src'], tgt_name=f'{timeseries_name}.timeseries_exec_comp.{var}',
+                          src_indices=options['src_idxs'])
+
+        phase.timeseries_ec_vars[var]['added_to_ec'] = True
+
+    meta['src_idxs'] = None
+
+    return meta
 
 
 def filter_outputs(patterns, sys):
@@ -1057,7 +1184,7 @@ def get_source_metadata(ode, src, user_units=_unspecified, user_shape=_unspecifi
     ode_outputs = ode if isinstance(ode, dict) else get_promoted_vars(ode, iotypes='output')
 
     if src not in ode_outputs:
-        raise ValueError(f'Unable to find the source {src} in the ODE.')
+        raise ValueError(f"Unable to find the source '{src}' in the ODE.")
 
     if user_units in {None, _unspecified}:
         meta['units'] = ode_outputs[src]['units']

@@ -66,6 +66,7 @@ class Phase(om.Group):
         self.parameter_options = {}
         self.refine_options = GridRefinementOptionsDictionary()
         self.simulate_options = SimulateOptionsDictionary()
+        self.timeseries_ec_vars = {}
 
         # Dictionaries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE
@@ -1190,16 +1191,19 @@ class Phase(om.Group):
                 self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
-                              timeseries='timeseries'):
+                              timeseries='timeseries', **kwargs):
         r"""
         Add a variable to the timeseries outputs of the phase.
+
+        If name is given as an expression, this expression will be passed to an OpenMDAO ExecComp and the result
+        computed and stored in the timeseries output under the variable name to the left of the equal sign.
 
         Parameters
         ----------
         name : str, or list of str
-            The name(s) of the variable to be used as a timeseries output.  Must be one of
-            'time', 'time_phase', one of the states, controls, control rates, or parameters,
-            in the phase, the path to an output variable in the ODE, or a glob pattern
+            The name(s) of the variable to be used as a timeseries output, or a mathematical expression to be used
+            as a timeseries output. If a name, it be one of 'time', 'time_phase', one of the states, controls,
+            control rates, or parameters, in the phase, the path to an output variable in the ODE, or a glob pattern
             matching some outputs in the ODE.
         output_name : str or None or list or dict
             The name of the variable as listed in the phase timeseries outputs.  By
@@ -1215,9 +1219,12 @@ class Phase(om.Group):
             since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
         timeseries : str or None
             The name of the timeseries to which the output is being added.
+        **kwargs
+            Additional arguments passed to the exec comp.
         """
         if type(name) is list:
             for i, name_i in enumerate(name):
+                expr = True if '=' in name_i else False
                 if type(units) is dict:  # accept dict for units when using array of name
                     unit = units.get(name_i, None)
                 elif type(units) is list:  # allow matching list for units
@@ -1229,18 +1236,22 @@ class Phase(om.Group):
                                                     units=unit,
                                                     shape=shape,
                                                     timeseries=timeseries,
-                                                    rate=False)
+                                                    rate=False,
+                                                    expr=expr)
 
                 # Handle specific units for wildcard names.
                 if oname is not None and '*' in name_i:
                     self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
 
         else:
+            expr = True if '=' in name else False
             self._add_timeseries_output(name, output_name=output_name,
                                         units=units,
                                         shape=shape,
                                         timeseries=timeseries,
-                                        rate=False)
+                                        rate=False,
+                                        expr=expr,
+                                        expr_kwargs=kwargs)
 
     def add_timeseries_rate_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                                    timeseries='timeseries'):
@@ -1271,6 +1282,7 @@ class Phase(om.Group):
         """
         if type(name) is list:
             for i, name_i in enumerate(name):
+                expr = True if '=' in name_i else False
                 if type(units) is dict:  # accept dict for units when using array of name
                     unit = units.get(name_i, None)
                 elif type(units) is list:  # allow matching list for units
@@ -1282,7 +1294,8 @@ class Phase(om.Group):
                                                     units=unit,
                                                     shape=shape,
                                                     timeseries=timeseries,
-                                                    rate=True)
+                                                    rate=True,
+                                                    expr=expr)
 
                 # Handle specific units for wildcard names.
                 if oname is not None and '*' in name_i:
@@ -1296,7 +1309,7 @@ class Phase(om.Group):
                                         rate=True)
 
     def _add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
-                               timeseries='timeseries', rate=False):
+                               timeseries='timeseries', rate=False, expr=False, expr_kwargs=None):
         r"""
         Add a single variable or rate to the timeseries outputs of the phase.
 
@@ -1326,6 +1339,7 @@ class Phase(om.Group):
         rate : bool
             If True, add the rate of change of the named variable to the timeseries outputs of the
             phase.  The rate variable will be named f'{name}_rate'.  Defaults to False.
+        expr :
 
         Returns
         -------
@@ -1335,7 +1349,9 @@ class Phase(om.Group):
         if timeseries not in self._timeseries:
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
-        if '*' in name:
+        if expr:
+            output_name = name.split('=')[0].strip()
+        elif '*' in name:
             output_name = name
         elif output_name is None:
             output_name = name.rpartition('.')[-1]
@@ -1354,6 +1370,8 @@ class Phase(om.Group):
             ts_output['units'] = units
             ts_output['shape'] = shape
             ts_output['is_rate'] = rate
+            ts_output['is_expr'] = expr
+            ts_output['expr_kwargs'] = expr_kwargs
 
             self._timeseries[timeseries]['outputs'][output_name] = ts_output
 
@@ -1589,7 +1607,8 @@ class Phase(om.Group):
         return classify_var(var, state_options=self.state_options,
                             parameter_options=self.parameter_options,
                             control_options=self.control_options,
-                            polynomial_control_options=self.polynomial_control_options)
+                            polynomial_control_options=self.polynomial_control_options,
+                            timeseries_options=self._timeseries)
 
     def _check_ode(self):
         """
@@ -1693,7 +1712,8 @@ class Phase(om.Group):
         try:
             configure_timeseries_output_introspection(self)
         except RuntimeError as val_err:
-            raise RuntimeError(f'Error during configure_timeseries_output_introspection in phase {self.pathname}.') from val_err
+            raise RuntimeError(f'Error during configure_timeseries_output_introspection in phase {self.pathname}.')\
+                from val_err
 
         transcription.configure_timeseries_outputs(self)
 
@@ -2059,13 +2079,13 @@ class Phase(om.Group):
             op_dict = MPI.COMM_WORLD.bcast(op_dict, root=0)
 
         # Set the integration times
-        op = op_dict['timeseries.time']
+        op = op_dict['timeseries.timeseries_comp.time']
         prob.set_val(f'{self_path}t_initial', op['val'][0, ...])
         prob.set_val(f'{self_path}t_duration', op['val'][-1, ...] - op['val'][0, ...])
 
         # Assign initial state values
         for name in phs.state_options:
-            op = op_dict[f'timeseries.states:{name}']
+            op = op_dict[f'timeseries.timeseries_comp.states:{name}']
             prob[f'{self_path}initial_states:{name}'][...] = op['val'][0, ...]
 
         # Assign control values
