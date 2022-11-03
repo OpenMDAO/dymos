@@ -389,8 +389,6 @@ class TranscriptionBase(object):
                 shape = ts_output['shape']
                 src = ts_output['src']
                 is_rate = ts_output['is_rate']
-                print(name)
-                print(shape)
 
                 added_src = timeseries_comp._add_output_configure(name,
                                                                   shape=shape,
