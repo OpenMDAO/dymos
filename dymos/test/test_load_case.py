@@ -149,10 +149,11 @@ class TestLoadCase(unittest.TestCase):
         outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
                                                                 out_stream=None)])
 
-        time_val = outputs['phase0.timeseries.time']['val']
-        theta_val = outputs['phase0.timeseries.controls:theta']['val']
+        print(outputs)
+        time_val = outputs['phase0.timeseries.timeseries_comp.time']['val']
+        theta_val = outputs['phase0.timeseries.timeseries_comp.controls:theta']['val']
 
-        assert_near_equal(q['phase0.timeseries.controls:theta'],
+        assert_near_equal(q['phase0.timeseries.timeseries_comp.controls:theta'],
                           q.model.phase0.interp(xs=time_val, ys=theta_val, nodes='all'),
                           tolerance=1.0E-3)
 
@@ -181,10 +182,10 @@ class TestLoadCase(unittest.TestCase):
         outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
                                                                 out_stream=None)])
 
-        time_val = outputs['phase0.timeseries.time']['val']
-        theta_val = outputs['phase0.timeseries.controls:theta']['val']
+        time_val = outputs['phase0.timeseries.timeseries_comp.time']['val']
+        theta_val = outputs['phase0.timeseries.timeseries_comp.controls:theta']['val']
 
-        assert_near_equal(q['phase0.timeseries.controls:theta'],
+        assert_near_equal(q['phase0.timeseries.timeseries_comp.controls:theta'],
                           q.model.phase0.interp(xs=time_val, ys=theta_val, nodes='all'),
                           tolerance=1.0E-2)
 

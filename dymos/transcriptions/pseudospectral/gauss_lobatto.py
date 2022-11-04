@@ -365,7 +365,8 @@ class GaussLobatto(PseudospectralBase):
 
         for timeseries_name, timeseries_options in phase._timeseries.items():
             for ts_output_name, ts_output in timeseries_options['outputs'].items():
-                var_type = phase.classify_var(ts_output['name'])
+                name = ts_output['name'] if not ts_output['is_expr'] else ts_output_name
+                var_type = phase.classify_var(name)
                 if var_type == 'ode':
                     units = ts_output['units']
                     shape = ts_output['shape']
