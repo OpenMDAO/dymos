@@ -6,11 +6,13 @@
 name: Dymos Tests
 
 on:
-  # Trigger on push, pull request or workflow dispatch events for the master branch
+  # Trigger on push, pull request
   push:
     branches: [ master ]
   pull_request:
     branches: [ master, develop ]
+
+  # Trigger via workflow_dispatch event
   workflow_dispatch:
 
 jobs:
@@ -34,7 +36,7 @@ jobs:
             SNOPT: 7.7
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
-            JAX: True
+            JAX: '0.3.24'
             DOCS: 0
 
           # baseline versions except no pyoptsparse or SNOPT
@@ -69,7 +71,7 @@ jobs:
             SNOPT: 7.7
             OPENMDAO: 'dev'
             OPTIONAL: '[test]'
-            JAX: 'dev'
+            JAX: '0.3.24'
             DOCS: 0
 
           # oldest supported versions
@@ -88,7 +90,6 @@ jobs:
 
     steps:
       - name: Display run details
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         run: |
           echo "============================================================="
           echo "Run #${GITHUB_RUN_NUMBER}"
@@ -98,8 +99,20 @@ jobs:
           echo "Initiated by: ${GITHUB_ACTOR}"
           echo "============================================================="
 
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "${{ matrix.NAME }}" == "latest" ]]; then
+              echo "Triggered by 'workflow_dispatch' event, will run '${{ matrix.NAME }}' build."
+              echo "RUN_BUILD=true" >> $GITHUB_ENV
+            else
+              echo "Triggered by 'workflow_dispatch' event, will not run '${{ matrix.NAME }}' build."
+            fi
+          else
+            echo "Triggered by '${{ github.event_name }}' event, running all builds."
+            echo "RUN_BUILD=true" >> $GITHUB_ENV
+          fi
+
       - name: Create SSH key
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
+        if: env.RUN_BUILD
         shell: bash
         env:
           SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
@@ -111,16 +124,16 @@ jobs:
           echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
 
       - name: Checkout code
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
+        if: env.RUN_BUILD
         uses: actions/checkout@v2
 
       - name: Fetch tags
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
+        if: env.RUN_BUILD
         run: |
           git fetch --prune --unshallow --tags
 
       - name: Setup conda
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
+        if: env.RUN_BUILD
         uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.PY }}
@@ -129,7 +142,7 @@ jobs:
           channel-priority: true
 
       - name: Install Numpy/Scipy
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
+        if: env.RUN_BUILD
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -138,22 +151,16 @@ jobs:
           conda install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
 
       - name: Install jax
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.JAX
+        if: env.RUN_BUILD && matrix.JAX
         shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install jax"
           echo "============================================================="
-          if [[ "${{ matrix.JAX }}" == "dev" ]]; then
-            python -m pip install git+https://github.com/google/jax
-          elif [[ "${{ matrix.OPENMDAO }}" == "latest" || "${{ matrix.JAX }}" == "True" ]]; then
-            python -m pip install jax jaxlib
-          else
-            python -m pip install jax=${{ matrix.JAX }} jaxlib=${{ matrix.JAX }}
-          fi
+          python -m pip install jaxlib==${{ matrix.JAX }} jax==${{ matrix.JAX }}
 
       - name: Install PETSc
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.PETSc
+        if: env.RUN_BUILD && matrix.PETSc
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -177,7 +184,8 @@ jobs:
           echo "-----------------------"
 
       - name: Install pyOptSparse
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.PYOPTSPARSE
+        id: build_pyoptsparse
+        if: env.RUN_BUILD && matrix.PYOPTSPARSE
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -223,7 +231,7 @@ jobs:
           fi
 
       - name: Install OpenMDAO
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.OPENMDAO
+        if: env.RUN_BUILD && matrix.OPENMDAO
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -238,7 +246,7 @@ jobs:
           fi
 
       - name: Install optional dependencies
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.OPTIONAL == '[all]'
+        if: env.RUN_BUILD && matrix.OPTIONAL == '[all]'
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -247,7 +255,7 @@ jobs:
           pip install bokeh
 
       - name: Install Dymos
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
+        if: env.RUN_BUILD
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -256,7 +264,7 @@ jobs:
           pip install .${{ matrix.OPTIONAL }}
 
       - name: Display environment info
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
+        if: env.RUN_BUILD
         shell: bash -l {0}
         run: |
           conda info
@@ -275,7 +283,7 @@ jobs:
                     f'Scipy version {scipy.__version__} is not the requested version (${{ matrix.SCIPY }})'"
 
       - name: Run tests
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
+        if: env.RUN_BUILD
         env:
           DYMOS_CHECK_PARTIALS: True
         shell: bash -l {0}
@@ -308,7 +316,7 @@ jobs:
           coveralls --basedir $SITE_DIR
 
       - name: Build docs
-        if: (github.event_name != 'workflow_dispatch') && (matrix.DOCS == '1' || matrix.DOCS == '2')
+        if: env.RUN_BUILD && (matrix.DOCS == '1' || matrix.DOCS == '2')
         id: build_docs
         shell: bash -l {0}
         run: |
@@ -323,9 +331,7 @@ jobs:
       - name: Display doc build reports
         continue-on-error: True
         if: |
-          github.event_name != 'workflow_dispatch' &&
-          failure() &&
-          (matrix.DOCS == '1' || matrix.DOCS == '2') &&
+          env.RUN_BUILD && (matrix.DOCS == '1' || matrix.DOCS == '2') &&
           steps.build_docs.outcome == 'failure'
         run: |
           for f in /home/runner/work/dymos/dymos/docs/dymos_book/_build/html/reports/*; do
