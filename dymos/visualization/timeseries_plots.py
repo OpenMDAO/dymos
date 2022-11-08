@@ -185,8 +185,8 @@ def _bokeh_timeseries_plots(time_units, var_units, phase_names, phases_node_path
         # add labels, title, and legend
         padding = 0.05 * (max_time - min_time)
         fig = figure(title=title, background_fill_color=bg_fill_color,
-                     x_range=(min_time - padding, max_time + padding), plot_width=180,
-                     plot_height=180)
+                     x_range=(min_time - padding, max_time + padding),
+                     width=180, height=180)
         fig.xaxis.axis_label = time_label
         fig.yaxis.axis_label = var_label
         fig.xgrid.grid_line_color = grid_line_color
@@ -235,7 +235,7 @@ def _bokeh_timeseries_plots(time_units, var_units, phase_names, phases_node_path
 
     # ## Use a dummy figure for the LEGEND
     dum_fig = figure(outline_line_alpha=0, toolbar_location=None,
-                     background_fill_color=bg_fill_color, plot_width=250, max_width=250)
+                     background_fill_color=bg_fill_color, width=250, max_width=250)
 
     # set the components of the figure invisible
     for fig_component in [dum_fig.grid, dum_fig.ygrid, dum_fig.xaxis, dum_fig.yaxis]:

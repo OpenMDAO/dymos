@@ -3,11 +3,13 @@
 name: Dymos Docs
 
 on:
-  # Trigger on push, pull request or workflow dispatch events for the master branch
+  # Trigger on push, pull request
   push:
     branches: [ master ]
   pull_request:
     branches: [ master, develop ]
+
+  # Trigger via workflow_dispatch event
   workflow_dispatch:
 
 jobs:
@@ -31,7 +33,7 @@ jobs:
             PYOPTSPARSE: 'v2.8.3'
             OPENMDAO: 'latest'
             OPTIONAL: '[docs]'
-            JAX: True
+            JAX: '0.3.24'
             PUBLISH_DOCS: 1
 
           # make sure the latest versions of things don't break the docs
@@ -44,12 +46,11 @@ jobs:
             SNOPT: 7.7
             OPENMDAO: 'dev'
             OPTIONAL: '[docs]'
-            JAX: 'dev'
+            JAX: '0.3.24'
             PUBLISH_DOCS: 0
 
     steps:
       - name: Display run details
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         run: |
           echo "============================================================="
           echo "Run #${GITHUB_RUN_NUMBER}"
@@ -60,7 +61,6 @@ jobs:
           echo "============================================================="
 
       - name: Create SSH key
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         shell: bash
         env:
           SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
@@ -72,16 +72,13 @@ jobs:
           echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
 
       - name: Checkout code
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         uses: actions/checkout@v2
 
       - name: Fetch tags
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         run: |
           git fetch --prune --unshallow --tags
 
       - name: Setup conda
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.PY }}
@@ -90,7 +87,6 @@ jobs:
           channel-priority: true
 
       - name: Install Numpy/Scipy
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -99,22 +95,16 @@ jobs:
           conda install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
 
       - name: Install jax
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.JAX
+        if: matrix.JAX
         shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install jax"
           echo "============================================================="
-          if [[ "${{ matrix.JAX }}" == "dev" ]]; then
-            python -m pip install git+https://github.com/google/jax
-          elif [[ "${{ matrix.OPENMDAO }}" == "latest" || "${{ matrix.JAX }}" == "True" ]]; then
-            python -m pip install jax jaxlib
-          else
-            python -m pip install jax=${{ matrix.JAX }} jaxlib=${{ matrix.JAX }}
-          fi
+          python -m pip install jaxlib==${{ matrix.JAX }} jax==${{ matrix.JAX }}
 
       - name: Install PETSc
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.PETSc
+        if: matrix.PETSc
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -137,7 +127,7 @@ jobs:
           echo "OMPI_MCA_rmaps_base_oversubscribe=1" >> $GITHUB_ENV
 
       - name: Install pyOptSparse
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.PYOPTSPARSE
+        if: matrix.PYOPTSPARSE
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -183,7 +173,7 @@ jobs:
           fi
 
       - name: Install OpenMDAO
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest') && matrix.OPENMDAO
+        if: matrix.OPENMDAO
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -198,7 +188,6 @@ jobs:
           fi
 
       - name: Install juptyter-book and jupyter
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -208,7 +197,6 @@ jobs:
 
 
       - name: Install bokeh
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -217,7 +205,6 @@ jobs:
           conda install bokeh
 
       - name: Install Dymos
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -226,7 +213,6 @@ jobs:
           pip install .${{ matrix.OPTIONAL }}
 
       - name: Display environment info
-        if: (github.event_name != 'workflow_dispatch' || matrix.NAME == 'latest')
         shell: bash -l {0}
         run: |
           conda info
@@ -245,7 +231,6 @@ jobs:
                     f'Scipy version {scipy.__version__} is not the requested version (${{ matrix.SCIPY }})'"
 
       - name: Build docs
-        if: (github.event_name != 'workflow_dispatch')
         id: build_docs
         shell: bash -l {0}
         run: |
@@ -259,9 +244,7 @@ jobs:
 
       - name: Display doc build reports
         continue-on-error: True
-        if: |
-          github.event_name != 'workflow_dispatch' &&
-          failure() && steps.build_docs.outcome == 'failure'
+        if: failure() && steps.build_docs.outcome == 'failure'
         run: |
           for f in /home/runner/work/dymos/dymos/docs/dymos_book/_build/html/reports/*; do
             echo "============================================================="
