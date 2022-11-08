@@ -149,6 +149,59 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
 
         assert_near_equal(y, expected(t))
 
+    def test_renamed_state(self):
+
+        class SolutionWithRenamedState(om.ExplicitComponent):
+
+            def initialize(self):
+                self.options.declare('num_nodes', types=(int,))
+
+            def setup(self):
+                nn = self.options['num_nodes']
+                self.add_input('t', shape=(nn,), units='s')
+                self.add_input('y0', shape=(1,), units='unitless', tags=['dymos.static_target'])
+                self.add_output('y', shape=(nn,), units='unitless', tags=['dymos.state_source:foo'])
+
+                ar = np.arange(nn, dtype=int)
+                self.declare_partials(of='y', wrt='t', rows=ar, cols=ar)
+                self.declare_partials(of='y', wrt='y0', rows=ar, cols=np.zeros_like(ar))
+
+            def compute(self, inputs, outputs):
+                t = inputs['t']
+                y0 = inputs['y0']
+                outputs['y'] = t ** 2 + 2 * t + 1 - y0 * np.exp(t)
+
+            def compute_partials(self, inputs, partials):
+                t = inputs['t']
+                y0 = inputs['y0']
+                partials['y', 't'] = 2 * t + 2 - y0 * np.exp(t)
+                partials['y', 'y0'] = -np.exp(t)
+
+        p = om.Problem()
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+
+        phase = dm.AnalyticPhase(ode_class=SolutionWithRenamedState, num_nodes=10)
+
+        traj.add_phase('phase', phase)
+
+        phase.set_time_options(units='s', targets=['t'], fix_initial=True, fix_duration=True)
+        phase.add_parameter('y0', opt=False)
+
+        p.setup()
+
+        p.set_val('traj.phase.t_initial', 0.0, units='s')
+        p.set_val('traj.phase.t_duration', 2.0, units='s')
+        p.set_val('traj.phase.parameters:y0', 0.5, units='unitless')
+
+        p.run_model()
+
+        t = p.get_val('traj.phase.timeseries.time', units='s')
+        y = p.get_val('traj.phase.timeseries.states:foo', units='unitless')
+
+        expected = lambda x: x ** 2 + 2 * x + 1 - 0.5 * np.exp(x)
+
+        assert_near_equal(y, expected(t))
+
 
 @use_tempdirs
 class TestAnalyticPhaseInvalidOptions(unittest.TestCase):

@@ -163,6 +163,21 @@ class Analytic(TranscriptionBase):
         self.any_solved_segs = False
         self.any_connected_opt_segs = False
 
+    def configure_states(self, phase):
+        """
+        Configure the states for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        for name, options in phase.state_options.items():
+            for ts_name, ts_options in phase._timeseries.items():
+                if f'states:{name}' not in ts_options['outputs']:
+                    phase.add_timeseries_output(options['source'], output_name=f'states:{name}',
+                                                timeseries=ts_name)
+
     def configure_states_discovery(self, phase):
         """
         Configure state introspection to determine properties of states.
