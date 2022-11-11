@@ -632,7 +632,7 @@ class Trajectory(om.Group):
                                                     sign_b=options['sign_b'])
                     self._linkages[phase_pair].pop(var_pair)
 
-    def _is_valid_linkage(self, phase_name_a, phase_name_b, loc_a, loc_b, var_a, var_b):
+    def _is_valid_linkage(self, phase_name_a, phase_name_b, loc_a, loc_b, var_a, var_b, fixed_a, fixed_b):
         """
         Validates linkage constraints.
 
@@ -655,6 +655,10 @@ class Trajectory(om.Group):
             The variable name of the first side of the linkage.
         var_b : str
             The variable name of the second side of the linkage.
+        fixed_a : bool
+            True if variable a is fixed at the linkage location.
+        fixed_b : bool
+            True if variable b is fixed at the linkage location
 
         Returns
         -------
@@ -772,8 +776,8 @@ class Trajectory(om.Group):
                     fixed_b = phase_b.is_control_fixed(var_b, loc_b)
                 elif class_b in {'input_polynomial_control', 'indep_polynomial_control'}:
                     fixed_b = phase_b.is_polynomial_control_fixed(var_b, loc_b)
-                elif class_a == 'parameter':
-                    fixed_a = not phase_b.parameter_options[var_a]['opt']
+                elif class_b == 'parameter':
+                    fixed_b = not phase_b.parameter_options[var_b]['opt']
                 else:
                     fixed_b = True
 
@@ -808,10 +812,13 @@ class Trajectory(om.Group):
                     _print_on_rank(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ->  '
                                    f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
                 else:
-                    is_valid, msg = self._is_valid_linkage(phase_name_a, phase_name_b,
-                                                           loc_a, loc_b, var_a, var_b)
 
-                    if not is_valid:
+                    if fixed_a and fixed_b:
+                        msg = f'Cannot link {loc_a} value of "{var_a}" in {phase_name_a} to {loc_b} ' \
+                              f'value of "{var_b}" in {phase_name_b}. Values on both sides of the linkage are fixed ' \
+                              'and the linkage is enforced via constraint. Either link the variables via connection ' \
+                              'or make the variables design variables on at least one side of the connection.'
+
                         raise ValueError(f'Invalid linkage in Trajectory {self.pathname}: {msg}')
 
                     linkage_comp.add_linkage_configure(options)
