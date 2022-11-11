@@ -763,10 +763,12 @@ class Trajectory(om.Group):
                     fixed_a = phase_a.is_control_fixed(var_a, loc_a)
                 elif class_a in {'input_polynomial_control', 'indep_polynomial_control'}:
                     fixed_a = phase_a.is_polynomial_control_fixed(var_a, loc_a)
+                elif class_a in {'control_rate', 'control_rate2'}:
+                    fixed_a = phase_a.is_control_rate_fixed(var_a, loc_a)
                 elif class_a == 'parameter':
                     fixed_a = not phase_a.parameter_options[var_a]['opt']
                 else:
-                    fixed_a = True
+                    fixed_a = False  # No way to know so we allow these to go through
 
                 if class_b == 'time':
                     fixed_b = phase_b.is_time_fixed(loc_b)
@@ -776,10 +778,12 @@ class Trajectory(om.Group):
                     fixed_b = phase_b.is_control_fixed(var_b, loc_b)
                 elif class_b in {'input_polynomial_control', 'indep_polynomial_control'}:
                     fixed_b = phase_b.is_polynomial_control_fixed(var_b, loc_b)
+                elif class_b in {'control_rate', 'control_rate2'}:
+                    fixed_b = phase_b.is_control_rate_fixed(var_b, loc_b)
                 elif class_b == 'parameter':
                     fixed_b = not phase_b.parameter_options[var_b]['opt']
                 else:
-                    fixed_b = True
+                    fixed_b = False  # No way to know so we allow these to go through
 
                 prefixed_a = _get_prefixed_var(var_a, phase_a)
                 prefixed_b = _get_prefixed_var(var_b, phase_b)

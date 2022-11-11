@@ -197,8 +197,15 @@ def _linkages_to_list(traj, model_data):
             loc_a = options['loc_a']
             loc_b = options['loc_b']
 
-            tree_var_a = tree[CBN][phase_name_a][CBN][loc_a][CBN][var_a]
-            tree_var_b = tree[CBN][phase_name_b][CBN][loc_b][CBN][var_b]
+            try:
+                tree_var_a = tree[CBN][phase_name_a][CBN][loc_a][CBN][var_a]
+                tree_var_b = tree[CBN][phase_name_b][CBN][loc_b][CBN][var_b]
+            except KeyError:
+                # When linking two ODE outputs, it's possible for the variable to not show up in the tree.
+                # For example, see the 'ke' linkage in
+                # TestTwoPhaseCannonballODEOutputLinkage.test_traj_param_target_unspecified_units.
+                # For now, let these linkages go undisplayed in the report.
+                pass
 
             tree_var_a['linked'] = tree_var_b['linked'] = True
             tree_var_a['connected'] = tree_var_b['connected'] = options['connected']
