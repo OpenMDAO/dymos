@@ -614,7 +614,7 @@ class Trajectory(om.Group):
         linkages_copy = deepcopy(self._linkages)
         for phase_pair, var_dict in linkages_copy.items():
             phase_name_a, phase_name_b = phase_pair
-
+kl
             phase_b = self._get_subsystem(f'phases.{phase_name_b}')
 
             for var_pair in var_dict.keys():
@@ -935,8 +935,8 @@ class Trajectory(om.Group):
         sign_b : float
             The sign applied to the variable from the second phase in the linkage constraint.
         units : str or None or _unspecified
-            Units of the linkage.  If _unspecified, dymos will use the units from the variable
-            in the first phase of the linkage.  Units of the two specified variables must be
+            Units of the linkage. If _unspecified, dymos will use the units from the variable
+            in the first phase of the linkage. Units of the two specified variables must be
             compatible.
         lower : float or array or None
             The lower bound applied as a constraint on the linkage equation.
@@ -953,16 +953,16 @@ class Trajectory(om.Group):
         ref : float or array or None
             The unit-reference value of the linkage constraint.
         linear : bool
-            If True, treat this variable as a linear constraint, otherwise False.  Linear
+            If True, treat this variable as a linear constraint, otherwise False. Linear
             constraints should only be applied if the variable on each end of the linkage is a
             design variable or a linear function of one.
         connected : bool
             If True, this constraint is enforced by direct connection rather than a constraint
-            for the optimizer.  This is only valid for states and time.
+            for the optimizer. This is only valid for states and time.
         """
         if connected:
             invalid_options = []
-            for arg in ['lower', 'upper', 'equals', 'scaler', 'adder', 'ref0', 'ref']:
+            for arg in ['lower', 'upper', 'equals', 'scaler', 'adder', 'ref0', 'ref', 'units']:
                 if locals()[arg] is not None:
                     invalid_options.append(arg)
             if locals()['linear']:
@@ -972,7 +972,7 @@ class Trajectory(om.Group):
                       f'in trajectory {self.pathname}. The following options for ' \
                       f'add_linkage_constraint were specified but not valid when ' \
                       f'option \'connected\' is True: ' + ' '.join(invalid_options)
-                warnings.warn(msg)
+                om.issue_warning(msg, category=om.UnusedOptionWarning)
 
         if (phase_a, phase_b) not in self._linkages:
             self._linkages[phase_a, phase_b] = OrderedDict()
@@ -997,7 +997,8 @@ class Trajectory(om.Group):
         d['linear'] = linear
         d['connected'] = connected
 
-    def link_phases(self, phases, vars=None, locs=('final', 'initial'), connected=False):
+    def link_phases(self, phases, vars=None, locs=('final', 'initial'), connected=False,
+                    units=_unspecified, scaler=None, adder=None, ref0=None, ref=None, linear=False):
         """
         Specify that phases in the given sequence are to be assume continuity of the given variables.
 
@@ -1026,6 +1027,22 @@ class Trajectory(om.Group):
         connected : bool
             Set to True to directly connect the phases being linked. Otherwise, create constraints
             for the optimizer to solve.
+        units : str or None or _unspecified
+            Units of the linkage.  If _unspecified, dymos will use the units from the variable
+            in the first phase of the linkage.  Units of the two specified variables must be
+            compatible.
+        scaler : float or array or None
+            The scaler of the linkage constraint.
+        adder : float or array or None
+            The adder of the linkage constraint.
+        ref0 : float or array or None
+            The zero-reference value of the linkage constraint.
+        ref : float or array or None
+            The unit-reference value of the linkage constraint.
+        linear : bool
+            If True, treat this variable as a linear constraint, otherwise False.  Linear
+            constraints should only be applied if the variable on each end of the linkage is a
+            design variable or a linear function of one.
 
         See Also
         --------
@@ -1061,7 +1078,8 @@ class Trajectory(om.Group):
             for var in _vars:
                 self.add_linkage_constraint(phase_a=phase_name_a, phase_b=phase_name_b,
                                             var_a=var, var_b=var, loc_a=loc_a, loc_b=loc_b,
-                                            connected=connected)
+                                            connected=connected, units=units,
+                                            scaler=scaler, adder=adder, ref0=ref0, ref=ref, linear=linear)
 
     def _constraint_report(self, outstream=sys.stdout):
         if self.options['sim_mode']:
