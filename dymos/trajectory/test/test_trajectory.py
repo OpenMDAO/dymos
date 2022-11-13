@@ -1330,12 +1330,12 @@ class TestInvalidLinkages(unittest.TestCase):
                          vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
 
         with self.assertWarns(UserWarning) as w:
-            traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel',
-                                        lower=-5, upper=5, ref0=-5, ref=5, linear=True, connected=True)
+            traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel', connected=True,
+                                        units='DU/TU**2', lower=-5, upper=5, ref0=-5, ref=5, linear=True)
 
         expected_warning = 'Invalid option in linkage between burn1:accel and burn2:accel in trajectory traj. ' \
                            'The following options for add_linkage_constraint were specified but ' \
-                           'not valid when option \'connected\' is True: lower upper ref0 ref linear'
+                           'not valid when option \'connected\' is True: lower upper ref0 ref units linear'
 
         self.assertEqual(expected_warning, str(w.warning))
 
