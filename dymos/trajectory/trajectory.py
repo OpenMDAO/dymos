@@ -614,7 +614,7 @@ class Trajectory(om.Group):
         linkages_copy = deepcopy(self._linkages)
         for phase_pair, var_dict in linkages_copy.items():
             phase_name_a, phase_name_b = phase_pair
-kl
+
             phase_b = self._get_subsystem(f'phases.{phase_name_b}')
 
             for var_pair in var_dict.keys():
