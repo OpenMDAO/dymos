@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
 
 
-# @require_pyoptsparse(optimizer='IPOPT')
-# @use_tempdirs
+@require_pyoptsparse(optimizer='IPOPT')
+@use_tempdirs
 class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
     def test_two_burn_orbit_raise_gl_radau_gl_changing_units_error(self):
