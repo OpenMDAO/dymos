@@ -15,6 +15,7 @@ None
 ## Enhancements
 
 * Added the ability to include calculation expressions in timeseries outputs. This feature is still undergoing development and is not supported as of this release. [#846](https://github.com/OpenMDAO/dymos/pull/846)
+* Added ability to specify constraint metadata (scaler, ref, linear, etc) when calling `link_phases`. [#858](https://github.com/OpenMDAO/dymos/pull/858)
 
 ## Bug Fixes
 
