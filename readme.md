@@ -106,7 +106,7 @@ import openmdao.api as om
 import dymos as dm
 import matplotlib.pyplot as plt
 
-
+# First define a system which computes the equations of motion
 class BrachistochroneEOM(om.ExplicitComponent):
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -115,68 +115,37 @@ class BrachistochroneEOM(om.ExplicitComponent):
         nn = self.options['num_nodes']
 
         # Inputs
-        self.add_input('v',
-                       shape=(nn,),
-                       desc='velocity',
-                       units='m/s')
+        self.add_input('v', val=np.zeros(nn), units='m/s', desc='velocity')
+        self.add_input('theta', val=np.zeros(nn), units='rad', desc='angle of wire')
+        self.add_output('xdot', val=np.zeros(nn), units='m/s', desc='x rate of change')
+        self.add_output('ydot', val=np.zeros(nn), units='m/s', desc='y rate of change')
+        self.add_output('vdot', val=np.zeros(nn), units='m/s**2', desc='v rate of change')
 
-        self.add_input('theta',
-                       shape=(nn,),
-                       desc='angle of wire',
-                       units='rad')
-
-        self.add_output('xdot',
-                        shape=(nn,),
-                        desc='velocity component in x',
-                        units='m/s')
-
-        self.add_output('ydot',
-                        shape=(nn,),
-                        desc='velocity component in y',
-                        units='m/s')
-
-        self.add_output('vdot',
-                        val=np.zeros(nn),
-                        desc='acceleration magnitude',
-                        units='m/s**2')
-
-        self.add_output('check',
-                        val=np.zeros(nn),
-                        desc='A check on the solution: v/sin(theta) = constant',
-                        units='m/s')
-
-        # Use OpenMDAO's ability to automatically determine a sparse "coloring" of the jacobian
-        # for this ODE component.
-        self.declare_coloring(wrt='*', method='cs')
+        # Ask OpenMDAO to compute the partial derivatives using complex-step
+        # with a partial coloring algorithm for improved performance
+        self.declare_partials(of='*', wrt='*', method='cs')
+        self.declare_coloring(wrt='*', method='cs', show_summary=True)
 
     def compute(self, inputs, outputs):
-        theta = inputs['theta']
-        cos_theta = np.cos(theta)
-        sin_theta = np.sin(theta)
-        v = inputs['v']
+        v, theta = inputs.values()
+        outputs['vdot'] = 9.80665 * np.cos(theta)
+        outputs['xdot'] = v * np.sin(theta)
+        outputs['ydot'] = -v * np.cos(theta)
 
-        outputs['vdot'] = 9.80665 * cos_theta
-        outputs['xdot'] = v * sin_theta
-        outputs['ydot'] = -v * cos_theta
-        outputs['check'] = v / sin_theta
-
-
-# Define the OpenMDAO problem
-p = om.Problem(model=om.Group())
+p = om.Problem()
 
 # Define a Trajectory object
-traj = dm.Trajectory()
-p.model.add_subsystem('traj', subsys=traj)
+traj = p.model.add_subsystem('traj', dm.Trajectory())
 
 # Define a Dymos Phase object with GaussLobatto Transcription
-phase = dm.Phase(ode_class=BrachistochroneEOM,
-                 transcription=dm.Radau(num_segments=10, order=3))
+tx = dm.GaussLobatto(num_segments=10, order=3)
+phase = dm.Phase(ode_class=BrachistochroneEOM, transcription=tx)
+
 traj.add_phase(name='phase0', phase=phase)
 
 # Set the time options
 phase.set_time_options(fix_initial=True,
                        duration_bounds=(0.5, 10.0))
-
 # Set the state options
 phase.add_state('x', rate_source='xdot',
                 fix_initial=True, fix_final=True)
@@ -184,20 +153,19 @@ phase.add_state('y', rate_source='ydot',
                 fix_initial=True, fix_final=True)
 phase.add_state('v', rate_source='vdot',
                 fix_initial=True, fix_final=False)
-
 # Define theta as a control.
 phase.add_control(name='theta', units='rad',
                   lower=0, upper=np.pi)
-
 # Minimize final time.
 phase.add_objective('time', loc='final')
 
 # Set the driver.
 p.driver = om.ScipyOptimizeDriver()
 
-# Allow OpenMDAO to automatically determine our sparsity pattern
-# for TOTAL derivatives. Doing so can significantly speed up the
-# execution of dymos.
+# Allow OpenMDAO to automatically determine total
+# derivative sparsity pattern.
+# This works in conjunction with partial derivative
+# coloring to give a large speedup
 p.driver.declare_coloring()
 
 # Setup the problem
@@ -210,24 +178,20 @@ p.set_val('traj.phase0.t_duration', 2.0)
 # States and controls here use a linearly interpolated
 # initial guess along the trajectory.
 p.set_val('traj.phase0.states:x',
-          phase.interpolate(ys=[0, 10], nodes='state_input'),
+          phase.interp('x', ys=[0, 10]),
           units='m')
-
 p.set_val('traj.phase0.states:y',
-          phase.interpolate(ys=[10, 5], nodes='state_input'),
+          phase.interp('y', ys=[10, 5]),
           units='m')
-
 p.set_val('traj.phase0.states:v',
-          phase.interpolate(ys=[0, 5], nodes='state_input'),
+          phase.interp('v', ys=[0, 5]),
           units='m/s')
+# constant initial guess for control
+p.set_val('traj.phase0.controls:theta', 90, units='deg')
 
-p.set_val('traj.phase0.controls:theta',
-          phase.interpolate(ys=[5, 45], nodes='control_input'),
-          units='deg')
-
-# Use Dymos' run_problem method to run the driver, simulate the results,
-# and record the results to 'dymos_solution.db' and 'dymos_simulation.db'.
-dm.run_problem(p, simulate=True)
+# Run the driver to solve the problem and generate default plots of
+# state and control values vs time
+dm.run_problem(p, make_plots=True, simulate=True)
 
 # Load the solution and simulation files.
 sol_case = om.CaseReader('dymos_solution.db').get_case('final')

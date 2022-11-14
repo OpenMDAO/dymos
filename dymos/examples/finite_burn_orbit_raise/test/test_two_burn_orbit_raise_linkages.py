@@ -171,7 +171,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                         rate_source='at_dot', targets=['accel'], units='DU/TU**2')
         burn1.add_state('deltav', fix_initial=True, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
-        burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
+        burn1.add_control('u1', rate_continuity=False, rate2_continuity=False, units='deg',
                           scaler=0.01,
                           rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
                           lower=-30, upper=30, targets=['u1'])
@@ -218,7 +218,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                         rate_source='at_dot', targets=['accel'], units='DU/TU**2')
         burn2.add_state('deltav', fix_initial=False, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
-        burn2.add_control('u1', targets=['u1'], rate_continuity=True, rate2_continuity=True,
+        burn2.add_control('u1', targets=['u1'], rate_continuity=False, rate2_continuity=False,
                           units='deg', scaler=0.01, lower=-30, upper=30)
 
         burn2.add_objective('deltav', loc='final', scaler=1.0)
@@ -233,9 +233,9 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Link Phases
         traj.link_phases(phases=['burn1', 'coast', 'burn2'],
-                         vars=['time', 'r', 'vr', 'vt', 'deltav'])
+                         vars=['time', 'r', 'vr', 'vt', 'deltav'], scaler=1.0E-6, linear=True)
         traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'],
-                         locs=('final', 'initial'))
+                         locs=('final', 'initial'), scaler=1.0E-6, linear=True)
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
