@@ -2316,14 +2316,38 @@ class Phase(om.Group):
         bool
             True if the state of the given name is guaranteed to be fixed at the given location.
         """
-        if loc == 'initial':
-            res = self.control_options[name]['fix_initial']
-        elif loc == 'final':
-            res = self.control_options[name]['fix_final']
+        control_opts = self.control_options[name]
+        if loc == 'initial' and control_opts['fix_initial']:
+            res = True
+        elif loc == 'final' and control_opts['fix_final']:
+            res = True
         else:
-            raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
-                             f'"final" but got {loc}')
+            res = not control_opts['opt']
         return res
+
+    def is_control_rate_fixed(self, name, loc):
+        """
+        Test if the control rate of the given name is guaranteed to be fixed at the initial or final time.
+
+        Parameters
+        ----------
+        name : str
+            The name of the control to be tested.
+        loc : str
+            The location of time to be tested: either 'initial' or 'final'.
+
+        Returns
+        -------
+        bool
+            True if the state of the given name is guaranteed to be fixed at the given location.
+        """
+        if name.endswith('_rate') and self.control_options is not None and \
+                name[:-5] in self.control_options:
+            control_name = name[:-5]
+        elif name.endswith('_rate2') and self.control_options is not None and \
+                name[:-6] in self.control_options:
+            control_name = name[:-6]
+        return self.is_control_fixed(control_name, loc)
 
     def is_polynomial_control_fixed(self, name, loc):
         """
@@ -2349,6 +2373,30 @@ class Phase(om.Group):
             raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
                              f'"final" but got {loc}')
         return res
+
+    def is_polynomial_control_rate_fixed(self, name, loc):
+        """
+        Test if the polynomial control rate of the given name is guaranteed to be fixed at the initial or final time.
+
+        Parameters
+        ----------
+        name : str
+            The name of the control to be tested.
+        loc : str
+            The location of time to be tested: either 'initial' or 'final'.
+
+        Returns
+        -------
+        bool
+            True if the state of the given name is guaranteed to be fixed at the given location.
+        """
+        if name.endswith('_rate') and self.polynomial_control_options is not None and \
+                name[:-5] in self.polynomial_control_options:
+            control_name = name[:-5]
+        elif name.endswith('_rate2') and self.polynomial_control_options is not None and \
+                name[:-6] in self.options['polynomial_control_options']:
+            control_name = name[:-6]
+        return self.is_polynomial_control_fixed(control_name, loc)
 
     def _indices_in_constraints(self, name, loc):
         """
