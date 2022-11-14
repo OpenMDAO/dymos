@@ -1,4 +1,35 @@
 *******************************
+# Release Notes for Dymos 1.6.1
+
+November 14, 2022
+
+Version 1.6.1 of Dymos addresses bugs described below.
+
+This release also includes the start of an implementation to allow calculated expressions to be used as 
+constraints and timeseries outputs, but this feature is still undergoing development and documentation.
+
+## Backwards Incompatible API Changes & Deprecations
+
+None
+
+## Enhancements
+
+* Added the ability to include calculation expressions in timeseries outputs. This feature is still undergoing development and is not supported as of this release. [#846](https://github.com/OpenMDAO/dymos/pull/846)
+* Added ability to specify constraint metadata (scaler, ref, linear, etc) when calling `link_phases`. [#858](https://github.com/OpenMDAO/dymos/pull/858)
+
+## Bug Fixes
+
+* Fixed a bug in polynomial controls and rates were included in timeseries outputs for ExplicitShooting. [#840](https://github.com/OpenMDAO/dymos/pull/840)
+* Fixed an interpolation issue where scipy now requires unique x-axis values. [#842](https://github.com/OpenMDAO/dymos/pull/842)
+* Added a better error message when time units are `None` and state rate introspection fails to find valid state units based on state rate units. [#851](https://github.com/OpenMDAO/dymos/pull/851)
+* Fixed an issue that was causing states not to show up in the timeseries outputs for AnalyticPhase. [#853](https://github.com/OpenMDAO/dymos/pull/853)
+* Fixed a bug that was causing errors when phase linkages involved parameters. [#858](https://github.com/OpenMDAO/dymos/pull/858)
+
+## Miscellaneous
+
+* Various github workflow issues addressed due to changes in dependencies. [#844](https://github.com/OpenMDAO/dymos/pull/844) [#849](https://github.com/OpenMDAO/dymos/pull/849) [#854](https://github.com/OpenMDAO/dymos/pull/854)
+
+*******************************
 # Release Notes for Dymos 1.6.0
 
 October 17, 2022
