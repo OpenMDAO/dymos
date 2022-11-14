@@ -205,7 +205,7 @@ def _linkages_to_list(traj, model_data):
                 # For example, see the 'ke' linkage in
                 # TestTwoPhaseCannonballODEOutputLinkage.test_traj_param_target_unspecified_units.
                 # For now, let these linkages go undisplayed in the report.
-                pass
+                continue
 
             tree_var_a['linked'] = tree_var_b['linked'] = True
             tree_var_a['connected'] = tree_var_b['connected'] = options['connected']
