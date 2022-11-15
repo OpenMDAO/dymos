@@ -6,6 +6,7 @@ class DmLinkageModelData extends ModelData {
     /** Do some discovery in the tree and rearrange & enhance where necessary. */
     constructor(modelJSON) {
         super(modelJSON);
+        console.log(this.tree)
     }
 
     /**

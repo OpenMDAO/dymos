@@ -11,7 +11,7 @@ _default_linkage_report_filename = 'linkage_report.html'
 
 
 def create_linkage_report(traj, output_file: str = _default_linkage_report_filename,
-                          show_all_vars=False,
+                          show_all_vars=True,
                           title=_default_linkage_report_title, embedded=False):
     """
     Create a tree based on the trajectory and linkages, then export as HTML.
@@ -124,11 +124,26 @@ def _trajectory_to_dict(traj):
 
     tree = model_data['tree']
 
+    tree[CBN]['params'] = {
+        'name': 'params',
+        'type': 'phase',
+        CBN: OrderedDict()
+    }
+
+    for param_name in traj.parameter_options:
+        tree[CBN]['params'][CBN][param_name] = {
+            'name': str(param_name),
+            'type': 'variable',
+            'class': 'parameter',
+            'fixed': False
+        }
+
     for phase_name, phase in traj._phases.items():
         tree_phase = {
             'name': str(phase_name),
             'type': 'phase',
             CBN: OrderedDict({
+                'params': {'name': 'params', 'type': 'condition', CBN: OrderedDict()},
                 'initial': {'name': 'initial', 'type': 'condition', CBN: OrderedDict()},
                 'final': {'name': 'final', 'type': 'condition', CBN: OrderedDict()}
             })
@@ -136,6 +151,7 @@ def _trajectory_to_dict(traj):
 
         tree[CBN][phase_name] = tree_phase
 
+        params_children = tree_phase[CBN]['params'][CBN]
         condition_children = OrderedDict({
             'initial': tree_phase[CBN]['initial'][CBN],
             'final': tree_phase[CBN]['final'][CBN]
@@ -162,9 +178,8 @@ def _trajectory_to_dict(traj):
 
         # Parameters
         for param_name in phase.parameter_options:
-            for loc, child in condition_children.items():
-                child[param_name] = _tree_var(param_name, phase, loc, 'parameters:')
-
+            params_children[param_name] = _tree_var(param_name, phase, loc)
+    
     return model_data
 
 
