@@ -121,7 +121,10 @@ def load_case(problem, previous_solution):
         phase_name = phase_abs_path.rpartition('.')[-1]
 
         # Get the initial time and duration from the previous result and set them into the new phase.
-        prev_time_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.time')][0]
+        try:
+            prev_time_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.time')][0]
+        except IndexError as e:
+            continue
 
         prev_time_val = prev_vars[prev_time_path]['val']
         prev_time_val, unique_idxs = np.unique(prev_time_val, return_index=True)
