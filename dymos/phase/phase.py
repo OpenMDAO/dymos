@@ -116,7 +116,8 @@ class Phase(om.Group):
                   val=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
                   lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
                   ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
-                  defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified,
+                  defect_ref=_unspecified, continuity_scaler=_unspecified, continuity_ref=_unspecified,
+                  solve_segments=_unspecified, connected_initial=_unspecified,
                   source=_unspecified, input_initial=_unspecified, initial_targets=_unspecified,
                   opt=_unspecified, initial_bounds=_unspecified, final_bounds=_unspecified):
         """
@@ -167,6 +168,12 @@ class Phase(om.Group):
         defect_ref : float or ndarray
             The unit-reference value of the state defect at the collocation nodes of the phase. If
             provided, this value overrides defect_scaler.
+        continuity_scaler : float
+            Constraint scaler used to enforce the continuity mismatch defect between segments when transcription
+            is not compressed.
+        continuity_ref : float
+            Reference unit value of the continuity mismatch defect between segments when transcription is not
+            compressed. Used in place of scaler.
         solve_segments : bool(False)
             If True, a solver will be used to converge the collocation defects within a segment.
             Note that the state continuity defects between segements will still be
@@ -197,7 +204,8 @@ class Phase(om.Group):
                                targets=targets, val=val, fix_initial=fix_initial,
                                fix_final=fix_final, lower=lower, upper=upper, scaler=scaler,
                                adder=adder, ref0=ref0, ref=ref, defect_scaler=defect_scaler,
-                               defect_ref=defect_ref, solve_segments=solve_segments,
+                               defect_ref=defect_ref, continuity_scaler=continuity_scaler,
+                               continuity_ref=continuity_ref, solve_segments=solve_segments,
                                connected_initial=connected_initial, source=source, input_initial=input_initial,
                                initial_targets=initial_targets, opt=opt, initial_bounds=initial_bounds,
                                final_bounds=final_bounds)
@@ -207,7 +215,8 @@ class Phase(om.Group):
                           val=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
                           lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
                           ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
-                          defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified,
+                          defect_ref=_unspecified, continuity_scaler=_unspecified, continuity_ref=_unspecified,
+                          solve_segments=_unspecified, connected_initial=_unspecified,
                           source=_unspecified, input_initial=_unspecified, initial_targets=_unspecified,
                           opt=_unspecified, initial_bounds=_unspecified, final_bounds=_unspecified):
         """
@@ -258,6 +267,12 @@ class Phase(om.Group):
         defect_ref : float or ndarray
             The unit-reference value of the state defect at the collocation nodes of the phase. If
             provided, this value overrides defect_scaler.
+        continuity_scaler : float
+            Constraint scaler used to enforce the continuity mismatch defect between segments when transcription
+            is not compressed.
+        continuity_ref : float
+            Reference unit value of the continuity mismatch defect between segments when transcription is not
+            compressed. Used in place of scaler.
         solve_segments : bool(False)
             If True, a solver will be used to converge the collocation defects within a segment.
             Note that the state continuity defects between segements will still be
@@ -333,6 +348,12 @@ class Phase(om.Group):
         if defect_ref is not _unspecified:
             self.state_options[name]['defect_ref'] = defect_ref
 
+        if continuity_scaler is not _unspecified:
+            self.state_options[name]['continuity_scaler'] = continuity_scaler
+
+        if continuity_ref is not _unspecified:
+            self.state_options[name]['continuity_ref'] = continuity_ref
+
         if solve_segments is not _unspecified:
             self.state_options[name]['solve_segments'] = solve_segments
 
@@ -394,9 +415,10 @@ class Phase(om.Group):
                     rate_targets=_unspecified, rate2_targets=_unspecified, val=_unspecified,
                     shape=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
                     adder=_unspecified, ref0=_unspecified, ref=_unspecified, continuity=_unspecified,
-                    continuity_scaler=_unspecified, rate_continuity=_unspecified,
-                    rate_continuity_scaler=_unspecified, rate2_continuity=_unspecified,
-                    rate2_continuity_scaler=_unspecified):
+                    continuity_scaler=_unspecified, continuity_ref=_unspecified, rate_continuity=_unspecified,
+                    rate_continuity_scaler=_unspecified, rate_continuity_ref=_unspecified,
+                    rate2_continuity=_unspecified, rate2_continuity_scaler=_unspecified,
+                    rate2_continuity_ref=_unspecified):
         """
         Adds a dynamic control variable to be tied to a parameter in the ODE.
 
@@ -457,6 +479,8 @@ class Phase(om.Group):
             Scaler of the continuity constraint. This option is invalid if opt=False.  This
             option is only relevant in the Radau pseudospectral transcription where the continuity
             constraint is nonlinear.  For Gauss-Lobatto the continuity constraint is linear.
+        continuity_ref : bool
+            Reference unit value to be used in place of continuity scaler.
         rate_continuity : bool
             Enforce continuity of control first derivatives  (in dimensionless time) at
             segment boundaries.
@@ -464,12 +488,18 @@ class Phase(om.Group):
         rate_continuity_scaler : float
             Scaler of the rate continuity constraint at segment boundaries.
             This option is invalid if opt=False.
-        rate2_continuity : bool
+        rate_continuity_ref : float or None
+            Reference unit value of the rate continuity constraint at segment boundaries, for use in
+            place of rate_continuity_scaler.
+        rate2_continuity : bool or None
             Enforce continuity of control second derivatives at segment boundaries.
             This option is invalid if opt=False.
-        rate2_continuity_scaler : float
+        rate2_continuity_scaler : float or None
             Scaler of the dimensionless rate continuity constraint at segment boundaries.
             This option is invalid if opt=False.
+        rate2_continuity_ref : float or None
+            Reference unit value of the rate2 continuity constraint at segment boundaries, for use in
+            place of rate_continuity_scaler.
 
         Notes
         -----
@@ -480,19 +510,27 @@ class Phase(om.Group):
             self.control_options[name] = ControlOptionsDictionary()
             self.control_options[name]['name'] = name
 
-        self.set_control_options(name, units, desc, opt, fix_initial, fix_final, targets,
-                                 rate_targets, rate2_targets, val, shape, lower, upper, scaler,
-                                 adder, ref0, ref, continuity, continuity_scaler, rate_continuity,
-                                 rate_continuity_scaler, rate2_continuity, rate2_continuity_scaler)
+        self.set_control_options(name, units=units, desc=desc, opt=opt, fix_initial=fix_initial,
+                                 fix_final=fix_final, targets=targets, rate_targets=rate_targets,
+                                 rate2_targets=rate2_targets, val=val, shape=shape, lower=lower,
+                                 upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref,
+                                 continuity=continuity, continuity_scaler=continuity_scaler,
+                                 continuity_ref=continuity_ref, rate_continuity=rate_continuity,
+                                 rate_continuity_scaler=rate_continuity_scaler,
+                                 rate_continuity_ref=rate_continuity_ref,
+                                 rate2_continuity=rate2_continuity,
+                                 rate2_continuity_scaler=rate2_continuity_scaler,
+                                 rate2_continuity_ref=rate2_continuity_ref)
 
     def set_control_options(self, name, units=_unspecified, desc=_unspecified, opt=_unspecified,
                             fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
                             rate_targets=_unspecified, rate2_targets=_unspecified, val=_unspecified,
                             shape=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
                             adder=_unspecified, ref0=_unspecified, ref=_unspecified, continuity=_unspecified,
-                            continuity_scaler=_unspecified, rate_continuity=_unspecified,
-                            rate_continuity_scaler=_unspecified, rate2_continuity=_unspecified,
-                            rate2_continuity_scaler=_unspecified):
+                            continuity_scaler=_unspecified, continuity_ref=_unspecified,
+                            rate_continuity=_unspecified, rate_continuity_scaler=_unspecified,
+                            rate_continuity_ref=_unspecified, rate2_continuity=_unspecified,
+                            rate2_continuity_scaler=_unspecified, rate2_continuity_ref=_unspecified):
         """
         Set options on an existing dynamic control variable in the phase.
 
@@ -553,6 +591,8 @@ class Phase(om.Group):
             Scaler of the continuity constraint. This option is invalid if opt=False.  This
             option is only relevant in the Radau pseudospectral transcription where the continuity
             constraint is nonlinear.  For Gauss-Lobatto the continuity constraint is linear.
+        continuity_ref : bool
+            Reference unit value to be used in place of continuity scaler.
         rate_continuity : bool
             Enforce continuity of control first derivatives  (in dimensionless time) at
             segment boundaries.
@@ -560,12 +600,18 @@ class Phase(om.Group):
         rate_continuity_scaler : float
             Scaler of the rate continuity constraint at segment boundaries.
             This option is invalid if opt=False.
-        rate2_continuity : bool
+        rate_continuity_ref : float or None
+            Reference unit value of the rate continuity constraint at segment boundaries, for use in
+            place of rate_continuity_scaler.
+        rate2_continuity : bool or None
             Enforce continuity of control second derivatives at segment boundaries.
             This option is invalid if opt=False.
-        rate2_continuity_scaler : float
+        rate2_continuity_scaler : float or None
             Scaler of the dimensionless rate continuity constraint at segment boundaries.
             This option is invalid if opt=False.
+        rate2_continuity_ref : float or None
+            Reference unit value of the rate2 continuity constraint at segment boundaries, for use in
+            place of rate_continuity_scaler.
 
         Notes
         -----
@@ -634,17 +680,26 @@ class Phase(om.Group):
         if continuity_scaler is not _unspecified:
             self.control_options[name]['continuity_scaler'] = continuity_scaler
 
+        if continuity_ref is not _unspecified:
+            self.control_options[name]['continuity_ref'] = continuity_ref
+
         if rate_continuity is not _unspecified:
             self.control_options[name]['rate_continuity'] = rate_continuity
 
         if rate_continuity_scaler is not _unspecified:
             self.control_options[name]['rate_continuity_scaler'] = rate_continuity_scaler
 
+        if rate_continuity_ref is not _unspecified:
+            self.control_options[name]['rate_continuity_ref'] = rate_continuity_ref
+
         if rate2_continuity is not _unspecified:
             self.control_options[name]['rate2_continuity'] = rate2_continuity
 
         if rate2_continuity_scaler is not _unspecified:
             self.control_options[name]['rate2_continuity_scaler'] = rate2_continuity_scaler
+
+        if rate2_continuity_ref is not _unspecified:
+            self.control_options[name]['rate2_continuity_ref'] = rate2_continuity_ref
 
     def add_polynomial_control(self, name, order, desc=_unspecified, val=_unspecified, units=_unspecified,
                                opt=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
