@@ -215,8 +215,8 @@ class Phase(om.Group):
                           val=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
                           lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
                           ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
-                          continuity_scaler=_unspecified, continuity_ref=_unspecified,
-                          defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified,
+                          defect_ref=_unspecified, continuity_scaler=_unspecified, continuity_ref=_unspecified,
+                          solve_segments=_unspecified, connected_initial=_unspecified,
                           source=_unspecified, input_initial=_unspecified, initial_targets=_unspecified,
                           opt=_unspecified, initial_bounds=_unspecified, final_bounds=_unspecified):
         """
