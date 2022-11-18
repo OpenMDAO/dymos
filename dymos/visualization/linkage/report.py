@@ -161,7 +161,8 @@ def _trajectory_to_dict(traj):
             'type': 'variable',
             'class': 'parameter',
             'fixed': False,
-            'paramOpt': traj.parameter_options[param_name]['opt']
+            'paramOpt': traj.parameter_options[param_name]['opt'],
+            'connected': True
         }
 
     for phase_name, phase in traj._phases.items():
@@ -231,50 +232,44 @@ def _linkages_to_list(traj, model_data):
     tree = model_data['tree']
 
     for phase_pair, var_dict in traj._linkages.items():
-        phase_name_a, phase_name_b = phase_pair
-
         for var_pair, options in var_dict.items():
-            var_a, var_b = var_pair
-            loc_a = options['loc_a']
-            loc_b = options['loc_b']
+            skip = False
+            loc = [options['loc_a'], options['loc_b']]
+            tree_var = []
 
-            try:
-                tree_var_a = tree[CBN][phase_name_a][CBN][loc_a][CBN][var_a]
-            except KeyError:
-                if var_a in tree[CBN][phase_name_a][CBN]['params'][CBN]:
-                    loc_a = 'params'
-                    tree_var_a = tree[CBN][phase_name_a][CBN][loc_a][CBN][var_a]
-                else:
-                    # When linking two ODE outputs, it's possible for the variable to not show up in the tree.
-                    # For example, see the 'ke' linkage in
-                    # TestTwoPhaseCannonballODEOutputLinkage.test_traj_param_target_unspecified_units.
-                    # For now, let these linkages go undisplayed in the report.
-                    continue
+            for i in range(2):
+                phase_cbn = tree[CBN][phase_pair[i]][CBN]
+                if var_pair[i] not in phase_cbn[loc[i]][CBN]:
+                    if var_pair[i] in phase_cbn['params'][CBN]:
+                        # Variable is in the parameters area rather than initial or final condition
+                        loc[i] = 'params'
+                    else:
+                        # When linking two ODE outputs, it's possible for the variable to not show up in the tree.
+                        # For example, see the 'ke' linkage in
+                        # TestTwoPhaseCannonballODEOutputLinkage.test_traj_param_target_unspecified_units.
+                        # For now, let these linkages go undisplayed in the report.
+                        skip = True
 
-            try:
-                tree_var_b = tree[CBN][phase_name_b][CBN][loc_b][CBN][var_b]
-            except KeyError:
-                if var_b in tree[CBN][phase_name_b][CBN]['params'][CBN]:
-                    loc_b = 'params'
-                    tree_var_b = tree[CBN][phase_name_b][CBN][loc_b][CBN][var_b]
-                else:
-                    continue
+                if skip is False:
+                    tree_var.append(phase_cbn[loc[i]][CBN][var_pair[i]])
 
+            if skip is True: continue
 
-            tree_var_a['linked'] = tree_var_b['linked'] = True
-            tree_var_a['connected'] = tree_var_b['connected'] = options['connected']
+            tree_var[0]['linked'] = tree_var[1]['linked'] = True
+            tree_var[0]['connected'] = tree_var[1]['connected'] = options['connected']
 
             linkages.append({
-                'src': f'{phase_name_a}.{loc_a}.{tree_var_a["name"]}',
-                'src_fixed': tree_var_a['fixed'],
-                'tgt': f'{phase_name_b}.{loc_b}.{tree_var_b["name"]}',
-                'tgt_fixed': tree_var_b['fixed']
+                'src': f'{phase_pair[0]}.{loc[0]}.{tree_var[0]["name"]}',
+                'src_fixed': tree_var[0]['fixed'],
+                'tgt': f'{phase_pair[1]}.{loc[1]}.{tree_var[1]["name"]}',
+                'tgt_fixed': tree_var[1]['fixed']
             })
 
     return linkages
 
 
 def _conn_name_to_path(name):
+    """ Convert the full name of the connection to a format the diagram uses. """
     tokens = re.split(r'\W+', name)
     if tokens[1] == 'param_comp':
         return f'params.{tokens.pop()}'
@@ -286,10 +281,12 @@ def _conn_name_to_path(name):
 
 
 def _is_param_conn(name):
+    """ Determine if the specified connection involves a parameter. """
     return re.match(r'.*param_comp.*', name) and not re.match(r'.*timeseries.*', name)
 
 
 def _parameter_connections(traj):
+    """ Find all parameter-to-parameter connections. """
     allconn = traj._problem_meta['model_ref']()._conn_global_abs_in2out
     param_conns = []
 

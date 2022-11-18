@@ -66,6 +66,7 @@ class DmLinkageMatrixCell extends MatrixCell {
             case "group":
                 return new DmLinkageGroupCell(color, this.id);
             case "connected_variable":
+            case "connected_parameter":
                 return new DmLinkageConnectedCell(color, this.id);
             case "variable":
                 return new DmLinkageVariableCell(color, this.id);
