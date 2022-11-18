@@ -28,7 +28,12 @@ class DmLinkageSymbolType extends SymbolType {
             this.name = 'filter';
         }
         else if (cell.srcObj.isConnected() && cell.srcObj === cell.tgtObj) {
-            this.name = 'connected_variable';
+            if (cell.srcObj.isParameter()) {
+                this.name = 'connected_parameter';
+            }
+            else {
+                this.name = 'connected_variable';
+            }
         }
         else {
             this.name = cell.srcObj.type;

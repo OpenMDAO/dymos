@@ -1,6 +1,7 @@
 import dymos as dm
 from collections import OrderedDict
 import inspect
+import re
 from pathlib import Path
 from openmdao.visualization.htmlpp import HtmlPreprocessor
 import openmdao.utils.reports_system as rptsys
@@ -31,6 +32,10 @@ def create_linkage_report(traj, output_file: str = _default_linkage_report_filen
     """
     model_data = _trajectory_to_dict(traj)
     model_data['connections_list'] = _linkages_to_list(traj, model_data)
+    model_data['connections_list'].extend(_parameter_connections(traj))
+    for c in model_data['connections_list']:
+        print(c['src'],'->',c['tgt'])
+
     _convert_dicts_to_lists(model_data['tree'], show_all_vars)
 
     html_vars = {
@@ -65,7 +70,7 @@ def _is_fixed(var_name: str, class_name: str, phase, loc: str):
     phase : Phase
         The phase where the variable is found.
     loc : str
-        Either 'initial' or 'final'.
+        Either 'initial' or 'final' for non-parameters.
 
     Returns
     -------
@@ -88,15 +93,35 @@ def _is_fixed(var_name: str, class_name: str, phase, loc: str):
     return bool(fixed)
 
 
-def _tree_var(var_name, phase, loc, var_name_prefix=""):
-    """ Create a dict to represent a variable in the tree. """
-    class_name = phase.classify_var(var_name)
+def _tree_var(var_name, phase, loc = None, var_name_prefix=""):
+    """
+    Create a dict to represent a variable in the tree.
+    
+    Parameters
+    ----------
+    var_name : str
+        The name of the variable.
+    phase : dymos.Phase
+        Reference to the Phase object.
+    loc : str
+        Either 'initial' or 'final' for non-parameters.
+    var_name_prefix : str
+        A string to prepend to the variable name.
 
+    Returns
+    -------
+    dict
+        Information about the variable represented in the report.
+    """
+    class_name = str(phase.classify_var(var_name))
+    opt = phase.parameter_options[var_name]['opt'] if class_name == 'parameter' else None
+    
     return {
         'name': f"{var_name_prefix}{var_name}",
         'type': 'variable',
-        'class': str(class_name),
-        'fixed': _is_fixed(var_name, class_name, phase, loc)
+        'class': class_name,
+        'fixed': _is_fixed(var_name, class_name, phase, loc),
+        'paramOpt': opt
     }
 
 
@@ -130,12 +155,13 @@ def _trajectory_to_dict(traj):
         CBN: OrderedDict()
     }
 
-    for param_name in traj.parameter_options:
+    for param_name, param in traj.parameter_options.items():
         tree[CBN]['params'][CBN][param_name] = {
             'name': str(param_name),
             'type': 'variable',
             'class': 'parameter',
-            'fixed': False
+            'fixed': False,
+            'paramOpt': traj.parameter_options[param_name]['opt']
         }
 
     for phase_name, phase in traj._phases.items():
@@ -177,8 +203,8 @@ def _trajectory_to_dict(traj):
                 child[pc_name] = _tree_var(pc_name, phase, loc, 'polynomial_controls:')
 
         # Parameters
-        for param_name in phase.parameter_options:
-            params_children[param_name] = _tree_var(param_name, phase, loc)
+        for param_name, param in phase.parameter_options.items():
+            params_children[param_name] = _tree_var(param_name, phase)
     
     return model_data
 
@@ -214,13 +240,26 @@ def _linkages_to_list(traj, model_data):
 
             try:
                 tree_var_a = tree[CBN][phase_name_a][CBN][loc_a][CBN][var_a]
+            except KeyError:
+                if var_a in tree[CBN][phase_name_a][CBN]['params'][CBN]:
+                    loc_a = 'params'
+                    tree_var_a = tree[CBN][phase_name_a][CBN][loc_a][CBN][var_a]
+                else:
+                    # When linking two ODE outputs, it's possible for the variable to not show up in the tree.
+                    # For example, see the 'ke' linkage in
+                    # TestTwoPhaseCannonballODEOutputLinkage.test_traj_param_target_unspecified_units.
+                    # For now, let these linkages go undisplayed in the report.
+                    continue
+
+            try:
                 tree_var_b = tree[CBN][phase_name_b][CBN][loc_b][CBN][var_b]
             except KeyError:
-                # When linking two ODE outputs, it's possible for the variable to not show up in the tree.
-                # For example, see the 'ke' linkage in
-                # TestTwoPhaseCannonballODEOutputLinkage.test_traj_param_target_unspecified_units.
-                # For now, let these linkages go undisplayed in the report.
-                continue
+                if var_b in tree[CBN][phase_name_b][CBN]['params'][CBN]:
+                    loc_b = 'params'
+                    tree_var_b = tree[CBN][phase_name_b][CBN][loc_b][CBN][var_b]
+                else:
+                    continue
+
 
             tree_var_a['linked'] = tree_var_b['linked'] = True
             tree_var_a['connected'] = tree_var_b['connected'] = options['connected']
@@ -233,6 +272,37 @@ def _linkages_to_list(traj, model_data):
             })
 
     return linkages
+
+
+def _conn_name_to_path(name):
+    tokens = re.split(r'\W+', name)
+    if tokens[1] == 'param_comp':
+        return f'params.{tokens.pop()}'
+
+    if tokens[3] == 'param_comp':
+        return f'{tokens[2]}.params.{tokens.pop()}'
+
+    return name
+
+
+def _is_param_conn(name):
+    return re.match(r'.*param_comp.*', name) and not re.match(r'.*timeseries.*', name)
+
+
+def _parameter_connections(traj):
+    allconn = traj._problem_meta['model_ref']()._conn_global_abs_in2out
+    param_conns = []
+
+    for tgt, src in allconn.items():
+        if _is_param_conn(src) and _is_param_conn(tgt):
+            param_conns.append({
+                'src': _conn_name_to_path(src),
+                'src_fixed': False,
+                'tgt': _conn_name_to_path(tgt),
+                'tgt_fixed': False
+            })
+
+    return param_conns
 
 
 def _display_child(child, show_all_vars):

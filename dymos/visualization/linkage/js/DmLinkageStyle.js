@@ -11,6 +11,7 @@ class DmLinkageStyle extends Style {
         'variableCell': 'black',
         'fixedLinkedVariableCell': 'red',
         'fixedUnlinkedVariableCell': '#ffc000',
+        'falseParamOpt': '#ffc000',
         'linkageCell': '#00b051',
         'fixedLinkageCell': '#ffc000',
         'root': '#ccc',

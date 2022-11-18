@@ -42,6 +42,12 @@ class DmLinkageTreeNode extends FilterCapableNode {
 
     isVariable() { return this.type == 'variable'; }
 
+    isTrajectory() { return this.type == 'root'; }
+
+    isParameter() { return this.isVariable() && this.class == 'parameter'; }
+
+    isTrajectoryParameter() { return this.isParameter() && this.parent.parent.isTrajectory(); }
+
     isInputOrOutput() { return this.isVariable(); }
 
     isGroup() { return super.isGroup() || this.isRoot(); }
@@ -50,7 +56,7 @@ class DmLinkageTreeNode extends FilterCapableNode {
 
     isLinked() { return this.linked; }
 
-    isConnected() { return this.isVariable && this.connected == true; }
+    isConnected() { return this.isVariable() && this.connected == true; }
 
     /** In the matrix grid, draw a box around variables that share the same boxAncestor() */
     boxAncestor(level = 2) {
