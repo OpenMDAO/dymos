@@ -91,23 +91,37 @@ class ControlOptionsDictionary(om.OptionsDictionary):
                      desc='Enforce continuity of control values at segment boundaries. This '
                           'option is invalid if opt=False.')
 
+        self.declare(name='continuity_scaler', types=(Number,), default=None, allow_none=True,
+                     desc='Scaler for continuity at segment boundaries. This '
+                          'option is invalid if opt=False.')
+
+        self.declare(name='continuity_ref', types=(Number,), default=None, allow_none=True,
+                     desc='Reference unit value for continuity at segment boundaries instead of scaler.'
+                          'This option is invalid if opt=False.')
+
         self.declare(name='rate_continuity', types=(bool, dict), default=True,
                      desc='Enforce continuity of control first derivatives in dimensionless time '
                           'at segment boundaries. '
                           'This option is invalid if opt=False.')
 
-        self.declare(name='rate_continuity_scaler', types=(Number,), default=1.0,
-                     desc='Scaler of the dimensionless rate continuity constraint at '
-                          'segment boundaries. '
+        self.declare(name='rate_continuity_scaler', types=(Number,), default=None, allow_none=True,
+                     desc='Scaler of the rate continuity constraint at segment boundaries. '
+                          'This option is invalid if opt=False.')
+
+        self.declare(name='rate_continuity_ref', types=(Number,), default=None, allow_none=True,
+                     desc='Reference unit value for rate continuity at segment boundaries instead of scaler.'
                           'This option is invalid if opt=False.')
 
         self.declare(name='rate2_continuity', types=(bool, dict), default=False,
                      desc='Enforce continuity of control second derivatives at segment boundaries. '
                           'This option is invalid if opt=False.')
 
-        self.declare(name='rate2_continuity_scaler', types=(Number,), default=1.0,
-                     desc='Scaler of the dimensionless rate continuity constraint at '
-                          'segment boundaries. '
+        self.declare(name='rate2_continuity_scaler', types=(Number,), default=None, allow_none=True,
+                     desc='Scaler of the rate2 continuity constraint at segment boundaries. '
+                          'This option is invalid if opt=False.')
+
+        self.declare(name='rate2_continuity_ref', types=(Number,), default=None, allow_none=True,
+                     desc='Reference unit value for rate2 continuity at segment boundaries instead of scaler.'
                           'This option is invalid if opt=False.')
 
 
@@ -443,6 +457,14 @@ class StateOptionsDictionary(om.OptionsDictionary):
         self.declare(name='continuity', types=(bool, dict), default=True,
                      desc='Enforce continuity of state values at segment boundaries. This '
                           'option is invalid if opt=False.')
+
+        self.declare(name='continuity_scaler', types=(Number,), default=None, allow_none=True,
+                     desc='Scaler for continuity at segment boundaries. This '
+                          'option is invalid if opt=False.')
+
+        self.declare(name='continuity_ref', types=(Number,), default=None, allow_none=True,
+                     desc='Reference unit value for continuity at segment boundaries instead of scaler.'
+                          'This option is invalid if opt=False.')
 
         self.declare(name='solve_segments', default=None, allow_none=True,
                      values=(False, 'forward', 'backward'),
