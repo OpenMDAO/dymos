@@ -1414,10 +1414,7 @@ class Phase(om.Group):
         if rate:
             output_name = output_name + '_rate'
 
-        if output_name in self._timeseries[timeseries]['outputs']:
-            om.issue_warning(f'Output name `{output_name}` is already in timeseries `{timeseries}`. '
-                             f'New output ignored.')
-        else:
+        if output_name not in self._timeseries[timeseries]['outputs']:
             ts_output = TimeseriesOutputOptionsDictionary()
             ts_output['name'] = name
             ts_output['output_name'] = output_name
