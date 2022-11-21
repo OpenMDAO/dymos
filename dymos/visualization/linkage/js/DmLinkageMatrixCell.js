@@ -41,7 +41,9 @@ class DmLinkageMatrixCell extends MatrixCell {
                 return clr.falseParamOpt;
             }
             if (this.obj.isParameter()) {
-                return clr.variableCell;
+                if ('isFixed' in this.obj && this.obj.isFixed()) {
+                    return this.obj.isLinked()? clr.fixedLinkedVariableCell : clr.variableCell;
+                }
             }
             if ('isFixed' in this.obj && this.obj.isFixed()) {
                 return this.obj.isLinked()? clr.fixedLinkedVariableCell : clr.fixedUnlinkedVariableCell;

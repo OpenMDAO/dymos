@@ -32,9 +32,9 @@ def create_linkage_report(traj, output_file: str = _default_linkage_report_filen
     """
     model_data = _trajectory_to_dict(traj)
     model_data['connections_list'] = _linkages_to_list(traj, model_data)
-    model_data['connections_list'].extend(_parameter_connections(traj))
+    model_data['connections_list'].extend(_parameter_connections(traj, model_data))
     for c in model_data['connections_list']:
-        print(c['src'],'->',c['tgt'])
+        print(f"{c['src']}({c['src_fixed']}) -> {c['tgt']}({c['tgt_fixed']})")
 
     _convert_dicts_to_lists(model_data['tree'], show_all_vars)
 
@@ -274,29 +274,52 @@ def _conn_name_to_path(name):
     if tokens[1] == 'param_comp':
         return f'params.{tokens.pop()}'
 
+    # Example: traj.linkages.v1_to_vr:alpha -> v1_to_vr.alpha
+    if tokens[1] == 'linkages':
+        return f'{tokens[2]}.{tokens[3]}'
+
     if tokens[3] == 'param_comp':
         return f'{tokens[2]}.params.{tokens.pop()}'
 
     return name
 
 
-def _is_param_conn(name):
+def _is_param_conn(name)->bool:
     """ Determine if the specified connection involves a parameter. """
-    return re.match(r'.*param_comp.*', name) and not re.match(r'.*timeseries.*', name)
+    return re.match(r'.*param_comp.*', name) and not re.match(r'.*parameter_vals.*', name)
 
+def _is_ignored_conn(name)->bool:
+    """ Determine if an connection endpoint should be ignored for this diagram. """
+    return re.match(r'.*timeseries.*', name) or re.match(r'.*_auto_ivc.*', name)
 
-def _parameter_connections(traj):
+def _var_ref_from_path(tree, path):
+    """ Find a reference into the tree from a path string. """
+    tokens = re.split(r'\.', path)
+    refpath = tree
+
+    for t in tokens:
+        refpath = refpath[CBN][t]
+
+    return refpath
+
+def _parameter_connections(traj, model_data):
     """ Find all parameter-to-parameter connections. """
     allconn = traj._problem_meta['model_ref']()._conn_global_abs_in2out
+    tree = model_data['tree']
     param_conns = []
 
     for tgt, src in allconn.items():
-        if _is_param_conn(src) and _is_param_conn(tgt):
+        if not (_is_ignored_conn(src) or _is_ignored_conn(tgt)) and \
+            (_is_param_conn(src) or _is_param_conn(tgt)):
+            src_path = _conn_name_to_path(src)
+            src_fixed = _var_ref_from_path(tree, src_path)['fixed']
+            tgt_path = _conn_name_to_path(tgt)
+            tgt_fixed = _var_ref_from_path(tree, tgt_path)['fixed']
             param_conns.append({
-                'src': _conn_name_to_path(src),
-                'src_fixed': False,
-                'tgt': _conn_name_to_path(tgt),
-                'tgt_fixed': False
+                'src': src_path,
+                'src_fixed': src_fixed,
+                'tgt': tgt_path,
+                'tgt_fixed': tgt_fixed
             })
 
     return param_conns
