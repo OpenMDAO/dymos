@@ -111,11 +111,11 @@ class SegmentSimulationComp(om.ExplicitComponent):
                 ode_init_kwargs=self.options['ode_init_kwargs'],
                 reports=self.options['reports'])
 
-        self.add_input(name='time', val=np.ones(nnps_i),
+        self.add_input(name=self.options['time_options']['name'], val=np.ones(nnps_i),
                        units=self.options['time_options']['units'],
                        desc='Time at all nodes within the segment.')
 
-        self.add_input(name='time_phase', val=np.ones(nnps_i),
+        self.add_input(name='t_phase', val=np.ones(nnps_i),
                        units=self.options['time_options']['units'],
                        desc='Phase elapsed time at all nodes within the segment.')
 

@@ -10,7 +10,7 @@ from ..phase.options import StateOptionsDictionary, TimeseriesOutputOptionsDicti
 from .misc import get_rate_units
 
 
-def classify_var(var, state_options, parameter_options, control_options,
+def classify_var(var, time_options, state_options, parameter_options, control_options,
                  polynomial_control_options, timeseries_options=None):
     """
     Classifies a variable of the given name or path.
@@ -24,6 +24,8 @@ def classify_var(var, state_options, parameter_options, control_options,
     ----------
     var : str
         The name of the variable to be classified.
+    time_options : OptionsDictionary
+        Time options for the phase.
     state_options : dict of {str: OptionsDictionary}
         For each state variable, a dictionary of its options, keyed by name.
     parameter_options : dict of {str: OptionsDictionary}
@@ -39,13 +41,15 @@ def classify_var(var, state_options, parameter_options, control_options,
     -------
     str
         The classification of the given variable, which is one of
-        'time', 'time_phase', 'state', 'input_control', 'indep_control', 'control_rate',
+        'time', 't_phase', 'state', 'input_control', 'indep_control', 'control_rate',
         'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
         'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
         or 'ode'.
     """
-    if var in {'time', 'time_phase'}:
-        return var
+    if var == time_options['name']:
+        return 't'
+    elif var == 't_phase':
+        return 't_phase'
     elif var in state_options:
         return 'state'
     elif var in control_options:
@@ -472,7 +476,7 @@ def configure_states_introspection(state_options, time_options, control_options,
 
         # 3. Attempt rate-source introspection
         rate_src = options['rate_source']
-        rate_src_type = classify_var(rate_src, state_options, parameter_options, control_options,
+        rate_src_type = classify_var(rate_src, time_options, state_options, parameter_options, control_options,
                                      polynomial_control_options)
 
         if rate_src_type in {'time', 'time_phase'}:

@@ -58,7 +58,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     phase.add_boundary_constraint('x', loc='final', equals=10)
     phase.add_boundary_constraint('y', loc='final', equals=5)
     # Minimize time at the end of the phase
-    phase.add_objective('time_phase', loc='final', scaler=10)
+    phase.add_objective('t_phase', loc='final', scaler=10)
 
     p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
 
@@ -79,6 +79,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 
 if __name__ == '__main__':
-    p = brachistochrone_min_time(transcription='radau-ps', num_segments=20, run_driver=True,
+    p = brachistochrone_min_time(transcription='radau-ps', num_segments=5, run_driver=True,
                                  transcription_order=5, compressed=False, optimizer='SNOPT',
                                  solve_segments=False, force_alloc_complex=True)

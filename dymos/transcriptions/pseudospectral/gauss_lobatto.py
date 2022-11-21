@@ -550,12 +550,12 @@ class GaussLobatto(PseudospectralBase):
         meta = {}
 
         # Determine the path to the variable
-        if var_type == 'time':
-            path = 'time'
+        if var_type == 't':
+            path = 't'
             src_units = time_units
             src_shape = (1,)
-        elif var_type == 'time_phase':
-            path = 'time_phase'
+        elif var_type == 't_phase':
+            path = 't_phase'
             src_units = time_units
             src_shape = (1,)
         elif var_type == 'state':

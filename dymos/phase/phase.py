@@ -1654,12 +1654,12 @@ class Phase(om.Group):
         -------
         str
             The classification of the given variable, which is one of
-            'time', 'time_phase', 'state', 'control', 'control_rate',
+            'time', 't_phase', 'state', 'control', 'control_rate',
             'control_rate2', 'polynomial_control',
             'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
             or 'ode'.
         """
-        return classify_var(var, state_options=self.state_options,
+        return classify_var(var, time_options=self.time_options, state_options=self.state_options,
                             parameter_options=self.parameter_options,
                             control_options=self.control_options,
                             polynomial_control_options=self.polynomial_control_options,

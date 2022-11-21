@@ -500,6 +500,8 @@ class TimeOptionsDictionary(om.OptionsDictionary):
     def __init__(self, read_only=False):
         super(TimeOptionsDictionary, self).__init__(read_only)
 
+        self.declare('name', types=str, default='time', desc='Name of the integraiton variable in the phase.')
+
         self.declare('units', types=str, allow_none=True,
                      default='s', desc='Units for the integration variable')
 

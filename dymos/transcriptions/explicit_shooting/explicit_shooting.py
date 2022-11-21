@@ -633,12 +633,12 @@ class ExplicitShooting(TranscriptionBase):
         meta = {}
 
         # Determine the path to the variable
-        if var_type == 'time':
-            path = 'integrator.time'
+        if var_type == 't':
+            path = 't'
             src_units = time_units
             src_shape = (1,)
-        elif var_type == 'time_phase':
-            path = 'integrator.time_phase'
+        elif var_type == 't_phase':
+            path = 't_phase'
             src_units = time_units
             src_shape = (1,)
         elif var_type == 'state':

@@ -110,6 +110,7 @@ class SolveIVP(TranscriptionBase):
         grid_data = self.grid_data
         output_nodes_per_seg = self.options['output_nodes_per_seg']
         ode = self._get_ode(phase)
+        time_name = phase.time_options['name']
 
         phase.time.configure_io()
 
@@ -120,8 +121,8 @@ class SolveIVP(TranscriptionBase):
             else:
                 src_idxs = np.arange(i * output_nodes_per_seg, output_nodes_per_seg * (i + 1),
                                      dtype=int)
-            phase.connect('time', f'segment_{i}.time', src_indices=src_idxs, flat_src_indices=True)
-            phase.connect('time_phase', f'segment_{i}.time_phase', src_indices=src_idxs,
+            phase.connect('t', f'segment_{i}.{time_name}', src_indices=src_idxs, flat_src_indices=True)
+            phase.connect('t_phase', f'segment_{i}.t_phase', src_indices=src_idxs,
                           flat_src_indices=True)
 
             phase.segments.promotes(f'segment_{i}', inputs=['t_initial', 't_duration'])
@@ -130,7 +131,7 @@ class SolveIVP(TranscriptionBase):
 
         # The tuples here are (name, user_specified_targets, dynamic)
         for name, targets, dynamic in [('time', options['targets'], True),
-                                       ('time_phase', options['time_phase_targets'], True)]:
+                                       ('t_phase', options['time_phase_targets'], True)]:
             if targets:
                 phase.connect(name, [f'ode.{t}' for t in targets])
 
@@ -608,12 +609,12 @@ class SolveIVP(TranscriptionBase):
         meta = {}
 
         # Determine the path to the variable
-        if var_type == 'time':
-            path = 'time'
+        if var_type == 't':
+            path = 't'
             src_units = time_units
             src_shape = (1,)
-        elif var_type == 'time_phase':
-            path = 'time_phase'
+        elif var_type == 't_phase':
+            path = 't_phase'
             src_units = time_units
             src_shape = (1,)
         elif var_type == 'state':
