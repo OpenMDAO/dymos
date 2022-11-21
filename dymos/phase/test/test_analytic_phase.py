@@ -239,8 +239,6 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         assert_near_equal(y, expected(t))
 
 
-
-
 @use_tempdirs
 class TestAnalyticPhaseInvalidOptions(unittest.TestCase):
 
