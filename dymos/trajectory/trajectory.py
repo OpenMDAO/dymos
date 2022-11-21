@@ -515,7 +515,7 @@ class Trajectory(om.Group):
         var_a = linkage_options['var_a']
         var_b = linkage_options['var_b']
 
-        info_str = f'Error in linking {var_a} from {phase_name_a} to {var_b} in {phase_name_b}'
+        info_str = f'{self.pathname}: ' if self.pathname else ''
 
         phase_a = self._get_subsystem(f'phases.{phase_name_a}')
         phase_b = self._get_subsystem(f'phases.{phase_name_b}')
@@ -579,8 +579,9 @@ class Trajectory(om.Group):
                     shapes[i] = meta['shape']
                     units[i] = meta['units']
                 except ValueError as e:
-                    raise RuntimeError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
-                                       f'phase \'{phases[i].pathname}\' or its ODE.')
+                    raise RuntimeError(f'{info_str}Error in linking {var_a} from {phase_name_a} to {var_b} in '
+                                       f'{phase_name_b}. Unable to find variable \'{vars[i]}\' in phase '
+                                       f'\'{phases[i].pathname}\' or its ODE.')
 
         linkage_options._src_a = sources['a']
         linkage_options._src_b = sources['b']
@@ -592,9 +593,9 @@ class Trajectory(om.Group):
         if linkage_options['units_b'] is _unspecified:
             linkage_options['units_b'] = units['b']
 
-        if (linkage_options['units_a'] != linkage_options['units_b']) and \
+        if not linkage_options['connected'] and (linkage_options['units_a'] != linkage_options['units_b']) and \
                 linkage_options['units'] is _unspecified:
-            raise ValueError(f'{info_str}: Linkage units were not specified but the units of '
+            raise ValueError(f'{info_str}Linkage units were not specified but the units of '
                              f'var_a ({units["a"]}) and var_b ({units["b"]}) are not the same. '
                              f'Units for this linkage constraint must be specified explicitly.')
         else:
@@ -963,7 +964,7 @@ class Trajectory(om.Group):
         if connected:
             invalid_options = []
             for arg in ['lower', 'upper', 'equals', 'scaler', 'adder', 'ref0', 'ref', 'units']:
-                if locals()[arg] is not None:
+                if locals()[arg] is not None and locals()[arg] is not _unspecified:
                     invalid_options.append(arg)
             if locals()['linear']:
                 invalid_options.append('linear')
