@@ -121,8 +121,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             p.setup(check=True, force_alloc_complex=True)
 
-        expected_exception = 'Error in linking accel from burn1 to accel in burn2: Linkage units ' \
-                             'were not specified but the units of var_a (DU/TU**2) and var_b ' \
+        expected_exception = 'traj: Linkage units were not specified but the units of var_a (DU/TU**2) and var_b ' \
                              '(km/s**2) are not the same. Units for this linkage constraint must ' \
                              'be specified explicitly.'
 
