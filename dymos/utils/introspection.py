@@ -41,7 +41,7 @@ def classify_var(var, time_options, state_options, parameter_options, control_op
     -------
     str
         The classification of the given variable, which is one of
-        'time', 't_phase', 'state', 'input_control', 'indep_control', 'control_rate',
+        't', 't_phase', 'state', 'input_control', 'indep_control', 'control_rate',
         'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
         'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
         or 'ode'.
@@ -188,7 +188,7 @@ def _configure_constraint_introspection(phase):
                 om.issue_warning(f"Option 'constraint_name' on {constraint_type} constraint {var} is only "
                                  f"valid for ODE outputs. The option is being ignored.", om.UnusedOptionWarning)
 
-            if var_type in {'time', 'time_phase'}:
+            if var_type in {'t', 't_phase'}:
                 con['shape'] = (1,)
                 con['units'] = time_units if con['units'] is None else con['units']
                 con['constraint_path'] = f'timeseries.{var_type}'
@@ -401,9 +401,10 @@ def configure_time_introspection(time_options, ode):
         within the ODE.
     """
     ode_inputs = get_promoted_vars(ode, 'input')
-    # time
+    time_name = time_options['name']
+
     targets, shape, units, static_target = _get_targets_metadata(ode_inputs,
-                                                                 name='time',
+                                                                 name=time_name,
                                                                  user_targets=time_options['targets'],
                                                                  user_units=time_options['units'],
                                                                  user_shape=(1,))
@@ -412,12 +413,12 @@ def configure_time_introspection(time_options, ode):
     time_options['units'] = units
 
     if static_target:
-        raise ValueError(f"'time' cannot be connected to its targets because one "
+        raise ValueError(f"The integration variable {time_name} cannot be connected to its targets because one "
                          f"or more targets are tagged with 'dymos.static_target'.")
 
     # time_phase
     targets, shape, units, static_target = _get_targets_metadata(ode_inputs,
-                                                                 name='time_phase',
+                                                                 name='t_phase',
                                                                  user_targets=time_options['time_phase_targets'],
                                                                  user_units=time_options['units'],
                                                                  user_shape=(1,))
@@ -425,7 +426,7 @@ def configure_time_introspection(time_options, ode):
     time_options['time_phase_targets'] = targets
 
     if static_target:
-        raise ValueError(f"'time_phase' cannot be connected to its targets because one "
+        raise ValueError(f"'t_phase' cannot be connected to its targets because one "
                          f"or more targets are tagged with 'dymos.static_target'.")
 
 
@@ -479,7 +480,7 @@ def configure_states_introspection(state_options, time_options, control_options,
         rate_src_type = classify_var(rate_src, time_options, state_options, parameter_options, control_options,
                                      polynomial_control_options)
 
-        if rate_src_type in {'time', 'time_phase'}:
+        if rate_src_type in {'t', 't_phase'}:
             rate_src_units = time_options['units']
             rate_src_shape = (1,)
         elif rate_src_type == 'state':

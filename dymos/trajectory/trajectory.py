@@ -531,12 +531,12 @@ class Trajectory(om.Group):
         shapes = {'a': _unspecified, 'b': _unspecified}
 
         for i in ('a', 'b'):
-            if classes[i] == 'time':
+            if classes[i] == 't':
                 sources[i] = 'timeseries.time'
                 shapes[i] = (1,)
                 units[i] = phases[i].time_options['units']
-            elif classes[i] == 'time_phase':
-                sources[i] = 'timeseries.time_phase'
+            elif classes[i] == 't_phase':
+                sources[i] = 'timeseries.t_phase'
                 units[i] = phases[i].time_options['units']
                 shapes[i] = (1,)
             elif classes[i] == 'state':
@@ -704,8 +704,8 @@ class Trajectory(om.Group):
 
         def _get_prefixed_var(var, phase):
             class_var = phase.classify_var(var)
-            prefixes = {'time': '',
-                        'time_phase': '',
+            prefixes = {'t': '',
+                        't_phase': '',
                         'state': 'states:',
                         'parameter': 'parameters:',
                         'input_control': 'controls:',

@@ -1257,9 +1257,9 @@ class Phase(om.Group):
         ----------
         name : str, or list of str
             The name(s) of the variable to be used as a timeseries output, or a mathematical expression to be used
-            as a timeseries output. If a name, it be one of 'time', 'time_phase', one of the states, controls,
-            control rates, or parameters, in the phase, the path to an output variable in the ODE, or a glob pattern
-            matching some outputs in the ODE.
+            as a timeseries output. If a name, it be one of the integration variable, 'time_phase', one of the states,
+            controls, control rates, or parameters, in the phase, the path to an output variable in the ODE, or a glob
+            pattern matching some outputs in the ODE.
         output_name : str or None or list or dict
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
@@ -1317,7 +1317,7 @@ class Phase(om.Group):
         ----------
         name : str, or list of str
             The name(s) of the variable to be used as a timeseries output.  Must be one of
-            'time', 'time_phase', one of the states, controls, control rates, or parameters,
+            the integration variable, 't_phase', one of the states, controls, control rates, or parameters,
             in the phase, the path to an output variable in the ODE, or a glob pattern
             matching some outputs in the ODE.
         output_name : str or None or list or dict
@@ -1375,7 +1375,7 @@ class Phase(om.Group):
         ----------
         name : str
             The name of the variable to be used as a timeseries output.  Must be one of
-            'time', 'time_phase', one of the states, controls, control rates, or parameters,
+            the integration variable, 't_phase', one of the states, controls, control rates, or parameters,
             in the phase, or the path to an output variable in the ODE.
         output_name : str or None
             The name of the variable as listed in the phase timeseries outputs.  By
@@ -1459,7 +1459,7 @@ class Phase(om.Group):
         Parameters
         ----------
         name : str
-            Name of the objective variable.  This should be one of 'time', a state or control
+            Name of the objective variable.  This should be one of the integration variable, a state or control
             variable, or the path to an output from the top level of the RHS.
         loc : str
             Where in the phase the objective is to be evaluated.  Valid
@@ -1651,7 +1651,7 @@ class Phase(om.Group):
         -------
         str
             The classification of the given variable, which is one of
-            'time', 't_phase', 'state', 'control', 'control_rate',
+            't', 't_phase', 'state', 'control', 'control_rate',
             'control_rate2', 'polynomial_control',
             'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
             or 'ode'.
