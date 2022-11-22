@@ -483,7 +483,7 @@ class ExplicitShooting(TranscriptionBase):
         time_units = phase.time_options['units']
         var_type = phase.classify_var(var)
 
-        if var_type == 'time':
+        if var_type == 't':
             shape = (1,)
             units = time_units
             linear = True
@@ -491,11 +491,11 @@ class ExplicitShooting(TranscriptionBase):
                 obj_path = 't_initial'
             else:
                 obj_path = 'integrator.t_final'
-        elif var_type == 'time_phase':
+        elif var_type == 't_phase':
             shape = (1,)
             units = time_units
             linear = True
-            obj_path = 'integrator.time_phase'
+            obj_path = 'integrator.t_phase'
         elif var_type == 'state':
             shape = phase.state_options[var]['shape']
             units = phase.state_options[var]['units']

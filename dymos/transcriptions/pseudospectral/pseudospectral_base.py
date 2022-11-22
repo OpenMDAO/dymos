@@ -539,7 +539,7 @@ class PseudospectralBase(TranscriptionBase):
             shape = (1,)
             units = time_units
             linear = True
-            constraint_path = 'time'
+            constraint_path = 't'
         elif var_type == 't_phase':
             shape = (1,)
             units = time_units

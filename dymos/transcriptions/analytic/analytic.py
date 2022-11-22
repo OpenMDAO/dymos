@@ -489,16 +489,16 @@ class Analytic(TranscriptionBase):
         if ode_outputs is None:
             ode_outputs = get_promoted_vars(phase._get_subsystem(self._rhs_source), 'output')
 
-        if var_type == 'time':
+        if var_type == 't':
             shape = (1,)
             units = time_units
             linear = True
-            constraint_path = 'time'
-        elif var_type == 'time_phase':
+            constraint_path = 't'
+        elif var_type == 't_phase':
             shape = (1,)
             units = time_units
             linear = True
-            constraint_path = 'time_phase'
+            constraint_path = 't_phase'
         elif var_type == 'state':
             constraint_path = f'{self._rhs_source}.{var}'
             src_path = phase.state_options[var]['source']
