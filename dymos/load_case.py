@@ -2,7 +2,7 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.recorders.case import Case
-from .phase.phase import Phase
+from .phase import AnalyticPhase, Phase
 from .trajectory import Trajectory
 from openmdao.utils.om_warnings import issue_warning
 
@@ -142,60 +142,61 @@ def load_case(problem, previous_solution):
             problem.set_val(td_path[0], t_duration, units=prev_time_units)
 
         # Interpolate the timeseries state outputs from the previous solution onto the new grid.
-        for state_name, options in phase.state_options.items():
-            state_path = [s for s in phase_vars if s.endswith(f'{phase_name}.states:{state_name}')][0]
-            prev_state_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.states:{state_name}')][0]
-            prev_state_val = prev_vars[prev_state_path]['val']
-            prev_state_units = prev_vars[prev_state_path]['units']
-            problem.set_val(state_path,
-                            phase.interp(name=state_name,
-                                         xs=prev_time_val,
-                                         ys=prev_state_val[unique_idxs],
-                                         kind='slinear'),
-                            units=prev_state_units)
+        if not isinstance(phase, AnalyticPhase):
+            for state_name, options in phase.state_options.items():
+                state_path = [s for s in phase_vars if s.endswith(f'{phase_name}.states:{state_name}')][0]
+                prev_state_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.states:{state_name}')][0]
+                prev_state_val = prev_vars[prev_state_path]['val']
+                prev_state_units = prev_vars[prev_state_path]['units']
+                problem.set_val(state_path,
+                                phase.interp(name=state_name,
+                                             xs=prev_time_val,
+                                             ys=prev_state_val[unique_idxs],
+                                             kind='slinear'),
+                                units=prev_state_units)
 
-            init_val_path = [s for s in phase_vars if s.endswith(f'{phase_name}.initial_states:{state_name}')]
-            if init_val_path:
-                problem.set_val(init_val_path[0], prev_state_val[0, ...], units=prev_state_units)
+                init_val_path = [s for s in phase_vars if s.endswith(f'{phase_name}.initial_states:{state_name}')]
+                if init_val_path:
+                    problem.set_val(init_val_path[0], prev_state_val[0, ...], units=prev_state_units)
 
-            if options['fix_final']:
-                warning_message = f"{phase_name}.states:{state_name} specifies 'fix_final=True'. " \
-                                  f"If the given restart file has a" \
-                                  f" different final value this will overwrite the user-specified value"
-                issue_warning(warning_message)
+                if options['fix_final']:
+                    warning_message = f"{phase_name}.states:{state_name} specifies 'fix_final=True'. " \
+                                      f"If the given restart file has a" \
+                                      f" different final value this will overwrite the user-specified value"
+                    issue_warning(warning_message)
 
-        # Interpolate the timeseries control outputs from the previous solution onto the new grid.
-        for control_name, options in phase.control_options.items():
-            control_path = [s for s in phase_vars if s.endswith(f'{phase_name}.controls:{control_name}')][0]
-            prev_control_path = [s for s in prev_vars
-                                 if s.endswith(f'{phase_name}.timeseries.controls:{control_name}')][0]
-            prev_control_val = prev_vars[prev_control_path]['val']
-            prev_control_units = prev_vars[prev_control_path]['units']
-            problem.set_val(control_path,
-                            phase.interp(name=control_name,
-                                         xs=prev_time_val,
-                                         ys=prev_control_val[unique_idxs],
-                                         kind='slinear'),
-                            units=prev_control_units)
-            if options['fix_final']:
-                warning_message = f"{phase_name}.controls:{control_name} specifies 'fix_final=True'. " \
-                                  f"If the given restart file has a" \
-                                  f" different final value this will overwrite the user-specified value"
-                issue_warning(warning_message)
+            # Interpolate the timeseries control outputs from the previous solution onto the new grid.
+            for control_name, options in phase.control_options.items():
+                control_path = [s for s in phase_vars if s.endswith(f'{phase_name}.controls:{control_name}')][0]
+                prev_control_path = [s for s in prev_vars
+                                     if s.endswith(f'{phase_name}.timeseries.controls:{control_name}')][0]
+                prev_control_val = prev_vars[prev_control_path]['val']
+                prev_control_units = prev_vars[prev_control_path]['units']
+                problem.set_val(control_path,
+                                phase.interp(name=control_name,
+                                             xs=prev_time_val,
+                                             ys=prev_control_val[unique_idxs],
+                                             kind='slinear'),
+                                units=prev_control_units)
+                if options['fix_final']:
+                    warning_message = f"{phase_name}.controls:{control_name} specifies 'fix_final=True'. " \
+                                      f"If the given restart file has a" \
+                                      f" different final value this will overwrite the user-specified value"
+                    issue_warning(warning_message)
 
-        # Set the output polynomial control outputs from the previous solution as the value
-        for pc_name, options in phase.polynomial_control_options.items():
-            pc_path = [s for s in phase_vars if
-                       s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
-            prev_pc_path = [s for s in prev_vars if s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
-            prev_pc_val = prev_vars[prev_pc_path]['val']
-            prev_pc_units = prev_vars[prev_pc_path]['units']
-            problem.set_val(pc_path, prev_pc_val, units=prev_pc_units)
-            if options['fix_final']:
-                warning_message = f"{phase_name}.polynomial_controls:{pc_name} specifies 'fix_final=True'. " \
-                                  f"If the given restart file has a" \
-                                  f" different final value this will overwrite the user-specified value"
-                issue_warning(warning_message)
+            # Set the output polynomial control outputs from the previous solution as the value
+            for pc_name, options in phase.polynomial_control_options.items():
+                pc_path = [s for s in phase_vars if
+                           s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
+                prev_pc_path = [s for s in prev_vars if s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
+                prev_pc_val = prev_vars[prev_pc_path]['val']
+                prev_pc_units = prev_vars[prev_pc_path]['units']
+                problem.set_val(pc_path, prev_pc_val, units=prev_pc_units)
+                if options['fix_final']:
+                    warning_message = f"{phase_name}.polynomial_controls:{pc_name} specifies 'fix_final=True'. " \
+                                      f"If the given restart file has a" \
+                                      f" different final value this will overwrite the user-specified value"
+                    issue_warning(warning_message)
 
         # Set the timeseries parameter outputs from the previous solution as the parameter value
         for param_name in phase.parameter_options:

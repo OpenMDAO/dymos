@@ -74,6 +74,7 @@ class SimpleBVPSolution(om.ExplicitComponent):
         outputs['y'] = x ** 4 / 12 - x ** 3 / 6 + c_1 * x + c_2
 
 
+@use_tempdirs
 class TestAnalyticPhaseSimpleResults(unittest.TestCase):
 
     def test_simple_ivp_system(self):
@@ -197,6 +198,42 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
 
         t = p.get_val('traj.phase.timeseries.time', units='s')
         y = p.get_val('traj.phase.timeseries.states:foo', units='unitless')
+
+        expected = lambda x: x ** 2 + 2 * x + 1 - 0.5 * np.exp(x)
+
+        assert_near_equal(y, expected(t))
+
+    def test_analytic_phase_load_case(self):
+
+        p = om.Problem()
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+
+        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=10)
+
+        traj.add_phase('phase', phase)
+
+        phase.set_time_options(units='s', targets=['t'], fix_initial=True, fix_duration=True)
+        phase.add_state('y')
+        phase.add_parameter('y0', opt=False)
+
+        p.setup()
+
+        p.set_val('traj.phase.t_initial', 0.0, units='s')
+        p.set_val('traj.phase.t_duration', 2.0, units='s')
+        p.set_val('traj.phase.parameters:y0', 0.5, units='unitless')
+
+        dm.run_problem(p, simulate=False)
+
+        # Change the inputs so that we get different answers unless we reload the same case.
+        p.set_val('traj.phase.t_initial', 0.0, units='s')
+        p.set_val('traj.phase.t_duration', 1.0, units='s')
+        p.set_val('traj.phase.parameters:y0', 0.6, units='unitless')
+
+        # Load the previous case and rerun
+        dm.run_problem(p, simulate=False, restart='dymos_solution.db')
+
+        t = p.get_val('traj.phase.timeseries.time', units='s')
+        y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
 
         expected = lambda x: x ** 2 + 2 * x + 1 - 0.5 * np.exp(x)
 
