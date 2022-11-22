@@ -91,10 +91,10 @@ def _is_fixed(var_name: str, class_name: str, phase, loc: str):
     return bool(fixed)
 
 
-def _tree_var(var_name, phase, loc = None, var_name_prefix=""):
+def _tree_var(var_name, phase, loc=None, var_name_prefix=""):
     """
     Create a dict to represent a variable in the tree.
-    
+
     Parameters
     ----------
     var_name : str
@@ -113,7 +113,7 @@ def _tree_var(var_name, phase, loc = None, var_name_prefix=""):
     """
     class_name = str(phase.classify_var(var_name))
     opt = phase.parameter_options[var_name]['opt'] if class_name == 'parameter' else None
-    
+
     return {
         'name': f"{var_name_prefix}{var_name}",
         'type': 'variable',
@@ -204,7 +204,7 @@ def _trajectory_to_dict(traj):
         # Parameters
         for param_name, param in phase.parameter_options.items():
             params_children[param_name] = _tree_var(param_name, phase)
-    
+
     return model_data
 
 
@@ -251,7 +251,8 @@ def _linkages_to_list(traj, model_data):
                 if skip is False:
                     tree_var.append(phase_cbn[loc[i]][CBN][var_pair[i]])
 
-            if skip is True: continue
+            if skip is True:
+                continue
 
             tree_var[0]['linked'] = tree_var[1]['linked'] = True
             tree_var[0]['connected'] = tree_var[1]['connected'] = options['connected']
@@ -286,9 +287,11 @@ def _is_param_conn(name)->bool:
     """ Determine if the specified connection involves a parameter. """
     return re.match(r'.*param_comp.*', name) and not re.match(r'.*parameter_vals.*', name)
 
+
 def _is_ignored_conn(name)->bool:
     """ Determine if an connection endpoint should be ignored for this diagram. """
     return re.match(r'.*timeseries.*', name) or re.match(r'.*_auto_ivc.*', name)
+
 
 def _var_ref_from_path(tree, path):
     """ Find a reference into the tree from a path string. """
@@ -300,6 +303,7 @@ def _var_ref_from_path(tree, path):
 
     return refpath
 
+
 def _parameter_connections(traj, model_data):
     """ Find all parameter-to-parameter connections. """
     allconn = traj._problem_meta['model_ref']()._conn_global_abs_in2out
@@ -307,8 +311,9 @@ def _parameter_connections(traj, model_data):
     param_conns = []
 
     for tgt, src in allconn.items():
-        if not (_is_ignored_conn(src) or _is_ignored_conn(tgt)) and \
-            (_is_param_conn(src) or _is_param_conn(tgt)):
+        is_ignored = (_is_ignored_conn(src) or _is_ignored_conn(tgt))
+        is_param_conn = (_is_param_conn(src) or _is_param_conn(tgt))
+        if not is_ignored and is_param_conn:
             src_path = _conn_name_to_path(src)
             src_fixed = _var_ref_from_path(tree, src_path)['fixed']
             tgt_path = _conn_name_to_path(tgt)
