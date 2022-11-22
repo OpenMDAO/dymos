@@ -57,8 +57,11 @@ class DmLinkageMatrixCell extends MatrixCell {
 
     /** Choose a renderer based on our SymbolType. */
     _newRenderer() {
-        const renderer = super._newRenderer();
-        if (renderer) return renderer;
+
+        if (! this.inUpperTriangle()) {
+            const renderer = super._newRenderer();
+            if (renderer) return renderer;
+        }
 
         const color = this.color();
 

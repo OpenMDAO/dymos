@@ -33,8 +33,6 @@ def create_linkage_report(traj, output_file: str = _default_linkage_report_filen
     model_data = _trajectory_to_dict(traj)
     model_data['connections_list'] = _linkages_to_list(traj, model_data)
     model_data['connections_list'].extend(_parameter_connections(traj, model_data))
-    for c in model_data['connections_list']:
-        print(f"{c['src']}({c['src_fixed']}) -> {c['tgt']}({c['tgt_fixed']})")
 
     _convert_dicts_to_lists(model_data['tree'], show_all_vars)
 
