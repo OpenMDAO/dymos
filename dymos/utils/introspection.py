@@ -181,9 +181,11 @@ def _configure_constraint_introspection(phase):
     for constraint_type, constraints in [('initial', phase._initial_boundary_constraints),
                                          ('final', phase._final_boundary_constraints),
                                          ('path', phase._path_constraints)]:
-        for con in constraints:
-            time_units = phase.time_options['units']
 
+        time_units = phase.time_options['units']
+        time_name = phase.time_options['name']
+
+        for con in constraints:
             # Determine the path to the variable which we will be constraining
             var = con['name']
             var_type = phase.classify_var(var)
@@ -192,10 +194,15 @@ def _configure_constraint_introspection(phase):
                 om.issue_warning(f"Option 'constraint_name' on {constraint_type} constraint {var} is only "
                                  f"valid for ODE outputs. The option is being ignored.", om.UnusedOptionWarning)
 
-            if var_type in {'t', 't_phase'}:
+            if var_type == 't':
                 con['shape'] = (1,)
                 con['units'] = time_units if con['units'] is None else con['units']
-                con['constraint_path'] = f'timeseries.{var_type}'
+                con['constraint_path'] = f'timeseries.{time_name}'
+
+            elif var_type == 't_phase':
+                con['shape'] = (1,)
+                con['units'] = time_units if con['units'] is None else con['units']
+                con['constraint_path'] = 'timeseries.t_phase'
 
             elif var_type == 'state':
                 state_shape = phase.state_options[var]['shape']
