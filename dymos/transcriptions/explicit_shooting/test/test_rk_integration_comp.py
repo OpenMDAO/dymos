@@ -218,7 +218,7 @@ class TestRKIntegrationComp(unittest.TestCase):
 
         p.run_model()
 
-        t = p.get_val('fixed_step_integrator.time')
+        t = p.get_val('fixed_step_integrator.t')
         x = p.get_val('fixed_step_integrator.states_out:x')
 
         assert_near_equal(t[-1, ...], 2)

@@ -90,8 +90,8 @@ class ODEEvaluationGroup(om.Group):
         self.add_subsystem('tau_comp', TauComp(grid_data=self.grid_data,
                                                vec_size=self.vec_size,
                                                time_units=self.time_options['units']),
-                           promotes_inputs=['time', 't_initial', 't_duration'],
-                           promotes_outputs=['stau', 'ptau', 'dstau_dt', 'time_phase'])
+                           promotes_inputs=['t', 't_initial', 't_duration'],
+                           promotes_outputs=['stau', 'ptau', 'dstau_dt', 't_phase'])
 
         if self.control_options or self.polynomial_control_options:
             c_options = self.control_options
@@ -155,11 +155,11 @@ class ODEEvaluationGroup(om.Group):
         t_duration_targets = self.time_options['t_duration_targets']
         units = self.time_options['units']
 
-        self._ivc.add_output('time', shape=(vec_size,), units=units)
+        self._ivc.add_output('t', shape=(vec_size,), units=units)
         self._ivc.add_output('t_initial', shape=(1,), units=units)
         self._ivc.add_output('t_duration', shape=(1,), units=units)
 
-        for tgts, var in [(targets, 'time'), (time_phase_targets, 'time_phase'),
+        for tgts, var in [(targets, 't'), (time_phase_targets, 't_phase'),
                           (t_initial_targets, 't_initial'), (t_duration_targets, 't_duration')]:
             for t in tgts:
                 self.promotes('ode', inputs=[(t, var)])
@@ -369,12 +369,13 @@ class ODEEvaluationGroup(om.Group):
             or an 'output'.
         """
         var = self.state_options[state_var]['rate_source']
+        time_name = self.time_options['name']
 
-        if var == 'time':
-            rate_path = 'time'
+        if var == time_name:
+            rate_path = 't'
             io = 'input'
-        elif var == 'time_phase':
-            rate_path = 'time_phase'
+        elif var == 't_phase':
+            rate_path = 't_phase'
             io = 'input'
         elif self.state_options is not None and var in self.state_options:
             rate_path = f'states:{var}'

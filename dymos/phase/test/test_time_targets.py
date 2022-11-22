@@ -255,15 +255,15 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         time_phase_all = p['phase0.timeseries.time_phase']
 
-        assert_near_equal(p['phase0.integrator.time_phase'][-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.integrator.t_phase'][-1], 1.8016, tolerance=1.0E-3)
 
         assert_near_equal(p['phase0.integrator.t_initial'], p['phase0.t_initial'])
 
         assert_near_equal(p['phase0.integrator.t_duration'], p['phase0.t_duration'])
 
-        assert_near_equal(p['phase0.integrator.time_phase'], time_phase_all)
+        assert_near_equal(p['phase0.integrator.t_phase'], time_phase_all)
 
-        assert_near_equal(p['phase0.integrator.time'], time_all)
+        assert_near_equal(p['phase0.integrator.t'], time_all)
 
     def test_gauss_lobatto_targets_are_inputs(self):
         num_seg = 20

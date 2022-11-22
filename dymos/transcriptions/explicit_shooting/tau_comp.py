@@ -41,25 +41,25 @@ class TauComp(om.ExplicitComponent):
 
         self.add_input('t_initial', val=0.0, units=time_units)
         self.add_input('t_duration', val=1.0, units=time_units)
-        self.add_input('time', shape=(vec_size,), units=time_units)
+        self.add_input('t', shape=(vec_size,), units=time_units)
         self.add_output('ptau', units=None, shape=(vec_size,))
         self.add_output('stau', units=None, shape=(vec_size,))
         self.add_output('dstau_dt', units=f'1/{time_units}', val=1.0)
-        self.add_output('time_phase', units=time_units, shape=(vec_size,))
+        self.add_output('t_phase', units=time_units, shape=(vec_size,))
         # self.add_discrete_output('segment_index', val=0)
 
         # Setup partials
         ar = np.arange(vec_size, dtype=int)
         self.declare_partials(of='ptau', wrt='t_initial')
         self.declare_partials(of='ptau', wrt='t_duration')
-        self.declare_partials(of='ptau', wrt='time', rows=ar, cols=ar)
+        self.declare_partials(of='ptau', wrt='t', rows=ar, cols=ar)
 
         self.declare_partials(of='stau', wrt='t_initial')
         self.declare_partials(of='stau', wrt='t_duration')
-        self.declare_partials(of='stau', wrt='time', rows=ar, cols=ar)
+        self.declare_partials(of='stau', wrt='t', rows=ar, cols=ar)
 
-        self.declare_partials(of='time_phase', wrt='time', rows=ar, cols=ar, val=1.0)
-        self.declare_partials(of='time_phase', wrt='t_initial', val=-1.0)
+        self.declare_partials(of='t_phase', wrt='t', rows=ar, cols=ar, val=1.0)
+        self.declare_partials(of='t_phase', wrt='t_initial', val=-1.0)
 
         self.declare_partials(of='dstau_dt', wrt='t_duration', val=1.0)
 
@@ -81,7 +81,7 @@ class TauComp(om.ExplicitComponent):
         gd = self._grid_data
         seg_idx = self.options['segment_index']
 
-        time = inputs['time']
+        time = inputs['t']
         t_initial = inputs['t_initial'].copy()
         t_duration = inputs['t_duration'].copy()
 
@@ -94,7 +94,7 @@ class TauComp(om.ExplicitComponent):
 
         outputs['stau'] = 2.0 * (ptau - ptau0_seg) / td_seg - 1.0
         outputs['dstau_dt'] = 4 / (t_duration * td_seg)
-        outputs['time_phase'] = time - t_initial
+        outputs['t_phase'] = time - t_initial
 
     def compute_partials(self, inputs, partials):
         """
@@ -110,7 +110,7 @@ class TauComp(om.ExplicitComponent):
         gd = self._grid_data
         seg_idx = self.options['segment_index']
 
-        time = inputs['time']
+        time = inputs['t']
         t_initial = inputs['t_initial']
         t_duration = inputs['t_duration']
 
@@ -119,7 +119,7 @@ class TauComp(om.ExplicitComponent):
 
         td_seg = ptauf_seg - ptau0_seg
 
-        partials['ptau', 'time'] = 2.0 / t_duration
+        partials['ptau', 't'] = 2.0 / t_duration
         partials['ptau', 't_initial'] = -2.0 / t_duration
         partials['ptau', 't_duration'] = -2.0 * (time - t_initial) / (t_duration ** 2)
 
@@ -127,7 +127,7 @@ class TauComp(om.ExplicitComponent):
 
         # Note that these derivatives ignore the effect of changing segments.
         # The derivatives of stau are discontinuous at segment boundaries.
-        partials['stau', 'time'] = dstau_dptau * partials['ptau', 'time']
+        partials['stau', 't'] = dstau_dptau * partials['ptau', 't']
         partials['stau', 't_initial'] = dstau_dptau * partials['ptau', 't_initial']
         partials['stau', 't_duration'] = dstau_dptau * partials['ptau', 't_duration']
 
