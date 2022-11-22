@@ -74,6 +74,7 @@ class SimpleBVPSolution(om.ExplicitComponent):
         outputs['y'] = x ** 4 / 12 - x ** 3 / 6 + c_1 * x + c_2
 
 
+@use_tempdirs
 class TestAnalyticPhaseSimpleResults(unittest.TestCase):
 
     def test_simple_ivp_system(self):
