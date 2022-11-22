@@ -35,21 +35,15 @@ class DmLinkageMatrixCell extends MatrixCell {
      */
     color() {
         const clr = DmLinkageStyle.color;
-
         if (this.onDiagonal()) {
-            if (this.obj.isTrajectoryParameter() && this.obj.paramOpt === false) {
-                return clr.falseParamOpt;
+            if ('warningLevel' in this.obj) {
+                const level = this.obj.warningLevel(clr);
+                return level.color;
             }
-            if (this.obj.isParameter()) {
-                if ('isFixed' in this.obj && this.obj.isFixed()) {
-                    return this.obj.isLinked()? clr.fixedLinkedVariableCell : clr.variableCell;
-                }
+            else {
+                if (this.obj.draw.minimized) return clr.collapsed;
+                return clr.variableCell;
             }
-            if ('isFixed' in this.obj && this.obj.isFixed()) {
-                return this.obj.isLinked()? clr.fixedLinkedVariableCell : clr.fixedUnlinkedVariableCell;
-            }
-            if (this.obj.draw.minimized) return clr.collapsed;
-            return clr.variableCell;
         }
 
         return clr.linkageCell;

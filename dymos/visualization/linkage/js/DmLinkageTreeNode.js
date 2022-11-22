@@ -8,7 +8,10 @@ class DmLinkageTreeNode extends FilterCapableNode {
     constructor(origNode, attribNames, parent) {
         super(origNode, attribNames, parent);
 
-        if (this.fixed && parent) parent.fixed = true;
+        if (parent) { // Retain "highest warning" cell color when collapsed
+            // Only applies to trajectory parameters:
+            if (this.paramOpt == false) parent.paramOpt = false;
+        }
 
         if (this.isPhase()) {
             this.draw.varBoxDims = new Dimensions({'count': 0})
@@ -46,7 +49,10 @@ class DmLinkageTreeNode extends FilterCapableNode {
 
     isParameter() { return this.isVariable() && this.class == 'parameter'; }
 
-    isTrajectoryParameter() { return this.isParameter() && this.parent.parent.isTrajectory(); }
+    isTrajectoryParameter() {
+        return (this.isParameter() && this.parent.parent.isTrajectory()) ||
+            (this.name == 'params' && this.parent.isTrajectory()); // For the collapsed cell
+    }
 
     isInputOrOutput() { return this.isVariable(); }
 
@@ -55,6 +61,58 @@ class DmLinkageTreeNode extends FilterCapableNode {
     isFixed() { return this.fixed; }
 
     isLinked() { return this.linked; }
+
+    /**
+     * Determine the highest warning level for the node itself, or
+     * find the highest warning level of its children.
+     * @param {Object} colors A list of color definitions.
+     * @returns {Object} Property color is the chosen color, priority is used within
+     *                   this recursive function to help with selection.
+     */
+    warningLevel(colors) {
+        let clr = colors.variableCell;
+        let priority = 0;
+
+        if (this.isVariable()) {
+            if (this.isTrajectoryParameter() && this.paramOpt === false) {
+                clr = colors.falseParamOpt;
+                priority = 1;
+            }
+            else if (this.isParameter()) {
+                if (this.isFixed()) {
+                    if (this.isLinked()) {
+                        clr = colors.fixedLinkedVariableCell;
+                        priority = 2;
+                    }
+                }
+            }
+            else if (this.isFixed()) {
+                if (this.isLinked()) {
+                    clr = colors.fixedLinkedVariableCell;
+                    priority = 2;
+                }
+                else {
+                    clr = colors.fixedUnlinkedVariableCell;
+                    priority = 1;
+                }
+            }
+        }
+        else if (this.hasChildren()) { // Must be a collapsed parent
+            clr = colors.collapsed;
+            for (const child of this.children) {
+                if ('warningLevel' in child) {
+                    const level = child.warningLevel(colors);
+                    if (level.priority > priority) {
+                        console.log("changing color")
+                        clr = level.color;
+                        priority = level.priority;
+                    }
+                }
+            }
+        }
+
+        return { 'color': clr, 'priority': priority };
+    }
 
     isConnected() { return this.isVariable() && this.connected == true; }
 
