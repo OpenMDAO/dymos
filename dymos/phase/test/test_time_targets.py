@@ -155,13 +155,13 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         gd = p.model.phase0.options['transcription'].grid_data
 
-        time_all = p['phase0.time']
+        time_all = p['phase0.t']
         time_col = time_all[gd.subset_node_indices['col']]
         time_disc = time_all[gd.subset_node_indices['state_disc']]
         time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
                                   newshape=(gd.num_segments, 2))
 
-        time_phase_all = p['phase0.time_phase']
+        time_phase_all = p['phase0.t_phase']
         time_phase_col = time_phase_all[gd.subset_node_indices['col']]
         time_phase_disc = time_phase_all[gd.subset_node_indices['state_disc']]
         time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
@@ -207,11 +207,11 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         gd = p.model.phase0.options['transcription'].grid_data
 
-        time_all = p['phase0.time']
+        time_all = p['phase0.t']
         time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
                                   newshape=(gd.num_segments, 2))
 
-        time_phase_all = p['phase0.time_phase']
+        time_phase_all = p['phase0.t_phase']
         time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
                                         newshape=(gd.num_segments, 2))
 
@@ -274,13 +274,13 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         gd = p.model.phase0.options['transcription'].grid_data
 
-        time_all = p['phase0.time']
+        time_all = p['phase0.t']
         time_col = time_all[gd.subset_node_indices['col']]
         time_disc = time_all[gd.subset_node_indices['state_disc']]
         time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
                                   newshape=(gd.num_segments, 2))
 
-        time_phase_all = p['phase0.time_phase']
+        time_phase_all = p['phase0.t_phase']
         time_phase_col = time_phase_all[gd.subset_node_indices['col']]
         time_phase_disc = time_phase_all[gd.subset_node_indices['state_disc']]
         time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
@@ -326,11 +326,11 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         gd = p.model.phase0.options['transcription'].grid_data
 
-        time_all = p['phase0.time']
+        time_all = p['phase0.t']
         time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
                                   newshape=(gd.num_segments, 2))
 
-        time_phase_all = p['phase0.time_phase']
+        time_phase_all = p['phase0.t_phase']
         time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
                                         newshape=(gd.num_segments, 2))
 
