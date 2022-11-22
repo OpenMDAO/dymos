@@ -107,7 +107,6 @@ class DmLinkageTreeNode extends FilterCapableNode {
                 if ('warningLevel' in child) {
                     const level = child.warningLevel(colors);
                     if (level.priority > priority) {
-                        console.log("changing color")
                         clr = level.color;
                         priority = level.priority;
                     }
