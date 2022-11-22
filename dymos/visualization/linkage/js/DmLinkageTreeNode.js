@@ -114,7 +114,21 @@ class DmLinkageTreeNode extends FilterCapableNode {
         return { 'color': clr, 'priority': priority };
     }
 
-    isConnected() { return this.isVariable() && this.connected == true; }
+    /**
+     * Determine if this node or any children are connected.
+     * @returns True if a connection is found.
+     */
+    isConnected() {
+        if (this.isVariable()) return this.connected;
+
+        if (this.hasChildren()) {
+            for (const child of this.children) {
+                if (child.isConnected()) return true;
+            }
+        }
+
+        return false;
+    }
 
     /** In the matrix grid, draw a box around variables that share the same boxAncestor() */
     boxAncestor(level = 2) {
