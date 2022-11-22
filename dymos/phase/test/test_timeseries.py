@@ -71,11 +71,11 @@ class TestTimeseriesOutput(unittest.TestCase):
         control_input_idxs = gd.subset_node_indices['control_input']
         col_idxs = gd.subset_node_indices['col']
 
-        assert_near_equal(p.get_val('phase0.time'),
+        assert_near_equal(p.get_val('phase0.t'),
                           p.get_val('phase0.timeseries.time')[:, 0])
 
-        assert_near_equal(p.get_val('phase0.time_phase'),
-                          p.get_val('phase0.timeseries.time_phase')[:, 0])
+        assert_near_equal(p.get_val('phase0.t_phase'),
+                          p.get_val('phase0.timeseries.t_phase')[:, 0])
 
         for state in ('x', 'y', 'v'):
             assert_near_equal(p.get_val(f'phase0.states:{state}'),
@@ -157,11 +157,11 @@ class TestTimeseriesOutput(unittest.TestCase):
         state_input_idxs = gd.subset_node_indices['state_input']
         control_input_idxs = gd.subset_node_indices['control_input']
 
-        assert_near_equal(p.get_val('phase0.time'),
+        assert_near_equal(p.get_val('phase0.t'),
                           p.get_val('phase0.timeseries.time')[:, 0])
 
-        assert_near_equal(p.get_val('phase0.time_phase'),
-                          p.get_val('phase0.timeseries.time_phase')[:, 0])
+        assert_near_equal(p.get_val('phase0.t_phase'),
+                          p.get_val('phase0.timeseries.t_phase')[:, 0])
 
         for state in ('x', 'y', 'v'):
             assert_near_equal(p.get_val(f'phase0.states:{state}'),
@@ -246,11 +246,11 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         p.run_driver()
 
-        assert_near_equal(p.get_val('phase0.integrator.time'),
+        assert_near_equal(p.get_val('phase0.integrator.t'),
                           p.get_val('phase0.timeseries.time'))
 
-        assert_near_equal(p.get_val('phase0.integrator.time_phase'),
-                          p.get_val('phase0.timeseries.time_phase'))
+        assert_near_equal(p.get_val('phase0.integrator.t_phase'),
+                          p.get_val('phase0.timeseries.t_phase'))
 
         for state in ('x', 'y', 'v'):
             assert_near_equal(p.get_val(f'phase0.integrator.states_out:{state}'),
@@ -358,7 +358,7 @@ def min_time_climb(num_seg=3, transcription_class=dm.Radau, transcription_order=
     # Unnecessary but included to test capability
     phase.add_path_constraint(name='alpha', lower=-8, upper=8)
     phase.add_path_constraint(name='time', lower=0, upper=400)
-    phase.add_path_constraint(name='time_phase', lower=0, upper=400)
+    phase.add_path_constraint(name='t_phase', lower=0, upper=400)
 
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', ref=1.0)

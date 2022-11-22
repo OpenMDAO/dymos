@@ -78,7 +78,7 @@ class TestTimeComp(unittest.TestCase):
 
             nodes.extend(nodes_time.tolist())
 
-        assert_almost_equal(p['time.time'], nodes)
+        assert_almost_equal(p['time.t'], nodes)
         assert_almost_equal(p['time.dt_dstau'], dt_dstau_per_node)
 
     def test_results_radau(self):
@@ -133,7 +133,7 @@ class TestTimeComp(unittest.TestCase):
 
             nodes.extend(nodes_time.tolist())
 
-        assert_almost_equal(p['time.time'], nodes, decimal=4)
+        assert_almost_equal(p['time.t'], nodes, decimal=4)
         assert_almost_equal(p['time.dt_dstau'], dt_dstau_per_node)
 
 

@@ -258,13 +258,14 @@ class Radau(PseudospectralBase):
 
         # Note the rate source must be shape-compatible with the state
         var_type = phase.classify_var(var)
+        time_name = phase.time_options['name']
 
         # Determine the path to the variable
-        if var_type == 'time':
-            rate_path = 'time'
+        if var_type == 't':
+            rate_path = 't'
             node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'time_phase':
-            rate_path = 'time_phase'
+        elif var_type == 't_phase':
+            rate_path = 't_phase'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'state':
             rate_path = f'states:{var}'

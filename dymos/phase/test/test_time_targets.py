@@ -253,7 +253,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         time_all = p['phase0.timeseries.time']
 
-        time_phase_all = p['phase0.timeseries.time_phase']
+        time_phase_all = p['phase0.timeseries.t_phase']
 
         assert_near_equal(p['phase0.integrator.t_phase'][-1], 1.8016, tolerance=1.0E-3)
 

@@ -49,16 +49,16 @@ class ODEIntegrationInterfaceSystem(om.Group):
         ivc = om.IndepVarComp()
         time_options = self.options['time_options']
         time_units = time_options['units']
-        ivc.add_output('time', val=0.0, units=time_units)
-        ivc.add_output('time_phase', val=-88.0, units=time_units)
+        ivc.add_output('t', val=0.0, units=time_units)
+        ivc.add_output('t_phase', val=-88.0, units=time_units)
         ivc.add_output('t_initial', val=-99.0, units=time_units)
         ivc.add_output('t_duration', val=-111.0, units=time_units)
 
         self.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
-        self.connect('time', [f'ode.{tgt}' for tgt in time_options['targets']])
+        self.connect('t', [f'ode.{tgt}' for tgt in time_options['targets']])
 
-        self.connect('time_phase', [f'ode.{tgt}' for tgt in time_options['time_phase_targets']])
+        self.connect('t_phase', [f'ode.{tgt}' for tgt in time_options['time_phase_targets']])
 
         self.connect('t_initial', [f'ode.{tgt}' for tgt in time_options['t_initial_targets']])
 
@@ -71,7 +71,7 @@ class ODEIntegrationInterfaceSystem(om.Group):
                                                polynomial_control_options=self.options['polynomial_control_options'])
 
             self.add_subsystem('indep_controls', self._interp_comp, promotes_outputs=['*'])
-            self.connect('time', ['indep_controls.time'])
+            self.connect('t', ['indep_controls.time'])
 
         # The ODE System
         if self.options['ode_class'] is not None:
@@ -148,13 +148,14 @@ class ODEIntegrationInterfaceSystem(om.Group):
 
     def _get_rate_source_path(self, state_var):
         var = self.options['state_options'][state_var]['rate_source']
+        time_name = self.options['time_options']['name']
 
         rate_path = f'ode.{var}'
 
-        if var == 'time':
-            rate_path = 'time'
-        elif var == 'time_phase':
-            rate_path = 'time_phase'
+        if var == time_name:
+            rate_path = 't'
+        elif var == 't_phase':
+            rate_path = 't_phase'
         elif self.options['state_options'] is not None and var in self.options['state_options']:
             rate_path = f'states:{var}'
         elif self.options['control_options'] is not None and var in self.options['control_options']:

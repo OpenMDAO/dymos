@@ -68,8 +68,8 @@ class ExplicitShooting(TranscriptionBase):
         for ts_name, ts_options in phase._timeseries.items():
             if 'time' not in ts_options['outputs']:
                 phase.add_timeseries_output('time', timeseries=ts_name)
-            if 'time_phase' not in ts_options['outputs']:
-                phase.add_timeseries_output('time_phase', timeseries=ts_name)
+            if 't_phase' not in ts_options['outputs']:
+                phase.add_timeseries_output('t_phase', timeseries=ts_name)
 
     def configure_time(self, phase):
         """
