@@ -8,6 +8,10 @@ class DmLinkageTreeNode extends FilterCapableNode {
     constructor(origNode, attribNames, parent) {
         super(origNode, attribNames, parent);
 
+        if ((this.isPhase() || this.isCondition()) && this.name == 'params' ) {
+            this.draw.minimized = true;
+        }
+
         if (parent) { // Retain "highest warning" cell color when collapsed
             // Only applies to trajectory parameters:
             if (this.paramOpt == false) parent.paramOpt = false;
@@ -123,7 +127,7 @@ class DmLinkageTreeNode extends FilterCapableNode {
 
         if (this.hasChildren()) {
             for (const child of this.children) {
-                if (child.isConnected()) return true;
+                if ('isConnected' in child && child.isConnected()) return true;
             }
         }
 
