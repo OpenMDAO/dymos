@@ -357,7 +357,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                          problem=prob)
         plot_dir = pathlib.Path(_get_reports_dir(prob)).joinpath("plots")
 
-        self.assertTrue(plot_dir.joinpath('time_phase.png').exists())
+        self.assertTrue(plot_dir.joinpath('t_phase.png').exists())
         self.assertTrue(plot_dir.joinpath('states_state_of_charge.png').exists())
         self.assertTrue(plot_dir.joinpath('state_rates_state_of_charge.png').exists())
 
@@ -501,7 +501,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                          problem=p)
         plot_dir = pathlib.Path(_get_reports_dir(p)).joinpath("plots")
 
-        for varname in ['time_phase', 'states:r', 'state_rates:r', 'states:theta',
+        for varname in ['t_phase', 'states:r', 'state_rates:r', 'states:theta',
                         'state_rates:theta', 'states:vr', 'state_rates:vr', 'states:vt',
                         'state_rates:vt', 'states:accel',
                         'state_rates:accel', 'states:deltav', 'state_rates:deltav',

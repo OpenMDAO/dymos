@@ -113,7 +113,7 @@ class TestControlRateComp(unittest.TestCase):
                                       subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
                                                       node_dptau_dstau=gd.node_dptau_dstau, units='s'),
                                       promotes_inputs=['t_initial', 't_duration'],
-                                      promotes_outputs=['time', 'dt_dstau'])
+                                      promotes_outputs=['t', 'dt_dstau'])
 
                 p.model.add_subsystem('control_interp_comp',
                                       subsys=ControlInterpComp(grid_data=gd,
@@ -130,7 +130,7 @@ class TestControlRateComp(unittest.TestCase):
 
                 p.run_model()
 
-                t = p['time']
+                t = p['t']
                 p['controls:a'][:, 0] = f_a(t[gd.subset_node_indices['control_input']])
                 p['controls:b'][:, 0] = f_b(t[gd.subset_node_indices['control_input']])
 
@@ -197,7 +197,7 @@ class TestControlRateComp(unittest.TestCase):
                                       subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
                                                       node_dptau_dstau=gd.node_dptau_dstau, units='s'),
                                       promotes_inputs=['t_initial', 't_duration'],
-                                      promotes_outputs=['time', 'dt_dstau'])
+                                      promotes_outputs=['t', 'dt_dstau'])
 
                 p.model.add_subsystem('control_interp_comp',
                                       subsys=ControlInterpComp(grid_data=gd,
@@ -216,7 +216,7 @@ class TestControlRateComp(unittest.TestCase):
 
                 control_input_idxs = gd.subset_node_indices['control_input']
 
-                t = p['time']
+                t = p['t']
                 p['controls:a'][:, 0] = f_a(t[control_input_idxs])
                 p['controls:a'][:, 1] = f_b(t[control_input_idxs])
                 p['controls:a'][:, 2] = f_c(t[control_input_idxs])
@@ -297,7 +297,7 @@ class TestControlRateComp(unittest.TestCase):
                                       subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
                                                       node_dptau_dstau=gd.node_dptau_dstau, units='s'),
                                       promotes_inputs=['t_initial', 't_duration'],
-                                      promotes_outputs=['time', 'dt_dstau'])
+                                      promotes_outputs=['t', 'dt_dstau'])
 
                 p.model.add_subsystem('control_interp_comp',
                                       subsys=ControlInterpComp(grid_data=gd,
@@ -314,7 +314,7 @@ class TestControlRateComp(unittest.TestCase):
 
                 p.run_model()
 
-                t = p['time']
+                t = p['t']
                 control_input_idxs = gd.subset_node_indices['control_input']
                 p['controls:a'][:, 0, 0] = f_a(t[control_input_idxs])
                 p['controls:a'][:, 1, 0] = f_b(t[control_input_idxs])
@@ -396,7 +396,7 @@ class TestControlRateComp(unittest.TestCase):
                                       subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
                                                       node_dptau_dstau=gd.node_dptau_dstau, units='s'),
                                       promotes_inputs=['t_initial', 't_duration'],
-                                      promotes_outputs=['time', 'dt_dstau'])
+                                      promotes_outputs=['t', 'dt_dstau'])
 
                 p.model.add_subsystem('control_interp_comp',
                                       subsys=ControlInterpComp(grid_data=gd,
@@ -413,7 +413,7 @@ class TestControlRateComp(unittest.TestCase):
 
                 p.run_model()
 
-                t = p['time']
+                t = p['t']
                 control_input_idxs = gd.subset_node_indices['control_input']
                 p['controls:a'][:, 0, 0] = f_a(t[control_input_idxs])
                 p['controls:a'][:, 0, 1] = f_b(t[control_input_idxs])
