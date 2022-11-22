@@ -61,7 +61,6 @@ class DmLinkageTreeNode extends FilterCapableNode {
     /** In the matrix grid, draw a box around variables that share the same boxAncestor() */
     boxAncestor(level = 2) {
         if (level == 1) { // Return condition reference
-            if (this.isVariable() && this.parent.isPhase()) return this;
             if (this.isVariable()) return this.parent;
             if (this.isCondition()) return this;
         }
