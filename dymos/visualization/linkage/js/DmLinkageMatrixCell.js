@@ -68,6 +68,7 @@ class DmLinkageMatrixCell extends MatrixCell {
             case "connected_parameter":
                 return new DmLinkageConnectedCell(color, this.id);
             case "variable":
+            case "filter":
                 return new DmLinkageVariableCell(color, this.id);
             case "condition":
                 return new DmLinkageConditionCell(color, this.id);
