@@ -50,6 +50,10 @@ def classify_var(var, time_options, state_options, parameter_options, control_op
         return 't'
     elif var == 't_phase':
         return 't_phase'
+    elif var == 'time_phase':
+        om.issue_warning('time_phase is deprecated. Please use `t_phase` to obtain the change in the integration '
+                         'variable within the current phase.', category=om.OMDeprecationWarning)
+        return 't_phase'
     elif var in state_options:
         return 'state'
     elif var in control_options:

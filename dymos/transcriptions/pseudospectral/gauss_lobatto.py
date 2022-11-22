@@ -71,8 +71,8 @@ class GaussLobatto(PseudospectralBase):
         ode_inputs = get_promoted_vars(self._get_ode(phase), 'input')
 
         # The tuples here are (name, user_specified_targets, dynamic)
-        for name, usr_tgts in [('time', options['targets']),
-                               ('time_phase', options['time_phase_targets'])]:
+        for name, usr_tgts in [('t', options['targets']),
+                               ('t_phase', options['time_phase_targets'])]:
 
             targets = get_targets(ode_inputs, name=name, user_targets=usr_tgts)
             if targets:

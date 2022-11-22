@@ -130,7 +130,7 @@ class SolveIVP(TranscriptionBase):
         options = phase.time_options
 
         # The tuples here are (name, user_specified_targets, dynamic)
-        for name, targets, dynamic in [('time', options['targets'], True),
+        for name, targets, dynamic in [('t', options['targets'], True),
                                        ('t_phase', options['time_phase_targets'], True)]:
             if targets:
                 phase.connect(name, [f'ode.{t}' for t in targets])

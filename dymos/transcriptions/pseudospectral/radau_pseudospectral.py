@@ -62,8 +62,8 @@ class Radau(PseudospectralBase):
         ode_inputs = get_promoted_vars(ode, iotypes='input')
 
         # The tuples here are (name, user_specified_targets, dynamic)
-        for name, targets, dynamic in [('time', options['targets'], True),
-                                       ('time_phase', options['time_phase_targets'], True)]:
+        for name, targets, dynamic in [('t', options['targets'], True),
+                                       ('t_phase', options['time_phase_targets'], True)]:
             if targets:
                 src_idxs = self.grid_data.subset_node_indices['all'] if dynamic else None
                 phase.connect(name, [f'rhs_all.{t}' for t in targets], src_indices=src_idxs,
