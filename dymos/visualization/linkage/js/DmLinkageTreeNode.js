@@ -23,6 +23,9 @@ class DmLinkageTreeNode extends FilterCapableNode {
 
     }
 
+    /** Temp fix to gen code reference */
+    get absPathName() { return this.path; }
+
     /** Use a single filter instead of separate inputs and outputs */
     addFilterChild(attribNames) {
         if (this.isCondition()) {
