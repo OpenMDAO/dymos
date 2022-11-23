@@ -294,7 +294,7 @@ def _is_ignored_conn(name)->bool:
     return re.match(r'.*timeseries.*', name) or re.match(r'.*_auto_ivc.*', name)
 
 
-def _var_ref_from_path(tree, path):
+def _var_ref_from_path(tree, path:str):
     """ Find a reference into the tree from a path string. """
     tokens = re.split(r'\.', path)
 
@@ -311,6 +311,13 @@ def _var_ref_from_path(tree, path):
 
     return refpath
 
+def _get_fixed_val(tree, path:str)->bool:
+    """ Get the value of the fixed property for the specified path. """
+    ref = _var_ref_from_path(tree, path)
+    fixed = False if (ref is None or not 'fixed' in ref) else ref['fixed']
+
+    return fixed
+
 
 def _parameter_connections(traj, model_data):
     """ Find all parameter-to-parameter connections. """
@@ -323,14 +330,12 @@ def _parameter_connections(traj, model_data):
         is_param_conn = (_is_param_conn(src) or _is_param_conn(tgt))
         if not is_ignored and is_param_conn:
             src_path = _conn_name_to_path(src)
-            src_fixed = _var_ref_from_path(tree, src_path)['fixed']
             tgt_path = _conn_name_to_path(tgt)
-            tgt_fixed = _var_ref_from_path(tree, tgt_path)['fixed']
             param_conns.append({
                 'src': src_path,
-                'src_fixed': src_fixed if src_fixed is not None else False,
+                'src_fixed': _get_fixed_val(tree, src_path),
                 'tgt': tgt_path,
-                'tgt_fixed': tgt_fixed if tgt_fixed is not None else False
+                'tgt_fixed': _get_fixed_val(tree, tgt_path)
             })
 
     return param_conns
