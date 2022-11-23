@@ -246,7 +246,7 @@ class TestRunProblem(unittest.TestCase):
         phase0.add_boundary_constraint('x', loc='final', equals=10)
         phase0.add_boundary_constraint('y', loc='final', equals=5)
         # Minimize time at the end of the phase
-        phase0.add_objective('t_phase', loc='final', scaler=10)
+        phase0.add_objective('time_phase', loc='final', scaler=10)
 
         phase0.set_refine_options(refine=True)
 
@@ -303,7 +303,7 @@ class TestRunProblem(unittest.TestCase):
         phase0.add_boundary_constraint('x', loc='final', equals=10)
         phase0.add_boundary_constraint('y', loc='final', equals=5)
         # Minimize time at the end of the phase
-        phase0.add_objective('t_phase', loc='final', scaler=10)
+        phase0.add_objective('time_phase', loc='final', scaler=10)
 
         phase0.set_refine_options(refine=True)
 
@@ -362,7 +362,7 @@ class TestRunProblem(unittest.TestCase):
         phase0.add_boundary_constraint('x', loc='final', equals=10)
         phase0.add_boundary_constraint('y', loc='final', equals=5)
         # Minimize time at the end of the phase
-        phase0.add_objective('t_phase', loc='final', scaler=10)
+        phase0.add_objective('time_phase', loc='final', scaler=10)
 
         phase0.set_refine_options(refine=True)
 
@@ -418,7 +418,7 @@ class TestRunProblem(unittest.TestCase):
         phase0.add_boundary_constraint('x', loc='final', equals=10)
         phase0.add_boundary_constraint('y', loc='final', equals=5)
         # Minimize time at the end of the phase
-        phase0.add_objective('t_phase', loc='final', scaler=10)
+        phase0.add_objective('time_phase', loc='final', scaler=10)
 
         phase0.set_refine_options(refine=True)
 
@@ -514,7 +514,7 @@ class TestRunProblem(unittest.TestCase):
         phase0.add_boundary_constraint('x', loc='final', equals=10)
         phase0.add_boundary_constraint('y', loc='final', equals=5)
         # Minimize time at the end of the phase
-        phase0.add_objective('t_phase', loc='final', scaler=10)
+        phase0.add_objective('time_phase', loc='final', scaler=10)
 
         phase0.set_refine_options(refine=True)
 
@@ -657,7 +657,7 @@ class TestRunProblemPlotting(unittest.TestCase):
         phase0.add_boundary_constraint('x', loc='final', equals=10)
         phase0.add_boundary_constraint('y', loc='final', equals=5)
         # Minimize time at the end of the phase
-        phase0.add_objective('t_phase', loc='final', scaler=10)
+        phase0.add_objective('time_phase', loc='final', scaler=10)
 
         phase0.set_refine_options(refine=True)
 
@@ -679,7 +679,7 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=True)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        for varname in ['t_phase', 'states:x', 'state_rates:x', 'states:y',
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
                         'control_rates:theta_rate2', 'parameters:g']:
@@ -689,7 +689,7 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=True, plot_dir="test_plot_dir")
 
         plot_dir = pathlib.Path(_get_reports_dir(self.p))
-        for varname in ['t_phase', 'states:x', 'state_rates:x', 'states:y',
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
                         'control_rates:theta_rate2', 'parameters:g']:
@@ -699,7 +699,7 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=False)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        for varname in ['t_phase', 'states:x', 'state_rates:x', 'states:y',
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
                         'control_rates:theta_rate2', 'parameters:g']:
@@ -721,7 +721,7 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=True, simulate=True)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        for varname in ['t_phase', 'states:x', 'state_rates:x', 'states:y',
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
                         'control_rates:theta_rate2', 'parameters:g']:
@@ -731,7 +731,7 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=True, simulate=True)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        for varname in ['t_phase', 'states:x', 'state_rates:x', 'states:y',
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
                         'control_rates:theta_rate2', 'parameters:g']:

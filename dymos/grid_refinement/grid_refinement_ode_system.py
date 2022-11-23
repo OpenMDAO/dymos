@@ -93,7 +93,7 @@ class GridRefinementODESystem(om.Group):
             self.set_input_defaults(name='time', val=np.ones(num_nodes), units=options['units'])
 
         # time_phase
-        targets = get_targets(self.ode, 't_phase', options['timw_phase_targets'])
+        targets = get_targets(self.ode, 't_phase', options['time_phase_targets'])
         for tgt in targets:
             self.promotes('ode', inputs=[(tgt, 't_phase')])
         if targets:

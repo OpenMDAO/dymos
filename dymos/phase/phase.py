@@ -1552,7 +1552,7 @@ class Phase(om.Group):
         targets : iterable of str
             Targets in the ODE for the value of current time.
         time_phase_targets : iterable of str
-            Targets in the ODE for the value of current phase elapsed time. (Deprecated)
+            Targets in the ODE for the value of current phase elapsed time.
         t_initial_targets : iterable of str
             Targets in the ODE for the value of phase initial time.
         t_duration_targets :  iterable of str

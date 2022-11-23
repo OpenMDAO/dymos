@@ -111,7 +111,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
         p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(initial_bounds=(1, 1), duration_bounds=(.5, 10), units='s',
-                               t_phase_targets=['time_phase'], t_duration_targets=['t_duration'],
+                               time_phase_targets=['time_phase'], t_duration_targets=['t_duration'],
                                t_initial_targets=['t_initial'], targets=['time'],
                                input_initial=input_initial, input_duration=input_duration)
 
