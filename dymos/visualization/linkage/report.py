@@ -294,7 +294,7 @@ def _is_ignored_conn(name)->bool:
     return re.match(r'.*timeseries.*', name) or re.match(r'.*_auto_ivc.*', name)
 
 
-def _var_ref_from_path(tree, path:str):
+def _var_ref_from_path(tree, path: str):
     """ Find a reference into the tree from a path string. """
     tokens = re.split(r'\.', path)
 
@@ -311,10 +311,11 @@ def _var_ref_from_path(tree, path:str):
 
     return refpath
 
-def _get_fixed_val(tree, path:str)->bool:
+
+def _get_fixed_val(tree, path: str)->bool:
     """ Get the value of the fixed property for the specified path. """
     ref = _var_ref_from_path(tree, path)
-    fixed = False if (ref is None or not 'fixed' in ref) else ref['fixed']
+    fixed = False if (ref is None or 'fixed' not in ref) else ref['fixed']
 
     return fixed
 
