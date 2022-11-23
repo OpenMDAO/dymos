@@ -697,7 +697,7 @@ class TestIntegratePolynomialControl(unittest.TestCase):
 @use_tempdirs
 class TestIntegrateTimeParamAndState(unittest.TestCase):
 
-    def _test_transcription(self, transcription=dm.GaussLobatto):
+    def _test_transcription(self, transcription=dm.GaussLobatto, time_name='time'):
         #
         # Define the OpenMDAO problem
         #
@@ -725,7 +725,7 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
         # We fix the initial time so that the it is not a design variable in the optimization.
         # The duration of the phase is allowed to be optimized, but is bounded on [0.5, 10].
         #
-        phase.set_time_options(fix_initial=True, fix_duration=True, units='s')
+        phase.set_time_options(fix_initial=True, fix_duration=True, units='s', name=time_name)
 
         #
         # Set the time options
@@ -739,8 +739,8 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
         phase.add_state('v', fix_initial=True)
 
         phase.add_state('int_one', fix_initial=True, rate_source='one')
-        phase.add_state('int_time', fix_initial=True, rate_source='time')
-        phase.add_state('int_time_phase', fix_initial=True, rate_source='time_phase')
+        phase.add_state('int_time', fix_initial=True, rate_source=time_name)
+        phase.add_state('int_time_phase', fix_initial=True, rate_source=f'{time_name}_phase')
         phase.add_state('int_int_one', fix_initial=True, rate_source='int_one')
 
         # Define theta as a control.
@@ -751,7 +751,7 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
         phase.add_parameter(name='one', opt=False, units=None, shape=(1,))
 
         # Minimize final time.
-        phase.add_objective('time', loc='final')
+        phase.add_objective(time_name, loc='final')
 
         # Set the driver.
         p.driver = om.ScipyOptimizeDriver()
@@ -804,15 +804,15 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True)
 
-        time_sol = p.get_val('traj.phase0.timeseries.time')
-        time_phase_sol = p.get_val('traj.phase0.timeseries.time_phase')
+        time_sol = p.get_val(f'traj.phase0.timeseries.{time_name}')
+        time_phase_sol = p.get_val(f'traj.phase0.timeseries.{time_name}_phase')
         int_one_sol = p.get_val('traj.phase0.timeseries.states:int_one')
         int_time_sol = p.get_val('traj.phase0.timeseries.states:int_time')
         int_time_phase_sol = p.get_val('traj.phase0.timeseries.states:int_time_phase')
         int_int_one_sol = p.get_val('traj.phase0.timeseries.states:int_int_one')
 
-        time_sim = p.get_val('traj.phase0.timeseries.time')
-        time_phase_sim = p.get_val('traj.phase0.timeseries.time_phase')
+        time_sim = p.get_val(f'traj.phase0.timeseries.{time_name}')
+        time_phase_sim = p.get_val(f'traj.phase0.timeseries.{time_name}_phase')
         int_one_sim = p.get_val('traj.phase0.timeseries.states:int_one')
         int_time_sim = p.get_val('traj.phase0.timeseries.states:int_time')
         int_time_phase_sim = p.get_val('traj.phase0.timeseries.states:int_time_phase')
@@ -840,11 +840,12 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
 
         assert_timeseries_near_equal(time_sol, int_int_one_sol, time_sim, int_int_one_sim, rel_tolerance=1.0E-12)
 
-    def test_gl(self):
-        self._test_transcription(transcription=dm.GaussLobatto)
-
-    def test_radau(self):
-        self._test_transcription(transcription=dm.Radau)
+    def test_integrated_times_params_and_states(self):
+        for tx in (dm.GaussLobatto, dm.Radau):
+            tx_name = 'GaussLobatto' if tx is dm.GaussLobatto else 'Radau'
+            for time_name in ('time', 'elapsed_time'):
+                with self.subTest(msg=f'{tx_name}: time_name=\'{time_name}\''):
+                    self._test_transcription(transcription=tx, time_name=time_name)
 
 
 @use_tempdirs
