@@ -297,6 +297,10 @@ def _is_ignored_conn(name)->bool:
 def _var_ref_from_path(tree, path):
     """ Find a reference into the tree from a path string. """
     tokens = re.split(r'\.', path)
+
+    if (len(tokens) < 2):
+        return None
+
     refpath = tree
 
     for t in tokens:
@@ -321,9 +325,9 @@ def _parameter_connections(traj, model_data):
             tgt_fixed = _var_ref_from_path(tree, tgt_path)['fixed']
             param_conns.append({
                 'src': src_path,
-                'src_fixed': src_fixed,
+                'src_fixed': src_fixed if src_fixed is not None else False,
                 'tgt': tgt_path,
-                'tgt_fixed': tgt_fixed
+                'tgt_fixed': tgt_fixed if tgt_fixed is not None else False
             })
 
     return param_conns
