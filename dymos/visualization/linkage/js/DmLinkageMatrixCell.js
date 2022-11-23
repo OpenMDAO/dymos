@@ -35,13 +35,15 @@ class DmLinkageMatrixCell extends MatrixCell {
      */
     color() {
         const clr = DmLinkageStyle.color;
-
         if (this.onDiagonal()) {
-            if ('isFixed' in this.obj && this.obj.isFixed()) {
-                return this.obj.isLinked()? clr.fixedLinkedVariableCell : clr.fixedUnlinkedVariableCell;
+            if ('warningLevel' in this.obj) {
+                const level = this.obj.warningLevel(clr);
+                return level.color;
             }
-            if (this.obj.draw.minimized) return clr.collapsed;
-            return clr.variableCell;
+            else {
+                if (this.obj.draw.minimized) return clr.collapsed;
+                return clr.variableCell;
+            }
         }
 
         return clr.linkageCell;
@@ -49,8 +51,11 @@ class DmLinkageMatrixCell extends MatrixCell {
 
     /** Choose a renderer based on our SymbolType. */
     _newRenderer() {
-        const renderer = super._newRenderer();
-        if (renderer) return renderer;
+
+        if (! this.inUpperTriangle()) {
+            const renderer = super._newRenderer();
+            if (renderer) return renderer;
+        }
 
         const color = this.color();
 
@@ -60,8 +65,10 @@ class DmLinkageMatrixCell extends MatrixCell {
             case "group":
                 return new DmLinkageGroupCell(color, this.id);
             case "connected_variable":
+            case "connected_parameter":
                 return new DmLinkageConnectedCell(color, this.id);
             case "variable":
+            case "filter":
                 return new DmLinkageVariableCell(color, this.id);
             case "condition":
                 return new DmLinkageConditionCell(color, this.id);
