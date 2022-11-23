@@ -14,8 +14,8 @@ OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
     def assert_results(self, p):
-        t_initial = p.get_val('traj0.phase0.time')[0]
-        t_final = p.get_val('traj0.phase0.time')[-1]
+        t_initial = p.get_val('traj0.phase0.timeseries.time')[0]
+        t_final = p.get_val('traj0.phase0.timeseries.time')[-1]
 
         x0 = p.get_val('traj0.phase0.timeseries.states:pos')[0, 0]
         xf = p.get_val('traj0.phase0.timeseries.states:pos')[0, -1]

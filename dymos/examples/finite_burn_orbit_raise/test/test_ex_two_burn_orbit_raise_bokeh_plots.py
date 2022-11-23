@@ -218,7 +218,7 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
                           'states_r.png', 'state_rates_accel.png', 'state_rates_deltav.png',
                           'states_accel.png', 'controls_u1.png', 'states_vr.png', 'pos_x.png',
                           'states_vt.png', 'pos_y.png', 'parameters_u1.png', 'states_theta.png',
-                          'control_rates_u1_rate2.png', 'state_rates_vt.png', 'time_phase.png',
+                          'control_rates_u1_rate2.png', 'state_rates_vt.png', 't_phase.png',
                           'parameters_c.png', 'state_rates_theta.png', 'state_rates_vr.png', 'dt_dstau.png'}
 
         html_files = {str(pathlib.Path(f).with_suffix('.html')) for f in expected_files}

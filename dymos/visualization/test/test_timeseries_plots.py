@@ -267,7 +267,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                          problem=p)
         plot_dir = pathlib.Path(_get_reports_dir(p)).joinpath("plots")
 
-        for varname in ['time_phase', 'states:r', 'state_rates:r', 'states:theta',
+        for varname in ['t_phase', 'states:r', 'state_rates:r', 'states:theta',
                         'state_rates:theta', 'states:vr', 'state_rates:vr', 'states:vt',
                         'state_rates:vt', 'states:accel',
                         'state_rates:accel', 'states:deltav', 'state_rates:deltav',
