@@ -154,7 +154,7 @@ class ODEIntegrationInterfaceSystem(om.Group):
 
         if var == time_name:
             rate_path = 't'
-        elif var == 't_phase':
+        elif var == f'{time_name}_phase':
             rate_path = 't_phase'
         elif self.options['state_options'] is not None and var in self.options['state_options']:
             rate_path = f'states:{var}'

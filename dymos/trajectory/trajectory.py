@@ -532,11 +532,13 @@ class Trajectory(om.Group):
 
         for i in ('a', 'b'):
             if classes[i] == 't':
-                sources[i] = 'timeseries.time'
+                time_name = phases[i].time_options['name']
+                sources[i] = f'timeseries.{time_name}'
                 shapes[i] = (1,)
                 units[i] = phases[i].time_options['units']
             elif classes[i] == 't_phase':
-                sources[i] = 'timeseries.t_phase'
+                time_name = phases[i].time_options['name']
+                sources[i] = f'timeseries.{time_name}_phase'
                 units[i] = phases[i].time_options['units']
                 shapes[i] = (1,)
             elif classes[i] == 'state':

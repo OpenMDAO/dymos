@@ -144,20 +144,23 @@ def eval_ode_on_grid(phase, transcription):
     # Set the values in the refinement problem using the outputs from the first
     ode = p_refine.model.grid_refinement_system.ode
 
-    t_prev = phase.get_val('timeseries.time', units=phase.time_options['units'])
-    t_phase_prev = phase.get_val('timeseries.t_phase', units=phase.time_options['units'])
+    t_name = phase.time_options['name']
+    t_phase_name = f'{t_name}_phase'
+
+    t_prev = phase.get_val(f'timeseries.{t_name}', units=phase.time_options['units'])
+    t_phase_prev = phase.get_val(f'timeseries.{t_phase_name}', units=phase.time_options['units'])
     t_initial = np.repeat(t_prev[0, 0], repeats=transcription.grid_data.num_nodes, axis=0)
     t_duration = np.repeat(t_prev[-1, 0], repeats=transcription.grid_data.num_nodes, axis=0)
     t = np.dot(L, t_prev)
     t_phase = np.dot(L, t_phase_prev)
     targets = get_targets(ode, 'time', phase.time_options['targets'])
-    time_phase_targets = get_targets(ode, 't_phase', phase.time_options['time_phase_targets'])
+    t_phase_targets = get_targets(ode, 't_phase', phase.time_options['time_phase_targets'])
     t_initial_targets = get_targets(ode, 't_initial', phase.time_options['t_initial_targets'])
     t_duration_targets = get_targets(ode, 't_duration', phase.time_options['t_duration_targets'])
     if targets:
         p_refine.set_val(f'time', t)
-    if time_phase_targets:
-        p_refine.set_val(f'time_phase', t_phase)
+    if t_phase_targets:
+        p_refine.set_val(f't_phase', t_phase)
     if t_initial_targets:
         p_refine.set_val(f't_initial', t_initial)
     if t_duration_targets:

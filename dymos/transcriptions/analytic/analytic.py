@@ -63,7 +63,7 @@ class Analytic(TranscriptionBase):
         Configure the inputs/outputs on the time component.
 
         This method assumes that target introspection has already been performed by the phase and thus
-        options['targets'], options['time_phase_targets'], options['t_initial_targets'],
+        options['targets'], options['timw_phase_targets'], options['t_initial_targets'],
         and options['t_duration_targets'] are all correctly populated.
 
         Parameters

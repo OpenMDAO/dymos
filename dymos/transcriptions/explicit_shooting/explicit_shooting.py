@@ -64,12 +64,15 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        t_name = phase.time_options['name']
+        t_phase_name = f'{t_name}_phase'
+
         phase.check_time_options()
         for ts_name, ts_options in phase._timeseries.items():
-            if 'time' not in ts_options['outputs']:
-                phase.add_timeseries_output('time', timeseries=ts_name)
-            if 't_phase' not in ts_options['outputs']:
-                phase.add_timeseries_output('t_phase', timeseries=ts_name)
+            if t_name not in ts_options['outputs']:
+                phase.add_timeseries_output(t_name, timeseries=ts_name)
+            if t_phase_name not in ts_options['outputs']:
+                phase.add_timeseries_output(t_phase_name, timeseries=ts_name)
 
     def configure_time(self, phase):
         """

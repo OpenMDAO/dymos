@@ -563,16 +563,13 @@ class TimeOptionsDictionary(om.OptionsDictionary):
                      desc='targets in the ODE to which the integration variable is connected')
 
         self.declare(name='time_phase_targets', types=Iterable, allow_none=True, default=[],
-                     desc='targets in the ODE to which the elapsed duration of the phase is '
-                          'connected')
+                     desc='targets in the ODE to which the elapsed duration of the phase is connected')
 
         self.declare(name='t_initial_targets', types=Iterable, allow_none=True, default=[],
-                     desc='targets in the ODE to which the initial time of the phase is '
-                          'connected')
+                     desc='targets in the ODE to which the initial time of the phase is connected')
 
         self.declare(name='t_duration_targets', types=Iterable, allow_none=True, default=[],
-                     desc='targets in the ODE to which the total duration of the phase is '
-                          'connected')
+                     desc='targets in the ODE to which the total duration of the phase is connected')
 
 
 class GridRefinementOptionsDictionary(om.OptionsDictionary):

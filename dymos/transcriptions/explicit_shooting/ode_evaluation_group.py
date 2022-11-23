@@ -150,7 +150,7 @@ class ODEEvaluationGroup(om.Group):
     def _configure_time(self):
         vec_size = self.vec_size
         targets = self.time_options['targets']
-        time_phase_targets = self.time_options['time_phase_targets']
+        t_phase_targets = self.time_options['time_phase_targets']
         t_initial_targets = self.time_options['t_initial_targets']
         t_duration_targets = self.time_options['t_duration_targets']
         units = self.time_options['units']
@@ -159,7 +159,7 @@ class ODEEvaluationGroup(om.Group):
         self._ivc.add_output('t_initial', shape=(1,), units=units)
         self._ivc.add_output('t_duration', shape=(1,), units=units)
 
-        for tgts, var in [(targets, 't'), (time_phase_targets, 't_phase'),
+        for tgts, var in [(targets, 't'), (t_phase_targets, 't_phase'),
                           (t_initial_targets, 't_initial'), (t_duration_targets, 't_duration')]:
             for t in tgts:
                 self.promotes('ode', inputs=[(t, var)])
@@ -374,7 +374,7 @@ class ODEEvaluationGroup(om.Group):
         if var == time_name:
             rate_path = 't'
             io = 'input'
-        elif var == 't_phase':
+        elif var == f'{time_name}_phase':
             rate_path = 't_phase'
             io = 'input'
         elif self.state_options is not None and var in self.state_options:

@@ -111,7 +111,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
         p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(initial_bounds=(1, 1), duration_bounds=(.5, 10), units='s',
-                               time_phase_targets=['time_phase'], t_duration_targets=['t_duration'],
+                               t_phase_targets=['time_phase'], t_duration_targets=['t_duration'],
                                t_initial_targets=['t_initial'], targets=['time'],
                                input_initial=input_initial, input_duration=input_duration)
 
@@ -253,7 +253,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         time_all = p['phase0.timeseries.time']
 
-        time_phase_all = p['phase0.timeseries.t_phase']
+        time_phase_all = p['phase0.timeseries.time_phase']
 
         assert_near_equal(p['phase0.integrator.t_phase'][-1], 1.8016, tolerance=1.0E-3)
 

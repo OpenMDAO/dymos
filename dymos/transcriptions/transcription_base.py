@@ -73,6 +73,8 @@ class TranscriptionBase(object):
             The phase object to which this transcription instance applies.
         """
         time_options = phase.time_options
+        t_name = time_options['name']
+        t_phase_name = f'{t_name}_phase'
 
         # Warn about invalid options
         phase.check_time_options()
@@ -82,10 +84,10 @@ class TranscriptionBase(object):
                                 promotes_outputs=['*'])
 
         for ts_name, ts_options in phase._timeseries.items():
-            if 't' not in ts_options['outputs']:
-                phase.add_timeseries_output(time_options['name'], timeseries=ts_name)
-            if 't_phase' not in ts_options['outputs']:
-                phase.add_timeseries_output('t_phase', timeseries=ts_name)
+            if t_name not in ts_options['outputs']:
+                phase.add_timeseries_output(t_name, timeseries=ts_name)
+            if t_phase_name not in ts_options['outputs']:
+                phase.add_timeseries_output(t_phase_name, timeseries=ts_name)
 
     def configure_time(self, phase):
         """

@@ -740,7 +740,7 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
 
         phase.add_state('int_one', fix_initial=True, rate_source='one')
         phase.add_state('int_time', fix_initial=True, rate_source='time')
-        phase.add_state('int_time_phase', fix_initial=True, rate_source='t_phase')
+        phase.add_state('int_time_phase', fix_initial=True, rate_source='time_phase')
         phase.add_state('int_int_one', fix_initial=True, rate_source='int_one')
 
         # Define theta as a control.
@@ -805,14 +805,14 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
         dm.run_problem(p, simulate=True)
 
         time_sol = p.get_val('traj.phase0.timeseries.time')
-        time_phase_sol = p.get_val('traj.phase0.timeseries.t_phase')
+        time_phase_sol = p.get_val('traj.phase0.timeseries.time_phase')
         int_one_sol = p.get_val('traj.phase0.timeseries.states:int_one')
         int_time_sol = p.get_val('traj.phase0.timeseries.states:int_time')
         int_time_phase_sol = p.get_val('traj.phase0.timeseries.states:int_time_phase')
         int_int_one_sol = p.get_val('traj.phase0.timeseries.states:int_int_one')
 
         time_sim = p.get_val('traj.phase0.timeseries.time')
-        time_phase_sim = p.get_val('traj.phase0.timeseries.t_phase')
+        time_phase_sim = p.get_val('traj.phase0.timeseries.time_phase')
         int_one_sim = p.get_val('traj.phase0.timeseries.states:int_one')
         int_time_sim = p.get_val('traj.phase0.timeseries.states:int_time')
         int_time_phase_sim = p.get_val('traj.phase0.timeseries.states:int_time_phase')
