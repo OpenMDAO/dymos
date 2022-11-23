@@ -303,8 +303,11 @@ def _var_ref_from_path(tree, path):
 
     refpath = tree
 
-    for t in tokens:
-        refpath = refpath[CBN][t]
+    try:
+        for t in tokens:
+            refpath = refpath[CBN][t]
+    except (KeyError):
+        return None
 
     return refpath
 
