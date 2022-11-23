@@ -1503,7 +1503,7 @@ class Phase(om.Group):
                          duration_adder=_unspecified, duration_ref0=_unspecified,
                          duration_ref=_unspecified, targets=_unspecified,
                          time_phase_targets=_unspecified, t_initial_targets=_unspecified,
-                         t_duration_targets=_unspecified):
+                         t_duration_targets=_unspecified, name=_unspecified):
         """
         Sets options for time in the phase.
 
@@ -1557,6 +1557,8 @@ class Phase(om.Group):
             Targets in the ODE for the value of phase initial time.
         t_duration_targets :  iterable of str
             Targets in the ODE for the value of phase time duration.
+        name : str
+            Name of the integration variable for this phase. Default is 'time'.
         """
         if units is not _unspecified:
             self.time_options['units'] = units
@@ -1632,6 +1634,9 @@ class Phase(om.Group):
                 self.time_options['t_duration_targets'] = (t_duration_targets,)
             else:
                 self.time_options['t_duration_targets'] = t_duration_targets
+
+        if name is not _unspecified:
+            self.time_options['name'] = name
 
     def classify_var(self, var):
         """
@@ -2131,7 +2136,8 @@ class Phase(om.Group):
             op_dict = MPI.COMM_WORLD.bcast(op_dict, root=0)
 
         # Set the integration times
-        op = op_dict['timeseries.timeseries_comp.time']
+        time_name = phs.time_options['name']
+        op = op_dict[f'timeseries.timeseries_comp.{time_name}']
         prob.set_val(f'{self_path}t_initial', op['val'][0, ...])
         prob.set_val(f'{self_path}t_duration', op['val'][-1, ...] - op['val'][0, ...])
 

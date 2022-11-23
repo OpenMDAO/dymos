@@ -94,7 +94,7 @@ class _BrachistochroneTestODE(om.ExplicitComponent):
 class TestPhaseTimeTargets(unittest.TestCase):
 
     def _make_problem(self, transcription, num_seg, transcription_order=3, input_initial=False,
-                      input_duration=False):
+                      input_duration=False, time_name='time'):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
@@ -113,7 +113,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
         phase.set_time_options(initial_bounds=(1, 1), duration_bounds=(.5, 10), units='s',
                                time_phase_targets=['time_phase'], t_duration_targets=['t_duration'],
                                t_initial_targets=['t_initial'], targets=['time'],
-                               input_initial=input_initial, input_duration=input_duration)
+                               input_initial=input_initial, input_duration=input_duration, name=time_name)
 
         phase.add_state('x', fix_initial=True, rate_source='xdot', units='m')
         phase.add_state('y', fix_initial=True, rate_source='ydot', units='m')
@@ -127,7 +127,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
         phase.add_boundary_constraint('y', loc='final', equals=5)
 
         # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=10)
+        phase.add_objective(time_name, loc='final', scaler=10)
 
         p.model.linear_solver = om.DirectSolver()
 
@@ -148,122 +148,131 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
     def test_gauss_lobatto(self):
         num_seg = 20
-        p = self._make_problem('gauss-lobatto', num_seg)
 
-        # Solve for the optimal trajectory
-        p.run_driver()
+        for time_name in ('time', 'elaspsed_time'):
+            with self.subTest():
 
-        gd = p.model.phase0.options['transcription'].grid_data
+                p = self._make_problem('gauss-lobatto', num_seg, time_name=time_name)
 
-        time_all = p['phase0.t']
-        time_col = time_all[gd.subset_node_indices['col']]
-        time_disc = time_all[gd.subset_node_indices['state_disc']]
-        time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
-                                  newshape=(gd.num_segments, 2))
+                # Solve for the optimal trajectory
+                p.run_driver()
 
-        time_phase_all = p['phase0.t_phase']
-        time_phase_col = time_phase_all[gd.subset_node_indices['col']]
-        time_phase_disc = time_phase_all[gd.subset_node_indices['state_disc']]
-        time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
-                                        newshape=(gd.num_segments, 2))
+                gd = p.model.phase0.options['transcription'].grid_data
 
-        assert_near_equal(p['phase0.rhs_disc.time_phase'][-1], 1.8016, tolerance=1.0E-3)
+                time_all = p[f'phase0.timeseries.{time_name}'].ravel()
+                time_col = time_all[gd.subset_node_indices['col']]
+                time_disc = time_all[gd.subset_node_indices['state_disc']]
+                time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
+                                          newshape=(gd.num_segments, 2))
 
-        assert_near_equal(p['phase0.rhs_disc.t_initial'], p['phase0.t_initial'])
-        assert_near_equal(p['phase0.rhs_col.t_initial'], p['phase0.t_initial'])
+                time_phase_all = p[f'phase0.timeseries.{time_name}_phase'].ravel()
+                time_phase_col = time_phase_all[gd.subset_node_indices['col']]
+                time_phase_disc = time_phase_all[gd.subset_node_indices['state_disc']]
+                time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
+                                                newshape=(gd.num_segments, 2))
 
-        assert_near_equal(p['phase0.rhs_disc.t_duration'], p['phase0.t_duration'])
-        assert_near_equal(p['phase0.rhs_col.t_duration'], p['phase0.t_duration'])
+                assert_near_equal(p['phase0.rhs_disc.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
-        assert_near_equal(p['phase0.rhs_disc.time_phase'], time_phase_disc)
-        assert_near_equal(p['phase0.rhs_col.time_phase'], time_phase_col)
+                assert_near_equal(p['phase0.rhs_disc.t_initial'], p['phase0.t_initial'])
+                assert_near_equal(p['phase0.rhs_col.t_initial'], p['phase0.t_initial'])
 
-        assert_near_equal(p['phase0.rhs_disc.time'], time_disc)
-        assert_near_equal(p['phase0.rhs_col.time'], time_col)
+                assert_near_equal(p['phase0.rhs_disc.t_duration'], p['phase0.t_duration'])
+                assert_near_equal(p['phase0.rhs_col.t_duration'], p['phase0.t_duration'])
 
-        exp_out = p.model.phase0.simulate()
+                assert_near_equal(p['phase0.rhs_disc.time_phase'], time_phase_disc)
+                assert_near_equal(p['phase0.rhs_col.time_phase'], time_phase_col)
 
-        for iseg in range(num_seg):
-            seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
-            iface = seg_comp_i.options['ode_integration_interface']
-            t_initial_i = iface.prob.get_val('ode.t_initial')
-            t_duration_i = iface.prob.get_val('ode.t_duration')
-            time_phase_i = iface.prob.get_val('ode.time_phase')
-            time_i = iface.prob.get_val('ode.time')
+                assert_near_equal(p['phase0.rhs_disc.time'], time_disc)
+                assert_near_equal(p['phase0.rhs_col.time'], time_col)
 
-            # Since the phase has simulated, all times should be equal to their respective value
-            # at the end of each segment.
-            assert_near_equal(t_initial_i, p['phase0.t_initial'])
-            assert_near_equal(t_duration_i, p['phase0.t_duration'])
-            assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
-            assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
+                exp_out = p.model.phase0.simulate()
+
+                for iseg in range(num_seg):
+                    seg_comp_i = exp_out.model.phase0._get_subsystem(f'segments.segment_{iseg}')
+                    iface = seg_comp_i.options['ode_integration_interface']
+                    t_initial_i = iface.prob.get_val('ode.t_initial')
+                    t_duration_i = iface.prob.get_val('ode.t_duration')
+                    time_phase_i = iface.prob.get_val('ode.time_phase')
+                    time_i = iface.prob.get_val('ode.time')
+
+                    # Since the phase has simulated, all times should be equal to their respective value
+                    # at the end of each segment.
+                    assert_near_equal(t_initial_i, p['phase0.t_initial'])
+                    assert_near_equal(t_duration_i, p['phase0.t_duration'])
+                    assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
+                    assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
 
     def test_radau(self):
-        num_seg = 20
-        p = self._make_problem('radau-ps', num_seg)
+        for time_name in ('time', 'elaspsed_time'):
+            with self.subTest():
+                num_seg = 20
+                p = self._make_problem('radau-ps', num_seg, time_name=time_name)
 
-        # Solve for the optimal trajectory
-        p.run_driver()
+                # Solve for the optimal trajectory
+                p.run_driver()
 
-        gd = p.model.phase0.options['transcription'].grid_data
+                gd = p.model.phase0.options['transcription'].grid_data
 
-        time_all = p['phase0.t']
-        time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
-                                  newshape=(gd.num_segments, 2))
+                time_all = p[f'phase0.timeseries.{time_name}'].ravel()
+                time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
+                                          newshape=(gd.num_segments, 2))
 
-        time_phase_all = p['phase0.t_phase']
-        time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
-                                        newshape=(gd.num_segments, 2))
+                time_phase_all = p[f'phase0.timeseries.{time_name}_phase'].ravel()
+                time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
+                                                newshape=(gd.num_segments, 2))
 
-        assert_near_equal(p['phase0.rhs_all.time_phase'][-1], 1.8016, tolerance=1.0E-3)
+                assert_near_equal(p['phase0.rhs_all.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
-        assert_near_equal(p['phase0.rhs_all.t_initial'], p['phase0.t_initial'])
+                assert_near_equal(p['phase0.rhs_all.t_initial'], p['phase0.t_initial'])
 
-        assert_near_equal(p['phase0.rhs_all.t_duration'], p['phase0.t_duration'])
+                assert_near_equal(p['phase0.rhs_all.t_duration'], p['phase0.t_duration'])
 
-        assert_near_equal(p['phase0.rhs_all.time_phase'], time_phase_all)
+                assert_near_equal(p['phase0.rhs_all.time_phase'], time_phase_all)
 
-        assert_near_equal(p['phase0.rhs_all.time'], time_all)
+                assert_near_equal(p['phase0.rhs_all.time'], time_all)
 
-        exp_out = p.model.phase0.simulate()
+                exp_out = p.model.phase0.simulate()
 
-        for iseg in range(num_seg):
-            seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
-            iface = seg_comp_i.options['ode_integration_interface']
-            t_initial_i = iface.prob.get_val('ode.t_initial')
-            t_duration_i = iface.prob.get_val('ode.t_duration')
-            time_phase_i = iface.prob.get_val('ode.time_phase')
-            time_i = iface.prob.get_val('ode.time')
+                for iseg in range(num_seg):
+                    seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
+                    iface = seg_comp_i.options['ode_integration_interface']
+                    t_initial_i = iface.prob.get_val('ode.t_initial')
+                    t_duration_i = iface.prob.get_val('ode.t_duration')
+                    time_phase_i = iface.prob.get_val('ode.time_phase')
+                    time_i = iface.prob.get_val('ode.time')
 
-            # Since the phase has simulated, all times should be equal to their respective value
-            # at the end of each segment.
-            assert_near_equal(t_initial_i, p['phase0.t_initial'])
-            assert_near_equal(t_duration_i, p['phase0.t_duration'])
-            assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
-            assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
+                    # Since the phase has simulated, all times should be equal to their respective value
+                    # at the end of each segment.
+                    assert_near_equal(t_initial_i, p['phase0.t_initial'])
+                    assert_near_equal(t_duration_i, p['phase0.t_duration'])
+                    assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
+                    assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
 
     def test_explicit_shooting(self):
         num_seg = 5
-        p = self._make_problem('explicit-shooting', num_seg)
 
-        # Solve for the optimal trajectory
-        p.run_driver()
+        for time_name in ('time', 'elaspsed_time'):
+            with self.subTest():
+                p = self._make_problem('explicit-shooting', num_seg, time_name=time_name)
 
-        gd = p.model.phase0.options['transcription'].grid_data
+                # Solve for the optimal trajectory
+                p.run_driver()
 
-        time_all = p['phase0.timeseries.time']
+                gd = p.model.phase0.options['transcription'].grid_data
 
-        time_phase_all = p['phase0.timeseries.time_phase']
+                time_all = p[f'phase0.timeseries.{time_name}']
 
-        assert_near_equal(p['phase0.integrator.t_phase'][-1], 1.8016, tolerance=1.0E-3)
+                time_phase_all = p[f'phase0.timeseries.{time_name}_phase']
 
-        assert_near_equal(p['phase0.integrator.t_initial'], p['phase0.t_initial'])
+                assert_near_equal(p['phase0.integrator.t_phase'][-1], 1.8016, tolerance=1.0E-3)
 
-        assert_near_equal(p['phase0.integrator.t_duration'], p['phase0.t_duration'])
+                assert_near_equal(p['phase0.integrator.t_initial'], p['phase0.t_initial'])
 
-        assert_near_equal(p['phase0.integrator.t_phase'], time_phase_all)
+                assert_near_equal(p['phase0.integrator.t_duration'], p['phase0.t_duration'])
 
-        assert_near_equal(p['phase0.integrator.t'], time_all)
+                assert_near_equal(p['phase0.integrator.t_phase'], time_phase_all)
+
+                assert_near_equal(p['phase0.integrator.t'], time_all)
 
     def test_gauss_lobatto_targets_are_inputs(self):
         num_seg = 20
@@ -360,6 +369,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
             assert_near_equal(t_duration_i, p['phase0.t_duration'])
             assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
             assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
+
 
 if __name__ == "__main__":
     unittest.main()

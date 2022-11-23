@@ -258,7 +258,6 @@ class Radau(PseudospectralBase):
 
         # Note the rate source must be shape-compatible with the state
         var_type = phase.classify_var(var)
-        time_name = phase.time_options['name']
 
         # Determine the path to the variable
         if var_type == 't':

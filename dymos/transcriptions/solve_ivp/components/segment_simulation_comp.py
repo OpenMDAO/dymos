@@ -179,6 +179,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
         idx = self.options['index']
         gd = self.options['grid_data']
         iface_prob = self.options['ode_integration_interface'].prob
+        time_name = self.options['time_options']['name']
 
         # Create the vector of initial state values
         self.initial_state_vec[:] = 0.0
@@ -191,10 +192,10 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         # Setup the control interpolants
         if self.options['control_options']:
-            t0_seg = inputs['time'][0]
-            tf_seg = inputs['time'][-1]
+            t0_seg = inputs[time_name][0]
+            tf_seg = inputs[time_name][-1]
             for name, options in self.options['control_options'].items():
-                ctrl_vals = inputs['controls:{0}'.format(name)]
+                ctrl_vals = inputs[f'controls:{name}']
                 self.options['ode_integration_interface'].setup_interpolant(name,
                                                                             x0=t0_seg,
                                                                             xf=tf_seg,
@@ -205,7 +206,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
             t0_phase = inputs['t_initial']
             tf_phase = inputs['t_initial'] + inputs['t_duration']
             for name, options in self.options['polynomial_control_options'].items():
-                ctrl_vals = inputs['polynomial_controls:{0}'.format(name)]
+                ctrl_vals = inputs[f'polynomial_controls:{name}']
                 self.options['ode_integration_interface'].setup_interpolant(name,
                                                                             x0=t0_phase,
                                                                             xf=tf_phase,
@@ -239,14 +240,14 @@ class SegmentSimulationComp(om.ExplicitComponent):
             t_eval = t_initial + 0.5 * (nodes_eval + 1) * t_duration
         else:
             # Output nodes given as number, linspace them across the segment
-            t_eval = np.linspace(inputs['time'][0], inputs['time'][-1],
+            t_eval = np.linspace(inputs[time_name][0], inputs[time_name][-1],
                                  self.options['output_nodes_per_seg'])
 
         # Perform the integration using solve_ivp
         sim_options = {key: val for key, val in self.options['simulate_options'].items()}
 
         sol = solve_ivp(fun=self.options['ode_integration_interface'],
-                        t_span=(inputs['time'][0], inputs['time'][-1]),
+                        t_span=(inputs[time_name][0], inputs[time_name][-1]),
                         y0=self.initial_state_vec,
                         t_eval=t_eval,
                         **sim_options)
@@ -259,5 +260,5 @@ class SegmentSimulationComp(om.ExplicitComponent):
         pos = 0
         for name, options in self.options['state_options'].items():
             size = np.prod(options['shape'])
-            outputs['states:{0}'.format(name)] = sol.y[pos:pos+size, :].T
+            outputs[f'states:{name}'] = sol.y[pos:pos+size, :].T
             pos += size

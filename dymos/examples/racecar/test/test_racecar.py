@@ -54,7 +54,7 @@ class TestRaceCarForDocs(unittest.TestCase):
         # The state equations are written with respect to time, the variable change occurs in
         # timeODE.py
         phase.set_time_options(fix_initial=True, fix_duration=True, duration_val=s_final,
-                               targets=['curv.s'], units='m', duration_ref=s_final,
+                               name='s', targets=['curv.s'], units='m', duration_ref=s_final,
                                duration_ref0=10)
 
         # Define states
@@ -121,6 +121,7 @@ class TestRaceCarForDocs(unittest.TestCase):
 
         # Add output timeseries
         phase.add_timeseries_output('*')
+        phase.add_timeseries_output('t', output_name='time')
 
         # Link the states at the start and end of the phase in order to ensure a continous lap
         traj.link_phases(phases=['phase0', 'phase0'],
@@ -175,13 +176,13 @@ class TestRaceCarForDocs(unittest.TestCase):
 
         # Get optimized time series
         n = p.get_val('traj.phase0.timeseries.states:n')
-        s = p.get_val('traj.phase0.timeseries.time')
+        s = p.get_val('traj.phase0.timeseries.s')
         V = p.get_val('traj.phase0.timeseries.states:V')
         thrust = p.get_val('traj.phase0.timeseries.controls:thrust')
         delta = p.get_val('traj.phase0.timeseries.controls:delta')
         power = p.get_val('traj.phase0.timeseries.power', units='W')
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:t')[-1, ...], 22.2657, tolerance=1.0E-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1, ...], 22.2657, tolerance=1.0E-2)
 
         print("Plotting")
 
