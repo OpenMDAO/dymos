@@ -270,15 +270,16 @@ def _linkages_to_list(traj, model_data):
 def _conn_name_to_path(name):
     """ Convert the full name of the connection to a format the diagram uses. """
     tokens = re.split(r'\W+', name)
-    if tokens[1] == 'param_comp':
-        return f'params.{tokens.pop()}'
+    if len(tokens) > 0:
+        if tokens[1] == 'param_comp':
+            return f'params.{tokens.pop()}'
 
-    # Example: traj.linkages.v1_to_vr:alpha -> v1_to_vr.alpha
-    if tokens[1] == 'linkages':
-        return f'{tokens[2]}.{tokens[3]}'
+        # Example: traj.linkages.v1_to_vr:alpha -> v1_to_vr.alpha
+        if tokens[1] == 'linkages':
+            return f'{tokens[2]}.{tokens[3]}'
 
-    if tokens[3] == 'param_comp':
-        return f'{tokens[2]}.params.{tokens.pop()}'
+        if len(tokens) > 3 and tokens[3] == 'param_comp':
+            return f'{tokens[2]}.params.{tokens.pop()}'
 
     return name
 
