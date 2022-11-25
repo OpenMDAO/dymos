@@ -1257,11 +1257,11 @@ class Phase(om.Group):
         ----------
         name : str, or list of str
             The name(s) of the variable to be used as a timeseries output, or a mathematical expression to be used
-            as a timeseries output. If a name, it be one of the integration variable, 'time_phase', one of the states,
-            controls, control rates, or parameters, in the phase, the path to an output variable in the ODE, or a glob
-            pattern matching some outputs in the ODE.
+            as a timeseries output. If a name, it must be one of the integration variable, the phase-relative value
+            of the integration variable (e.g. 'time_phase', one of the states, controls, control rates, or parameters,
+            in the phase, the path to an output variable in the ODE, or a glob pattern matching some outputs in the ODE.
         output_name : str or None or list or dict
-            The name of the variable as listed in the phase timeseries outputs.  By
+            The name of the variable as listed in the phase timeseries outputs. By
             default this is the last element in `name` when split by dots.  The user may
             override the constraint name if splitting the path causes name collisions.
         units : str or None or _unspecified

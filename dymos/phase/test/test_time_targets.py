@@ -149,7 +149,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
     def test_gauss_lobatto(self):
         num_seg = 20
 
-        for time_name in ('time', 'elaspsed_time'):
+        for time_name in ('time', 'elapsed_time'):
             with self.subTest():
 
                 p = self._make_problem('gauss-lobatto', num_seg, time_name=time_name)
@@ -203,7 +203,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
                     assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
 
     def test_radau(self):
-        for time_name in ('time', 'elaspsed_time'):
+        for time_name in ('time', 'elapsed_time'):
             with self.subTest():
                 num_seg = 20
                 p = self._make_problem('radau-ps', num_seg, time_name=time_name)
@@ -251,7 +251,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
     def test_explicit_shooting(self):
         num_seg = 5
 
-        for time_name in ('time', 'elaspsed_time'):
+        for time_name in ('time', 'elapsed_time'):
             with self.subTest():
                 p = self._make_problem('explicit-shooting', num_seg, time_name=time_name)
 
