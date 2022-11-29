@@ -773,6 +773,7 @@ def configure_timeseries_output_introspection(phase):
                                                                            phase=phase)
                 except ValueError as e:
                     not_found.add(output_name)
+                    continue
 
             output_options['src'] = output_meta['src']
             output_options['src_idxs'] = output_meta['src_idxs']
