@@ -338,7 +338,9 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
                 # but nonlinear if solve_segments, because its like multiple shooting
                 is_linear = not options['solve_segments']
                 self.add_constraint(name=f'defect_states:{state_name}',
-                                    equals=0.0, scaler=1.0, linear=is_linear)
+                                    scaler=options['continuity_scaler'],
+                                    ref=options['continuity_ref'],
+                                    equals=0.0, linear=is_linear)
 
     def _configure_control_continuity(self):
         control_options = self.options['control_options']
@@ -355,7 +357,9 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
 
             if options['continuity'] and not compressed:
                 self.add_constraint(name=f'defect_controls:{control_name}',
-                                    equals=0.0, scaler=1.0, linear=True)
+                                    scaler=options['continuity_scaler'],
+                                    ref=options['continuity_ref'],
+                                    equals=0.0, linear=True)
 
             #
             # Setup first derivative continuity
@@ -363,8 +367,9 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
 
             if options['rate_continuity']:
                 self.add_constraint(name=f'defect_control_rates:{control_name}_rate',
-                                    equals=0.0, scaler=options['rate_continuity_scaler'],
-                                    linear=False)
+                                    scaler=options['rate_continuity_scaler'],
+                                    ref=options['rate_continuity_ref'],
+                                    equals=0.0, linear=False)
 
             #
             # Setup second derivative continuity
@@ -372,8 +377,9 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
 
             if options['rate2_continuity']:
                 self.add_constraint(name=f'defect_control_rates:{control_name}_rate2',
-                                    equals=0.0, scaler=options['rate2_continuity_scaler'],
-                                    linear=False)
+                                    scaler=options['rate2_continuity_scaler'],
+                                    ref=options['rate2_continuity_ref'],
+                                    equals=0.0, linear=False)
 
 
 class RadauPSContinuityComp(ContinuityCompBase):
@@ -402,7 +408,9 @@ class RadauPSContinuityComp(ContinuityCompBase):
                 is_linear = not options['solve_segments']
 
                 self.add_constraint(name=f'defect_states:{state_name}',
-                                    equals=0.0, scaler=1.0, linear=is_linear)
+                                    scaler=options['continuity_scaler'],
+                                    ref=options['continuity_ref'],
+                                    equals=0.0, linear=is_linear)
 
     def _configure_control_continuity(self):
         control_options = self.options['control_options']
@@ -417,7 +425,9 @@ class RadauPSContinuityComp(ContinuityCompBase):
         for control_name, options in control_options.items():
             if options['continuity']:
                 self.add_constraint(name=f'defect_controls:{control_name}',
-                                    equals=0.0, scaler=1.0, linear=False)
+                                    scaler=options['continuity_scaler'],
+                                    ref=options['continuity_ref'],
+                                    equals=0.0, linear=False)
 
             #
             # Setup first derivative continuity
@@ -425,8 +435,9 @@ class RadauPSContinuityComp(ContinuityCompBase):
 
             if options['rate_continuity']:
                 self.add_constraint(name=f'defect_control_rates:{control_name}_rate',
-                                    equals=0.0, scaler=options['rate_continuity_scaler'],
-                                    linear=False)
+                                    scaler=options['rate_continuity_scaler'],
+                                    ref=options['rate_continuity_ref'],
+                                    equals=0.0, linear=False)
 
             #
             # Setup second derivative continuity
@@ -434,5 +445,6 @@ class RadauPSContinuityComp(ContinuityCompBase):
 
             if options['rate2_continuity']:
                 self.add_constraint(name=f'defect_control_rates:{control_name}_rate2',
-                                    equals=0.0, scaler=options['rate2_continuity_scaler'],
-                                    linear=False)
+                                    scaler=options['rate2_continuity_scaler'],
+                                    ref=options['rate2_continuity_ref'],
+                                    equals=0.0, linear=False)

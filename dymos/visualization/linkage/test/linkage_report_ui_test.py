@@ -78,7 +78,7 @@ gui_test_script = [
     {
         "desc": "Hover on matrix cell and check arrow count",
         "test": "hoverArrow",
-        "selector": "g#n2elements rect#cellShape_node_10.vMid",
+        "selector": "g#n2elements rect#cellShape_node_41.vMid",
         "arrowCount": 2
     },
     {
@@ -90,7 +90,7 @@ gui_test_script = [
     {
         "desc": "Hover on matrix cell and check arrow count",
         "test": "hoverArrow",
-        "selector": "g#n2elements rect#cellShape_node_55.vMid",
+        "selector": "g#n2elements rect#cellShape_node_128.vMid",
         "arrowCount": 1
     },
     {"test": "root"},
@@ -103,8 +103,8 @@ gui_test_script = [
     {
         "desc": "Hover over collapsed matrix cell and check arrow count",
         "test": "hoverArrow",
-        "selector": "g#n2elements rect#cellShape_node_1.gMid",
-        "arrowCount": 6
+        "selector": "g#n2elements rect#cellShape_node_18.gMid",
+        "arrowCount": 19
     },
     {
         "desc": "Right-click on model tree element to uncollapse",
@@ -117,20 +117,20 @@ gui_test_script = [
         "desc": "Check the number of cells in the matrix grid",
         "test": "count",
         "selector": "g#n2elements > g.n2cell",
-        "count": 53
+        "count": 168
     },
     {
         "desc": "Perform a search on states:v",
         "test": "search",
         "searchString": "states:v",
-        "diagElementCount": 14
+        "diagElementCount": 25
     },
     {"test": "root"},
     {
         "desc": "Check that home button works after search",
         "test": "count",
         "selector": "g#n2elements > g.n2cell",
-        "count": 53
+        "count": 168
     },
     {
         "desc": "Expand toolbar connections menu",
@@ -147,7 +147,7 @@ gui_test_script = [
         "desc": "Check number of arrows",
         "test": "count",
         "selector": "g#n2arrows > g",
-        "count": 30
+        "count": 126
     },
     {
         "desc": "Expand toolbar connections menu",
@@ -227,7 +227,7 @@ gui_test_script = [
         "desc": "Check the number of cells in the matrix grid",
         "test": "count",
         "selector": "g#n2elements > g.n2cell",
-        "count": 49
+        "count": 164
     },
 
 ]
@@ -401,7 +401,8 @@ class dymos_linkage_gui_test_case(_GuiTestCase):
         # Less common "final value of r must be the match at ends of two phases".
         traj.add_linkage_constraint(phase_a='rto', var_a='r', loc_a='final',
                                     phase_b='climb', var_b='r', loc_b='final',
-                                    ref=1000, connected=True)
+                                    ref=1000,
+                                    connected=False)
 
         # Define the constraints and objective for the optimal control problem
         rto.add_boundary_constraint('v', loc='final', upper=0.001, ref=100, linear=True)

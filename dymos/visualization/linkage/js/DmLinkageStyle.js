@@ -11,13 +11,15 @@ class DmLinkageStyle extends Style {
         'variableCell': 'black',
         'fixedLinkedVariableCell': 'red',
         'fixedUnlinkedVariableCell': '#ffc000',
+        'falseParamOpt': '#ffc000',
         'linkageCell': '#00b051',
         'fixedLinkageCell': '#ffc000',
         'root': '#ccc',
         'group': '#ccc',
         'phase': '#ccc',
         'initial': '#bbb',
-        'final': '#999'
+        'final': '#999',
+        'params': '#ddd'
     };
 
     /**
@@ -48,6 +50,11 @@ class DmLinkageStyle extends Style {
                 'cursor': 'pointer',
                 'fill': DmLinkageStyle.color.phase,
                 'fill-opacity': '.8',
+            },
+            "#tree > g[class*='params'] > rect": {
+                'cursor': 'pointer',
+                'fill-opacity': '.8',
+                'fill': DmLinkageStyle.color.params,
             },
             "#tree > g[class*='initial'] > rect": {
                 'cursor': 'pointer',
@@ -80,7 +87,7 @@ class DmLinkageStyle extends Style {
         if (node.draw.minimized) return 'minimized';
 
         switch (node.type) {
-            case 'variable': return node.parent.name; // Either 'initial' or 'final'
+            case 'variable': return node.parent.name; // One of 'initial', 'final', or 'params'
             case 'condition': return node.name;
             case 'phase': return 'phase';
             case 'root': return 'root'

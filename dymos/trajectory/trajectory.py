@@ -515,7 +515,7 @@ class Trajectory(om.Group):
         var_a = linkage_options['var_a']
         var_b = linkage_options['var_b']
 
-        info_str = f'Error in linking {var_a} from {phase_name_a} to {var_b} in {phase_name_b}'
+        info_str = f'{self.pathname}: ' if self.pathname else ''
 
         phase_a = self._get_subsystem(f'phases.{phase_name_a}')
         phase_b = self._get_subsystem(f'phases.{phase_name_b}')
@@ -579,8 +579,9 @@ class Trajectory(om.Group):
                     shapes[i] = meta['shape']
                     units[i] = meta['units']
                 except ValueError as e:
-                    raise RuntimeError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
-                                       f'phase \'{phases[i].pathname}\' or its ODE.')
+                    raise RuntimeError(f'{info_str}Error in linking {var_a} from {phase_name_a} to {var_b} in '
+                                       f'{phase_name_b}. Unable to find variable \'{vars[i]}\' in phase '
+                                       f'\'{phases[i].pathname}\' or its ODE.')
 
         linkage_options._src_a = sources['a']
         linkage_options._src_b = sources['b']
@@ -592,9 +593,9 @@ class Trajectory(om.Group):
         if linkage_options['units_b'] is _unspecified:
             linkage_options['units_b'] = units['b']
 
-        if (linkage_options['units_a'] != linkage_options['units_b']) and \
+        if not linkage_options['connected'] and (linkage_options['units_a'] != linkage_options['units_b']) and \
                 linkage_options['units'] is _unspecified:
-            raise ValueError(f'{info_str}: Linkage units were not specified but the units of '
+            raise ValueError(f'{info_str}Linkage units were not specified but the units of '
                              f'var_a ({units["a"]}) and var_b ({units["b"]}) are not the same. '
                              f'Units for this linkage constraint must be specified explicitly.')
         else:
@@ -632,7 +633,7 @@ class Trajectory(om.Group):
                                                     sign_b=options['sign_b'])
                     self._linkages[phase_pair].pop(var_pair)
 
-    def _is_valid_linkage(self, phase_name_a, phase_name_b, loc_a, loc_b, var_a, var_b):
+    def _is_valid_linkage(self, phase_name_a, phase_name_b, loc_a, loc_b, var_a, var_b, fixed_a, fixed_b):
         """
         Validates linkage constraints.
 
@@ -655,6 +656,10 @@ class Trajectory(om.Group):
             The variable name of the first side of the linkage.
         var_b : str
             The variable name of the second side of the linkage.
+        fixed_a : bool
+            True if variable a is fixed at the linkage location.
+        fixed_b : bool
+            True if variable b is fixed at the linkage location
 
         Returns
         -------
@@ -759,10 +764,12 @@ class Trajectory(om.Group):
                     fixed_a = phase_a.is_control_fixed(var_a, loc_a)
                 elif class_a in {'input_polynomial_control', 'indep_polynomial_control'}:
                     fixed_a = phase_a.is_polynomial_control_fixed(var_a, loc_a)
+                elif class_a in {'control_rate', 'control_rate2'}:
+                    fixed_a = phase_a.is_control_rate_fixed(var_a, loc_a)
                 elif class_a == 'parameter':
                     fixed_a = not phase_a.parameter_options[var_a]['opt']
                 else:
-                    fixed_a = True
+                    fixed_a = False  # No way to know so we allow these to go through
 
                 if class_b == 'time':
                     fixed_b = phase_b.is_time_fixed(loc_b)
@@ -772,10 +779,12 @@ class Trajectory(om.Group):
                     fixed_b = phase_b.is_control_fixed(var_b, loc_b)
                 elif class_b in {'input_polynomial_control', 'indep_polynomial_control'}:
                     fixed_b = phase_b.is_polynomial_control_fixed(var_b, loc_b)
-                elif class_a == 'parameter':
-                    fixed_a = not phase_b.parameter_options[var_a]['opt']
+                elif class_b in {'control_rate', 'control_rate2'}:
+                    fixed_b = phase_b.is_control_rate_fixed(var_b, loc_b)
+                elif class_b == 'parameter':
+                    fixed_b = not phase_b.parameter_options[var_b]['opt']
                 else:
-                    fixed_b = True
+                    fixed_b = False  # No way to know so we allow these to go through
 
                 prefixed_a = _get_prefixed_var(var_a, phase_a)
                 prefixed_b = _get_prefixed_var(var_b, phase_b)
@@ -808,10 +817,13 @@ class Trajectory(om.Group):
                     _print_on_rank(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ->  '
                                    f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
                 else:
-                    is_valid, msg = self._is_valid_linkage(phase_name_a, phase_name_b,
-                                                           loc_a, loc_b, var_a, var_b)
 
-                    if not is_valid:
+                    if fixed_a and fixed_b:
+                        msg = f'Cannot link {loc_a} value of "{var_a}" in {phase_name_a} to {loc_b} ' \
+                              f'value of "{var_b}" in {phase_name_b}. Values on both sides of the linkage are fixed ' \
+                              'and the linkage is enforced via constraint. Either link the variables via connection ' \
+                              'or make the variables design variables on at least one side of the connection.'
+
                         raise ValueError(f'Invalid linkage in Trajectory {self.pathname}: {msg}')
 
                     linkage_comp.add_linkage_configure(options)
@@ -924,8 +936,8 @@ class Trajectory(om.Group):
         sign_b : float
             The sign applied to the variable from the second phase in the linkage constraint.
         units : str or None or _unspecified
-            Units of the linkage.  If _unspecified, dymos will use the units from the variable
-            in the first phase of the linkage.  Units of the two specified variables must be
+            Units of the linkage. If _unspecified, dymos will use the units from the variable
+            in the first phase of the linkage. Units of the two specified variables must be
             compatible.
         lower : float or array or None
             The lower bound applied as a constraint on the linkage equation.
@@ -942,17 +954,17 @@ class Trajectory(om.Group):
         ref : float or array or None
             The unit-reference value of the linkage constraint.
         linear : bool
-            If True, treat this variable as a linear constraint, otherwise False.  Linear
+            If True, treat this variable as a linear constraint, otherwise False. Linear
             constraints should only be applied if the variable on each end of the linkage is a
             design variable or a linear function of one.
         connected : bool
             If True, this constraint is enforced by direct connection rather than a constraint
-            for the optimizer.  This is only valid for states and time.
+            for the optimizer. This is only valid for states and time.
         """
         if connected:
             invalid_options = []
-            for arg in ['lower', 'upper', 'equals', 'scaler', 'adder', 'ref0', 'ref']:
-                if locals()[arg] is not None:
+            for arg in ['lower', 'upper', 'equals', 'scaler', 'adder', 'ref0', 'ref', 'units']:
+                if locals()[arg] is not None and locals()[arg] is not _unspecified:
                     invalid_options.append(arg)
             if locals()['linear']:
                 invalid_options.append('linear')
@@ -961,7 +973,7 @@ class Trajectory(om.Group):
                       f'in trajectory {self.pathname}. The following options for ' \
                       f'add_linkage_constraint were specified but not valid when ' \
                       f'option \'connected\' is True: ' + ' '.join(invalid_options)
-                warnings.warn(msg)
+                om.issue_warning(msg, category=om.UnusedOptionWarning)
 
         if (phase_a, phase_b) not in self._linkages:
             self._linkages[phase_a, phase_b] = OrderedDict()
@@ -986,7 +998,8 @@ class Trajectory(om.Group):
         d['linear'] = linear
         d['connected'] = connected
 
-    def link_phases(self, phases, vars=None, locs=('final', 'initial'), connected=False):
+    def link_phases(self, phases, vars=None, locs=('final', 'initial'), connected=False,
+                    units=_unspecified, scaler=None, adder=None, ref0=None, ref=None, linear=False):
         """
         Specify that phases in the given sequence are to be assume continuity of the given variables.
 
@@ -1015,6 +1028,22 @@ class Trajectory(om.Group):
         connected : bool
             Set to True to directly connect the phases being linked. Otherwise, create constraints
             for the optimizer to solve.
+        units : str or None or _unspecified
+            Units of the linkage.  If _unspecified, dymos will use the units from the variable
+            in the first phase of the linkage.  Units of the two specified variables must be
+            compatible.
+        scaler : float or array or None
+            The scaler of the linkage constraint.
+        adder : float or array or None
+            The adder of the linkage constraint.
+        ref0 : float or array or None
+            The zero-reference value of the linkage constraint.
+        ref : float or array or None
+            The unit-reference value of the linkage constraint.
+        linear : bool
+            If True, treat this variable as a linear constraint, otherwise False.  Linear
+            constraints should only be applied if the variable on each end of the linkage is a
+            design variable or a linear function of one.
 
         See Also
         --------
@@ -1050,7 +1079,8 @@ class Trajectory(om.Group):
             for var in _vars:
                 self.add_linkage_constraint(phase_a=phase_name_a, phase_b=phase_name_b,
                                             var_a=var, var_b=var, loc_a=loc_a, loc_b=loc_b,
-                                            connected=connected)
+                                            connected=connected, units=units,
+                                            scaler=scaler, adder=adder, ref0=ref0, ref=ref, linear=linear)
 
     def _constraint_report(self, outstream=sys.stdout):
         if self.options['sim_mode']:

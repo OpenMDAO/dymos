@@ -285,6 +285,7 @@ class TestPhaseBase(unittest.TestCase):
         phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
+                          rate_continuity_scaler=1.0,
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
 
         phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
@@ -434,19 +435,20 @@ class TestPhaseBase(unittest.TestCase):
         phase = dm.Phase(ode_class=BrachistochroneODE,
                          transcription=dm.GaussLobatto(num_segments=20,
                                                        order=3,
-                                                       compressed=True))
+                                                       compressed=False))
 
         p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('x', fix_initial=True, fix_final=False)
+        phase.add_state('x', fix_initial=True, fix_final=False, continuity_scaler=1.0)
 
-        phase.add_state('y', fix_initial=True, fix_final=False)
+        phase.add_state('y', fix_initial=True, fix_final=False, continuity_ref=1.0)
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, rate2_continuity=True,
+                          rate_continuity_scaler=0.01, rate2_continuity_scaler=0.01,
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', opt=False, units='m/s**2', val=9.80665)
@@ -502,19 +504,20 @@ class TestPhaseBase(unittest.TestCase):
                 p.driver.declare_coloring()
 
                 phase = dm.Phase(ode_class=BrachistochroneODE,
-                                 transcription=tx(num_segments=5, order=3))
+                                 transcription=tx(num_segments=5, order=3, compressed=False))
 
                 p.model.add_subsystem('phase0', phase)
 
                 phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-                phase.add_state('x', fix_initial=True, fix_final=False)
+                phase.add_state('x', fix_initial=True, fix_final=False, continuity_scaler=1.0)
 
-                phase.add_state('y', fix_initial=True, fix_final=False)
+                phase.add_state('y', fix_initial=True, fix_final=False, continuity_ref=1.0)
 
                 phase.add_state('v', fix_initial=True, fix_final=False)
 
                 phase.add_control('theta', continuity=True, rate_continuity=True, rate2_continuity=True,
+                                  rate_continuity_ref=100., rate2_continuity_scaler=0.01,
                                   units='deg', lower=0.01, upper=179.9)
 
                 phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
@@ -549,19 +552,20 @@ class TestPhaseBase(unittest.TestCase):
                 p.driver.declare_coloring()
 
                 phase = dm.Phase(ode_class=BrachistochroneODE,
-                                 transcription=tx(num_segments=5, order=3))
+                                 transcription=tx(num_segments=5, order=3, compressed=False))
 
                 p.model.add_subsystem('phase0', phase)
 
                 phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-                phase.add_state('x', fix_initial=True, fix_final=False)
+                phase.add_state('x', fix_initial=True, fix_final=False, continuity_scaler=1.0)
 
-                phase.add_state('y', fix_initial=True, fix_final=False)
+                phase.add_state('y', fix_initial=True, fix_final=False, continuity_ref=1.0)
 
                 phase.add_state('v', fix_initial=True, fix_final=False)
 
                 phase.add_control('theta', continuity=True, rate_continuity=True, rate2_continuity=True,
+                                  rate_continuity_scaler=0.01, rate2_continuity_ref=1.0,
                                   units='deg', lower=0.01, upper=179.9)
 
                 phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)

@@ -527,7 +527,18 @@ def configure_states_introspection(state_options, time_options, control_options,
             options['shape'] = rate_src_shape
 
         if options['units'] is _unspecified:
-            options['units'] = time_units if rate_src_units is None else f'{rate_src_units}*{time_units}'
+            if rate_src_units is None:
+                options['units'] = time_units
+            else:
+                if time_units is None:
+                    raise RuntimeError(f'Unable to infer the units of state variable `{state_name}` from\n'
+                                       f'the rate units because the time units of the phase are set to None.\n'
+                                       f'Change the time units to something other than None, or explicitly\n'
+                                       f'set the state units using one of the following options:\n'
+                                       f'- Tag the state rate source `{rate_src}` with `dymos.state_units:{{units}}`\n'
+                                       f'- Use the `set_state_options(\'{state_name}\', units={{units}})` method on the phase.')
+                else:
+                    options['units'] = f'{rate_src_units}*{time_units}'
 
 
 def configure_analytic_states_introspection(state_options, ode):
