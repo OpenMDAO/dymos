@@ -42,6 +42,7 @@ class TestSegmentSimulationComp(unittest.TestCase):
         time_options = TimeOptionsDictionary()
         time_options['units'] = 's'
         time_options['targets'] = 't'
+        time_options['time_phase_targets'] = []
 
         state_options = {}
         state_options['y'] = StateOptionsDictionary()

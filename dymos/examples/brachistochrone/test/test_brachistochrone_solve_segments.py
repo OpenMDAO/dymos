@@ -95,8 +95,8 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
 class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
 
     def assert_results(self, p):
-        t_initial = p.get_val('traj0.phase0.time')[0]
-        t_final = p.get_val('traj0.phase0.time')[-1]
+        t_initial = p.get_val('traj0.phase0.t')[0]
+        t_final = p.get_val('traj0.phase0.t')[-1]
 
         x0 = p.get_val('traj0.phase0.timeseries.states:pos')[0, 0]
         xf = p.get_val('traj0.phase0.timeseries.states:pos')[0, -1]
@@ -210,8 +210,8 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
 class TestBrachistochroneSolveSegments(unittest.TestCase):
 
     def assert_results(self, p):
-        t_initial = p.get_val('traj0.phase0.time')[0]
-        t_final = p.get_val('traj0.phase0.time')[-1]
+        t_initial = p.get_val('traj0.phase0.t')[0]
+        t_final = p.get_val('traj0.phase0.t')[-1]
 
         x0 = p.get_val('traj0.phase0.timeseries.states:x')[0]
         xf = p.get_val('traj0.phase0.timeseries.states:x')[-1]

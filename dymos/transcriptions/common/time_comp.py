@@ -55,8 +55,8 @@ class TimeComp(om.ExplicitComponent):
 
         self.add_input('t_initial', val=self.options['initial_val'], units=time_units)
         self.add_input('t_duration', val=self.options['duration_val'], units=time_units)
-        self.add_output('time', units=time_units, val=np.ones(num_nodes))
-        self.add_output('time_phase', units=time_units, val=np.ones(num_nodes))
+        self.add_output('t', units=time_units, val=np.ones(num_nodes))
+        self.add_output('t_phase', units=time_units, val=np.ones(num_nodes))
         self.add_output('dt_dstau', units=time_units, val=np.ones(num_nodes))
 
         # Setup partials
@@ -65,9 +65,9 @@ class TimeComp(om.ExplicitComponent):
 
         dtime_dduration = 0.5 * (node_ptau + 1)
 
-        self.declare_partials(of='time', wrt='t_initial', rows=rs, cols=cs, val=1.0)
-        self.declare_partials(of='time', wrt='t_duration', rows=rs, cols=cs, val=dtime_dduration)
-        self.declare_partials(of='time_phase', wrt='t_duration', rows=rs, cols=cs, val=dtime_dduration)
+        self.declare_partials(of='t', wrt='t_initial', rows=rs, cols=cs, val=1.0)
+        self.declare_partials(of='t', wrt='t_duration', rows=rs, cols=cs, val=dtime_dduration)
+        self.declare_partials(of='t_phase', wrt='t_duration', rows=rs, cols=cs, val=dtime_dduration)
         self.declare_partials(of='dt_dstau', wrt='t_duration', rows=rs, cols=cs, val=0.5 * node_dptau_dstau)
 
     def compute(self, inputs, outputs):
@@ -87,6 +87,6 @@ class TimeComp(om.ExplicitComponent):
         t_initial = inputs['t_initial']
         t_duration = inputs['t_duration']
 
-        outputs['time'][:] = t_initial + 0.5 * (node_ptau + 1) * t_duration
-        outputs['time_phase'][:] = 0.5 * (node_ptau + 1) * t_duration
+        outputs['t'][:] = t_initial + 0.5 * (node_ptau + 1) * t_duration
+        outputs['t_phase'][:] = 0.5 * (node_ptau + 1) * t_duration
         outputs['dt_dstau'][:] = 0.5 * t_duration * node_dptau_dstau

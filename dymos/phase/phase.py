@@ -1257,11 +1257,11 @@ class Phase(om.Group):
         ----------
         name : str, or list of str
             The name(s) of the variable to be used as a timeseries output, or a mathematical expression to be used
-            as a timeseries output. If a name, it be one of 'time', 'time_phase', one of the states, controls,
-            control rates, or parameters, in the phase, the path to an output variable in the ODE, or a glob pattern
-            matching some outputs in the ODE.
+            as a timeseries output. If a name, it must be one of the integration variable, the phase-relative value
+            of the integration variable (e.g. 'time_phase', one of the states, controls, control rates, or parameters,
+            in the phase, the path to an output variable in the ODE, or a glob pattern matching some outputs in the ODE.
         output_name : str or None or list or dict
-            The name of the variable as listed in the phase timeseries outputs.  By
+            The name of the variable as listed in the phase timeseries outputs. By
             default this is the last element in `name` when split by dots.  The user may
             override the constraint name if splitting the path causes name collisions.
         units : str or None or _unspecified
@@ -1317,7 +1317,7 @@ class Phase(om.Group):
         ----------
         name : str, or list of str
             The name(s) of the variable to be used as a timeseries output.  Must be one of
-            'time', 'time_phase', one of the states, controls, control rates, or parameters,
+            the integration variable, 't_phase', one of the states, controls, control rates, or parameters,
             in the phase, the path to an output variable in the ODE, or a glob pattern
             matching some outputs in the ODE.
         output_name : str or None or list or dict
@@ -1375,7 +1375,7 @@ class Phase(om.Group):
         ----------
         name : str
             The name of the variable to be used as a timeseries output.  Must be one of
-            'time', 'time_phase', one of the states, controls, control rates, or parameters,
+            the integration variable, 't_phase', one of the states, controls, control rates, or parameters,
             in the phase, or the path to an output variable in the ODE.
         output_name : str or None
             The name of the variable as listed in the phase timeseries outputs.  By
@@ -1414,10 +1414,7 @@ class Phase(om.Group):
         if rate:
             output_name = output_name + '_rate'
 
-        if output_name in self._timeseries[timeseries]['outputs']:
-            om.issue_warning(f'Output name `{output_name}` is already in timeseries `{timeseries}`. '
-                             f'New output ignored.')
-        else:
+        if output_name not in self._timeseries[timeseries]['outputs']:
             ts_output = TimeseriesOutputOptionsDictionary()
             ts_output['name'] = name
             ts_output['output_name'] = output_name
@@ -1462,7 +1459,7 @@ class Phase(om.Group):
         Parameters
         ----------
         name : str
-            Name of the objective variable.  This should be one of 'time', a state or control
+            Name of the objective variable.  This should be one of the integration variable, a state or control
             variable, or the path to an output from the top level of the RHS.
         loc : str
             Where in the phase the objective is to be evaluated.  Valid
@@ -1506,7 +1503,7 @@ class Phase(om.Group):
                          duration_adder=_unspecified, duration_ref0=_unspecified,
                          duration_ref=_unspecified, targets=_unspecified,
                          time_phase_targets=_unspecified, t_initial_targets=_unspecified,
-                         t_duration_targets=_unspecified):
+                         t_duration_targets=_unspecified, name=_unspecified):
         """
         Sets options for time in the phase.
 
@@ -1560,6 +1557,8 @@ class Phase(om.Group):
             Targets in the ODE for the value of phase initial time.
         t_duration_targets :  iterable of str
             Targets in the ODE for the value of phase time duration.
+        name : str
+            Name of the integration variable for this phase. Default is 'time'.
         """
         if units is not _unspecified:
             self.time_options['units'] = units
@@ -1636,6 +1635,9 @@ class Phase(om.Group):
             else:
                 self.time_options['t_duration_targets'] = t_duration_targets
 
+        if name is not _unspecified:
+            self.time_options['name'] = name
+
     def classify_var(self, var):
         """
         Classifies a variable of the given name or path.
@@ -1654,12 +1656,12 @@ class Phase(om.Group):
         -------
         str
             The classification of the given variable, which is one of
-            'time', 'time_phase', 'state', 'control', 'control_rate',
+            't', 't_phase', 'state', 'control', 'control_rate',
             'control_rate2', 'polynomial_control',
             'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
             or 'ode'.
         """
-        return classify_var(var, state_options=self.state_options,
+        return classify_var(var, time_options=self.time_options, state_options=self.state_options,
                             parameter_options=self.parameter_options,
                             control_options=self.control_options,
                             polynomial_control_options=self.polynomial_control_options,
@@ -2134,7 +2136,8 @@ class Phase(om.Group):
             op_dict = MPI.COMM_WORLD.bcast(op_dict, root=0)
 
         # Set the integration times
-        op = op_dict['timeseries.timeseries_comp.time']
+        time_name = phs.time_options['name']
+        op = op_dict[f'timeseries.timeseries_comp.{time_name}']
         prob.set_val(f'{self_path}t_initial', op['val'][0, ...])
         prob.set_val(f'{self_path}t_duration', op['val'][-1, ...] - op['val'][0, ...])
 

@@ -62,8 +62,8 @@ class Radau(PseudospectralBase):
         ode_inputs = get_promoted_vars(ode, iotypes='input')
 
         # The tuples here are (name, user_specified_targets, dynamic)
-        for name, targets, dynamic in [('time', options['targets'], True),
-                                       ('time_phase', options['time_phase_targets'], True)]:
+        for name, targets, dynamic in [('t', options['targets'], True),
+                                       ('t_phase', options['time_phase_targets'], True)]:
             if targets:
                 src_idxs = self.grid_data.subset_node_indices['all'] if dynamic else None
                 phase.connect(name, [f'rhs_all.{t}' for t in targets], src_indices=src_idxs,
@@ -260,11 +260,11 @@ class Radau(PseudospectralBase):
         var_type = phase.classify_var(var)
 
         # Determine the path to the variable
-        if var_type == 'time':
-            rate_path = 'time'
+        if var_type == 't':
+            rate_path = 't'
             node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'time_phase':
-            rate_path = 'time_phase'
+        elif var_type == 't_phase':
+            rate_path = 't_phase'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'state':
             rate_path = f'states:{var}'
@@ -363,12 +363,12 @@ class Radau(PseudospectralBase):
         meta = {}
 
         # Determine the path to the variable
-        if var_type == 'time':
-            path = 'time'
+        if var_type == 't':
+            path = 't'
             src_units = time_units
             src_shape = (1,)
-        elif var_type == 'time_phase':
-            path = 'time_phase'
+        elif var_type == 't_phase':
+            path = 't_phase'
             src_units = time_units
             src_shape = (1,)
         elif var_type == 'state':

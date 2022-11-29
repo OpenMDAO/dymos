@@ -71,8 +71,8 @@ class GaussLobatto(PseudospectralBase):
         ode_inputs = get_promoted_vars(self._get_ode(phase), 'input')
 
         # The tuples here are (name, user_specified_targets, dynamic)
-        for name, usr_tgts in [('time', options['targets']),
-                               ('time_phase', options['time_phase_targets'])]:
+        for name, usr_tgts in [('t', options['targets']),
+                               ('t_phase', options['time_phase_targets'])]:
 
             targets = get_targets(ode_inputs, name=name, user_targets=usr_tgts)
             if targets:
@@ -453,13 +453,14 @@ class GaussLobatto(PseudospectralBase):
         except RuntimeError:
             raise ValueError(f"state '{state_name}' in phase '{phase.name}' was not given a rate_source")
         var_type = phase.classify_var(var)
+        time_name = phase.time_options['name']
 
         # Determine the path to the variable
-        if var_type == 'time':
-            rate_path = 'time'
+        if var_type == 't':
+            rate_path = 't'
             node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'time_phase':
-            rate_path = 'time_phase'
+        elif var_type == 't_phase':
+            rate_path = 't_phase'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'state':
             if nodes == 'col':
@@ -550,12 +551,12 @@ class GaussLobatto(PseudospectralBase):
         meta = {}
 
         # Determine the path to the variable
-        if var_type == 'time':
-            path = 'time'
+        if var_type == 't':
+            path = 't'
             src_units = time_units
             src_shape = (1,)
-        elif var_type == 'time_phase':
-            path = 'time_phase'
+        elif var_type == 't_phase':
+            path = 't_phase'
             src_units = time_units
             src_shape = (1,)
         elif var_type == 'state':

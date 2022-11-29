@@ -300,20 +300,20 @@ class RKIntegrationComp(om.ExplicitComponent):
     def _configure_time_io(self):
         num_output_rows = self._num_output_rows
 
-        self._totals_of_names.append('time')
-        self._totals_wrt_names.extend(['time', 't_initial', 't_duration'])
+        self._totals_of_names.append('t')
+        self._totals_wrt_names.extend(['t', 't_initial', 't_duration'])
 
         self.add_input('t_initial', shape=(1,), units=self.time_options['units'])
         self.add_input('t_duration', shape=(1,), units=self.time_options['units'])
         self.add_output('t_final', shape=(1,), units=self.time_options['units'])
-        self.add_output('time', shape=(num_output_rows, 1), units=self.time_options['units'])
-        self.add_output('time_phase', shape=(num_output_rows, 1), units=self.time_options['units'])
+        self.add_output('t', shape=(num_output_rows, 1), units=self.time_options['units'])
+        self.add_output('t_phase', shape=(num_output_rows, 1), units=self.time_options['units'])
 
         self.declare_partials('t_final', 't_initial', val=1.0)
         self.declare_partials('t_final', 't_duration', val=1.0)
-        self.declare_partials('time', 't_initial', val=1.0)
-        self.declare_partials('time', 't_duration', val=1.0)
-        self.declare_partials('time_phase', 't_duration', val=1.0)
+        self.declare_partials('t', 't_initial', val=1.0)
+        self.declare_partials('t', 't_duration', val=1.0)
+        self.declare_partials('t_phase', 't_duration', val=1.0)
 
     def _setup_states(self):
         if self._standalone_mode:
@@ -819,7 +819,7 @@ class RKIntegrationComp(om.ExplicitComponent):
             subprob = self._deriv_subprob
 
         # transcribe time
-        subprob.set_val('time', t, units=self.time_options['units'])
+        subprob.set_val('t', t, units=self.time_options['units'])
         subprob.set_val('t_initial', θ[0, 0], units=self.time_options['units'])
         subprob.set_val('t_duration', θ[1, 0], units=self.time_options['units'])
 
@@ -950,7 +950,7 @@ class RKIntegrationComp(om.ExplicitComponent):
                 idxs = self.state_idxs[state_name]
 
                 if f_t is not None:
-                    f_t[self.state_idxs[state_name]] = totals[of_name, 'time']
+                    f_t[self.state_idxs[state_name]] = totals[of_name, 't']
 
                 if f_x is not None:
                     for state_name_wrt in self.state_options:
@@ -989,9 +989,9 @@ class RKIntegrationComp(om.ExplicitComponent):
                 of_rate_idxs = self._control_rate_idxs_in_y[control_name]
                 of_rate2_idxs = self._control_rate2_idxs_in_y[control_name]
 
-                y_t[of_idxs, 0] = totals[of_name, 'time']
-                y_t[of_rate_idxs, 0] = totals[of_rate_name, 'time']
-                y_t[of_rate2_idxs, 0] = totals[of_rate2_name, 'time']
+                y_t[of_idxs, 0] = totals[of_name, 't']
+                y_t[of_rate_idxs, 0] = totals[of_rate_name, 't']
+                y_t[of_rate2_idxs, 0] = totals[of_rate2_name, 't']
 
                 y_θ[of_idxs, 1] = totals[of_name, 't_duration']
                 y_θ[of_rate_idxs, 1] = totals[of_rate_name, 't_duration']
@@ -1012,9 +1012,9 @@ class RKIntegrationComp(om.ExplicitComponent):
                 of_rate_idxs = self._polynomial_control_rate_idxs_in_y[polynomial_control_name]
                 of_rate2_idxs = self._polynomial_control_rate2_idxs_in_y[polynomial_control_name]
 
-                y_t[of_idxs, 0] = totals[of_name, 'time']
-                y_t[of_rate_idxs, 0] = totals[of_rate_name, 'time']
-                y_t[of_rate2_idxs, 0] = totals[of_rate2_name, 'time']
+                y_t[of_idxs, 0] = totals[of_name, 't']
+                y_t[of_rate_idxs, 0] = totals[of_rate_name, 't']
+                y_t[of_rate2_idxs, 0] = totals[of_rate2_name, 't']
 
                 y_θ[of_idxs, 1] = totals[of_name, 't_duration']
                 y_θ[of_rate_idxs, 1] = totals[of_rate_name, 't_duration']
@@ -1028,7 +1028,7 @@ class RKIntegrationComp(om.ExplicitComponent):
                 idxs_of = self._timeseries_idxs_in_y[name]
                 of_name = options['path']
 
-                y_t[idxs_of, 0] = totals[options['path'], 'time']
+                y_t[idxs_of, 0] = totals[options['path'], 't']
 
                 y_θ[idxs_of, 0] = totals[of_name, 't_initial']
                 y_θ[idxs_of, 1] = totals[of_name, 't_duration']
@@ -1099,7 +1099,7 @@ class RKIntegrationComp(om.ExplicitComponent):
             size = np.prod(options['shape'])
             name_of = f'state_rate_collector.state_rates:{state_name}_rate'
             idxs_of = self.state_idxs[state_name]
-            f_t[:, idxs_of, 0] = np.diagonal(totals[name_of, 'time']).reshape((num_stages, size))
+            f_t[:, idxs_of, 0] = np.diagonal(totals[name_of, 't']).reshape((num_stages, size))
 
             for state_name_wrt, options_wrt in self.state_options.items():
                 size_wrt = np.prod(options_wrt['shape'])
@@ -1141,9 +1141,9 @@ class RKIntegrationComp(om.ExplicitComponent):
                 idxs_of_rate = self._control_rate_idxs_in_y[control_name]
                 idxs_of_rate2 = self._control_rate2_idxs_in_y[control_name]
 
-                y_t[:, idxs_of, 0] = np.diagonal(totals[name_of, 'time']).reshape((num_stages, size_of))
-                y_t[:, idxs_of_rate, 0] = np.diagonal(totals[of_rate_name, 'time']).reshape((num_stages, size_of))
-                y_t[:, idxs_of_rate2, 0] = np.diagonal(totals[of_rate2_name, 'time']).reshape((num_stages, size_of))
+                y_t[:, idxs_of, 0] = np.diagonal(totals[name_of, 't']).reshape((num_stages, size_of))
+                y_t[:, idxs_of_rate, 0] = np.diagonal(totals[of_rate_name, 't']).reshape((num_stages, size_of))
+                y_t[:, idxs_of_rate2, 0] = np.diagonal(totals[of_rate2_name, 't']).reshape((num_stages, size_of))
 
                 y_θ[:, idxs_of, 1] = np.diagonal(totals[name_of, 't_duration'])
                 y_θ[:, idxs_of_rate, 1] = np.diagonal(totals[of_rate_name, 't_duration'])
@@ -1166,9 +1166,9 @@ class RKIntegrationComp(om.ExplicitComponent):
                 idxs_of_rate = self._polynomial_control_rate_idxs_in_y[polynomial_control_name]
                 idxs_of_rate2 = self._polynomial_control_rate2_idxs_in_y[polynomial_control_name]
 
-                y_t[:, idxs_of, 0] = np.diagonal(totals[name_of, 'time']).reshape((num_stages, size_of))
-                y_t[:, idxs_of_rate, 0] = np.diagonal(totals[of_rate_name, 'time']).reshape((num_stages, size_of))
-                y_t[:, idxs_of_rate2, 0] = np.diagonal(totals[of_rate2_name, 'time']).reshape((num_stages, size_of))
+                y_t[:, idxs_of, 0] = np.diagonal(totals[name_of, 't']).reshape((num_stages, size_of))
+                y_t[:, idxs_of_rate, 0] = np.diagonal(totals[of_rate_name, 't']).reshape((num_stages, size_of))
+                y_t[:, idxs_of_rate2, 0] = np.diagonal(totals[of_rate2_name, 't']).reshape((num_stages, size_of))
 
                 y_θ[:, idxs_of, 1] = totals[name_of, 't_duration']
                 y_θ[:, idxs_of_rate, 1] = totals[of_rate_name, 't_duration']
@@ -1183,7 +1183,7 @@ class RKIntegrationComp(om.ExplicitComponent):
                 name_of = options['path']
                 size_of = np.prod(options['shape'], dtype=int)
 
-                y_t[:, idxs_of, 0] = np.diagonal(totals[options['path'], 'time']).reshape((num_stages, size_of))
+                y_t[:, idxs_of, 0] = np.diagonal(totals[options['path'], 't']).reshape((num_stages, size_of))
 
                 y_θ[:, idxs_of, 0] = totals[name_of, 't_initial']
                 y_θ[:, idxs_of, 1] = totals[name_of, 't_duration']
@@ -1534,8 +1534,8 @@ class RKIntegrationComp(om.ExplicitComponent):
         outputs['t_final'] = self._t[-1, ...]
 
         # Extract time
-        outputs['time'] = self._t[idxs, ...]
-        outputs['time_phase'] = self._t[idxs, ...] - inputs['t_initial']
+        outputs['t'] = self._t[idxs, ...]
+        outputs['t_phase'] = self._t[idxs, ...] - inputs['t_initial']
 
         # Extract the state values
         for state_name in self.state_options:
@@ -1584,8 +1584,8 @@ class RKIntegrationComp(om.ExplicitComponent):
             self._propagate_vectorized_derivs(inputs)
 
         idxs = self._output_src_idxs
-        partials['time', 't_duration'] = dt_dZ[idxs, 0, self.x_size+1]
-        partials['time_phase', 't_duration'] = dt_dZ[idxs, 0, self.x_size+1]
+        partials['t', 't_duration'] = dt_dZ[idxs, 0, self.x_size+1]
+        partials['t_phase', 't_duration'] = dt_dZ[idxs, 0, self.x_size+1]
 
         for state_name in self.state_options:
             of = self._state_output_names[state_name]

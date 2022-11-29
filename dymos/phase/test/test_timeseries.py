@@ -71,10 +71,10 @@ class TestTimeseriesOutput(unittest.TestCase):
         control_input_idxs = gd.subset_node_indices['control_input']
         col_idxs = gd.subset_node_indices['col']
 
-        assert_near_equal(p.get_val('phase0.time'),
+        assert_near_equal(p.get_val('phase0.t'),
                           p.get_val('phase0.timeseries.time')[:, 0])
 
-        assert_near_equal(p.get_val('phase0.time_phase'),
+        assert_near_equal(p.get_val('phase0.t_phase'),
                           p.get_val('phase0.timeseries.time_phase')[:, 0])
 
         for state in ('x', 'y', 'v'):
@@ -157,10 +157,10 @@ class TestTimeseriesOutput(unittest.TestCase):
         state_input_idxs = gd.subset_node_indices['state_input']
         control_input_idxs = gd.subset_node_indices['control_input']
 
-        assert_near_equal(p.get_val('phase0.time'),
+        assert_near_equal(p.get_val('phase0.t'),
                           p.get_val('phase0.timeseries.time')[:, 0])
 
-        assert_near_equal(p.get_val('phase0.time_phase'),
+        assert_near_equal(p.get_val('phase0.t_phase'),
                           p.get_val('phase0.timeseries.time_phase')[:, 0])
 
         for state in ('x', 'y', 'v'):
@@ -246,10 +246,10 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         p.run_driver()
 
-        assert_near_equal(p.get_val('phase0.integrator.time'),
+        assert_near_equal(p.get_val('phase0.integrator.t'),
                           p.get_val('phase0.timeseries.time'))
 
-        assert_near_equal(p.get_val('phase0.integrator.time_phase'),
+        assert_near_equal(p.get_val('phase0.integrator.t_phase'),
                           p.get_val('phase0.timeseries.time_phase'))
 
         for state in ('x', 'y', 'v'):

@@ -64,12 +64,15 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        t_name = phase.time_options['name']
+        t_phase_name = f'{t_name}_phase'
+
         phase.check_time_options()
         for ts_name, ts_options in phase._timeseries.items():
-            if 'time' not in ts_options['outputs']:
-                phase.add_timeseries_output('time', timeseries=ts_name)
-            if 'time_phase' not in ts_options['outputs']:
-                phase.add_timeseries_output('time_phase', timeseries=ts_name)
+            if t_name not in ts_options['outputs']:
+                phase.add_timeseries_output(t_name, timeseries=ts_name)
+            if t_phase_name not in ts_options['outputs']:
+                phase.add_timeseries_output(t_phase_name, timeseries=ts_name)
 
     def configure_time(self, phase):
         """
@@ -483,7 +486,7 @@ class ExplicitShooting(TranscriptionBase):
         time_units = phase.time_options['units']
         var_type = phase.classify_var(var)
 
-        if var_type == 'time':
+        if var_type == 't':
             shape = (1,)
             units = time_units
             linear = True
@@ -491,11 +494,11 @@ class ExplicitShooting(TranscriptionBase):
                 obj_path = 't_initial'
             else:
                 obj_path = 'integrator.t_final'
-        elif var_type == 'time_phase':
+        elif var_type == 't_phase':
             shape = (1,)
             units = time_units
             linear = True
-            obj_path = 'integrator.time_phase'
+            obj_path = 'integrator.t_phase'
         elif var_type == 'state':
             shape = phase.state_options[var]['shape']
             units = phase.state_options[var]['units']
@@ -633,12 +636,12 @@ class ExplicitShooting(TranscriptionBase):
         meta = {}
 
         # Determine the path to the variable
-        if var_type == 'time':
-            path = 'integrator.time'
+        if var_type == 't':
+            path = 'integrator.t'
             src_units = time_units
             src_shape = (1,)
-        elif var_type == 'time_phase':
-            path = 'integrator.time_phase'
+        elif var_type == 't_phase':
+            path = 'integrator.t_phase'
             src_units = time_units
             src_shape = (1,)
         elif var_type == 'state':

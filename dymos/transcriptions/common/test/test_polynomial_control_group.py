@@ -111,7 +111,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
                                               node_dptau_dstau=gd.node_dptau_dstau, units='s'),
                               promotes_inputs=['t_initial', 't_duration'],
-                              promotes_outputs=['time', 'dt_dstau'])
+                              promotes_outputs=['t', 'dt_dstau'])
 
         polynomial_control_group = PolynomialControlGroup(grid_data=gd,
                                                           polynomial_control_options=controls,
@@ -132,7 +132,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
-        t_all = p['time']
+        t_all = p['t']
 
         p['polynomial_controls:a'][:, 0] = f_a(t_control_input)
         p['polynomial_controls:b'][:, 0] = f_b(t_control_input)
@@ -207,7 +207,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
                                               node_dptau_dstau=gd.node_dptau_dstau, units='s'),
                               promotes_inputs=['t_initial', 't_duration'],
-                              promotes_outputs=['time', 'dt_dstau'])
+                              promotes_outputs=['t', 'dt_dstau'])
 
         polynomial_control_group = PolynomialControlGroup(grid_data=gd,
                                                           polynomial_control_options=controls,
@@ -228,7 +228,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
-        t_all = p['time']
+        t_all = p['t']
 
         p['polynomial_controls:a'][:, 0] = f_a(t_control_input)
         p['polynomial_controls:b'][:, 0] = f_b(t_control_input)
@@ -297,7 +297,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
                                               node_dptau_dstau=gd.node_dptau_dstau, units='s'),
                               promotes_inputs=['t_initial', 't_duration'],
-                              promotes_outputs=['time', 'dt_dstau'])
+                              promotes_outputs=['t', 'dt_dstau'])
 
         polynomial_control_group = PolynomialControlGroup(grid_data=gd,
                                                           polynomial_control_options=controls,
@@ -318,7 +318,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
-        t_all = p['time']
+        t_all = p['t']
 
         p['polynomial_controls:a'][:, 0] = f_a(t_control_input)
         p['polynomial_controls:a'][:, 1] = f_b(t_control_input)
@@ -401,7 +401,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
                                               node_dptau_dstau=gd.node_dptau_dstau, units='s'),
                               promotes_inputs=['t_initial', 't_duration'],
-                              promotes_outputs=['time', 'dt_dstau'])
+                              promotes_outputs=['t', 'dt_dstau'])
 
         polynomial_control_group = PolynomialControlGroup(grid_data=gd,
                                                           polynomial_control_options=controls,
@@ -422,7 +422,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
-        t_all = p['time']
+        t_all = p['t']
 
         p['polynomial_controls:a'][:, 0] = f_a(t_control_input)
         p['polynomial_controls:a'][:, 1] = f_b(t_control_input)
@@ -505,7 +505,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
                                               node_dptau_dstau=gd.node_dptau_dstau, units='s'),
                               promotes_inputs=['t_initial', 't_duration'],
-                              promotes_outputs=['time', 'dt_dstau'])
+                              promotes_outputs=['t', 'dt_dstau'])
 
         polynomial_control_group = PolynomialControlGroup(grid_data=gd,
                                                           polynomial_control_options=controls,
@@ -526,7 +526,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
-        t_all = p['time']
+        t_all = p['t']
 
         p['polynomial_controls:a'][:, 0, 0] = f_a(t_control_input)
         p['polynomial_controls:a'][:, 1, 0] = f_b(t_control_input)
@@ -609,7 +609,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
                                               node_dptau_dstau=gd.node_dptau_dstau, units='s'),
                               promotes_inputs=['t_initial', 't_duration'],
-                              promotes_outputs=['time', 'dt_dstau'])
+                              promotes_outputs=['t', 'dt_dstau'])
 
         polynomial_control_group = PolynomialControlGroup(grid_data=gd,
                                                           polynomial_control_options=controls,
@@ -630,7 +630,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
-        t_all = p['time']
+        t_all = p['t']
 
         p['polynomial_controls:a'][:, 0, 0] = f_a(t_control_input)
         p['polynomial_controls:a'][:, 1, 0] = f_b(t_control_input)

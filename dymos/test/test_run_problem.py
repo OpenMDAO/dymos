@@ -490,7 +490,7 @@ class TestRunProblem(unittest.TestCase):
 
         dm.run_problem(p, refine_iteration_limit=5)
 
-        assert_near_equal(p.get_val('phase0.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.t')[-1], 1.8016, tolerance=1.0E-3)
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_run_brachistochrone_problem_with_simulate(self):

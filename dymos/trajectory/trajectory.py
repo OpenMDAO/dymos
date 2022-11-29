@@ -531,12 +531,14 @@ class Trajectory(om.Group):
         shapes = {'a': _unspecified, 'b': _unspecified}
 
         for i in ('a', 'b'):
-            if classes[i] == 'time':
-                sources[i] = 'timeseries.time'
+            if classes[i] == 't':
+                time_name = phases[i].time_options['name']
+                sources[i] = f'timeseries.{time_name}'
                 shapes[i] = (1,)
                 units[i] = phases[i].time_options['units']
-            elif classes[i] == 'time_phase':
-                sources[i] = 'timeseries.time_phase'
+            elif classes[i] == 't_phase':
+                time_name = phases[i].time_options['name']
+                sources[i] = f'timeseries.{time_name}_phase'
                 units[i] = phases[i].time_options['units']
                 shapes[i] = (1,)
             elif classes[i] == 'state':
@@ -704,8 +706,8 @@ class Trajectory(om.Group):
 
         def _get_prefixed_var(var, phase):
             class_var = phase.classify_var(var)
-            prefixes = {'time': '',
-                        'time_phase': '',
+            prefixes = {'t': '',
+                        't_phase': '',
                         'state': 'states:',
                         'parameter': 'parameters:',
                         'input_control': 'controls:',
@@ -756,7 +758,7 @@ class Trajectory(om.Group):
                 src_a = options._src_a
                 src_b = options._src_b
 
-                if class_a == 'time':
+                if class_a == 't':
                     fixed_a = phase_a.is_time_fixed(loc_a)
                 elif class_a == 'state':
                     fixed_a = phase_a.is_state_fixed(var_a, loc_a)
@@ -771,7 +773,7 @@ class Trajectory(om.Group):
                 else:
                     fixed_a = False  # No way to know so we allow these to go through
 
-                if class_b == 'time':
+                if class_b == 't':
                     fixed_b = phase_b.is_time_fixed(loc_b)
                 elif class_b == 'state':
                     fixed_b = phase_b.is_state_fixed(var_b, loc_b)
@@ -793,7 +795,7 @@ class Trajectory(om.Group):
                 str_fixed_b = '*' if fixed_b else ''
 
                 if options['connected']:
-                    if class_b == 'time':
+                    if class_b == 't':
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.t_initial',
                                      src_indices=[-1], flat_src_indices=True)

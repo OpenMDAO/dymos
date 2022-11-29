@@ -161,8 +161,8 @@ class ODEIntegrationInterface(object):
         xdot : np.array
             The 1D vector of state time-derivatives.
         """
-        self.prob['time'] = t
-        self.prob['time_phase'] = t - self.prob['t_initial']
+        self.prob['t'] = t
+        self.prob['t_phase'] = t - self.prob['t_initial']
         self._unpack_state_vec(x)
         self.prob.run_model()
         xdot = self._pack_state_rate_vec()

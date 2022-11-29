@@ -191,8 +191,8 @@ def plot_states(p, exp_out):
 
 def plot_propelled_ascent(p, exp_out):
     fig, ax = plt.subplots(5, 1, sharex=True, figsize=(4, 8))
-    t_imp = p.get_val('traj.propelled_ascent.time', 's')
-    t_exp = exp_out.get_val('traj.propelled_ascent.time', 's')
+    t_imp = p.get_val('traj.propelled_ascent.timeseries.time', 's')
+    t_exp = exp_out.get_val('traj.propelled_ascent.timeseries.time', 's')
 
     ax[0].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.states:p', 'bar'), 'ro', markerfacecolor='None')
     ax[0].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.states:p', 'bar'), 'r-')

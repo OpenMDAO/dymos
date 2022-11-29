@@ -79,8 +79,8 @@ class Analytic(TranscriptionBase):
         ode_inputs = get_promoted_vars(ode, iotypes='input')
 
         # The tuples here are (name, user_specified_targets, dynamic)
-        for name, targets, dynamic in [('time', options['targets'], True),
-                                       ('time_phase', options['time_phase_targets'], True)]:
+        for name, targets, dynamic in [('t', options['targets'], True),
+                                       ('t_phase', options['time_phase_targets'], True)]:
             if targets:
                 src_idxs = self.grid_data.subset_node_indices['all'] if dynamic else None
                 phase.connect(name, [f'rhs.{t}' for t in targets], src_indices=src_idxs,
@@ -347,12 +347,12 @@ class Analytic(TranscriptionBase):
         meta = {}
 
         # Determine the path to the variable
-        if var_type == 'time':
-            path = 'time'
+        if var_type == 't':
+            path = 't'
             src_units = time_units
             src_shape = (1,)
-        elif var_type == 'time_phase':
-            path = 'time_phase'
+        elif var_type == 't_phase':
+            path = 't_phase'
             src_units = time_units
             src_shape = (1,)
         elif var_type == 'parameter':
@@ -489,16 +489,16 @@ class Analytic(TranscriptionBase):
         if ode_outputs is None:
             ode_outputs = get_promoted_vars(phase._get_subsystem(self._rhs_source), 'output')
 
-        if var_type == 'time':
+        if var_type == 't':
             shape = (1,)
             units = time_units
             linear = True
-            constraint_path = 'time'
-        elif var_type == 'time_phase':
+            constraint_path = 't'
+        elif var_type == 't_phase':
             shape = (1,)
             units = time_units
             linear = True
-            constraint_path = 'time_phase'
+            constraint_path = 't_phase'
         elif var_type == 'state':
             constraint_path = f'{self._rhs_source}.{var}'
             src_path = phase.state_options[var]['source']

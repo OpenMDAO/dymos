@@ -24,7 +24,7 @@ class TestTauComp(unittest.TestCase):
         p.set_val('tau_comp.t_initial', 0)
         p.set_val('tau_comp.t_duration', 15)
 
-        p.set_val('tau_comp.time', 1.5)
+        p.set_val('tau_comp.t', 1.5)
         p.run_model()
 
         frac = 0.1
@@ -51,7 +51,7 @@ class TestTauComp(unittest.TestCase):
         p.set_val('tau_comp.t_initial', 0)
         p.set_val('tau_comp.t_duration', 15)
 
-        p.set_val('tau_comp.time', np.linspace(0, 5, 4))
+        p.set_val('tau_comp.t', np.linspace(0, 5, 4))
         p.run_model()
 
         print(p.get_val('tau_comp.ptau'))

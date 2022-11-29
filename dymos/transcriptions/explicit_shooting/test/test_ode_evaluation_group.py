@@ -46,13 +46,13 @@ class TestODEEvaluationGroup(unittest.TestCase):
 
         p.model.ode_eval.set_segment_index(0)
         p.set_val('ode_eval.states:x', [1.25])
-        p.set_val('ode_eval.time', [2.2])
+        p.set_val('ode_eval.t', [2.2])
         p.set_val('ode_eval.parameters:p', [1.0])
 
         p.run_model()
 
         x = p.get_val('ode_eval.states:x')
-        t = p.get_val('ode_eval.time')
+        t = p.get_val('ode_eval.t')
         xdot_check = x - t**2 + 1
 
         assert_near_equal(p.get_val('ode_eval.state_rate_collector.state_rates:x_rate'), xdot_check)

@@ -37,7 +37,6 @@ class LintJupyterOutputsTestCase(unittest.TestCase):
     """
 
     def test_output(self):
-        this_file = pathlib.PurePath(__file__)
 
         for file in _get_files():
             print(file)

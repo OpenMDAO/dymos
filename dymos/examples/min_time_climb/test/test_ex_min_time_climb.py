@@ -16,7 +16,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
-                   transcription_order=3, force_alloc_complex=False, add_rate=False):
+                   transcription_order=3, force_alloc_complex=False, add_rate=False, time_name='time'):
 
     p = om.Problem(model=om.Group())
 
@@ -50,7 +50,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p.model.add_subsystem('traj', traj)
 
     phase.set_time_options(fix_initial=True, duration_bounds=(50, 400),
-                           duration_ref=100.0)
+                           duration_ref=100.0, name=time_name)
 
     phase.add_state('r', fix_initial=True, lower=0, upper=1.0E6,
                     ref=1.0E3, defect_ref=1.0E3, units='m',
@@ -89,11 +89,11 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     # Unnecessary but included to test capability
     phase.add_path_constraint(name='alpha', lower=-8, upper=8)
-    phase.add_path_constraint(name='time', lower=0, upper=400)
-    phase.add_path_constraint(name='time_phase', lower=0, upper=400)
+    phase.add_path_constraint(name=f'{time_name}', lower=0, upper=400)
+    phase.add_path_constraint(name=f'{time_name}_phase', lower=0, upper=400)
 
     # Minimize time at the end of the phase
-    phase.add_objective('time', loc='final', ref=1.0)
+    phase.add_objective(time_name, loc='final', ref=1.0)
 
     # test mixing wildcard ODE variable expansion and unit overrides
     phase.add_timeseries_output(['aero.*', 'prop.thrust', 'prop.m_dot'],
@@ -125,13 +125,13 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 @use_tempdirs
 class TestMinTimeClimb(unittest.TestCase):
 
-    def _test_results(self, p):
+    def _test_results(self, p, time_name='time'):
         """ Verify the results of the optimization. """
         # Verify that ODE output mach is added to the timeseries
         assert_near_equal(p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
 
         # Check that time matches to within 1% of an externally verified solution.
-        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 321.0, tolerance=0.02)
+        assert_near_equal(p.get_val(f'traj.phase0.timeseries.{time_name}')[-1], 321.0, tolerance=0.02)
 
     def _test_wilcard_outputs(self, p):
         """ Test that all wilcard outputs are provided. """
@@ -148,7 +148,7 @@ class TestMinTimeClimb(unittest.TestCase):
         assert(output_dict['traj.phase0.timeseries.f_drag']['units'] == 'N')    # wildcard, from ODE
         assert(output_dict['traj.phase0.timeseries.f_lift']['units'] == 'lbf')  # wildcard, from units dict
 
-    def _test_mach_rate(self, p, plot=False):
+    def _test_mach_rate(self, p, plot=False, time_name='time'):
         """ Test that the mach rate is provided by the timeseries and is accurate. """
         # Verify correct timeseries output of mach_rate
         output_dict = get_promoted_vars(p.model, iotypes=('output',))
@@ -157,13 +157,13 @@ class TestMinTimeClimb(unittest.TestCase):
 
         case = om.CaseReader('dymos_solution.db').get_case('final')
 
-        time = case['traj.phase0.timeseries.time'][:, 0]
+        time = case[f'traj.phase0.timeseries.{time_name}'][:, 0]
         mach = case['traj.phase0.timeseries.mach'][:, 0]
         mach_rate = case['traj.phase0.timeseries.mach_rate'][:, 0]
 
         sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
 
-        sim_time = sim_case['traj.phase0.timeseries.time'][:, 0]
+        sim_time = sim_case[f'traj.phase0.timeseries.{time_name}'][:, 0]
         sim_mach = sim_case['traj.phase0.timeseries.mach'][:, 0]
         sim_mach_rate = sim_case['traj.phase0.timeseries.mach_rate'][:, 0]
 
@@ -250,6 +250,36 @@ class TestMinTimeClimb(unittest.TestCase):
         self._test_timeseries_units(p)
 
         self._test_mach_rate(p, plot=False)
+
+    @require_pyoptsparse(optimizer='SLSQP')
+    def test_results_gauss_lobatto_renamed_time(self):
+        NUM_SEG = 12
+        ORDER = 3
+        p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
+                           transcription='gauss-lobatto', add_rate=True, time_name='t')
+
+        self._test_results(p, time_name='t')
+
+        self._test_wilcard_outputs(p)
+
+        self._test_timeseries_units(p)
+
+        self._test_mach_rate(p, time_name='t')
+
+    @require_pyoptsparse(optimizer='SLSQP')
+    def test_results_radau_renamed_time(self):
+        NUM_SEG = 15
+        ORDER = 3
+        p = min_time_climb(optimizer='SLSQP', num_seg=NUM_SEG, transcription_order=ORDER,
+                           transcription='radau-ps', add_rate=True, time_name='t')
+
+        self._test_results(p, time_name='t')
+
+        self._test_wilcard_outputs(p)
+
+        self._test_timeseries_units(p)
+
+        self._test_mach_rate(p, plot=False, time_name='t')
 
 
 if __name__ == '__main__':  # pragma: no cover

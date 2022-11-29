@@ -10,7 +10,7 @@ from ..phase.options import StateOptionsDictionary, TimeseriesOutputOptionsDicti
 from .misc import get_rate_units
 
 
-def classify_var(var, state_options, parameter_options, control_options,
+def classify_var(var, time_options, state_options, parameter_options, control_options,
                  polynomial_control_options, timeseries_options=None):
     """
     Classifies a variable of the given name or path.
@@ -24,6 +24,8 @@ def classify_var(var, state_options, parameter_options, control_options,
     ----------
     var : str
         The name of the variable to be classified.
+    time_options : OptionsDictionary
+        Time options for the phase.
     state_options : dict of {str: OptionsDictionary}
         For each state variable, a dictionary of its options, keyed by name.
     parameter_options : dict of {str: OptionsDictionary}
@@ -39,13 +41,20 @@ def classify_var(var, state_options, parameter_options, control_options,
     -------
     str
         The classification of the given variable, which is one of
-        'time', 'time_phase', 'state', 'input_control', 'indep_control', 'control_rate',
+        't', 't_phase', 'state', 'input_control', 'indep_control', 'control_rate',
         'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
         'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
         or 'ode'.
     """
-    if var in {'time', 'time_phase'}:
-        return var
+    time_name = time_options['name']
+    if var == time_name:
+        return 't'
+    elif var == f'{time_name}_phase':
+        return 't_phase'
+    elif var == 'time_phase':
+        om.issue_warning('time_phase is deprecated. Please use `t_phase` to obtain the change in the integration '
+                         'variable within the current phase.', category=om.OMDeprecationWarning)
+        return 't_phase'
     elif var in state_options:
         return 'state'
     elif var in control_options:
@@ -173,9 +182,11 @@ def _configure_constraint_introspection(phase):
     for constraint_type, constraints in [('initial', phase._initial_boundary_constraints),
                                          ('final', phase._final_boundary_constraints),
                                          ('path', phase._path_constraints)]:
-        for con in constraints:
-            time_units = phase.time_options['units']
 
+        time_units = phase.time_options['units']
+        time_name = phase.time_options['name']
+
+        for con in constraints:
             # Determine the path to the variable which we will be constraining
             var = con['name']
             var_type = phase.classify_var(var)
@@ -184,10 +195,15 @@ def _configure_constraint_introspection(phase):
                 om.issue_warning(f"Option 'constraint_name' on {constraint_type} constraint {var} is only "
                                  f"valid for ODE outputs. The option is being ignored.", om.UnusedOptionWarning)
 
-            if var_type in {'time', 'time_phase'}:
+            if var_type == 't':
                 con['shape'] = (1,)
                 con['units'] = time_units if con['units'] is None else con['units']
-                con['constraint_path'] = f'timeseries.{var_type}'
+                con['constraint_path'] = f'timeseries.{time_name}'
+
+            elif var_type == 't_phase':
+                con['shape'] = (1,)
+                con['units'] = time_units if con['units'] is None else con['units']
+                con['constraint_path'] = f'timeseries.{time_name}_phase'
 
             elif var_type == 'state':
                 state_shape = phase.state_options[var]['shape']
@@ -386,7 +402,7 @@ def configure_time_introspection(time_options, ode):
     ----------
     time_options : dict of {str: TimeOptionsDictionary
         A dictionary keyed by control name containing the options for all controls to be applied
-        to the ODE. Options for 'targets', 'time_phase_targets', and 'units' are modified in-place.
+        to the ODE. Options for 'targets', 't_phase_targets', and 'units' are modified in-place.
     ode : om.System
         An instantiated System that serves as the ODE to which the controls should be applied.
 
@@ -397,9 +413,11 @@ def configure_time_introspection(time_options, ode):
         within the ODE.
     """
     ode_inputs = get_promoted_vars(ode, 'input')
-    # time
+    time_name = time_options['name']
+    t_phase_name = f'{time_name}_phase'
+
     targets, shape, units, static_target = _get_targets_metadata(ode_inputs,
-                                                                 name='time',
+                                                                 name=time_name,
                                                                  user_targets=time_options['targets'],
                                                                  user_units=time_options['units'],
                                                                  user_shape=(1,))
@@ -408,12 +426,12 @@ def configure_time_introspection(time_options, ode):
     time_options['units'] = units
 
     if static_target:
-        raise ValueError(f"'time' cannot be connected to its targets because one "
+        raise ValueError(f"The integration variable {time_name} cannot be connected to its targets because one "
                          f"or more targets are tagged with 'dymos.static_target'.")
 
-    # time_phase
+    # t_phase
     targets, shape, units, static_target = _get_targets_metadata(ode_inputs,
-                                                                 name='time_phase',
+                                                                 name=t_phase_name,
                                                                  user_targets=time_options['time_phase_targets'],
                                                                  user_units=time_options['units'],
                                                                  user_shape=(1,))
@@ -421,7 +439,7 @@ def configure_time_introspection(time_options, ode):
     time_options['time_phase_targets'] = targets
 
     if static_target:
-        raise ValueError(f"'time_phase' cannot be connected to its targets because one "
+        raise ValueError(f"'t_phase' cannot be connected to its targets because one "
                          f"or more targets are tagged with 'dymos.static_target'.")
 
 
@@ -472,10 +490,10 @@ def configure_states_introspection(state_options, time_options, control_options,
 
         # 3. Attempt rate-source introspection
         rate_src = options['rate_source']
-        rate_src_type = classify_var(rate_src, state_options, parameter_options, control_options,
+        rate_src_type = classify_var(rate_src, time_options, state_options, parameter_options, control_options,
                                      polynomial_control_options)
 
-        if rate_src_type in {'time', 'time_phase'}:
+        if rate_src_type in {'t', 't_phase'}:
             rate_src_units = time_options['units']
             rate_src_shape = (1,)
         elif rate_src_type == 'state':
@@ -755,6 +773,7 @@ def configure_timeseries_output_introspection(phase):
                                                                            phase=phase)
                 except ValueError as e:
                     not_found.add(output_name)
+                    continue
 
             output_options['src'] = output_meta['src']
             output_options['src_idxs'] = output_meta['src_idxs']
