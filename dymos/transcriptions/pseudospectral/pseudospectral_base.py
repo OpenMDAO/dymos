@@ -602,6 +602,11 @@ class PseudospectralBase(TranscriptionBase):
             units = control_rate_units
             linear = False
             constraint_path = f'polynomial_control_rates:{var}'
+        elif var_type == 'timeseries_exec_comp_output':
+            shape = (1,)
+            units = None
+            constraint_path = f'timeseries.timeseries_exec_comp.{var}'
+            linear = False
         else:
             # Failed to find variable, assume it is in the ODE. This requires introspection.
             constraint_path = f'{self._rhs_source}.{var}'

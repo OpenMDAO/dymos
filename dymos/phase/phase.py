@@ -22,7 +22,7 @@ from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
-    configure_timeseries_output_introspection, classify_var, get_promoted_vars
+    configure_timeseries_output_introspection, classify_var, configure_timeseries_expr_introspection
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
 
@@ -1081,7 +1081,9 @@ class Phase(om.Group):
         else:
             is_expr = False
 
-        if constraint_name is None:
+        if is_expr:
+            constraint_name = name.split('=')[0].strip()
+        elif constraint_name is None:
             constraint_name = name.rpartition('.')[-1]
 
         bc_list = self._initial_boundary_constraints if loc == 'initial' else self._final_boundary_constraints
@@ -1721,7 +1723,9 @@ class Phase(om.Group):
 
         _configure_constraint_introspection(self)
 
-        transcription._configure_boundary_constraints(self)
+        configure_timeseries_expr_introspection(self)
+
+        transcription.configure_boundary_constraints(self)
 
         transcription.configure_path_constraints(self)
 

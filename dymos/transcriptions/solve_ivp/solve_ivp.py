@@ -460,7 +460,7 @@ class SolveIVP(TranscriptionBase):
         """
         pass
 
-    def _configure_boundary_constraints(self, phase):
+    def configure_boundary_constraints(self, phase):
         """
         Not used in SolveIVP.
 

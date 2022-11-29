@@ -401,7 +401,7 @@ class TranscriptionBase(object):
                     phase.connect(src_name=src, tgt_name=f'{timeseries_name}.input_values:{name}',
                                   src_indices=ts_output['src_idxs'])
 
-    def _configure_boundary_constraints(self, phase):
+    def configure_boundary_constraints(self, phase):
         """
         Configures the boundary constraints.
 
@@ -448,7 +448,7 @@ class TranscriptionBase(object):
         con_name = constraint_kwargs.pop('constraint_name')
 
         # Determine the path to the variable which we will be constraining
-        var = options['name']
+        var = con_name if options['is_expr'] else options['name']
         var_type = phase.classify_var(var)
 
         # These are the flat indices at a single point in time used
@@ -503,6 +503,7 @@ class TranscriptionBase(object):
         con_path = constraint_kwargs.pop('constraint_path')
         constraint_kwargs.pop('shape')
         constraint_kwargs['flat_indices'] = True
+        constraint_kwargs.pop('is_expr')
 
         return con_path, constraint_kwargs
 
