@@ -1176,7 +1176,19 @@ class Phase(om.Group):
             If True, treat indices as flattened C-ordered indices of elements to constrain at each given point in time.
             Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.
         """
-        if constraint_name is None:
+        expr_operators = ['(', '+', '-', '/', '*', '&', '%']
+        if '=' in name:
+            is_expr = True
+        elif '=' not in name and any(opr in name for opr in expr_operators):
+            raise ValueError(f'The expression provided {name} has invalid format. '
+                             'Expression may be a single variable or an equation'
+                             'of the form "constraint_name = func(vars)"')
+        else:
+            is_expr = False
+
+        if is_expr:
+            constraint_name = name.split('=')[0].strip()
+        elif constraint_name is None:
             constraint_name = name.rpartition('.')[-1]
 
         existing_pc = [pc for pc in self._path_constraints
@@ -1203,6 +1215,7 @@ class Phase(om.Group):
         pc['linear'] = linear
         pc['units'] = units
         pc['flat_indices'] = flat_indices
+        pc['is_expr'] = is_expr
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
