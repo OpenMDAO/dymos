@@ -20,7 +20,7 @@ class TestCannonballBoundaryConstraint(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 
