@@ -1112,8 +1112,11 @@ class Trajectory(om.Group):
             for loc, d in ds.items():
                 str_loc = f'[{loc}]'
                 for options in d:
-                    expr = options['constraint_name']
-                    _, shape, units, linear = tx._get_objective_src(expr, loc, phase, ode_outputs=ode_outputs)
+                    if options['is_expr']:
+                        name = options['constraint_name']
+                    else:
+                        name = options['name']
+                    _, shape, units, linear = tx._get_objective_src(name, loc, phase, ode_outputs=ode_outputs)
 
                     equals = options['equals']
                     lower = options['lower']
@@ -1146,11 +1149,11 @@ class Trajectory(om.Group):
                         str_upper = ''
 
                     if equals is not None:
-                        printer(f'{2 * indent}{str_loc:<10s}{str_equals} == {expr} [{str_units}]',
+                        printer(f'{2 * indent}{str_loc:<10s}{str_equals} == {name} [{str_units}]',
                                 file=outstream)
                     else:
                         printer(
-                            f'{2 * indent}{str_loc:<10s}{str_lower} {expr} {str_upper} [{str_units}]',
+                            f'{2 * indent}{str_loc:<10s}{str_lower} {name} {str_upper} [{str_units}]',
                             file=outstream)
 
         for phase_name, phs in self._phases.items():
