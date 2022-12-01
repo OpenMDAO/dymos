@@ -15,7 +15,7 @@ plt.style.use('ggplot')
 
 
 @use_tempdirs
-class TestBrachistochroneStaticGravity(unittest.TestCase):
+class TestBrachistochroneExprPathConstraint(unittest.TestCase):
 
     def _make_problem(self, tx):
         p = om.Problem(model=om.Group())
@@ -63,7 +63,7 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    def test_brachistochrone_path_constraint(self):
+    def test_brachistochrone_expr_path_constraint(self):
         prob = self._make_problem(tx=dm.Radau(num_segments=5, order=3, compressed=True))
         prob.run_driver()
         yf = prob.get_val('phase0.timeseries.states:y')[-1]

@@ -1126,7 +1126,7 @@ class Phase(om.Group):
             raise ValueError(f'Invalid boundary constraint location "{loc}". Must be '
                              '"initial" or "final".')
 
-        expr_operators = ['(', '+', '-', '/', '*', '&', '%']
+        expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
         if '=' in name:
             is_expr = True
         elif '=' not in name and any(opr in name for opr in expr_operators):
@@ -1231,7 +1231,7 @@ class Phase(om.Group):
             If True, treat indices as flattened C-ordered indices of elements to constrain at each given point in time.
             Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.
         """
-        expr_operators = ['(', '+', '-', '/', '*', '&', '%']
+        expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
         if '=' in name:
             is_expr = True
         elif '=' not in name and any(opr in name for opr in expr_operators):
