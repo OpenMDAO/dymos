@@ -1593,7 +1593,8 @@ class USatm1976Comp(om.ExplicitComponent):
             partials['rho', 'h'][...] *= dz_dh
             partials['pres', 'h'][...] *= dz_dh
             partials['drhos_dh', 'h'][...] *= dz_dh ** 2
-            partials['dsos_dh', 'h'] *= dz_dh ** 2
+            if output_dsos_dh:
+                partials['dsos_dh', 'h'] *= dz_dh ** 2
 
 
 def _build_akima_coefs(out_stream=sys.stdout):
