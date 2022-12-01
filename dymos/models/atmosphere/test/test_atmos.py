@@ -17,7 +17,7 @@ class TestAtmosphere(unittest.TestCase):
         ivc = p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
         ivc.add_output(name='alt', val=USatm1976Data.alt, units='ft')
 
-        p.model.add_subsystem('atmos', subsys=USatm1976Comp(num_nodes=n))
+        p.model.add_subsystem('atmos', subsys=USatm1976Comp(num_nodes=n, output_dsos_dh=True))
         p.model.connect('alt', 'atmos.h')
 
         p.setup(force_alloc_complex=True)
@@ -44,7 +44,7 @@ class TestAtmosphere(unittest.TestCase):
         ivc = p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
         ivc.add_output(name='alt', val=USatm1976Data.alt, units='ft')
 
-        p.model.add_subsystem('atmos', subsys=USatm1976Comp(num_nodes=n, h_def='geodetic'))
+        p.model.add_subsystem('atmos', subsys=USatm1976Comp(num_nodes=n, h_def='geodetic', output_dsos_dh=True))
         p.model.connect('alt', 'atmos.h')
 
         p.setup(force_alloc_complex=True)
@@ -75,28 +75,6 @@ class TestAtmosphere(unittest.TestCase):
         for key, vals in coeff_data.items():
             saved_vals = getattr(USatm1976Data, key.split('.')[-1])
             assert_near_equal(vals, saved_vals, tolerance=1.0E-15)
-
-    def test_atmos_comp_dsos_dh(self):
-        from openmdao.components.interp_util.interp import InterpND
-        n = USatm1976Data.alt.size
-
-        p = om.Problem(model=om.Group())
-
-        ivc = p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
-        ivc.add_output(name='alt', val=USatm1976Data.alt, units='ft')
-
-        p.model.add_subsystem('atmos', subsys=USatm1976Comp(num_nodes=n, output_dsos_dh=True))
-        p.model.connect('alt', 'atmos.h')
-
-        p.setup(force_alloc_complex=True)
-        p.run_model()
-
-        dsos_dh = p.get_val('atmos.dsos_dh', units='ft/s**2')
-        sos = p.get_val('atmos.sos', units='ft/s')
-        sos_interp = InterpND(method='1D-akima', points=USatm1976Data.alt, values=sos, extrapolate=True)
-        _, _dsos_dh = sos_interp.interpolate(USatm1976Data.alt, compute_derivative=True)
-        print(dsos_dh-_dsos_dh)
-        assert_near_equal(dsos_dh, _dsos_dh)
 
 
 if __name__ == '__main__':  # pragma: no cover

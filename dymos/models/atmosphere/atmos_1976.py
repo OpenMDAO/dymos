@@ -1514,9 +1514,6 @@ class USatm1976Comp(om.ExplicitComponent):
 
         coeffs = USatm1976Data.akima_T[idx]
         T = coeffs[:, 0] + dx * (coeffs[:, 1] + dx * (coeffs[:, 2] + dx * coeffs[:, 3]))
-        if output_dsos_dh:
-            dT_dh = (coeffs[:, 1] + dx * (2.0 * coeffs[:, 2] + 3.0 * coeffs[:, 3] * dx)).ravel()
-            outputs['dsos_dh'] = (0.5 / np.sqrt(self._K * T) * dT_dh * self._K)
         outputs['temp'] = T
 
         coeffs = USatm1976Data.akima_P[idx]
@@ -1530,6 +1527,10 @@ class USatm1976Comp(om.ExplicitComponent):
         outputs['viscosity'] = coeffs[:, 0] + dx * (coeffs[:, 1] + dx * (coeffs[:, 2] + dx * coeffs[:, 3]))
 
         outputs['sos'] = np.sqrt(self._K * outputs['temp'])
+        if output_dsos_dh:
+            coeffs = USatm1976Data.akima_dT[idx]
+            dT_dh = (coeffs[:, 0] + dx * (coeffs[:, 1] + dx * (coeffs[:, 2] + dx * coeffs[:, 3]))).ravel()
+            outputs['dsos_dh'] = (0.5 / np.sqrt(self._K * T) * dT_dh * self._K)
 
     def compute_partials(self, inputs, partials):
         """
@@ -1581,7 +1582,7 @@ class USatm1976Comp(om.ExplicitComponent):
         partials['sos', 'h'][...] = (0.5 / np.sqrt(self._K * T) * partials['temp', 'h'] * self._K)
         if output_dsos_dh:
             coeffs = USatm1976Data.akima_dT[idx]
-            dT_dh = (coeffs[:, 0] + dx * (coeffs[:, 1] + dx * (coeffs[:, 2] + dx * coeffs[:, 3]))).ravel()
+            _dT_dh = (coeffs[:, 0] + dx * (coeffs[:, 1] + dx * (coeffs[:, 2] + dx * coeffs[:, 3]))).ravel()
             d2T_dh2 = (coeffs[:, 1] + dx * (2.0 * coeffs[:, 2] + 3.0 * coeffs[:, 3] * dx)).ravel()
             partials['dsos_dh', 'h'] = 0.5 * np.sqrt(self._K / T) * (d2T_dh2 - 0.5 * dT_dh**2 / T)
 
