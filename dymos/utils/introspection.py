@@ -790,6 +790,7 @@ def configure_timeseries_expr_introspection(phase):
     """
     transcription = phase.options['transcription']
     num_output_nodes = transcription._get_num_timeseries_nodes()
+    var_names_regex = re.compile(r'([_a-zA-Z]\w*[ ]*\(?:?[.]?)')
 
     for ts_name, ts_opts in phase._timeseries.items():
         timeseries_ec = phase._get_subsystem(f'{ts_name}.timeseries_exec_comp')
@@ -808,7 +809,7 @@ def configure_timeseries_expr_introspection(phase):
                 units = output_options['units'] if output_options['units'] is not _unspecified else None
                 shape = output_options['shape'] if output_options['shape'] not in {_unspecified, None} else (1,)
 
-                abs_names = [x.strip() for x in re.findall(re.compile(r'([_a-zA-Z]\w*[ ]*\(?:?[.]?)'), expr)
+                abs_names = [x.strip() for x in re.findall(var_names_regex, expr)
                              if not x.endswith('(') and not x.endswith(':')]
                 for name in abs_names:
                     if name.endswith('.'):
