@@ -1480,7 +1480,7 @@ class USatm1976Comp(om.ExplicitComponent):
         self.add_output('drhos_dh', val=1. * np.ones(nn), units='slug/ft**4')
         self.add_output('sos', val=1 * np.ones(nn), units='ft/s')
         if output_dsos_dh:
-            self.add_output('dsos_dh', val=1 * np.ones(nn), units='ft/s**2')
+            self.add_output('dsos_dh', val=1 * np.ones(nn), units='1/s')
 
         arange = np.arange(nn, dtype=int)
         self.declare_partials(['temp', 'pres', 'rho', 'viscosity', 'drhos_dh', 'sos'], 'h',
