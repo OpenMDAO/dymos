@@ -58,11 +58,6 @@ class TestBrachistochroneExprPathConstraint(unittest.TestCase):
         p['phase0.parameters:g'] = 9.80665
         return p
 
-    def tearDown(self):
-        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out', 'SNOPT_summary.out']:
-            if os.path.exists(filename):
-                os.remove(filename)
-
     def test_brachistochrone_expr_path_constraint(self):
         prob = self._make_problem(tx=dm.Radau(num_segments=5, order=3, compressed=True))
         prob.run_driver()

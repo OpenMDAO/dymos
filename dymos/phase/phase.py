@@ -1078,14 +1078,15 @@ class Phase(om.Group):
         Parameters
         ----------
         name : str
-            Name of the variable to constrain.  If name is not a state, control, or 'time',
+            Name of the variable to constrain. May also provide an expression to be evaluated and constrained.
+            If a single variable and the name is not a state, control, or 'time',
             then this is assumed to be the path of the variable to be constrained in the ODE.
+            If an expression, it must be provided in the form of an equation with a left- and right-hand side
         loc : str
             The location of the boundary constraint ('initial' or 'final').
         constraint_name : str or None
-            The name of the boundary constraint. By default, this is the left-hand side of
-            the given expression or "var_constraint" if var is a single variable. The user may
-            override the constraint name if desired.
+            The name of the boundary constraint. By default, this is 'var_constraint' if name is a single variable,
+             or the left-hand side of the equation if name is an expression.
         units : str or None
             The units in which the boundary constraint is to be applied.  If None, use the
             units associated with the constrained output.  If provided, must be compatible with
@@ -1130,9 +1131,9 @@ class Phase(om.Group):
         if '=' in name:
             is_expr = True
         elif '=' not in name and any(opr in name for opr in expr_operators):
-            raise ValueError(f'The expression provided {name} has invalid format. '
-                             'Expression may be a single variable or an equation'
-                             'of the form "constraint_name = func(vars)"')
+            raise ValueError(f'The expression provided `{name}` has invalid format. '
+                             'Expression may be a single variable or an equation '
+                             'of the form `constraint_name = func(vars)`')
         else:
             is_expr = False
 
@@ -1149,12 +1150,13 @@ class Phase(om.Group):
             raise ValueError(f'Cannot add new {loc} boundary constraint for variable `{name}` and indices {indices}. '
                              f'One already exists.')
 
-        existing_bc = [bc for bc in bc_list if bc['name'] == constraint_name and
-                       bc['indices'] is None and indices is None]
+        existing_bc_name = [bc for bc in bc_list if bc['name'] == constraint_name and
+                            bc['indices'] is None and indices is None]
 
-        if existing_bc:
-            raise ValueError(f'Cannot add new {loc} boundary constraint named `{constraint_name}` and indices{indices}.'
-                             f' `{constraint_name}` is already in use as a {loc} boundary constraint')
+        if existing_bc_name:
+            raise ValueError(f'Cannot add new {loc} boundary constraint named `{constraint_name}`'
+                             f' and indices {indices}. The name `{constraint_name}` is already in use'
+                             f' as a {loc} boundary constraint')
 
         bc = ConstraintOptionsDictionary()
         bc_list.append(bc)
@@ -1190,11 +1192,13 @@ class Phase(om.Group):
         Parameters
         ----------
         name : str
-            Name of the response variable in the system.
+            Name of the variable to constrain. May also provide an expression to be evaluated and constrained.
+            If a single variable and the name is not a state, control, or 'time',
+            then this is assumed to be the path of the variable to be constrained in the ODE.
+            If an expression, it must be provided in the form of an equation with a left- and right-hand side
         constraint_name : str or None
-            The name of the variable as provided to the boundary constraint comp.  By
-            default this is the last element in `name` when split by dots.  The user may
-            override the constraint name if splitting the path causes name collisions.
+            The name of the path constraint. By default, this is 'var_constraint' if name is a single variable,
+             or the left-hand side of the equation if name is an expression.
         units : str or None
             The units in which the boundary constraint is to be applied.  If None, use the
             units associated with the constrained output.  If provided, must be compatible with
@@ -1235,9 +1239,9 @@ class Phase(om.Group):
         if '=' in name:
             is_expr = True
         elif '=' not in name and any(opr in name for opr in expr_operators):
-            raise ValueError(f'The expression provided {name} has invalid format. '
-                             'Expression may be a single variable or an equation'
-                             'of the form "constraint_name = func(vars)"')
+            raise ValueError(f'The expression provided `{name}` has invalid format. '
+                             'Expression may be a single variable or an equation '
+                             'of the form `constraint_name = func(vars)`')
         else:
             is_expr = False
 
@@ -1252,6 +1256,14 @@ class Phase(om.Group):
         if existing_pc:
             raise ValueError(f'Cannot add new path constraint for variable `{name}` and indices {indices}. '
                              f'One already exists.')
+
+        existing_bc_name = [pc for pc in self._path_constraints
+                            if pc['name'] == constraint_name and pc['indices'] == indices
+                            and pc['flat_indices'] == flat_indices]
+
+        if existing_bc_name:
+            raise ValueError(f'Cannot add new path constraint named `{constraint_name}` and indices {indices}.'
+                             f' The name `{constraint_name}` is already in use as a path constraint')
 
         pc = ConstraintOptionsDictionary()
         self._path_constraints.append(pc)
