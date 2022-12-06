@@ -1081,7 +1081,7 @@ class Phase(om.Group):
             Name of the variable to constrain. May also provide an expression to be evaluated and constrained.
             If a single variable and the name is not a state, control, or 'time',
             then this is assumed to be the path of the variable to be constrained in the ODE.
-            If an expression, it must be provided in the form of an equation with a left- and right-hand side
+            If an expression, it must be provided in the form of an equation with a left- and right-hand side.
         loc : str
             The location of the boundary constraint ('initial' or 'final').
         constraint_name : str or None
@@ -1195,7 +1195,7 @@ class Phase(om.Group):
             Name of the variable to constrain. May also provide an expression to be evaluated and constrained.
             If a single variable and the name is not a state, control, or 'time',
             then this is assumed to be the path of the variable to be constrained in the ODE.
-            If an expression, it must be provided in the form of an equation with a left- and right-hand side
+            If an expression, it must be provided in the form of an equation with a left- and right-hand side.
         constraint_name : str or None
             The name of the path constraint. By default, this is 'var_constraint' if name is a single variable,
              or the left-hand side of the equation if name is an expression.
@@ -1258,8 +1258,8 @@ class Phase(om.Group):
                              f'One already exists.')
 
         existing_bc_name = [pc for pc in self._path_constraints
-                            if pc['name'] == constraint_name and pc['indices'] == indices
-                            and pc['flat_indices'] == flat_indices]
+                            if pc['name'] == constraint_name and pc['indices'] == indices and
+                            pc['flat_indices'] == flat_indices]
 
         if existing_bc_name:
             raise ValueError(f'Cannot add new path constraint named `{constraint_name}` and indices {indices}.'

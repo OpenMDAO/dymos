@@ -57,7 +57,7 @@ class TestAddBoundaryConstraint(unittest.TestCase):
     def test_simple_no_exception(self):
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['optimizer'] = 'SLSQP'
 
         p.driver.declare_coloring()
@@ -120,7 +120,7 @@ class TestAddBoundaryConstraint(unittest.TestCase):
     def test_invalid_expression(self):
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['optimizer'] = 'SLSQP'
 
         p.driver.declare_coloring()
@@ -165,7 +165,7 @@ class TestAddBoundaryConstraint(unittest.TestCase):
     def test_duplicate_name(self):
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['optimizer'] = 'SLSQP'
 
         p.driver.declare_coloring()
