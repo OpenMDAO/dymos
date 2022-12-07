@@ -5,6 +5,7 @@ import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 
 from dymos.models.atmosphere.atmos_1976 import USatm1976Comp, USatm1976Data, _build_akima_coefs
+from scipy.interpolate import Akima1DInterpolator
 
 
 class TestAtmosphere(unittest.TestCase):
@@ -17,7 +18,7 @@ class TestAtmosphere(unittest.TestCase):
         ivc = p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
         ivc.add_output(name='alt', val=USatm1976Data.alt, units='ft')
 
-        p.model.add_subsystem('atmos', subsys=USatm1976Comp(num_nodes=n))
+        p.model.add_subsystem('atmos', subsys=USatm1976Comp(num_nodes=n, output_dsos_dh=True))
         p.model.connect('alt', 'atmos.h')
 
         p.setup(force_alloc_complex=True)
@@ -28,10 +29,21 @@ class TestAtmosphere(unittest.TestCase):
         rho = p.get_val('atmos.rho', units='slug/ft**3')
         sos = p.get_val('atmos.sos', units='ft/s')
 
+        drho_dh = p.get_val('atmos.drhos_dh', units='slug/ft**4')
+        dsos_dh = p.get_val('atmos.dsos_dh', units='1/s')
+
+        rho_interp = Akima1DInterpolator(USatm1976Data.alt, rho)
+        drho_interp = rho_interp.derivative()(USatm1976Data.alt)
+        sos_interp = Akima1DInterpolator(USatm1976Data.alt, sos)
+        dsos_interp = sos_interp.derivative()(USatm1976Data.alt)
+
         assert_near_equal(T, USatm1976Data.T, tolerance=1.0E-4)
         assert_near_equal(P, USatm1976Data.P, tolerance=1.0E-4)
         assert_near_equal(rho, USatm1976Data.rho, tolerance=1.0E-4)
         assert_near_equal(sos, USatm1976Data.a, tolerance=1.0E-4)
+
+        assert_near_equal(drho_interp, drho_dh, tolerance=1.0E-4)
+        assert_near_equal(dsos_interp, dsos_dh, tolerance=1.0E-2)
 
         cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
@@ -44,7 +56,7 @@ class TestAtmosphere(unittest.TestCase):
         ivc = p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
         ivc.add_output(name='alt', val=USatm1976Data.alt, units='ft')
 
-        p.model.add_subsystem('atmos', subsys=USatm1976Comp(num_nodes=n, h_def='geodetic'))
+        p.model.add_subsystem('atmos', subsys=USatm1976Comp(num_nodes=n, h_def='geodetic', output_dsos_dh=True))
         p.model.connect('alt', 'atmos.h')
 
         p.setup(force_alloc_complex=True)
@@ -60,10 +72,21 @@ class TestAtmosphere(unittest.TestCase):
         rho = p.get_val('atmos.rho', units='slug/ft**3')
         sos = p.get_val('atmos.sos', units='ft/s')
 
+        drho_dh = p.get_val('atmos.drhos_dh', units='slug/ft**4')
+        dsos_dh = p.get_val('atmos.dsos_dh', units='1/s')
+
+        rho_interp = Akima1DInterpolator(USatm1976Data.alt, rho)
+        drho_interp = rho_interp.derivative()(USatm1976Data.alt)
+        sos_interp = Akima1DInterpolator(USatm1976Data.alt, sos)
+        dsos_interp = sos_interp.derivative()(USatm1976Data.alt)
+
         assert_near_equal(T, USatm1976Data.T, tolerance=1.0E-4)
         assert_near_equal(P, USatm1976Data.P, tolerance=1.0E-4)
         assert_near_equal(rho, USatm1976Data.rho, tolerance=1.0E-4)
         assert_near_equal(sos, USatm1976Data.a, tolerance=1.0E-4)
+
+        assert_near_equal(drho_interp, drho_dh, tolerance=1.0E-4)
+        assert_near_equal(dsos_interp, dsos_dh, tolerance=1.0E-2)
 
         with np.printoptions(linewidth=100000):
             cpd = p.check_partials(method='cs')
