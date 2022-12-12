@@ -461,7 +461,7 @@ class SolveIVP(TranscriptionBase):
         """
         pass
 
-    def _configure_boundary_constraints(self, phase):
+    def configure_boundary_constraints(self, phase):
         """
         Not used in SolveIVP.
 
@@ -687,4 +687,8 @@ class SolveIVP(TranscriptionBase):
         int
             The number of nodes in the default timeseries for this transcription.
         """
-        return self.grid_data.num_segments * self.options['output_nodes_per_seg']
+        if self.options['output_nodes_per_seg'] is None:
+            output_nodes = self.grid_data.num_segments
+        else:
+            output_nodes = self.grid_data.num_segments * self.options['output_nodes_per_seg']
+        return output_nodes

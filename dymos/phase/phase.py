@@ -22,7 +22,7 @@ from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
-    configure_timeseries_output_introspection, classify_var, get_promoted_vars
+    configure_timeseries_output_introspection, classify_var, configure_timeseries_expr_introspection
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
 
@@ -1078,14 +1078,15 @@ class Phase(om.Group):
         Parameters
         ----------
         name : str
-            Name of the variable to constrain.  If name is not a state, control, or 'time',
+            Name of the variable to constrain. May also provide an expression to be evaluated and constrained.
+            If a single variable and the name is not a state, control, or 'time',
             then this is assumed to be the path of the variable to be constrained in the ODE.
+            If an expression, it must be provided in the form of an equation with a left- and right-hand side.
         loc : str
             The location of the boundary constraint ('initial' or 'final').
         constraint_name : str or None
-            The name of the variable as provided to the boundary constraint comp.  By
-            default this is the last element in `name` when split by dots.  The user may
-            override the constraint name if splitting the path causes name collisions.
+            The name of the boundary constraint. By default, this is 'var_constraint' if name is a single variable,
+             or the left-hand side of the equation if name is an expression.
         units : str or None
             The units in which the boundary constraint is to be applied.  If None, use the
             units associated with the constrained output.  If provided, must be compatible with
@@ -1126,7 +1127,19 @@ class Phase(om.Group):
             raise ValueError(f'Invalid boundary constraint location "{loc}". Must be '
                              '"initial" or "final".')
 
-        if constraint_name is None:
+        expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
+        if '=' in name:
+            is_expr = True
+        elif '=' not in name and any(opr in name for opr in expr_operators):
+            raise ValueError(f'The expression provided `{name}` has invalid format. '
+                             'Expression may be a single variable or an equation '
+                             'of the form `constraint_name = func(vars)`')
+        else:
+            is_expr = False
+
+        if is_expr:
+            constraint_name = name.split('=')[0].strip()
+        elif constraint_name is None:
             constraint_name = name.rpartition('.')[-1]
 
         bc_list = self._initial_boundary_constraints if loc == 'initial' else self._final_boundary_constraints
@@ -1136,6 +1149,14 @@ class Phase(om.Group):
         if existing_bc:
             raise ValueError(f'Cannot add new {loc} boundary constraint for variable `{name}` and indices {indices}. '
                              f'One already exists.')
+
+        existing_bc_name = [bc for bc in bc_list if bc['name'] == constraint_name and
+                            bc['indices'] is None and indices is None]
+
+        if existing_bc_name:
+            raise ValueError(f'Cannot add new {loc} boundary constraint named `{constraint_name}`'
+                             f' and indices {indices}. The name `{constraint_name}` is already in use'
+                             f' as a {loc} boundary constraint')
 
         bc = ConstraintOptionsDictionary()
         bc_list.append(bc)
@@ -1154,6 +1175,7 @@ class Phase(om.Group):
         bc['linear'] = linear
         bc['units'] = units
         bc['flat_indices'] = flat_indices
+        bc['is_expr'] = is_expr
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
@@ -1170,11 +1192,13 @@ class Phase(om.Group):
         Parameters
         ----------
         name : str
-            Name of the response variable in the system.
+            Name of the variable to constrain. May also provide an expression to be evaluated and constrained.
+            If a single variable and the name is not a state, control, or 'time',
+            then this is assumed to be the path of the variable to be constrained in the ODE.
+            If an expression, it must be provided in the form of an equation with a left- and right-hand side.
         constraint_name : str or None
-            The name of the variable as provided to the boundary constraint comp.  By
-            default this is the last element in `name` when split by dots.  The user may
-            override the constraint name if splitting the path causes name collisions.
+            The name of the path constraint. By default, this is 'var_constraint' if name is a single variable,
+             or the left-hand side of the equation if name is an expression.
         units : str or None
             The units in which the boundary constraint is to be applied.  If None, use the
             units associated with the constrained output.  If provided, must be compatible with
@@ -1211,7 +1235,19 @@ class Phase(om.Group):
             If True, treat indices as flattened C-ordered indices of elements to constrain at each given point in time.
             Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.
         """
-        if constraint_name is None:
+        expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
+        if '=' in name:
+            is_expr = True
+        elif '=' not in name and any(opr in name for opr in expr_operators):
+            raise ValueError(f'The expression provided `{name}` has invalid format. '
+                             'Expression may be a single variable or an equation '
+                             'of the form `constraint_name = func(vars)`')
+        else:
+            is_expr = False
+
+        if is_expr:
+            constraint_name = name.split('=')[0].strip()
+        elif constraint_name is None:
             constraint_name = name.rpartition('.')[-1]
 
         existing_pc = [pc for pc in self._path_constraints
@@ -1220,6 +1256,14 @@ class Phase(om.Group):
         if existing_pc:
             raise ValueError(f'Cannot add new path constraint for variable `{name}` and indices {indices}. '
                              f'One already exists.')
+
+        existing_bc_name = [pc for pc in self._path_constraints
+                            if pc['name'] == constraint_name and pc['indices'] == indices and
+                            pc['flat_indices'] == flat_indices]
+
+        if existing_bc_name:
+            raise ValueError(f'Cannot add new path constraint named `{constraint_name}` and indices {indices}.'
+                             f' The name `{constraint_name}` is already in use as a path constraint')
 
         pc = ConstraintOptionsDictionary()
         self._path_constraints.append(pc)
@@ -1238,6 +1282,7 @@ class Phase(om.Group):
         pc['linear'] = linear
         pc['units'] = units
         pc['flat_indices'] = flat_indices
+        pc['is_expr'] = is_expr
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
@@ -1760,7 +1805,9 @@ class Phase(om.Group):
 
         _configure_constraint_introspection(self)
 
-        transcription._configure_boundary_constraints(self)
+        configure_timeseries_expr_introspection(self)
+
+        transcription.configure_boundary_constraints(self)
 
         transcription.configure_path_constraints(self)
 

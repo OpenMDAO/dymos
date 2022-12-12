@@ -483,7 +483,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         expected = "phase0: Timeseries expression `k=units` uses the following disallowed variable " \
                    "name in its definition: 'units'."
-        self.assertEqual(str(e.exception.__cause__), expected)
+        self.assertEqual(str(e.exception), expected)
 
     def test_input_units(self):
         p = om.Problem(model=om.Group())
@@ -549,7 +549,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         phase.add_timeseries_output('sin_theta2=sin(theta)', sin_theta2={'units': 'unitless'})
         phase.add_timeseries_output('sin_theta3=sin(theta)', shape=(1,), sin_theta3={'shape': (1,)})
 
-        expected = 'phase0: User-provided shape for timeseries expression output `sin_theta3`using ' \
+        expected = 'phase0: User-provided shape for timeseries expression output `sin_theta3` using ' \
                    'both the\n`shape` keyword argument and the `sin_theta3` keyword argument dictionary.\n' \
                    'The latter will take precedence.'
 
