@@ -1505,7 +1505,8 @@ class Phase(om.Group):
         ----------
         name : str
             Name of the objective variable.  This should be one of the integration variable, a state or control
-            variable, or the path to an output from the top level of the RHS.
+            variable, the path to an output from the top level of the RHS, or an expression to be evaluated.
+            If an expression, it must be provided in the form of an equation with a left- and right-hand side.
         loc : str
             Where in the phase the objective is to be evaluated.  Valid
             options are 'initial' and 'final'.  The default is 'final'.

@@ -1,14 +1,8 @@
 from __future__ import print_function, division, absolute_import
-
-import os
 import unittest
-import warnings
 
-import numpy as np
-
-from openmdao.api import Problem, Group, pyOptSparseDriver, ExecComp
+from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.general_utils import printoptions
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
@@ -37,7 +31,7 @@ class TestHull(unittest.TestCase):
         phase0 = traj.add_phase('phase', Phase(ode_class=HullProblemODE,
                                                transcription=transcription(num_segments=numseg, order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
-        phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot')
+        phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='u')
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L')
         phase0.add_control('u', opt=True, targets=['u'])
 
