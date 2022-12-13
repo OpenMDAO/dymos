@@ -19,9 +19,10 @@ c = 5
 
 
 @use_tempdirs
-class TestHyperSensitive(unittest.TestCase):
+class TestHull(unittest.TestCase):
 
     @staticmethod
+    @require_pyoptsparse(optimizer='IPOPT')
     def make_problem(transcription=GaussLobatto, numseg=30):
         p = Problem(model=Group())
         p.driver = pyOptSparseDriver()
@@ -40,11 +41,7 @@ class TestHyperSensitive(unittest.TestCase):
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L')
         phase0.add_control('u', opt=True, targets=['u'])
 
-        obj = ExecComp(f'obj = {c}*x**2/2 + xL')
-        p.model.add_subsystem('obj_comp', obj)
-        p.model.add_objective('obj_comp.obj')
-        p.model.connect('traj.phase.states:x', 'obj_comp.x', src_indices=[-1])
-        p.model.connect('traj.phase.states:xL', 'obj_comp.xL', src_indices=[-1])
+        phase0.add_objective(f'J = {c}*x**2/2 + xL')
 
         p.setup(check=True)
 
@@ -72,11 +69,11 @@ class TestHyperSensitive(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase.timeseries.states:x')[-1],
                           xf,
-                          tolerance=1e-4)
+                          tolerance=1e-6)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.controls:u')[-1],
                           uf,
-                          tolerance=1e-4)
+                          tolerance=1e-6)
 
     def test_hull_radau(self):
         p = self.make_problem(transcription=Radau)
@@ -86,8 +83,22 @@ class TestHyperSensitive(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase.timeseries.states:x')[-1],
                           xf,
-                          tolerance=1e-4)
+                          tolerance=1e-6)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.controls:u')[-1],
                           uf,
-                          tolerance=1e-4)
+                          tolerance=1e-6)
+
+    def test_hull_shooting(self):
+        p = self.make_problem(transcription=ExplicitShooting)
+        dm.run_problem(p)
+
+        xf, uf = self.solution(1.5, 10)
+
+        assert_near_equal(p.get_val('traj.phase.timeseries.states:x')[-1],
+                          xf,
+                          tolerance=1e-6)
+
+        assert_near_equal(p.get_val('traj.phase.timeseries.controls:u')[-1],
+                          uf,
+                          tolerance=1e-6)

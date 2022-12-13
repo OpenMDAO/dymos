@@ -1493,7 +1493,7 @@ class Phase(om.Group):
                                   'subset': subset,
                                   'outputs': {}}
 
-    def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
+    def add_objective(self, name, loc='final', index=None, shape=(1,), units=None, ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None):
         """
         Add an objective in the phase.
@@ -1514,6 +1514,9 @@ class Phase(om.Group):
             used as the objective, assuming C-ordered flattening.
         shape : int, optional
             The shape of the objective variable, at a point in time.
+        units : str, optional
+            The units of the objective function.  If None, use the units associated with the target.
+            If provided, must be compatible with the target units.
         ref : float or ndarray, optional
             Value of response variable that scales to 1.0 in the driver.
         ref0 : float or ndarray, optional
@@ -1528,15 +1531,32 @@ class Phase(om.Group):
             If specified, this design var will be grouped for parallel derivative
             calculations with other variables sharing the same parallel_deriv_color.
         """
-        obj_dict = {'loc': loc,
+        expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
+        if '=' in name:
+            is_expr = True
+        elif '=' not in name and any(opr in name for opr in expr_operators):
+            raise ValueError(f'The expression provided `{name}` has invalid format. '
+                             'Expression may be a single variable or an equation '
+                             'of the form `constraint_name = func(vars)`')
+        else:
+            is_expr = False
+
+        obj_name = name.split('=')[0].strip() if is_expr else name
+
+        obj_dict = {'name': name,
+                    'loc': loc,
                     'index': index,
                     'shape': shape,
+                    'units': units,
                     'ref': ref,
                     'ref0': ref0,
                     'adder': adder,
                     'scaler': scaler,
-                    'parallel_deriv_color': parallel_deriv_color}
-        self._objectives[name] = obj_dict
+                    'parallel_deriv_color': parallel_deriv_color,
+                    'is_expr': is_expr}
+        self._objectives[obj_name] = obj_dict
+        if is_expr and obj_name not in self._timeseries['timeseries']['outputs']:
+            self.add_timeseries_output(name, output_name=obj_name, units=units, shape=shape)
 
     def set_time_options(self, units=_unspecified, fix_initial=_unspecified,
                          fix_duration=_unspecified, input_initial=_unspecified,
