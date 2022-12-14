@@ -63,11 +63,11 @@ class TestHull(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase.timeseries.states:x')[-1],
                           xf,
-                          tolerance=1e-6)
+                          tolerance=1e-4)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.controls:u')[-1],
                           uf,
-                          tolerance=1e-6)
+                          tolerance=1e-4)
 
     def test_hull_radau(self):
         p = self.make_problem(transcription=Radau)
@@ -77,11 +77,11 @@ class TestHull(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase.timeseries.states:x')[-1],
                           xf,
-                          tolerance=1e-6)
+                          tolerance=1e-4)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.controls:u')[-1],
                           uf,
-                          tolerance=1e-6)
+                          tolerance=1e-4)
 
     def test_hull_shooting(self):
         p = self.make_problem(transcription=ExplicitShooting)
@@ -91,8 +91,8 @@ class TestHull(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase.timeseries.states:x')[-1],
                           xf,
-                          tolerance=1e-6)
+                          tolerance=1e-4)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.controls:u')[-1],
                           uf,
-                          tolerance=1e-6)
+                          tolerance=1e-4)
