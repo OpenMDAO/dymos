@@ -535,7 +535,7 @@ class TranscriptionBase(object):
             index = options['index']
             loc = options['loc']
 
-            obj_path, shape, units, _ = self._get_objective_src(name, loc, phase)
+            obj_path, shape, _, _ = self._get_objective_src(name, loc, phase)
 
             shape = options['shape'] if shape is None else shape
 

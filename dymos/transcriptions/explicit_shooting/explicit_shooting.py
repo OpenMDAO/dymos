@@ -547,6 +547,11 @@ class ExplicitShooting(TranscriptionBase):
             units = control_rate_units
             linear = False
             obj_path = f'polynomial_control_rates:{var}'
+        elif var_type == 'timeseries_exec_comp_output':
+            shape = (1,)
+            units = None
+            obj_path = f'timeseries.timeseries_exec_comp.{var}'
+            linear = False
         else:
             # Failed to find variable, assume it is in the ODE. This requires introspection.
             raise NotImplementedError('cannot yet constrain/optimize an ODE output using explicit shooting')

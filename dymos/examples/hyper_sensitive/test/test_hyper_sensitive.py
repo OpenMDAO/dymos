@@ -16,7 +16,7 @@ from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 
 
-tf = np.float128(10)
+tf = 10
 
 
 @use_tempdirs
