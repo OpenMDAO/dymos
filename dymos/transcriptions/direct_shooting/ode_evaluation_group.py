@@ -80,6 +80,8 @@ class ODEEvaluationGroup(om.Group):
         Define the structure of the ODEEvaluationGroup.
         """
         gd = self.grid_data
+        t_name = self.time_options['name']
+        t_units = self.time_options['units']
 
         # All states, controls, parameters, and polynomial controls need to exist
         # in the ODE evaluation group regardless of whether or not they have targets in the ODE.
@@ -90,8 +92,8 @@ class ODEEvaluationGroup(om.Group):
         self.add_subsystem('tau_comp', TauComp(grid_data=self.grid_data,
                                                vec_size=self.vec_size,
                                                time_units=self.time_options['units']),
-                           promotes_inputs=['t', 't_initial', 't_duration'],
-                           promotes_outputs=['stau', 'ptau', 'dstau_dt', 't_phase'])
+                           promotes_inputs=[('t', t_name), 't_initial', 't_duration'],
+                           promotes_outputs=['stau', 'ptau', 'dstau_dt', ('t_phase', f'{t_name}_phase')])
 
         if self.control_options or self.polynomial_control_options:
             c_options = self.control_options
@@ -149,17 +151,23 @@ class ODEEvaluationGroup(om.Group):
 
     def _configure_time(self):
         vec_size = self.vec_size
+        t_name = self.time_options['name']
+        t_units = self.time_options['units']
         targets = self.time_options['targets']
         t_phase_targets = self.time_options['time_phase_targets']
         t_initial_targets = self.time_options['t_initial_targets']
         t_duration_targets = self.time_options['t_duration_targets']
         units = self.time_options['units']
 
-        self._ivc.add_output('t', shape=(vec_size,), units=units)
+        self._ivc.add_output(t_name, shape=(vec_size,), units=units)
         self._ivc.add_output('t_initial', shape=(1,), units=units)
         self._ivc.add_output('t_duration', shape=(1,), units=units)
 
-        for tgts, var in [(targets, 't'), (t_phase_targets, 't_phase'),
+        self.add_design_var(t_name)
+        self.add_design_var('t_initial')
+        self.add_design_var('t_duration')
+
+        for tgts, var in [(targets, t_name), (t_phase_targets, f'{t_name}_phase'),
                           (t_initial_targets, 't_initial'), (t_duration_targets, 't_duration')]:
             for t in tgts:
                 self.promotes('ode', inputs=[(t, var)])
@@ -369,13 +377,13 @@ class ODEEvaluationGroup(om.Group):
             or an 'output'.
         """
         var = self.state_options[state_var]['rate_source']
-        time_name = self.time_options['name']
+        t_name = self.time_options['name']
 
-        if var == time_name:
-            rate_path = 't'
+        if var == t_name:
+            rate_path = 'time'
             io = 'input'
-        elif var == f'{time_name}_phase':
-            rate_path = 't_phase'
+        elif var == f'{t_name}_phase':
+            rate_path = f'{t_name}_phase'
             io = 'input'
         elif self.state_options is not None and var in self.state_options:
             rate_path = f'states:{var}'

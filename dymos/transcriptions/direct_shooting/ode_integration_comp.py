@@ -6,7 +6,6 @@ from ...options import options as dymos_options
 
 from .ode_evaluation_group import ODEEvaluationGroup
 from ...utils.misc import get_rate_units
-from ...utils.introspection import filter_outputs, get_promoted_vars
 
 
 class ODEIntegrationComp(om.ExplicitComponent):
@@ -74,7 +73,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
         self.u_size = 0
         self.up_size = 0
         self.theta_size = 0
-        self.Z_size = 0
+        self.z_size = 0
 
         self._state_rate_of_names = []
         self._totals_of_names = []
@@ -95,14 +94,16 @@ class ODEIntegrationComp(om.ExplicitComponent):
                              desc='The function which performs the integration, assumed to have the same signature'
                                   ' as scipy.integrate.solve_ivp (the default).', recordable=False)
         self.options.declare('method', default='DOP853', desc='The integration method used.')
-        self.options.declare('atol', types=float, default=1.0E-2)
-        self.options.declare('rtol', types=float, default=1.0E-4)
+        self.options.declare('atol', types=float, default=1.0E-6)
+        self.options.declare('rtol', types=float, default=1.0E-9)
         self.options.declare('first_step', types=float, allow_none=True, default=None)
         self.options.declare('max_step', types=float, default=np.inf)
         self.options.declare('times_per_seg', types=(int,), allow_none=True, default=None,
                              desc='The number of output times per segment. If specified, they are evenly spaced. If '
                                   'not specified, output at all nodes in the segment as given by the transcription.')
-
+        self.options.declare('propagate_derivs', types=bool, default=True,
+                             desc='If True, propagate the state and derivatives of the state and time with respect to '
+                                  'the integration parameters. If False, only propagate the primal states.')
         self.options.declare('ode_init_kwargs', types=dict, allow_none=True, default=None)
 
     def _setup_subprob(self):
@@ -128,13 +129,13 @@ class ODEIntegrationComp(om.ExplicitComponent):
         self._eval_subprob.model._get_subsystem('ode_eval').set_segment_index(idx)
 
 
-    def _allocate_storage(self):
-        N = self.options['times_per_seg']
-        num_rows = self._num_rows
-        num_x = self.x_size
-        num_theta = self.theta_size
-        num_z = num_x + num_theta
-        num_y = self.y_size
+    # def _allocate_storage(self):
+    #     N = self.options['times_per_seg']
+    #     num_rows = self._num_rows
+    #     num_x = self.x_size
+    #     num_theta = self.theta_size
+    #     num_z = num_x + num_theta
+    #     num_y = self.y_size
 
         # # The contiguous vector of state values
         # self._x = np.zeros((num_rows, self.x_size, 1), dtype=self._DTYPE)
@@ -216,21 +217,21 @@ class ODEIntegrationComp(om.ExplicitComponent):
 
     def _configure_time_io(self):
         num_output_rows = self._num_output_rows
+        t_units = self.time_options['units']
+        t_name = self.time_options['name']
 
-        self._totals_of_names.append('t')
-        self._totals_wrt_names.extend(['t', 't_initial', 't_duration'])
+        self._totals_of_names.append(t_name)
+        self._totals_wrt_names.extend([t_name, 't_initial', 't_duration'])
 
-        self.add_input('t_initial', shape=(1,), units=self.time_options['units'])
-        self.add_input('t_duration', shape=(1,), units=self.time_options['units'])
-        self.add_output('t_final', shape=(1,), units=self.time_options['units'])
-        self.add_output('t', shape=(num_output_rows, 1), units=self.time_options['units'])
-        self.add_output('t_phase', shape=(num_output_rows, 1), units=self.time_options['units'])
+        self.add_input('t_initial', shape=(1,), units=t_units)
+        self.add_input('t_duration', shape=(1,), units=t_units)
+        self.add_output('t_final', shape=(1,), units=t_units)
+        self.add_output(t_name, shape=(num_output_rows, 1), units=t_units)
+        self.add_output(f'{t_name}_phase', shape=(num_output_rows, 1), units=t_units)
 
-        self.declare_partials('t_final', 't_initial', val=1.0)
-        self.declare_partials('t_final', 't_duration', val=1.0)
-        self.declare_partials('t', 't_initial', val=1.0)
-        self.declare_partials('t', 't_duration', val=1.0)
-        self.declare_partials('t_phase', 't_duration', val=1.0)
+        self.declare_partials('t_final', ['t_initial', 't_duration'], val=1.0)
+        self.declare_partials(t_name, ['t_initial', 't_duration'], val=1.0)
+        self.declare_partials(f'{t_name}_phase', 't_duration', val=1.0)
 
     def _setup_states(self):
         if self._standalone_mode:
@@ -249,7 +250,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
         self.state_idxs = {}
 
         # The indices of each state's initial value in Z
-        self._state_idxs_in_Z = {}
+        self._state_idxs_in_z = {}
 
         for state_name, options in self.state_options.items():
             self._state_input_names[state_name] = f'states:{state_name}'
@@ -306,7 +307,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
         self.p_size = 0
         self.parameter_idxs = {}
         self._parameter_idxs_in_theta = {}
-        self._parameter_idxs_in_Z = {}
+        self._parameter_idxs_in_z = {}
         self._param_input_names = {}
 
         for param_name, options in self.parameter_options.items():
@@ -324,21 +325,17 @@ class ODEIntegrationComp(om.ExplicitComponent):
             self.p_size += param_size
 
     def _setup_controls(self):
-        if self._standalone_mode:
-            self._configure_controls_io()
-
-    def _configure_controls_io(self):
         self.u_size = 0
         self.control_idxs = {}
         self._control_idxs_in_theta = {}
-        self._control_idxs_in_Z = {}
-        self._control_idxs_in_y = {}
-        self._control_rate_idxs_in_y = {}
-        self._control_rate2_idxs_in_y = {}
+        self._control_idxs_in_z = {}
+        # self._control_idxs_in_y = {}
+        # self._control_rate_idxs_in_y = {}
+        # self._control_rate2_idxs_in_y = {}
         self._control_input_names = {}
-        self._control_output_names = {}
-        self._control_rate_names = {}
-        self._control_rate2_names = {}
+        # self._control_output_names = {}
+        # self._control_rate_names = {}
+        # self._control_rate2_names = {}
 
         num_output_rows = self._num_output_rows
 
@@ -349,70 +346,70 @@ class ODEIntegrationComp(om.ExplicitComponent):
             control_param_shape = (self._num_control_input_nodes,) + options['shape']
             control_param_size = np.prod(control_param_shape, dtype=int)
             self._control_input_names[control_name] = f'controls:{control_name}'
-            self._control_output_names[control_name] = f'control_values:{control_name}'
-            self._control_rate_names[control_name] = f'control_rates:{control_name}_rate'
-            self._control_rate2_names[control_name] = f'control_rates:{control_name}_rate2'
+            # self._control_output_names[control_name] = f'control_values:{control_name}'
+            # self._control_rate_names[control_name] = f'control_rates:{control_name}_rate'
+            # self._control_rate2_names[control_name] = f'control_rates:{control_name}_rate2'
 
             self._totals_wrt_names.append(self._control_input_names[control_name])
-            self._totals_of_names.append(self._control_output_names[control_name])
-            self._totals_of_names.append(self._control_rate_names[control_name])
-            self._totals_of_names.append(self._control_rate2_names[control_name])
+            # self._totals_of_names.append(self._control_output_names[control_name])
+            # self._totals_of_names.append(self._control_rate_names[control_name])
+            # self._totals_of_names.append(self._control_rate2_names[control_name])
 
             self.add_input(self._control_input_names[control_name],
                            shape=control_param_shape,
                            units=options['units'],
                            desc=f'values for control {control_name} at input nodes')
 
-            self.add_output(self._control_output_names[control_name],
-                            shape=(num_output_rows,) + options['shape'],
-                            units=options['units'],
-                            desc=f'values for control {control_name} at output nodes')
+            # self.add_output(self._control_output_names[control_name],
+            #                 shape=(num_output_rows,) + options['shape'],
+            #                 units=options['units'],
+            #                 desc=f'values for control {control_name} at output nodes')
 
-            self.add_output(self._control_rate_names[control_name],
-                            shape=(num_output_rows,) + options['shape'],
-                            units=get_rate_units(options['units'], time_units, deriv=1),
-                            desc=f'values for rate of control {control_name} at output nodes')
+            # self.add_output(self._control_rate_names[control_name],
+            #                 shape=(num_output_rows,) + options['shape'],
+            #                 units=get_rate_units(options['units'], time_units, deriv=1),
+            #                 desc=f'values for rate of control {control_name} at output nodes')
+            #
+            # self.add_output(self._control_rate2_names[control_name],
+            #                 shape=(num_output_rows,) + options['shape'],
+            #                 units=get_rate_units(options['units'], time_units, deriv=2),
+            #                 desc=f'values for second derivative rate of control {control_name} at output nodes')
 
-            self.add_output(self._control_rate2_names[control_name],
-                            shape=(num_output_rows,) + options['shape'],
-                            units=get_rate_units(options['units'], time_units, deriv=2),
-                            desc=f'values for second derivative rate of control {control_name} at output nodes')
+            # self.declare_partials(of=self._control_output_names[control_name],
+            #                       wrt=self._control_input_names[control_name],
+            #                       val=1.0)
 
-            self.declare_partials(of=self._control_output_names[control_name],
-                                  wrt=self._control_input_names[control_name],
-                                  val=1.0)
-
-            self.declare_partials(of=self._control_rate_names[control_name],
-                                  wrt=self._control_input_names[control_name],
-                                  val=1.0)
-
-            self.declare_partials(of=self._control_rate2_names[control_name],
-                                  wrt=self._control_input_names[control_name],
-                                  val=1.0)
-
-            self.declare_partials(of=self._control_rate_names[control_name],
-                                  wrt='t_duration',
-                                  val=1.0)
-
-            self.declare_partials(of=self._control_rate2_names[control_name],
-                                  wrt='t_duration',
-                                  val=1.0)
+            # self.declare_partials(of=self._control_rate_names[control_name],
+            #                       wrt=self._control_input_names[control_name],
+            #                       val=1.0)
+            #
+            # self.declare_partials(of=self._control_rate2_names[control_name],
+            #                       wrt=self._control_input_names[control_name],
+            #                       val=1.0)
+            #
+            # self.declare_partials(of=self._control_rate_names[control_name],
+            #                       wrt='t_duration',
+            #                       val=1.0)
+            #
+            # self.declare_partials(of=self._control_rate2_names[control_name],
+            #                       wrt='t_duration',
+            #                       val=1.0)
 
             self.control_idxs[control_name] = np.s_[self.u_size:self.u_size+control_param_size]
             self.u_size += control_param_size
 
-    def _configure_polynomial_controls_io(self):
+    def _setup_polynomial_controls(self):
         self.up_size = 0
         self.polynomial_control_idxs = {}
         self._polynomial_control_idxs_in_theta = {}
-        self._polynomial_control_idxs_in_Z = {}
+        self._polynomial_control_idxs_in_z = {}
         self._polynomial_control_input_names = {}
         self._polynomial_control_output_names = {}
         self._polynomial_control_rate_names = {}
         self._polynomial_control_rate2_names = {}
-        self._polynomial_control_idxs_in_y = {}
-        self._polynomial_control_rate_idxs_in_y = {}
-        self._polynomial_control_rate2_idxs_in_y = {}
+        # self._polynomial_control_idxs_in_y = {}
+        # self._polynomial_control_rate_idxs_in_y = {}
+        # self._polynomial_control_rate2_idxs_in_y = {}
 
         num_output_rows = self._num_output_rows
         time_units = self.time_options['units']
@@ -437,195 +434,275 @@ class ODEIntegrationComp(om.ExplicitComponent):
                            units=options['units'],
                            desc=f'values for control {name} at input nodes')
 
-            self.add_output(self._polynomial_control_output_names[name],
-                            shape=(num_output_rows,) + options['shape'],
-                            units=options['units'],
-                            desc=f'values for control {name} at output nodes')
+            # self.add_output(self._polynomial_control_output_names[name],
+            #                 shape=(num_output_rows,) + options['shape'],
+            #                 units=options['units'],
+            #                 desc=f'values for control {name} at output nodes')
+            #
+            # self.add_output(self._polynomial_control_rate_names[name],
+            #                 shape=(num_output_rows,) + options['shape'],
+            #                 units=get_rate_units(options['units'], time_units, deriv=1),
+            #                 desc=f'values for rate of control {name} at output nodes')
+            #
+            # self.add_output(self._polynomial_control_rate2_names[name],
+            #                 shape=(num_output_rows,) + options['shape'],
+            #                 units=get_rate_units(options['units'], time_units, deriv=2),
+            #                 desc=f'values for second derivative rate of control {name} at output nodes')
 
-            self.add_output(self._polynomial_control_rate_names[name],
-                            shape=(num_output_rows,) + options['shape'],
-                            units=get_rate_units(options['units'], time_units, deriv=1),
-                            desc=f'values for rate of control {name} at output nodes')
-
-            self.add_output(self._polynomial_control_rate2_names[name],
-                            shape=(num_output_rows,) + options['shape'],
-                            units=get_rate_units(options['units'], time_units, deriv=2),
-                            desc=f'values for second derivative rate of control {name} at output nodes')
-
-            self.declare_partials(of=self._polynomial_control_output_names[name],
-                                  wrt=self._polynomial_control_input_names[name],
-                                  val=1.0)
-
-            self.declare_partials(of=self._polynomial_control_rate_names[name],
-                                  wrt=self._polynomial_control_input_names[name],
-                                  val=1.0)
-
-            self.declare_partials(of=self._polynomial_control_rate2_names[name],
-                                  wrt=self._polynomial_control_input_names[name],
-                                  val=1.0)
-
-            self.declare_partials(of=self._polynomial_control_rate_names[name],
-                                  wrt='t_duration',
-                                  val=1.0)
-
-            self.declare_partials(of=self._polynomial_control_rate2_names[name],
-                                  wrt='t_duration',
-                                  val=1.0)
+            # self.declare_partials(of=self._polynomial_control_output_names[name],
+            #                       wrt=self._polynomial_control_input_names[name],
+            #                       val=1.0)
+            #
+            # self.declare_partials(of=self._polynomial_control_rate_names[name],
+            #                       wrt=self._polynomial_control_input_names[name],
+            #                       val=1.0)
+            #
+            # self.declare_partials(of=self._polynomial_control_rate2_names[name],
+            #                       wrt=self._polynomial_control_input_names[name],
+            #                       val=1.0)
+            #
+            # self.declare_partials(of=self._polynomial_control_rate_names[name],
+            #                       wrt='t_duration',
+            #                       val=1.0)
+            #
+            # self.declare_partials(of=self._polynomial_control_rate2_names[name],
+            #                       wrt='t_duration',
+            #                       val=1.0)
 
             self.polynomial_control_idxs[name] = np.s_[self.up_size:self.up_size+control_param_size]
             self.up_size += control_param_size
 
-    def _setup_timeseries(self):
-        if self._standalone_mode:
-            self._configure_timeseries_outputs()
-
-    def _configure_timeseries_outputs(self):
-        """
-        Creates a mapping of {output_name : {'path': str, 'units': str, 'shape': tuple, 'idxs_in_y': numpy.Indexer}.
-
-        This mapping is used to determine which variables of the ODE need to be saved in the
-        algebratic outputs (y) due to being requested as timeseries outputs.
-        """
-        num_output_rows = self._num_output_rows
-        ode_eval = self._eval_subprob.model._get_subsystem('ode_eval.ode')
-        ode_outputs = get_promoted_vars(ode_eval, 'output')
-
-        self._timeseries_output_names = {}
-        self._timeseries_idxs_in_y = {}
-        self._filtered_timeseries_outputs = {}
-
-        for ts_opts in self.timeseries_options.values():
-            patterns = [output['name'] for output in ts_opts['outputs'].values()]
-            matching_outputs = filter_outputs(patterns, ode_outputs)
-
-            explicit_requests = {var for var in patterns if '*' not in var}
-
-            for var, var_meta in matching_outputs.items():
-                if var in explicit_requests:
-                    ts_output = next((output for output in ts_opts['outputs'].values() if output['name'] == var))
-                    # var explicitly matched
-                    output_name = ts_output['output_name'] if ts_output['output_name'] else ts_output['name'].rpartition('.')[-1]
-                    units = ts_output['units'] or var_meta.get('units', None)
-                    shape = var_meta['shape']
-                else:
-                    # var matched via wildcard
-                    output_name = var.rpartition('.')[-1]
-                    units = var_meta['units']
-                    shape = var_meta['shape']
-
-                if output_name in self._filtered_timeseries_outputs:
-                    raise ValueError(f"Requested timeseries output {var} matches multiple output names "
-                                     f"within the ODE. Use `<phase>.add_timeseries_output({var}, "
-                                     f"output_name=<new_name>)' to disambiguate the timeseries name.")
-
-                self._filtered_timeseries_outputs[output_name] = {'path': f'ode_eval.ode.{var}',
-                                                                  'units': units,
-                                                                  'shape': shape}
-
-                ode_eval.add_constraint(var)
-
-                self._timeseries_output_names[output_name] = f'timeseries:{output_name}'
-                self._totals_of_names.append(self._filtered_timeseries_outputs[output_name]['path'])
-
-                self.add_output(self._timeseries_output_names[output_name],
-                                shape=(num_output_rows,) + shape,
-                                units=units,
-                                desc=f'values for timeseries output {output_name} at output nodes')
-
-                self.declare_partials(of=self._timeseries_output_names[output_name],
-                                      wrt='t_initial')
-
-                self.declare_partials(of=self._timeseries_output_names[output_name],
-                                      wrt='t_duration')
-
-                for state_name_wrt in self.state_options:
-                    self.declare_partials(of=self._timeseries_output_names[output_name],
-                                          wrt=self._state_input_names[state_name_wrt])
-
-                for param_name_wrt in self.parameter_options:
-                    self.declare_partials(of=self._timeseries_output_names[output_name],
-                                          wrt=self._param_input_names[param_name_wrt])
-
-                for control_name_wrt in self.control_options:
-                    self.declare_partials(of=self._timeseries_output_names[output_name],
-                                          wrt=self._control_input_names[control_name_wrt])
-
-                for control_name_wrt in self.polynomial_control_options:
-                    self.declare_partials(of=self._timeseries_output_names[output_name],
-                                          wrt=self._polynomial_control_input_names[control_name_wrt])
+    # def _setup_timeseries(self):
+    #     if self._standalone_mode:
+    #         self._configure_timeseries_outputs()
+    #
+    # def _configure_timeseries_outputs(self):
+    #     """
+    #     Creates a mapping of {output_name : {'path': str, 'units': str, 'shape': tuple, 'idxs_in_y': numpy.Indexer}.
+    #
+    #     This mapping is used to determine which variables of the ODE need to be saved in the
+    #     algebratic outputs (y) due to being requested as timeseries outputs.
+    #     """
+    #     num_output_rows = self._num_output_rows
+    #     ode_eval = self._eval_subprob.model._get_subsystem('ode_eval.ode')
+    #     ode_outputs = get_promoted_vars(ode_eval, 'output')
+    #
+    #     self._timeseries_output_names = {}
+    #     self._timeseries_idxs_in_y = {}
+    #     self._filtered_timeseries_outputs = {}
+    #
+    #     for ts_opts in self.timeseries_options.values():
+    #         patterns = [output['name'] for output in ts_opts['outputs'].values()]
+    #         matching_outputs = filter_outputs(patterns, ode_outputs)
+    #
+    #         explicit_requests = {var for var in patterns if '*' not in var}
+    #
+    #         for var, var_meta in matching_outputs.items():
+    #             if var in explicit_requests:
+    #                 ts_output = next((output for output in ts_opts['outputs'].values() if output['name'] == var))
+    #                 # var explicitly matched
+    #                 output_name = ts_output['output_name'] if ts_output['output_name'] else ts_output['name'].rpartition('.')[-1]
+    #                 units = ts_output['units'] or var_meta.get('units', None)
+    #                 shape = var_meta['shape']
+    #             else:
+    #                 # var matched via wildcard
+    #                 output_name = var.rpartition('.')[-1]
+    #                 units = var_meta['units']
+    #                 shape = var_meta['shape']
+    #
+    #             if output_name in self._filtered_timeseries_outputs:
+    #                 raise ValueError(f"Requested timeseries output {var} matches multiple output names "
+    #                                  f"within the ODE. Use `<phase>.add_timeseries_output({var}, "
+    #                                  f"output_name=<new_name>)' to disambiguate the timeseries name.")
+    #
+    #             self._filtered_timeseries_outputs[output_name] = {'path': f'ode_eval.ode.{var}',
+    #                                                               'units': units,
+    #                                                               'shape': shape}
+    #
+    #             ode_eval.add_constraint(var)
+    #
+    #             self._timeseries_output_names[output_name] = f'timeseries:{output_name}'
+    #             self._totals_of_names.append(self._filtered_timeseries_outputs[output_name]['path'])
+    #
+    #             self.add_output(self._timeseries_output_names[output_name],
+    #                             shape=(num_output_rows,) + shape,
+    #                             units=units,
+    #                             desc=f'values for timeseries output {output_name} at output nodes')
+    #
+    #             self.declare_partials(of=self._timeseries_output_names[output_name],
+    #                                   wrt='t_initial')
+    #
+    #             self.declare_partials(of=self._timeseries_output_names[output_name],
+    #                                   wrt='t_duration')
+    #
+    #             for state_name_wrt in self.state_options:
+    #                 self.declare_partials(of=self._timeseries_output_names[output_name],
+    #                                       wrt=self._state_input_names[state_name_wrt])
+    #
+    #             for param_name_wrt in self.parameter_options:
+    #                 self.declare_partials(of=self._timeseries_output_names[output_name],
+    #                                       wrt=self._param_input_names[param_name_wrt])
+    #
+    #             for control_name_wrt in self.control_options:
+    #                 self.declare_partials(of=self._timeseries_output_names[output_name],
+    #                                       wrt=self._control_input_names[control_name_wrt])
+    #
+    #             for control_name_wrt in self.polynomial_control_options:
+    #                 self.declare_partials(of=self._timeseries_output_names[output_name],
+    #                                       wrt=self._polynomial_control_input_names[control_name_wrt])
 
     def _setup_storage(self):
-        if self._standalone_mode:
-            self._configure_storage()
-
-    def _configure_storage(self):
         gd = self._grid_data
+        times_per_seg = self.options['times_per_seg']
         control_input_node_ptau = gd.node_ptau[gd.subset_node_indices['control_input']]
 
         # allocate the ODE parameter vector
         self.theta_size = 2 + self.p_size + self.u_size + self.up_size
 
         # allocate the integration parameter vector
-        self.Z_size = self.x_size + self.theta_size
+        self.z_size = self.x_size + self.theta_size
 
-        start_Z = 0
+        start_z = 0
+
+        x_output_names = []
+        z_input_names = []
+
         for state_name, options in self.state_options.items():
             state_size = np.prod(options['shape'], dtype=int)
-            self._state_idxs_in_Z[state_name] = np.s_[start_Z: start_Z+state_size]
-            start_Z += state_size
+            self._state_idxs_in_z[state_name] = np.s_[start_z: start_z + state_size]
+            x_output_names.extend([self._state_output_names[state_name]] * state_size)
+            z_input_names.extend([self._state_input_names[state_name]] * state_size)
+            start_z += state_size
 
-        start_Z = self.x_size + 2
+        # Add 2 to account for t_initial, t_duration
+        start_z = self.x_size + 2
         start_theta = 2
+        z_input_names.extend(['t_initial', 't_duration'])
+
         for param_name, options in self.parameter_options.items():
             param_size = np.prod(options['shape'], dtype=int)
-            self._parameter_idxs_in_Z[param_name] = np.s_[start_Z: start_Z+param_size]
+            self._parameter_idxs_in_z[param_name] = np.s_[start_z: start_z + param_size]
             self._parameter_idxs_in_theta[param_name] = np.s_[start_theta: start_theta+param_size]
-            start_Z += param_size
+            z_input_names.extend([self._param_input_names[param_name]] * param_size)
+            start_z += param_size
             start_theta += param_size
 
-        start_Z = self.x_size + 2 + self.p_size
+        start_z = self.x_size + 2 + self.p_size
         start_theta = 2 + self.p_size
-        start_y = 0
+        # start_y = 0
         for control_name, options in self.control_options.items():
             control_size = np.prod(options['shape'], dtype=int)
             control_param_shape = (len(control_input_node_ptau),) + options['shape']
             control_param_size = np.prod(control_param_shape, dtype=int)
-            self._control_idxs_in_Z[control_name] = np.s_[start_Z:start_Z+control_param_size]
+            self._control_idxs_in_z[control_name] = np.s_[start_z:start_z + control_param_size]
             self._control_idxs_in_theta[control_name] = np.s_[start_theta:start_theta+control_param_size]
-            self._control_idxs_in_y[control_name] = np.s_[start_y:start_y+control_size]
-            start_y += control_size
-            self._control_rate_idxs_in_y[control_name] = np.s_[start_y:start_y+control_size]
-            start_y += control_size
-            self._control_rate2_idxs_in_y[control_name] = np.s_[start_y:start_y+control_size]
-            start_y += control_size
-            start_Z += control_param_size
+            z_input_names.extend([self._control_input_names[control_name]] * control_param_size)
+            # self._control_idxs_in_y[control_name] = np.s_[start_y:start_y+control_size]
+            # start_y += control_size
+            # self._control_rate_idxs_in_y[control_name] = np.s_[start_y:start_y+control_size]
+            # start_y += control_size
+            # self._control_rate2_idxs_in_y[control_name] = np.s_[start_y:start_y+control_size]
+            # start_y += control_size
+            start_z += control_param_size
             start_theta += control_param_size
 
-        start_Z = self.x_size + 2 + self.p_size + self.u_size
-        start_theta = 2 + self.p_size + self.u_size
-        for name, options in self.polynomial_control_options.items():
+        # start_z = self.x_size + 2 + self.p_size + self.u_size
+        # start_theta = 2 + self.p_size + self.u_size
+        for pc_name, options in self.polynomial_control_options.items():
             control_size = np.prod(options['shape'], dtype=int)
             num_input_nodes = options['order'] + 1
             control_param_shape = (num_input_nodes,) + options['shape']
             control_param_size = np.prod(control_param_shape, dtype=int)
-            self._polynomial_control_idxs_in_Z[name] = np.s_[start_Z:start_Z+control_param_size]
-            self._polynomial_control_idxs_in_theta[name] = np.s_[start_theta:start_theta+control_param_size]
-            self._polynomial_control_idxs_in_y[name] = np.s_[start_y:start_y+control_size]
-            start_y += control_size
-            self._polynomial_control_rate_idxs_in_y[name] = np.s_[start_y:start_y+control_size]
-            start_y += control_size
-            self._polynomial_control_rate2_idxs_in_y[name] = np.s_[start_y:start_y+control_size]
-            start_y += control_size
-            start_Z += control_param_size
+            self._polynomial_control_idxs_in_z[pc_name] = np.s_[start_z:start_z + control_param_size]
+            self._polynomial_control_idxs_in_theta[pc_name] = np.s_[start_theta:start_theta+control_param_size]
+            z_input_names.extend([self._polynomial_control_input_names[pc_name]] * control_param_size)
+            # self._polynomial_control_idxs_in_y[name] = np.s_[start_y:start_y+control_size]
+            # start_y += control_size
+            # self._polynomial_control_rate_idxs_in_y[name] = np.s_[start_y:start_y+control_size]
+            # start_y += control_size
+            # self._polynomial_control_rate2_idxs_in_y[name] = np.s_[start_y:start_y+control_size]
+            # start_y += control_size
+            start_z += control_param_size
             start_theta += control_param_size
 
-        for output_name, options in self._filtered_timeseries_outputs.items():
-            size = np.prod(options['shape'], dtype=int)
-            self._timeseries_idxs_in_y[output_name] = np.s_[start_y:start_y+size]
-            start_y += size
-        self.y_size = start_y
+        # for output_name, options in self._filtered_timeseries_outputs.items():
+        #     size = np.prod(options['shape'], dtype=int)
+        #     self._timeseries_idxs_in_y[output_name] = np.s_[start_y:start_y+size]
+        #     start_y += size
+        # self.y_size = start_y
 
-        self._allocate_storage()
+        # print(self._state_idxs_in_z)
+        # print(self._t_initial_idx_in_z)
+        # print(self._t_duration_idx_in_z)
+        # print(self._parameter_idxs_in_z)
+        # print(self._control_idxs_in_z)
+
+        # Allocate caches to store integrated quantities so we don't have to integrate the same inputs twice
+        # if partials are requested for the same inputs as a compute.
+
+        if times_per_seg is None:
+            self._nnps = gd.subset_num_nodes_per_segment['all']
+        else:
+            self._nnps = [times_per_seg for i in range(gd.num_segments)]
+
+        self._num_nodes = nn = sum(self._nnps)
+        self._t_out = np.zeros((nn, 1))
+        self._x_out = np.zeros((nn, self.x_size))
+
+        if self.options['propagate_derivs']:
+            self._dx_dz_out = np.zeros((nn, self.x_size * self.z_size))
+            self._dt_dz_out = np.zeros((nn, self.z_size))
+        else:
+            self._dx_dz_out = None
+            self._dt_dz_out = None
+
+        # Build a map for obtaining the partials from dx_dz
+        self._partial_dx_dz_idxs = {}
+
+        dx_dz_idx = 0
+        for output_state, output_state_options in self.state_options.items():
+            output_name = self._state_output_names[output_state]
+            output_state_size = np.prod(output_state_options['shape'])
+
+            # Column indices wrt each initial state value
+            for input_state, input_state_options in self.state_options.items():
+                input_name = self._state_input_names[input_state]
+                input_size = np.prod(input_state_options['shape'])
+                idxs = np.s_[:, dx_dz_idx: dx_dz_idx + output_state_size * input_size]
+                self._partial_dx_dz_idxs[output_name, input_name] = idxs
+                dx_dz_idx += output_state_size * input_size
+
+            # Column indices wrt t_initial and t_duration
+            self._partial_dx_dz_idxs[output_name, 't_initial'] = np.s_[:, dx_dz_idx]
+            self._partial_dx_dz_idxs[output_name, 't_duration'] = np.s_[:, dx_dz_idx + 1]
+            dx_dz_idx += 2
+
+            # Column indices wrt the parameters
+            for param, param_options in self.parameter_options.items():
+                input_name = self._param_input_names[param]
+                input_size = np.prod(param_options['shape'])
+                idxs = np.s_[:, dx_dz_idx: dx_dz_idx + output_state_size * input_size]
+                self._partial_dx_dz_idxs[output_name, input_name] = idxs
+                dx_dz_idx += output_state_size * input_size
+
+            # Column indices wrt the controls
+            for control, control_options in self.control_options.items():
+                input_name = self._control_input_names[control]
+                input_size = np.prod(control_options['shape']) * gd.subset_num_nodes['control_input']
+                idxs = np.s_[:, dx_dz_idx: dx_dz_idx + output_state_size * input_size]
+                self._partial_dx_dz_idxs[output_name, input_name] = idxs
+                dx_dz_idx += output_state_size * input_size
+
+            # Column indices wrt the polynomial controls
+            for pc, pc_options in self.polynomial_control_options.items():
+                input_name = self._polynomial_control_input_names[pc]
+                input_size = np.prod(pc_options['shape']) * (pc_options['order'] + 1)
+                idxs = np.s_[:, dx_dz_idx: dx_dz_idx + output_state_size * input_size]
+                self._partial_dx_dz_idxs[output_name, input_name] = idxs
+                dx_dz_idx += output_state_size * input_size
+
+
+
 
     def setup(self):
         """
@@ -640,7 +717,10 @@ class ODEIntegrationComp(om.ExplicitComponent):
         temp[:, -1] = 1
         self._output_src_idxs = np.where(temp.ravel() == 1)[0]
 
-        self._num_output_rows = gd.num_segments * 2
+        if self.options['times_per_seg'] is None:
+            self._num_output_rows = gd.subset_num_nodes['all']
+        else:
+            self._num_output_rows = gd.num_segments * self.options['times_per_seg']
         self._num_rows = gd.num_segments * (N + 1)
 
         self._totals_of_names = []
@@ -650,8 +730,9 @@ class ODEIntegrationComp(om.ExplicitComponent):
         self._setup_time()
         self._setup_parameters()
         self._setup_controls()
+        self._setup_polynomial_controls()
         self._setup_states()
-        self._setup_timeseries()
+        # self._setup_timeseries()
         self._setup_storage()
 
     # def _reset_derivs(self):
@@ -728,16 +809,18 @@ class ODEIntegrationComp(om.ExplicitComponent):
 
         """
         subprob = self._eval_subprob
+        t_units = self.time_options['units']
+        t_name = self.time_options['name']
 
         # transcribe time
-        subprob.set_val('t', t, units=self.time_options['units'])
-        subprob.set_val('t_initial', theta[0], units=self.time_options['units'])
-        subprob.set_val('t_duration', theta[1], units=self.time_options['units'])
+        subprob.set_val(t_name, t, units=t_units)
+        subprob.set_val('t_initial', theta[0], units=t_units)
+        subprob.set_val('t_duration', theta[1], units=t_units)
 
         # transcribe states
         for name in self.state_options:
             input_name = self._state_input_names[name]
-            subprob.set_val(input_name, x[self.state_idxs[name]])
+            subprob.set_val(input_name, x[0, self.state_idxs[name]])
 
         # transcribe parameters
         for name in self.parameter_options:
@@ -822,11 +905,12 @@ class ODEIntegrationComp(om.ExplicitComponent):
             A matrix of the derivatives of each element of the rates `f` wrt the parameters `theta`, or None
             if eval_derivs is False.
         """
+        t_name = self.time_options['name']
         self._subprob_run_model(x, t, theta, linearize=False)
 
         # pack the resulting array
         if eval_solution:
-            f = np.zeros((self.x_size,))
+            f = np.zeros((self.x_size, 1))
             for name in self.state_options:
                 f[self.state_idxs[name]] = self._eval_subprob.get_val(
                     f'state_rate_collector.state_rates:{name}_rate').ravel()
@@ -846,7 +930,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
                 of_name = f'state_rate_collector.state_rates:{state_name}_rate'
                 idxs = self.state_idxs[state_name]
 
-                f_t[self.state_idxs[state_name]] = totals[of_name, 't']
+                f_t[self.state_idxs[state_name]] = totals[of_name, t_name]
 
                 for state_name_wrt in self.state_options:
                     idxs_wrt = self.state_idxs[state_name_wrt]
@@ -911,7 +995,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
 
         x_dot, f_x, f_t, f_theta = self.eval_ode(x, t, theta, eval_solution=True, eval_derivs=True)
 
-        dh_dz = np.array([[0, 0, 1.0/td, 0]])
+        dh_dz = np.zeros((1, n_z))
+        dh_dz[0, n_x+1] = 1./td
         dt_dz_dot = dh_dz
 
         dx_dz_dot = f_x @ dx_dz + f_t @ dt_dz + f_theta @ dtheta_dz + x_dot @ dt_dz_dot
@@ -945,7 +1030,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
 
         return x_dot
 
-    def _propagate(self, x_initial, theta, t_out=None, propagate_derivs=True):
+    def _propagate(self, inputs, propagate_derivs=True, x_out=None, t_out=None, dx_dz_out=None,
+                   dt_dz_out=None):
         """
         Propagate the augmented state, y = [x, dx_dz, dt_dz].
 
@@ -956,17 +1042,20 @@ class ODEIntegrationComp(om.ExplicitComponent):
         theta : np.array
             Values of the parameters influencing the ODE output. The first two elements are t_initial and t_duration,
             followed by the control node values, followed by the polynomial control node values.
-        t_out : np.array or None
-            Values at which the output of the integration are requested.
         propagate_derivs : bool
             If True, propagate the derivatives of the states and of time w.r.t. the integration parameters vector, z.
 
         Returns
         -------
         x : np.array
-            The values of the primal states at the nodes in the phase.
+            The values of the primal states at the output time values.
+        t : np.array
+            The time values at which the outputs are provided.
         dx_dz : np.array
-            The sensitivities of the final states w.r.t. the integration parameters vector, z, or None if
+            The sensitivities of the states w.r.t. the integration parameters vector, z, or None if
+            propagate_derivs is False.
+        dt_dz : np.array
+            The sensitivities of time w.r.t. the integration parameters vector, z, or None if
             propagate_derivs is False.
         """
         method = self.options['method']
@@ -976,28 +1065,37 @@ class ODEIntegrationComp(om.ExplicitComponent):
         rtol = self.options['rtol']
         times_per_seg = self.options['times_per_seg']
         gd = self._grid_data
-        num_seg = gd.num_segments
 
         n_x = self.x_size
         n_theta = self.theta_size
         n_z = n_x + n_theta
+        nnps = self._nnps
 
-        t_initial = theta[0]
-        t_duration = theta[1]
+        # Extract the input values
+        x0 = np.zeros((self.x_size,))
+        theta = np.zeros((self.theta_size,))
 
-        if times_per_seg is None:
-            nnps = gd.subset_num_nodes_per_segment['all']
-        else:
-            nnps = [times_per_seg for i in range(num_seg)]
+        for state_name in self.state_options:
+            state_initial_val = inputs[self._state_input_names[state_name]]
+            x0[self.state_idxs[state_name]] = state_initial_val
 
-        nn = sum(nnps)
+        theta[0] = t_initial = inputs['t_initial']
+        theta[1] = t_duration = inputs['t_duration']
 
-        t_eval_all_nodes = t_initial + 0.5 * (gd.node_ptau + 1) * t_duration
+        for param_name in self.parameter_options:
+            param_val = inputs[self._param_input_names[param_name]]
+            theta[self._parameter_idxs_in_theta[param_name]] = param_val.ravel()
 
-        x_out = np.zeros((nn, n_x))
+        for control_name in self.control_options:
+            control_vals = inputs[self._control_input_names[control_name]]
+            theta[self._control_idxs_in_theta[control_name]] = control_vals.ravel()
+
+        for pc_name in self.polynomial_control_options:
+            pc_vals = inputs[self._polynomial_control_input_names[pc_name]]
+            theta[self._polynomial_control_idxs_in_theta[pc_name]] = pc_vals.ravel()
 
         if propagate_derivs:
-            dx_dz_0 = np.zeros((1, n_z))
+            dx_dz_0 = np.zeros((n_x, n_z))
             dx_dz_0[:, :n_x] = np.eye(n_x)
 
             dt_dz_0 = np.zeros((1, n_z))
@@ -1005,19 +1103,24 @@ class ODEIntegrationComp(om.ExplicitComponent):
 
             dtheta_dz = np.zeros((n_theta, n_z))
             dtheta_dz[:, -n_theta:] = np.eye(n_theta)
-            dx_dz_out = np.zeros((nn, n_x*n_z))
 
-            y0 = np.concatenate((x_initial.ravel(), dx_dz_0.ravel(), dt_dz_0.ravel()))
+            y0 = np.concatenate((x0.ravel(), dx_dz_0.ravel(), dt_dz_0.ravel()))
         else:
             dx_dz_out = None
-            y0 = x_initial.ravel()
+            dt_dz_out = None
+            y0 = x0.ravel()
 
         row_seg_i = 0
 
         for i in range(self._grid_data.num_segments):
             self._set_segment_index(i)
 
-            t_eval_seg = t_eval_all_nodes[row_seg_i:row_seg_i + nnps[i]]
+            if times_per_seg:
+                eval_nodes_ptau = np.linspace(gd.segment_ends[i], gd.segment_ends[i + 1], times_per_seg)
+            else:
+                eval_nodes_ptau = gd.node_ptau[gd.segment_indices[i, 0]: gd.segment_indices[i, 1]]
+
+            t_eval_seg = t_initial + 0.5 * (eval_nodes_ptau + 1) * t_duration
             t_span_seg = (t_eval_seg[0], t_eval_seg[-1])
 
             if propagate_derivs:
@@ -1026,15 +1129,22 @@ class ODEIntegrationComp(om.ExplicitComponent):
                                 args=(theta, dtheta_dz), method=method, first_step=first_step, max_step=max_step,
                                 atol=atol, rtol=rtol)
                 dx_dz_out[row_seg_i:row_seg_i+nnps[i], :] = sol.y.T[:, n_x:n_x+n_x*n_z]
+                dt_dz_out[row_seg_i:row_seg_i+nnps[i], :] = sol.y.T[:, -n_z:]
             else:
                 sol = solve_ivp(self._f_primal, t_span=t_span_seg, t_eval=t_eval_seg, y0=y0, args=(theta,),
                                 method=method, first_step=first_step, max_step=max_step, atol=atol, rtol=rtol)
 
-            y0 = sol.y.T[-1, :]  # Set initial y for the next segment
             x_out[row_seg_i:row_seg_i+nnps[i], :] = sol.y.T[:, :n_x]  # Save solution to the output nodes
+            t_out[row_seg_i:row_seg_i + nnps[i], 0] = sol.t
+            y0 = sol.y.T[-1, :]  # Set initial y for the next segment
             row_seg_i += nnps[i]  # Increment node associated with the start of the next segment
 
-        return x_out, dx_dz_out
+        # with np.printoptions(linewidth=100_000, edgeitems=1000):
+        #     print(t_out)
+        #     print(x_out)
+        #     print(dx_dz_out[-1,:])
+
+        return x_out, t_out, dx_dz_out, dt_dz_out
 
     def compute(self, inputs, outputs):
         """
@@ -1047,73 +1157,29 @@ class ODEIntegrationComp(om.ExplicitComponent):
         outputs : `Vector`
             `Vector` containing outputs.
         """
-        self._inputs_cache = inputs.asarray()
+        t_name = self.time_options['name']
+
+        if self._inputs_cache is None:
+            self._inputs_cache = np.zeros_like(inputs.asarray())
+
+        if np.max(np.abs(self._inputs_cache - inputs.asarray())) > 1.0E-16:
+            self._propagate(inputs=inputs, propagate_derivs=True,
+                            x_out=self._x_out, t_out=self._t_out, dx_dz_out=self._dx_dz_out, dt_dz_out=self._dt_dz_out)
+
+            self._inputs_cache[...] = inputs.asarray()
+
+        t = self._t_out
+        x = self._x_out
+
+        # Extract time
+        outputs[t_name] = t
+        outputs[f'{t_name}_phase'] = t - inputs['t_initial']
+        outputs['t_final'] = inputs['t_initial'] + inputs['t_duration']
 
         # Extract the state values
-        x0 = np.zeros((self.x_size,))
-        theta = np.zeros((self.theta_size,))
-        
         for state_name in self.state_options:
-            state_initial_val = inputs[self._state_input_names[state_name]]
-            x0[self.state_idxs[state_name]] = state_initial_val
-
-        theta[0] = inputs['t_initial']
-        theta[1] = inputs['t_duration']
-
-        for param_name in self.parameter_options:
-            param_val = inputs[self._param_input_names[param_name]]
-            theta[self._parameter_idxs_in_theta[param_name]] = param_val
-
-        for control_name in self.control_options:
-            control_vals = inputs[self._control_input_names[control_name]]
-            theta[self._control_idxs_in_theta[param_name]] = control_vals
-
-        for pc_name in self.polynomial_control_options:
-            pc_vals = inputs[self._control_input_names[pc_name]]
-            theta[self._polynomial_control_idxs_in_theta[param_name]] = pc_vals
-
-        x, dx_dz = self._propagate(x_initial=x0, theta=theta, propagate_derivs=True)
-
-        # Propagate returns a dictionary keyed by segment index, containing
-
-        print(x)
-        print(dx_dz)
-
-        # # Unpack the outputs
-        # idxs = self._output_src_idxs
-        # outputs['t_final'] = self._t[-1, ...]
-        #
-        # # Extract time
-        # outputs['t'] = self._t[idxs, ...]
-        # outputs['t_phase'] = self._t[idxs, ...] - inputs['t_initial']
-        #
-        # # Extract the state values
-        # for state_name in self.state_options:
-        #     of = self._state_output_names[state_name]
-        #     outputs[of] = self._x[idxs, self.state_idxs[state_name]]
-        #
-        # # Extract the control values and rates
-        # for control_name in self.control_options:
-        #     oname = self._control_output_names[control_name]
-        #     rate_name = self._control_rate_names[control_name]
-        #     rate2_name = self._control_rate2_names[control_name]
-        #     outputs[oname] = self._y[idxs, self._control_idxs_in_y[control_name]]
-        #     outputs[rate_name] = self._y[idxs, self._control_rate_idxs_in_y[control_name]]
-        #     outputs[rate2_name] = self._y[idxs, self._control_rate2_idxs_in_y[control_name]]
-        #
-        # # Extract the control values and rates
-        # for control_name in self.polynomial_control_options:
-        #     oname = self._polynomial_control_output_names[control_name]
-        #     rate_name = self._polynomial_control_rate_names[control_name]
-        #     rate2_name = self._polynomial_control_rate2_names[control_name]
-        #     outputs[oname] = self._y[idxs, self._polynomial_control_idxs_in_y[control_name]]
-        #     outputs[rate_name] = self._y[idxs, self._polynomial_control_rate_idxs_in_y[control_name]]
-        #     outputs[rate2_name] = self._y[idxs, self._polynomial_control_rate2_idxs_in_y[control_name]]
-        #
-        # # Extract the timeseries outputs
-        # for name in self._filtered_timeseries_outputs:
-        #     oname = self._timeseries_output_names[name]
-        #     outputs[oname] = self._y[idxs, self._timeseries_idxs_in_y[name]]
+            of = self._state_output_names[state_name]
+            outputs[of] = x[:, self.state_idxs[state_name]]
 
     def compute_partials(self, inputs, partials):
         """
@@ -1126,111 +1192,43 @@ class ODEIntegrationComp(om.ExplicitComponent):
         partials : Jacobian
             Subjac components written to partials[output_name, input_name].
         """
-        dt_dZ = self._dt_dZ
-        dx_dZ = self._dx_dZ
-        dy_dZ = self._dy_dZ
-
+        # Only propagate the ODE if our inputs have changed, otherwise use the cached outputs.
         if np.max(np.abs(self._inputs_cache - inputs.asarray())) > 1.0E-16:
-            self._propagate_vectorized_derivs(inputs)
+            self._propagate(inputs=inputs, propagate_derivs=True,
+                            x_out=self._x_out, t_out=self._t_out, dx_dz_out=self._dx_dz_out, dt_dz_out=self._dt_dz_out)
 
-        idxs = self._output_src_idxs
-        partials['t', 't_duration'] = dt_dZ[idxs, 0, self.x_size+1]
-        partials['t_phase', 't_duration'] = dt_dZ[idxs, 0, self.x_size+1]
+            self._inputs_cache[...] = inputs.asarray()
+
+        t_name = self.time_options['name']
+
+        dt_dz = self._dt_dz_out
+        dx_dz = self._dx_dz_out
+
+        partials[t_name, 't_duration'] = dt_dz[:, self.x_size+1]
+        partials[f'{t_name}_phase', 't_duration'] = dt_dz[:, self.x_size+1]
 
         for state_name in self.state_options:
             of = self._state_output_names[state_name]
 
-            # Unpack the derivatives
-            of_rows = self.state_idxs[state_name]
-
-            partials[of, 't_initial'] = dx_dZ[idxs, of_rows, self.x_size]
-            partials[of, 't_duration'] = dx_dZ[idxs, of_rows, self.x_size+1]
-
             for wrt_state_name in self.state_options:
                 wrt = self._state_input_names[wrt_state_name]
-                wrt_cols = self._state_idxs_in_Z[wrt_state_name]
-                partials[of, wrt] = dx_dZ[idxs, of_rows, wrt_cols]
+                wrt_cols = self._state_idxs_in_z[wrt_state_name]
+                partials[of, wrt] = dx_dz[self._partial_dx_dz_idxs[of, wrt]]
+
+            partials[of, 't_initial'] = dx_dz[self._partial_dx_dz_idxs[of, 't_initial']]
+            partials[of, 't_duration'] = dx_dz[self._partial_dx_dz_idxs[of, 't_duration']]
 
             for wrt_param_name in self.parameter_options:
                 wrt = self._param_input_names[wrt_param_name]
-                wrt_cols = self._parameter_idxs_in_Z[wrt_param_name]
-                partials[of, wrt] = dx_dZ[idxs, of_rows, wrt_cols]
+                wrt_cols = self._parameter_idxs_in_z[wrt_param_name]
+                partials[of, wrt] = dx_dz[self._partial_dx_dz_idxs[of, wrt]]
 
             for wrt_control_name in self.control_options:
                 wrt = self._control_input_names[wrt_control_name]
-                wrt_cols = self._control_idxs_in_Z[wrt_control_name]
-                partials[of, wrt] = dx_dZ[idxs, of_rows, wrt_cols]
+                wrt_cols = self._control_idxs_in_z[wrt_control_name]
+                partials[of, wrt] = dx_dz[self._partial_dx_dz_idxs[of, wrt]]
 
             for wrt_pc_name in self.polynomial_control_options:
                 wrt = self._polynomial_control_input_names[wrt_pc_name]
-                wrt_cols = self._polynomial_control_idxs_in_Z[wrt_pc_name]
-                partials[of, wrt] = dx_dZ[idxs, of_rows, wrt_cols]
-
-        for control_name in self.control_options:
-            of = self._control_output_names[control_name]
-            of_rate = self._control_rate_names[control_name]
-            of_rate2 = self._control_rate2_names[control_name]
-
-            # Unpack the derivatives
-            of_rows = self._control_idxs_in_y[control_name]
-            of_rate_rows = self._control_rate_idxs_in_y[control_name]
-            of_rate2_rows = self._control_rate2_idxs_in_y[control_name]
-
-            wrt_cols = self.x_size + 1
-            partials[of_rate, 't_duration'] = dy_dZ[idxs, of_rate_rows, wrt_cols]
-            partials[of_rate2, 't_duration'] = dy_dZ[idxs, of_rate2_rows, wrt_cols]
-
-            for wrt_control_name in self.control_options:
-                wrt = self._control_input_names[wrt_control_name]
-                wrt_cols = self._control_idxs_in_Z[wrt_control_name]
-                partials[of, wrt] = dy_dZ[idxs, of_rows, wrt_cols]
-                partials[of_rate, wrt] = dy_dZ[idxs, of_rate_rows, wrt_cols]
-                partials[of_rate2, wrt] = dy_dZ[idxs, of_rate2_rows, wrt_cols]
-
-        for name in self.polynomial_control_options:
-            of = self._polynomial_control_output_names[name]
-            of_rate = self._polynomial_control_rate_names[name]
-            of_rate2 = self._polynomial_control_rate2_names[name]
-
-            # Unpack the derivatives
-            of_rows = self._polynomial_control_idxs_in_y[name]
-            of_rate_rows = self._polynomial_control_rate_idxs_in_y[name]
-            of_rate2_rows = self._polynomial_control_rate2_idxs_in_y[name]
-
-            wrt_cols = self.x_size + 1
-            partials[of_rate, 't_duration'] = dy_dZ[idxs, of_rate_rows, wrt_cols]
-            partials[of_rate2, 't_duration'] = dy_dZ[idxs, of_rate2_rows, wrt_cols]
-
-            for wrt_control_name in self.polynomial_control_options:
-                wrt = self._polynomial_control_input_names[wrt_control_name]
-                wrt_cols = self._polynomial_control_idxs_in_Z[wrt_control_name]
-                partials[of, wrt] = dy_dZ[idxs, of_rows, wrt_cols]
-                partials[of_rate, wrt] = dy_dZ[idxs, of_rate_rows, wrt_cols]
-                partials[of_rate2, wrt] = dy_dZ[idxs, of_rate2_rows, wrt_cols]
-
-        for name in self._filtered_timeseries_outputs:
-            of = self._timeseries_output_names[name]
-            of_rows = self._timeseries_idxs_in_y[name]
-
-            partials[of, 't_initial'] = dy_dZ[idxs, of_rows, self.x_size]
-            partials[of, 't_duration'] = dy_dZ[idxs, of_rows, self.x_size+1]
-
-            for wrt_state_name in self.state_options:
-                wrt = self._state_input_names[wrt_state_name]
-                wrt_cols = self._state_idxs_in_Z[wrt_state_name]
-                partials[of, wrt] = dy_dZ[idxs, of_rows, wrt_cols]
-
-            for wrt_param_name in self.parameter_options:
-                wrt = self._param_input_names[wrt_param_name]
-                wrt_cols = self._parameter_idxs_in_Z[wrt_param_name]
-                partials[of, wrt] = dy_dZ[idxs, of_rows, wrt_cols]
-
-            for wrt_control_name in self.control_options:
-                wrt = self._control_input_names[wrt_control_name]
-                wrt_cols = self._control_idxs_in_Z[wrt_control_name]
-                partials[of, wrt] = dy_dZ[idxs, of_rows, wrt_cols]
-
-            for wrt_pc_name in self.polynomial_control_options:
-                wrt = self._polynomial_control_input_names[wrt_pc_name]
-                wrt_cols = self._polynomial_control_idxs_in_Z[wrt_pc_name]
-                partials[of, wrt] = dy_dZ[idxs, of_rows, wrt_cols]
+                wrt_cols = self._polynomial_control_idxs_in_z[wrt_pc_name]
+                partials[of, wrt] = dx_dz[self._partial_dx_dz_idxs[of, wrt]]
