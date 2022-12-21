@@ -48,58 +48,70 @@ class TestODEIntegrationComp(unittest.TestCase):
 
     def test_integrate_scalar_ode(self):
         dymos_options['include_check_partials'] = True
-        gd = GridData(num_segments=1, transcription='gauss-lobatto', transcription_order=7)
+
+        for ogd_eq_igd in (True, False):
+            with self.subTest('input_grid_data = output_grid_data'
+                              if ogd_eq_igd else 'input_grid_data != output_grid_data'):
+
+                input_grid_data = GridData(num_segments=1, transcription='gauss-lobatto', transcription_order=3)
+
+                if ogd_eq_igd:
+                    output_grid_data = input_grid_data
+                else:
+                    output_grid_data = GridData(num_segments=1, transcription='uniform', transcription_order=10)
 
 
-        time_options = TimeOptionsDictionary()
+                time_options = TimeOptionsDictionary()
 
-        time_options['targets'] = 't'
-        time_options['units'] = 's'
+                time_options['targets'] = 't'
+                time_options['units'] = 's'
 
-        state_options = {'x': StateOptionsDictionary()}
+                state_options = {'x': StateOptionsDictionary()}
 
-        state_options['x']['shape'] = (1,)
-        state_options['x']['units'] = 's**2'
-        state_options['x']['rate_source'] = 'x_dot'
-        state_options['x']['targets'] = ['x']
+                state_options['x']['shape'] = (1,)
+                state_options['x']['units'] = 's**2'
+                state_options['x']['rate_source'] = 'x_dot'
+                state_options['x']['targets'] = ['x']
 
-        param_options = {'p': ParameterOptionsDictionary()}
+                param_options = {'p': ParameterOptionsDictionary()}
 
-        param_options['p']['shape'] = (1,)
-        param_options['p']['units'] = 's**2'
-        param_options['p']['targets'] = ['p']
+                param_options['p']['shape'] = (1,)
+                param_options['p']['units'] = 's**2'
+                param_options['p']['targets'] = ['p']
 
-        control_options = {}
-        polynomial_control_options = {}
+                control_options = {}
+                polynomial_control_options = {}
 
-        prob = om.Problem()
+                prob = om.Problem()
 
-        prob.model.add_subsystem('integrator',
-                                 ODEIntegrationComp(SimpleODE, time_options, state_options,
-                                                    param_options, control_options,
-                                                    polynomial_control_options,
-                                                    grid_data=gd, times_per_seg=None))
-        prob.setup()
+                prob.model.add_subsystem('integrator',
+                                         ODEIntegrationComp(input_grid_data=input_grid_data,
+                                                            output_grid_data=output_grid_data,
+                                                            time_options=time_options, state_options=state_options,
+                                                            parameter_options=param_options,
+                                                            control_options=control_options,
+                                                            polynomial_control_options=polynomial_control_options,
+                                                            ode_class=SimpleODE, ode_init_kwargs=None))
+                prob.setup()
+                prob.set_val('integrator.states:x', 0.5)
+                prob.set_val('integrator.t_initial', 0.0)
+                prob.set_val('integrator.t_duration', 2.0)
+                prob.set_val('integrator.parameters:p', 1.0)
 
-        prob.set_val('integrator.states:x', 0.5)
-        prob.set_val('integrator.t_initial', 0.0)
-        prob.set_val('integrator.t_duration', 2.0)
-        prob.set_val('integrator.parameters:p', 1.0)
+                prob.run_model()
 
-        prob.run_model()
+                x = prob.get_val('integrator.states_out:x')
+                t = prob.get_val('integrator.time')
+                p = prob.get_val('integrator.parameters:p')
 
-        x = prob.get_val('integrator.states_out:x')
-        t = prob.get_val('integrator.time')
-        p = prob.get_val('integrator.parameters:p')
+                expected = t**2 + 2 * t + p - 0.5 * np.exp(t)
 
-        expected = t**2 + 2 * t + p - 0.5 * np.exp(t)
+                assert_near_equal(x, expected, tolerance=1.0E-5)
 
-        assert_near_equal(x, expected, tolerance=1.0E-5)
-
-        cpd = prob.check_partials(compact_print=True)
+                cpd = prob.check_partials(compact_print=True)
+                assert_check_partials(cpd, atol=1.0E-4, rtol=1.0E-5)
 
         dymos_options['include_check_partials'] = False
-        assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
     def test_integrate_with_controls(self):
 
@@ -154,8 +166,7 @@ class TestODEIntegrationComp(unittest.TestCase):
                                                  parameter_options=param_options,
                                                  control_options=control_options,
                                                  polynomial_control_options=polynomial_control_options,
-                                                 times_per_seg=None,
-                                                 grid_data=gd,
+                                                 input_grid_data=gd,
                                                  ode_init_kwargs=None))
 
         p.setup()
@@ -240,8 +251,7 @@ class TestODEIntegrationComp(unittest.TestCase):
                                                  parameter_options=param_options,
                                                  control_options=control_options,
                                                  polynomial_control_options=poly_control_options,
-                                                 times_per_seg=None,
-                                                 grid_data=gd,
+                                                 input_grid_data=gd,
                                                  ode_init_kwargs=None))
 
         p.setup()
@@ -272,6 +282,8 @@ class TestODEIntegrationComp(unittest.TestCase):
         with np.printoptions(linewidth=1024):
             cpd = p.check_partials(compact_print=False, method='fd')
             assert_check_partials(cpd, atol=1.0E-4, rtol=1.0E-4)
+
+        dymos_options['include_check_partials'] = False
 
 
 if __name__ == '__main__':  # pragma: no cover

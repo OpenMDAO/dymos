@@ -2,24 +2,34 @@ import numpy as np
 
 import openmdao.api as om
 
-from .direct_shooting_timeseries_comp import DirectShootingTimeseriesComp
+from ..pseudospectral.components import PseudospectralTimeseriesOutputComp
 from .direct_shooting_continuity_comp import DirectShootingContinuityComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import GridData
-from .ode_integration_comp import ODEIntegrationComp, rk_methods
+from .ode_integration_comp import ODEIntegrationComp
 from ...utils.misc import get_rate_units, CoerceDesvar
-from ...utils.introspection import get_promoted_vars, get_source_metadata
+from ...utils.indexing import get_src_indices_by_row
+from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets
 from ...utils.constants import INF_BOUND
-from ..common import TimeseriesOutputGroup
+from ..common import TimeComp, TimeseriesOutputGroup, ControlGroup
 
 
 class DirectShooting(TranscriptionBase):
     """
     The Transcription class for single explicit shooting.
 
-    This transcription uses an explicit Runge-Kutta method to propagate the states using the
-    given ODE through each segment of the phase.  The final value of the states in one
-    segment feeds the initial values in a subsequent segment.
+    This transcription uses an external explicit integrator to propagate the states, and optionally their
+    sensitivities wrt the 'inputs' to the integration.
+
+    If we view integration as a function
+
+    .. math::
+
+    \bar{x}_{f} = \mathcal{I}(\bar{x}_0, t_0, t_d, \bar{\theta}) = \bar{x}_{0} + \int_{t_0}^{t_0+t_d} \left( f_{ode}(\bar{x}, t, \bar{\theta}) \right) dt
+
+    then the inputs are the initial states ($\bar{x}$), the initial time and duration ($t_0$ and $t_d$), and some set
+    of parameters that impact the ODE ($\theta$). For Dymos, $\theta$ may include the phase parameters, or the node values
+    that govern the shape of the controls and polynomial controls.
 
     Parameters
     ----------
@@ -27,33 +37,78 @@ class DirectShooting(TranscriptionBase):
         Dictionary of arguments.
     """
     def __init__(self, **kwargs):
-        super(ExplicitShooting, self).__init__(**kwargs)
+        super(DirectShooting, self).__init__(**kwargs)
         self._rhs_source = 'ode'
 
     def initialize(self):
         """
         Declare transcription options.
         """
-        self.options.declare('grid', values=['radau-ps', 'gauss-lobatto'],
-                             default='gauss-lobatto', desc='The type of transcription used to layout'
-                             ' the segments and control discretization nodes.')
-        self.options.declare('method', types=(str,), default='rk4',
-                             desc='The explicit Runge-Kutta scheme to use. One of' +
-                                  str(list(rk_methods.keys())))
-        self.options.declare('num_steps_per_segment', types=int,
-                             default=10, desc='Number of integration steps in each segment')
+        self.options.declare('method', default='DOP853', desc='The integration method used.')
+        self.options.declare('atol', types=float, default=1.0E-6)
+        self.options.declare('rtol', types=float, default=1.0E-9)
+        self.options.declare('first_step', types=float, allow_none=True, default=None)
+        self.options.declare('max_step', types=float, default=np.inf)
+        self.options.declare('times_per_seg', types=(int,), allow_none=True, default=None,
+                             desc='The number of output times per segment. If specified, they are evenly spaced. If '
+                                  'not specified, output at all nodes in the segment as given by the transcription.')
+        self.options.declare('propagate_derivs', types=bool, default=True,
+                             desc='If True, propagate the state and derivatives of the state and time with respect to '
+                                  'the integration parameters. If False, only propagate the primal states. If only '
+                                  'using this transcription to propagate an ODE and derivatives are needed, setting '
+                                  'this option to False should result in faster execution.')
         self.options.declare('subprob_reports', default=False,
-                             desc='Controls the reports made when running the subproblems for ExplicitShooting')
+                             desc='Controls the reports made when running the subproblems for DirectShooting')
+        self.options.declare('input_grid', values=['radau-ps', 'gauss-lobatto'],
+                             default='gauss-lobatto', desc='The grid distribution used to layout the control inputs.')
+        self.options.declare('input_grid_order', types=int, default=3,
+                             desc='The order used to determine the number of nodes in the control inputs. For '
+                                  'consistency with other transcriptions, controls are assumed to be polynomials of '
+                                  'input_grid_order - 1.')
+        self.options.declare('output_grid', values=['radau-ps', 'gauss-lobatto', 'uniform'], allow_none=True,
+                             default=None,
+                             desc='The grid distribution determining the location of the output nodes. If rate '
+                                  'constraints are being imposed on outputs, then "uniform" should not be used to '
+                                  'avoid interpolation issues. The default value of None will result in the use of the '
+                                  'input_grid for outputs. This is useful for the implementation of path constraints '
+                                  'but can result in highly nonlinear dynamics being smoothed over in the outputs. '
+                                  'When used for validation through simulation, it is generally wise to choose an '
+                                  'output grid that is more dense than the input grid to capture this nonlinearity.')
+        self.options.declare('output_grid_order', types=int, allow_none=True, default=None,
+                             desc='The order of the output grid, affecting the number of nodes in the output. If None, '
+                                  'use the same order as the input grid. See the description for output_grid, as '
+                                  'the notes there apply to this option as well.')
 
     def init_grid(self):
         """
         Setup the GridData object for the Transcription.
         """
-        self.grid_data = GridData(num_segments=self.options['num_segments'],
-                                  transcription=self.options['grid'],
-                                  transcription_order=self.options['order'],
-                                  segment_ends=self.options['segment_ends'],
-                                  compressed=self.options['compressed'])
+        """
+        Setup the GridData object for the Transcription.
+        """
+        num_segments = self.options['num_segments']
+
+        if isinstance(self.options['order'], str):
+            self.options['order'] = num_segments * [self.options['order']]
+        elif np.ndim(self.options['order']) == 0:
+            order = np.ones(num_segments, int) * self.options['order']
+            self.options['order'] = np.asarray(order, dtype=int)
+        else:
+            self.options['order'] = np.asarray(self.options['order'], dtype=int)
+
+        self._input_grid_data = GridData(num_segments=self.options['num_segments'],
+                                         transcription=self.options['input_grid'],
+                                         transcription_order=self.options['input_grid_order'],
+                                         segment_ends=self.options['segment_ends'],
+                                         compressed=self.options['compressed'])
+
+        self.grid_data = self._input_grid_data
+
+        self._output_grid_data = GridData(num_segments=self.options['num_segments'],
+                                          transcription=self.options['input_grid'],
+                                          transcription_order=self.options['input_grid_order'],
+                                          segment_ends=self.options['segment_ends'],
+                                          compressed=self.options['compressed'])
 
     def setup_time(self, phase):
         """
@@ -64,15 +119,45 @@ class DirectShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        t_name = phase.time_options['name']
+        time_options = phase.time_options
+        t_name = time_options['name']
         t_phase_name = f'{t_name}_phase'
+        time_units = time_options['units']
+        num_seg = self._output_grid_data.num_segments
+        times_per_seg = self.options['times_per_seg']
 
+        # Warn about invalid options
         phase.check_time_options()
+
         for ts_name, ts_options in phase._timeseries.items():
             if t_name not in ts_options['outputs']:
                 phase.add_timeseries_output(t_name, timeseries=ts_name)
             if t_phase_name not in ts_options['outputs']:
                 phase.add_timeseries_output(t_phase_name, timeseries=ts_name)
+
+        if times_per_seg is None:
+            # Case 1:  Compute times at 'all' node set.
+            num_nodes = self._output_grid_data.num_nodes
+            node_ptau = self._output_grid_data.node_ptau
+            node_dptau_dstau = self._output_grid_data.node_dptau_dstau
+        else:
+            # Case 2:  Compute times at n equally distributed points per segment.
+            num_nodes = num_seg * times_per_seg
+            node_stau = np.linspace(-1, 1, times_per_seg)
+            node_ptau = np.empty(0, )
+            node_dptau_dstau = np.empty(0, )
+            # Append our nodes in phase tau space
+            for iseg in range(num_seg):
+                v0 = self._output_grid_data.segment_ends[iseg]
+                v1 = self._output_grid_data.segment_ends[iseg + 1]
+                node_ptau = np.concatenate((node_ptau, v0 + 0.5 * (node_stau + 1) * (v1 - v0)))
+                node_dptau_dstau = np.concatenate((node_dptau_dstau,
+                                                   0.5 * (v1 - v0) * np.ones_like(node_stau)))
+
+        time_comp = TimeComp(num_nodes=num_nodes, node_ptau=node_ptau,
+                             node_dptau_dstau=node_dptau_dstau, units=time_units)
+
+        phase.add_subsystem('time', time_comp, promotes=['*'])
 
     def configure_time(self, phase):
         """
@@ -83,10 +168,24 @@ class DirectShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        integrator_comp = phase._get_subsystem('integrator')
-        integrator_comp._configure_time_io()
-
         time_options = phase.time_options
+        t_name = time_options['name']
+        tphase_name = f'{t_name}_phase'
+        t_units = time_options['units']
+
+        integ = phase._get_subsystem('integrator')
+        integ._configure_time()
+
+        time_comp = phase._get_subsystem('time')
+        time_comp.configure_io()
+
+        ode = phase._get_subsystem('ode')
+        ode_inputs = get_promoted_vars(ode, 'input')
+
+        phase.set_input_defaults('t_initial', val=0.0)
+        phase.set_input_defaults('t_duration', val=1.0)
+
+        phase.promotes('integrator', inputs=['t_initial', 't_duration'])
 
         if not time_options['fix_initial']:
             lb, ub = time_options['initial_bounds']
@@ -114,6 +213,35 @@ class DirectShooting(TranscriptionBase):
                                  ref0=time_options['duration_ref0'],
                                  ref=time_options['duration_ref'])
 
+        # The tuples here are (name, user_specified_targets, dynamic)
+        for name, targets, dynamic in [(t_name, time_options['targets'], True),
+                                       (tphase_name, time_options['time_phase_targets'], True)]:
+            if targets:
+                src_idxs = self._output_grid_data.subset_node_indices['all'] if dynamic else None
+                phase.connect(f'integrator.{name}', [f'ode.{t}' for t in targets], src_indices=src_idxs,
+                              flat_src_indices=True if dynamic else None)
+
+        for name, targets in [('t_initial', time_options['t_initial_targets']),
+                              ('t_duration', time_options['t_duration_targets'])]:
+            for t in targets:
+                shape = ode_inputs[t]['shape']
+
+                if shape == (1,):
+                    src_idxs = None
+                    flat_src_idxs = None
+                    src_shape = None
+                else:
+                    src_idxs = np.zeros(self._output_grid_data.subset_num_nodes['all'])
+                    flat_src_idxs = True
+                    src_shape = (1,)
+
+                phase.promotes('ode', inputs=[(t, name)], src_indices=src_idxs,
+                               flat_src_indices=flat_src_idxs, src_shape=src_shape)
+            if targets:
+                phase.set_input_defaults(name=name,
+                                         val=np.ones((1,)),
+                                         units=t_units)
+
     def setup_states(self, phase):
         """
         Setup the states for this transcription.
@@ -134,13 +262,15 @@ class DirectShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        integ = phase._get_subsystem('integrator')
+        integ._configure_states()
+
         for name, options in phase.state_options.items():
+            phase.promotes('integrator', inputs=[f'states:{name}'])
             for ts_name, ts_options in phase._timeseries.items():
                 if f'states:{name}' not in ts_options['outputs']:
                     phase.add_timeseries_output(name, output_name=f'states:{name}',
                                                 timeseries=ts_name)
-        integrator_comp = phase._get_subsystem('integrator')
-        integrator_comp._configure_states_io()
 
         # Add the appropriate design parameters
         for state_name, options in phase.state_options.items():
@@ -157,9 +287,7 @@ class DirectShooting(TranscriptionBase):
                                      ref=options['ref'])
 
     def _get_ode(self, phase):
-        integrator = phase._get_subsystem('integrator')
-        subprob = integrator._eval_subprob
-        ode = subprob.model._get_subsystem('ode_eval.ode')
+        ode = phase._get_subsystem('ode')
         return ode
 
     def setup_ode(self, phase):
@@ -171,21 +299,26 @@ class DirectShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        integrator_comp = ODEIntegrationComp(ode_class=phase.options['ode_class'],
-                                             time_options=phase.time_options,
-                                             state_options=phase.state_options,
-                                             parameter_options=phase.parameter_options,
-                                             control_options=phase.control_options,
-                                             polynomial_control_options=phase.polynomial_control_options,
-                                             timeseries_options=phase._timeseries,
-                                             method=self.options['method'],
-                                             num_steps_per_segment=self.options['num_steps_per_segment'],
-                                             grid_data=self.grid_data,
-                                             ode_init_kwargs=phase.options['ode_init_kwargs'],
-                                             standalone_mode=False,
-                                             reports=self.options['subprob_reports'])
-
-        phase.add_subsystem(name='integrator', subsys=integrator_comp, promotes_inputs=['*'])
+        integ = ODEIntegrationComp(ode_class=phase.options['ode_class'],
+                                   time_options=phase.time_options,
+                                   state_options=phase.state_options,
+                                   parameter_options=phase.parameter_options,
+                                   control_options=phase.control_options,
+                                   polynomial_control_options=phase.polynomial_control_options,
+                                   method=self.options['method'],
+                                   atol=self.options['atol'],
+                                   rtol=self.options['rtol'],
+                                   first_step=self.options['first_step'],
+                                   max_step=self.options['max_step'],
+                                   propagate_derivs=self.options['propagate_derivs'],
+                                   input_grid_data=self._input_grid_data,
+                                   output_grid_data=self._output_grid_data,
+                                   ode_init_kwargs=phase.options['ode_init_kwargs'],
+                                   standalone_mode=False,
+                                   reports=self.options['subprob_reports'])
+        phase.add_subsystem('integrator', integ)
+        phase.add_subsystem('ode', phase.options['ode_class'](num_nodes=self._output_grid_data.num_nodes,
+                                                              **phase.options['ode_init_kwargs']))
 
     def configure_ode(self, phase):
         """
@@ -196,7 +329,19 @@ class DirectShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        integ = phase._get_subsystem('integrator')
+        integ._configure_storage()
+
+        ode = phase._get_subsystem('ode')
+
+        ode_inputs = get_promoted_vars(ode, 'input')
+
+        for name, options in phase.state_options.items():
+
+            targets = get_targets(ode_inputs, name=name, user_targets=options['targets'])
+            if targets:
+                phase.connect(f'integrator.states_out:{name}',
+                              [f'ode.{tgt}' for tgt in targets])
 
     def setup_controls(self, phase):
         """
@@ -208,7 +353,18 @@ class DirectShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         phase._check_control_options()
+
         if phase.control_options:
+            control_group = ControlGroup(control_options=phase.control_options,
+                                         time_units=phase.time_options['units'],
+                                         grid_data=self._input_grid_data,
+                                         output_grid_data=self._output_grid_data)
+
+            phase.add_subsystem('control_group',
+                                subsys=control_group,
+                                promotes_inputs=['controls:*', 'dt_dstau'],
+                                promotes_outputs=['control_values:*', 'control_rates:*'])
+
             for name, options in phase.control_options.items():
                 for ts_name, ts_options in phase._timeseries.items():
                     if f'controls:{name}' not in ts_options['outputs']:
@@ -230,13 +386,23 @@ class DirectShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super().configure_controls(phase)
+        if not phase.control_options:
+            return
+
         integrator_comp = phase._get_subsystem('integrator')
-        integrator_comp._configure_controls_io()
+        integrator_comp._configure_controls()
+        control_group = phase._get_subsystem('control_group')
+        control_group.configure_io()
+
+        ode = phase._get_subsystem('ode')
+        ode_inputs = get_promoted_vars(ode, 'input')
 
         # Add the appropriate design parameters
-        ncin = self.grid_data.subset_num_nodes['control_input']
+        ncin = self._input_grid_data.subset_num_nodes['control_input']
         for control_name, options in phase.control_options.items():
+
+            phase.promotes('integrator', inputs=[f'controls:{control_name}'])
+
             if options['opt']:
                 coerce_desvar_option = CoerceDesvar(num_input_nodes=ncin, options=options)
 
@@ -249,29 +415,51 @@ class DirectShooting(TranscriptionBase):
                                      ref=coerce_desvar_option('ref'),
                                      indices=om.slicer[coerce_desvar_option.desvar_indices, ...])
 
-    def setup_polynomial_controls(self, phase):
-        """
-        Adds the polynomial control group to the model if any polynomial controls are present.
+            # Control targets are detected automatically
+            targets = get_targets(ode_inputs, control_name, options['targets'])
 
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        phase._check_polynomial_control_options()
-        if phase.polynomial_control_options:
-            for name, options in phase.polynomial_control_options.items():
-                for ts_name, ts_options in phase._timeseries.items():
-                    if f'polynomial_controls:{name}' not in ts_options['outputs']:
-                        phase.add_timeseries_output(name, output_name=f'polynomial_controls:{name}',
-                                                    timeseries=ts_name)
-                    if f'polynomial_control_rates:{name}_rate' not in ts_options['outputs']:
-                        phase.add_timeseries_output(f'{name}_rate', output_name=f'polynomial_control_rates:{name}_rate',
-                                                    timeseries=ts_name)
-                    if f'polynomial_control_rates:{name}_rate2' not in ts_options['outputs']:
-                        phase.add_timeseries_output(f'{name}_rate2',
-                                                    output_name=f'polynomial_control_rates:{name}_rate2',
-                                                    timeseries=ts_name)
+            if targets:
+                phase.connect(f'control_values:{control_name}',
+                              [f'ode.{t}' for t in targets])
+
+            # Rate targets
+            rate_targets = get_targets(ode_inputs, control_name, options['rate_targets'], control_rates=1)
+
+            if rate_targets:
+                phase.connect(f'control_rates:{control_name}_rate',
+                              [f'ode.{t}' for t in rate_targets])
+
+            # Second time derivative targets must be specified explicitly
+            rate2_targets = get_targets(ode_inputs, control_name, options['rate2_targets'], control_rates=2)
+
+            if rate2_targets:
+                phase.connect(f'control_rates:{control_name}_rate2',
+                              [f'ode.{t}' for t in targets])
+
+
+    # def setup_polynomial_controls(self, phase):
+    #     """
+    #     Adds the polynomial control group to the model if any polynomial controls are present.
+    #
+    #     Parameters
+    #     ----------
+    #     phase : dymos.Phase
+    #         The phase object to which this transcription instance applies.
+    #     """
+    #     phase._check_polynomial_control_options()
+    #     if phase.polynomial_control_options:
+    #         for name, options in phase.polynomial_control_options.items():
+    #             for ts_name, ts_options in phase._timeseries.items():
+    #                 if f'polynomial_controls:{name}' not in ts_options['outputs']:
+    #                     phase.add_timeseries_output(name, output_name=f'polynomial_controls:{name}',
+    #                                                 timeseries=ts_name)
+    #                 if f'polynomial_control_rates:{name}_rate' not in ts_options['outputs']:
+    #                     phase.add_timeseries_output(f'{name}_rate', output_name=f'polynomial_control_rates:{name}_rate',
+    #                                                 timeseries=ts_name)
+    #                 if f'polynomial_control_rates:{name}_rate2' not in ts_options['outputs']:
+    #                     phase.add_timeseries_output(f'{name}_rate2',
+    #                                                 output_name=f'polynomial_control_rates:{name}_rate2',
+    #                                                 timeseries=ts_name)
 
     def configure_polynomial_controls(self, phase):
         """
@@ -285,7 +473,7 @@ class DirectShooting(TranscriptionBase):
         super().configure_controls(phase)
 
         integrator_comp = phase._get_subsystem('integrator')
-        integrator_comp._configure_polynomial_controls_io()
+        integrator_comp._configure_polynomial_controls()
 
         # Add the appropriate design parameters
         for name, options in phase.polynomial_control_options.items():
@@ -314,11 +502,11 @@ class DirectShooting(TranscriptionBase):
         super().configure_parameters(phase)
 
         integrator_comp = phase._get_subsystem('integrator')
-        integrator_comp._configure_parameters_io()
-
-        for param, options in phase.parameter_options.items():
-            phase.set_input_defaults(name=f'parameters:{param}', units=options['units'],
-                                     val=options['val'])
+        integrator_comp._configure_parameters()
+        #
+        # for param, options in phase.parameter_options.items():
+        #     phase.connect(f'parameter_vals:{param}', f'integrator.parameters:{param}')
+        #     phase.connect(f'parameter_vals:{param}', [f'ode.{target}' for target in options['targets']])
 
     def setup_defects(self, phase):
         """
@@ -333,7 +521,7 @@ class DirectShooting(TranscriptionBase):
 
         if state_cont or control_cont or rate_cont:
             phase.add_subsystem('continuity_comp',
-                                DirectShootingContinuityComp(grid_data=self.grid_data,
+                                DirectShootingContinuityComp(grid_data=self._input_grid_data,
                                                              state_options=phase.state_options,
                                                              control_options=phase.control_options,
                                                              time_units=phase.time_options['units']))
@@ -347,47 +535,42 @@ class DirectShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        igd = self._input_grid_data
+        ogd = self._output_grid_data
         any_state_cnty, any_control_cnty, any_rate_cnty = self._requires_continuity_constraints(phase)
+        src_idxs = om.slicer[ogd.subset_node_indices['segment_ends'], ...]
 
-        if any((any_state_cnty, any_control_cnty, any_rate_cnty)):
-            phase.continuity_comp.configure_io()
+        controls_to_enforce = set()
+        control_rates_to_enforce = set()
+        control_rates2_to_enforce = set()
+
+        # if any((any_state_cnty, any_control_cnty, any_rate_cnty)):
+        #     phase.continuity_comp.configure_io()
 
         for control_name, options in phase.control_options.items():
+
             if options['continuity'] and any_control_cnty:
+                controls_to_enforce.add(control_name)
                 phase.connect(f'timeseries.controls:{control_name}',
-                              f'continuity_comp.controls:{control_name}')
+                              f'continuity_comp.controls:{control_name}',
+                              src_indices=src_idxs)
             if options['rate_continuity'] and any_rate_cnty:
+                control_rates_to_enforce.add(control_name)
                 phase.connect(f'timeseries.control_rates:{control_name}_rate',
-                              f'continuity_comp.control_rates:{control_name}_rate')
+                              f'continuity_comp.control_rates:{control_name}_rate',
+                              src_indices=src_idxs)
             if options['rate2_continuity'] and any_rate_cnty:
+                control_rates2_to_enforce.add(control_name)
                 phase.connect(f'timeseries.control_rates:{control_name}_rate2',
-                              f'continuity_comp.control_rates:{control_name}_rate2')
+                              f'continuity_comp.control_rates:{control_name}_rate2',
+                              src_indices=src_idxs)
+
+        phase.continuity_comp.configure_io(controls_to_enforce=controls_to_enforce,
+                                           control_rates_to_enforce=control_rates_to_enforce,
+                                           control_rates2_to_enforce=control_rates2_to_enforce)
 
         if any_rate_cnty:
             phase.promotes('continuity_comp', inputs=['t_duration'])
-
-    def setup_solvers(self, phase):
-        """
-        Not used in ExplicitShooting.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        pass
-
-    def configure_solvers(self, phase):
-        """
-        Not used in ExplicitShooting.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        integrator_comp = phase._get_subsystem('integrator')
-        integrator_comp._configure_storage()
 
     def setup_timeseries_outputs(self, phase):
         """
@@ -398,17 +581,28 @@ class DirectShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        gd = self.grid_data
+        ogd = self._output_grid_data
+
         for name, options in phase._timeseries.items():
             has_expr = False
             for _, output_options in options['outputs'].items():
                 if output_options['is_expr']:
                     has_expr = True
                     break
-            timeseries_comp = DirectShootingTimeseriesComp(input_grid_data=gd,
-                                                           output_subset='segment_ends')
+
+            if options['transcription'] is None:
+                ogd = None
+            else:
+                ogd = options['transcription'].grid_data
+
+            timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=self._input_grid_data,
+                                                                 output_grid_data=self._output_grid_data,
+                                                                 output_subset=options['subset'],
+                                                                 time_units=phase.time_options['units'])
             timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
             phase.add_subsystem(name, subsys=timeseries_group)
+
+            phase.connect('dt_dstau', f'{name}.dt_dstau', flat_src_indices=True)
 
     def configure_timeseries_outputs(self, phase):
         """
@@ -419,23 +613,29 @@ class DirectShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        integrator_comp = phase._get_subsystem('integrator')
-        integrator_comp._configure_timeseries_outputs()
-        for timeseries_name, timeseries_options in phase._timeseries.items():
-            timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
-
-            for output_name, options in integrator_comp._filtered_timeseries_outputs.items():
-                added_src = timeseries_comp._add_output_configure(output_name,
-                                                                  shape=options['shape'],
-                                                                  units=options['units'],
-                                                                  src=options['path'])
-                phase.connect(src_name=f'integrator.timeseries:{output_name}',
-                              tgt_name=f'{timeseries_name}.input_values:{output_name}')
-
-                if options['path'].split('.')[-1] in timeseries_options['outputs']:
-                    timeseries_options['outputs'].pop(options['path'].split('.')[-1])
-
         super().configure_timeseries_outputs(phase)
+
+    def setup_solvers(self, phase):
+        """
+        Setup the solvers for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        pass
+
+    def configure_solvers(self, phase):
+        """
+        Setup the solvers for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        pass
 
     def get_parameter_connections(self, name, phase):
         """
@@ -455,6 +655,22 @@ class DirectShooting(TranscriptionBase):
             given design variable is to be connected.
         """
         connection_info = []
+
+        if name in phase.parameter_options:
+            options = phase.parameter_options[name]
+            if not options['static_target']:
+                src_idxs_raw = np.zeros(self._output_grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                if options['shape'] == (1,):
+                    src_idxs = src_idxs.ravel()
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                src_idxs = np.squeeze(src_idxs, axis=0)
+
+            connection_info.append(([f'integrator.parameters:{name}'], None))
+            connection_info.append(([f'ode.{tgt}' for tgt in options['targets']], (src_idxs,)))
+
         return connection_info
 
     def _get_objective_src(self, var, loc, phase, ode_outputs=None):
@@ -580,12 +796,13 @@ class DirectShooting(TranscriptionBase):
         control_rate_continuity : bool
             True if any control rate continuity is required to be enforced.
         """
-        num_seg = self.grid_data.num_segments
-        compressed = self.grid_data.compressed
+        num_seg = self._input_grid_data.num_segments
+        compressed = self._input_grid_data.compressed
+        transcription = self._input_grid_data.transcription
 
         state_continuity = False
         any_control_continuity = any([opts['continuity'] for opts in phase.control_options.values()])
-        any_control_continuity = any_control_continuity and num_seg > 1 and not compressed
+        any_control_continuity = any_control_continuity and num_seg > 1 and not (compressed or transcription == 'radau-ps')
         any_rate_continuity = any([opts['rate_continuity'] or opts['rate2_continuity']
                                    for opts in phase.control_options.values()])
         any_rate_continuity = any_rate_continuity and num_seg > 1
@@ -601,7 +818,7 @@ class DirectShooting(TranscriptionBase):
         int
             The number of nodes in the default timeseries for this transcription.
         """
-        return self.grid_data.subset_num_nodes['segment_ends']
+        return self._output_grid_data.subset_num_nodes['all']
 
     def _get_timeseries_var_source(self, var, output_name, phase):
         """
@@ -626,6 +843,7 @@ class DirectShooting(TranscriptionBase):
         """
         var_type = phase.classify_var(var)
         time_units = phase.time_options['units']
+        time_name = phase.time_options['name']
 
         transcription = phase.options['transcription']
         ode = transcription._get_ode(phase)
@@ -637,11 +855,11 @@ class DirectShooting(TranscriptionBase):
 
         # Determine the path to the variable
         if var_type == 't':
-            path = 'integrator.t'
+            path = f'integrator.{time_name}'
             src_units = time_units
             src_shape = (1,)
         elif var_type == 't_phase':
-            path = 'integrator.t_phase'
+            path = f'integrator.{time_name}_phase'
             src_units = time_units
             src_shape = (1,)
         elif var_type == 'state':
@@ -649,40 +867,40 @@ class DirectShooting(TranscriptionBase):
             src_units = phase.state_options[var]['units']
             src_shape = phase.state_options[var]['shape']
         elif var_type in ['indep_control', 'input_control']:
-            path = f'integrator.control_values:{var}'
+            path = f'control_values:{var}'
             src_units = phase.control_options[var]['units']
             src_shape = phase.control_options[var]['shape']
         elif var_type == 'control_rate':
             control_name = var[:-5]
-            path = f'integrator.control_rates:{control_name}_rate'
+            path = f'control_rates:{control_name}_rate'
             control_name = var[:-5]
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=1)
             src_shape = phase.control_options[control_name]['shape']
         elif var_type == 'control_rate2':
             control_name = var[:-6]
-            path = f'integrator.control_rates:{control_name}_rate2'
+            path = f'control_rates:{control_name}_rate2'
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=2)
             src_shape = phase.control_options[control_name]['shape']
         elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-            path = f'integrator.polynomial_control_values:{var}'
+            path = f'control_group.polynomial_control_values:{var}'
             src_units = phase.polynomial_control_options[var]['units']
             src_shape = phase.polynomial_control_options[var]['shape']
         elif var_type == 'polynomial_control_rate':
             control_name = var[:-5]
-            path = f'integrator.polynomial_control_rates:{control_name}_rate'
+            path = f'control_group.polynomial_control_rates:{control_name}_rate'
             control = phase.polynomial_control_options[control_name]
             src_units = get_rate_units(control['units'], time_units, deriv=1)
             src_shape = control['shape']
         elif var_type == 'polynomial_control_rate2':
             control_name = var[:-6]
-            path = f'integrator.polynomial_control_rates:{control_name}_rate2'
+            path = f'control_group.polynomial_control_rates:{control_name}_rate2'
             control = phase.polynomial_control_options[control_name]
             src_units = get_rate_units(control['units'], time_units, deriv=2)
             src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'
-            num_seg = self.grid_data.num_segments
-            node_idxs = np.zeros(2 * num_seg, dtype=int)
+            num_seg = self._input_grid_data.num_segments
+            node_idxs = np.zeros(self._output_grid_data.subset_num_nodes['all'], dtype=int)
             src_units = phase.parameter_options[var]['units']
             src_shape = phase.parameter_options[var]['shape']
         else:

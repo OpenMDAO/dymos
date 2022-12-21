@@ -1,10 +1,12 @@
 import numpy as np
 import scipy.sparse as sp
+from scipy.linalg import block_diag
 
 import openmdao.api as om
 
 from ..grid_data import GridData
 from ...utils.misc import get_rate_units, CoerceDesvar, reshape_val
+from ...utils.lagrange import lagrange_matrices
 from ...utils.indexing import get_desvar_indices
 from ...utils.constants import INF_BOUND
 from ...options import options as dymos_options
@@ -56,21 +58,32 @@ class ControlInterpComp(om.ExplicitComponent):
         self.options.declare(
             'time_units', default=None, allow_none=True, types=str,
             desc='Units of time')
-        self.options.declare(
-            'grid_data', types=GridData,
-            desc='Container object for grid info')
+        self.options.declare('grid_data', types=GridData, desc='Container object for grid info for the control inputs.')
+        self.options.declare('output_grid_data', types=GridData, allow_none=True, default=None,
+                             desc='GridData object for the output grid. If None, use the same grid_data as the inputs.')
 
         # Save the names of the dynamic controls/parameters
-        # self._dynamic_names = []
         self._input_names = {}
         self._output_val_names = {}
         self._output_rate_names = {}
         self._output_rate2_names = {}
 
+    def setup(self):
+        gd = self.options['grid_data']
+        ogd = self.options['output_grid_data'] or None
+
+        if not gd.is_aligned_with(ogd):
+            raise RuntimeError(f'{self.pathname}: The input grid and the output grid must have the same number of '
+                               f'segments and segment spacing, but the input grid segment ends are '
+                               f'\n{self._input_grid_data.segment_ends}\n and the output grid segment ends are \n'
+                               f'{self._output_grid_data.segment_ends}.')
+
     def _configure_controls(self):
+        gd = self.options['grid_data']
+        ogd = self.options['output_grid_data'] or gd
         control_options = self.options['control_options']
-        num_nodes = self.options['grid_data'].num_nodes
-        num_control_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
+        num_output_nodes = ogd.num_nodes
+        num_control_input_nodes = gd.subset_num_nodes['control_input']
         time_units = self.options['time_units']
 
         for name, options in control_options.items():
@@ -80,7 +93,7 @@ class ControlInterpComp(om.ExplicitComponent):
             self._output_rate2_names[name] = f'control_rates:{name}_rate2'
             shape = options['shape']
             input_shape = (num_control_input_nodes,) + shape
-            output_shape = (num_nodes,) + shape
+            output_shape = (num_output_nodes,) + shape
 
             units = options['units']
             rate_units = get_rate_units(units, time_units)
@@ -108,8 +121,8 @@ class ControlInterpComp(om.ExplicitComponent):
                                   rows=rs, cols=cs, val=data)
 
             # The partials of the output rate and second derivative wrt dt_dstau
-            rs = np.arange(num_nodes * size, dtype=int)
-            cs = np.repeat(np.arange(num_nodes, dtype=int), size)
+            rs = np.arange(num_output_nodes * size, dtype=int)
+            cs = np.repeat(np.arange(num_output_nodes, dtype=int), size)
 
             self.declare_partials(of=self._output_rate_names[name],
                                   wrt='dt_dstau',
@@ -140,11 +153,13 @@ class ControlInterpComp(om.ExplicitComponent):
         """
         I/O creation is delayed until configure so we can determine shape and units for the states.
         """
-        num_nodes = self.options['grid_data'].num_nodes
         time_units = self.options['time_units']
         gd = self.options['grid_data']
+        ogd = self.options['output_grid_data'] or gd
+        input_num_nodes = gd.num_nodes
+        num_seg = gd.num_segments
 
-        self.add_input('dt_dstau', shape=num_nodes, units=time_units)
+        self.add_input('dt_dstau', shape=input_num_nodes, units=time_units)
 
         self.rate_jacs = {}
         self.rate2_jacs = {}
@@ -162,7 +177,30 @@ class ControlInterpComp(om.ExplicitComponent):
 
         # Matrices L_da and D_da interpolate values and rates (respectively) at all nodes from
         # values specified at control discretization nodes.
-        L_da, D_da = gd.phase_lagrange_matrices('control_disc', 'all', sparse=True)
+        # If the output grid is different than the input grid, then we have to build these these matrices ourselves.
+        if ogd is gd:
+            L_da, D_da = gd.phase_lagrange_matrices('control_disc', 'all', sparse=True)
+        else:
+            L_blocks = []
+            D_blocks = []
+
+            for iseg in range(num_seg):
+                i1, i2 = gd.subset_segment_indices['control_disc'][iseg, :]
+                indices = gd.subset_node_indices['control_disc'][i1:i2]
+                nodes_given = gd.node_stau[indices]
+
+                i1, i2 = ogd.subset_segment_indices['all'][iseg, :]
+                indices = ogd.subset_node_indices['all'][i1:i2]
+                nodes_eval = ogd.node_stau[indices]
+
+                L_block, D_block = lagrange_matrices(nodes_given, nodes_eval)
+
+                L_blocks.append(L_block)
+                D_blocks.append(D_block)
+
+            L_da = sp.csr_matrix(block_diag(*L_blocks))
+            D_da = sp.csr_matrix(block_diag(*D_blocks))
+
         self.L = L_da.dot(L_id)
         self.D = D_da.dot(L_id)
 
@@ -266,16 +304,19 @@ class ControlGroup(om.Group):
         Declare group options.
         """
         self.options.declare('control_options', types=dict,
-                             desc='Dictionary of options for the dynamic controls')
+                             desc='Dictionary of options for the dynamic controls.')
         self.options.declare('time_units', default=None, allow_none=True, types=str,
-                             desc='Units of time')
-        self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
+                             desc='Units of time.')
+        self.options.declare('grid_data', types=GridData, desc='Container object for grid info for the control inputs.')
+        self.options.declare('output_grid_data', types=GridData, allow_none=True, default=None,
+                             desc='GridData object for the output grid. If None, use the same grid_data as the inputs.')
 
     def setup(self):
         """
         Define the structure of the control group.
         """
         gd = self.options['grid_data']
+        ogd = self.options['output_grid_data'] or self.options['grid_data']
         control_options = self.options['control_options']
         time_units = self.options['time_units']
 
@@ -284,12 +325,9 @@ class ControlGroup(om.Group):
 
         opt_controls = [name for name, opts in control_options.items() if opts['opt']]
 
-        if len(opt_controls) > 0:
-            self.add_subsystem('indep_controls', subsys=om.IndepVarComp(), promotes_outputs=['*'])
-
         self.add_subsystem(
             'control_interp_comp',
-            subsys=ControlInterpComp(time_units=time_units, grid_data=gd,
+            subsys=ControlInterpComp(time_units=time_units, grid_data=gd, output_grid_data=ogd,
                                      control_options=control_options),
             promotes_inputs=['*'],
             promotes_outputs=['*'])
@@ -335,7 +373,4 @@ class ControlGroup(om.Group):
 
                 default_val = reshape_val(options['val'], shape, num_input_nodes)
 
-                self.indep_controls.add_output(name=dvname,
-                                               val=default_val,
-                                               shape=(num_input_nodes,) + shape,
-                                               units=options['units'])
+                self.set_input_defaults(name=dvname, val=default_val, units=options['units'])

@@ -5,6 +5,7 @@ import numpy as np
 
 import openmdao.api as om
 import dymos as dm
+import dymos.options as dymos_options
 
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
@@ -80,16 +81,17 @@ class Simple1StateODE(om.ExplicitComponent):
         partials['y_dot', 't'] = -np.exp(-2*t) * t**2 * (2 * t - 3)
 
 
-@use_tempdirs
-class TestExplicitShooting(unittest.TestCase):
+# @use_tempdirs
+class TestDirectShootingPhase(unittest.TestCase):
 
     def test_1_state_run_model(self):
+
+        dymos_options['include_check_partials'] = True
+
         prob = om.Problem()
 
-        tx = dm.transcriptions.ExplicitShooting(num_segments=1, grid='gauss-lobatto', method='rk4',
-                                                order=3, num_steps_per_segment=10, compressed=True)
-
-        phase = dm.Phase(ode_class=Simple1StateODE, transcription=tx)
+        phase = dm.DirectShootingPhase(ode_class=Simple1StateODE, grid='gauss-lobatto', num_segments=1, order=3,
+                                       compressed=True)
 
         phase.set_time_options(targets=['t'], units='s')
 
@@ -111,18 +113,16 @@ class TestExplicitShooting(unittest.TestCase):
 
         assert_check_partials(cpd, rtol=1.0E-5)
 
+        dymos_options['include_check_partials'] = False
+
     def test_2_states_run_model(self):
 
-        for method in ['rk4', 'euler', '3/8', 'ralston', 'rkf', 'rkck', 'dopri']:
-            with self.subTest(f"test brachistochrone explicit shooting with method '{method}'"):
+                dymos_options['include_check_partials'] = True
 
                 prob = om.Problem()
 
-                tx = dm.transcriptions.ExplicitShooting(num_segments=2, grid='gauss-lobatto',
-                                                        method=method, order=3,
-                                                        num_steps_per_segment=50, compressed=True)
-
-                phase = dm.Phase(ode_class=Simple2StateODE, transcription=tx)
+                phase = dm.DirectShootingPhase(ode_class=Simple2StateODE, grid='gauss-lobatto', num_segments=2, order=3,
+                                               compressed=True)
 
                 phase.set_time_options(targets=['t'], units='s')
 
@@ -145,89 +145,96 @@ class TestExplicitShooting(unittest.TestCase):
                 prob.run_model()
 
                 t_f = prob.get_val('phase0.integrator.t_final')
+                t = prob.get_val('phase0.integrator.time')
                 x_f = prob.get_val('phase0.integrator.states_out:x')
                 y_f = prob.get_val('phase0.integrator.states_out:y')
 
-                if method == 'euler':
-                    tol = 5.0E-2
-                else:
-                    tol = 1.0E-3
+                print(t)
+                print(x_f)
+                print(y_f)
 
                 assert_near_equal(t_f, 1.0)
-                assert_near_equal(x_f[-1, ...], 2.64085909, tolerance=tol)
-                assert_near_equal(y_f[-1, ...], 0.1691691, tolerance=tol)
+                assert_near_equal(x_f[-1, ...], 2.64085909, tolerance=1.0E-5)
+                assert_near_equal(y_f[-1, ...], 0.1691691, tolerance=1.0E-5)
 
                 with np.printoptions(linewidth=1024):
-                    cpd = prob.check_partials(compact_print=True, method='cs')
+                    cpd = prob.check_partials(compact_print=True, method='fd')
                     assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
+
+                dymos_options['include_check_partials'] = False
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_explicit_shooting(self):
 
-        for method in ['rk4', 'ralston']:
-            for compressed in [True, False]:
-                with self.subTest(f"test brachistochrone explicit shooting with method '{method}'"):
-                    prob = om.Problem()
+        dymos_options['include_check_partials'] = True
 
-                    prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+        prob = om.Problem()
 
-                    tx = dm.ExplicitShooting(num_segments=3, grid='gauss-lobatto',
-                                             method=method, order=5,
-                                             num_steps_per_segment=5,
-                                             compressed=compressed)
+        phase = dm.DirectShootingPhase(ode_class=BrachistochroneODE, grid='gauss-lobatto', num_segments=3, order=5,
+                                       compressed=True)
 
-                    phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
+        prob.driver = om.pyOptSparseDriver(optimizer='IPOPT')
+        prob.driver.opt_settings['print_level'] = 5
 
-                    phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
+        # tx = dm.ExplicitShooting(num_segments=3, grid='gauss-lobatto',
+        #                          method=method, order=5,
+        #                          num_steps_per_segment=5,
+        #                          compressed=compressed)
+        #
+        # phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
 
-                    # automatically discover states
-                    phase.set_state_options('x', fix_initial=True)
-                    phase.set_state_options('y', fix_initial=True)
-                    phase.set_state_options('v', fix_initial=True)
+        phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
 
-                    phase.add_parameter('g', val=1.0, units='m/s**2', opt=True, lower=1, upper=9.80665)
-                    phase.add_control('theta', val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9,
-                                      ref=90., rate2_continuity=True)
+        # automatically discover states
+        phase.set_state_options('x', fix_initial=True)
+        phase.set_state_options('y', fix_initial=True)
+        phase.set_state_options('v', fix_initial=True)
 
-                    phase.add_boundary_constraint('x', loc='final', equals=10.0)
-                    phase.add_boundary_constraint('y', loc='final', equals=5.0)
+        phase.add_parameter('g', val=1.0, units='m/s**2', opt=True, lower=1, upper=9.80665)
+        phase.add_control('theta', val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9,
+                          ref=90., rate2_continuity=True)
 
-                    prob.model.add_subsystem('phase0', phase)
+        phase.add_boundary_constraint('x', loc='final', equals=10.0)
+        phase.add_boundary_constraint('y', loc='final', equals=5.0)
 
-                    phase.add_objective('time', loc='final')
+        prob.model.add_subsystem('phase0', phase)
 
-                    prob.setup(force_alloc_complex=True)
+        phase.add_objective('time', loc='final')
 
-                    prob.set_val('phase0.t_initial', 0.0)
-                    prob.set_val('phase0.t_duration', 2)
-                    prob.set_val('phase0.states:x', 0.0)
-                    prob.set_val('phase0.states:y', 10.0)
-                    prob.set_val('phase0.states:v', 1.0E-6)
-                    prob.set_val('phase0.parameters:g', 1.0, units='m/s**2')
-                    prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 90]), units='deg')
+        prob.setup(force_alloc_complex=True)
 
-                    prob.run_driver()
+        prob.set_val('phase0.t_initial', 0.0)
+        prob.set_val('phase0.t_duration', 1.8016)
+        prob.set_val('phase0.states:x', 0.0)
+        prob.set_val('phase0.states:y', 10.0)
+        prob.set_val('phase0.states:v', 1.0E-6)
+        prob.set_val('phase0.parameters:g', 9.80665, units='m/s**2')
+        prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 100]), units='deg')
 
-                    x = prob.get_val('phase0.timeseries.states:x')
-                    y = prob.get_val('phase0.timeseries.states:y')
-                    t = prob.get_val('phase0.timeseries.time')
-                    theta = prob.get_val('phase0.timeseries.controls:theta')
-                    theta_rate = prob.get_val('phase0.timeseries.control_rates:theta_rate')
-                    theta_rate2 = prob.get_val('phase0.timeseries.control_rates:theta_rate2')
+        prob.run_driver()
 
-                    assert_near_equal(x[-1, ...], 10.0, tolerance=1.0E-3)
-                    assert_near_equal(y[-1, ...], 5.0, tolerance=1.0E-3)
-                    assert_near_equal(t[-1, ...], 1.8016, tolerance=1.0E-2)
+        x = prob.get_val('phase0.timeseries.states:x')
+        y = prob.get_val('phase0.timeseries.states:y')
+        t = prob.get_val('phase0.timeseries.time')
+        theta = prob.get_val('phase0.timeseries.controls:theta')
+        theta_rate = prob.get_val('phase0.timeseries.control_rates:theta_rate')
+        theta_rate2 = prob.get_val('phase0.timeseries.control_rates:theta_rate2')
 
-                    # Test the continuity constraints
-                    tol = 1.0E-6
-                    assert_near_equal(theta[1:-2:2, ...], theta[2::2, ...], tolerance=tol)
-                    assert_near_equal(theta_rate[1:-2:2, ...], theta_rate[2::2, ...], tolerance=tol)
-                    assert_near_equal(theta_rate2[1:-2:2, ...], theta_rate2[2::2, ...], tolerance=tol)
+        assert_near_equal(x[-1, ...], 10.0, tolerance=1.0E-3)
+        assert_near_equal(y[-1, ...], 5.0, tolerance=1.0E-3)
+        assert_near_equal(t[-1, ...], 1.8016, tolerance=1.0E-2)
 
-                    with np.printoptions(linewidth=1024):
-                        cpd = prob.check_partials(compact_print=True, method='cs', out_stream=None)
-                        assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
+        # Test the continuity constraints
+        tol = 1.0E-6
+        # assert_near_equal(theta[1:-2:2, ...], theta[2::2, ...], tolerance=tol)
+        # assert_near_equal(theta_rate[1:-2:2, ...], theta_rate[2::2, ...], tolerance=tol)
+        # assert_near_equal(theta_rate2[1:-2:2, ...], theta_rate2[2::2, ...], tolerance=tol)
+
+        with np.printoptions(linewidth=1024):
+            cpd = prob.check_partials(compact_print=False, method='fd')
+            assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
+
+        dymos_options['include_check_partials'] = False
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_explicit_shooting_path_constraint(self):

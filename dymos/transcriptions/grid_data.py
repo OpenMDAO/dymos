@@ -11,7 +11,8 @@ from dymos.utils.lagrange import lagrange_matrices
 
 def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
     """
-    Returns the subset dictionary corresponding to the Gauss-Lobatto transcription.
+    Provides a dictionary of node information and the location of the nodes for
+    n Legendre-Gauss-Lobatto nodes on the range [-1, 1].
 
     Parameters
     ----------
@@ -34,6 +35,8 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
         'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
         'col' gives the indices of the collocation nodes
         'all' gives all node indices.
+    np.array
+        The location of all nodes on [-1, 1]
 
     Notes
     -----
@@ -61,7 +64,8 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
 
 def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     """
-    Returns the subset dictionary corresponding to the Radau Pseudospectral transcription.
+    Provides a dictionary of node information and the location of the nodes for n Radau nodes
+    on the range [-1, 1].
 
     Parameters
     ----------
@@ -83,6 +87,8 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
         'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
         'col' gives the indices of the collocation nodes
         'all' gives all node indices.
+    np.array
+        The location of all nodes on [-1, 1]
 
     Notes
     -----
@@ -104,6 +110,50 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
 
     return subsets, lgr(n, include_endpoint=True)[0]
 
+
+def uniform_subsets_and_nodes(n, *args, **kwargs):
+    """
+    Provides a dictionary of node information and the location of the nodes for a uniformly
+    distributed set of n nodes on the range [-1, 1].
+
+    This distribution is not to be used to define polynomials, since equally space nodes
+    result in poor polynomial fitting. Most subsets here aside from `all`, `segment_ends`, and
+    `solution` are not defined for the uniform distribution.
+
+    Parameters
+    ----------
+    n : int
+        The total number of nodes in the Radau Pseudospectral segment (including right endpoint).
+    seg_idx : int
+        The index of this segment within its phase.
+    compressed : bool
+        True if the subset requested is for a phase with compressed transcription.
+
+    Returns
+    -------
+    dict
+        A dictionary with the following keys:
+        'state_disc' gives the indices of the state discretization nodes
+        'state_input' gives the indices of the state input nodes
+        'control_disc' gives the indices of the control discretization nodes
+        'control_input' gives the indices of the control input nodes
+        'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
+        'col' gives the indices of the collocation nodes
+        'all' gives all node indices.
+    np.array
+        The location of all nodes on [-1, 1]
+    """
+    subsets = {
+        'state_disc': np.empty(0, dtype=int),
+        'state_input': np.empty(0, dtype=int),
+        'control_disc': np.empty(0, dtype=int),
+        'control_input': np.empty(0, dtype=int),
+        'segment_ends': np.array([0, n], dtype=int),
+        'col': np.empty(0, dtype=int),
+        'all': np.arange(n + 1, dtype=int),
+        'solution': np.arange(n + 1, dtype=int),
+    }
+    return subsets, np.linspace(-1, 1, n + 1)
 
 def make_subset_map(from_subset_idxs, to_subset_idxs):
     """
@@ -147,7 +197,7 @@ class GridData(object):
     num_segments : int
         The number of segments in the phase.
     transcription : str
-        Case-insensitive transcription scheme (e.g., ('gauss-lobatto', 'radau-ps', 'explicit')).
+        Case-insensitive distribution (e.g., ('gauss-lobatto', 'radau-ps', 'explicit', 'uniform')).
     transcription_order : int or int ndarray[:] or str
         The order of the state transcription in each segment, as a scalar or a vector.
     segment_ends : Iterable[num_segments + 1] or None
@@ -255,6 +305,8 @@ class GridData(object):
             self.transcription = 'radau-ps'
         elif transcription.lower() in ['gausslobatto', 'gauss-lobatto', 'lgl']:
             self.transcription = 'gauss-lobatto'
+        elif transcription.lower() in ['uniform']:
+            self.transcription = 'uniform'
         else:
             raise ValueError(f'Unknown transcription: {transcription}')
 
@@ -263,6 +315,8 @@ class GridData(object):
             get_subsets_and_nodes = gauss_lobatto_subsets_and_nodes
         elif self.transcription == 'radau-ps':
             get_subsets_and_nodes = radau_pseudospectral_subsets_and_nodes
+        elif self.transcription == 'uniform':
+            get_subsets_and_nodes = uniform_subsets_and_nodes
 
         # Make sure transcription_order is a vector
         if isinstance(transcription_order, str):
@@ -316,7 +370,10 @@ class GridData(object):
                                                                         dtype=int)
                     self.subset_node_indices[subset_name] = np.empty(0, dtype=int)
 
-                num_subset_nodes_i = len(subset_idxs_i)
+                if subset_idxs_i is None:
+                    num_subset_nodes_i = 0
+                else:
+                    num_subset_nodes_i = len(subset_idxs_i)
 
                 self.subset_num_nodes[subset_name] += num_subset_nodes_i
                 self.subset_num_nodes_per_segment[subset_name].append(num_subset_nodes_i)
@@ -327,9 +384,10 @@ class GridData(object):
 
                 self.subset_node_indices[subset_name] = \
                     np.concatenate((self.subset_node_indices[subset_name], subset_idxs_i + ind0))
+
                 subset_ind0[subset_name] += num_subset_nodes_i
 
-            ind0 += num_nodes_i
+            ind0 += num_nodes_i  # The first node in the next segment
 
         state_input_idxs = self.subset_node_indices['state_input']
         state_disc_idxs = self.subset_node_indices['state_disc']
@@ -341,6 +399,28 @@ class GridData(object):
 
         self.input_maps['dynamic_control_input_to_disc'] = make_subset_map(control_input_idxs,
                                                                            control_disc_idxs)
+
+    def is_aligned_with(self, other, tol=1.0E-12):
+        """
+        Check that the segment distribution in GridData object `other` matches that of this GridData object.
+
+        Parameters
+        ----------
+        other : GridData
+            GridData object against which this one is being compared.
+        tol : float
+            The absolute tolerance in difference between segment end locations in phase tau space.
+
+        Returns
+        -------
+        bool
+            True if the two GridData objects have the same number of segments and their segments match to within
+            the specified tolerance, otherwise False.
+
+        """
+        # The segment distribution needs to be the same in from the input grid to the output grid.
+        return self.num_segments == other.num_segments and \
+            (np.abs(self.segment_ends - other.segment_ends) <= tol).all()
 
     def phase_lagrange_matrices(self, given_set_name, eval_set_name, sparse=False):
         """
