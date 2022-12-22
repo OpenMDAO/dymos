@@ -561,3 +561,53 @@ class GridData(object):
             Bd = sp.csr_matrix(Bd)
 
         return Ai, Bi, Ad, Bd
+
+
+class GaussLobattoGrid(GridData):
+
+    def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
+        """
+
+        Parameters
+        ----------
+        num_segments
+        nodes_per_seg
+        segment_ends
+        compressed
+        """
+        super().__init__(num_segments=num_segments, transcription='gauss-lobatto',
+                         transcription_order=np.asarray(nodes_per_seg, dtype=int)-1,
+                        segment_ends=segment_ends, compressed=compressed)
+
+
+class RadauGrid(GridData):
+
+    def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
+        """
+
+        Parameters
+        ----------
+        num_segments
+        nodes_per_seg
+        segment_ends
+        compressed
+        """
+        super().__init__(num_segments=num_segments, transcription='radau-ps',
+                         transcription_order=np.asarray(nodes_per_seg, dtype=int) - 1,
+                         segment_ends=segment_ends, compressed=compressed)
+
+class UniformGrid(GridData):
+
+    def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
+        """
+
+        Parameters
+        ----------
+        num_segments
+        nodes_per_seg
+        segment_ends
+        compressed
+        """
+        super().__init__(num_segments=num_segments, transcription='uniform',
+                         transcription_order=np.asarray(nodes_per_seg) - 1,
+                         segment_ends=segment_ends, compressed=compressed)

@@ -5,7 +5,7 @@ import openmdao.api as om
 from ..pseudospectral.components import PseudospectralTimeseriesOutputComp
 from .direct_shooting_continuity_comp import DirectShootingContinuityComp
 from ..transcription_base import TranscriptionBase
-from ..grid_data import GridData
+from ..grid_data import GridData, GaussLobattoGrid, RadauGrid, UniformGrid
 from .ode_integration_comp import ODEIntegrationComp
 from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.indexing import get_src_indices_by_row
@@ -49,9 +49,6 @@ class DirectShooting(TranscriptionBase):
         self.options.declare('rtol', types=float, default=1.0E-9)
         self.options.declare('first_step', types=float, allow_none=True, default=None)
         self.options.declare('max_step', types=float, default=np.inf)
-        self.options.declare('times_per_seg', types=(int,), allow_none=True, default=None,
-                             desc='The number of output times per segment. If specified, they are evenly spaced. If '
-                                  'not specified, output at all nodes in the segment as given by the transcription.')
         self.options.declare('propagate_derivs', types=bool, default=True,
                              desc='If True, propagate the state and derivatives of the state and time with respect to '
                                   'the integration parameters. If False, only propagate the primal states. If only '
@@ -59,25 +56,16 @@ class DirectShooting(TranscriptionBase):
                                   'this option to False should result in faster execution.')
         self.options.declare('subprob_reports', default=False,
                              desc='Controls the reports made when running the subproblems for DirectShooting')
-        self.options.declare('input_grid', values=['radau-ps', 'gauss-lobatto'],
-                             default='gauss-lobatto', desc='The grid distribution used to layout the control inputs.')
-        self.options.declare('input_grid_order', types=int, default=3,
-                             desc='The order used to determine the number of nodes in the control inputs. For '
-                                  'consistency with other transcriptions, controls are assumed to be polynomials of '
-                                  'input_grid_order - 1.')
-        self.options.declare('output_grid', values=['radau-ps', 'gauss-lobatto', 'uniform'], allow_none=True,
+        self.options.declare('input_grid', types=(GaussLobattoGrid, RadauGrid),
+                             desc='The grid distribution used to layout the control inputs.')
+        self.options.declare('output_grid', types=(GaussLobattoGrid, RadauGrid, UniformGrid), allow_none=True,
                              default=None,
-                             desc='The grid distribution determining the location of the output nodes. If rate '
-                                  'constraints are being imposed on outputs, then "uniform" should not be used to '
-                                  'avoid interpolation issues. The default value of None will result in the use of the '
-                                  'input_grid for outputs. This is useful for the implementation of path constraints '
-                                  'but can result in highly nonlinear dynamics being smoothed over in the outputs. '
-                                  'When used for validation through simulation, it is generally wise to choose an '
-                                  'output grid that is more dense than the input grid to capture this nonlinearity.')
-        self.options.declare('output_grid_order', types=int, allow_none=True, default=None,
-                             desc='The order of the output grid, affecting the number of nodes in the output. If None, '
-                                  'use the same order as the input grid. See the description for output_grid, as '
-                                  'the notes there apply to this option as well.')
+                             desc='The grid distribution determining the location of the output nodes. The default '
+                                  'value of None will result in the use of the input_grid for outputs. This is useful '
+                                  'for the implementation of path constraints but can result in highly nonlinear '
+                                  'dynamics being smoothed over in the outputs. When used for validation through '
+                                  'simulation, it is generally wise to choose an output grid that is more dense '
+                                  'than the input grid to capture this nonlinearity.')
 
     def init_grid(self):
         """
@@ -86,29 +74,14 @@ class DirectShooting(TranscriptionBase):
         """
         Setup the GridData object for the Transcription.
         """
-        num_segments = self.options['num_segments']
-
-        if isinstance(self.options['order'], str):
-            self.options['order'] = num_segments * [self.options['order']]
-        elif np.ndim(self.options['order']) == 0:
-            order = np.ones(num_segments, int) * self.options['order']
-            self.options['order'] = np.asarray(order, dtype=int)
-        else:
-            self.options['order'] = np.asarray(self.options['order'], dtype=int)
-
-        self._input_grid_data = GridData(num_segments=self.options['num_segments'],
-                                         transcription=self.options['input_grid'],
-                                         transcription_order=self.options['input_grid_order'],
-                                         segment_ends=self.options['segment_ends'],
-                                         compressed=self.options['compressed'])
+        self._input_grid_data = self.options['input_grid']
 
         self.grid_data = self._input_grid_data
 
-        self._output_grid_data = GridData(num_segments=self.options['num_segments'],
-                                          transcription=self.options['input_grid'],
-                                          transcription_order=self.options['input_grid_order'],
-                                          segment_ends=self.options['segment_ends'],
-                                          compressed=self.options['compressed'])
+        if self.options['output_grid']:
+            self._output_grid_data = self.options['output_grid']
+        else:
+            self._output_grid_data = self._input_grid_data
 
     def setup_time(self, phase):
         """
@@ -124,7 +97,6 @@ class DirectShooting(TranscriptionBase):
         t_phase_name = f'{t_name}_phase'
         time_units = time_options['units']
         num_seg = self._output_grid_data.num_segments
-        times_per_seg = self.options['times_per_seg']
 
         # Warn about invalid options
         phase.check_time_options()
@@ -135,24 +107,24 @@ class DirectShooting(TranscriptionBase):
             if t_phase_name not in ts_options['outputs']:
                 phase.add_timeseries_output(t_phase_name, timeseries=ts_name)
 
-        if times_per_seg is None:
-            # Case 1:  Compute times at 'all' node set.
-            num_nodes = self._output_grid_data.num_nodes
-            node_ptau = self._output_grid_data.node_ptau
-            node_dptau_dstau = self._output_grid_data.node_dptau_dstau
-        else:
-            # Case 2:  Compute times at n equally distributed points per segment.
-            num_nodes = num_seg * times_per_seg
-            node_stau = np.linspace(-1, 1, times_per_seg)
-            node_ptau = np.empty(0, )
-            node_dptau_dstau = np.empty(0, )
-            # Append our nodes in phase tau space
-            for iseg in range(num_seg):
-                v0 = self._output_grid_data.segment_ends[iseg]
-                v1 = self._output_grid_data.segment_ends[iseg + 1]
-                node_ptau = np.concatenate((node_ptau, v0 + 0.5 * (node_stau + 1) * (v1 - v0)))
-                node_dptau_dstau = np.concatenate((node_dptau_dstau,
-                                                   0.5 * (v1 - v0) * np.ones_like(node_stau)))
+        # if times_per_seg is None:
+        # Case 1:  Compute times at 'all' node set.
+        num_nodes = self._output_grid_data.num_nodes
+        node_ptau = self._output_grid_data.node_ptau
+        node_dptau_dstau = self._output_grid_data.node_dptau_dstau
+        # else:
+        #     # Case 2:  Compute times at n equally distributed points per segment.
+        #     num_nodes = num_seg * times_per_seg
+        #     node_stau = np.linspace(-1, 1, times_per_seg)
+        #     node_ptau = np.empty(0, )
+        #     node_dptau_dstau = np.empty(0, )
+        #     # Append our nodes in phase tau space
+        #     for iseg in range(num_seg):
+        #         v0 = self._output_grid_data.segment_ends[iseg]
+        #         v1 = self._output_grid_data.segment_ends[iseg + 1]
+        #         node_ptau = np.concatenate((node_ptau, v0 + 0.5 * (node_stau + 1) * (v1 - v0)))
+        #         node_dptau_dstau = np.concatenate((node_dptau_dstau,
+        #                                            0.5 * (v1 - v0) * np.ones_like(node_stau)))
 
         time_comp = TimeComp(num_nodes=num_nodes, node_ptau=node_ptau,
                              node_dptau_dstau=node_dptau_dstau, units=time_units)

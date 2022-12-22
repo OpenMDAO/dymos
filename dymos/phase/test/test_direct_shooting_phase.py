@@ -170,8 +170,12 @@ class TestDirectShootingPhase(unittest.TestCase):
 
         prob = om.Problem()
 
-        phase = dm.DirectShootingPhase(ode_class=BrachistochroneODE, grid='gauss-lobatto', num_segments=3, order=5,
-                                       compressed=True)
+        # phase = GaussLobattoPhase(ode_class=BrachistochroneODE, num_segments=3, order=5, compressed=True)
+
+        phase = dm.DirectShootingPhase(ode_class=BrachistochroneODE,
+                                       input_grid=dm.transcriptions.grid_data.GaussLobattoGrid(num_segments=3,
+                                                                                               nodes_per_seg=5,
+                                                                                               compressed=True))
 
         prob.driver = om.pyOptSparseDriver(optimizer='IPOPT')
         prob.driver.opt_settings['print_level'] = 5
@@ -204,12 +208,12 @@ class TestDirectShootingPhase(unittest.TestCase):
         prob.setup(force_alloc_complex=True)
 
         prob.set_val('phase0.t_initial', 0.0)
-        prob.set_val('phase0.t_duration', 1.8016)
+        prob.set_val('phase0.t_duration', 2)
         prob.set_val('phase0.states:x', 0.0)
         prob.set_val('phase0.states:y', 10.0)
         prob.set_val('phase0.states:v', 1.0E-6)
         prob.set_val('phase0.parameters:g', 9.80665, units='m/s**2')
-        prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 100]), units='deg')
+        prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 50]), units='deg')
 
         prob.run_driver()
 
@@ -231,7 +235,10 @@ class TestDirectShootingPhase(unittest.TestCase):
         # assert_near_equal(theta_rate2[1:-2:2, ...], theta_rate2[2::2, ...], tolerance=tol)
 
         with np.printoptions(linewidth=1024):
-            cpd = prob.check_partials(compact_print=False, method='fd')
+            cpd = prob.check_partials(compact_print=True, method='cs', excludes=['phase0.integrator'])
+            assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
+
+            cpd = prob.check_partials(compact_print=True, method='fd', includes=['phase0.integrator'])
             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
         dymos_options['include_check_partials'] = False

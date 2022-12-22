@@ -4,6 +4,7 @@ import numpy as np
 
 from .phase import Phase
 from ..transcriptions import DirectShooting
+from ..transcriptions.grid_data import GridData, GaussLobattoGrid, RadauGrid, UniformGrid
 from ..utils.misc import _unspecified
 
 
@@ -31,40 +32,11 @@ class DirectShootingPhase(Phase):
         Declare instantiation options for the phase.
         """
         super().initialize()
-        self.options.declare('grid',
-                             desc='The type of grid used to provide the control input nodes and output nodes.')
-        self.options.declare('times_per_seg', types=int, allow_none=True, default=None,
-                             desc='Number of output times in each segment of the explicit integration. If None,'
-                                  'use the output nodes of the transcription.')
-        self.options.declare('num_segments', types=int, desc='Number of segments')
-        self.options.declare('segment_ends', default=None, types=(Sequence, np.ndarray),
-                             allow_none=True, desc='Locations of segment ends or None for equally '
-                             'spaced segments')
-        self.options.declare('order', default=3, types=(int, Sequence, np.ndarray),
-                             desc='Order of the state transcription. The order of the control '
-                                  'transcription is `order - 1`.')
-        self.options.declare('compressed', default=True, types=bool,
-                             desc='Use compressed transcription, meaning state and control values'
-                                  'at segment boundaries are not duplicated on input.  This '
-                                  'implicitly enforces value continuity between segments but in '
-                                  'some cases may make the problem more difficult to solve.')
-
-
-    def setup(self):
-        """
-        Build the model hierarchy for a Dymos DirectShootingPhase.
-        """
-        # Finalize the variables if it hasn't happened already.
-        # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
-        
         self.options.declare('method', default='DOP853', desc='The integration method used.')
         self.options.declare('atol', types=float, default=1.0E-6)
         self.options.declare('rtol', types=float, default=1.0E-9)
         self.options.declare('first_step', types=float, allow_none=True, default=None)
         self.options.declare('max_step', types=float, default=np.inf)
-        self.options.declare('times_per_seg', types=(int,), allow_none=True, default=None,
-                             desc='The number of output times per segment. If specified, they are evenly spaced. If '
-                                  'not specified, output at all nodes in the segment as given by the transcription.')
         self.options.declare('propagate_derivs', types=bool, default=True,
                              desc='If True, propagate the state and derivatives of the state and time with respect to '
                                   'the integration parameters. If False, only propagate the primal states. If only '
@@ -72,39 +44,32 @@ class DirectShootingPhase(Phase):
                                   'this option to False should result in faster execution.')
         self.options.declare('subprob_reports', default=False,
                              desc='Controls the reports made when running the subproblems for DirectShooting')
-        self.options.declare('input_grid', values=['radau-ps', 'gauss-lobatto'],
-                             default='gauss-lobatto', desc='The grid distribution used to layout the control inputs.')
-        self.options.declare('input_grid_order', types=int, default=3,
-                             desc='The order used to determine the number of nodes in the control inputs. For '
-                                  'consistency with other transcriptions, controls are assumed to be polynomials of '
-                                  'input_grid_order - 1.')
-        self.options.declare('output_grid', values=['radau-ps', 'gauss-lobatto', 'uniform'], allow_none=True,
+        self.options.declare('input_grid', types=(GaussLobattoGrid, RadauGrid),
+                             desc='The grid distribution used to layout the control inputs.')
+        self.options.declare('output_grid', types=(GaussLobattoGrid, RadauGrid, UniformGrid), allow_none=True,
                              default=None,
-                             desc='The grid distribution determining the location of the output nodes. If rate '
-                                  'constraints are being imposed on outputs, then "uniform" should not be used to '
-                                  'avoid interpolation issues. The default value of None will result in the use of the '
-                                  'input_grid for outputs. This is useful for the implementation of path constraints '
-                                  'but can result in highly nonlinear dynamics being smoothed over in the outputs. '
-                                  'When used for validation through simulation, it is generally wise to choose an '
-                                  'output grid that is more dense than the input grid to capture this nonlinearity.')
-        self.options.declare('output_grid_order', types=int, allow_none=True, default=None,
-                             desc='The order of the output grid, affecting the number of nodes in the output. If None, '
-                                  'use the same order as the input grid. See the description for output_grid, as '
-                                  'the notes there apply to this option as well.')
-        
+                             desc='The grid distribution determining the location of the output nodes. The default '
+                                  'value of None will result in the use of the input_grid for outputs. This is useful '
+                                  'for the implementation of path constraints but can result in highly nonlinear '
+                                  'dynamics being smoothed over in the outputs. When used for validation through '
+                                  'simulation, it is generally wise to choose an output grid that is more dense '
+                                  'than the input grid to capture this nonlinearity.')
+
+    def setup(self):
+        """
+        Build the model hierarchy for a Dymos DirectShootingPhase.
+        """
+        # Finalize the variables if it hasn't happened already.
+        # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         tx = self.options['transcription'] = DirectShooting(method=self.options['method'],
-                                                            num_segments=self.options['num_segments'],
                                                             atol=self.options['atol'],
                                                             rtol=self.options['rtol'],
                                                             first_step=self.options['first_step'],
                                                             max_step=self.options['max_step'],
-                                                            times_per_seg=self.options['times_per_seg'],
                                                             propagate_derivs=self.options['propagate_derivs'],
                                                             subprob_reports=self.options['subprob_reports'],
                                                             input_grid=self.options['input_grid'],
-                                                            input_grid_order=self.options['input_grid_order'],
-                                                            output_grid=self.options['output_grid'],
-                                                            output_grid_order=self.options['output_grid_order'])
+                                                            output_grid=self.options['output_grid'])
         tx.setup_time(self)
 
         if self.control_options:
