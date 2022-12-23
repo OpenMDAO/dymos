@@ -156,10 +156,10 @@ class ControlInterpComp(om.ExplicitComponent):
         time_units = self.options['time_units']
         gd = self.options['grid_data']
         ogd = self.options['output_grid_data'] or gd
-        input_num_nodes = gd.num_nodes
+        output_num_nodes = ogd.subset_num_nodes['all']
         num_seg = gd.num_segments
 
-        self.add_input('dt_dstau', shape=input_num_nodes, units=time_units)
+        self.add_input('dt_dstau', shape=output_num_nodes, units=time_units)
 
         self.rate_jacs = {}
         self.rate2_jacs = {}

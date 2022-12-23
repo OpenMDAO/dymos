@@ -45,7 +45,8 @@ class DirectShootingPhase(Phase):
         self.options.declare('subprob_reports', default=False,
                              desc='Controls the reports made when running the subproblems for DirectShooting')
         self.options.declare('input_grid', types=(GaussLobattoGrid, RadauGrid),
-                             desc='The grid distribution used to layout the control inputs.')
+                             desc='Control values are defined at the control_input nodes of the input grid. In '
+                                  'addition, path constraints are imposed at the nodes of the input grid.')
         self.options.declare('output_grid', types=(GaussLobattoGrid, RadauGrid, UniformGrid), allow_none=True,
                              default=None,
                              desc='The grid distribution determining the location of the output nodes. The default '

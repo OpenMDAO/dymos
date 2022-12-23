@@ -173,9 +173,8 @@ class TestDirectShootingPhase(unittest.TestCase):
         # phase = GaussLobattoPhase(ode_class=BrachistochroneODE, num_segments=3, order=5, compressed=True)
 
         phase = dm.DirectShootingPhase(ode_class=BrachistochroneODE,
-                                       input_grid=dm.transcriptions.grid_data.GaussLobattoGrid(num_segments=3,
-                                                                                               nodes_per_seg=5,
-                                                                                               compressed=True))
+                                       input_grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=5, compressed=True),
+                                       output_grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=7))
 
         prob.driver = om.pyOptSparseDriver(optimizer='IPOPT')
         prob.driver.opt_settings['print_level'] = 5
