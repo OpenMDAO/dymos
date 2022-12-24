@@ -81,13 +81,6 @@ class ODEIntegrationComp(om.ExplicitComponent):
         self._no_check_partials = not dymos_options['include_check_partials']
         self._num_control_input_nodes = input_grid_data.subset_num_nodes['control_input']
 
-        # The segment distribution needs to be the same in from the input grid to the output grid.
-        if not self._input_grid_data.is_aligned_with(self._output_grid_data):
-            raise RuntimeError(f'{self.pathname}: The input grid and the output grid must have the same number of '
-                               f'segments and segment spacing, but the input grid segment ends are '
-                               f'\n{self._input_grid_data.segment_ends}\n and the output grid segment ends are \n'
-                               f'{self._output_grid_data.segment_ends}.')
-
     def initialize(self):
         """
         Declare options for the ODEIntegrationComp.
@@ -454,6 +447,13 @@ class ODEIntegrationComp(om.ExplicitComponent):
         Add the necessary I/O and storage for the RKIntegrationComp.
         """
         ogd = self._output_grid_data
+
+        # The segment distribution needs to be the same in from the input grid to the output grid.
+        if not self._input_grid_data.is_aligned_with(self._output_grid_data):
+            raise RuntimeError(f'{self.pathname}: The input grid and the output grid must have the same number of '
+                               f'segments and segment spacing, but the input grid segment ends are '
+                               f'\n{self._input_grid_data.segment_ends}\n and the output grid segment ends are \n'
+                               f'{self._output_grid_data.segment_ends}.')
 
         self._num_output_rows = ogd.subset_num_nodes['all']
 

@@ -70,13 +70,13 @@ class ControlInterpComp(om.ExplicitComponent):
 
     def setup(self):
         gd = self.options['grid_data']
-        ogd = self.options['output_grid_data'] or None
+        ogd = self.options['output_grid_data'] or gd
 
         if not gd.is_aligned_with(ogd):
             raise RuntimeError(f'{self.pathname}: The input grid and the output grid must have the same number of '
                                f'segments and segment spacing, but the input grid segment ends are '
-                               f'\n{self._input_grid_data.segment_ends}\n and the output grid segment ends are \n'
-                               f'{self._output_grid_data.segment_ends}.')
+                               f'\n{gd.segment_ends}\n and the output grid segment ends are \n'
+                               f'{ogd.segment_ends}.')
 
     def _configure_controls(self):
         gd = self.options['grid_data']
@@ -226,9 +226,11 @@ class ControlInterpComp(om.ExplicitComponent):
         outputs : `Vector`
             `Vector` containing outputs.
         """
+        gd = self.options['grid_data']
+        ogd = self.options['output_grid_data'] or gd
         control_options = self.options['control_options']
-        num_nodes = self.options['grid_data'].num_nodes
         num_control_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
+        num_output_nodes = ogd.num_nodes
 
         for name, options in control_options.items():
             size = np.prod(options['shape'])
@@ -239,13 +241,13 @@ class ControlInterpComp(om.ExplicitComponent):
             a = self.D.dot(u_flat)
             b = self.D2.dot(u_flat)
 
-            val = np.reshape(self.L.dot(u_flat), (num_nodes,) + options['shape'])
+            val = np.reshape(self.L.dot(u_flat), (num_output_nodes,) + options['shape'])
 
             rate = a / inputs['dt_dstau'][:, np.newaxis]
-            rate = np.reshape(rate, (num_nodes,) + options['shape'])
+            rate = np.reshape(rate, (num_output_nodes,) + options['shape'])
 
             rate2 = b / inputs['dt_dstau'][:, np.newaxis] ** 2
-            rate2 = np.reshape(rate2, (num_nodes,) + options['shape'])
+            rate2 = np.reshape(rate2, (num_output_nodes,) + options['shape'])
 
             outputs[self._output_val_names[name]] = val
             outputs[self._output_rate_names[name]] = rate
@@ -371,6 +373,5 @@ class ControlGroup(om.Group):
                                         indices=desvar_indices,
                                         flat_indices=True)
 
-                default_val = reshape_val(options['val'], shape, num_input_nodes)
-
-                self.set_input_defaults(name=dvname, val=default_val, units=options['units'])
+            default_val = reshape_val(options['val'], shape, num_input_nodes)
+            self.set_input_defaults(name=dvname, val=default_val, units=options['units'])

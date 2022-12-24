@@ -11,7 +11,7 @@ from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.indexing import get_src_indices_by_row
 from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets
 from ...utils.constants import INF_BOUND
-from ..common import TimeComp, TimeseriesOutputGroup, ControlGroup
+from ..common import TimeComp, TimeseriesOutputGroup, ControlGroup, PolynomialControlGroup
 
 
 class DirectShooting(TranscriptionBase):
@@ -409,29 +409,33 @@ class DirectShooting(TranscriptionBase):
                               [f'ode.{t}' for t in targets])
 
 
-    # def setup_polynomial_controls(self, phase):
-    #     """
-    #     Adds the polynomial control group to the model if any polynomial controls are present.
-    #
-    #     Parameters
-    #     ----------
-    #     phase : dymos.Phase
-    #         The phase object to which this transcription instance applies.
-    #     """
-    #     phase._check_polynomial_control_options()
-    #     if phase.polynomial_control_options:
-    #         for name, options in phase.polynomial_control_options.items():
-    #             for ts_name, ts_options in phase._timeseries.items():
-    #                 if f'polynomial_controls:{name}' not in ts_options['outputs']:
-    #                     phase.add_timeseries_output(name, output_name=f'polynomial_controls:{name}',
-    #                                                 timeseries=ts_name)
-    #                 if f'polynomial_control_rates:{name}_rate' not in ts_options['outputs']:
-    #                     phase.add_timeseries_output(f'{name}_rate', output_name=f'polynomial_control_rates:{name}_rate',
-    #                                                 timeseries=ts_name)
-    #                 if f'polynomial_control_rates:{name}_rate2' not in ts_options['outputs']:
-    #                     phase.add_timeseries_output(f'{name}_rate2',
-    #                                                 output_name=f'polynomial_control_rates:{name}_rate2',
-    #                                                 timeseries=ts_name)
+    def setup_polynomial_controls(self, phase):
+        """
+        Adds the polynomial control group to the model if any polynomial controls are present.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        if phase.polynomial_control_options:
+            sys = PolynomialControlGroup(grid_data=self._output_grid_data,
+                                         polynomial_control_options=phase.polynomial_control_options,
+                                         time_units=phase.time_options['units'])
+            phase.add_subsystem('polynomial_control_group', subsys=sys,
+                                promotes_inputs=['*'], promotes_outputs=['*'])
+
+            for name, options in phase.polynomial_control_options.items():
+                for ts_name, ts_options in phase._timeseries.items():
+                    if f'polynomial_controls:{name}' not in ts_options['outputs']:
+                        phase.add_timeseries_output(name, output_name=f'polynomial_controls:{name}',
+                                                    timeseries=ts_name)
+                    if f'polynomial_control_rates:{name}_rate' not in ts_options['outputs']:
+                        phase.add_timeseries_output(f'{name}_rate', output_name=f'polynomial_control_rates:{name}_rate',
+                                                    timeseries=ts_name)
+                    if f'polynomial_control_rates:{name}_rate2' not in ts_options['outputs']:
+                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'polynomial_control_rates:{name}_rate2',
+                                                    timeseries=ts_name)
 
     def configure_polynomial_controls(self, phase):
         """
@@ -442,18 +446,28 @@ class DirectShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super().configure_controls(phase)
+        if not phase.polynomial_control_options:
+            return
 
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_polynomial_controls()
 
+        polynomial_control_group = phase._get_subsystem('polynomial_control_group')
+        polynomial_control_group.configure_io()
+
+        ode = phase._get_subsystem('ode')
+        ode_inputs = get_promoted_vars(ode, 'input')
+
         # Add the appropriate design parameters
-        for name, options in phase.polynomial_control_options.items():
+        for control_name, options in phase.polynomial_control_options.items():
+
+            phase.promotes('integrator', inputs=[f'polynomial_controls:{control_name}'])
+
             if options['opt']:
                 ncin = options['order'] + 1
                 coerce_desvar_option = CoerceDesvar(num_input_nodes=ncin, options=options)
 
-                phase.add_design_var(name=f'polynomial_controls:{name}',
+                phase.add_design_var(name=f'polynomial_controls:{control_name}',
                                      lower=coerce_desvar_option('lower'),
                                      upper=coerce_desvar_option('upper'),
                                      scaler=coerce_desvar_option('scaler'),
@@ -461,6 +475,27 @@ class DirectShooting(TranscriptionBase):
                                      ref0=coerce_desvar_option('ref0'),
                                      ref=coerce_desvar_option('ref'),
                                      indices=coerce_desvar_option.desvar_indices)
+
+            # Control targets are detected automatically
+            targets = get_targets(ode_inputs, control_name, options['targets'])
+
+            if targets:
+                phase.connect(f'polynomial_control_values:{control_name}',
+                              [f'ode.{t}' for t in targets])
+
+            # Rate targets
+            rate_targets = get_targets(ode_inputs, control_name, options['rate_targets'], control_rates=1)
+
+            if rate_targets:
+                phase.connect(f'polynomial_control_rates:{control_name}_rate',
+                              [f'ode.{t}' for t in rate_targets])
+
+            # Second time derivative targets must be specified explicitly
+            rate2_targets = get_targets(ode_inputs, control_name, options['rate2_targets'], control_rates=2)
+
+            if rate2_targets:
+                phase.connect(f'polynomial_control_rates:{control_name}_rate2',
+                              [f'ode.{t}' for t in targets])
 
     def configure_parameters(self, phase):
         """
@@ -516,9 +551,6 @@ class DirectShooting(TranscriptionBase):
         control_rates_to_enforce = set()
         control_rates2_to_enforce = set()
 
-        # if any((any_state_cnty, any_control_cnty, any_rate_cnty)):
-        #     phase.continuity_comp.configure_io()
-
         for control_name, options in phase.control_options.items():
 
             if options['continuity'] and any_control_cnty:
@@ -537,9 +569,10 @@ class DirectShooting(TranscriptionBase):
                               f'continuity_comp.control_rates:{control_name}_rate2',
                               src_indices=src_idxs)
 
-        phase.continuity_comp.configure_io(controls_to_enforce=controls_to_enforce,
-                                           control_rates_to_enforce=control_rates_to_enforce,
-                                           control_rates2_to_enforce=control_rates2_to_enforce)
+        if any((controls_to_enforce, control_rates_to_enforce, control_rates2_to_enforce)):
+            phase.continuity_comp.configure_io(controls_to_enforce=controls_to_enforce,
+                                               control_rates_to_enforce=control_rates_to_enforce,
+                                               control_rates2_to_enforce=control_rates2_to_enforce)
 
         if any_rate_cnty:
             phase.promotes('continuity_comp', inputs=['t_duration'])
@@ -553,8 +586,6 @@ class DirectShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        ogd = self._output_grid_data
-
         for name, options in phase._timeseries.items():
             has_expr = False
             for _, output_options in options['outputs'].items():
@@ -562,12 +593,7 @@ class DirectShooting(TranscriptionBase):
                     has_expr = True
                     break
 
-            if options['transcription'] is None:
-                ogd = None
-            else:
-                ogd = options['transcription'].grid_data
-
-            timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=self._input_grid_data,
+            timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=self._output_grid_data,
                                                                  output_grid_data=self._output_grid_data,
                                                                  output_subset=options['subset'],
                                                                  time_units=phase.time_options['units'])
@@ -737,7 +763,6 @@ class DirectShooting(TranscriptionBase):
             obj_path = f'polynomial_control_rates:{var}'
         else:
             # Failed to find variable, assume it is in the ODE. This requires introspection.
-            raise NotImplementedError('cannot yet constrain/optimize an ODE output using explicit shooting')
             obj_path = f'{self._rhs_source}.{var}'
             if ode_outputs is None:
                 ode = self._get_ode(phase)
@@ -854,24 +879,23 @@ class DirectShooting(TranscriptionBase):
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=2)
             src_shape = phase.control_options[control_name]['shape']
         elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-            path = f'control_group.polynomial_control_values:{var}'
+            path = f'polynomial_control_values:{var}'
             src_units = phase.polynomial_control_options[var]['units']
             src_shape = phase.polynomial_control_options[var]['shape']
         elif var_type == 'polynomial_control_rate':
             control_name = var[:-5]
-            path = f'control_group.polynomial_control_rates:{control_name}_rate'
+            path = f'polynomial_control_rates:{control_name}_rate'
             control = phase.polynomial_control_options[control_name]
             src_units = get_rate_units(control['units'], time_units, deriv=1)
             src_shape = control['shape']
         elif var_type == 'polynomial_control_rate2':
             control_name = var[:-6]
-            path = f'control_group.polynomial_control_rates:{control_name}_rate2'
+            path = f'polynomial_control_rates:{control_name}_rate2'
             control = phase.polynomial_control_options[control_name]
             src_units = get_rate_units(control['units'], time_units, deriv=2)
             src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'
-            num_seg = self._input_grid_data.num_segments
             node_idxs = np.zeros(self._output_grid_data.subset_num_nodes['all'], dtype=int)
             src_units = phase.parameter_options[var]['units']
             src_shape = phase.parameter_options[var]['shape']
@@ -881,15 +905,7 @@ class DirectShooting(TranscriptionBase):
             src_shape = meta['shape']
             src_units = meta['units']
             src_tags = meta['tags']
-            if src_tags:
-                for tag in src_tags:
-                    if 'dymos.state_rate_source' in tag:
-                        path = f"integrator.timeseries:state_rates:{tag.split(':')[-1]}"
-                        break
-                    else:
-                        path = f'integrator.timeseries:{var}'
-            else:
-                path = f'integrator.timeseries:{var}'
+            path = f'ode.{var}'
             if 'dymos.static_output' in src_tags:
                 raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" and cannot be a '
                                    f'timeseries output.')

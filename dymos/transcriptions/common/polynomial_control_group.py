@@ -237,24 +237,15 @@ class PolynomialControlGroup(om.Group):
         """
         opts = self.options
 
-        # Pull out the interpolated controls
-        num_opt = 0
         for options in opts['polynomial_control_options'].values():
             if options['order'] < 1:
                 raise ValueError('Interpolation order must be >= 1 (linear)')
-            if options['opt']:
-                num_opt += 1
-
-        if num_opt > 0:
-            self.add_subsystem('indep_polynomial_controls', subsys=om.IndepVarComp(),
-                               promotes_outputs=['*'])
 
         self.add_subsystem(
             'interp_comp',
             subsys=LGLPolynomialControlComp(time_units=opts['time_units'],
                                             grid_data=opts['grid_data'],
-                                            polynomial_control_options=opts['polynomial_control_'
-                                                                            'options']),
+                                            polynomial_control_options=opts['polynomial_control_options']),
             promotes_inputs=['*'],
             promotes_outputs=['*'])
 
@@ -262,20 +253,16 @@ class PolynomialControlGroup(om.Group):
         """
         I/O creation is delayed until configure so we can determine shape and units for the states.
         """
-        self.interp_comp.configure_io()
+        interp_comp = self._get_subsystem('interp_comp')
+        interp_comp.configure_io()
 
         # For any interpolated control with `opt=True`, add an indep var comp output and
         # setup the design variable for optimization.
         for name, options in self.options['polynomial_control_options'].items():
             num_input_nodes = options['order'] + 1
             shape = options['shape']
+            default_val = reshape_val(options['val'], shape, num_input_nodes)
             if options['opt']:
-                default_val = reshape_val(options['val'], shape, num_input_nodes)
-
-                self.indep_polynomial_controls.add_output(f'polynomial_controls:{name}',
-                                                          shape=(num_input_nodes,) + shape,
-                                                          val=default_val,
-                                                          units=options['units'])
 
                 desvar_indices = np.arange(num_input_nodes, dtype=int)
                 if options['fix_initial']:
@@ -295,3 +282,5 @@ class PolynomialControlGroup(om.Group):
                                     scaler=options['scaler'],
                                     indices=desvar_indices,
                                     flat_indices=True)
+
+            self.set_input_defaults(name=f'polynomial_controls:{name}', val=default_val, units=options['units'])
