@@ -65,7 +65,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
         self._reports = reports
         self._standalone_mode = standalone_mode
 
-        self._inputs_cache = None
+        self._inputs_cache = ''
 
         self.x_size = 0
         self.p_size = 0
@@ -545,7 +545,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
 
         # pack the resulting array
         for name in self.state_options:
-            f[self.state_idxs[name]] = self._eval_subprob.get_val(f'state_rate_collector.state_rates:{name}_rate').ravel()
+            f[self.state_idxs[name], ...] = \
+                self._eval_subprob.get_val(f'state_rate_collector.state_rates:{name}_rate').ravel()
 
         return f
 
@@ -845,14 +846,12 @@ class ODEIntegrationComp(om.ExplicitComponent):
         """
         t_name = self.time_options['name']
 
-        if self._inputs_cache is None:
-            self._inputs_cache = np.zeros_like(inputs.asarray())
-
-        if np.max(np.abs(self._inputs_cache - inputs.asarray())) > 1.0E-16:
+        inputs_hash = inputs.get_hash()
+        if inputs_hash != self._inputs_cache:
             self._propagate(inputs=inputs, propagate_derivs=self.options['propagate_derivs'],
                             x_out=self._x_out, t_out=self._t_out, dx_dz_out=self._dx_dz_out, dt_dz_out=self._dt_dz_out)
 
-            self._inputs_cache[...] = inputs.asarray()
+            self._inputs_cache = inputs_hash
 
         t = self._t_out
         x = self._x_out
@@ -879,11 +878,11 @@ class ODEIntegrationComp(om.ExplicitComponent):
             Subjac components written to partials[output_name, input_name].
         """
         # Only propagate the ODE if our inputs have changed, otherwise use the cached outputs.
-        if np.max(np.abs(self._inputs_cache - inputs.asarray())) > 1.0E-16:
+        inputs_hash = inputs.get_hash()
+        if inputs_hash != self._inputs_cache:
             self._propagate(inputs=inputs, propagate_derivs=True,
                             x_out=self._x_out, t_out=self._t_out, dx_dz_out=self._dx_dz_out, dt_dz_out=self._dt_dz_out)
-
-            self._inputs_cache[...] = inputs.asarray()
+            self._inputs_cache = inputs_hash
 
         t_name = self.time_options['name']
 

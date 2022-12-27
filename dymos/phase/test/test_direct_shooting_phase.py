@@ -81,7 +81,7 @@ class Simple1StateODE(om.ExplicitComponent):
         partials['y_dot', 't'] = -np.exp(-2*t) * t**2 * (2 * t - 3)
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestDirectShootingPhase(unittest.TestCase):
 
     def test_1_state_run_model(self):
@@ -379,258 +379,173 @@ class TestDirectShootingPhase(unittest.TestCase):
         dymos_options['include_check_partials'] = False
 
     @require_pyoptsparse(optimizer='SLSQP')
-    def test_brachistochrone_direct_shooting_path_constraint_renamed(self):
-
-        for method in ['rk4', 'ralston']:
-            with self.subTest(f"test brachistochrone explicit shooting with method '{method}'"):
-                prob = om.Problem()
-
-                prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
-
-                tx = dm.transcriptions.ExplicitShooting(num_segments=10, grid='gauss-lobatto', method=method,
-                                                        order=3, num_steps_per_segment=5, compressed=True)
-
-                phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
-
-                phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
-
-                # automatically discover states
-                phase.set_state_options('x', fix_initial=True)
-                phase.set_state_options('y', fix_initial=True)
-                phase.set_state_options('v', fix_initial=True)
-
-                phase.add_parameter('g', val=9.80665, units='m/s**2', opt=False)
-                phase.add_control('theta', val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9)
-
-                phase.add_boundary_constraint('x', loc='final', equals=10.0)
-                phase.add_boundary_constraint('y', loc='final', equals=5.0)
-                phase.add_path_constraint('ydot', constraint_name='foo', lower=-100, upper=0)
-
-                prob.model.add_subsystem('phase0', phase)
-
-                phase.add_objective('time', loc='final')
-
-                prob.setup(force_alloc_complex=True)
-
-                prob.set_val('phase0.t_initial', 0.0)
-                prob.set_val('phase0.t_duration', 2)
-                prob.set_val('phase0.states:x', 0.0)
-                prob.set_val('phase0.states:y', 10.0)
-                prob.set_val('phase0.states:v', 1.0E-6)
-                prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 90]), units='deg')
-
-                prob.run_driver()
-
-                x = prob.get_val('phase0.timeseries.states:x')
-                y = prob.get_val('phase0.timeseries.states:y')
-                ydot = prob.get_val('phase0.timeseries.foo')
-
-                assert_near_equal(x[-1, ...], 10.0, tolerance=1.0E-3)
-                self.assertTrue(np.all(ydot <= 1.0E-6), msg='Not all elements of path constraint satisfied')
-                assert_near_equal(y[-1, ...], 5.0, tolerance=1.0E-3)
-
-                with np.printoptions(linewidth=1024):
-                    cpd = prob.check_partials(compact_print=True, method='cs', out_stream=None)
-                    assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
-
-    @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_direct_shooting_path_constraint_invalid_renamed(self):
-        for method in ['rk4', 'ralston']:
-            with self.subTest(f"test brachistochrone direct shooting with method '{method}'"):
-                prob = om.Problem()
 
-                prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+        dymos_options['include_check_partials'] = True
 
-                tx = dm.transcriptions.ExplicitShooting(num_segments=10, grid='gauss-lobatto', method=method,
-                                                        order=3, num_steps_per_segment=5, compressed=True)
+        for output_grid_type in ('same', 'more_dense', 'radau', 'uniform'):
+            prob = om.Problem()
 
-                phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
+            input_grid = dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=3, compressed=True)
 
-                phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
+            output_grids = {'same': input_grid,
+                            'more_dense': dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=7,
+                                                              compressed=True),
+                            'radau': dm.RadauGrid(num_segments=3, nodes_per_seg=4, compressed=True),
+                            'uniform': dm.UniformGrid(num_segments=3, nodes_per_seg=11)}
 
-                # automatically discover states
-                phase.set_state_options('x', fix_initial=True)
-                phase.set_state_options('y', fix_initial=True)
-                phase.set_state_options('v', fix_initial=True)
+            phase = dm.DirectShootingPhase(ode_class=BrachistochroneODE,
+                                           input_grid=input_grid,
+                                           output_grid=output_grids[output_grid_type])
 
-                phase.add_parameter('g', val=9.80665, units='m/s**2', opt=False)
-                phase.add_control('theta', val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9)
+            phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
 
-                phase.add_boundary_constraint('x', loc='final', equals=10.0)
-                phase.add_boundary_constraint('y', loc='final', equals=5.0)
-                phase.add_path_constraint('y', constraint_name='foo', lower=5, upper=100)
+            # automatically discover states
+            phase.set_state_options('x', fix_initial=True)
+            phase.set_state_options('y', fix_initial=True)
+            phase.set_state_options('v', fix_initial=True)
 
-                prob.model.add_subsystem('phase0', phase)
+            phase.add_parameter('g', val=9.80665, units='m/s**2', opt=False)
+            phase.add_control('theta', val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9)
 
-                phase.add_objective('time', loc='final')
+            phase.add_boundary_constraint('x', loc='final', equals=10.0)
+            phase.add_boundary_constraint('y', loc='final', equals=5.0)
+            phase.add_path_constraint('y', constraint_name='foo', lower=5, upper=100)
 
-                with warnings.catch_warnings(record=True) as ctx:
-                    warnings.simplefilter('always')
-                    prob.setup(check=True)
+            prob.model.add_subsystem('phase0', phase)
 
-                self.assertIn("<class 'openmdao.utils.om_warnings.UnusedOptionWarning'>: "
-                              "Option 'constraint_name' on path constraint y is only valid for "
-                              "ODE outputs. The option is being ignored.", [str(w.message) for w in ctx])
+            phase.add_objective('time', loc='final')
 
-    @require_pyoptsparse(optimizer='SLSQP')
-    def test_brachistochrone_direct_shooting_polynomial_control(self):
-        prob = om.Problem()
+            with warnings.catch_warnings(record=True) as ctx:
+                warnings.simplefilter('always')
+                prob.setup(check=True)
 
-        prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+            self.assertIn("<class 'openmdao.utils.om_warnings.UnusedOptionWarning'>: "
+                          "Option 'constraint_name' on path constraint y is only valid for "
+                          "ODE outputs. The option is being ignored.", [str(w.message) for w in ctx])
 
-        tx = dm.transcriptions.ExplicitShooting(num_segments=3, grid='radau-ps', method='rk4',
-                                                order=3, num_steps_per_segment=10, compressed=True)
-
-        phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
-
-        phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
-
-        # automatically discover states
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
-
-        phase.add_parameter('g', val=1.0, units='m/s**2', opt=True, lower=1, upper=9.80665)
-        phase.add_polynomial_control('theta', order=9, val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9)
-
-        phase.add_boundary_constraint('x', loc='final', equals=10.0)
-        phase.add_boundary_constraint('y', loc='final', equals=5.0)
-
-        prob.model.add_subsystem('phase0', phase)
-
-        phase.add_objective('time', loc='final')
-
-        prob.setup(force_alloc_complex=True)
-
-        prob.set_val('phase0.t_initial', 0.0)
-        prob.set_val('phase0.t_duration', 2)
-        prob.set_val('phase0.states:x', 0.0)
-        prob.set_val('phase0.states:y', 10.0)
-        prob.set_val('phase0.states:v', 1.0E-6)
-        prob.set_val('phase0.parameters:g', 1.0, units='m/s**2')
-        prob.set_val('phase0.polynomial_controls:theta', phase.interp('theta', ys=[0.01, 90]), units='deg')
-
-        prob.run_driver()
-
-        x = prob.get_val('phase0.timeseries.states:x')
-        y = prob.get_val('phase0.timeseries.states:y')
-        t = prob.get_val('phase0.timeseries.time')
-        tp = prob.get_val('phase0.timeseries.time_phase')
-        theta = prob.get_val('phase0.timeseries.polynomial_controls:theta')
-
-        assert_near_equal(x[-1, ...], 10.0, tolerance=1.0E-5)
-        assert_near_equal(y[-1, ...], 5.0, tolerance=1.0E-5)
-        assert_near_equal(t[-1, ...], 1.8016, tolerance=5.0E-3)
-        assert_near_equal(tp[-1, ...], 1.8016, tolerance=5.0E-3)
-        assert_near_equal(theta[-1, ...], 90.2, tolerance=1e-1)
-
-        with np.printoptions(linewidth=1024):
-            cpd = prob.check_partials(compact_print=False, method='cs', out_stream=None)
-            assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
+        dymos_options['include_check_partials'] = False
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_direct_shooting_timeseries_ode_output(self):
 
-        for method in ['rk4', 'ralston']:
-            with self.subTest(f"test brachistochrone explicit shooting with method '{method}'"):
-                prob = om.Problem()
+        dymos_options['include_check_partials'] = True
 
-                prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+        for output_grid_type in ('same', 'more_dense', 'radau', 'uniform'):
+            prob = om.Problem()
 
-                tx = dm.transcriptions.ExplicitShooting(num_segments=5, grid='gauss-lobatto', method=method,
-                                                        order=3, num_steps_per_segment=10, compressed=True)
+            prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
 
-                phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
+            input_grid = dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=3, compressed=True)
 
-                phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
+            output_grids = {'same': input_grid,
+                            'more_dense': dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=7,
+                                                              compressed=True),
+                            'radau': dm.RadauGrid(num_segments=3, nodes_per_seg=4, compressed=True),
+                            'uniform': dm.UniformGrid(num_segments=3, nodes_per_seg=11)}
 
-                # automatically discover states
-                phase.set_state_options('x', fix_initial=True)
-                phase.set_state_options('y', fix_initial=True)
-                phase.set_state_options('v', fix_initial=True)
+            phase = dm.DirectShootingPhase(ode_class=BrachistochroneODE,
+                                           input_grid=input_grid,
+                                           output_grid=output_grids[output_grid_type])
 
-                phase.add_parameter('g', val=1.0, units='m/s**2', opt=True, lower=1, upper=9.80665)
-                phase.add_control('theta', val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9)
+            phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
 
-                phase.add_boundary_constraint('x', loc='final', equals=10.0)
-                phase.add_boundary_constraint('y', loc='final', equals=5.0)
+            # automatically discover states
+            phase.set_state_options('x', fix_initial=True)
+            phase.set_state_options('y', fix_initial=True)
+            phase.set_state_options('v', fix_initial=True)
 
-                phase.add_timeseries_output('*')
+            phase.add_parameter('g', val=1.0, units='m/s**2', opt=True, lower=1, upper=9.80665)
+            phase.add_control('theta', val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9)
 
-                prob.model.add_subsystem('phase0', phase)
+            phase.add_boundary_constraint('x', loc='final', equals=10.0)
+            phase.add_boundary_constraint('y', loc='final', equals=5.0)
 
-                phase.add_objective('time', loc='final')
+            phase.add_timeseries_output('*')
 
-                prob.setup(force_alloc_complex=True)
+            prob.model.add_subsystem('phase0', phase)
 
-                prob.set_val('phase0.t_initial', 0.0)
-                prob.set_val('phase0.t_duration', 2)
-                prob.set_val('phase0.states:x', 0.0)
-                prob.set_val('phase0.states:y', 10.0)
-                prob.set_val('phase0.states:v', 1.0E-6)
-                prob.set_val('phase0.parameters:g', 1.0, units='m/s**2')
-                prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 90]), units='deg')
+            phase.add_objective('time', loc='final')
 
-                dm.run_problem(prob, run_driver=True)
+            prob.setup(force_alloc_complex=True)
 
-                x = prob.get_val('phase0.timeseries.states:x')
-                y = prob.get_val('phase0.timeseries.states:y')
-                v = prob.get_val('phase0.timeseries.states:v')
-                theta = prob.get_val('phase0.timeseries.controls:theta', units='rad')
-                check = prob.get_val('phase0.timeseries.check')
-                t = prob.get_val('phase0.timeseries.time')
+            prob.set_val('phase0.t_initial', 0.0)
+            prob.set_val('phase0.t_duration', 2)
+            prob.set_val('phase0.states:x', 0.0)
+            prob.set_val('phase0.states:y', 10.0)
+            prob.set_val('phase0.states:v', 1.0E-6)
+            prob.set_val('phase0.parameters:g', 1.0, units='m/s**2')
+            prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 90]), units='deg')
 
-                assert_near_equal(x[-1, ...], 10.0, tolerance=1.0E-3)
-                assert_near_equal(y[-1, ...], 5.0, tolerance=1.0E-3)
-                assert_near_equal(t[-1, ...], 1.8016, tolerance=1.0E-2)
-                assert_near_equal(check, v / np.sin(theta))
+            dm.run_problem(prob, run_driver=True)
 
-                with np.printoptions(linewidth=1024):
-                    cpd = prob.check_partials(method='cs', out_stream=None)
-                    assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
+            x = prob.get_val('phase0.timeseries.states:x')
+            y = prob.get_val('phase0.timeseries.states:y')
+            v = prob.get_val('phase0.timeseries.states:v')
+            theta = prob.get_val('phase0.timeseries.controls:theta', units='rad')
+            check = prob.get_val('phase0.timeseries.check')
+            t = prob.get_val('phase0.timeseries.time')
+
+            assert_near_equal(x[-1, ...], 10.0, tolerance=1.0E-3)
+            assert_near_equal(y[-1, ...], 5.0, tolerance=1.0E-3)
+            assert_near_equal(t[-1, ...], 1.8016, tolerance=1.0E-2)
+            assert_near_equal(check, v / np.sin(theta))
+
+            with np.printoptions(linewidth=1024):
+                cpd = prob.check_partials(method='cs', out_stream=None, excludes=['phase0.integrator'])
+                assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
+
+                cpd = prob.check_partials(method='fd', out_stream=None, includes=['phase0.integrator'])
+                assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
+
+            dymos_options['include_check_partials'] = False
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_direct_shooting_unknown_timeseries(self):
 
-        for method in ['euler']:
-            with self.subTest(f"test brachistochrone explicit shooting with method '{method}'"):
-                prob = om.Problem()
+        for output_grid_type in ('same', 'more_dense', 'radau', 'uniform'):
+            prob = om.Problem()
 
-                prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+            input_grid = dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=3, compressed=True)
 
-                tx = dm.transcriptions.ExplicitShooting(num_segments=5, grid='gauss-lobatto', method=method,
-                                                        order=3, num_steps_per_segment=10, compressed=True)
+            output_grids = {'same': input_grid,
+                            'more_dense': dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=7,
+                                                              compressed=True),
+                            'radau': dm.RadauGrid(num_segments=3, nodes_per_seg=4, compressed=True),
+                            'uniform': dm.UniformGrid(num_segments=3, nodes_per_seg=11)}
 
-                phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
+            phase = dm.DirectShootingPhase(ode_class=BrachistochroneODE,
+                                           input_grid=input_grid,
+                                           output_grid=output_grids[output_grid_type])
 
-                phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
+            phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
 
-                # automatically discover states
-                phase.set_state_options('x', fix_initial=True)
-                phase.set_state_options('y', fix_initial=True)
-                phase.set_state_options('v', fix_initial=True)
+            # automatically discover states
+            phase.set_state_options('x', fix_initial=True)
+            phase.set_state_options('y', fix_initial=True)
+            phase.set_state_options('v', fix_initial=True)
 
-                phase.add_parameter('g', val=1.0, units='m/s**2', opt=True, lower=1, upper=9.80665)
-                phase.add_control('theta', val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9)
+            phase.add_parameter('g', val=1.0, units='m/s**2', opt=True, lower=1, upper=9.80665)
+            phase.add_control('theta', val=45.0, units='deg', opt=True, lower=1.0E-6, upper=179.9)
 
-                phase.add_boundary_constraint('x', loc='final', equals=10.0)
-                phase.add_boundary_constraint('y', loc='final', equals=5.0)
+            phase.add_boundary_constraint('x', loc='final', equals=10.0)
+            phase.add_boundary_constraint('y', loc='final', equals=5.0)
 
-                phase.add_timeseries_output('*')
-                phase.add_timeseries_output('foo')
+            phase.add_timeseries_output('*')
+            phase.add_timeseries_output('foo')
 
-                prob.model.add_subsystem('phase0', phase)
+            prob.model.add_subsystem('phase0', phase)
 
-                phase.add_objective('time', loc='final')
+            phase.add_objective('time', loc='final')
 
-                msg = "phase0: The following timeseries outputs were requested but not found in the " \
-                      "ODE: foo"
+            msg = "phase0: The following timeseries outputs were requested but not found in the " \
+                  "ODE: foo"
 
-                with warnings.catch_warnings(record=True) as ctx:
-                    warnings.simplefilter('always')
-                    prob.setup(force_alloc_complex=True)
+            with warnings.catch_warnings(record=True) as ctx:
+                warnings.simplefilter('always')
+                prob.setup(force_alloc_complex=True)
 
-                self.assertIn(msg, [str(w.message) for w in ctx])
+            self.assertIn(msg, [str(w.message) for w in ctx])
 
     def test_brachistochrone_static_gravity_direct_shooting(self):
         import openmdao.api as om
@@ -638,91 +553,99 @@ class TestDirectShootingPhase(unittest.TestCase):
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        #
-        # Initialize the Problem and the optimization driver
-        #
-        p = om.Problem(model=om.Group())
-        p.driver = om.ScipyOptimizeDriver()
-        p.driver.declare_coloring()
+        for output_grid_type in ('same', 'more_dense', 'radau', 'uniform'):
+            p = om.Problem()
 
-        #
-        # Create a trajectory and add a phase to it
-        #
-        traj = p.model.add_subsystem('traj', dm.Trajectory())
+            input_grid = dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=3, compressed=True)
 
-        phase = traj.add_phase('phase0',
-                               dm.Phase(ode_class=BrachistochroneODE,
-                                        ode_init_kwargs={'static_gravity': True},
-                                        transcription=dm.ExplicitShooting(num_segments=10, num_steps_per_segment=10)))
+            output_grids = {'same': input_grid,
+                            'more_dense': dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=7,
+                                                              compressed=True),
+                            'radau': dm.RadauGrid(num_segments=3, nodes_per_seg=4, compressed=True),
+                            'uniform': dm.UniformGrid(num_segments=3, nodes_per_seg=11)}
 
-        #
-        # Set the variables
-        #
-        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+            phase = dm.DirectShootingPhase(ode_class=BrachistochroneODE,
+                                           ode_init_kwargs={'static_gravity': True},
+                                           input_grid=input_grid,
+                                           output_grid=output_grids[output_grid_type])
 
-        phase.add_state('x', rate_source='xdot',
-                        targets=None,
-                        units='m',
-                        fix_initial=True)
+            traj = p.model.add_subsystem('traj', dm.Trajectory())
 
-        phase.add_state('y', rate_source='ydot',
-                        targets=None,
-                        units='m',
-                        fix_initial=True)
+            traj.add_phase('phase0', phase)
 
-        phase.add_state('v', rate_source='vdot',
-                        targets=['v'],
-                        units='m/s',
-                        fix_initial=True)
+            #
+            # Set the variables
+            #
+            phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_control('theta', targets=['theta'],
-                          continuity=True, rate_continuity=True,
-                          units='deg', lower=0.01, upper=179.9)
+            phase.add_state('x', rate_source='xdot',
+                            targets=None,
+                            units='m',
+                            fix_initial=True)
 
-        phase.add_parameter('g', targets=['g'], static_target=True, opt=False)
+            phase.add_state('y', rate_source='ydot',
+                            targets=None,
+                            units='m',
+                            fix_initial=True)
 
-        #
-        # Constrain the final values of x and y
-        #
-        phase.add_boundary_constraint('x', loc='final', equals=10)
-        phase.add_boundary_constraint('y', loc='final', equals=5)
+            phase.add_state('v', rate_source='vdot',
+                            targets=['v'],
+                            units='m/s',
+                            fix_initial=True)
 
-        #
-        # Minimize time at the end of the phase
-        #
-        phase.add_objective('time', loc='final', scaler=10)
+            phase.add_control('theta', targets=['theta'],
+                              continuity=True, rate_continuity=True,
+                              units='deg', lower=0.01, upper=179.9)
 
-        #
-        # Setup the Problem
-        #
-        p.setup()
+            phase.add_parameter('g', targets=['g'], static_target=True, opt=False)
 
-        #
-        # Set the initial values
-        # The initial time is fixed, and we set that fixed value here.
-        # The optimizer is allowed to modify t_duration, but an initial guess is provided here.
-        #
-        p.set_val('traj.phase0.t_initial', 0.0)
-        p.set_val('traj.phase0.t_duration', 2.0)
+            #
+            # Constrain the final values of x and y
+            #
+            phase.add_boundary_constraint('x', loc='final', equals=10)
+            phase.add_boundary_constraint('y', loc='final', equals=5)
 
-        # Guesses for states are provided at all state_input nodes.
-        # We use the phase.interpolate method to linearly interpolate values onto the state input nodes.
-        # Since fix_initial=True for all states and fix_final=True for x and y, the initial or final
-        # values of the interpolation provided here will not be changed by the optimizer.
-        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]))
-        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]))
-        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 9.9]))
+            #
+            # Minimize time at the end of the phase
+            #
+            phase.add_objective('time', loc='final', scaler=10)
 
-        # Guesses for controls are provided at all control_input node.
-        # Here phase.interpolate is used to linearly interpolate values onto the control input nodes.
-        p.set_val('traj.phase0.controls:theta', phase.interp('theta', [5, 100.5]))
+            #
+            # Set the optimization driver
+            #
+            p.driver = om.pyOptSparseDriver(optimizer='SLSQP')
 
-        # Set the value for gravitational acceleration.
-        p.set_val('traj.phase0.parameters:g', 9.80665)
+            #
+            # Setup the Problem
+            #
+            p.setup()
 
-        #
-        # Solve for the optimal trajectory
-        #
-        dm.run_problem(p, simulate=False)
+            #
+            # Set the initial values
+            # The initial time is fixed, and we set that fixed value here.
+            # The optimizer is allowed to modify t_duration, but an initial guess is provided here.
+            #
+            p.set_val('traj.phase0.t_initial', 0.0)
+            p.set_val('traj.phase0.t_duration', 2.0)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+            # Guesses for states are provided at all state_input nodes.
+            # We use the phase.interpolate method to linearly interpolate values onto the state input nodes.
+            # Since fix_initial=True for all states and fix_final=True for x and y, the initial or final
+            # values of the interpolation provided here will not be changed by the optimizer.
+            p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]))
+            p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]))
+            p.set_val('traj.phase0.states:v', phase.interp('v', [0, 9.9]))
+
+            # Guesses for controls are provided at all control_input node.
+            # Here phase.interpolate is used to linearly interpolate values onto the control input nodes.
+            p.set_val('traj.phase0.controls:theta', phase.interp('theta', [5, 100.5]))
+
+            # Set the value for gravitational acceleration.
+            p.set_val('traj.phase0.parameters:g', 9.80665)
+
+            #
+            # Solve for the optimal trajectory
+            #
+            dm.run_problem(p, simulate=False)
+
+            assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)

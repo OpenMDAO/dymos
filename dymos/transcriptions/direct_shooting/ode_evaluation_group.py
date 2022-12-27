@@ -147,7 +147,6 @@ class ODEEvaluationGroup(om.Group):
     def _configure_time(self):
         vec_size = self._vec_size
         t_name = self._time_options['name']
-        t_units = self._time_options['units']
         targets = self._time_options['targets']
         t_phase_targets = self._time_options['time_phase_targets']
         t_initial_targets = self._time_options['t_initial_targets']

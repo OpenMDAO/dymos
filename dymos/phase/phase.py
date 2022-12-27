@@ -2193,25 +2193,20 @@ class Phase(om.Group):
             op = op_dict[f'timeseries.timeseries_comp.states:{name}']
             prob[f'{self_path}initial_states:{name}'][...] = op['val'][0, ...]
 
+        phs.list_inputs()
+        phs.list_outputs()
+
         # Assign control values
         for name, options in phs.control_options.items():
-            if options['opt']:
-                op = op_dict[f'control_group.indep_controls.controls:{name}']
-                prob[f'{self_path}controls:{name}'][...] = op['val']
-            else:
-                ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
-                prob[f'{self_path}controls:{name}'][...] = ip['val']
+            ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
+            prob[f'{self_path}controls:{name}'][...] = ip['val']
 
         # Assign polynomial control values
+        phs.list_inputs()
         for name, options in phs.polynomial_control_options.items():
-            if options['opt']:
-                op = op_dict[f'polynomial_control_group.indep_polynomial_controls.'
-                             f'polynomial_controls:{name}']
-                prob[f'{self_path}polynomial_controls:{name}'][...] = op['val']
-            else:
-                ip = ip_dict[f'{phs_path}polynomial_control_group.interp_comp.'
-                             f'polynomial_controls:{name}']
-                prob[f'{self_path}polynomial_controls:{name}'][...] = ip['val']
+            ip = ip_dict[f'polynomial_control_group.interp_comp.'
+                         f'polynomial_controls:{name}']
+            prob[f'{self_path}polynomial_controls:{name}'][...] = ip['val']
 
         # Assign parameter values
         for name in phs.parameter_options:

@@ -1,7 +1,6 @@
 import numpy as np
 import openmdao.api as om
 
-from ...transcriptions.grid_data import GridData
 from ...utils.lgl import lgl
 
 

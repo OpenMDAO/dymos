@@ -340,17 +340,18 @@ class ControlGroup(om.Group):
         """
         control_options = self.options['control_options']
         gd = self.options['grid_data']
+        num_input_nodes = gd.subset_num_nodes['control_input']
+
         self.control_interp_comp.configure_io()
 
         for name, options in control_options.items():
+            dvname = f'controls:{name}'
             shape = options['shape']
             size = np.prod(shape)
             if options['opt']:
-                num_input_nodes = gd.subset_num_nodes['control_input']
                 desvar_indices = get_desvar_indices(size, num_input_nodes,
                                                     options['fix_initial'], options['fix_final'])
 
-                dvname = f'controls:{name}'
                 if len(desvar_indices) > 0:
                     coerce_desvar_option = CoerceDesvar(num_input_nodes, desvar_indices,
                                                         options=options)
