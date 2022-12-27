@@ -117,12 +117,12 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p['traj.phase0.states:m'] = phase.interp('m', [19030.468, 16841.431])
     p['traj.phase0.controls:alpha'] = phase.interp('alpha', [0.0, 0.0])
 
-    dm.run_problem(p, simulate=True, make_plots=True)
+    dm.run_problem(p, simulate=True)
 
     return p
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestMinTimeClimb(unittest.TestCase):
 
     def _test_results(self, p, time_name='time'):
@@ -221,7 +221,7 @@ class TestMinTimeClimb(unittest.TestCase):
         if plot:
             plt.show()
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_results_gauss_lobatto(self):
         NUM_SEG = 12
         ORDER = 3
@@ -236,7 +236,7 @@ class TestMinTimeClimb(unittest.TestCase):
 
         self._test_mach_rate(p)
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_results_radau(self):
         NUM_SEG = 15
         ORDER = 3
@@ -251,7 +251,7 @@ class TestMinTimeClimb(unittest.TestCase):
 
         self._test_mach_rate(p, plot=False)
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_results_gauss_lobatto_renamed_time(self):
         NUM_SEG = 12
         ORDER = 3
@@ -266,11 +266,11 @@ class TestMinTimeClimb(unittest.TestCase):
 
         self._test_mach_rate(p, time_name='t')
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_results_radau_renamed_time(self):
         NUM_SEG = 15
         ORDER = 3
-        p = min_time_climb(optimizer='SLSQP', num_seg=NUM_SEG, transcription_order=ORDER,
+        p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
                            transcription='radau-ps', add_rate=True, time_name='t')
 
         self._test_results(p, time_name='t')
