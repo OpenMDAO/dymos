@@ -24,6 +24,7 @@ parts:
     - file: examples/bryson_denham/bryson_denham
     - file: examples/commercial_aircraft/commercial_aircraft
     - file: examples/double_integrator/double_integrator
+    - file: examples/hull/hull_problem
     - file: examples/hypersensitive/hypersensitive
     - file: examples/finite_burn_orbit_raise/finite_burn_orbit_raise
     - file: examples/length_constrained_brachistochrone/length_constrained_brachistochrone

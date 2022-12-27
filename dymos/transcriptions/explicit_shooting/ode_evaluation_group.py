@@ -381,10 +381,10 @@ class ODEEvaluationGroup(om.Group):
             rate_path = f'states:{var}'
             io = 'input'
         elif self.control_options is not None and var in self.control_options:
-            rate_path = f'controls:{var}'
+            rate_path = f'control_values:{var}'
             io = 'output'
         elif self.polynomial_control_options is not None and var in self.polynomial_control_options:
-            rate_path = f'polynomial_controls:{var}'
+            rate_path = f'polynomial_control_values:{var}'
             io = 'output'
         elif self.parameter_options is not None and var in self.parameter_options:
             rate_path = f'parameter_vals:{var}'
