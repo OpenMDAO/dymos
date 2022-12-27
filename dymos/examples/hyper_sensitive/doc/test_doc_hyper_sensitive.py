@@ -12,7 +12,7 @@ plt.style.use('ggplot')
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
-tf = np.float128(10)
+tf = 10.0
 
 
 def solution():

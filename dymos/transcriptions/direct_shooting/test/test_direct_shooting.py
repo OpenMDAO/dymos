@@ -110,9 +110,9 @@ class TestDirectShooting(unittest.TestCase):
         prob.run_model()
 
         with np.printoptions(linewidth=1024):
-            cpd = prob.check_partials(compact_print=True)
+            cpd = prob.check_partials(method='fd', compact_print=True)
 
-        assert_check_partials(cpd, rtol=1.0E-5)
+        assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
     def test_2_states_run_model(self):
 
@@ -156,5 +156,5 @@ class TestDirectShooting(unittest.TestCase):
         assert_near_equal(y_f[-1, ...], 0.1691691, tolerance=1.0E-5)
 
         with np.printoptions(linewidth=1024):
-            cpd = prob.check_partials(compact_print=True, method='cs')
+            cpd = prob.check_partials(compact_print=True, method='fd')
             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)

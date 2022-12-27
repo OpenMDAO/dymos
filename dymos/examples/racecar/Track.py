@@ -4,7 +4,7 @@ import numpy as np
 class Track:
     def __init__(self, segments):
         self.segments = segments
-        self.cornerspeeds = np.zeros(len(segments), dtype=np.complex)
+        self.cornerspeeds = np.zeros(len(segments), dtype=complex)
 
     def get_segment_type(self, num):
         return self.segments[num][0]
