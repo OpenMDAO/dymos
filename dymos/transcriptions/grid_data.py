@@ -11,8 +11,7 @@ from dymos.utils.lagrange import lagrange_matrices
 
 def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
     """
-    Provides a dictionary of node information and the location of the nodes for
-    n Legendre-Gauss-Lobatto nodes on the range [-1, 1].
+    Provides node information and the location of the nodes for n Legendre-Gauss-Lobatto nodes on the range [-1, 1].
 
     Parameters
     ----------
@@ -28,15 +27,15 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
     -------
     dict
         A dictionary with the following keys:
-        'state_disc' gives the indices of the state discretization nodes
-        'state_input' gives the indices of the state input nodes
-        'control_disc' gives the indices of the control discretization nodes
-        'control_input' gives the indices of the control input nodes
-        'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
-        'col' gives the indices of the collocation nodes
-        'all' gives all node indices.
+        'state_disc' Gives the indices of the state discretization nodes
+        'state_input' Gives the indices of the state input nodes
+        'control_disc' Gives the indices of the control discretization nodes
+        'control_input' Gives the indices of the control input nodes
+        'segment_ends' Gives the indices of the nodes at the start (even) and end (odd) of a segment
+        'col' Gives the indices of the collocation nodes.
+        'all' Gives all node indices.
     np.array
-        The location of all nodes on [-1, 1]
+        The location of all nodes on [-1, 1].
 
     Notes
     -----
@@ -64,8 +63,7 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
 
 def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     """
-    Provides a dictionary of node information and the location of the nodes for n Radau nodes
-    on the range [-1, 1].
+    Provides node information and the location of the nodes for n Radau nodes on the range [-1, 1].
 
     Parameters
     ----------
@@ -416,7 +414,6 @@ class GridData(object):
         bool
             True if the two GridData objects have the same number of segments and their segments match to within
             the specified tolerance, otherwise False.
-
         """
         # The segment distribution needs to be the same in from the input grid to the output grid.
         return self.num_segments == other.num_segments and \
@@ -564,50 +561,74 @@ class GridData(object):
 
 
 class GaussLobattoGrid(GridData):
+    """
+    A GridData object that provides the node information for a Gauss-Lobatto distribution.
 
+    Parameters
+    ----------
+    num_segments : int
+        The number of segments in the phase.
+    nodes_per_seg : int or iterable
+        The number of nodes in each segment. As an integer, it applies to each segment. If a sequence, its length
+        must be equal to num_segments.
+    segment_ends : Iterable[num_segments + 1] or None
+        The segments nodes on some arbitrary interval.
+        This will be normalized to the interval [-1, 1].
+    compressed : bool
+        If the transcription is compressed, then states and controls at shared
+        nodes of adjacent segments are only specified once, and then broadcast
+        to the appropriate indices.
+    """
     def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
-        """
-
-        Parameters
-        ----------
-        num_segments
-        nodes_per_seg
-        segment_ends
-        compressed
-        """
         super().__init__(num_segments=num_segments, transcription='gauss-lobatto',
                          transcription_order=np.asarray(nodes_per_seg, dtype=int)-1,
-                        segment_ends=segment_ends, compressed=compressed)
+                         segment_ends=segment_ends, compressed=compressed)
 
 
 class RadauGrid(GridData):
+    """
+    A GridData object that provides the node information for a Radau distribution.
 
+    Parameters
+    ----------
+    num_segments : int
+        The number of segments in the phase.
+    nodes_per_seg : int or iterable
+        The number of nodes in each segment. As an integer, it applies to each segment. If a sequence, its length
+        must be equal to num_segments.
+    segment_ends : Iterable[num_segments + 1] or None
+        The segments nodes on some arbitrary interval.
+        This will be normalized to the interval [-1, 1].
+    compressed : bool
+        If the transcription is compressed, then states and controls at shared
+        nodes of adjacent segments are only specified once, and then broadcast
+        to the appropriate indices.
+    """
     def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
-        """
-
-        Parameters
-        ----------
-        num_segments
-        nodes_per_seg
-        segment_ends
-        compressed
-        """
         super().__init__(num_segments=num_segments, transcription='radau-ps',
                          transcription_order=np.asarray(nodes_per_seg, dtype=int) - 1,
                          segment_ends=segment_ends, compressed=compressed)
 
 class UniformGrid(GridData):
+    """
+    A GridData object that provides the node information for a uniform distribution.
 
+    Parameters
+    ----------
+    num_segments : int
+        The number of segments in the phase.
+    nodes_per_seg : int or iterable
+        The number of nodes in each segment. As an integer, it applies to each segment. If a sequence, its length
+        must be equal to num_segments.
+    segment_ends : Iterable[num_segments + 1] or None
+        The segments nodes on some arbitrary interval.
+        This will be normalized to the interval [-1, 1].
+    compressed : bool
+        If the transcription is compressed, then states and controls at shared
+        nodes of adjacent segments are only specified once, and then broadcast
+        to the appropriate indices.
+    """
     def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
-        """
-
-        Parameters
-        ----------
-        num_segments
-        nodes_per_seg
-        segment_ends
-        compressed
-        """
         super().__init__(num_segments=num_segments, transcription='uniform',
                          transcription_order=np.asarray(nodes_per_seg) - 1,
                          segment_ends=segment_ends, compressed=compressed)
