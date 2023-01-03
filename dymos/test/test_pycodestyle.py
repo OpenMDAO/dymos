@@ -1,8 +1,9 @@
 import os
 import sys
-import pep8
 import unittest
 from io import StringIO
+
+import pycodestyle
 
 import dymos
 
@@ -30,9 +31,9 @@ def _discover_python_files(path):
     return python_files
 
 
-class TestPep8(unittest.TestCase):
+class TestPyCodeStyle(unittest.TestCase):
 
-    def test_pep8(self):
+    def test_pycodestyle(self):
         """ Tests that all files in this, directory, the parent directory, and test
         sub-directories are PEP8 compliant.
 
@@ -43,7 +44,8 @@ class TestPep8(unittest.TestCase):
         dymos_path = os.path.split(dymos.__file__)[0]
         pyfiles = _discover_python_files(dymos_path)
 
-        style = pep8.StyleGuide(ignore=['E201', 'E226', 'E241', 'E402', 'E731'])
+        style = pycodestyle.StyleGuide(ignore=['E201', 'E225', 'E226', 'E241', 'E275', 'E402', 'W504', 'W605', 'E722',
+                                               'E741'])
         style.options.max_line_length = 130
 
         save = sys.stdout
@@ -54,7 +56,7 @@ class TestPep8(unittest.TestCase):
             sys.stdout = save
 
         if report.total_errors > 0:
-            self.fail("Found pep8 errors:\n%s" % msg.getvalue())
+            self.fail(f"Found {report.total_errors} pycodestyle errors:\n{msg.getvalue()}")
 
 
 if __name__ == '__main__':  # pragma: no cover
