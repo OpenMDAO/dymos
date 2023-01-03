@@ -47,7 +47,6 @@ class TestTimeseriesUnits(unittest.TestCase):
                                      'tags': ['dymos.state_rate_source:y']},
                                has_diag_partials=True)
 
-
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=ode, transcription=t)
         p.model.add_subsystem('traj0', traj)

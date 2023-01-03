@@ -101,8 +101,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
                                                  control_options=self.control_options,
                                                  polynomial_control_options=self.polynomial_control_options,
                                                  ode_init_kwargs=self.options['ode_init_kwargs'],
-                                                 input_grid_data=self._input_grid_data,
-                                                 output_grid_data=self._output_grid_data),
+                                                 input_grid_data=self._input_grid_data),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
