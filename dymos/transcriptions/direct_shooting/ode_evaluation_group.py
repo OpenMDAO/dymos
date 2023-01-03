@@ -19,6 +19,8 @@ class ODEEvaluationGroup(om.Group):
     ----------
     ode_class : class
         The class of the OpenMDAO system to be used to evaluate the ODE in this Group.
+    input_grid_data : GridData
+        The GridData used to define the controls used in this ODE.
     time_options : OptionsDictionary
         OptionsDictionary of time options.
     state_options : dict of {str: OptionsDictionary}
@@ -31,18 +33,16 @@ class ODEEvaluationGroup(om.Group):
         For each polynomial variable, a dictionary of its options, keyed by name.
     ode_init_kwargs : dict
         A dictionary of keyword arguments to be passed to the instantiation of the ODE.
-    grid_data : GridData
-        The GridData instance pertaining to the phase to which this ODEEvaluationGroup belongs.
+    vec_size : int
+        The number of points at which the ODE is simultaneously evaluated.
     **kwargs : dict
         Additional keyword arguments passed to Group.
     """
 
     def __init__(self, ode_class, input_grid_data, time_options, state_options, parameter_options, control_options,
-                 polynomial_control_options, output_grid_data=None, ode_init_kwargs=None, vec_size=1, **kwargs):
+                 polynomial_control_options, ode_init_kwargs=None, vec_size=1, **kwargs):
         super().__init__(**kwargs)
 
-        # Get the state vector.  This isn't necessarily ordered
-        # so just pick the default ordering and go with it.
         self._state_options = state_options
         self._parameter_options = parameter_options
         self._time_options = time_options
@@ -52,7 +52,6 @@ class ODEEvaluationGroup(om.Group):
         self._polynomial_control_interpolants = {}
         self._ode_class = ode_class
         self._input_grid_data = input_grid_data
-        self._output_grid_data = output_grid_data
         self._vec_size = vec_size
         self._ode_init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
 

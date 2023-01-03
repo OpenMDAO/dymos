@@ -121,7 +121,7 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         t = p.get_val('traj.phase.timeseries.time', units='s')
         y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
 
-        expected = t ** 2 + 2 * t + 1 - 0.5 * np.etp(t)
+        expected = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
 
         assert_near_equal(y, expected)
 
@@ -199,7 +199,7 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         t = p.get_val('traj.phase.timeseries.time', units='s')
         y = p.get_val('traj.phase.timeseries.states:foo', units='unitless')
 
-        expected = t ** 2 + 2 * t + 1 - 0.5 * np.etp(t)
+        expected = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
 
         assert_near_equal(y, expected)
 
@@ -235,7 +235,7 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         t = p.get_val('traj.phase.timeseries.time', units='s')
         y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
 
-        expected = t ** 2 + 2 * t + 1 - 0.5 * np.etp(t)
+        expected = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
 
         assert_near_equal(y, expected)
 
@@ -407,7 +407,7 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         assert_near_equal(0.5338712554624387, t_1[-1, 0], tolerance=1.0E-6)
         assert_near_equal(2.0, t_2[-1, 0], tolerance=1.0E-6)
         assert_near_equal(5.305471950533106, x_2[-1, 0], tolerance=1.0E-6)
-        assert_near_equal(y0_1, y0_2)
+        assert_near_equal(y0_1, y0_2, tolerance=1.0E-6)
 
     def test_linked_phases_connected_state(self):
         p = om.Problem()

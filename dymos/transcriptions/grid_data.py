@@ -78,15 +78,15 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     -------
     dict
         A dictionary with the following keys:
-        'state_disc' gives the indices of the state discretization nodes
-        'state_input' gives the indices of the state input nodes
-        'control_disc' gives the indices of the control discretization nodes
-        'control_input' gives the indices of the control input nodes
-        'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
-        'col' gives the indices of the collocation nodes
+        'state_disc' gives the indices of the state discretization nodes.
+        'state_input' gives the indices of the state input nodes.
+        'control_disc' gives the indices of the control discretization nodes.
+        'control_input' gives the indices of the control input nodes.
+        'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment.
+        'col' gives the indices of the collocation nodes.
         'all' gives all node indices.
     np.array
-        The location of all nodes on [-1, 1]
+        The location of all nodes on [-1, 1].
 
     Notes
     -----
@@ -111,8 +111,7 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
 
 def uniform_subsets_and_nodes(n, *args, **kwargs):
     """
-    Provides a dictionary of node information and the location of the nodes for a uniformly
-    distributed set of n nodes on the range [-1, 1].
+    Provides a dict of node info and locations for a uniformly distributed set of n nodes on the range [-1, 1].
 
     This distribution is not to be used to define polynomials, since equally space nodes
     result in poor polynomial fitting. Most subsets here aside from `all`, `segment_ends`, and
@@ -122,24 +121,26 @@ def uniform_subsets_and_nodes(n, *args, **kwargs):
     ----------
     n : int
         The total number of nodes in the Radau Pseudospectral segment (including right endpoint).
-    seg_idx : int
-        The index of this segment within its phase.
-    compressed : bool
-        True if the subset requested is for a phase with compressed transcription.
+    *args : Iterable
+        Non-keyword arguments that make this function consistent with radau_subsets_and_nodes and
+        gauss_lobatto_subsets_and_nodes, but whose additional arguments have no bearing on the uniform grid.
+    **kwargs : dict
+        Keyword arguments that make this function consistent with radau_subsets_and_nodes and
+        gauss_lobatto_subsets_and_nodes, but whose keyword arguments have no bearing on the uniform grid.
 
     Returns
     -------
     dict
         A dictionary with the following keys:
-        'state_disc' gives the indices of the state discretization nodes
-        'state_input' gives the indices of the state input nodes
-        'control_disc' gives the indices of the control discretization nodes
-        'control_input' gives the indices of the control input nodes
-        'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
-        'col' gives the indices of the collocation nodes
+        'state_disc' gives the indices of the state discretization nodes.
+        'state_input' gives the indices of the state input nodes.
+        'control_disc' gives the indices of the control discretization nodes.
+        'control_input' gives the indices of the control input nodes.
+        'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment.
+        'col' gives the indices of the collocation nodes.
         'all' gives all node indices.
     np.array
-        The location of all nodes on [-1, 1]
+        The location of all nodes on [-1, 1].
     """
     subsets = {
         'state_disc': np.empty(0, dtype=int),

@@ -69,6 +69,9 @@ class ControlInterpComp(om.ExplicitComponent):
         self._output_rate2_names = {}
 
     def setup(self):
+        """
+        Perform setup procedure for the Control interpolation component.
+        """
         gd = self.options['grid_data']
         ogd = self.options['output_grid_data'] or gd
 
