@@ -99,12 +99,12 @@ class ODEIntegrationComp(om.ExplicitComponent):
     def _setup_subprob(self):
         self._eval_subprob = p = om.Problem(comm=self.comm, reports=self._reports)
         p.model.add_subsystem('ode_eval',
-                              ODEEvaluationGroup(ode_class = self.options['ode_class'],
-                                                 time_options = self.time_options,
-                                                 state_options = self.state_options,
-                                                 parameter_options = self.parameter_options,
-                                                 control_options = self.control_options,
-                                                 polynomial_control_options = self.polynomial_control_options,
+                              ODEEvaluationGroup(ode_class=self.options['ode_class'],
+                                                 time_options=self.time_options,
+                                                 state_options=self.state_options,
+                                                 parameter_options=self.parameter_options,
+                                                 control_options=self.control_options,
+                                                 polynomial_control_options=self.polynomial_control_options,
                                                  ode_init_kwargs=self.options['ode_init_kwargs'],
                                                  input_grid_data=self._input_grid_data,
                                                  output_grid_data=self._output_grid_data),

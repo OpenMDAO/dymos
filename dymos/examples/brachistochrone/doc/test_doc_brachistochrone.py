@@ -2,11 +2,13 @@ import os
 import unittest
 
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-plt.style.use('ggplot')
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+
+
+matplotlib.use('Agg')
+plt.style.use('ggplot')
 
 
 @use_tempdirs
@@ -391,6 +393,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
                      p_sol=p, p_sim=exp_out)
 
         plt.show()
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

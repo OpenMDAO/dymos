@@ -16,13 +16,15 @@ class DirectShootingContinuityComp(ContinuityCompBase):
     **kwargs : dict
         Dictionary of optional arguments.
     """
-    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._controls_to_enforce = set()
         self._control_rates_to_enforce = set()
         self._control_rates2_to_enforce = set()
-    
+
+        self.rate_jac_templates = {}
+        self.name_maps = {}
+
     def _configure_state_continuity(self):
         # TODO This method will be used when multiple shooting is implemented.
         pass
@@ -63,7 +65,7 @@ class DirectShootingContinuityComp(ContinuityCompBase):
         num_segend_nodes = self.options['grid_data'].subset_num_nodes['segment_ends']
         num_segments = self.options['grid_data'].num_segments
         time_units = self.options['time_units']
-        
+
         self._controls_to_enforce = controls_to_enforce
         self._control_rates_to_enforce = control_rates_to_enforce
         self._control_rates2_to_enforce = control_rates2_to_enforce
@@ -201,7 +203,7 @@ class DirectShootingContinuityComp(ContinuityCompBase):
             self.add_input('t_duration', units=time_units, val=1.0, desc='time duration of the phase')
 
     def configure_io(self, controls_to_enforce=None, control_rates_to_enforce=None,
-                                      control_rates2_to_enforce=None):
+                     control_rates2_to_enforce=None):
         """
         Configures control continuity.
 
@@ -209,11 +211,11 @@ class DirectShootingContinuityComp(ContinuityCompBase):
 
         Parameters
         ----------
-        controls : set or Sequence of str or None
+        controls_to_enforce : set or Sequence of str or None
             The names of the controls whose values are to be enforced at segment boundaries.
-        control_rates : set or Sequence of str or None
+        control_rates_to_enforce : set or Sequence of str or None
             The names of controls whose rates are to be enforced at segment boundaries.
-        control_rates2 : set or Sequence of str or None
+        control_rates2_to_enforce : set or Sequence of str or None
             The names of controls whose second derivatives are to be enforced at the segment boundaries.
         """
         self.rate_jac_templates = {}

@@ -284,12 +284,12 @@ def _conn_name_to_path(name):
     return name
 
 
-def _is_param_conn(name)->bool:
+def _is_param_conn(name) -> bool:
     """ Determine if the specified connection involves a parameter. """
     return re.match(r'.*param_comp.*', name) and not re.match(r'.*parameter_vals.*', name)
 
 
-def _is_ignored_conn(name)->bool:
+def _is_ignored_conn(name) -> bool:
     """ Determine if an connection endpoint should be ignored for this diagram. """
     return re.match(r'.*timeseries.*', name) or re.match(r'.*_auto_ivc.*', name)
 
@@ -312,7 +312,7 @@ def _var_ref_from_path(tree, path: str):
     return refpath
 
 
-def _get_fixed_val(tree, path: str)->bool:
+def _get_fixed_val(tree, path: str) -> bool:
     """ Get the value of the fixed property for the specified path. """
     ref = _var_ref_from_path(tree, path)
     fixed = False if (ref is None or 'fixed' not in ref) else ref['fixed']

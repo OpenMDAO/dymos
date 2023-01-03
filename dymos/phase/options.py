@@ -274,7 +274,7 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
                      desc='The default value of the parameter in the phase.')
 
-        self.declare(name='shape',  check_valid=check_valid_shape, default=_unspecified,
+        self.declare(name='shape', check_valid=check_valid_shape, default=_unspecified,
                      desc='The shape of the parameter.')
 
         self.declare(name='lower', types=(Iterable, Number), default=None,
@@ -651,10 +651,10 @@ class ConstraintOptionsDictionary(om.OptionsDictionary):
         self.declare(name='lower', types=(Iterable, Number), default=None, allow_none=True,
                      desc='Lower bound of the constraint.')
 
-        self.declare(name='upper', types=(Iterable, Number), default=None,  allow_none=True,
+        self.declare(name='upper', types=(Iterable, Number), default=None, allow_none=True,
                      desc='Upper bound of the constraint.')
 
-        self.declare(name='equals', types=(Iterable, Number), default=None,  allow_none=True,
+        self.declare(name='equals', types=(Iterable, Number), default=None, allow_none=True,
                      desc='Desired vlue for an equality constraint.')
 
         self.declare(name='scaler', types=(Iterable, Number), default=None, allow_none=True,

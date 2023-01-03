@@ -1,7 +1,6 @@
 import unittest
 
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import openmdao.api as om
@@ -12,7 +11,9 @@ import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
 
+
 SHOW_PLOTS = True
+matplotlib.use('Agg')
 
 
 @use_tempdirs

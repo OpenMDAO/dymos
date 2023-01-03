@@ -304,7 +304,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         ax_u1.grid(True)
 
         ax_deltav.set_xlabel('time ($TU$)')
-        ax_deltav.set_ylabel('${\Delta}v$ ($DU/TU$)')
+        ax_deltav.set_ylabel('${\Delta}v$ ($DU/TU$)')  # nopep8: W605
         ax_deltav.grid(True)
 
         t_sol = dict((phs, p.get_val('traj.{0}.timeseries.time'.format(phs)))
@@ -677,10 +677,10 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # check units
         un = get_promoted_vars(p.model, iotypes=('input', 'output'))
-        assert(un['traj.burn1.timeseries.pos_x']['units'] == 'm')
-        assert(un['traj.burn1.timeseries.pos_y']['units'] == 'DU')
-        assert(un['traj.burn2.timeseries.pos_x']['units'] == 'm')
-        assert(un['traj.burn2.timeseries.pos_y']['units'] == 'm')
+        assert un['traj.burn1.timeseries.pos_x']['units'] == 'm'
+        assert un['traj.burn1.timeseries.pos_y']['units'] == 'DU'
+        assert un['traj.burn2.timeseries.pos_x']['units'] == 'm'
+        assert un['traj.burn2.timeseries.pos_y']['units'] == 'm'
 
     @use_tempdirs
     def test_two_burn_orbit_raise_gl_wildcard_add_timeseries_output(self):

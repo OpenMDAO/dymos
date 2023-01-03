@@ -44,19 +44,19 @@ class TestPyCodeStyle(unittest.TestCase):
         dymos_path = os.path.split(dymos.__file__)[0]
         pyfiles = _discover_python_files(dymos_path)
 
-        style = pycodestyle.StyleGuide(ignore=['E201', 'E225', 'E226', 'E241', 'E275', 'E402', 'W504', 'W605', 'E722',
-                                               'E741'])
+        style = pycodestyle.StyleGuide(ignore=['E226',  # missing whitespace around arithmetic operator
+                                               'E241',  # multiple spaces after ','
+                                               'W504',  # line break after binary operator
+                                               'W605',  # invalid escape sequence
+                                               'E722',  # do not use bare except
+                                               'E741'   # ambiguous variable name
+                                               ])
         style.options.max_line_length = 130
 
-        save = sys.stdout
-        sys.stdout = msg = StringIO()
-        try:
-            report = style.check_files(pyfiles)
-        finally:
-            sys.stdout = save
+        report = style.check_files(pyfiles)
 
         if report.total_errors > 0:
-            self.fail(f"Found {report.total_errors} pycodestyle errors:\n{msg.getvalue()}")
+            self.fail(f"Found {report.total_errors} pycodestyle errors")
 
 
 if __name__ == '__main__':  # pragma: no cover

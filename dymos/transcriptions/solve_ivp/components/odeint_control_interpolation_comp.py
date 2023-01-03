@@ -84,7 +84,7 @@ class ODEIntControlInterpolationComp(om.ExplicitComponent):
 
         for name in self.options['control_options']:
             if name not in self.options['control_interpolants']:
-                raise(ValueError('No interpolant has been specified for {0}'.format(name)))
+                raise ValueError('No interpolant has been specified for {0}'.format(name))
 
             interp = self.options['control_interpolants'][name]
 
@@ -96,7 +96,7 @@ class ODEIntControlInterpolationComp(om.ExplicitComponent):
 
         for name in self.options['polynomial_control_options']:
             if name not in self.options['polynomial_control_interpolants']:
-                raise(ValueError('No interpolant has been specified for {0}'.format(name)))
+                raise ValueError('No interpolant has been specified for {0}'.format(name))
 
             interp = self.options['polynomial_control_interpolants'][name]
 

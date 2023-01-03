@@ -153,6 +153,7 @@ def uniform_subsets_and_nodes(n, *args, **kwargs):
     }
     return subsets, np.linspace(-1, 1, n + 1)
 
+
 def make_subset_map(from_subset_idxs, to_subset_idxs):
     """
     Creates a map from one subset to another using the indices of each subset within all nodes.
@@ -608,6 +609,7 @@ class RadauGrid(GridData):
         super().__init__(num_segments=num_segments, transcription='radau-ps',
                          transcription_order=np.asarray(nodes_per_seg, dtype=int) - 1,
                          segment_ends=segment_ends, compressed=compressed)
+
 
 class UniformGrid(GridData):
     """

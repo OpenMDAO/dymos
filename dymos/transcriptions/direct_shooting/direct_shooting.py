@@ -35,7 +35,7 @@ class DirectShooting(TranscriptionBase):
     ----------
     **kwargs : dict
         Dictionary of arguments.
-    """
+    """  # nopep8: E501, W605
     def __init__(self, **kwargs):
         super(DirectShooting, self).__init__(**kwargs)
         self._rhs_source = 'ode'
@@ -407,7 +407,6 @@ class DirectShooting(TranscriptionBase):
             if rate2_targets:
                 phase.connect(f'control_rates:{control_name}_rate2',
                               [f'ode.{t}' for t in targets])
-
 
     def setup_polynomial_controls(self, phase):
         """

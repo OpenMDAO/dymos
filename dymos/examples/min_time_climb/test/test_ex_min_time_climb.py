@@ -138,15 +138,15 @@ class TestMinTimeClimb(unittest.TestCase):
         output_dict = get_promoted_vars(p.model, iotypes=('output',))
         ts = {k: v for k, v in output_dict.items() if 'timeseries.' in k}
         for c in ['mach', 'CD0', 'kappa', 'CLa', 'CL', 'CD', 'q', 'f_lift', 'f_drag', 'thrust', 'm_dot']:
-            assert(any([True for t in ts if 'timeseries.' + c in t]))
+            assert any([True for t in ts if 'timeseries.' + c in t])
 
     def _test_timeseries_units(self, p):
         """ Test that the units from the timeseries are correct. """
         output_dict = get_promoted_vars(p.model, iotypes=('output',))
-        assert(output_dict['traj.phase0.timeseries.thrust']['units'] == 'lbf')  # no wildcard, from units dict
-        assert(output_dict['traj.phase0.timeseries.m_dot']['units'] == 'kg/s')  # no wildcard, from ODE
-        assert(output_dict['traj.phase0.timeseries.f_drag']['units'] == 'N')    # wildcard, from ODE
-        assert(output_dict['traj.phase0.timeseries.f_lift']['units'] == 'lbf')  # wildcard, from units dict
+        assert output_dict['traj.phase0.timeseries.thrust']['units'] == 'lbf'  # no wildcard, from units dict
+        assert output_dict['traj.phase0.timeseries.m_dot']['units'] == 'kg/s'  # no wildcard, from ODE
+        assert output_dict['traj.phase0.timeseries.f_drag']['units'] == 'N'    # wildcard, from ODE
+        assert output_dict['traj.phase0.timeseries.f_lift']['units'] == 'lbf'  # wildcard, from units dict
 
     def _test_mach_rate(self, p, plot=False, time_name='time'):
         """ Test that the mach rate is provided by the timeseries and is accurate. """

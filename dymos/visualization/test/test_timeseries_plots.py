@@ -158,7 +158,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                         rate_source='at_dot', targets=['accel'], units='DU/TU**2')
         burn1.add_state('deltav', fix_initial=True, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
-        burn1.add_control('u1',  targets=['u1'], rate_continuity=True, rate2_continuity=True,
+        burn1.add_control('u1', targets=['u1'], rate_continuity=True, rate2_continuity=True,
                           units='deg', scaler=0.01, lower=-30, upper=30)
         burn1.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
 
@@ -394,7 +394,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                         rate_source='at_dot', targets=['accel'], units='DU/TU**2')
         burn1.add_state('deltav', fix_initial=True, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
-        burn1.add_control('u1',  targets=['u1'], rate_continuity=True, rate2_continuity=True,
+        burn1.add_control('u1', targets=['u1'], rate_continuity=True, rate2_continuity=True,
                           units='deg', scaler=0.01, lower=-30, upper=30)
         burn1.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
 

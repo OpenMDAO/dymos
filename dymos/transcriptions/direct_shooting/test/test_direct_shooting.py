@@ -150,7 +150,6 @@ class TestDirectShooting(unittest.TestCase):
         x_f = prob.get_val('phase0.integrator.states_out:x')
         y_f = prob.get_val('phase0.integrator.states_out:y')
 
-
         assert_near_equal(t_f, 1.0)
         assert_near_equal(x_f[-1, ...], 2.64085909, tolerance=1.0E-5)
         assert_near_equal(y_f[-1, ...], 0.1691691, tolerance=1.0E-5)

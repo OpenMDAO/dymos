@@ -2,15 +2,17 @@ import os
 import unittest
 
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-plt.style.use('ggplot')
 
 from openmdao.utils.testing_utils import use_tempdirs
 
 import openmdao.api as om
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+
+
+matplotlib.use('Agg')
+plt.style.use('ggplot')
 
 
 @use_tempdirs

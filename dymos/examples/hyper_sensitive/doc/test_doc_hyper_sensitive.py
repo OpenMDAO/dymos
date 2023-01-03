@@ -6,12 +6,12 @@ import numpy as np
 
 import matplotlib
 import matplotlib.pyplot as plt
-matplotlib.use('Agg')
-plt.style.use('ggplot')
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
+matplotlib.use('Agg')
+plt.style.use('ggplot')
 tf = 10.0
 
 

@@ -3,7 +3,6 @@ import unittest
 import numpy as np
 
 import matplotlib.pyplot as plt
-plt.switch_backend('Agg')
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
@@ -13,7 +12,9 @@ import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
 
+
 SHOW_PLOTS = True
+plt.switch_backend('Agg')
 
 
 @use_tempdirs

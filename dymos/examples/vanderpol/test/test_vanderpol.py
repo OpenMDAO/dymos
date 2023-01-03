@@ -71,5 +71,6 @@ class TestVanderpolExampleMPI(unittest.TestCase):
         assert_almost_equal(p.get_val('traj.phase0.states:x1')[-1, ...], np.zeros(1))
         assert_almost_equal(p.get_val('traj.phase0.controls:u')[-1, ...], np.zeros(1), decimal=3)
 
+
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

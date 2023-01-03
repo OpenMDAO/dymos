@@ -60,7 +60,6 @@ class TestODEIntegrationComp(unittest.TestCase):
                 else:
                     output_grid_data = GridData(num_segments=1, transcription='uniform', transcription_order=10)
 
-
                 time_options = TimeOptionsDictionary()
 
                 time_options['targets'] = 't'
