@@ -43,7 +43,6 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
         assert_cases_equal(case1, p, tol=1.0E-8)
         assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
 
-    @unittest.skip('Skipped due to a change in interpolation in scipy. Need to come up with better case loading.')
     def test_restart_from_solution_radau(self):
         optimizer = 'IPOPT'
 

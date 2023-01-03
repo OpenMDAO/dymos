@@ -148,9 +148,9 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 @use_tempdirs
 class TestRefineShapedStaticParam(unittest.TestCase):
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_refine_shaped_static_param_gl(self):
-        p = min_time_climb(optimizer='SLSQP', num_seg=8, transcription_order=3,
+        p = min_time_climb(optimizer='IPOPT', num_seg=8, transcription_order=3,
                            transcription='gauss-lobatto')
 
         # Check that time matches to within 1% of an externally verified solution.
@@ -159,9 +159,9 @@ class TestRefineShapedStaticParam(unittest.TestCase):
         # Verify that ODE output mach is added to the timeseries
         assert_near_equal(p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_refine_shaped_static_param_radau(self):
-        p = min_time_climb(optimizer='SLSQP', num_seg=8, transcription_order=3,
+        p = min_time_climb(optimizer='IPOPT', num_seg=8, transcription_order=3,
                            transcription='radau-ps')
 
         # Check that time matches to within 1% of an externally verified solution.
