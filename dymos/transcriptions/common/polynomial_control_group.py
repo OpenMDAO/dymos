@@ -237,9 +237,17 @@ class PolynomialControlGroup(om.Group):
         """
         opts = self.options
 
+        # Pull out the interpolated controls
+        num_opt = 0
         for options in opts['polynomial_control_options'].values():
             if options['order'] < 1:
                 raise ValueError('Interpolation order must be >= 1 (linear)')
+            if options['opt']:
+                num_opt += 1
+
+        if num_opt > 0:
+            self.add_subsystem('indep_polynomial_controls', subsys=om.IndepVarComp(),
+                               promotes_outputs=['*'])
 
         self.add_subsystem(
             'interp_comp',
@@ -283,4 +291,10 @@ class PolynomialControlGroup(om.Group):
                                     indices=desvar_indices,
                                     flat_indices=True)
 
-            self.set_input_defaults(name=f'polynomial_controls:{name}', val=default_val, units=options['units'])
+            self.indep_polynomial_controls.add_output(f'polynomial_controls:{name}',
+                                                      shape=(num_input_nodes,) + shape,
+                                                      val=default_val,
+                                                      units=options['units'])
+
+            # TODO: Remove IVC and use following code instead.
+            # self.set_input_defaults(name=f'polynomial_controls:{name}', val=default_val, units=options['units'])

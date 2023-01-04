@@ -330,6 +330,9 @@ class ControlGroup(om.Group):
 
         opt_controls = [name for name, opts in control_options.items() if opts['opt']]
 
+        if len(opt_controls) > 0:
+            self.add_subsystem('indep_controls', subsys=om.IndepVarComp(), promotes_outputs=['*'])
+
         self.add_subsystem(
             'control_interp_comp',
             subsys=ControlInterpComp(time_units=time_units, grid_data=gd, output_grid_data=ogd,
@@ -378,4 +381,11 @@ class ControlGroup(om.Group):
                                         flat_indices=True)
 
             default_val = reshape_val(options['val'], shape, num_input_nodes)
-            self.set_input_defaults(name=dvname, val=default_val, units=options['units'])
+
+            self.indep_controls.add_output(name=dvname,
+                                           val=default_val,
+                                           shape=(num_input_nodes,) + shape,
+                                           units=options['units'])
+
+            # TODO: When the AutoIVC/MPI issue is fixed in OpenMDAO, replace IVC with following
+            # self.set_input_defaults(name=dvname, val=default_val, units=options['units'])
