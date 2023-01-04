@@ -382,10 +382,12 @@ class ControlGroup(om.Group):
 
             default_val = reshape_val(options['val'], shape, num_input_nodes)
 
-            self.indep_controls.add_output(name=dvname,
-                                           val=default_val,
-                                           shape=(num_input_nodes,) + shape,
-                                           units=options['units'])
+            ivc = self._get_subsystem('indep_controls')
+            if ivc:
+                ivc.add_output(name=dvname,
+                               val=default_val,
+                               shape=(num_input_nodes,) + shape,
+                               units=options['units'])
 
             # TODO: When the AutoIVC/MPI issue is fixed in OpenMDAO, replace IVC with following
             # self.set_input_defaults(name=dvname, val=default_val, units=options['units'])

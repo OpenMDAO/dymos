@@ -291,10 +291,12 @@ class PolynomialControlGroup(om.Group):
                                     indices=desvar_indices,
                                     flat_indices=True)
 
-            self.indep_polynomial_controls.add_output(f'polynomial_controls:{name}',
-                                                      shape=(num_input_nodes,) + shape,
-                                                      val=default_val,
-                                                      units=options['units'])
+            ivc = self._get_subsystem('indep_polynomial_controls')
+            if ivc:
+                ivc.add_output(f'polynomial_controls:{name}',
+                               shape=(num_input_nodes,) + shape,
+                               val=default_val,
+                               units=options['units'])
 
             # TODO: Remove IVC and use following code instead.
             # self.set_input_defaults(name=f'polynomial_controls:{name}', val=default_val, units=options['units'])
