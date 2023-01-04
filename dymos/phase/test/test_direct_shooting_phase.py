@@ -8,7 +8,7 @@ import dymos as dm
 import dymos.options as dymos_options
 
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -159,7 +159,6 @@ class TestDirectShootingPhase(unittest.TestCase):
 
         dymos_options['include_check_partials'] = False
 
-    @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_direct_shooting(self):
 
         dymos_options['include_check_partials'] = True
@@ -183,7 +182,7 @@ class TestDirectShootingPhase(unittest.TestCase):
                 traj = prob.model.add_subsystem('traj0', dm.Trajectory())
                 traj.add_phase('phase0', phase)
 
-                prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+                prob.driver = om.ScipyOptimizeDriver()
 
                 phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
 
@@ -230,7 +229,6 @@ class TestDirectShootingPhase(unittest.TestCase):
 
         dymos_options['include_check_partials'] = False
 
-    @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_direct_shooting_path_constraint(self):
 
         dymos_options['include_check_partials'] = True
@@ -253,7 +251,7 @@ class TestDirectShootingPhase(unittest.TestCase):
                 traj = prob.model.add_subsystem('traj0', dm.Trajectory())
                 traj.add_phase('phase0', phase)
 
-                prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+                prob.driver = om.ScipyOptimizeDriver()
 
                 phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
 
@@ -301,7 +299,6 @@ class TestDirectShootingPhase(unittest.TestCase):
 
         dymos_options['include_check_partials'] = False
 
-    @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_direct_shooting_path_constraint_polynomial_control(self):
 
         dymos_options['include_check_partials'] = True
@@ -328,7 +325,7 @@ class TestDirectShootingPhase(unittest.TestCase):
                         traj = prob.model.add_subsystem('traj0', dm.Trajectory())
                         traj.add_phase('phase0', phase)
 
-                        prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+                        prob.driver = om.ScipyOptimizeDriver()
 
                         phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
 
@@ -380,7 +377,6 @@ class TestDirectShootingPhase(unittest.TestCase):
 
         dymos_options['include_check_partials'] = False
 
-    @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_direct_shooting_path_constraint_invalid_renamed(self):
 
         dymos_options['include_check_partials'] = True
@@ -428,7 +424,6 @@ class TestDirectShootingPhase(unittest.TestCase):
 
         dymos_options['include_check_partials'] = False
 
-    @require_pyoptsparse(optimizer='SLSQP')
     def test_direct_shooting_timeseries_ode_output(self):
 
         dymos_options['include_check_partials'] = True
@@ -436,7 +431,7 @@ class TestDirectShootingPhase(unittest.TestCase):
         for output_grid_type in ('same', 'more_dense', 'radau', 'uniform'):
             prob = om.Problem()
 
-            prob.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+            prob.driver = om.ScipyOptimizeDriver()
 
             input_grid = dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=3, compressed=True)
 
@@ -502,7 +497,6 @@ class TestDirectShootingPhase(unittest.TestCase):
 
             dymos_options['include_check_partials'] = False
 
-    @require_pyoptsparse(optimizer='SLSQP')
     def test_direct_shooting_unknown_timeseries(self):
 
         for output_grid_type in ('same', 'more_dense', 'radau', 'uniform'):
@@ -615,7 +609,7 @@ class TestDirectShootingPhase(unittest.TestCase):
             #
             # Set the optimization driver
             #
-            p.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+            p.driver = om.ScipyOptimizeDriver()
 
             #
             # Setup the Problem
