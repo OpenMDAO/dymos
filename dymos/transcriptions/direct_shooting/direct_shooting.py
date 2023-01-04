@@ -334,8 +334,7 @@ class DirectShooting(TranscriptionBase):
 
             phase.add_subsystem('control_group',
                                 subsys=control_group,
-                                promotes_inputs=['controls:*', 'dt_dstau'],
-                                promotes_outputs=['control_values:*', 'control_rates:*'])
+                                promotes=['dt_dstau', 'controls:*', 'control_values:*', 'control_rates:*'])
 
             for name, options in phase.control_options.items():
                 for ts_name, ts_options in phase._timeseries.items():
