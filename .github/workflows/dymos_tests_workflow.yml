@@ -84,7 +84,7 @@ jobs:
             PETSc: 3.13
             PYOPTSPARSE: 'v1.2'
             SNOPT: 7.2
-            OPENMDAO: 3.17.0
+            OPENMDAO: 3.19.0
             OPTIONAL: '[test]'
             DOCS: 0
 
