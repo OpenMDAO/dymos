@@ -1357,7 +1357,7 @@ class TestInvalidLinkages(unittest.TestCase):
             traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel',
                                         sign_a=2.0, mult_a=3.0)
         self.assertEqual("Both the deprecated 'sign_a' option and option 'mult_a' were specified."
-                    "Going forward, please use only option mult_a.", str(cm.exception))
+                         "Going forward, please use only option mult_a.", str(cm.exception))
 
         traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel')
         self.assertEqual(-1.0, traj._linkages[('burn1', 'burn2')][('accel', 'accel')]['mult_b'])
@@ -1376,14 +1376,7 @@ class TestInvalidLinkages(unittest.TestCase):
             traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel',
                                         sign_b=2.0, mult_b=3.0)
         self.assertEqual("Both the deprecated 'sign_b' option and option 'mult_b' were specified."
-                    "Going forward, please use only option mult_b.", str(cm.exception))
-
-
-    def test_linkage_constraint_sign_arg_deprecation(self):
-        traj = dm.Trajectory()
-        with self.assertWarns(UserWarning) as w:
-            traj.add_linkage_constraint(sign_a=2.0)
-
+                         "Going forward, please use only option mult_b.", str(cm.exception))
 
     def test_linkage_units(self):
         import numpy as np

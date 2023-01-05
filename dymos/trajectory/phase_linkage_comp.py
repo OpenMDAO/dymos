@@ -120,11 +120,9 @@ class PhaseLinkageComp(om.ExplicitComponent):
 
         self.declare_partials(of=output, wrt=input_a, rows=rs, cols=cs_a,
                               val=lnk['mult_a'] * lnk._conv_a)
-                              # val=lnk['sign_a'] * lnk._conv_a)
 
         self.declare_partials(of=output, wrt=input_b, rows=rs, cols=cs_b,
                               val=lnk['mult_b'] * lnk._conv_b)
-                              # val=lnk['sign_b'] * lnk._conv_b)
 
     def compute(self, inputs, outputs):
         """

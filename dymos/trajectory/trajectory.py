@@ -630,16 +630,12 @@ class Trajectory(om.Group):
                                                 var_b='time', loc_a=options['loc_a'],
                                                 loc_b=options['loc_b'], sign_a=options['mult_a'],
                                                 sign_b=options['mult_b'])
-                                                # loc_b=options['loc_b'], sign_a=options['sign_a'],
-                                                # sign_b=options['sign_b'])
                     for state_name in phase_b.state_options:
                         self.add_linkage_constraint(phase_name_a, phase_name_b, var_a=state_name,
                                                     var_b=state_name, loc_a=options['loc_a'],
                                                     loc_b=options['loc_b'],
                                                     sign_a=options['mult_a'],
                                                     sign_b=options['mult_b'])
-                                                    # sign_a=options['sign_a'],
-                                                    # sign_b=options['sign_b'])
                     self._linkages[phase_pair].pop(var_pair)
 
     def _is_valid_linkage(self, phase_name_a, phase_name_b, loc_a, loc_b, var_a, var_b, fixed_a, fixed_b):
@@ -943,15 +939,15 @@ class Trajectory(om.Group):
             The location of the variable in the second phase of the linkage constraint (one of
             'initial' or 'final').
         sign_a : float
-            The multiplier applied to the variable from the first phase in the linkage constraint. This
-            argument is deprecated in favor of mult_a
+            The multiplier applied to the variable from the first phase in the linkage constraint.
+            This argument is deprecated in favor of mult_a.
         sign_b : float
-            The multiplier applied to the variable from the second phase in the linkage constraint. This
-            argument is deprecated in favor of mult_b
+            The multiplier applied to the variable from the second phase in the linkage constraint.
+            This argument is deprecated in favor of mult_b.
         mult_a : float
-            The sign applied to the variable from the first phase in the linkage constraint.
+            The multiplier applied to the variable from the first phase in the linkage constraint.
         mult_b : float
-            The sign applied to the variable from the second phase in the linkage constraint.
+            The multiplier applied to the variable from the second phase in the linkage constraint.
         units : str or None or _unspecified
             Units of the linkage. If _unspecified, dymos will use the units from the variable
             in the first phase of the linkage. Units of the two specified variables must be
