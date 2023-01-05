@@ -1344,8 +1344,7 @@ class TestInvalidLinkages(unittest.TestCase):
         self.assertEqual(1.0, traj._linkages[('burn1', 'burn2')][('accel', 'accel')]['mult_a'])
 
         with self.assertWarns(UserWarning) as w:
-            traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel',
-                                        sign_a=2.0)
+            traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel', sign_a=2.0)
         self.assertEqual("'sign_a' has been deprecated. Use 'mult_a' instead.", str(w.warning))
         self.assertEqual(2.0, traj._linkages[('burn1', 'burn2')][('accel', 'accel')]['mult_a'])
 
@@ -1363,8 +1362,7 @@ class TestInvalidLinkages(unittest.TestCase):
         self.assertEqual(-1.0, traj._linkages[('burn1', 'burn2')][('accel', 'accel')]['mult_b'])
 
         with self.assertWarns(UserWarning) as w:
-            traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel',
-                                        sign_b=2.0)
+            traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel', sign_b=2.0)
         self.assertEqual("'sign_b' has been deprecated. Use 'mult_b' instead.", str(w.warning))
         self.assertEqual(2.0, traj._linkages[('burn1', 'burn2')][('accel', 'accel')]['mult_b'])
 

@@ -628,14 +628,14 @@ class Trajectory(om.Group):
                     options = var_dict[var_pair]
                     self.add_linkage_constraint(phase_name_a, phase_name_b, var_a='time',
                                                 var_b='time', loc_a=options['loc_a'],
-                                                loc_b=options['loc_b'], sign_a=options['mult_a'],
-                                                sign_b=options['mult_b'])
+                                                loc_b=options['loc_b'], mult_a=options['mult_a'],
+                                                mult_b=options['mult_b'])
                     for state_name in phase_b.state_options:
                         self.add_linkage_constraint(phase_name_a, phase_name_b, var_a=state_name,
                                                     var_b=state_name, loc_a=options['loc_a'],
                                                     loc_b=options['loc_b'],
-                                                    sign_a=options['mult_a'],
-                                                    sign_b=options['mult_b'])
+                                                    mult_a=options['mult_a'],
+                                                    mult_b=options['mult_b'])
                     self._linkages[phase_pair].pop(var_pair)
 
     def _is_valid_linkage(self, phase_name_a, phase_name_b, loc_a, loc_b, var_a, var_b, fixed_a, fixed_b):
@@ -882,7 +882,7 @@ class Trajectory(om.Group):
 
         Phase linkage constraints are enforced by constraining the following equation:
 
-        sign_a * var_a + sign_b * var_b
+        mult_a * var_a + mult_b * var_b
 
         The resulting value of this equation is constrained.  This can satisfy 'coupling' or
         'linkage' conditions across phase boundaries:  enforcing continuity,
@@ -979,8 +979,7 @@ class Trajectory(om.Group):
                 raise ValueError(
                     "Both the deprecated 'sign_a' option and option 'mult_a' were specified."
                     "Going forward, please use only option mult_a.")
-            warn_deprecation("'sign_a' has been deprecated. Use "
-                             "'mult_a' instead.")
+            warn_deprecation("'sign_a' has been deprecated. Use 'mult_a' instead.")
             mult_a = sign_a
         else:  # sign_a is _unspecified
             if mult_a is _unspecified:
@@ -991,8 +990,7 @@ class Trajectory(om.Group):
                 raise ValueError(
                     "Both the deprecated 'sign_b' option and option 'mult_b' were specified."
                     "Going forward, please use only option mult_b.")
-            warn_deprecation("'sign_b' has been deprecated. Use "
-                             "'mult_b' instead.")
+            warn_deprecation("'sign_b' has been deprecated. Use 'mult_b' instead.")
             mult_b = sign_b
         else:  # sign_a is _unspecified
             if mult_b is _unspecified:
@@ -1022,8 +1020,6 @@ class Trajectory(om.Group):
         d['var_b'] = var_b
         d['loc_a'] = loc_a
         d['loc_b'] = loc_b
-        # d['sign_a'] = sign_a
-        # d['sign_b'] = sign_b
         d['mult_a'] = mult_a
         d['mult_b'] = mult_b
         d['units'] = units

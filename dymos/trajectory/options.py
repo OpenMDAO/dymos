@@ -38,7 +38,7 @@ class LinkageOptionsDictionary(om.OptionsDictionary):
                      desc='The multiplier applied to the variable from the second phase in the linkage constraint',
                      deprecation="Option 'sign_b' has been replaced by option 'mult_b'")
         self.declare(name='mult_a', types=Number, default=1.0,
-                     deprecation="Option 'sign_a' has been replaced by option 'mult_a'")
+                     desc='The multiplier applied to the variable from the first phase in the linkage constraint')
         self.declare(name='mult_b', types=Number, default=-1.0,
                      desc='The multiplier applied to the variable from the second phase in the linkage constraint')
 
