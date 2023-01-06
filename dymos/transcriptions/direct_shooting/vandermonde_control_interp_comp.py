@@ -9,7 +9,7 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
     A component which interpolates control values in 1D using Vandermonde interpolation.
 
     Takes training values for control variables at given _input_ nodes,
-    broadcaasts them to _discretization_ nodes, and then interpolates the discretization values
+    broadcasts them to _discretization_ nodes, and then interpolates the discretization values
     to provide a control variable at a given segment tau or phase tau.
 
     For dynamic controls, the current segment is given as a discrete input and the interpolation is
@@ -289,7 +289,7 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
         """
-        Compute derivatives interpolated control values and rates wrt the inputs.
+        Compute derivatives of interpolated control values and rates wrt the inputs.
 
         Parameters
         ----------

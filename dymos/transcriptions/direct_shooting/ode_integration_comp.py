@@ -438,7 +438,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
 
     def setup(self):
         """
-        Add the necessary I/O and storage for the RKIntegrationComp.
+        Add the necessary I/O and storage for the ODEIntegrationComp.
         """
         ogd = self._output_grid_data
 

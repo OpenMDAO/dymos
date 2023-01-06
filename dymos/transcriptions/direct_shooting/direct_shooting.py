@@ -52,8 +52,8 @@ class DirectShooting(TranscriptionBase):
         self.options.declare('propagate_derivs', types=bool, default=True,
                              desc='If True, propagate the state and derivatives of the state and time with respect to '
                                   'the integration parameters. If False, only propagate the primal states. If only '
-                                  'using this transcription to propagate an ODE and derivatives are needed, setting '
-                                  'this option to False should result in faster execution.')
+                                  'using this transcription to propagate an ODE and derivatives are nof needed, '
+                                  'setting this option to False should result in faster execution.')
         self.options.declare('subprob_reports', default=False,
                              desc='Controls the reports made when running the subproblems for DirectShooting')
         self.options.declare('input_grid', types=(GaussLobattoGrid, RadauGrid),
@@ -868,7 +868,6 @@ class DirectShooting(TranscriptionBase):
         elif var_type == 'control_rate':
             control_name = var[:-5]
             path = f'control_rates:{control_name}_rate'
-            control_name = var[:-5]
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=1)
             src_shape = phase.control_options[control_name]['shape']
         elif var_type == 'control_rate2':
