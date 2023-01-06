@@ -40,8 +40,8 @@ class DirectShootingPhase(Phase):
         self.options.declare('propagate_derivs', types=bool, default=True,
                              desc='If True, propagate the state and derivatives of the state and time with respect to '
                                   'the integration parameters. If False, only propagate the primal states. If only '
-                                  'using this transcription to propagate an ODE and derivatives are needed, setting '
-                                  'this option to False should result in faster execution.')
+                                  'using this transcription to propagate an ODE and derivatives are nor needed, '
+                                  'setting this option to False should result in faster execution.')
         self.options.declare('subprob_reports', default=False,
                              desc='Controls the reports made when running the subproblems for DirectShooting')
         self.options.declare('input_grid', types=(GaussLobattoGrid, RadauGrid),

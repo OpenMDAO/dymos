@@ -113,7 +113,7 @@ def uniform_subsets_and_nodes(n, *args, **kwargs):
     """
     Provides a dict of node info and locations for a uniformly distributed set of n nodes on the range [-1, 1].
 
-    This distribution is not to be used to define polynomials, since equally space nodes
+    This distribution is not to be used to define polynomials, since equally-spaced nodes
     result in poor polynomial fitting. Most subsets here aside from `all`, `segment_ends`, and
     `solution` are not defined for the uniform distribution.
 
