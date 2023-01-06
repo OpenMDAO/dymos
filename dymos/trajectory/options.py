@@ -32,10 +32,15 @@ class LinkageOptionsDictionary(om.OptionsDictionary):
                      desc='location of the second variable in the linkage (\'initial\' or \'final\')')
 
         self.declare(name='sign_a', types=Number, default=1.0,
-                     desc='sign of the first variable in the linkage (\'initial\' or \'final\')')
-
+                     desc='The multiplier applied to the variable from the first phase in the linkage constraint',
+                     deprecation="Option 'sign_a' has been replaced by option 'mult_a'")
         self.declare(name='sign_b', types=Number, default=-1.0,
-                     desc='sign of the second variable in the linkage (\'initial\' or \'final\')')
+                     desc='The multiplier applied to the variable from the second phase in the linkage constraint',
+                     deprecation="Option 'sign_b' has been replaced by option 'mult_b'")
+        self.declare(name='mult_a', types=Number, default=1.0,
+                     desc='The multiplier applied to the variable from the first phase in the linkage constraint')
+        self.declare(name='mult_b', types=Number, default=-1.0,
+                     desc='The multiplier applied to the variable from the second phase in the linkage constraint')
 
         self.declare(name='units_a', default=_unspecified,
                      allow_none=True, desc='units in which the first variable is defined')

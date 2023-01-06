@@ -1339,6 +1339,43 @@ class TestInvalidLinkages(unittest.TestCase):
 
         self.assertEqual(expected_warning, str(w.warning))
 
+        # Test the deprecation of the linkage constraint options, sign_a and sign_b
+        traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel')
+        self.assertEqual(1.0, traj._linkages[('burn1', 'burn2')][('accel', 'accel')]['mult_a'])
+
+        with self.assertWarns(UserWarning) as w:
+            traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel', sign_a=2.0)
+        self.assertEqual("'sign_a' has been deprecated. Use 'mult_a' instead.", str(w.warning))
+        self.assertEqual(2.0, traj._linkages[('burn1', 'burn2')][('accel', 'accel')]['mult_a'])
+
+        traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel',
+                                    mult_a=3.0)
+        self.assertEqual(3.0, traj._linkages[('burn1', 'burn2')][('accel', 'accel')]['mult_a'])
+
+        with self.assertRaises(ValueError) as cm:
+            traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel',
+                                        sign_a=2.0, mult_a=3.0)
+        self.assertEqual("Both the deprecated 'sign_a' option and option 'mult_a' were specified."
+                         "Going forward, please use only option mult_a.", str(cm.exception))
+
+        traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel')
+        self.assertEqual(-1.0, traj._linkages[('burn1', 'burn2')][('accel', 'accel')]['mult_b'])
+
+        with self.assertWarns(UserWarning) as w:
+            traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel', sign_b=2.0)
+        self.assertEqual("'sign_b' has been deprecated. Use 'mult_b' instead.", str(w.warning))
+        self.assertEqual(2.0, traj._linkages[('burn1', 'burn2')][('accel', 'accel')]['mult_b'])
+
+        traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel',
+                                    mult_b=3.0)
+        self.assertEqual(3.0, traj._linkages[('burn1', 'burn2')][('accel', 'accel')]['mult_b'])
+
+        with self.assertRaises(ValueError) as cm:
+            traj.add_linkage_constraint(phase_a='burn1', phase_b='burn2', var_a='accel', var_b='accel',
+                                        sign_b=2.0, mult_b=3.0)
+        self.assertEqual("Both the deprecated 'sign_b' option and option 'mult_b' were specified."
+                         "Going forward, please use only option mult_b.", str(cm.exception))
+
     def test_linkage_units(self):
         import numpy as np
         from scipy.interpolate import interp1d
