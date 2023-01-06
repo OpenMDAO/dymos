@@ -4,6 +4,9 @@ from copy import deepcopy
 import itertools
 import sys
 import warnings
+
+from openmdao.utils.om_warnings import warn_deprecation
+
 try:
     from itertools import izip
 except ImportError:
@@ -625,14 +628,14 @@ class Trajectory(om.Group):
                     options = var_dict[var_pair]
                     self.add_linkage_constraint(phase_name_a, phase_name_b, var_a='time',
                                                 var_b='time', loc_a=options['loc_a'],
-                                                loc_b=options['loc_b'], sign_a=options['sign_a'],
-                                                sign_b=options['sign_b'])
+                                                loc_b=options['loc_b'], mult_a=options['mult_a'],
+                                                mult_b=options['mult_b'])
                     for state_name in phase_b.state_options:
                         self.add_linkage_constraint(phase_name_a, phase_name_b, var_a=state_name,
                                                     var_b=state_name, loc_a=options['loc_a'],
                                                     loc_b=options['loc_b'],
-                                                    sign_a=options['sign_a'],
-                                                    sign_b=options['sign_b'])
+                                                    mult_a=options['mult_a'],
+                                                    mult_b=options['mult_b'])
                     self._linkages[phase_pair].pop(var_pair)
 
     def _is_valid_linkage(self, phase_name_a, phase_name_b, loc_a, loc_b, var_a, var_b, fixed_a, fixed_b):
@@ -869,7 +872,9 @@ class Trajectory(om.Group):
         self.promotes('phases', inputs=['*'], outputs=['*'])
 
     def add_linkage_constraint(self, phase_a, phase_b, var_a, var_b, loc_a='final', loc_b='initial',
-                               sign_a=1.0, sign_b=-1.0, units=_unspecified, lower=None, upper=None,
+                               sign_a=_unspecified, sign_b=_unspecified,
+                               mult_a=_unspecified, mult_b=_unspecified,
+                               units=_unspecified, lower=None, upper=None,
                                equals=None, scaler=None, adder=None, ref0=None, ref=None,
                                linear=False, connected=False):
         """
@@ -877,7 +882,7 @@ class Trajectory(om.Group):
 
         Phase linkage constraints are enforced by constraining the following equation:
 
-        sign_a * var_a + sign_b * var_b
+        mult_a * var_a + mult_b * var_b
 
         The resulting value of this equation is constrained.  This can satisfy 'coupling' or
         'linkage' conditions across phase boundaries:  enforcing continuity,
@@ -934,9 +939,15 @@ class Trajectory(om.Group):
             The location of the variable in the second phase of the linkage constraint (one of
             'initial' or 'final').
         sign_a : float
-            The sign applied to the variable from the first phase in the linkage constraint.
+            The multiplier applied to the variable from the first phase in the linkage constraint.
+            This argument is deprecated in favor of mult_a.
         sign_b : float
-            The sign applied to the variable from the second phase in the linkage constraint.
+            The multiplier applied to the variable from the second phase in the linkage constraint.
+            This argument is deprecated in favor of mult_b.
+        mult_a : float
+            The multiplier applied to the variable from the first phase in the linkage constraint.
+        mult_b : float
+            The multiplier applied to the variable from the second phase in the linkage constraint.
         units : str or None or _unspecified
             Units of the linkage. If _unspecified, dymos will use the units from the variable
             in the first phase of the linkage. Units of the two specified variables must be
@@ -963,6 +974,28 @@ class Trajectory(om.Group):
             If True, this constraint is enforced by direct connection rather than a constraint
             for the optimizer. This is only valid for states and time.
         """
+        if sign_a is not _unspecified:
+            if mult_a is not _unspecified:
+                raise ValueError(
+                    "Both the deprecated 'sign_a' option and option 'mult_a' were specified."
+                    "Going forward, please use only option mult_a.")
+            warn_deprecation("'sign_a' has been deprecated. Use 'mult_a' instead.")
+            mult_a = sign_a
+        else:  # sign_a is _unspecified
+            if mult_a is _unspecified:
+                mult_a = 1.0
+
+        if sign_b is not _unspecified:
+            if mult_b is not _unspecified:
+                raise ValueError(
+                    "Both the deprecated 'sign_b' option and option 'mult_b' were specified."
+                    "Going forward, please use only option mult_b.")
+            warn_deprecation("'sign_b' has been deprecated. Use 'mult_b' instead.")
+            mult_b = sign_b
+        else:  # sign_a is _unspecified
+            if mult_b is _unspecified:
+                mult_b = -1.0
+
         if connected:
             invalid_options = []
             for arg in ['lower', 'upper', 'equals', 'scaler', 'adder', 'ref0', 'ref', 'units']:
@@ -987,8 +1020,8 @@ class Trajectory(om.Group):
         d['var_b'] = var_b
         d['loc_a'] = loc_a
         d['loc_b'] = loc_b
-        d['sign_a'] = sign_a
-        d['sign_b'] = sign_b
+        d['mult_a'] = mult_a
+        d['mult_b'] = mult_b
         d['units'] = units
         d['lower'] = lower
         d['upper'] = upper
