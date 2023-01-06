@@ -242,7 +242,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 @use_tempdirs
 class TestTrajectoryParameters(unittest.TestCase):
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_param_explicit_connections_to_sequence(self):
         """
         Test that, when setting up a trajectory parameter, we can explicitly provide a sequence
@@ -257,7 +257,7 @@ class TestTrajectoryParameters(unittest.TestCase):
             assert_near_equal(p.get_val('orbit_transfer.burn2.states:deltav')[-1], 0.3995,
                               tolerance=2.0E-3)
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_param_explicit_connections_to_sequence_missing_phase(self):
         """
         Test that, when setting up a trajectory parameter with a phase omitted from input,
@@ -272,7 +272,7 @@ class TestTrajectoryParameters(unittest.TestCase):
             assert_near_equal(p.get_val('orbit_transfer.burn2.states:deltav')[-1], 0.3995,
                               tolerance=2.0E-3)
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_param_no_targets(self):
         """
         Test that, when setting up a trajectory parameter with a phase omitted from input,
