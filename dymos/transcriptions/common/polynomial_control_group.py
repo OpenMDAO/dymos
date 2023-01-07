@@ -253,8 +253,7 @@ class PolynomialControlGroup(om.Group):
             'interp_comp',
             subsys=LGLPolynomialControlComp(time_units=opts['time_units'],
                                             grid_data=opts['grid_data'],
-                                            polynomial_control_options=opts['polynomial_control_'
-                                                                            'options']),
+                                            polynomial_control_options=opts['polynomial_control_options']),
             promotes_inputs=['*'],
             promotes_outputs=['*'])
 
@@ -262,20 +261,16 @@ class PolynomialControlGroup(om.Group):
         """
         I/O creation is delayed until configure so we can determine shape and units for the states.
         """
-        self.interp_comp.configure_io()
+        interp_comp = self._get_subsystem('interp_comp')
+        interp_comp.configure_io()
 
         # For any interpolated control with `opt=True`, add an indep var comp output and
         # setup the design variable for optimization.
         for name, options in self.options['polynomial_control_options'].items():
             num_input_nodes = options['order'] + 1
             shape = options['shape']
+            default_val = reshape_val(options['val'], shape, num_input_nodes)
             if options['opt']:
-                default_val = reshape_val(options['val'], shape, num_input_nodes)
-
-                self.indep_polynomial_controls.add_output(f'polynomial_controls:{name}',
-                                                          shape=(num_input_nodes,) + shape,
-                                                          val=default_val,
-                                                          units=options['units'])
 
                 desvar_indices = np.arange(num_input_nodes, dtype=int)
                 if options['fix_initial']:
@@ -295,3 +290,13 @@ class PolynomialControlGroup(om.Group):
                                     scaler=options['scaler'],
                                     indices=desvar_indices,
                                     flat_indices=True)
+
+            ivc = self._get_subsystem('indep_polynomial_controls')
+            if ivc:
+                ivc.add_output(f'polynomial_controls:{name}',
+                               shape=(num_input_nodes,) + shape,
+                               val=default_val,
+                               units=options['units'])
+
+            # TODO: Remove IVC and use following code instead.
+            # self.set_input_defaults(name=f'polynomial_controls:{name}', val=default_val, units=options['units'])

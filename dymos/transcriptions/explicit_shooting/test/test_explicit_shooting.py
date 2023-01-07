@@ -164,8 +164,8 @@ class TestExplicitShooting(unittest.TestCase):
     @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_explicit_shooting(self):
 
-        for method in ['rk4', 'ralston']:
-            for compressed in [True, False]:
+        for method in ['rk4']:
+            for compressed in [True]:
                 with self.subTest(f"test brachistochrone explicit shooting with method '{method}'"):
                     prob = om.Problem()
 

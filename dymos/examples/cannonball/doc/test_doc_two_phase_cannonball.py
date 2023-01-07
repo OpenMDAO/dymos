@@ -1,9 +1,11 @@
 import unittest
 
 import matplotlib.pyplot as plt
-plt.switch_backend('Agg')
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+
+
+plt.switch_backend('Agg')
 
 
 @use_tempdirs

@@ -75,7 +75,7 @@ def load_case(problem, previous_solution):
     """
 
     # allow old style arguments using a Case or OpenMDAO problem instead of dictionary
-    assert(isinstance(previous_solution, Case) or isinstance(previous_solution, dict))
+    assert (isinstance(previous_solution, Case) or isinstance(previous_solution, dict))
     if isinstance(previous_solution, Case):
         case = previous_solution
         previous_solution = {'inputs': case.list_inputs(out_stream=None, units=True, prom_name=True),

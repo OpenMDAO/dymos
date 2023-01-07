@@ -37,7 +37,9 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer=optimizer,
-                                         show_output=False, connected=True)
+                                         show_output=False, connected=True, run_driver=True)
+
+        p.check_totals(compact_print=True)
 
         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
             assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,

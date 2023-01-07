@@ -121,9 +121,9 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         t = p.get_val('traj.phase.timeseries.time', units='s')
         y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
 
-        expected = lambda x: x ** 2 + 2 * x + 1 - 0.5 * np.exp(x)
+        expected = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
 
-        assert_near_equal(y, expected(t))
+        assert_near_equal(y, expected)
 
     def test_simple_bvp(self):
 
@@ -146,9 +146,9 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         t = p.get_val('traj.phase.timeseries.time', units='s')
         y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
 
-        expected = lambda x: x * (1 - x) * (1 + x - x**2) / 12
+        expected = t * (1 - t) * (1 + t - t**2) / 12
 
-        assert_near_equal(y, expected(t))
+        assert_near_equal(y, expected)
 
     def test_renamed_state(self):
 
@@ -199,9 +199,9 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         t = p.get_val('traj.phase.timeseries.time', units='s')
         y = p.get_val('traj.phase.timeseries.states:foo', units='unitless')
 
-        expected = lambda x: x ** 2 + 2 * x + 1 - 0.5 * np.exp(x)
+        expected = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
 
-        assert_near_equal(y, expected(t))
+        assert_near_equal(y, expected)
 
     def test_analytic_phase_load_case(self):
 
@@ -235,9 +235,9 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         t = p.get_val('traj.phase.timeseries.time', units='s')
         y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
 
-        expected = lambda x: x ** 2 + 2 * x + 1 - 0.5 * np.exp(x)
+        expected = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
 
-        assert_near_equal(y, expected(t))
+        assert_near_equal(y, expected)
 
 
 @use_tempdirs
@@ -351,14 +351,11 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         x_2 = p.get_val('traj.second_phase.timeseries.states:y', units='unitless')
         y0_2 = p.get_val('traj.second_phase.parameter_vals:y0')
 
-        # A dense version of the analytic solution for plot comparison.
-        expected = lambda time: time ** 2 + 2 * time + 1 - y0_1 * np.exp(time)
-        t_dense = np.linspace(t_1[0], t_2[-1], 100)
-
         assert_near_equal(1.500000, x_1[-1, 0], tolerance=1.0E-6)
         assert_near_equal(0.5338712554624387, t_1[-1, 0], tolerance=1.0E-6)
         assert_near_equal(2.0, t_2[-1, 0], tolerance=1.0E-6)
         assert_near_equal(5.305471950533106, x_2[-1, 0], tolerance=1.0E-6)
+        assert_near_equal(y0_1, y0_2, tolerance=1.0E-6)
 
     def test_linked_phases_connected_time(self):
         p = om.Problem()
@@ -406,14 +403,11 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         x_2 = p.get_val('traj.second_phase.timeseries.states:y', units='unitless')
         y0_2 = p.get_val('traj.second_phase.parameter_vals:y0')
 
-        # A dense version of the analytic solution for plot comparison.
-        expected = lambda time: time ** 2 + 2 * time + 1 - y0_1 * np.exp(time)
-        t_dense = np.linspace(t_1[0], t_2[-1], 100)
-
         assert_near_equal(1.500000, x_1[-1, 0], tolerance=1.0E-6)
         assert_near_equal(0.5338712554624387, t_1[-1, 0], tolerance=1.0E-6)
         assert_near_equal(2.0, t_2[-1, 0], tolerance=1.0E-6)
         assert_near_equal(5.305471950533106, x_2[-1, 0], tolerance=1.0E-6)
+        assert_near_equal(y0_1, y0_2, tolerance=1.0E-6)
 
     def test_linked_phases_connected_state(self):
         p = om.Problem()
@@ -501,14 +495,11 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         x_2 = p.get_val('traj.second_phase.timeseries.states:y', units='unitless')
         y0_2 = p.get_val('traj.second_phase.parameter_vals:y0')
 
-        # A dense version of the analytic solution for plot comparison.
-        expected = lambda time: time ** 2 + 2 * time + 1 - y0_1 * np.exp(time)
-        t_dense = np.linspace(t_1[0], t_2[-1], 100)
-
         assert_near_equal(1.500000, x_1[-1, 0], tolerance=1.0E-6)
         assert_near_equal(0.5338712554624387, t_1[-1, 0], tolerance=1.0E-6)
         assert_near_equal(2.0, t_2[-1, 0], tolerance=1.0E-6)
         assert_near_equal(5.305471950533106, x_2[-1, 0], tolerance=1.0E-6)
+        assert_near_equal(y0_1, y0_2, tolerance=1.0E-6)
 
     def test_link_params_connected_false(self):
         p = om.Problem()
@@ -555,14 +546,11 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         x_2 = p.get_val('traj.second_phase.timeseries.states:y', units='unitless')
         y0_2 = p.get_val('traj.second_phase.parameter_vals:y0')
 
-        # A dense version of the analytic solution for plot comparison.
-        expected = lambda time: time ** 2 + 2 * time + 1 - y0_1 * np.exp(time)
-        t_dense = np.linspace(t_1[0], t_2[-1], 100)
-
         assert_near_equal(1.500000, x_1[-1, 0], tolerance=1.0E-6)
         assert_near_equal(0.5338712554624387, t_1[-1, 0], tolerance=1.0E-6)
         assert_near_equal(2.0, t_2[-1, 0], tolerance=1.0E-6)
         assert_near_equal(5.305471950533106, x_2[-1, 0], tolerance=1.0E-6)
+        assert_near_equal(y0_1, y0_2, tolerance=1.0E-6)
 
     def test_link_params_connected_true(self):
         p = om.Problem()

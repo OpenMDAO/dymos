@@ -1,17 +1,15 @@
 import unittest
 
 import numpy as np
+import matplotlib
 
 import openmdao.api as om
 from dymos.utils.testing_utils import assert_check_partials
 
 from dymos.examples.min_time_climb.aero.cla_comp import CLaComp
 
-assert_almost_equal = np.testing.assert_almost_equal
 
-import matplotlib
 matplotlib.use('Agg')
-
 SHOW_PLOTS = True
 
 

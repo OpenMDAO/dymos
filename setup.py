@@ -21,7 +21,7 @@ optional_dependencies = {
         'ipython'
     ],
     'test': [
-        'pep8',
+        'pycodestyle',
         'testflo>=1.3.6',
         'matplotlib',
         'numpydoc>=1.1',

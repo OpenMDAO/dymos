@@ -361,6 +361,29 @@ class TranscriptionBase(object):
         """
         raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_ode.')
 
+    def setup_solvers(self, phase):
+        """
+        Setup the solvers for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_solvers.')
+
+    def configure_solvers(self, phase):
+        """
+        Configure the solvers for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
+                                  f'configure_solvers.')
+
     def setup_timeseries_outputs(self, phase):
         """
         Setup the timeseries for this transcription.

@@ -2216,23 +2216,14 @@ class Phase(om.Group):
 
         # Assign control values
         for name, options in phs.control_options.items():
-            if options['opt']:
-                op = op_dict[f'control_group.indep_controls.controls:{name}']
-                prob[f'{self_path}controls:{name}'][...] = op['val']
-            else:
-                ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
-                prob[f'{self_path}controls:{name}'][...] = ip['val']
+            ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
+            prob[f'{self_path}controls:{name}'][...] = ip['val']
 
         # Assign polynomial control values
         for name, options in phs.polynomial_control_options.items():
-            if options['opt']:
-                op = op_dict[f'polynomial_control_group.indep_polynomial_controls.'
-                             f'polynomial_controls:{name}']
-                prob[f'{self_path}polynomial_controls:{name}'][...] = op['val']
-            else:
-                ip = ip_dict[f'{phs_path}polynomial_control_group.interp_comp.'
-                             f'polynomial_controls:{name}']
-                prob[f'{self_path}polynomial_controls:{name}'][...] = ip['val']
+            ip = ip_dict[f'polynomial_control_group.interp_comp.'
+                         f'polynomial_controls:{name}']
+            prob[f'{self_path}polynomial_controls:{name}'][...] = ip['val']
 
         # Assign parameter values
         for name in phs.parameter_options:
