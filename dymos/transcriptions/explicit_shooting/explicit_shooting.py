@@ -147,8 +147,6 @@ class ExplicitShooting(TranscriptionBase):
             warn_deprecation(f'Integration method {self.options["method"]} is no longer a valid option. Please use one '
                              f'of \'DOP853\', \'RK45\', \'RK23\' instead. Falling back to the default \'DOP853\'.')
             self.options['method'] = 'DOP853'
-
-
         # End deprecation-handling
 
         self._input_grid_data = self.options['input_grid']
