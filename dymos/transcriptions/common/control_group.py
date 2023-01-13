@@ -216,8 +216,6 @@ class ControlInterpComp(om.ExplicitComponent):
 
         self._configure_controls()
 
-        self.set_check_partial_options('*', method='cs')
-
     def compute(self, inputs, outputs):
         """
         Compute interpolated control values and rates.
