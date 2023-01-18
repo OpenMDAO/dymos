@@ -132,7 +132,7 @@ def _mpl_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
 
         # save to file
         plot_file_path = plot_dir_path.joinpath(f'{var_name.replace(":","_")}.png')
-        plt.savefig(plot_file_path)
+        plt.savefig(plot_file_path, dpi=300)
         plt.close(fig)
         plotfiles.append(plot_file_path)
 

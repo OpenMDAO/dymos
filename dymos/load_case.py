@@ -122,7 +122,8 @@ def load_case(problem, previous_solution):
 
         # Get the initial time and duration from the previous result and set them into the new phase.
         try:
-            prev_time_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.time')][0]
+            integration_name = phase.time_options['name']
+            prev_time_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.{integration_name}')][0]
         except IndexError as e:
             continue
 
@@ -191,6 +192,10 @@ def load_case(problem, previous_solution):
                 prev_pc_path = [s for s in prev_vars if s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
                 prev_pc_val = prev_vars[prev_pc_path]['val']
                 prev_pc_units = prev_vars[prev_pc_path]['units']
+                n_pc = len(problem.get_val(pc_path))
+                # TODO: change the below line so it interpolates instead of making a length two list. Need to do a 1D interpolation. Also need to write a test for it.
+                if n_pc != len(prev_pc_val):
+                    prev_pc_val = [prev_pc_val[0], prev_pc_val[1]]
                 problem.set_val(pc_path, prev_pc_val, units=prev_pc_units)
                 if options['fix_final']:
                     warning_message = f"{phase_name}.polynomial_controls:{pc_name} specifies 'fix_final=True'. " \
