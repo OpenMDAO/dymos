@@ -60,13 +60,13 @@ class ExplicitShooting(TranscriptionBase):
                                   'setting this option to False should result in faster execution.')
         self.options.declare('subprob_reports', default=False,
                              desc='Controls the reports made when running the subproblems for ExplicitShooting')
-        self.options.declare('grid', types=(GaussLobattoGrid, RadauGrid, str),
+        self.options.declare('grid', types=(GaussLobattoGrid, RadauGrid, str), allow_none=True, default=None,
                              desc='The grid distribution used to layout the control inputs and provide the default '
                                   'output nodes.')
         self.options.declare('output_grid', types=(GaussLobattoGrid, RadauGrid, UniformGrid), allow_none=True,
                              default=None,
                              desc='The grid distribution determining the location of the output nodes. The default '
-                                  'value of None will result in the use of the input_grid for outputs. This is useful '
+                                  'value of None will result in the use of the grid for outputs. This is useful '
                                   'for the implementation of path constraints but can result in highly nonlinear '
                                   'dynamics being smoothed over in the outputs. When used for validation through '
                                   'simulation, it is generally wise to choose an output grid that is more dense '
@@ -81,19 +81,19 @@ class ExplicitShooting(TranscriptionBase):
         # Deprecated options previously inherited from transcription base.
         self.options.declare('num_segments', types=int, desc='Number of segments',
                              deprecation='Option `num_segments` of ExplicitShooting is deprecated. Please provide '
-                                         '`input_grid` as an instance of dymos.GaussLobattoGrid or '
+                                         '`grid` as an instance of dymos.GaussLobattoGrid or '
                                          'dymos.RadauGrid instead.')
         self.options.declare('segment_ends', default=None, types=(Sequence, np.ndarray),
                              allow_none=True, desc='Locations of segment ends or None for equally '
                              'spaced segments',
                              deprecation='Option `segment_ends` of ExplicitShooting is deprecated. Please provide '
-                                         '`input_grid` as an instance of dymos.GaussLobattoGrid or '
+                                         '`grid` as an instance of dymos.GaussLobattoGrid or '
                                          'dymos.RadauGrid instead.')
         self.options.declare('order', default=3, types=(int, Sequence, np.ndarray),
                              desc='Order of the state transcription. The order of the control '
                                   'transcription is `order - 1`.',
                              deprecation='Option `order` of ExplicitShooting is deprecated. Please provide '
-                                         '`input_grid` as an instance of dymos.GaussLobattoGrid or '
+                                         '`grid` as an instance of dymos.GaussLobattoGrid or '
                                          'dymos.RadauGrid instead.')
         self.options.declare('compressed', default=True, types=bool,
                              desc='Use compressed transcription, meaning state and control values'
@@ -101,14 +101,13 @@ class ExplicitShooting(TranscriptionBase):
                                   'implicitly enforces value continuity between segments but in '
                                   'some cases may make the problem more difficult to solve.',
                              deprecation='Option `compressed`` of ExplicitShooting is deprecated. Please provide '
-                                         '`input_grid` as an instance of dymos.GaussLobattoGrid or '
+                                         '`grid` as an instance of dymos.GaussLobattoGrid or '
                                          'dymos.RadauGrid instead.')
 
     def init_grid(self):
         """
         Setup the GridData object for the Transcription.
         """
-
         # Don't show the deprecation warning unless the user actually used the deprecated options:
         dep_options = {'order': None, 'segment_ends': None, 'compressed': None}
 
