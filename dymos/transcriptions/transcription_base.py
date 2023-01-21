@@ -565,8 +565,7 @@ class TranscriptionBase(object):
             size = int(np.prod(shape))
 
             if size > 1 and index is None:
-                raise ValueError('Objective variable is non-scaler {0} but no index specified '
-                                 'for objective'.format(shape))
+                raise ValueError(f'Objective variable is non-scaler {shape} but no index specified for objective')
 
             idx = 0 if index is None else index
             if idx < 0:

@@ -6,7 +6,7 @@ from ...options import options as dymos_options
 from ..common.timeseries_output_comp import TimeseriesOutputCompBase
 
 
-class DirectShootingTimeseriesComp(TimeseriesOutputCompBase):
+class ExplicitShootingTimeseriesComp(TimeseriesOutputCompBase):
 
     """
     Class definition of the ExplicitTimeseriesComp.
@@ -17,7 +17,7 @@ class DirectShootingTimeseriesComp(TimeseriesOutputCompBase):
         Dictionary of optional arguments.
     """
     def __init__(self, **kwargs):
-        super(DirectShootingTimeseriesComp, self).__init__(**kwargs)
+        super(ExplicitShootingTimeseriesComp, self).__init__(**kwargs)
 
         self.input_num_nodes = 0
         self.output_num_nodes = 0

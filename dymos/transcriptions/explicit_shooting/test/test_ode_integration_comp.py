@@ -7,7 +7,7 @@ import dymos.options as dymos_options
 
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-from dymos.transcriptions.direct_shooting.ode_integration_comp import ODEIntegrationComp
+from dymos.transcriptions.explicit_shooting.ode_integration_comp import ODEIntegrationComp
 
 from dymos.phase.options import TimeOptionsDictionary, StateOptionsDictionary, ParameterOptionsDictionary
 from dymos.transcriptions.grid_data import GridData

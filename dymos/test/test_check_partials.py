@@ -12,10 +12,7 @@ class TestCheckPartials(unittest.TestCase):
 
         prob.driver = om.ScipyOptimizeDriver()
 
-        tx = dm.ExplicitShooting(num_segments=3, grid='gauss-lobatto',
-                                 method='rk4', order=5,
-                                 num_steps_per_segment=5,
-                                 compressed=False)
+        tx = dm.ExplicitShooting(grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=6, compressed=False))
 
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
 
@@ -408,7 +405,8 @@ class TestCheckPartials(unittest.TestCase):
 
         dm.options['include_check_partials'] = cp_save
 
-        self.assertSetEqual(set(partials.keys()), set())
+        # Only `phase.ode` should show up in in the partials keys.
+        self.assertSetEqual(set(partials.keys()), {'phase0.ode'})
 
 
 if __name__ == '__main__':  # pragma: no cover
