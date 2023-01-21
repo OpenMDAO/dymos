@@ -125,7 +125,7 @@ class ExplicitShooting(TranscriptionBase):
                                                     compressed=self.options['compressed'])
         elif self.options['grid'] == 'radau-ps':
             self.options['grid'] = RadauGrid(num_segments=self.options['num_segments'],
-                                             nodes_per_seg=self.options['order'],
+                                             nodes_per_seg=self.options['order'] + 1,
                                              segment_ends=self.options['segment_ends'],
                                              compressed=self.options['compressed'])
 
