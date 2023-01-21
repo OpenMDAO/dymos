@@ -6,7 +6,7 @@ from ...utils.misc import get_rate_units
 from ..common.continuity_comp import ContinuityCompBase
 
 
-class DirectShootingContinuityComp(ContinuityCompBase):
+class ExplicitShootingContinuityComp(ContinuityCompBase):
     """
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
 

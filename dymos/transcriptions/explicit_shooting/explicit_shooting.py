@@ -6,7 +6,7 @@ import openmdao.api as om
 from openmdao.utils.om_warnings import warn_deprecation
 
 from ..pseudospectral.components import PseudospectralTimeseriesOutputComp
-from .explicit_shooting_continuity_comp import DirectShootingContinuityComp
+from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
 from .ode_integration_comp import ODEIntegrationComp
@@ -582,10 +582,10 @@ class ExplicitShooting(TranscriptionBase):
 
         if state_cont or control_cont or rate_cont:
             phase.add_subsystem('continuity_comp',
-                                DirectShootingContinuityComp(grid_data=self._input_grid_data,
-                                                             state_options=phase.state_options,
-                                                             control_options=phase.control_options,
-                                                             time_units=phase.time_options['units']))
+                                ExplicitShootingContinuityComp(grid_data=self._input_grid_data,
+                                                               state_options=phase.state_options,
+                                                               control_options=phase.control_options,
+                                                               time_units=phase.time_options['units']))
 
     def configure_defects(self, phase):
         """
@@ -596,7 +596,6 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        igd = self._input_grid_data
         ogd = self._output_grid_data
         any_state_cnty, any_control_cnty, any_rate_cnty = self._requires_continuity_constraints(phase)
         src_idxs = om.slicer[ogd.subset_node_indices['segment_ends'], ...]
