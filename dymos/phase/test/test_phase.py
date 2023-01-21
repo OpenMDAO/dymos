@@ -508,7 +508,7 @@ class TestPhaseBase(unittest.TestCase):
                 p.driver.declare_coloring()
                 if tx is dm.ExplicitShooting:
                     phase = dm.Phase(ode_class=BrachistochroneODE,
-                                     transcription=tx(input_grid=dm.GaussLobattoGrid(num_segments=5, nodes_per_seg=3)))
+                                     transcription=tx(grid=dm.GaussLobattoGrid(num_segments=5, nodes_per_seg=3)))
                 else:
                     phase = dm.Phase(ode_class=BrachistochroneODE,
                                      transcription=tx(num_segments=5, order=3))
@@ -564,7 +564,7 @@ class TestPhaseBase(unittest.TestCase):
 
                 if tx is dm.ExplicitShooting:
                     phase = dm.Phase(ode_class=BrachistochroneODE,
-                                     transcription=tx(input_grid=dm.GaussLobattoGrid(num_segments=5, nodes_per_seg=3)))
+                                     transcription=tx(grid=dm.GaussLobattoGrid(num_segments=5, nodes_per_seg=3)))
                 else:
                     phase = dm.Phase(ode_class=BrachistochroneODE,
                                      transcription=tx(num_segments=5, order=3))
@@ -633,7 +633,7 @@ class TestPhaseBase(unittest.TestCase):
 
                 if isinstance(tx, dm.ExplicitShooting):
                     phase = dm.Phase(ode_class=BrachistochroneODE,
-                                     transcription=tx(input_grid=dm.GaussLobattoGrid(num_segments=5, nodes_per_seg=3)))
+                                     transcription=tx(grid=dm.GaussLobattoGrid(num_segments=5, nodes_per_seg=3)))
                 else:
                     phase = dm.Phase(ode_class=BrachistochroneODE,
                                      transcription=tx(num_segments=5, order=3))
@@ -701,7 +701,7 @@ class TestPhaseBase(unittest.TestCase):
 
                 if isinstance(tx, dm.ExplicitShooting):
                     phase = dm.Phase(ode_class=BrachistochroneODE,
-                                     transcription=tx(input_grid=dm.GaussLobattoGrid(num_segments=5, order=3)))
+                                     transcription=tx(grid=dm.GaussLobattoGrid(num_segments=5, order=3)))
                 else:
                     phase = dm.Phase(ode_class=BrachistochroneODE,
                                      transcription=tx(num_segments=5, order=3))

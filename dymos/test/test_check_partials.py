@@ -12,7 +12,7 @@ class TestCheckPartials(unittest.TestCase):
 
         prob.driver = om.ScipyOptimizeDriver()
 
-        tx = dm.ExplicitShooting(input_grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=6, compressed=False))
+        tx = dm.ExplicitShooting(grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=6, compressed=False))
 
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
 

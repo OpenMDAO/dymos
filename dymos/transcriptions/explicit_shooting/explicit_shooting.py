@@ -60,8 +60,9 @@ class ExplicitShooting(TranscriptionBase):
                                   'setting this option to False should result in faster execution.')
         self.options.declare('subprob_reports', default=False,
                              desc='Controls the reports made when running the subproblems for ExplicitShooting')
-        self.options.declare('input_grid', types=(GaussLobattoGrid, RadauGrid),
-                             desc='The grid distribution used to layout the control inputs.')
+        self.options.declare('grid', types=(GaussLobattoGrid, RadauGrid, str),
+                             desc='The grid distribution used to layout the control inputs and provide the default '
+                                  'output nodes.')
         self.options.declare('output_grid', types=(GaussLobattoGrid, RadauGrid, UniformGrid), allow_none=True,
                              default=None,
                              desc='The grid distribution determining the location of the output nodes. The default '
@@ -70,14 +71,6 @@ class ExplicitShooting(TranscriptionBase):
                                   'dynamics being smoothed over in the outputs. When used for validation through '
                                   'simulation, it is generally wise to choose an output grid that is more dense '
                                   'than the input grid to capture this nonlinearity.')
-        self.options.declare('grid', values=['radau-ps', 'gauss-lobatto'], allow_none=True,
-                             default=None, desc='The type of transcription used to layout'
-                             ' the segments and control discretization nodes.',
-                             deprecation='Option `grid` is deprecated. ExplicitShooting now uses `input_grid` to '
-                                         'define the layout of segments and control input nodes, using an instance of '
-                                         '`dymos.GuassLobattoGrid` or `dymos.RadauGrid`. Outputs are provided at the '
-                                         'nodes given by option `output_grid`, and path constraints are enforced at '
-                                         'all nodes in those grids.')
         self.options.declare('num_steps_per_segment', types=int, allow_none=True,
                              default=None, desc='Number of integration steps in each segment',
                              deprecation='Option `num_steps_per_segment is deprecated. ExplicitShooting now uses '
@@ -117,7 +110,7 @@ class ExplicitShooting(TranscriptionBase):
         """
 
         # Don't show the deprecation warning unless the user actually used the deprecated options:
-        dep_options = {'grid': None, 'order': None, 'segment_ends': None, 'compressed': None}
+        dep_options = {'order': None, 'segment_ends': None, 'compressed': None}
 
         for option in dep_options:
             show_warn_save = self.options._dict[option]['deprecation'][2]
@@ -125,22 +118,16 @@ class ExplicitShooting(TranscriptionBase):
             dep_options[option] = self.options[option]
             self.options._dict[option]['deprecation'][2] = show_warn_save
 
-        try:
-            input_grid = self.options['input_grid']
-        except RuntimeError:
-            input_grid = None
-
-        if input_grid is None:
-            if dep_options['grid'] in ('gauss-lobatto', None):
-                self.options['input_grid'] = GaussLobattoGrid(num_segments=self.options['num_segments'],
-                                                              nodes_per_seg=self.options['order'],
-                                                              segment_ends=self.options['segment_ends'],
-                                                              compressed=self.options['compressed'])
-            elif dep_options['grid'] == 'radau-ps':
-                self.options['input_grid'] = RadauGrid(num_segments=self.options['num_segments'],
-                                                       nodes_per_seg=self.options['order'],
-                                                       segment_ends=self.options['segment_ends'],
-                                                       compressed=self.options['compressed'])
+        if self.options['grid'] in ('gauss-lobatto', None):
+            self.options['grid'] = GaussLobattoGrid(num_segments=self.options['num_segments'],
+                                                    nodes_per_seg=self.options['order'],
+                                                    segment_ends=self.options['segment_ends'],
+                                                    compressed=self.options['compressed'])
+        elif self.options['grid'] == 'radau-ps':
+            self.options['grid'] = RadauGrid(num_segments=self.options['num_segments'],
+                                             nodes_per_seg=self.options['order'],
+                                             segment_ends=self.options['segment_ends'],
+                                             compressed=self.options['compressed'])
 
         dep_methods = {'rk4', '3/8', 'euler', 'ralston', 'rkf', 'rkck', 'dopri'}
         if self.options['method'] in dep_methods:
@@ -149,13 +136,12 @@ class ExplicitShooting(TranscriptionBase):
             self.options['method'] = 'DOP853'
         # End deprecation-handling
 
-        self._input_grid_data = self.options['input_grid']
-        self.grid_data = self._input_grid_data
+        self.grid_data = self.options['grid']
 
         if self.options['output_grid']:
             self._output_grid_data = self.options['output_grid']
         else:
-            self._output_grid_data = self._input_grid_data
+            self._output_grid_data = self.grid_data
 
     def setup_time(self, phase):
         """
@@ -343,7 +329,7 @@ class ExplicitShooting(TranscriptionBase):
                                    first_step=self.options['first_step'],
                                    max_step=self.options['max_step'],
                                    propagate_derivs=self.options['propagate_derivs'],
-                                   input_grid_data=self._input_grid_data,
+                                   input_grid_data=self.grid_data,
                                    output_grid_data=self._output_grid_data,
                                    ode_init_kwargs=phase.options['ode_init_kwargs'],
                                    standalone_mode=False,
@@ -389,7 +375,7 @@ class ExplicitShooting(TranscriptionBase):
         if phase.control_options:
             control_group = ControlGroup(control_options=phase.control_options,
                                          time_units=phase.time_options['units'],
-                                         grid_data=self._input_grid_data,
+                                         grid_data=self.options['grid'],
                                          output_grid_data=self._output_grid_data)
 
             phase.add_subsystem('control_group',
@@ -429,7 +415,7 @@ class ExplicitShooting(TranscriptionBase):
         ode_inputs = get_promoted_vars(ode, 'input')
 
         # Add the appropriate design parameters
-        ncin = self._input_grid_data.subset_num_nodes['control_input']
+        ncin = self.options['grid'].subset_num_nodes['control_input']
         for control_name, options in phase.control_options.items():
 
             phase.promotes('integrator', inputs=[f'controls:{control_name}'])
@@ -582,7 +568,7 @@ class ExplicitShooting(TranscriptionBase):
 
         if state_cont or control_cont or rate_cont:
             phase.add_subsystem('continuity_comp',
-                                ExplicitShootingContinuityComp(grid_data=self._input_grid_data,
+                                ExplicitShootingContinuityComp(grid_data=self.options['grid'],
                                                                state_options=phase.state_options,
                                                                control_options=phase.control_options,
                                                                time_units=phase.time_options['units']))
@@ -848,9 +834,9 @@ class ExplicitShooting(TranscriptionBase):
         control_rate_continuity : bool
             True if any control rate continuity is required to be enforced.
         """
-        num_seg = self._input_grid_data.num_segments
-        compressed = self._input_grid_data.compressed
-        transcription = self._input_grid_data.transcription
+        num_seg = self.options['grid'].num_segments
+        compressed = self.options['grid'].compressed
+        transcription = self.options['grid'].transcription
 
         state_continuity = False
         any_control_continuity = any([opts['continuity'] for opts in phase.control_options.values()])

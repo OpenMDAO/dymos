@@ -91,9 +91,9 @@ class TestExplicitShooting(unittest.TestCase):
         prob = om.Problem()
 
         phase = dm.Phase(ode_class=Simple1StateODE,
-                         transcription=dm.ExplicitShooting(input_grid=dm.GaussLobattoGrid(num_segments=1,
-                                                                                          nodes_per_seg=3,
-                                                                                          compressed=True)))
+                         transcription=dm.ExplicitShooting(grid=dm.GaussLobattoGrid(num_segments=1,
+                                                                                    nodes_per_seg=3,
+                                                                                    compressed=True)))
 
         phase.set_time_options(targets=['t'], units='s')
 
@@ -124,9 +124,9 @@ class TestExplicitShooting(unittest.TestCase):
         prob = om.Problem()
 
         phase = dm.Phase(ode_class=Simple2StateODE,
-                         transcription=dm.ExplicitShooting(input_grid=dm.GaussLobattoGrid(num_segments=2,
-                                                                                          nodes_per_seg=3,
-                                                                                          compressed=True)))
+                         transcription=dm.ExplicitShooting(grid=dm.GaussLobattoGrid(num_segments=2,
+                                                                                    nodes_per_seg=3,
+                                                                                    compressed=True)))
 
         phase.set_time_options(targets=['t'], units='s')
 
@@ -180,7 +180,7 @@ class TestExplicitShooting(unittest.TestCase):
                 prob = om.Problem()
 
                 phase = dm.Phase(ode_class=BrachistochroneODE,
-                                 transcription=dm.ExplicitShooting(input_grid=input_grid,
+                                 transcription=dm.ExplicitShooting(grid=input_grid,
                                                                    output_grid=output_grids[output_grid_type]))
 
                 traj = prob.model.add_subsystem('traj0', dm.Trajectory())
@@ -249,7 +249,7 @@ class TestExplicitShooting(unittest.TestCase):
                 prob = om.Problem()
 
                 phase = dm.Phase(ode_class=BrachistochroneODE,
-                                 transcription=dm.ExplicitShooting(input_grid=input_grid,
+                                 transcription=dm.ExplicitShooting(grid=input_grid,
                                                                    output_grid=output_grids[output_grid_type]))
 
                 traj = prob.model.add_subsystem('traj0', dm.Trajectory())
@@ -323,7 +323,7 @@ class TestExplicitShooting(unittest.TestCase):
                                         'uniform': dm.UniformGrid(num_segments=3, nodes_per_seg=11)}
 
                         phase = dm.Phase(ode_class=BrachistochroneODE,
-                                         transcription=dm.ExplicitShooting(input_grid=input_grid,
+                                         transcription=dm.ExplicitShooting(grid=input_grid,
                                                                            output_grid=output_grids[output_grid_type]))
 
                         traj = prob.model.add_subsystem('traj0', dm.Trajectory())
@@ -397,7 +397,7 @@ class TestExplicitShooting(unittest.TestCase):
                             'uniform': dm.UniformGrid(num_segments=3, nodes_per_seg=11)}
 
             phase = dm.Phase(ode_class=BrachistochroneODE,
-                             transcription=dm.ExplicitShooting(input_grid=input_grid,
+                             transcription=dm.ExplicitShooting(grid=input_grid,
                                                                output_grid=output_grids[output_grid_type]))
 
             phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
@@ -446,7 +446,7 @@ class TestExplicitShooting(unittest.TestCase):
                             'uniform': dm.UniformGrid(num_segments=3, nodes_per_seg=11)}
 
             phase = dm.Phase(ode_class=BrachistochroneODE,
-                             transcription=dm.ExplicitShooting(input_grid=input_grid,
+                             transcription=dm.ExplicitShooting(grid=input_grid,
                                                                output_grid=output_grids[output_grid_type]))
 
             phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
@@ -515,7 +515,7 @@ class TestExplicitShooting(unittest.TestCase):
                             'uniform': dm.UniformGrid(num_segments=3, nodes_per_seg=11)}
 
             phase = dm.Phase(ode_class=BrachistochroneODE,
-                             transcription=dm.ExplicitShooting(input_grid=input_grid,
+                             transcription=dm.ExplicitShooting(grid=input_grid,
                                                                output_grid=output_grids[output_grid_type]))
 
             phase.set_time_options(units='s', fix_initial=True, duration_bounds=(1.0, 10.0))
@@ -566,7 +566,7 @@ class TestExplicitShooting(unittest.TestCase):
 
             phase = dm.Phase(ode_class=BrachistochroneODE,
                              ode_init_kwargs={'static_gravity': True},
-                             transcription=dm.ExplicitShooting(input_grid=input_grid,
+                             transcription=dm.ExplicitShooting(grid=input_grid,
                                                                output_grid=output_grids[output_grid_type]))
 
             traj = p.model.add_subsystem('traj', dm.Trajectory())

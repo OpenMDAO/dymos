@@ -209,7 +209,7 @@ class TestTimeseriesOutput(unittest.TestCase):
         p.driver = om.ScipyOptimizeDriver()
         p.driver.declare_coloring()
 
-        tx = dm.ExplicitShooting(input_grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=5))
+        tx = dm.ExplicitShooting(grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=5))
 
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
 
@@ -676,7 +676,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         assert_near_equal(f_computed, f_ts, tolerance=1e-12)
 
     def test_timeseries_expr_explicit_shooting(self):
-        tx = dm.ExplicitShooting(input_grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=5, compressed=True))
+        tx = dm.ExplicitShooting(grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=5, compressed=True))
 
         p = self.make_problem_brachistochrone(transcription=tx)
         p.run_driver()
@@ -694,7 +694,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         assert_near_equal(f_computed, f_ts, tolerance=1e-12)
 
     def test_timeseries_expr_explicit_shooting_polynomial_controls(self):
-        tx = dm.ExplicitShooting(input_grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=5, compressed=True))
+        tx = dm.ExplicitShooting(grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=5, compressed=True))
 
         p = self.make_problem_brachistochrone(transcription=tx, polynomial_control=True)
         p.run_driver()

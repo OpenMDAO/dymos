@@ -78,7 +78,7 @@ def setup_model_shooting(do_reports):
     prob.driver = om.ScipyOptimizeDriver()
     prob.driver.declare_coloring(tol=1.0E-12)
 
-    tx = dm.ExplicitShooting(input_grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=6, compressed=False),
+    tx = dm.ExplicitShooting(grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=6, compressed=False),
                              subprob_reports=do_reports)
 
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
