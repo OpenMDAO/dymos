@@ -617,26 +617,25 @@ class Trajectory(om.Group):
             a phase boundary.
 
         """
-        linkages_copy = deepcopy(self._linkages)
-        for phase_pair, var_dict in linkages_copy.items():
+        for phase_pair, var_dict in self._linkages.items():
             phase_name_a, phase_name_b = phase_pair
 
             phase_b = self._get_subsystem(f'phases.{phase_name_b}')
 
-            for var_pair in var_dict.keys():
-                if tuple(var_pair) == ('*', '*'):
-                    options = var_dict[var_pair]
-                    self.add_linkage_constraint(phase_name_a, phase_name_b, var_a='time',
-                                                var_b='time', loc_a=options['loc_a'],
-                                                loc_b=options['loc_b'], mult_a=options['mult_a'],
+            var_pair = ('*', '*')
+            if var_pair in var_dict:
+                options = var_dict[var_pair]
+                self.add_linkage_constraint(phase_name_a, phase_name_b, var_a='time',
+                                            var_b='time', loc_a=options['loc_a'],
+                                            loc_b=options['loc_b'], mult_a=options['mult_a'],
+                                            mult_b=options['mult_b'])
+                for state_name in phase_b.state_options:
+                    self.add_linkage_constraint(phase_name_a, phase_name_b, var_a=state_name,
+                                                var_b=state_name, loc_a=options['loc_a'],
+                                                loc_b=options['loc_b'],
+                                                mult_a=options['mult_a'],
                                                 mult_b=options['mult_b'])
-                    for state_name in phase_b.state_options:
-                        self.add_linkage_constraint(phase_name_a, phase_name_b, var_a=state_name,
-                                                    var_b=state_name, loc_a=options['loc_a'],
-                                                    loc_b=options['loc_b'],
-                                                    mult_a=options['mult_a'],
-                                                    mult_b=options['mult_b'])
-                    self._linkages[phase_pair].pop(var_pair)
+                self._linkages[phase_pair].pop(var_pair)
 
     def _is_valid_linkage(self, phase_name_a, phase_name_b, loc_a, loc_b, var_a, var_b, fixed_a, fixed_b):
         """
@@ -1115,7 +1114,8 @@ class Trajectory(om.Group):
                 self.add_linkage_constraint(phase_a=phase_name_a, phase_b=phase_name_b,
                                             var_a=var, var_b=var, loc_a=loc_a, loc_b=loc_b,
                                             connected=connected, units=units,
-                                            scaler=scaler, adder=adder, ref0=ref0, ref=ref, linear=linear)
+                                            scaler=scaler, adder=adder, ref0=ref0, ref=ref,
+                                            linear=linear)
 
     def _constraint_report(self, outstream=sys.stdout):
         if self.options['sim_mode']:
