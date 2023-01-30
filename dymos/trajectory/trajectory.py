@@ -1273,8 +1273,7 @@ class Trajectory(om.Group):
             sim_prob.set_val(sim_prob_prom_path, self.get_val(f'parameters:{name}'))
 
         for phase_name, phs in sim_traj._phases.items():
-            phs.initialize_values_from_phase(sim_prob, self._phases[phase_name],
-                                             phase_path=traj_name)
+            phs.set_val_from_phase(from_phase=self._phases[phase_name])
 
         print(f'\nSimulating trajectory {self.pathname}')
         sim_prob.run_model(case_prefix=case_prefix, reset_iter_counts=reset_iter_counts)

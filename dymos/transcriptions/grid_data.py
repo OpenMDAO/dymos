@@ -583,7 +583,7 @@ class GaussLobattoGrid(GridData):
     """
     def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
         super().__init__(num_segments=num_segments, transcription='gauss-lobatto',
-                         transcription_order=np.asarray(nodes_per_seg, dtype=int)-1,
+                         transcription_order=np.asarray(nodes_per_seg, dtype=int),
                          segment_ends=segment_ends, compressed=compressed)
 
 

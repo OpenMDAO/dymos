@@ -664,8 +664,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
         ----------
         t : float
             The current value of the integration variable.
-        y : np.array
-            The augmented state vector.
+        x : np.array
+            The primal state vector.
         theta : np.array
             The ODE parameter vector. The first two elements are t_initial and t_duration.
 
@@ -674,9 +674,12 @@ class ODEIntegrationComp(om.ExplicitComponent):
         y_dot : np.array
             The rates associated with each state in the augmented state vector (primal and tangent states).
         """
-        x_dot, _, _, _ = self.eval_ode(x, t, theta, eval_solution=True, eval_derivs=False)
+        n_x = self.x_size
+        _x = x.reshape((1, n_x))
 
-        return x_dot
+        x_dot, _, _, _ = self.eval_ode(_x, t, theta, eval_solution=True, eval_derivs=False)
+
+        return x_dot.ravel()
 
     def _propagate(self, inputs, propagate_derivs=None, x_out=None, t_out=None, dx_dz_out=None,
                    dt_dz_out=None):

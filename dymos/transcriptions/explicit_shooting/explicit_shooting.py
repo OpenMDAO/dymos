@@ -75,8 +75,6 @@ class ExplicitShooting(TranscriptionBase):
                              default=None, desc='Number of integration steps in each segment',
                              deprecation='Option `num_steps_per_segment is deprecated. ExplicitShooting now uses '
                                          'adaptive-step methods.')
-        self.options.declare('subprob_reports', default=False,
-                             desc='Controls the reports made when running the subproblems for ExplicitShooting')
 
         # Deprecated options previously inherited from transcription base.
         self.options.declare('num_segments', types=int, desc='Number of segments',

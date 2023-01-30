@@ -17,8 +17,9 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary, \
     TimeseriesOutputOptionsDictionary
 
-
 from ..transcriptions.transcription_base import TranscriptionBase
+from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
+from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
@@ -2115,7 +2116,7 @@ class Phase(om.Group):
                              rtol=_unspecified, first_step=_unspecified, max_step=_unspecified,
                              reports=False):
         """
-        Return a SolveIVPPhase instance.
+        Return a SimulationPhase instance that is essentially a copy of this Phase.
 
         This instance is initialized based on data from this Phase instance and
         the given simulation times.
@@ -2147,16 +2148,10 @@ class Phase(om.Group):
             An instance of SimulationPhase initialized based on data from this Phase and the given
             times.  This instance has not yet been setup.
         """
-        from ..transcriptions import SolveIVP
+        from .simulation_phase import SimulationPhase
+        sim_phase = SimulationPhase(from_phase=self, times_per_seg=times_per_seg, reports=reports)
 
-        t = self.options['transcription']
-
-        sim_phase = dm.Phase(from_phase=self,
-                             transcription=SolveIVP(grid_data=t.grid_data,
-                                                    output_nodes_per_seg=times_per_seg,
-                                                    reports=reports))
-
-        # Copy over any simulation options from the simulate call.  The fallback will be to
+        # Copy over any simulation options from the simulate call.  The ffallback will be to
         # phase.simulate_options, which are copied from the original phase.
         for key, val in {'method': method, 'atol': atol, 'rtol': rtol, 'first_step': first_step,
                          'max_step': max_step}.items():
@@ -2242,6 +2237,30 @@ class Phase(om.Group):
                 prob_path = f'{self.name}.parameters:{name}'
             prob.set_val(prob_path, val)
 
+    def set_val_from_phase(self, from_phase):
+
+        t_initial = from_phase.get_val('t_initial', units=self.time_options['units'])
+        self.set_val('t_initial', t_initial, units=self.time_options['units'])
+
+        t_duration = from_phase.get_val('t_duration', units=self.time_options['units'])
+        self.set_val('t_duration', t_duration, units=self.time_options['units'])
+
+        for name, options in self.state_options.items():
+            val = from_phase.get_val(f'states:{name}', units=options['units'])[0, ...]
+            self.set_val(f'states:{name}', val, units=options['units'])
+
+        for name, options in self.parameter_options.items():
+            val = from_phase.get_val(f'parameters:{name}', units=options['units'])
+            self.set_val(f'parameters:{name}', val, units=options['units'])
+
+        for name, options in self.control_options.items():
+            val = from_phase.get_val(f'controls:{name}', units=options['units'])
+            self.set_val(f'controls:{name}', val, units=options['units'])
+
+        for name, options in self.polynomial_control_options.items():
+            val = from_phase.get_val(f'polynomial_controls:{name}', units=options['units'])
+            self.set_val(f'polynomial_controls:{name}', val, units=options['units'])
+
     def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None):
         """
@@ -2273,7 +2292,6 @@ class Phase(om.Group):
             can be interrogated to obtain timeseries outputs in the same manner as other Phases
             to obtain results at the requested times.
         """
-
         sim_prob = om.Problem(model=om.Group())
 
         sim_phase = self.get_simulation_phase(times_per_seg, method=method, atol=atol, rtol=rtol,
@@ -2286,13 +2304,12 @@ class Phase(om.Group):
             sim_prob.add_recorder(rec)
 
         sim_prob.setup(check=True)
-        sim_phase.initialize_values_from_phase(sim_prob, self)
+        sim_phase.set_val_from_phase(from_phase=self)
 
         print(f'\nSimulating phase {self.pathname}')
         sim_prob.run_model()
         print(f'Done simulating phase {self.pathname}')
         sim_prob.record('final')
-
         sim_prob.cleanup()
 
         return sim_prob
