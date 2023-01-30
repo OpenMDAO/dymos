@@ -170,6 +170,14 @@ class TranscriptionBase(object):
                                 subsys=control_group)
 
             for name, options in phase.control_options.items():
+                if np.any(np.asarray(self.grid_data.subset_num_nodes_per_segment['control_disc']) <= 3) \
+                   and phase.control_options[name]['rate2_continuity'] is True:
+                    om.issue_warning(f' {phase.pathname}: issue in control {name}. User requested rate2_continuity '
+                                     f'for control, but the second derivative of the control is always 0. '
+                                     f'Disabling rate2_continuity.', category=om.DerivativesWarning)
+
+                    phase.control_options[name]['rate2_continuity'] = False
+
                 for ts_name, ts_options in phase._timeseries.items():
                     if f'controls:{name}' not in ts_options['outputs']:
                         phase.add_timeseries_output(name, output_name=f'controls:{name}',
