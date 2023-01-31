@@ -66,7 +66,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             istau_segi = igd.node_stau[i1:i2]
 
             # The indices of the output grid that fall within this segment of the input grid
-            if ogd is igd:
+            if ogd is igd and output_subset == 'all':
                 optau_segi = iptau_segi
             else:
                 ptau_hi = igd.segment_ends[iseg+1]

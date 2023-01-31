@@ -43,8 +43,11 @@ class SimulationPhase(Phase):
         elif isinstance(phase_tx, Radau):
             grid = RadauGrid(num_segments=num_seg, nodes_per_seg=seg_order + 1, segment_ends=seg_ends,
                              compressed=compressed)
+        elif isinstance(phase_tx.grid_data, GaussLobattoGrid) or \
+                isinstance(phase_tx.grid_data, RadauGrid):
+            grid = phase_tx.grid_data
         else:
-            raise RuntimeError(f'Unexpected grid class for {phase_tx.grid_data}. Only phases with GaussLobatto'
+            raise RuntimeError(f'Unexpected grid class for {phase_tx.grid_data}. Only phases with GaussLobatto '
                                f'or Radau grids can be simulated.')
 
         output_grid = UniformGrid(num_segments=num_seg, nodes_per_seg=times_per_seg, segment_ends=seg_ends,

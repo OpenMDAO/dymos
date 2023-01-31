@@ -35,7 +35,7 @@ class SolveIVP(TranscriptionBase):
         om.issue_warning('The SolveIVP transcription is deprecated. The simulate methods in Dymos now use a '
                          'the ExplicitShooting transcription without derivative propagation to achieve the same'
                          'functionality. SolveIVP will be removed in a future version of Dymos.',
-                         category=DeprecationWarning)
+                         category=om.OMDeprecationWarning)
         super(SolveIVP, self).__init__(**kwargs)
         self.grid_data = grid_data
         self._rhs_source = 'ode'
