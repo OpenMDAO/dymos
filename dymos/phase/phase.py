@@ -2282,7 +2282,7 @@ class Phase(om.Group):
         sim_prob.setup(check=True)
 
         # sim_phase.set_val_from_phase(from_phase=self)  # TODO: use this for OpenMDAO >= 3.25.1
-        sim_phase.initialize_values_from_phase(prop=sim_prob, from_phase=self, phase_path=self.pathname)
+        sim_phase.initialize_values_from_phase(prob=sim_prob, from_phase=self)
 
         print(f'\nSimulating phase {self.pathname}')
         sim_prob.run_model()
