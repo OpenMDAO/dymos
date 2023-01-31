@@ -220,7 +220,7 @@ class ContinuityCompBase(om.ExplicitComponent):
                     't_duration', dependent=True
                 )
 
-                if np.size != 0:
+                if indices[0].size != 0:
                     self.add_constraint(name=f'defect_control_rates:{control_name}_rate2',
                                         scaler=options['rate2_continuity_scaler'],
                                         indices=indices,
