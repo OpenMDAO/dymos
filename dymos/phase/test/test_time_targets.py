@@ -92,7 +92,6 @@ class _BrachistochroneTestODE(om.ExplicitComponent):
         jacobian['check', 'theta'] = -v * cos_theta / sin_theta**2
 
 
-@use_tempdirs
 class TestPhaseTimeTargets(unittest.TestCase):
 
     def _make_problem(self, transcription, num_seg, transcription_order=3, input_initial=False,
@@ -138,7 +137,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         p.setup(check=True)
 
-        p['phase0.t_initial'] = 0.5
+        p['phase0.t_initial'] = 1.0
         p['phase0.t_duration'] = 5.0
 
         p['phase0.states:x'] = phase.interp('x', [0, 10])
@@ -164,14 +163,10 @@ class TestPhaseTimeTargets(unittest.TestCase):
                 time_all = p[f'phase0.timeseries.{time_name}'].ravel()
                 time_col = time_all[gd.subset_node_indices['col']]
                 time_disc = time_all[gd.subset_node_indices['state_disc']]
-                time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
-                                          newshape=(gd.num_segments, 2))
 
                 time_phase_all = p[f'phase0.timeseries.{time_name}_phase'].ravel()
                 time_phase_col = time_phase_all[gd.subset_node_indices['col']]
                 time_phase_disc = time_phase_all[gd.subset_node_indices['state_disc']]
-                time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
-                                                newshape=(gd.num_segments, 2))
 
                 assert_near_equal(p['phase0.rhs_disc.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
@@ -187,22 +182,33 @@ class TestPhaseTimeTargets(unittest.TestCase):
                 assert_near_equal(p['phase0.rhs_disc.time'], time_disc)
                 assert_near_equal(p['phase0.rhs_col.time'], time_col)
 
-                exp_out = p.model.phase0.simulate()
+                exp_out = p.model._get_subsystem('phase0').simulate()
 
-                for iseg in range(num_seg):
-                    seg_comp_i = exp_out.model.phase0._get_subsystem(f'segments.segment_{iseg}')
-                    iface = seg_comp_i.options['ode_integration_interface']
-                    t_initial_i = iface.prob.get_val('ode.t_initial')
-                    t_duration_i = iface.prob.get_val('ode.t_duration')
-                    time_phase_i = iface.prob.get_val('ode.time_phase')
-                    time_i = iface.prob.get_val('ode.time')
+                time_comp = exp_out.model.phase0._get_subsystem(f'time')
+                integrator_comp = exp_out.model.phase0._get_subsystem(f'integrator')
+                ode = exp_out.model.phase0._get_subsystem(f'ode')
+                timeseries_comp = exp_out.model.phase0._get_subsystem(f'timeseries')
+                
+                time_comp_t_initial = time_comp.get_val('t_initial')
+                integrator_comp_t_initial = integrator_comp.get_val('t_initial')
+                ode_t_initial = ode.get_val('t_initial')
+                
+                time_comp_t_duration = time_comp.get_val('t_duration')
+                integrator_comp_t_duration = integrator_comp.get_val('t_duration')
+                ode_t_duration = ode.get_val('t_duration')
+                ode_time_phase = ode.get_val('time_phase')
+                timeseries_time_phase = timeseries_comp.get_val(f'{time_name}_phase')
 
-                    # Since the phase has simulated, all times should be equal to their respective value
-                    # at the end of each segment.
-                    assert_near_equal(t_initial_i, p['phase0.t_initial'])
-                    assert_near_equal(t_duration_i, p['phase0.t_duration'])
-                    assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
-                    assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
+                assert_near_equal(time_comp_t_initial, p['phase0.t_initial'])
+                assert_near_equal(integrator_comp_t_initial, p['phase0.t_initial'])
+                assert_near_equal(ode_t_initial, p['phase0.t_initial'])
+
+                assert_near_equal(time_comp_t_duration, p['phase0.t_duration'])
+                assert_near_equal(integrator_comp_t_duration, p['phase0.t_duration'])
+                assert_near_equal(ode_t_duration, p['phase0.t_duration'])
+                
+                assert_near_equal(ode_time_phase.ravel(), timeseries_time_phase.ravel())
+                
 
     def test_radau(self):
         for time_name in ('time', 'elapsed_time'):
@@ -216,12 +222,8 @@ class TestPhaseTimeTargets(unittest.TestCase):
                 gd = p.model.phase0.options['transcription'].grid_data
 
                 time_all = p[f'phase0.timeseries.{time_name}'].ravel()
-                time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
-                                          newshape=(gd.num_segments, 2))
 
                 time_phase_all = p[f'phase0.timeseries.{time_name}_phase'].ravel()
-                time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
-                                                newshape=(gd.num_segments, 2))
 
                 assert_near_equal(p['phase0.rhs_all.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
@@ -235,20 +237,30 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
                 exp_out = p.model.phase0.simulate()
 
-                for iseg in range(num_seg):
-                    seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
-                    iface = seg_comp_i.options['ode_integration_interface']
-                    t_initial_i = iface.prob.get_val('ode.t_initial')
-                    t_duration_i = iface.prob.get_val('ode.t_duration')
-                    time_phase_i = iface.prob.get_val('ode.time_phase')
-                    time_i = iface.prob.get_val('ode.time')
+                time_comp = exp_out.model.phase0._get_subsystem(f'time')
+                integrator_comp = exp_out.model.phase0._get_subsystem(f'integrator')
+                ode = exp_out.model.phase0._get_subsystem(f'ode')
+                timeseries_comp = exp_out.model.phase0._get_subsystem(f'timeseries')
+                
+                time_comp_t_initial = time_comp.get_val('t_initial')
+                integrator_comp_t_initial = integrator_comp.get_val('t_initial')
+                ode_t_initial = ode.get_val('t_initial')
+                
+                time_comp_t_duration = time_comp.get_val('t_duration')
+                integrator_comp_t_duration = integrator_comp.get_val('t_duration')
+                ode_t_duration = ode.get_val('t_duration')
+                ode_time_phase = ode.get_val('time_phase')
+                timeseries_time_phase = timeseries_comp.get_val(f'{time_name}_phase')
 
-                    # Since the phase has simulated, all times should be equal to their respective value
-                    # at the end of each segment.
-                    assert_near_equal(t_initial_i, p['phase0.t_initial'])
-                    assert_near_equal(t_duration_i, p['phase0.t_duration'])
-                    assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
-                    assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
+                assert_near_equal(time_comp_t_initial, p['phase0.t_initial'])
+                assert_near_equal(integrator_comp_t_initial, p['phase0.t_initial'])
+                assert_near_equal(ode_t_initial, p['phase0.t_initial'])
+
+                assert_near_equal(time_comp_t_duration, p['phase0.t_duration'])
+                assert_near_equal(integrator_comp_t_duration, p['phase0.t_duration'])
+                assert_near_equal(ode_t_duration, p['phase0.t_duration'])
+                
+                assert_near_equal(ode_time_phase.ravel(), timeseries_time_phase.ravel())
 
     def test_explicit_shooting(self):
         num_seg = 5
@@ -311,22 +323,32 @@ class TestPhaseTimeTargets(unittest.TestCase):
         assert_near_equal(p['phase0.rhs_disc.time'], time_disc)
         assert_near_equal(p['phase0.rhs_col.time'], time_col)
 
-        exp_out = p.model.phase0.simulate()
+        exp_out = p.model._get_subsystem('phase0').simulate()
 
-        for iseg in range(num_seg):
-            seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
-            iface = seg_comp_i.options['ode_integration_interface']
-            t_initial_i = iface.prob.get_val('ode.t_initial')
-            t_duration_i = iface.prob.get_val('ode.t_duration')
-            time_phase_i = iface.prob.get_val('ode.time_phase')
-            time_i = iface.prob.get_val('ode.time')
+        time_comp = exp_out.model.phase0._get_subsystem(f'time')
+        integrator_comp = exp_out.model.phase0._get_subsystem(f'integrator')
+        ode = exp_out.model.phase0._get_subsystem(f'ode')
+        timeseries_comp = exp_out.model.phase0._get_subsystem(f'timeseries')
+        
+        time_comp_t_initial = time_comp.get_val('t_initial')
+        integrator_comp_t_initial = integrator_comp.get_val('t_initial')
+        ode_t_initial = ode.get_val('t_initial')
+        
+        time_comp_t_duration = time_comp.get_val('t_duration')
+        integrator_comp_t_duration = integrator_comp.get_val('t_duration')
+        ode_t_duration = ode.get_val('t_duration')
+        ode_time_phase = ode.get_val('time_phase')
+        timeseries_time_phase = timeseries_comp.get_val('time_phase')
 
-            # Since the phase has simulated, all times should be equal to their respective value
-            # at the end of each segment.
-            assert_near_equal(t_initial_i, p['phase0.t_initial'])
-            assert_near_equal(t_duration_i, p['phase0.t_duration'])
-            assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
-            assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
+        assert_near_equal(time_comp_t_initial, p['phase0.t_initial'])
+        assert_near_equal(integrator_comp_t_initial, p['phase0.t_initial'])
+        assert_near_equal(ode_t_initial, p['phase0.t_initial'])
+
+        assert_near_equal(time_comp_t_duration, p['phase0.t_duration'])
+        assert_near_equal(integrator_comp_t_duration, p['phase0.t_duration'])
+        assert_near_equal(ode_t_duration, p['phase0.t_duration'])
+        
+        assert_near_equal(ode_time_phase.ravel(), timeseries_time_phase.ravel())
 
     def test_radau_targets_are_inputs(self):
         num_seg = 20
@@ -355,22 +377,32 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         assert_near_equal(p['phase0.rhs_all.time'], time_all)
 
-        exp_out = p.model.phase0.simulate()
+        exp_out = p.model._get_subsystem('phase0').simulate()
 
-        for iseg in range(num_seg):
-            seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
-            iface = seg_comp_i.options['ode_integration_interface']
-            t_initial_i = iface.prob.get_val('ode.t_initial')
-            t_duration_i = iface.prob.get_val('ode.t_duration')
-            time_phase_i = iface.prob.get_val('ode.time_phase')
-            time_i = iface.prob.get_val('ode.time')
+        time_comp = exp_out.model.phase0._get_subsystem(f'time')
+        integrator_comp = exp_out.model.phase0._get_subsystem(f'integrator')
+        ode = exp_out.model.phase0._get_subsystem(f'ode')
+        timeseries_comp = exp_out.model.phase0._get_subsystem(f'timeseries')
+        
+        time_comp_t_initial = time_comp.get_val('t_initial')
+        integrator_comp_t_initial = integrator_comp.get_val('t_initial')
+        ode_t_initial = ode.get_val('t_initial')
+        
+        time_comp_t_duration = time_comp.get_val('t_duration')
+        integrator_comp_t_duration = integrator_comp.get_val('t_duration')
+        ode_t_duration = ode.get_val('t_duration')
+        ode_time_phase = ode.get_val('time_phase')
+        timeseries_time_phase = timeseries_comp.get_val('time_phase')
 
-            # Since the phase has simulated, all times should be equal to their respective value
-            # at the end of each segment.
-            assert_near_equal(t_initial_i, p['phase0.t_initial'])
-            assert_near_equal(t_duration_i, p['phase0.t_duration'])
-            assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
-            assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
+        assert_near_equal(time_comp_t_initial, p['phase0.t_initial'])
+        assert_near_equal(integrator_comp_t_initial, p['phase0.t_initial'])
+        assert_near_equal(ode_t_initial, p['phase0.t_initial'])
+
+        assert_near_equal(time_comp_t_duration, p['phase0.t_duration'])
+        assert_near_equal(integrator_comp_t_duration, p['phase0.t_duration'])
+        assert_near_equal(ode_t_duration, p['phase0.t_duration'])
+        
+        assert_near_equal(ode_time_phase.ravel(), timeseries_time_phase.ravel())
 
 
 if __name__ == "__main__":

@@ -322,10 +322,9 @@ class GridData(object):
         if isinstance(transcription_order, str):
             self.transcription_order = num_segments * [transcription_order]
         elif np.ndim(transcription_order) == 0:  # scalar
-            transcription_order = np.ones(num_segments, int) * transcription_order
-            self.transcription_order = np.asarray(transcription_order, dtype=int)
-        elif np.ndim(transcription_order) == 1:
-            self.transcription_order = np.ones(num_segments, int) * transcription_order[0]
+            self.transcription_order = np.ones(num_segments, int) * transcription_order
+        elif np.size(transcription_order) == 1:  # length-1 array
+            self.transcription_order = np.ones(num_segments, int) * np.asarray(transcription_order)[0]
         else:
             self.transcription_order = np.asarray(transcription_order, dtype=int)
 

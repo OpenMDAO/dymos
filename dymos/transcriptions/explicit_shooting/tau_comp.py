@@ -38,13 +38,14 @@ class TauComp(om.ExplicitComponent):
         """
         vec_size = self.options['vec_size']
         time_units = self.options['time_units']
+        dstau_dt_units = None if time_units is None else f'1/{time_units}'
 
         self.add_input('t_initial', val=0.0, units=time_units)
         self.add_input('t_duration', val=1.0, units=time_units)
         self.add_input('t', shape=(vec_size,), units=time_units)
         self.add_output('ptau', units=None, shape=(vec_size,))
         self.add_output('stau', units=None, shape=(vec_size,))
-        self.add_output('dstau_dt', units=f'1/{time_units}', val=1.0)
+        self.add_output('dstau_dt', units=dstau_dt_units, val=1.0)
         self.add_output('t_phase', units=time_units, shape=(vec_size,))
         # self.add_discrete_output('segment_index', val=0)
 

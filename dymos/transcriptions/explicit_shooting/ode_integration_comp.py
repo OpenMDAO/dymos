@@ -155,6 +155,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
 
         # The total size of the entire state vector
         self.x_size = 0
+        self.state_sizes = {}
 
         self._state_input_names = {}
         self._state_output_names = {}
@@ -183,7 +184,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
                             units=options['units'],
                             desc=f'final value of state {state_name}')
 
-            state_size = np.prod(options['shape'], dtype=int)
+            self.state_sizes[state_name] = state_size = np.prod(options['shape'], dtype=int)
 
             # The indices of the state in x
             self.state_idxs[state_name] = np.s_[self.x_size:self.x_size + state_size]
@@ -560,8 +561,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
         if eval_solution:
             f = np.zeros((self.x_size, 1))
             for name in self.state_options:
-                f[self.state_idxs[name]] = self._eval_subprob.get_val(
-                    f'state_rate_collector.state_rates:{name}_rate').ravel()
+                state_rate = self._eval_subprob.get_val(f'state_rate_collector.state_rates:{name}_rate')
+                f[self.state_idxs[name]] = state_rate.reshape((self.state_sizes[name], 1))
         else:
             f = None
 
@@ -747,7 +748,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
 
         for state_name in self.state_options:
             state_initial_val = inputs[self._state_input_names[state_name]]
-            x0[self.state_idxs[state_name]] = state_initial_val
+            x0[self.state_idxs[state_name]] = state_initial_val.ravel()
 
         theta[0] = t_initial = inputs['t_initial']
         theta[1] = t_duration = inputs['t_duration']
