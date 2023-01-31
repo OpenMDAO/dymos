@@ -90,6 +90,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 
 if __name__ == '__main__':
-    p = brachistochrone_min_time(transcription='shooting-gauss-lobatto', num_segments=5, run_driver=True,
-                                 transcription_order=5, compressed=False, optimizer='SNOPT',
+    p = brachistochrone_min_time(transcription='gauss-lobatto', num_segments=5, run_driver=True,
+                                 transcription_order=5, compressed=False, optimizer='IPOPT',
                                  solve_segments=False, force_alloc_complex=True)
