@@ -1,4 +1,4 @@
-import openmdao
+from openmdao.utils.mpi import MPI
 
 from .phase import Phase
 from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
@@ -73,6 +73,104 @@ class SimulationPhase(Phase):
         # Remove all but the default timeseries object
         self._timeseries = {ts_name: ts_options for ts_name, ts_options in self._timeseries.items()
                             if ts_name == 'timeseries'}
+
+    def set_val_from_phase(self, from_phase):
+        """
+        Set the necessary values to simulate the phase based on time, state, control, and parameter values
+        from the given phase.
+
+        Parameters
+        ----------
+        from_phase : Phase
+            The dymos phase from which this simulation phase should pull its values.
+        """
+
+        t_initial = from_phase.get_val('t_initial', units=self.time_options['units'])
+        self.set_val('t_initial', t_initial, units=self.time_options['units'])
+
+        t_duration = from_phase.get_val('t_duration', units=self.time_options['units'])
+        self.set_val('t_duration', t_duration, units=self.time_options['units'])
+
+        for name, options in self.state_options.items():
+            val = from_phase.get_val(f'states:{name}', units=options['units'])[0, ...]
+            self.set_val(f'states:{name}', val, units=options['units'])
+
+        for name, options in self.parameter_options.items():
+            val = from_phase.get_val(f'parameters:{name}', units=options['units'])
+            self.set_val(f'parameters:{name}', val, units=options['units'])
+
+        for name, options in self.control_options.items():
+            val = from_phase.get_val(f'controls:{name}', units=options['units'])
+            self.set_val(f'controls:{name}', val, units=options['units'])
+
+        for name, options in self.polynomial_control_options.items():
+            val = from_phase.get_val(f'polynomial_controls:{name}', units=options['units'])
+            self.set_val(f'polynomial_controls:{name}', val, units=options['units'])
+
+    def initialize_values_from_phase(self, prob, from_phase, phase_path=''):
+        """
+        Initializes values in the Phase using the phase from which it was created.
+
+        Parameters
+        ----------
+        prob : Problem
+            The problem instance to set values taken from the from_phase instance.
+        from_phase : Phase
+            The Phase instance from which the values in this phase are being initialized.
+        phase_path : str
+            The pathname of the system in prob that contains the phases.
+        """
+        phs = from_phase
+
+        op_dict = dict([(name, options) for (name, options) in phs.list_outputs(units=True,
+                                                                                list_autoivcs=True,
+                                                                                out_stream=None)])
+        ip_dict = dict([(name, options) for (name, options) in phs.list_inputs(units=True,
+                                                                               out_stream=None)])
+
+        if self.pathname.partition('.')[0] == self.name:
+            self_path = self.name + '.'
+        else:
+            self_path = self.pathname.partition('.')[0] + '.' + self.name + '.'
+
+        if MPI:
+            op_dict = MPI.COMM_WORLD.bcast(op_dict, root=0)
+
+        # Set the integration times
+        time_name = phs.time_options['name']
+        op = op_dict[f'timeseries.timeseries_comp.{time_name}']
+        prob.set_val(f'{self_path}t_initial', op['val'][0, ...])
+        prob.set_val(f'{self_path}t_duration', op['val'][-1, ...] - op['val'][0, ...])
+
+        # Assign initial state values
+        for name in phs.state_options:
+            op = op_dict[f'timeseries.timeseries_comp.states:{name}']
+            prob[f'{self_path}states:{name}'][...] = op['val'][0, ...]
+
+        # Assign control values
+        for name, options in phs.control_options.items():
+            ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
+            prob[f'{self_path}controls:{name}'][...] = ip['val']
+
+        # Assign polynomial control values
+        for name, options in phs.polynomial_control_options.items():
+            ip = ip_dict[f'polynomial_control_group.interp_comp.'
+                         f'polynomial_controls:{name}']
+            prob[f'{self_path}polynomial_controls:{name}'][...] = ip['val']
+
+        # Assign parameter values
+        for name in phs.parameter_options:
+            units = phs.parameter_options[name]['units']
+
+            # We use this private function to grab the correctly sized variable from the
+            # auto_ivc source.
+            val = phs.get_val(f'parameters:{name}', units=units)
+
+            if phase_path:
+                prob_path = f'{phase_path}.{self.name}.parameters:{name}'
+            else:
+                prob_path = f'{self.name}.parameters:{name}'
+            prob.set_val(prob_path, val)
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,

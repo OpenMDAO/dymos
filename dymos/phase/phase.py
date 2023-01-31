@@ -2237,30 +2237,6 @@ class Phase(om.Group):
                 prob_path = f'{self.name}.parameters:{name}'
             prob.set_val(prob_path, val)
 
-    def set_val_from_phase(self, from_phase):
-
-        t_initial = from_phase.get_val('t_initial', units=self.time_options['units'])
-        self.set_val('t_initial', t_initial, units=self.time_options['units'])
-
-        t_duration = from_phase.get_val('t_duration', units=self.time_options['units'])
-        self.set_val('t_duration', t_duration, units=self.time_options['units'])
-
-        for name, options in self.state_options.items():
-            val = from_phase.get_val(f'states:{name}', units=options['units'])[0, ...]
-            self.set_val(f'states:{name}', val, units=options['units'])
-
-        for name, options in self.parameter_options.items():
-            val = from_phase.get_val(f'parameters:{name}', units=options['units'])
-            self.set_val(f'parameters:{name}', val, units=options['units'])
-
-        for name, options in self.control_options.items():
-            val = from_phase.get_val(f'controls:{name}', units=options['units'])
-            self.set_val(f'controls:{name}', val, units=options['units'])
-
-        for name, options in self.polynomial_control_options.items():
-            val = from_phase.get_val(f'polynomial_controls:{name}', units=options['units'])
-            self.set_val(f'polynomial_controls:{name}', val, units=options['units'])
-
     def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None):
         """
@@ -2304,7 +2280,9 @@ class Phase(om.Group):
             sim_prob.add_recorder(rec)
 
         sim_prob.setup(check=True)
-        sim_phase.set_val_from_phase(from_phase=self)
+
+        # sim_phase.set_val_from_phase(from_phase=self)  # TODO: use this for OpenMDAO >= 3.25.1
+        sim_phase.initialize_values_from_phase(prop=sim_prob, from_phase=self, phase_path=self.pathname)
 
         print(f'\nSimulating phase {self.pathname}')
         sim_prob.run_model()
