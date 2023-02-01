@@ -9,7 +9,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 import dymos as dm
 from dymos.utils.testing_utils import assert_timeseries_near_equal
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-.
+
 
 @use_tempdirs
 class TestIntegrateControl(unittest.TestCase):
