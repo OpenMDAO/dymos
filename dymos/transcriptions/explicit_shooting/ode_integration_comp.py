@@ -798,6 +798,9 @@ class ODEIntegrationComp(om.ExplicitComponent):
                 sol = solve_ivp(self._f_primal, t_span=t_span_seg, t_eval=t_eval_seg, y0=y0, args=(theta,),
                                 method=method, first_step=first_step, max_step=max_step, atol=atol, rtol=rtol)
 
+            if not sol.success:
+                raise om.AnalysisError(f'solve_ivp failed: {sol.message}')
+
             x_out[row_seg_i:row_seg_i+nnps[i], :] = sol.y.T[:, :n_x]  # Save solution to the output nodes
             t_out[row_seg_i:row_seg_i + nnps[i], 0] = sol.t
             y0 = sol.y.T[-1, :]  # Set initial y for the next segment

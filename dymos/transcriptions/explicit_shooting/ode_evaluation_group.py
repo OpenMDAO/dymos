@@ -367,7 +367,7 @@ class ODEEvaluationGroup(om.Group):
         t_name = self._time_options['name']
 
         if var == t_name:
-            rate_path = 'time'
+            rate_path = t_name
         elif var == f'{t_name}_phase':
             rate_path = f'{t_name}_phase'
         elif self._state_options is not None and var in self._state_options:
