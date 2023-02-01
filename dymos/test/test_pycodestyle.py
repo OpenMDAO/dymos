@@ -56,7 +56,19 @@ class TestPyCodeStyle(unittest.TestCase):
         report = style.check_files(pyfiles)
 
         if report.total_errors > 0:
-            self.fail(f"Found {report.total_errors} pycodestyle errors")
+            # the report just writes the failures to stdout which is swallowed by testflo by
+            # default, so temporarily replace stdout with a StringIO so we can include the failure
+            # descriptions in the failure message.
+            from io import StringIO
+            save = sys.stdout
+            try:
+                sys.stdout = buff = StringIO()
+                report.get_file_results()
+            finally:
+                sys.stdout = save
+                fails = buff.getvalue()
+
+            self.fail(f"Found {report.total_errors} pycodestyle errors:\n{fails}")
 
 
 if __name__ == '__main__':  # pragma: no cover
