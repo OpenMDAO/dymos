@@ -7,7 +7,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 from dymos.examples.robertson_problem.doc.robertson_ode import RobertsonODE
 
 
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 plt.style.use('ggplot')
 
 
@@ -31,9 +31,8 @@ class TestRobertsonProblemForDocs(unittest.TestCase):
 
         phase = traj.add_phase('phase0',
                                dm.Phase(ode_class=RobertsonODE,
-                                        transcription=dm.GaussLobatto(num_segments=50)
+                                        transcription=dm.ExplicitShooting(num_segments=10, method='LSODA')
                                         ))
-
         #
         # Set the variables
         #
@@ -93,18 +92,16 @@ class TestRobertsonProblemForDocs(unittest.TestCase):
 
         p.run_model()
 
-        p_sim = p.model.traj.simulate(method='LSODA')
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:x0')[-1], 0.71583161, tolerance=1E-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:y0')[-1], 9.18571144e-06, tolerance=1E-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:z0')[-1], 0.2841592, tolerance=1E-4)
 
-        assert_near_equal(p_sim.get_val('traj.phase0.timeseries.states:x0')[-1], 0.71583161, tolerance=1E-5)
-        assert_near_equal(p_sim.get_val('traj.phase0.timeseries.states:y0')[-1], 9.18571144e-06, tolerance=1E-1)
-        assert_near_equal(p_sim.get_val('traj.phase0.timeseries.states:z0')[-1], 0.2841592, tolerance=1E-5)
-
-        t_sim = p_sim.get_val('traj.phase0.timeseries.time')
+        t_sim = p.get_val('traj.phase0.timeseries.time')
 
         states = ['x0', 'y0', 'z0']
         fig, axes = plt.subplots(len(states), 1)
         for i, state in enumerate(states):
-            axes[i].plot(t_sim, p_sim.get_val(f'traj.phase0.timeseries.states:{state}'), '-')
+            axes[i].plot(t_sim, p.get_val(f'traj.phase0.timeseries.states:{state}'), 'o')
             axes[i].set_ylabel(state[0])
         axes[-1].set_xlabel('time (s)')
         plt.tight_layout()
