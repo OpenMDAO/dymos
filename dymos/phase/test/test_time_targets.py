@@ -92,6 +92,7 @@ class _BrachistochroneTestODE(om.ExplicitComponent):
         jacobian['check', 'theta'] = -v * cos_theta / sin_theta**2
 
 
+@use_tempdirs
 class TestPhaseTimeTargets(unittest.TestCase):
 
     def _make_problem(self, transcription, num_seg, transcription_order=3, input_initial=False,
