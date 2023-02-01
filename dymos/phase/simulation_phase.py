@@ -9,15 +9,30 @@ from ..utils.misc import _unspecified
 
 class SimulationPhase(Phase):
     """
-    A SimulationPhase is a special kind of Phase that may only be used to propagate a trajectory from
-    some initial state and time for some given duration using the provided parameters and controls.
+    A special phase class for performing simulation of an ODE without derivatives.
 
-    It does not support optimization, and no derivatives are propagated with the states.
+    Note: For the arguments which accept _unspecified, any argument not provided will be overridden
+    by the simulation_options of the phase specified by `from_phase`.
 
     Parameters
     ----------
     from_phase : <Phase> or None
         A phase instance from which the initialized phase should copy its data.
+    times_per_seg : int
+        The number of output points per segment, uniformly distributed.
+    method : str or _unspecified
+        A valid scipy.solve_ivp method for integration.
+    atol : float or _unspecified
+        Absolute error tolerance of the integration.
+    rtol : float or _unspecified
+        Relative error tolerance of the integration.
+    first_step : float or _unspecified
+        Initial step size of the integration.
+    max_step : float or _unspecified
+        Maximum step size of the integration.
+    reports : float or _unspecified
+        If True, generate reports for the subproblem used in integration.
+
     **kwargs : dict
         Dictionary of optional phase arguments.
     """
@@ -76,8 +91,7 @@ class SimulationPhase(Phase):
 
     def set_val_from_phase(self, from_phase):
         """
-        Set the necessary values to simulate the phase based on time, state, control, and parameter values
-        from the given phase.
+        Set the necessary values to simulate the phase based on variables in the given phase.
 
         Parameters
         ----------
