@@ -2152,13 +2152,6 @@ class Phase(om.Group):
         sim_phase = SimulationPhase(from_phase=self, times_per_seg=times_per_seg, atol=atol, rtol=rtol,
                                     first_step=first_step, max_step=max_step, reports=reports)
 
-        # Copy over any simulation options from the simulate call.  The fallback will be to
-        # phase.simulate_options, which are copied from the original phase.
-        for key, val in {'method': method, 'atol': atol, 'rtol': rtol, 'first_step': first_step,
-                         'max_step': max_step}.items():
-            if val is not _unspecified:
-                sim_phase.simulate_options[key] = val
-
         return sim_phase
 
     def initialize_values_from_phase(self, prob, from_phase, phase_path='', skip_params=None):
