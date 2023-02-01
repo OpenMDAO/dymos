@@ -2149,7 +2149,8 @@ class Phase(om.Group):
             times.  This instance has not yet been setup.
         """
         from .simulation_phase import SimulationPhase
-        sim_phase = SimulationPhase(from_phase=self, times_per_seg=times_per_seg, reports=reports)
+        sim_phase = SimulationPhase(from_phase=self, times_per_seg=times_per_seg, atol=atol, rtol=rtol,
+                                    first_step=first_step, max_step=max_step, reports=reports)
 
         # Copy over any simulation options from the simulate call.  The ffallback will be to
         # phase.simulate_options, which are copied from the original phase.

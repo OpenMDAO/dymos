@@ -65,8 +65,11 @@ class SimulationPhase(Phase):
             raise RuntimeError(f'Unexpected grid class for {phase_tx.grid_data}. Only phases with GaussLobatto '
                                f'or Radau grids can be simulated.')
 
-        output_grid = UniformGrid(num_segments=num_seg, nodes_per_seg=times_per_seg, segment_ends=seg_ends,
-                                  compressed=compressed)
+        if times_per_seg is None:
+            output_grid = None
+        else:
+            output_grid = UniformGrid(num_segments=num_seg, nodes_per_seg=times_per_seg, segment_ends=seg_ends,
+                                      compressed=compressed)
 
         tx = ExplicitShooting(propagate_derivs=False,
                               subprob_reports=reports,
