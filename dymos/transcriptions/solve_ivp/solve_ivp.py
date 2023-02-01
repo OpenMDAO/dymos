@@ -32,7 +32,7 @@ class SolveIVP(TranscriptionBase):
         Dictionary of optional arguments.
     """
     def __init__(self, grid_data=None, **kwargs):
-        om.issue_warning('The SolveIVP transcription is deprecated. The simulate methods in Dymos now use a '
+        om.issue_warning('The SolveIVP transcription is deprecated. The simulate methods in Dymos now uses '
                          'the ExplicitShooting transcription without derivative propagation to achieve the same'
                          'functionality. SolveIVP will be removed in a future version of Dymos.',
                          category=om.OMDeprecationWarning)

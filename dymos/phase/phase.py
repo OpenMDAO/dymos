@@ -2152,7 +2152,7 @@ class Phase(om.Group):
         sim_phase = SimulationPhase(from_phase=self, times_per_seg=times_per_seg, atol=atol, rtol=rtol,
                                     first_step=first_step, max_step=max_step, reports=reports)
 
-        # Copy over any simulation options from the simulate call.  The ffallback will be to
+        # Copy over any simulation options from the simulate call.  The fallback will be to
         # phase.simulate_options, which are copied from the original phase.
         for key, val in {'method': method, 'atol': atol, 'rtol': rtol, 'first_step': first_step,
                          'max_step': max_step}.items():
