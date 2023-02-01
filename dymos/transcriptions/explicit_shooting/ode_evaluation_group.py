@@ -176,7 +176,7 @@ class ODEEvaluationGroup(om.Group):
             shape = options['shape']
             units = options['units']
             targets = options['targets'] if options['targets'] is not None else []
-            rate_path, rate_io = self._get_rate_source_path(name)
+            rate_path = self._get_rate_source_path(name)
             var_name = f'states:{name}'
 
             self._ivc.add_output(var_name, shape=(vec_size,) + shape, units=units)
@@ -190,13 +190,7 @@ class ODEEvaluationGroup(om.Group):
                                         val=np.ones(shape),
                                         units=options['units'])
 
-            # If the state rate source is an output, connect it, otherwise
-            # promote it to the appropriate name
-            if rate_io == 'output':
-                self.connect(rate_path, f'state_rate_collector.state_rates_in:{name}_rate')
-            else:
-                self.promotes('state_rate_collector',
-                              inputs=[(f'state_rates_in:{name}_rate', rate_path)])
+            self.connect(rate_path, f'state_rate_collector.state_rates_in:{name}_rate')
 
             self.add_constraint(f'state_rate_collector.state_rates:{name}_rate')
 
@@ -374,39 +368,28 @@ class ODEEvaluationGroup(om.Group):
 
         if var == t_name:
             rate_path = 'time'
-            io = 'input'
         elif var == f'{t_name}_phase':
             rate_path = f'{t_name}_phase'
-            io = 'input'
         elif self._state_options is not None and var in self._state_options:
             rate_path = f'states:{var}'
-            io = 'input'
         elif self._control_options is not None and var in self._control_options:
             rate_path = f'control_values:{var}'
-            io = 'output'
         elif self._polynomial_control_options is not None and var in self._polynomial_control_options:
             rate_path = f'polynomial_control_values:{var}'
-            io = 'output'
         elif self._parameter_options is not None and var in self._parameter_options:
-            rate_path = f'parameter_vals:{var}'
-            io = 'input'
+            rate_path = f'parameters:{var}'
         elif var.endswith('_rate') and self._control_options is not None and \
                 var[:-5] in self._control_options:
             rate_path = f'control_rates:{var}'
-            io = 'output'
         elif var.endswith('_rate2') and self._control_options is not None and \
                 var[:-6] in self._control_options:
             rate_path = f'control_rates:{var}'
-            io = 'output'
         elif var.endswith('_rate') and self._polynomial_control_options is not None and \
                 var[:-5] in self._polynomial_control_options:
             rate_path = f'polynomial_control_rates:{var}'
-            io = 'output'
         elif var.endswith('_rate2') and self._polynomial_control_options is not None and \
                 var[:-6] in self._polynomial_control_options:
             rate_path = f'polynomial_control_rates:{var}'
-            io = 'output'
         else:
             rate_path = f'ode.{var}'
-            io = 'output'
-        return rate_path, io
+        return rate_path
