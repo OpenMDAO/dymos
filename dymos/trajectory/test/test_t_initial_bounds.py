@@ -96,7 +96,7 @@ class Test_t_initialBounds(unittest.TestCase):
 
         prob.setup(force_alloc_complex=True)
 
-        prob.run_driver()
+        dm.run_problem(prob)
 
     def test_phase_link_cycle(self):
         nphases = 3
@@ -118,8 +118,7 @@ class Test_t_initialBounds(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             self.try_model('phase_link_cycle', kwargs, conns)
 
-        msg = ("\nCollected errors for problem 'phase_link_cycle':\n"
-               "   'traj' <class Trajectory>: The following cycles were found in the phase "
+        msg = ("'traj' <class Trajectory>: The following cycles were found in the phase "
                "linkage graph: [['phase0', 'phase1', 'phase2']].")
         self.assertEqual(cm.exception.args[0], msg)
 
@@ -142,8 +141,7 @@ class Test_t_initialBounds(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             self.try_model('all_fixed', kwargs, conns)
 
-        msg = ("\nCollected errors for problem 'all_fixed':\n"
-               "   'traj' <class Trajectory>: Fixed t_initial of 5.0 is outside of allowed "
+        msg = ("'traj' <class Trajectory>: Fixed t_initial of 5.0 is outside of allowed "
                "bounds (10.0, 15.0) for phase 'phase2'.")
         self.assertEquals(cm.exception.args[0], msg)
 
@@ -163,8 +161,7 @@ class Test_t_initialBounds(unittest.TestCase):
             if i > 0:
                 conns.append((f'phase{i - 1}', [pname]))
 
-        msg = ("\nCollected errors for problem 'odd_fixed':\n"
-               "   'traj' <class Trajectory>: Fixed t_initial of 10.0 is outside of allowed "
+        msg = ("'traj' <class Trajectory>: Fixed t_initial of 10.0 is outside of allowed "
                "bounds (20.0, 30.0) for phase 'phase3'.")
 
         with self.assertRaises(Exception) as cm:
@@ -191,7 +188,7 @@ class Test_t_initialBounds(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             self.try_model('even_fixed', kwargs, conns)
 
-        msg = ("\nCollected errors for problem 'even_fixed':\n   'traj' <class Trajectory>: "
+        msg = ("'traj' <class Trajectory>: "
                "Fixed t_initial of 20.0 is outside of allowed bounds (35.0, 45.0) for phase "
                "'phase4'.")
 
@@ -238,8 +235,7 @@ class Test_t_initialBounds(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             self.try_model('branching_all_fixed', kwargs, conns)
 
-        msg = ("\nCollected errors for problem 'branching_all_fixed':\n"
-               "   'traj' <class Trajectory>: Fixed t_initial of 10.0 is outside of allowed bounds "
+        msg = ("'traj' <class Trajectory>: Fixed t_initial of 10.0 is outside of allowed bounds "
                "(15.0, 20.0) for phase 'br1_phase0'.\n"
                "Fixed t_initial of 10.0 is outside of allowed bounds (15.0, 20.0) for phase "
                "'br0_phase0'.")
@@ -287,8 +283,7 @@ class Test_t_initialBounds(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             self.try_model('branching_odd_fixed', kwargs, conns)
 
-        msg = ("\nCollected errors for problem 'branching_odd_fixed':\n"
-               "   'traj' <class Trajectory>: Fixed t_initial of 60.0 is outside of allowed bounds "
+        msg = ("'traj' <class Trajectory>: Fixed t_initial of 60.0 is outside of allowed bounds "
                "(40.0, 50.0) for phase 'br1_phase3'.\n"
                "Fixed t_initial of 60.0 is outside of allowed bounds (40.0, 50.0) for phase "
                "'br0_phase3'.")

@@ -81,6 +81,9 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     if restart is not None:
         load_case(problem, case)
 
+    for traj in problem.model.system_iter(include_self=True, recurse=True, typ=Trajectory):
+        traj._check_phase_graph()
+
     if run_driver:
         failed = _refine_iter(problem, refine_iteration_limit, refine_method, case_prefix=case_prefix,
                               reset_iter_counts=reset_iter_counts)

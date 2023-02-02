@@ -55,12 +55,15 @@ class Trajectory(om.Group):
         A dictionary containing phase linkage information for the Trajectory.
     _phases : dict
         A dictionary of phase names as keys with the Phase objects being their associated values.
+    _phase_graph : nx.DiGraph
+        A graph of linked phases.
     """
     def __init__(self, **kwargs):
         super(Trajectory, self).__init__(**kwargs)
 
         self._linkages = {}
         self._phases = {}
+        self._phase_graph = nx.DiGraph()
 
         self.parameter_options = {}
         self.phases = om.ParallelGroup()
@@ -738,7 +741,7 @@ class Trajectory(om.Group):
 
         linkage_comp = self._get_subsystem('linkages')
 
-        phase_graph = nx.DiGraph()
+        self._phase_graph = phase_graph = nx.DiGraph()
 
         for phase_pair, var_dict in self._linkages.items():
             phase_name_a, phase_name_b = phase_pair
@@ -834,15 +837,13 @@ class Trajectory(om.Group):
 
         _print_on_rank('\n* : Value is fixed or is an input.\n')
 
-        self._check_phase_graph(phase_graph)
-
-    def _check_phase_graph(self, phase_graph):
+    def _check_phase_graph(self):
 
         # determine if we have any fixed t_initial that are outside of allowed bounds
         def get_final_bounds(node_name, node_data, old_min=-INF_BOUND, old_max=INF_BOUND):
             t_initial = node_data['t_initial']
             fixed = node_data['fixed']
-            node_min, node_max = node_data['bounds']
+            node_min, node_max = node_data['duration_bounds']
 
             node_min = -INF_BOUND if node_min is None else node_min
             node_max = INF_BOUND if node_max is None else node_max
@@ -880,18 +881,27 @@ class Trajectory(om.Group):
 
             return minbound, maxbound, errs
 
+        phase_graph = self._phase_graph
+
         # since we have a graph, do a quick check that we have no cycles
         sccs = get_sccs_topo(phase_graph)
         cycles = sorted([s for s in sccs if len(s) > 1], key=lambda x: len(x))
         if cycles:
-            self._collect_error(f"{self.msginfo}: The following cycles were found in the phase "
-                                f"linkage graph: {[sorted(c) for c in cycles]}.")
+            raise RuntimeError(f"{self.msginfo}: The following cycles were found in the phase "
+                               f"linkage graph: {[sorted(c) for c in cycles]}.")
 
         node_data = phase_graph.nodes(data=True)
         t_nodes = [n for n, meta in node_data if 't_initial' in meta]
 
         # only keep the part of the graph where 't' connects phases
         G = phase_graph.subgraph(t_nodes)
+
+        # update G nodes with final values for t_initial (users can set after setup)
+        for name, data in G.nodes(data=True):
+            phase = self._get_subsystem(f'phases.{name}')
+            data['fixed'] = phase.is_time_fixed('initial')
+            data['duration_bounds'] = phase.time_options['duration_bounds']
+            data['t_initial'] = phase.time_options['initial_val']
 
         # find starting node(s) in the graph
         start_nodes = [n for n, degree in G.in_degree() if degree == 0]
@@ -915,7 +925,7 @@ class Trajectory(om.Group):
 
         if all_errs:
             err_lines = '\n'.join(all_errs) if len(all_errs) > 1 else all_errs[0]
-            self._collect_error(f"{self.msginfo}: {err_lines}")
+            raise RuntimeError(f"{self.msginfo}: {err_lines}")
 
     def configure(self):
         """
