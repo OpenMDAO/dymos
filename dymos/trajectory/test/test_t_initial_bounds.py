@@ -144,7 +144,8 @@ class Test_t_initialBounds(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             self.try_model('pair_fixed_t_initial_below', kwargs, conns)
 
-        msg = ("'traj' <class Trajectory>: Fixed t_initial of 5.0 is outside of allowed bounds (10.0, 15.0) for phase 'phase1'.")
+        msg = ("'traj' <class Trajectory>: Fixed t_initial of 5.0 is outside of allowed bounds "
+               "(10.0, 15.0) for phase 'phase1'.")
         self.assertEquals(cm.exception.args[0], msg)
 
     def test_pair_fixed_t_initial_above(self):
@@ -169,7 +170,8 @@ class Test_t_initialBounds(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             self.try_model('pair_fixed_t_initial_above', kwargs, conns)
 
-        msg = ("'traj' <class Trajectory>: Fixed t_initial of 99.0 is outside of allowed bounds (10.0, 15.0) for phase 'phase1'.")
+        msg = ("'traj' <class Trajectory>: Fixed t_initial of 99.0 is outside of allowed bounds "
+               "(10.0, 15.0) for phase 'phase1'.")
         self.assertEquals(cm.exception.args[0], msg)
 
     def test_pair_t_initial_bounds_below(self):
@@ -190,7 +192,8 @@ class Test_t_initialBounds(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             self.try_model('pair_t_initial_bounds_below', kwargs, conns)
 
-        msg = ("'traj' <class Trajectory>: t_initial bounds of (5.0, 7.0) do not overlap with allowed bounds (8.0, 17.0) for phase 'phase1'.")
+        msg = ("'traj' <class Trajectory>: t_initial bounds of (5.0, 7.0) do not overlap with "
+               "allowed bounds (8.0, 17.0) for phase 'phase1'.")
         self.assertEquals(cm.exception.args[0], msg)
 
     def test_pair_t_initial_bounds_above(self):
@@ -211,7 +214,8 @@ class Test_t_initialBounds(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             self.try_model('pair_t_initial_bounds_above', kwargs, conns)
 
-        msg = ("'traj' <class Trajectory>: t_initial bounds of (20.0, 22.0) do not overlap with allowed bounds (8.0, 17.0) for phase 'phase1'.")
+        msg = ("'traj' <class Trajectory>: t_initial bounds of (20.0, 22.0) do not overlap with "
+               "allowed bounds (8.0, 17.0) for phase 'phase1'.")
         self.assertEquals(cm.exception.args[0], msg)
 
     def test_pair_no_duration_bounds(self):
@@ -272,7 +276,8 @@ class Test_t_initialBounds(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             self.try_model('all_t_initial_bounds', kwargs, conns)
 
-        msg = ("'traj' <class Trajectory>: t_initial bounds of (99.0, 104.0) do not overlap with allowed bounds (10.0, 20.0) for phase 'phase2'.")
+        msg = ("'traj' <class Trajectory>: t_initial bounds of (99.0, 104.0) do not overlap with "
+               "allowed bounds (10.0, 20.0) for phase 'phase2'.")
         self.assertEquals(cm.exception.args[0], msg)
 
     def test_odd_fixed_t_initial(self):
@@ -316,7 +321,8 @@ class Test_t_initialBounds(unittest.TestCase):
             if i > 0:
                 conns.append((f'phase{i - 1}', [pname]))
 
-        msg = ("'traj' <class Trajectory>: t_initial bounds of (99.0, 104.0) do not overlap with allowed bounds (20.0, 35.0) for phase 'phase3'.")
+        msg = ("'traj' <class Trajectory>: t_initial bounds of (99.0, 104.0) do not overlap with "
+               "allowed bounds (20.0, 35.0) for phase 'phase3'.")
 
         with self.assertRaises(Exception) as cm:
             self.try_model('odd_t_initial_bounds', kwargs, conns)
@@ -365,13 +371,13 @@ class Test_t_initialBounds(unittest.TestCase):
             if i > 0:
                 conns.append((f'phase{i - 1}', [pname]))
 
-        msg = ("'traj' <class Trajectory>: t_initial bounds of (99.0, 104.0) do not overlap with allowed bounds (5.0, 20.0) for phase 'phase2'.")
+        msg = ("'traj' <class Trajectory>: t_initial bounds of (99.0, 104.0) do not overlap with "
+               "allowed bounds (5.0, 20.0) for phase 'phase2'.")
 
         with self.assertRaises(Exception) as cm:
             self.try_model('even_t_initial_bounds', kwargs, conns)
 
         self.assertEqual(cm.exception.args[0], msg)
-
 
     def test_branching_all_fixed_t_initial(self):
         nphases = 3  # number of phases in trunk and each branch
@@ -463,8 +469,10 @@ class Test_t_initialBounds(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             self.try_model('branching_all_t_initial_bounds', kwargs, conns)
 
-        msg = ("'traj' <class Trajectory>: t_initial bounds of (0.0, 5) do not overlap with allowed bounds (20.0, 30.0) for phase 'br0_phase1'.\n"
-               "t_initial bounds of (0.0, 5) do not overlap with allowed bounds (20.0, 30.0) for phase 'br1_phase1'.")
+        msg = ("'traj' <class Trajectory>: t_initial bounds of (0.0, 5) do not overlap with "
+               "allowed bounds (20.0, 30.0) for phase 'br0_phase1'.\n"
+               "t_initial bounds of (0.0, 5) do not overlap with allowed bounds (20.0, 30.0) "
+               "for phase 'br1_phase1'.")
         self.assertEquals(cm.exception.args[0], msg)
 
     def test_branching_odd_fixed_t_initial(self):

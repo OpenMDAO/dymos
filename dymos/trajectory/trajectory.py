@@ -870,9 +870,10 @@ class Trajectory(om.Group):
                 initial_max = INF_BOUND if initial_max is None else initial_max
 
                 # check for overlap of incoming bounds on t and initial_bounds
-                if not (old_tmin <= initial_min <= old_tmax or old_tmin <= initial_max <= old_tmax
-                        or initial_min <= old_tmin <= initial_max
-                        or initial_min <= old_tmax <= initial_max):
+                if not (old_tmin <= initial_min <= old_tmax or
+                        old_tmin <= initial_max <= old_tmax or
+                        initial_min <= old_tmin <= initial_max or
+                        initial_min <= old_tmax <= initial_max):
                     errs.append(f"t_initial bounds of ({initial_min}, {initial_max}) do not overlap"
                                 f" with allowed bounds {(old_tmin, old_tmax)} for phase "
                                 f"'{phase_name}'.")
