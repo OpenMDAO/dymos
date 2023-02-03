@@ -838,7 +838,7 @@ class Trajectory(om.Group):
     def _check_phase_graph(self):
 
         # determine if we have any fixed t_initial that are outside of allowed bounds
-        def get_final_bounds(node_name, node_data, old_tmin=-INF_BOUND, old_tmax=INF_BOUND):
+        def get_final_tbounds(node_name, node_data, old_tmin=-INF_BOUND, old_tmax=INF_BOUND):
             t_initial = node_data['t_initial']
             fixed_t_initial = node_data['fixed']
             duration_min, duration_max = node_data['duration_bounds']
@@ -912,7 +912,8 @@ class Trajectory(om.Group):
             stack = [(start_name, -INF_BOUND, INF_BOUND)]
             while stack:
                 src, oldlb, oldub = stack.pop()
-                lb, ub, errs = get_final_bounds(src, node_data[src], old_tmin=oldlb, old_tmax=oldub)
+                lb, ub, errs = get_final_tbounds(src, node_data[src],
+                                                 old_tmin=oldlb, old_tmax=oldub)
                 # print(f"{src}: olb: {oldlb}, oub: {oldub} lb: {lb}, ub: {ub}, "
                 #       f"t_initial: {node_data[src]['t_initial']}, errs: {errs}")
                 if errs:
