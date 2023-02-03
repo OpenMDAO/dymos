@@ -773,9 +773,9 @@ class Trajectory(om.Group):
                 fixed_b = phase_b._is_fixed(var_b, class_b, loc_b)
 
                 if class_a == 't' and class_b == 't':
-                    phase_graph.add_node(phase_a.name, fixed=None, t_initial=None,
+                    phase_graph.add_node(phase_a.name, fix_initial=None, t_initial=None,
                                          duration_bounds=None, initial_bounds=None)
-                    phase_graph.add_node(phase_b.name, fixed=None, t_initial=None,
+                    phase_graph.add_node(phase_b.name, fix_initial=None, t_initial=None,
                                          duration_bounds=None, initial_bounds=None)
                 phase_graph.add_edge(phase_a.name, phase_b.name)
 
@@ -838,7 +838,7 @@ class Trajectory(om.Group):
     def _check_phase_graph(self):
 
         # determine if we have any fixed t_initial that are outside of allowed bounds
-        def get_final_tbounds(node_name, node_data, old_tmin=-INF_BOUND, old_tmax=INF_BOUND):
+        def get_final_tbounds(phase_name, node_data, old_tmin=-INF_BOUND, old_tmax=INF_BOUND):
             t_initial = node_data['t_initial']
             fixed_t_initial = node_data['fix_initial']
             duration_min, duration_max = node_data['duration_bounds']
@@ -857,7 +857,7 @@ class Trajectory(om.Group):
                 # if t_initial is fixed, first check if it's within the incoming bounds
                 if not old_tmin <= t_initial <= old_tmax:
                     errs.append(f"Fixed t_initial of {t_initial} is outside of allowed bounds "
-                                f"{(old_tmin, old_tmax)} for phase '{node_name}'.")
+                                f"{(old_tmin, old_tmax)} for phase '{phase_name}'.")
 
                 if duration_min > -INF_BOUND:
                     new_min_t = t_initial + duration_min
@@ -869,13 +869,13 @@ class Trajectory(om.Group):
                 initial_min = -INF_BOUND if initial_min is None else initial_min
                 initial_max = INF_BOUND if initial_max is None else initial_max
 
-                # check for overlap
+                # check for overlap of incoming bounds on t and initial_bounds
                 if not (old_tmin <= initial_min <= old_tmax or old_tmin <= initial_max <= old_tmax
                         or initial_min <= old_tmin <= initial_max
                         or initial_min <= old_tmax <= initial_max):
                     errs.append(f"t_initial bounds of ({initial_min}, {initial_max}) do not overlap"
-                                f"with allowed bounds {(old_tmin, old_tmax)} for phase "
-                                f"'{node_name}'.")
+                                f" with allowed bounds {(old_tmin, old_tmax)} for phase "
+                                f"'{phase_name}'.")
 
                 if duration_min > -INF_BOUND:
                     tmin = max(old_tmin, initial_min)
@@ -926,10 +926,8 @@ class Trajectory(om.Group):
                 src, oldlb, oldub = stack.pop()
                 lb, ub, errs = get_final_tbounds(src, node_data[src],
                                                  old_tmin=oldlb, old_tmax=oldub)
-                # print(f"{src}: olb: {oldlb}, oub: {oldub} lb: {lb}, ub: {ub}, "
-                #       f"t_initial: {node_data[src]['t_initial']}, errs: {errs}")
                 if errs:
-                    all_errs.extend(errs)
+                    all_errs.append((src, errs))
                     # skip nodes downstream of the failing node.
                     skip.update(list(nx.dfs_preorder_nodes(G, source=src)))
 
@@ -938,7 +936,10 @@ class Trajectory(om.Group):
                         stack.append((tgt, lb, ub))
 
         if all_errs:
-            err_lines = '\n'.join(all_errs) if len(all_errs) > 1 else all_errs[0]
+            errs = []
+            for _, s in sorted(all_errs, key=lambda x: x[0]):
+                errs.extend(s)
+            err_lines = '\n'.join(errs) if len(errs) > 1 else errs[0]
             raise RuntimeError(f"{self.msginfo}: {err_lines}")
 
     def configure(self):
