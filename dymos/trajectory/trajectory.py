@@ -773,12 +773,10 @@ class Trajectory(om.Group):
                 fixed_b = phase_b._is_fixed(var_b, class_b, loc_b)
 
                 if class_a == 't' and class_b == 't':
-                    phase_graph.add_node(phase_a.name, fixed=phase_a.is_time_fixed('initial'),
-                                         bounds=phase_a.time_options['duration_bounds'],
-                                         t_initial=phase_a.time_options['initial_val'])
-                    phase_graph.add_node(phase_b.name, fixed=phase_b.is_time_fixed('initial'),
-                                         bounds=phase_b.time_options['duration_bounds'],
-                                         t_initial=phase_b.time_options['initial_val'])
+                    phase_graph.add_node(phase_a.name, fixed=None, t_initial=None,
+                                         duration_bounds=None, initial_bounds=None)
+                    phase_graph.add_node(phase_b.name, fixed=None, t_initial=None,
+                                         duration_bounds=None, initial_bounds=None)
                 phase_graph.add_edge(phase_a.name, phase_b.name)
 
                 prefixed_a = _get_prefixed_var(var_a, phase_a)
@@ -840,46 +838,48 @@ class Trajectory(om.Group):
     def _check_phase_graph(self):
 
         # determine if we have any fixed t_initial that are outside of allowed bounds
-        def get_final_bounds(node_name, node_data, old_min=-INF_BOUND, old_max=INF_BOUND):
+        def get_final_bounds(node_name, node_data, old_tmin=-INF_BOUND, old_tmax=INF_BOUND):
             t_initial = node_data['t_initial']
-            fixed = node_data['fixed']
-            node_min, node_max = node_data['duration_bounds']
+            fixed_t_initial = node_data['fixed']
+            duration_min, duration_max = node_data['duration_bounds']
+            initial_min, initial_max = node_data['initial_bounds']
 
-            node_min = -INF_BOUND if node_min is None else node_min
-            node_max = INF_BOUND if node_max is None else node_max
+            duration_min = -INF_BOUND if duration_min is None else duration_min
+            duration_max = INF_BOUND if duration_max is None else duration_max
+            initial_min = -INF_BOUND if initial_min is None else initial_min
+            initial_max = INF_BOUND if initial_max is None else initial_max
 
             errs = []
-            minbound = -INF_BOUND
-            maxbound = INF_BOUND
+            new_min_t = -INF_BOUND
+            new_max_t = INF_BOUND
 
-            if fixed:
+            if fixed_t_initial:
                 # if t_initial is fixed, first check if it's within the incoming bounds
-                if t_initial < old_min or t_initial > old_max:
+                if not (old_tmin <= t_initial <= old_tmax):
                     errs.append(f"Fixed t_initial of {t_initial} is outside of allowed bounds "
-                                f"{(old_min, old_max)} for phase '{node_name}'.")
+                                f"{(old_tmin, old_tmax)} for phase '{node_name}'.")
 
-                if node_min not in (None, -INF_BOUND):
-                    minbound = t_initial + node_min
+                if duration_min not in (None, -INF_BOUND):
+                    new_min_t = t_initial + duration_min
 
-                if node_max not in (None, INF_BOUND):
-                    maxbound = t_initial + node_max
+                if duration_max not in (None, INF_BOUND):
+                    new_max_t = t_initial + duration_max
 
             else:
-                if node_min not in (None, -INF_BOUND):
-                    if old_min in (None, -INF_BOUND):
-                        # old min is unset, so use node_min
-                        minbound = old_min
-                    else:
-                        minbound = old_min + node_min
 
-                if node_max not in (None, INF_BOUND):
-                    if old_max in (None, INF_BOUND):
-                        # old max is unset, so use node_max
-                        maxbound = old_max
+                if duration_min not in (None, -INF_BOUND):
+                    if old_tmin in (None, -INF_BOUND):
+                        new_min_t = old_tmin
                     else:
-                        maxbound = old_max + node_max
+                        new_min_t = old_tmin + duration_min
 
-            return minbound, maxbound, errs
+                if duration_max not in (None, INF_BOUND):
+                    if old_tmax in (None, INF_BOUND):
+                        new_max_t = old_tmax
+                    else:
+                        new_max_t = old_tmax + duration_max
+
+            return new_min_t, new_max_t, errs
 
         phase_graph = self._phase_graph
 
@@ -901,6 +901,7 @@ class Trajectory(om.Group):
             phase = self._get_subsystem(f'phases.{name}')
             data['fixed'] = phase.is_time_fixed('initial')
             data['duration_bounds'] = phase.time_options['duration_bounds']
+            data['initial_bounds'] = phase.time_options['initial_bounds']
             data['t_initial'] = phase.time_options['initial_val']
 
         # find starting node(s) in the graph
@@ -911,7 +912,7 @@ class Trajectory(om.Group):
             stack = [(start_name, -INF_BOUND, INF_BOUND)]
             while stack:
                 src, oldlb, oldub = stack.pop()
-                lb, ub, errs = get_final_bounds(src, node_data[src], old_min=oldlb, old_max=oldub)
+                lb, ub, errs = get_final_bounds(src, node_data[src], old_tmin=oldlb, old_tmax=oldub)
                 # print(f"{src}: olb: {oldlb}, oub: {oldub} lb: {lb}, ub: {ub}, "
                 #       f"t_initial: {node_data[src]['t_initial']}, errs: {errs}")
                 if errs:
