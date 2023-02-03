@@ -840,14 +840,14 @@ class Trajectory(om.Group):
         # determine if we have any fixed t_initial that are outside of allowed bounds
         def get_final_tbounds(node_name, node_data, old_tmin=-INF_BOUND, old_tmax=INF_BOUND):
             t_initial = node_data['t_initial']
-            fixed_t_initial = node_data['fixed']
+            fixed_t_initial = node_data['fix_initial']
             duration_min, duration_max = node_data['duration_bounds']
             initial_min, initial_max = node_data['initial_bounds']
 
             duration_min = -INF_BOUND if duration_min is None else duration_min
             duration_max = INF_BOUND if duration_max is None else duration_max
-            initial_min = -INF_BOUND if initial_min is None else initial_min
-            initial_max = INF_BOUND if initial_max is None else initial_max
+            old_tmin = -INF_BOUND if old_tmin is None else old_tmin
+            old_tmax = INF_BOUND if old_tmax is None else old_tmax
 
             errs = []
             new_min_t = -INF_BOUND
@@ -855,29 +855,41 @@ class Trajectory(om.Group):
 
             if fixed_t_initial:
                 # if t_initial is fixed, first check if it's within the incoming bounds
-                if not (old_tmin <= t_initial <= old_tmax):
+                if not old_tmin <= t_initial <= old_tmax:
                     errs.append(f"Fixed t_initial of {t_initial} is outside of allowed bounds "
                                 f"{(old_tmin, old_tmax)} for phase '{node_name}'.")
 
-                if duration_min not in (None, -INF_BOUND):
+                if duration_min > -INF_BOUND:
                     new_min_t = t_initial + duration_min
 
-                if duration_max not in (None, INF_BOUND):
+                if duration_max < INF_BOUND:
                     new_max_t = t_initial + duration_max
 
             else:
+                initial_min = -INF_BOUND if initial_min is None else initial_min
+                initial_max = INF_BOUND if initial_max is None else initial_max
 
-                if duration_min not in (None, -INF_BOUND):
-                    if old_tmin in (None, -INF_BOUND):
-                        new_min_t = old_tmin
-                    else:
-                        new_min_t = old_tmin + duration_min
+                # check for overlap
+                if not (old_tmin <= initial_min <= old_tmax or old_tmin <= initial_max <= old_tmax
+                        or initial_min <= old_tmin <= initial_max
+                        or initial_min <= old_tmax <= initial_max):
+                    errs.append(f"t_initial bounds of ({initial_min}, {initial_max}) do not overlap"
+                                f"with allowed bounds {(old_tmin, old_tmax)} for phase "
+                                f"'{node_name}'.")
 
-                if duration_max not in (None, INF_BOUND):
-                    if old_tmax in (None, INF_BOUND):
-                        new_max_t = old_tmax
+                if duration_min > -INF_BOUND:
+                    tmin = max(old_tmin, initial_min)
+                    if tmin > -INF_BOUND:
+                        new_min_t = tmin + duration_min
                     else:
-                        new_max_t = old_tmax + duration_max
+                        new_min_t = tmin
+
+                if duration_max < INF_BOUND:
+                    tmax = min(old_tmax, initial_max)
+                    if tmax < INF_BOUND:
+                        new_max_t = tmax + duration_max
+                    else:
+                        new_max_t = tmax
 
             return new_min_t, new_max_t, errs
 
@@ -891,15 +903,15 @@ class Trajectory(om.Group):
                                f"linkage graph: {[sorted(c) for c in cycles]}.")
 
         node_data = phase_graph.nodes(data=True)
-        t_nodes = [n for n, meta in node_data if 't_initial' in meta]
 
         # only keep the part of the graph where 't' connects phases
-        G = phase_graph.subgraph(t_nodes)
+        G = phase_graph.subgraph([n for n, meta in node_data if 't_initial' in meta])
 
-        # update G nodes with final values for t_initial (users can set after setup)
+        # Update G nodes with final values for time properties.
+        # We wait until now because users can set some values after setup.
         for name, data in G.nodes(data=True):
             phase = self._get_subsystem(f'phases.{name}')
-            data['fixed'] = phase.is_time_fixed('initial')
+            data['fix_initial'] = phase.time_options['fix_initial']
             data['duration_bounds'] = phase.time_options['duration_bounds']
             data['initial_bounds'] = phase.time_options['initial_bounds']
             data['t_initial'] = phase.time_options['initial_val']
