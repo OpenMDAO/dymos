@@ -53,10 +53,24 @@ class TestPyCodeStyle(unittest.TestCase):
                                                ])
         style.options.max_line_length = 130
 
-        report = style.check_files(pyfiles)
+        # the report writes most failures to stdout which is swallowed by testflo by
+        # default, so temporarily replace stdout with a StringIO so we can include the failure
+        # descriptions in the failure message.
+        from io import StringIO
+        save_out = sys.stdout
+        save_err = sys.stderr
+        try:
+            sys.stdout = buff_out = StringIO()
+            sys.stdout = buff_err = StringIO()
+            report = style.check_files(pyfiles)
+        finally:
+            sys.stdout = save_out
+            sys.stderr = save_err
+            fails = buff_out.getvalue()
+            fails += '\n' + buff_err.getvalue()
 
         if report.total_errors > 0:
-            self.fail(f"Found {report.total_errors} pycodestyle errors")
+            self.fail(f"Found {report.total_errors} pycodestyle errors:\n{fails}")
 
 
 if __name__ == '__main__':  # pragma: no cover

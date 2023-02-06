@@ -159,7 +159,7 @@ def _trajectory_to_dict(traj):
             'type': 'variable',
             'class': 'parameter',
             'fixed': False,
-            'paramOpt': traj.parameter_options[param_name]['opt'],
+            'paramOpt': param['opt'],
             'connected': True
         }
 
@@ -375,14 +375,12 @@ def _run_linkage_report(prob):
     """ Function invoked by the reports system """
 
     # Find all Trajectory objects in the Problem. Usually, there's only one
-    for sysname, sysinfo in prob.model._subsystems_allprocs.items():
-        if isinstance(sysinfo.system, dm.Trajectory):
-            traj = sysinfo.system
-            # Only create a report for a trajectory with linkages
-            if traj._linkages:
-                report_filename = f'{sysname}_{_default_linkage_report_filename}'
-                report_path = str(Path(prob.get_reports_dir()) / report_filename)
-                create_linkage_report(traj, report_path)
+    for traj in prob.model.system_iter(include_self=True, recurse=True, typ=dm.Trajectory):
+        # Only create a report for a trajectory with linkages
+        if traj._linkages:
+            report_filename = f'{traj.pathname}_{_default_linkage_report_filename}'
+            report_path = str(Path(prob.get_reports_dir()) / report_filename)
+            create_linkage_report(traj, report_path)
 
 
 def _linkage_report_register():

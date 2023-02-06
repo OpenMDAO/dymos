@@ -2541,3 +2541,36 @@ class Phase(om.Group):
             all_flat_idxs.update(flat_idxs)
 
         return all_flat_idxs
+
+    def _is_fixed(self, var_name, var_type, loc):
+        """
+        Determine whether a variable is fixed or not.
+
+        Parameters
+        ----------
+        var_name : str
+            Identifier of the variable as known to the phase.
+        var_type : str
+            The type of variable.
+        loc : str
+            Either 'initial' or 'final' for non-parameters.
+
+        Returns
+        -------
+        bool
+            True if the variable is fixed, otherwise False.
+        """
+        if var_type == 't':
+            return self.is_time_fixed(loc)
+        elif var_type == 'state':
+            return self.is_state_fixed(var_name, loc)
+        elif var_type in {'input_control', 'indep_control'}:
+            return self.is_control_fixed(var_name, loc)
+        elif var_type in {'input_polynomial_control', 'indep_polynomial_control'}:
+            return self.is_polynomial_control_fixed(var_name, loc)
+        elif var_type in {'control_rate', 'control_rate2'}:
+            return self.is_control_rate_fixed(var_name, loc)
+        elif var_type == 'parameter':
+            return not self.parameter_options[var_name]['opt']
+
+        return False  # No way to know so we allow these to go through
