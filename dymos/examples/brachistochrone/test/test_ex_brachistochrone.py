@@ -55,8 +55,6 @@ class TestBrachistochroneExample(unittest.TestCase):
                                                         compressed=True)
         self.run_asserts(p)
         self.tearDown()
-        if os.path.exists('ex_brach_radau_compressed.db'):
-            os.remove('ex_brach_radau_compressed.db')
 
     def test_ex_brachistochrone_radau_uncompressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
@@ -64,8 +62,6 @@ class TestBrachistochroneExample(unittest.TestCase):
                                                         compressed=False)
         self.run_asserts(p)
         self.tearDown()
-        if os.path.exists('ex_brach_radau_uncompressed.db'):
-            os.remove('ex_brach_radau_uncompressed.db')
 
     def test_ex_brachistochrone_gl_compressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
@@ -73,8 +69,6 @@ class TestBrachistochroneExample(unittest.TestCase):
                                                         compressed=True)
         self.run_asserts(p)
         self.tearDown()
-        if os.path.exists('ex_brach_gl_compressed.db'):
-            os.remove('ex_brach_gl_compressed.db')
 
     def test_ex_brachistochrone_gl_uncompressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
@@ -82,5 +76,31 @@ class TestBrachistochroneExample(unittest.TestCase):
                                                         compressed=False)
         self.run_asserts(p)
         self.tearDown()
-        if os.path.exists('ex_brach_gl_uncompressed.db'):
-            os.remove('ex_brach_gl_uncompressed.db')
+
+    def test_ex_brachistochrone_shooting_gl_compressed(self):
+        ex_brachistochrone.SHOW_PLOTS = True
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='shooting-gauss-lobatto',
+                                                        compressed=True)
+        self.run_asserts(p)
+        self.tearDown()
+
+    def test_ex_brachistochrone_shooting_gl_uncompressed(self):
+        ex_brachistochrone.SHOW_PLOTS = True
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='shooting-gauss-lobatto',
+                                                        compressed=False)
+        self.run_asserts(p)
+        self.tearDown()
+
+    def test_ex_brachistochrone_shooting_radau_compressed(self):
+        ex_brachistochrone.SHOW_PLOTS = True
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='shooting-radau',
+                                                        compressed=True)
+        self.run_asserts(p)
+        self.tearDown()
+
+    def test_ex_brachistochrone_shooting_radau_uncompressed(self):
+        ex_brachistochrone.SHOW_PLOTS = True
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='shooting-radau',
+                                                        compressed=False)
+        self.run_asserts(p)
+        self.tearDown()

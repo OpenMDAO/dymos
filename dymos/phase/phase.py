@@ -17,8 +17,9 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary, \
     TimeseriesOutputOptionsDictionary
 
-
 from ..transcriptions.transcription_base import TranscriptionBase
+from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
+from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
@@ -2115,7 +2116,7 @@ class Phase(om.Group):
                              rtol=_unspecified, first_step=_unspecified, max_step=_unspecified,
                              reports=False):
         """
-        Return a SolveIVPPhase instance.
+        Return a SimulationPhase instance that is essentially a copy of this Phase.
 
         This instance is initialized based on data from this Phase instance and
         the given simulation times.
@@ -2147,21 +2148,9 @@ class Phase(om.Group):
             An instance of SimulationPhase initialized based on data from this Phase and the given
             times.  This instance has not yet been setup.
         """
-        from ..transcriptions import SolveIVP
-
-        t = self.options['transcription']
-
-        sim_phase = dm.Phase(from_phase=self,
-                             transcription=SolveIVP(grid_data=t.grid_data,
-                                                    output_nodes_per_seg=times_per_seg,
-                                                    reports=reports))
-
-        # Copy over any simulation options from the simulate call.  The fallback will be to
-        # phase.simulate_options, which are copied from the original phase.
-        for key, val in {'method': method, 'atol': atol, 'rtol': rtol, 'first_step': first_step,
-                         'max_step': max_step}.items():
-            if val is not _unspecified:
-                sim_phase.simulate_options[key] = val
+        from .simulation_phase import SimulationPhase
+        sim_phase = SimulationPhase(from_phase=self, times_per_seg=times_per_seg, atol=atol, rtol=rtol,
+                                    first_step=first_step, max_step=max_step, reports=reports)
 
         return sim_phase
 
@@ -2273,7 +2262,6 @@ class Phase(om.Group):
             can be interrogated to obtain timeseries outputs in the same manner as other Phases
             to obtain results at the requested times.
         """
-
         sim_prob = om.Problem(model=om.Group())
 
         sim_phase = self.get_simulation_phase(times_per_seg, method=method, atol=atol, rtol=rtol,
@@ -2286,13 +2274,14 @@ class Phase(om.Group):
             sim_prob.add_recorder(rec)
 
         sim_prob.setup(check=True)
-        sim_phase.initialize_values_from_phase(sim_prob, self)
+
+        # sim_phase.set_val_from_phase(from_phase=self)  # TODO: use this for OpenMDAO >= 3.25.1
+        sim_phase.initialize_values_from_phase(prob=sim_prob, from_phase=self)
 
         print(f'\nSimulating phase {self.pathname}')
         sim_prob.run_model()
         print(f'Done simulating phase {self.pathname}')
         sim_prob.record('final')
-
         sim_prob.cleanup()
 
         return sim_prob

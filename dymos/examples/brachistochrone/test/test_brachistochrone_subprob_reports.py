@@ -166,8 +166,8 @@ if Version(openmdao_version) > Version("3.18"):
             report_subdirs = sorted([e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()])
 
             # Test that a report subdir was made
-            # # There is the nominal problem, the simulation problem, and a subproblem for each segment in the simulation.
-            self.assertEqual(len(report_subdirs), 12)
+            # There is the nominal problem, the simulation problem, and a subproblem for the simulation.
+            self.assertEqual(len(report_subdirs), 3)
 
             for subdir in report_subdirs:
                 path = pathlib.Path(subdir).joinpath(self.n2_filename)

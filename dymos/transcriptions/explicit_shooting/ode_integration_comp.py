@@ -155,6 +155,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
 
         # The total size of the entire state vector
         self.x_size = 0
+        self.state_sizes = {}
 
         self._state_input_names = {}
         self._state_output_names = {}
@@ -183,7 +184,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
                             units=options['units'],
                             desc=f'final value of state {state_name}')
 
-            state_size = np.prod(options['shape'], dtype=int)
+            self.state_sizes[state_name] = state_size = np.prod(options['shape'], dtype=int)
 
             # The indices of the state in x
             self.state_idxs[state_name] = np.s_[self.x_size:self.x_size + state_size]
@@ -560,8 +561,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
         if eval_solution:
             f = np.zeros((self.x_size, 1))
             for name in self.state_options:
-                f[self.state_idxs[name]] = self._eval_subprob.get_val(
-                    f'state_rate_collector.state_rates:{name}_rate').ravel()
+                state_rate = self._eval_subprob.get_val(f'state_rate_collector.state_rates:{name}_rate')
+                f[self.state_idxs[name]] = state_rate.reshape((self.state_sizes[name], 1))
         else:
             f = None
 
@@ -664,8 +665,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
         ----------
         t : float
             The current value of the integration variable.
-        y : np.array
-            The augmented state vector.
+        x : np.array
+            The primal state vector.
         theta : np.array
             The ODE parameter vector. The first two elements are t_initial and t_duration.
 
@@ -674,9 +675,12 @@ class ODEIntegrationComp(om.ExplicitComponent):
         y_dot : np.array
             The rates associated with each state in the augmented state vector (primal and tangent states).
         """
-        x_dot, _, _, _ = self.eval_ode(x, t, theta, eval_solution=True, eval_derivs=False)
+        n_x = self.x_size
+        _x = x.reshape((1, n_x))
 
-        return x_dot
+        x_dot, _, _, _ = self.eval_ode(_x, t, theta, eval_solution=True, eval_derivs=False)
+
+        return x_dot.ravel()
 
     def _propagate(self, inputs, propagate_derivs=None, x_out=None, t_out=None, dx_dz_out=None,
                    dt_dz_out=None):
@@ -744,7 +748,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
 
         for state_name in self.state_options:
             state_initial_val = inputs[self._state_input_names[state_name]]
-            x0[self.state_idxs[state_name]] = state_initial_val
+            x0[self.state_idxs[state_name]] = state_initial_val.ravel()
 
         theta[0] = t_initial = inputs['t_initial']
         theta[1] = t_duration = inputs['t_duration']
@@ -793,6 +797,9 @@ class ODEIntegrationComp(om.ExplicitComponent):
             else:
                 sol = solve_ivp(self._f_primal, t_span=t_span_seg, t_eval=t_eval_seg, y0=y0, args=(theta,),
                                 method=method, first_step=first_step, max_step=max_step, atol=atol, rtol=rtol)
+
+            if not sol.success:
+                raise om.AnalysisError(f'solve_ivp failed: {sol.message}')
 
             x_out[row_seg_i:row_seg_i+nnps[i], :] = sol.y.T[:, :n_x]  # Save solution to the output nodes
             t_out[row_seg_i:row_seg_i + nnps[i], 0] = sol.t

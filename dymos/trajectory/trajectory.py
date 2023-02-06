@@ -1358,7 +1358,10 @@ class Trajectory(om.Group):
             sim_prob.set_val(sim_prob_prom_path, self.get_val(f'parameters:{name}'))
 
         for phase_name, phs in sim_traj._phases.items():
-            phs.initialize_values_from_phase(sim_prob, self._phases[phase_name],
+            # TODO: use the following method once OpenMDAO >= 3.25.1
+            # phs.set_val_from_phase(from_phase=self._phases[phase_name])
+            phs.initialize_values_from_phase(prob=sim_prob,
+                                             from_phase=self._phases[phase_name],
                                              phase_path=traj_name)
 
         print(f'\nSimulating trajectory {self.pathname}')

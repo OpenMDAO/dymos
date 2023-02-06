@@ -255,7 +255,7 @@ class dymos_linkage_gui_test_case(_GuiTestCase):
 
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'IPOPT'
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 0
         p.driver.opt_settings['derivative_test'] = 'first-order'
 
         p.driver.declare_coloring()

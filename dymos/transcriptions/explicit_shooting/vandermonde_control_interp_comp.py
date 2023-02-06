@@ -2,6 +2,7 @@ import numpy as np
 import openmdao.api as om
 
 from ...utils.lgl import lgl
+from ...utils.misc import get_rate_units
 
 
 class VandermondeControlInterpComp(om.ExplicitComponent):
@@ -126,12 +127,14 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             output_name = f'control_values:{control_name}'
             rate_name = f'control_rates:{control_name}_rate'
             rate2_name = f'control_rates:{control_name}_rate2'
+            rate_units = get_rate_units(units, self._time_units)
+            rate2_units = get_rate_units(units, self._time_units, deriv=2)
             uhat_shape = (num_uhat_nodes,) + shape
             output_shape = (vec_size,) + shape
             self.add_input(input_name, shape=uhat_shape, units=units)
             self.add_output(output_name, shape=output_shape, units=units)
-            self.add_output(rate_name, shape=output_shape, units=units)
-            self.add_output(rate2_name, shape=output_shape, units=units)
+            self.add_output(rate_name, shape=output_shape, units=rate_units)
+            self.add_output(rate2_name, shape=output_shape, units=rate2_units)
             self._control_io_names[control_name] = (input_name, output_name, rate_name, rate2_name)
             self.declare_partials(of=output_name, wrt=input_name)
             self.declare_partials(of=output_name, wrt='stau', rows=ar, cols=ar)
@@ -154,12 +157,14 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             output_name = f'polynomial_control_values:{pc_name}'
             rate_name = f'polynomial_control_rates:{pc_name}_rate'
             rate2_name = f'polynomial_control_rates:{pc_name}_rate2'
+            rate_units = get_rate_units(units, self._time_units)
+            rate2_units = get_rate_units(units, self._time_units, deriv=2)
             input_shape = (order + 1,) + shape
             output_shape = (vec_size,) + shape
             self.add_input(input_name, shape=input_shape, units=units)
             self.add_output(output_name, shape=output_shape, units=units)
-            self.add_output(rate_name, shape=output_shape, units=units)
-            self.add_output(rate2_name, shape=output_shape, units=units)
+            self.add_output(rate_name, shape=output_shape, units=rate_units)
+            self.add_output(rate2_name, shape=output_shape, units=rate2_units)
             self._control_io_names[pc_name] = (input_name, output_name, rate_name, rate2_name)
             self.declare_partials(of=output_name, wrt=input_name)
             self.declare_partials(of=output_name, wrt='ptau', rows=ar, cols=ar)

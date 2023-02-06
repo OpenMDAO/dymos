@@ -104,7 +104,7 @@ class TestRunProblem(unittest.TestCase):
             p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
             p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         elif optimizer == 'IPOPT':
-            p.driver.opt_settings['print_level'] = 5
+            p.driver.opt_settings['print_level'] = 0
             p.driver.opt_settings['max_iter'] = 200
             p.driver.opt_settings['linear_solver'] = 'mumps'
             p.driver.opt_settings['mu_strategy'] = 'monotone'

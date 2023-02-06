@@ -321,9 +321,10 @@ class GridData(object):
         # Make sure transcription_order is a vector
         if isinstance(transcription_order, str):
             self.transcription_order = num_segments * [transcription_order]
-        elif np.isscalar(transcription_order):
-            transcription_order = np.ones(num_segments, int) * transcription_order
-            self.transcription_order = np.asarray(transcription_order, dtype=int)
+        elif np.ndim(transcription_order) == 0:  # scalar
+            self.transcription_order = np.ones(num_segments, int) * transcription_order
+        elif np.size(transcription_order) == 1:  # length-1 array
+            self.transcription_order = np.ones(num_segments, int) * np.asarray(transcription_order)[0]
         else:
             self.transcription_order = np.asarray(transcription_order, dtype=int)
 
@@ -583,7 +584,7 @@ class GaussLobattoGrid(GridData):
     """
     def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
         super().__init__(num_segments=num_segments, transcription='gauss-lobatto',
-                         transcription_order=np.asarray(nodes_per_seg, dtype=int)-1,
+                         transcription_order=np.asarray(nodes_per_seg, dtype=int),
                          segment_ends=segment_ends, compressed=compressed)
 
 

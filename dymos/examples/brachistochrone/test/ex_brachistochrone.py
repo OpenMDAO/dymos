@@ -1,5 +1,4 @@
 import matplotlib
-import matplotlib.pyplot as plt
 
 import openmdao.api as om
 from openmdao.utils.testing_utils import require_pyoptsparse
@@ -30,6 +29,17 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         t = dm.Radau(num_segments=num_segments,
                      order=transcription_order,
                      compressed=compressed)
+    elif transcription == 'shooting-gauss-lobatto':
+        grid = dm.GaussLobattoGrid(num_segments=num_segments,
+                                   nodes_per_seg=transcription_order,
+                                   compressed=compressed)
+        t = dm.ExplicitShooting(grid=grid)
+    elif transcription == 'shooting-radau':
+        grid = dm.RadauGrid(num_segments=num_segments,
+                            nodes_per_seg=transcription_order + 1,
+                            compressed=compressed)
+        t = dm.ExplicitShooting(grid=grid)
+
     traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
     p.model.add_subsystem('traj0', traj)
@@ -81,5 +91,5 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 if __name__ == '__main__':
     p = brachistochrone_min_time(transcription='gauss-lobatto', num_segments=5, run_driver=True,
-                                 transcription_order=5, compressed=False, optimizer='SNOPT',
+                                 transcription_order=5, compressed=False, optimizer='IPOPT',
                                  solve_segments=False, force_alloc_complex=True)

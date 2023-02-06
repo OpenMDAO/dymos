@@ -75,48 +75,25 @@ class ExplicitShooting(TranscriptionBase):
                              default=None, desc='Number of integration steps in each segment',
                              deprecation='Option `num_steps_per_segment is deprecated. ExplicitShooting now uses '
                                          'adaptive-step methods.')
-        self.options.declare('subprob_reports', default=False,
-                             desc='Controls the reports made when running the subproblems for ExplicitShooting')
 
         # Deprecated options previously inherited from transcription base.
-        self.options.declare('num_segments', types=int, desc='Number of segments',
-                             deprecation='Option `num_segments` of ExplicitShooting is deprecated. Please provide '
-                                         '`grid` as an instance of dymos.GaussLobattoGrid or '
-                                         'dymos.RadauGrid instead.')
+        self.options.declare('num_segments', types=int, desc='Number of segments')
         self.options.declare('segment_ends', default=None, types=(Sequence, np.ndarray),
                              allow_none=True, desc='Locations of segment ends or None for equally '
-                             'spaced segments',
-                             deprecation='Option `segment_ends` of ExplicitShooting is deprecated. Please provide '
-                                         '`grid` as an instance of dymos.GaussLobattoGrid or '
-                                         'dymos.RadauGrid instead.')
+                             'spaced segments')
         self.options.declare('order', default=3, types=(int, Sequence, np.ndarray),
                              desc='Order of the state transcription. The order of the control '
-                                  'transcription is `order - 1`.',
-                             deprecation='Option `order` of ExplicitShooting is deprecated. Please provide '
-                                         '`grid` as an instance of dymos.GaussLobattoGrid or '
-                                         'dymos.RadauGrid instead.')
+                                  'transcription is `order - 1`.')
         self.options.declare('compressed', default=True, types=bool,
                              desc='Use compressed transcription, meaning state and control values'
                                   'at segment boundaries are not duplicated on input.  This '
                                   'implicitly enforces value continuity between segments but in '
-                                  'some cases may make the problem more difficult to solve.',
-                             deprecation='Option `compressed`` of ExplicitShooting is deprecated. Please provide '
-                                         '`grid` as an instance of dymos.GaussLobattoGrid or '
-                                         'dymos.RadauGrid instead.')
+                                  'some cases may make the problem more difficult to solve.')
 
     def init_grid(self):
         """
         Setup the GridData object for the Transcription.
         """
-        # Don't show the deprecation warning unless the user actually used the deprecated options:
-        dep_options = {'order': None, 'segment_ends': None, 'compressed': None}
-
-        for option in dep_options:
-            show_warn_save = self.options._dict[option]['deprecation'][2]
-            self.options._dict[option]['deprecation'][2] = False
-            dep_options[option] = self.options[option]
-            self.options._dict[option]['deprecation'][2] = show_warn_save
-
         if self.options['grid'] in ('gauss-lobatto', None):
             self.options['grid'] = GaussLobattoGrid(num_segments=self.options['num_segments'],
                                                     nodes_per_seg=self.options['order'],
