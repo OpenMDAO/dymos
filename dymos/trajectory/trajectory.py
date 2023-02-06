@@ -1,21 +1,12 @@
 from collections import OrderedDict
 from collections.abc import Sequence
-from copy import deepcopy
 import itertools
 import sys
-import warnings
 
 from openmdao.utils.om_warnings import warn_deprecation
 from openmdao.utils.graph_utils import get_sccs_topo
 
-try:
-    from itertools import izip
-except ImportError:
-    izip = zip
-
 import numpy as np
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import networkx as nx
 
 import openmdao.api as om
