@@ -269,7 +269,16 @@ def _linkages_to_list(traj, model_data):
 
 def _conn_name_to_path(name):
     """ Convert the full name of the connection to a format the diagram uses. """
-    tokens = re.split(r'\W+', name)
+    if re.search(r'.*param_comp.parameter_vals.*|.*param_comp.parameters.*', name):
+        # Special handling in case the name contains colons
+        tokens = re.split(r'\.', name)
+        last_name = tokens[-1]
+        param_name = re.split(r':', last_name, 1)
+        tokens[-1] = param_name[0]
+        tokens.append(param_name[1])
+    else:
+        tokens = re.split(r'\W+', name)
+
     if len(tokens) > 0:
         if tokens[1] == 'param_comp':
             return f'params.{tokens.pop()}'
