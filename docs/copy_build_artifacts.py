@@ -12,7 +12,7 @@ def copy_build_artifacts(book_dir='openmdao_book'):
     book_dir : str
         The directory containing the Jupyter-Book to be created.
     """
-    PATTERNS_TO_COPY = ('*.html', '*.png')
+    PATTERNS_TO_COPY = ('*.html', '*.png', '*.svg')
     TARGET_DIR = '_build'
     EXCLUDE_DIRS = ('_build', '.ipynb_checkpoints')
 
