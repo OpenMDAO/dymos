@@ -7,15 +7,15 @@ Version 1.7.0 contains some significant enhancements to its capabilities.
 
 Major improvements include:
 - Users may now specify boundary constraints, path constraints, and the objective within a phase as expressions. These expressions must contain an equals sign and must be complex-step-safe. This allows the user to impose constraints or objectives on quantities that may not be computed by the given equations of motion model.
-- While the user could always time as some other quantity being used as the variable of integration (such as range for an aircraft), the user can now explicitly rename the time variable to make this a little more obvious.
+- The user can now rename the time variable. Integration with respect to another variable (such as range for an aircraft) has always been possible, but dymos still always called the variable "time". Now, it will be more clear.
 - The ExplicitShooting transcription has been reworked to include a continuous adjoint for derivatives and uses the stock scipy.integrate.solve_ivp integrators to perform the actual integraiton. Note that this method may result in inaccurate derivatives when the time step varies widely thoughout an integration. (We're working on that part).
-- Imposing rate2 continuity on controls would previously generate confusing errors with some optimizers like SLSQP. If the polynomial order of the control representation was not greater than 3, then the second derivative would always be zero. Continuity was thus guaranteed, but SLSQP would fail because it lacked the ability to affect that continuity despite it always being satisfied. Dymos now turns off control second derivative continuity across segments if it cannot affect the second derivative of the control on either side of the junction.
-- The `run_problem` method will now include a sanity check on time bounds. If it detects that the linkage constraints between two phases in time cannot be satisfied due to initial time and duration bounds on all previous phases, a warning will be raised.
+- Imposing rate2 continuity on controls would previously generate confusing errors with some optimizers like SLSQP. If the polynomial order of the control representation was quadratic, then the second derivative would always be zero. Continuity was thus guaranteed, but SLSQP would fail because it lacked the ability to affect that continuity despite it always being satisfied. Now Dymos will only respect control rate2 continuity across segment junctions if it can affect continuity at the segment junction.
+- The `run_problem` method now includes a sanity check on time bounds. If it detects that the linkage constraints between two phases in time cannot be satisfied due to initial time and duration bounds on all previous phases, a warning will be raised.
 
 ## Backwards Incompatible API Changes & Deprecations
 
 - Deprecated Trajectory.add_linkage_constraint arguments sign_a and sign_b [#888](https://github.com/OpenMDAO/dymos/pull/888)
-- Deprecated SolveIVP transcription.  `simulate` method now uses the ExplicitShooting transcription without derivatives. [#898](https://github.com/OpenMDAO/dymos/pull/898)
+- Deprecated SolveIVP transcription. The `simulate` method now uses the ExplicitShooting transcription without derivatives. [#898](https://github.com/OpenMDAO/dymos/pull/898)
 
 ## Enhancements
 
@@ -40,7 +40,7 @@ Major improvements include:
 
 ## Miscellaneous
 
-- None
+- Fixed broken image links in the water rocket example in the documentation.  [#902](https://github.com/OpenMDAO/dymos/pull/902)
 
 
 *******************************
