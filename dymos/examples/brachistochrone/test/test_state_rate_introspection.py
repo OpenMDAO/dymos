@@ -239,7 +239,7 @@ class TestIntegrateControl(unittest.TestCase):
         # Define a Dymos Phase object with GaussLobatto Transcription
         #
         phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=transcription(num_segments=10, order=3))
+                         transcription=transcription(num_segments=15, order=3))
 
         traj.add_phase(name='phase0', phase=phase)
 
@@ -304,7 +304,7 @@ class TestIntegrateControl(unittest.TestCase):
         p.set_val('traj.phase0.controls:theta', phase.interp('theta', [0, 100]), units='deg')
 
         # Run the driver to solve the problem
-        dm.run_problem(p, simulate=True, make_plots=False)
+        dm.run_problem(p, simulate=True, make_plots=False, simulate_kwargs={'atol': 1.0E-9, 'rtol': 1.0E-9})
 
         sol = om.CaseReader('dymos_solution.db').get_case('final')
         sim = om.CaseReader('dymos_simulation.db').get_case('final')

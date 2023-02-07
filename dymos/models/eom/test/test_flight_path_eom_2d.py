@@ -144,5 +144,6 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         assert_check_partials(cpd)
 
+
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

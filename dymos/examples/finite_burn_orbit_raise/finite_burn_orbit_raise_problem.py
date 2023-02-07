@@ -80,9 +80,10 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     # Third Phase (burn)
     burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=t[transcription])
 
+    traj.add_phase('coast', coast)
+    traj.add_phase('burn2', burn2)
+
     if connected:
-        traj.add_phase('burn2', burn2)
-        traj.add_phase('coast', coast)
 
         burn2.set_time_options(initial_bounds=(1.0, 60), duration_bounds=(-10.0, -0.5),
                                initial_ref=10, units='TU')
@@ -104,8 +105,6 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
         burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
                           scaler=0.01, lower=-180, upper=180)
     else:
-        traj.add_phase('coast', coast)
-        traj.add_phase('burn2', burn2)
 
         burn2.set_time_options(initial_bounds=(0.5, 50), duration_bounds=(.5, 10), initial_ref=10, units='TU')
         burn2.add_state('r', fix_initial=False, fix_final=True, defect_scaler=100.0,
@@ -118,7 +117,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
                         rate_source='vt_dot', targets=['vt'], units='DU/TU')
         burn2.add_state('accel', fix_initial=False, fix_final=False, defect_scaler=1.0,
                         rate_source='at_dot', targets=['accel'], units='DU/TU**2')
-        burn2.add_state('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0,
+        burn2.add_state('deltav', fix_initial=False, fix_final=False, lower=0.0, defect_scaler=1.0,
                         rate_source='deltav_dot', units='DU/TU')
 
         burn2.add_objective('deltav', loc='final', scaler=100.0)
@@ -160,7 +159,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
         # If running connected and under MPI the phases subsystem requires a Nonlinear Block Jacobi solver.
         # This is not the most efficient way to actually solve this problem but it demonstrates access
         # to the traj.phases subsystem before setup.
-        traj.phases.nonlinear_solver = om.NonlinearBlockJac()
+        traj.phases.nonlinear_solver = om.NonlinearBlockJac(iprint=0)
         traj.phases.linear_solver = om.PETScKrylov()
 
     return traj
@@ -225,6 +224,8 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
         p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
         p.driver.opt_settings['mu_strategy'] = 'monotone'
+        if show_output:
+            p.driver.opt_settings['print_level'] = 5
 
     traj = make_traj(transcription=transcription, transcription_order=transcription_order,
                      compressed=compressed, connected=connected)
@@ -290,6 +291,6 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
             p.set_val('traj.burn2.controls:u1', val=burn2.interp('u1', [0, 0]))
 
     if run_driver or simulate:
-        dm.run_problem(p, run_driver=run_driver, simulate=simulate, restart=restart)
+        dm.run_problem(p, run_driver=run_driver, simulate=simulate, restart=restart, make_plots=True)
 
     return p

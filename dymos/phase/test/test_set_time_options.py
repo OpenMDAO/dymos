@@ -205,49 +205,49 @@ class TestPhaseTimeOptions(unittest.TestCase):
         self.assertIn(expected_msg1, [str(w.message) for w in ctx])
 
     def test_unbounded_time(self):
-            p = om.Problem(model=om.Group())
+        p = om.Problem(model=om.Group())
 
-            p.driver = om.ScipyOptimizeDriver()
-            p.driver.declare_coloring()
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-            phase = dm.Phase(ode_class=BrachistochroneODE,
-                             transcription=dm.GaussLobatto(num_segments=8, order=3))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=8, order=3))
 
-            p.model.add_subsystem('phase0', phase)
+        p.model.add_subsystem('phase0', phase)
 
-            phase.set_time_options(fix_initial=False, fix_duration=False)
+        phase.set_time_options(fix_initial=False, fix_duration=False)
 
-            phase.add_state('x', fix_initial=True, fix_final=True)
+        phase.add_state('x', fix_initial=True, fix_final=True)
 
-            phase.add_state('y', fix_initial=True, fix_final=True)
+        phase.add_state('y', fix_initial=True, fix_final=True)
 
-            phase.add_state('v', fix_initial=True, fix_final=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
-            phase.add_control('theta', units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg', lower=0.01, upper=179.9)
 
-            phase.add_parameter('g', units='m/s**2', val=9.80665, opt=False)
+        phase.add_parameter('g', units='m/s**2', val=9.80665, opt=False)
 
-            # Minimize time at the end of the phase
-            phase.add_objective('time', loc='final', scaler=10)
+        # Minimize time at the end of the phase
+        phase.add_objective('time', loc='final', scaler=10)
 
-            phase.add_boundary_constraint('time', loc='initial', equals=0)
+        phase.add_boundary_constraint('time', loc='initial', equals=0)
 
-            p.model.linear_solver = om.DirectSolver()
-            p.setup(check=True)
+        p.model.linear_solver = om.DirectSolver()
+        p.setup(check=True)
 
-            p['phase0.t_initial'] = 0.0
-            p['phase0.t_duration'] = 2.0
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 2.0
 
-            p['phase0.states:x'] = phase.interp('x', [0, 10])
-            p['phase0.states:y'] = phase.interp('y', [10, 5])
-            p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-            p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
-            p['phase0.parameters:g'] = 9.80665
+        p['phase0.states:x'] = phase.interp('x', [0, 10])
+        p['phase0.states:y'] = phase.interp('y', [10, 5])
+        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
+        p['phase0.parameters:g'] = 9.80665
 
-            p.run_driver()
+        p.run_driver()
 
-            self.assertTrue(p.driver.result.success,
-                            msg='Brachistochrone with unbounded times has failed')
+        self.assertTrue(p.driver.result.success,
+                        msg='Brachistochrone with unbounded times has failed')
 
 
 if __name__ == '__main__':  # pragma: no cover

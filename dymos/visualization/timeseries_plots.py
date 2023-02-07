@@ -4,6 +4,7 @@ import pathlib
 
 import numpy as np
 
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import matplotlib.patches as mpatches
@@ -57,7 +58,7 @@ def _mpl_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
     backend_save = plt.get_backend()
     plt.switch_backend('Agg')
     # use a colormap with 20 values
-    cm = plt.cm.get_cmap('tab20')
+    cm = matplotlib.cm.get_cmap('tab20')
     plotfiles = []
 
     for var_name, var_unit in var_units.items():

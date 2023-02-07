@@ -138,15 +138,15 @@ class TestMinTimeClimb(unittest.TestCase):
         output_dict = get_promoted_vars(p.model, iotypes=('output',))
         ts = {k: v for k, v in output_dict.items() if 'timeseries.' in k}
         for c in ['mach', 'CD0', 'kappa', 'CLa', 'CL', 'CD', 'q', 'f_lift', 'f_drag', 'thrust', 'm_dot']:
-            assert(any([True for t in ts if 'timeseries.' + c in t]))
+            assert any([True for t in ts if 'timeseries.' + c in t])
 
     def _test_timeseries_units(self, p):
         """ Test that the units from the timeseries are correct. """
         output_dict = get_promoted_vars(p.model, iotypes=('output',))
-        assert(output_dict['traj.phase0.timeseries.thrust']['units'] == 'lbf')  # no wildcard, from units dict
-        assert(output_dict['traj.phase0.timeseries.m_dot']['units'] == 'kg/s')  # no wildcard, from ODE
-        assert(output_dict['traj.phase0.timeseries.f_drag']['units'] == 'N')    # wildcard, from ODE
-        assert(output_dict['traj.phase0.timeseries.f_lift']['units'] == 'lbf')  # wildcard, from units dict
+        assert output_dict['traj.phase0.timeseries.thrust']['units'] == 'lbf'  # no wildcard, from units dict
+        assert output_dict['traj.phase0.timeseries.m_dot']['units'] == 'kg/s'  # no wildcard, from ODE
+        assert output_dict['traj.phase0.timeseries.f_drag']['units'] == 'N'    # wildcard, from ODE
+        assert output_dict['traj.phase0.timeseries.f_lift']['units'] == 'lbf'  # wildcard, from units dict
 
     def _test_mach_rate(self, p, plot=False, time_name='time'):
         """ Test that the mach rate is provided by the timeseries and is accurate. """
@@ -221,7 +221,7 @@ class TestMinTimeClimb(unittest.TestCase):
         if plot:
             plt.show()
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_results_gauss_lobatto(self):
         NUM_SEG = 12
         ORDER = 3
@@ -236,11 +236,11 @@ class TestMinTimeClimb(unittest.TestCase):
 
         self._test_mach_rate(p)
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_results_radau(self):
         NUM_SEG = 15
         ORDER = 3
-        p = min_time_climb(optimizer='SLSQP', num_seg=NUM_SEG, transcription_order=ORDER,
+        p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
                            transcription='radau-ps', add_rate=True)
 
         self._test_results(p)
@@ -251,7 +251,7 @@ class TestMinTimeClimb(unittest.TestCase):
 
         self._test_mach_rate(p, plot=False)
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_results_gauss_lobatto_renamed_time(self):
         NUM_SEG = 12
         ORDER = 3
@@ -266,11 +266,11 @@ class TestMinTimeClimb(unittest.TestCase):
 
         self._test_mach_rate(p, time_name='t')
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_results_radau_renamed_time(self):
         NUM_SEG = 15
         ORDER = 3
-        p = min_time_climb(optimizer='SLSQP', num_seg=NUM_SEG, transcription_order=ORDER,
+        p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
                            transcription='radau-ps', add_rate=True, time_name='t')
 
         self._test_results(p, time_name='t')

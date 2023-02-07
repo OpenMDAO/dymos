@@ -1,10 +1,12 @@
 import unittest
 
 import matplotlib.pyplot as plt
-plt.switch_backend('Agg')
-plt.style.use('ggplot')
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+
+
+plt.switch_backend('Agg')
+plt.style.use('ggplot')
 
 
 @use_tempdirs
@@ -196,7 +198,7 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         ax_u1.grid(True)
 
         ax_deltav.set_xlabel('time ($TU$)')
-        ax_deltav.set_ylabel('${\Delta}v$ ($DU/TU$)')
+        ax_deltav.set_ylabel('${\Delta}v$ ($DU/TU$)')  # nopep8: W605
         ax_deltav.grid(True)
 
         t_sol = dict((phs, p.get_val('traj.{0}.timeseries.time'.format(phs)))

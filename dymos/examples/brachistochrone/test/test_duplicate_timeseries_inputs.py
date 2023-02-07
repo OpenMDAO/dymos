@@ -10,7 +10,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
-from ..brachistochrone_ode import BrachistochroneODE
+from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
 @use_tempdirs

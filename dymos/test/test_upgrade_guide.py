@@ -207,7 +207,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
                         rate_source='climb_rate',
                         units='km', fix_initial=True)
 
-        phase.add_control('mach',  targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
+        phase.add_control('mach', targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
 
         phase.add_control('climb_rate', targets=['gam_comp.climb_rate'], units='m/s', opt=False)
 
@@ -679,16 +679,17 @@ class TestUpgrade_0_19_0(unittest.TestCase):
                          compressed=compressed)
 
         # upgrade_doc: begin exec_comp_ode
-        ode = lambda num_nodes: om.ExecComp(['vdot = g * cos(theta)',
-                                             'xdot = v * sin(theta)',
-                                             'ydot = -v * cos(theta)'],
-                                            g={'val': 9.80665, 'units': 'm/s**2'},
-                                            v={'shape': (num_nodes,), 'units': 'm/s'},
-                                            theta={'shape': (num_nodes,), 'units': 'rad'},
-                                            vdot={'shape': (num_nodes,), 'units': 'm/s**2'},
-                                            xdot={'shape': (num_nodes,), 'units': 'm/s'},
-                                            ydot={'shape': (num_nodes,), 'units': 'm/s'},
-                                            has_diag_partials=True)
+        def ode(num_nodes):
+            return om.ExecComp(['vdot = g * cos(theta)',
+                                'xdot = v * sin(theta)',
+                                'ydot = -v * cos(theta)'],
+                               g={'val': 9.80665, 'units': 'm/s**2'},
+                               v={'shape': (num_nodes,), 'units': 'm/s'},
+                               theta={'shape': (num_nodes,), 'units': 'rad'},
+                               vdot={'shape': (num_nodes,), 'units': 'm/s**2'},
+                               xdot={'shape': (num_nodes,), 'units': 'm/s'},
+                               ydot={'shape': (num_nodes,), 'units': 'm/s'},
+                               has_diag_partials=True)
 
         phase = dm.Phase(ode_class=ode, transcription=t)
         # upgrade_doc: end declare_rate_source

@@ -496,15 +496,22 @@ class TestPhaseBase(unittest.TestCase):
                    'or path constraints.\nParameters are single values that do not change in ' \
                    'time, and may only be used in a single boundary or path constraint.'
 
-        for tx in (dm.GaussLobatto, dm.Radau, dm.ExplicitShooting):
-            with self.subTest():
+        transcriptions = {'gauss-lobatto': dm.GaussLobatto,
+                          'radau-ps': dm.Radau,
+                          'explicit-shooting': dm.ExplicitShooting}
+
+        for txname, tx in transcriptions.items():
+            with self.subTest(msg=f'{txname}'):
                 p = om.Problem(model=om.Group())
 
                 p.driver = om.ScipyOptimizeDriver()
                 p.driver.declare_coloring()
-
-                phase = dm.Phase(ode_class=BrachistochroneODE,
-                                 transcription=tx(num_segments=5, order=3, compressed=False))
+                if tx is dm.ExplicitShooting:
+                    phase = dm.Phase(ode_class=BrachistochroneODE,
+                                     transcription=tx(grid=dm.GaussLobattoGrid(num_segments=5, nodes_per_seg=3)))
+                else:
+                    phase = dm.Phase(ode_class=BrachistochroneODE,
+                                     transcription=tx(num_segments=5, order=3))
 
                 p.model.add_subsystem('phase0', phase)
 
@@ -544,15 +551,23 @@ class TestPhaseBase(unittest.TestCase):
 
     def test_parameter_initial_boundary_constraint(self):
 
-        for tx in (dm.GaussLobatto, dm.Radau, dm.ExplicitShooting):
-            with self.subTest():
+        transcriptions = {'gauss-lobatto': dm.GaussLobatto,
+                          'radau-ps': dm.Radau,
+                          'explicit-shooting': dm.ExplicitShooting}
+
+        for txname, tx in transcriptions.items():
+            with self.subTest(msg=f'{txname}'):
                 p = om.Problem(model=om.Group())
 
                 p.driver = om.ScipyOptimizeDriver()
                 p.driver.declare_coloring()
 
-                phase = dm.Phase(ode_class=BrachistochroneODE,
-                                 transcription=tx(num_segments=5, order=3, compressed=False))
+                if tx is dm.ExplicitShooting:
+                    phase = dm.Phase(ode_class=BrachistochroneODE,
+                                     transcription=tx(grid=dm.GaussLobattoGrid(num_segments=5, nodes_per_seg=3)))
+                else:
+                    phase = dm.Phase(ode_class=BrachistochroneODE,
+                                     transcription=tx(num_segments=5, order=3))
 
                 p.model.add_subsystem('phase0', phase)
 
@@ -564,7 +579,7 @@ class TestPhaseBase(unittest.TestCase):
 
                 phase.add_state('v', fix_initial=True, fix_final=False)
 
-                phase.add_control('theta', continuity=True, rate_continuity=True, rate2_continuity=True,
+                phase.add_control('theta', continuity=True, rate_continuity=True, rate2_continuity=False,
                                   rate_continuity_scaler=0.01, rate2_continuity_ref=1.0,
                                   units='deg', lower=0.01, upper=179.9)
 
@@ -605,15 +620,23 @@ class TestPhaseBase(unittest.TestCase):
 
     def test_parameter_final_boundary_constraint(self):
 
-        for tx in (dm.GaussLobatto, dm.Radau, dm.ExplicitShooting):
-            with self.subTest():
+        transcriptions = {'gauss-lobatto': dm.GaussLobatto,
+                          'radau-ps': dm.Radau,
+                          'explicit-shooting': dm.ExplicitShooting}
+
+        for txname, tx in transcriptions.items():
+            with self.subTest(msg=f'{txname}'):
                 p = om.Problem(model=om.Group())
 
                 p.driver = om.ScipyOptimizeDriver()
                 p.driver.declare_coloring()
 
-                phase = dm.Phase(ode_class=BrachistochroneODE,
-                                 transcription=tx(num_segments=5, order=3))
+                if isinstance(tx, dm.ExplicitShooting):
+                    phase = dm.Phase(ode_class=BrachistochroneODE,
+                                     transcription=tx(grid=dm.GaussLobattoGrid(num_segments=5, nodes_per_seg=3)))
+                else:
+                    phase = dm.Phase(ode_class=BrachistochroneODE,
+                                     transcription=tx(num_segments=5, order=3))
 
                 p.model.add_subsystem('phase0', phase)
 
@@ -625,7 +648,7 @@ class TestPhaseBase(unittest.TestCase):
 
                 phase.add_state('v', fix_initial=True, fix_final=False)
 
-                phase.add_control('theta', continuity=True, rate_continuity=True, rate2_continuity=True,
+                phase.add_control('theta', continuity=True, rate_continuity=True,
                                   units='deg', lower=0.01, upper=179.9)
 
                 phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
@@ -665,15 +688,23 @@ class TestPhaseBase(unittest.TestCase):
 
     def test_parameter_path_constraint(self):
 
-        for tx in (dm.GaussLobatto, dm.Radau, dm.ExplicitShooting):
-            with self.subTest():
+        transcriptions = {'gauss-lobatto': dm.GaussLobatto,
+                          'radau-ps': dm.Radau,
+                          'explicit-shooting': dm.ExplicitShooting}
+
+        for txname, tx in transcriptions.items():
+            with self.subTest(msg=f'{txname}'):
                 p = om.Problem(model=om.Group())
 
                 p.driver = om.ScipyOptimizeDriver()
                 p.driver.declare_coloring()
 
-                phase = dm.Phase(ode_class=BrachistochroneODE,
-                                 transcription=tx(num_segments=5, order=3))
+                if isinstance(tx, dm.ExplicitShooting):
+                    phase = dm.Phase(ode_class=BrachistochroneODE,
+                                     transcription=tx(grid=dm.GaussLobattoGrid(num_segments=5, order=3)))
+                else:
+                    phase = dm.Phase(ode_class=BrachistochroneODE,
+                                     transcription=tx(num_segments=5, order=3))
 
                 p.model.add_subsystem('phase0', phase)
 
@@ -685,7 +716,7 @@ class TestPhaseBase(unittest.TestCase):
 
                 phase.add_state('v', fix_initial=True, fix_final=False)
 
-                phase.add_control('theta', continuity=True, rate_continuity=True, rate2_continuity=True,
+                phase.add_control('theta', continuity=True, rate_continuity=True, rate2_continuity=False,
                                   units='deg', lower=0.01, upper=179.9)
 
                 phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)

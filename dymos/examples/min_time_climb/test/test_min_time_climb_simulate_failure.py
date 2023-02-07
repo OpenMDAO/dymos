@@ -93,10 +93,10 @@ class TestMinTimeClimbSimulateFailure(unittest.TestCase):
 
         with self.assertRaises(om.AnalysisError) as e:
             dm.run_problem(p, run_driver=False, simulate=True)
-        expected_pattern = r"'traj.phases.phase0.segments.segment_[0-9]' <class SegmentSimulationComp>: Error calling " \
-                           r"compute\(\), solve_ivp failed: Required step size is less than spacing " \
-                           r"between numbers. Dynamics changing too dramatically"
-        self.assertRegex(str(e.exception), expected_pattern)
+        expected_pattern = r"'traj.phases.phase0.integrator' <class ODEIntegrationComp>: Error calling " \
+                           r"compute(), solve_ivp failed: Required step size is less than spacing " \
+                           r"between numbers."
+        self.assertEqual(str(e.exception), expected_pattern)
 
 
 if __name__ == '__main__':  # pragma: no cover

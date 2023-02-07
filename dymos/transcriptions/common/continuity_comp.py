@@ -83,6 +83,7 @@ class ContinuityCompBase(om.ExplicitComponent):
     def _configure_control_continuity(self):
         control_options = self.options['control_options']
         num_segend_nodes = self.options['grid_data'].subset_num_nodes['segment_ends']
+        num_nodes_per_segment = self.options['grid_data'].subset_num_nodes_per_segment['control_disc']
         num_segments = self.options['grid_data'].num_segments
         time_units = self.options['time_units']
 
@@ -112,6 +113,17 @@ class ContinuityCompBase(om.ExplicitComponent):
             vals[0::2] = -1.0
             vals[1::2] = 1.0
             self.rate_jac_templates[control_name] = vals
+
+            #
+            # Check indices for rate2_continuity
+            #
+            n = len(num_nodes_per_segment)
+            indices = np.array([], dtype=int)
+            for i in range(1, n):
+                if num_nodes_per_segment[i] > 3 or num_nodes_per_segment[i-1] > 3:
+                    np.append(indices, i-1)
+
+            indices = om.slicer[indices, ...]
 
             #
             # Setup value continuity
@@ -171,6 +183,11 @@ class ContinuityCompBase(om.ExplicitComponent):
                     't_duration', dependent=True,
                 )
 
+                self.add_constraint(name=f'defect_control_rates:{control_name}_rate',
+                                    scaler=options['rate_continuity_scaler'],
+                                    ref=options['rate_continuity_ref'],
+                                    equals=0.0, linear=False)
+
             if options['rate2_continuity']:
                 any_rate_continuity = True
 
@@ -202,6 +219,13 @@ class ContinuityCompBase(om.ExplicitComponent):
                     f'defect_control_rates:{control_name}_rate2',
                     't_duration', dependent=True
                 )
+
+                if indices[0].size != 0:
+                    self.add_constraint(name=f'defect_control_rates:{control_name}_rate2',
+                                        scaler=options['rate2_continuity_scaler'],
+                                        indices=indices,
+                                        ref=options['rate2_continuity_ref'],
+                                        equals=0.0, linear=False)
 
         if any_rate_continuity:
             self.add_input('t_duration', units=time_units, val=1.0, desc='time duration of the phase')
@@ -361,26 +385,6 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
                                     ref=options['continuity_ref'],
                                     equals=0.0, linear=True)
 
-            #
-            # Setup first derivative continuity
-            #
-
-            if options['rate_continuity']:
-                self.add_constraint(name=f'defect_control_rates:{control_name}_rate',
-                                    scaler=options['rate_continuity_scaler'],
-                                    ref=options['rate_continuity_ref'],
-                                    equals=0.0, linear=False)
-
-            #
-            # Setup second derivative continuity
-            #
-
-            if options['rate2_continuity']:
-                self.add_constraint(name=f'defect_control_rates:{control_name}_rate2',
-                                    scaler=options['rate2_continuity_scaler'],
-                                    ref=options['rate2_continuity_ref'],
-                                    equals=0.0, linear=False)
-
 
 class RadauPSContinuityComp(ContinuityCompBase):
     """
@@ -427,24 +431,4 @@ class RadauPSContinuityComp(ContinuityCompBase):
                 self.add_constraint(name=f'defect_controls:{control_name}',
                                     scaler=options['continuity_scaler'],
                                     ref=options['continuity_ref'],
-                                    equals=0.0, linear=False)
-
-            #
-            # Setup first derivative continuity
-            #
-
-            if options['rate_continuity']:
-                self.add_constraint(name=f'defect_control_rates:{control_name}_rate',
-                                    scaler=options['rate_continuity_scaler'],
-                                    ref=options['rate_continuity_ref'],
-                                    equals=0.0, linear=False)
-
-            #
-            # Setup second derivative continuity
-            #
-
-            if options['rate2_continuity']:
-                self.add_constraint(name=f'defect_control_rates:{control_name}_rate2',
-                                    scaler=options['rate2_continuity_scaler'],
-                                    ref=options['rate2_continuity_ref'],
                                     equals=0.0, linear=False)

@@ -274,7 +274,7 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
                      desc='The default value of the parameter in the phase.')
 
-        self.declare(name='shape',  check_valid=check_valid_shape, default=_unspecified,
+        self.declare(name='shape', check_valid=check_valid_shape, default=_unspecified,
                      desc='The shape of the parameter.')
 
         self.declare(name='lower', types=(Iterable, Number), default=None,
@@ -611,7 +611,7 @@ class SimulateOptionsDictionary(om.OptionsDictionary):
     def __init__(self, read_only=False):
         super(SimulateOptionsDictionary, self).__init__(read_only)
 
-        self.declare('method', values=('RK23', 'RK45', 'DOP853', 'BDF', 'Radau', 'LSODA'), default='RK45',
+        self.declare('method', values=('RK23', 'RK45', 'DOP853', 'BDF', 'Radau', 'LSODA'), default='DOP853',
                      desc='The method used by simulate to propagate the ODE.')
 
         self.declare(name='atol', types=(float, np.array), default=1.0E-6,
@@ -651,10 +651,10 @@ class ConstraintOptionsDictionary(om.OptionsDictionary):
         self.declare(name='lower', types=(Iterable, Number), default=None, allow_none=True,
                      desc='Lower bound of the constraint.')
 
-        self.declare(name='upper', types=(Iterable, Number), default=None,  allow_none=True,
+        self.declare(name='upper', types=(Iterable, Number), default=None, allow_none=True,
                      desc='Upper bound of the constraint.')
 
-        self.declare(name='equals', types=(Iterable, Number), default=None,  allow_none=True,
+        self.declare(name='equals', types=(Iterable, Number), default=None, allow_none=True,
                      desc='Desired vlue for an equality constraint.')
 
         self.declare(name='scaler', types=(Iterable, Number), default=None, allow_none=True,

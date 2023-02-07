@@ -4,7 +4,7 @@ import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 import dymos as dm
 
-from dymos.transcriptions.explicit_shooting.test.test_rk_integration_comp import SimpleODE
+from dymos.transcriptions.explicit_shooting.test.test_ode_integration_comp import SimpleODE
 from dymos.transcriptions.explicit_shooting.ode_evaluation_group import ODEEvaluationGroup
 
 
@@ -35,24 +35,27 @@ class TestODEEvaluationGroup(unittest.TestCase):
 
         p = om.Problem()
 
-        tx = dm.GaussLobatto(num_segments=1, order=3)
+        igd = dm.GaussLobattoGrid(num_segments=1, nodes_per_seg=3, compressed=False)
 
-        p.model.add_subsystem('ode_eval', ODEEvaluationGroup(ode_class, time_options, state_options,
-                                                             param_options, control_options,
-                                                             polynomial_control_options,
-                                                             grid_data=tx.grid_data,
+        p.model.add_subsystem('ode_eval', ODEEvaluationGroup(ode_class,
+                                                             input_grid_data=igd,
+                                                             time_options=time_options,
+                                                             state_options=state_options,
+                                                             parameter_options=param_options,
+                                                             control_options=control_options,
+                                                             polynomial_control_options=polynomial_control_options,
                                                              ode_init_kwargs=None))
         p.setup(force_alloc_complex=True)
 
         p.model.ode_eval.set_segment_index(0)
         p.set_val('ode_eval.states:x', [1.25])
-        p.set_val('ode_eval.t', [2.2])
+        p.set_val('ode_eval.time', [2.2])
         p.set_val('ode_eval.parameters:p', [1.0])
 
         p.run_model()
 
         x = p.get_val('ode_eval.states:x')
-        t = p.get_val('ode_eval.t')
+        t = p.get_val('ode_eval.time')
         xdot_check = x - t**2 + 1
 
         assert_near_equal(p.get_val('ode_eval.state_rate_collector.state_rates:x_rate'), xdot_check)

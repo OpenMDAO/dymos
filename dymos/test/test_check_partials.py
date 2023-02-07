@@ -12,10 +12,7 @@ class TestCheckPartials(unittest.TestCase):
 
         prob.driver = om.ScipyOptimizeDriver()
 
-        tx = dm.ExplicitShooting(num_segments=3, grid='gauss-lobatto',
-                                 method='rk4', order=5,
-                                 num_steps_per_segment=5,
-                                 compressed=False)
+        tx = dm.ExplicitShooting(grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=6, compressed=False))
 
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
 
@@ -140,7 +137,7 @@ class TestCheckPartials(unittest.TestCase):
 
         traj.add_parameter('mu_r_nominal', val=0.03, opt=False, units=None, static_target=True,
                            desc='nominal runway friction coefficient',
-                           targets={'br_to_v1': ['mu_r'], 'v1_to_vr': ['mu_r'],  'rotate': ['mu_r']})
+                           targets={'br_to_v1': ['mu_r'], 'v1_to_vr': ['mu_r'], 'rotate': ['mu_r']})
 
         traj.add_parameter('mu_r_braking', val=0.3, opt=False, units=None, static_target=True,
                            desc='runway friction coefficient under braking',
@@ -387,7 +384,7 @@ class TestCheckPartials(unittest.TestCase):
 
         dm.options['include_check_partials'] = cp_save
 
-        assert(len(partials.keys()) > 0)
+        assert len(partials.keys()) > 0
 
     @set_env_vars(CI='0')  # Make sure _no_check_partials isn't disabled
     def test_check_partials_no(self):
@@ -408,7 +405,8 @@ class TestCheckPartials(unittest.TestCase):
 
         dm.options['include_check_partials'] = cp_save
 
-        self.assertSetEqual(set(partials.keys()), set())
+        # Only `phase.ode` should show up in in the partials keys.
+        self.assertSetEqual(set(partials.keys()), {'phase0.ode'})
 
 
 if __name__ == '__main__':  # pragma: no cover

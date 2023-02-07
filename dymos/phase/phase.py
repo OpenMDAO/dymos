@@ -17,8 +17,9 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary, \
     TimeseriesOutputOptionsDictionary
 
-
 from ..transcriptions.transcription_base import TranscriptionBase
+from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
+from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
@@ -2115,7 +2116,7 @@ class Phase(om.Group):
                              rtol=_unspecified, first_step=_unspecified, max_step=_unspecified,
                              reports=False):
         """
-        Return a SolveIVPPhase instance.
+        Return a SimulationPhase instance that is essentially a copy of this Phase.
 
         This instance is initialized based on data from this Phase instance and
         the given simulation times.
@@ -2147,21 +2148,9 @@ class Phase(om.Group):
             An instance of SimulationPhase initialized based on data from this Phase and the given
             times.  This instance has not yet been setup.
         """
-        from ..transcriptions import SolveIVP
-
-        t = self.options['transcription']
-
-        sim_phase = dm.Phase(from_phase=self,
-                             transcription=SolveIVP(grid_data=t.grid_data,
-                                                    output_nodes_per_seg=times_per_seg,
-                                                    reports=reports))
-
-        # Copy over any simulation options from the simulate call.  The fallback will be to
-        # phase.simulate_options, which are copied from the original phase.
-        for key, val in {'method': method, 'atol': atol, 'rtol': rtol, 'first_step': first_step,
-                         'max_step': max_step}.items():
-            if val is not _unspecified:
-                sim_phase.simulate_options[key] = val
+        from .simulation_phase import SimulationPhase
+        sim_phase = SimulationPhase(from_phase=self, times_per_seg=times_per_seg, atol=atol, rtol=rtol,
+                                    first_step=first_step, max_step=max_step, reports=reports)
 
         return sim_phase
 
@@ -2216,23 +2205,14 @@ class Phase(om.Group):
 
         # Assign control values
         for name, options in phs.control_options.items():
-            if options['opt']:
-                op = op_dict[f'control_group.indep_controls.controls:{name}']
-                prob[f'{self_path}controls:{name}'][...] = op['val']
-            else:
-                ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
-                prob[f'{self_path}controls:{name}'][...] = ip['val']
+            ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
+            prob[f'{self_path}controls:{name}'][...] = ip['val']
 
         # Assign polynomial control values
         for name, options in phs.polynomial_control_options.items():
-            if options['opt']:
-                op = op_dict[f'polynomial_control_group.indep_polynomial_controls.'
-                             f'polynomial_controls:{name}']
-                prob[f'{self_path}polynomial_controls:{name}'][...] = op['val']
-            else:
-                ip = ip_dict[f'{phs_path}polynomial_control_group.interp_comp.'
-                             f'polynomial_controls:{name}']
-                prob[f'{self_path}polynomial_controls:{name}'][...] = ip['val']
+            ip = ip_dict[f'polynomial_control_group.interp_comp.'
+                         f'polynomial_controls:{name}']
+            prob[f'{self_path}polynomial_controls:{name}'][...] = ip['val']
 
         # Assign parameter values
         for name in phs.parameter_options:
@@ -2282,7 +2262,6 @@ class Phase(om.Group):
             can be interrogated to obtain timeseries outputs in the same manner as other Phases
             to obtain results at the requested times.
         """
-
         sim_prob = om.Problem(model=om.Group())
 
         sim_phase = self.get_simulation_phase(times_per_seg, method=method, atol=atol, rtol=rtol,
@@ -2295,13 +2274,14 @@ class Phase(om.Group):
             sim_prob.add_recorder(rec)
 
         sim_prob.setup(check=True)
-        sim_phase.initialize_values_from_phase(sim_prob, self)
+
+        # sim_phase.set_val_from_phase(from_phase=self)  # TODO: use this for OpenMDAO >= 3.25.1
+        sim_phase.initialize_values_from_phase(prob=sim_prob, from_phase=self)
 
         print(f'\nSimulating phase {self.pathname}')
         sim_prob.run_model()
         print(f'Done simulating phase {self.pathname}')
         sim_prob.record('final')
-
         sim_prob.cleanup()
 
         return sim_prob
@@ -2561,3 +2541,36 @@ class Phase(om.Group):
             all_flat_idxs.update(flat_idxs)
 
         return all_flat_idxs
+
+    def _is_fixed(self, var_name, var_type, loc):
+        """
+        Determine whether a variable is fixed or not.
+
+        Parameters
+        ----------
+        var_name : str
+            Identifier of the variable as known to the phase.
+        var_type : str
+            The type of variable.
+        loc : str
+            Either 'initial' or 'final' for non-parameters.
+
+        Returns
+        -------
+        bool
+            True if the variable is fixed, otherwise False.
+        """
+        if var_type == 't':
+            return self.is_time_fixed(loc)
+        elif var_type == 'state':
+            return self.is_state_fixed(var_name, loc)
+        elif var_type in {'input_control', 'indep_control'}:
+            return self.is_control_fixed(var_name, loc)
+        elif var_type in {'input_polynomial_control', 'indep_polynomial_control'}:
+            return self.is_polynomial_control_fixed(var_name, loc)
+        elif var_type in {'control_rate', 'control_rate2'}:
+            return self.is_control_rate_fixed(var_name, loc)
+        elif var_type == 'parameter':
+            return not self.parameter_options[var_name]['opt']
+
+        return False  # No way to know so we allow these to go through

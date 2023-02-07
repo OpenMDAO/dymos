@@ -194,45 +194,45 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     p.setup(check=True)
 
     # Set Initial Guesses
-    p.set_val('orbit_transfer.parameters:c', value=1.5, units='DU/TU')
+    p.set_val('orbit_transfer.parameters:c', val=1.5, units='DU/TU')
 
     burn1 = p.model.orbit_transfer.phases.burn1
     burn2 = p.model.orbit_transfer.phases.burn2
     coast = p.model.orbit_transfer.phases.coast
 
     if burn1 in p.model.orbit_transfer.phases._subsystems_myproc:
-        p.set_val('orbit_transfer.burn1.t_initial', value=0.0)
-        p.set_val('orbit_transfer.burn1.t_duration', value=2.25)
-        p.set_val('orbit_transfer.burn1.states:r', value=burn1.interp('r', [1, 1.5]))
-        p.set_val('orbit_transfer.burn1.states:theta', value=burn1.interp('theta', [0, 1.7]))
-        p.set_val('orbit_transfer.burn1.states:vr', value=burn1.interp('vr', [0, 0]))
-        p.set_val('orbit_transfer.burn1.states:vt', value=burn1.interp('vt', [1, 1]))
-        p.set_val('orbit_transfer.burn1.states:accel', value=burn1.interp('accel', [0.1, 0]))
-        p.set_val('orbit_transfer.burn1.states:deltav', value=burn1.interp('deltav', [0, 0.1]))
-        p.set_val('orbit_transfer.burn1.controls:u1', value=burn1.interp('u1', [-3.5, 13.0]))
+        p.set_val('orbit_transfer.burn1.t_initial', val=0.0)
+        p.set_val('orbit_transfer.burn1.t_duration', val=2.25)
+        p.set_val('orbit_transfer.burn1.states:r', val=burn1.interp('r', [1, 1.5]))
+        p.set_val('orbit_transfer.burn1.states:theta', val=burn1.interp('theta', [0, 1.7]))
+        p.set_val('orbit_transfer.burn1.states:vr', val=burn1.interp('vr', [0, 0]))
+        p.set_val('orbit_transfer.burn1.states:vt', val=burn1.interp('vt', [1, 1]))
+        p.set_val('orbit_transfer.burn1.states:accel', val=burn1.interp('accel', [0.1, 0]))
+        p.set_val('orbit_transfer.burn1.states:deltav', val=burn1.interp('deltav', [0, 0.1]))
+        p.set_val('orbit_transfer.burn1.controls:u1', val=burn1.interp('u1', [-3.5, 13.0]))
 
     if coast in p.model.orbit_transfer.phases._subsystems_myproc:
-        p.set_val('orbit_transfer.coast.t_initial', value=2.25)
-        p.set_val('orbit_transfer.coast.t_duration', value=3.0)
+        p.set_val('orbit_transfer.coast.t_initial', val=2.25)
+        p.set_val('orbit_transfer.coast.t_duration', val=3.0)
 
-        p.set_val('orbit_transfer.coast.states:r', value=coast.interp('r', [1.3, 1.5]))
-        p.set_val('orbit_transfer.coast.states:theta', value=coast.interp('theta', [2.1767, 1.7]))
-        p.set_val('orbit_transfer.coast.states:vr', value=coast.interp('vr', [0.3285, 0]))
-        p.set_val('orbit_transfer.coast.states:vt', value=coast.interp('vt', [0.97, 1]))
-        p.set_val('orbit_transfer.coast.states:accel', value=coast.interp('accel', [0, 0]))
+        p.set_val('orbit_transfer.coast.states:r', val=coast.interp('r', [1.3, 1.5]))
+        p.set_val('orbit_transfer.coast.states:theta', val=coast.interp('theta', [2.1767, 1.7]))
+        p.set_val('orbit_transfer.coast.states:vr', val=coast.interp('vr', [0.3285, 0]))
+        p.set_val('orbit_transfer.coast.states:vt', val=coast.interp('vt', [0.97, 1]))
+        p.set_val('orbit_transfer.coast.states:accel', val=coast.interp('accel', [0, 0]))
 
     if burn2 in p.model.orbit_transfer.phases._subsystems_myproc:
-        p.set_val('orbit_transfer.burn2.t_initial', value=5.25)
-        p.set_val('orbit_transfer.burn2.t_duration', value=1.75)
+        p.set_val('orbit_transfer.burn2.t_initial', val=5.25)
+        p.set_val('orbit_transfer.burn2.t_duration', val=1.75)
 
-        p.set_val('orbit_transfer.burn2.states:r', value=burn2.interp('r', [1, r_target]))
-        p.set_val('orbit_transfer.burn2.states:theta', value=burn2.interp('theta', [0, 4.0]))
-        p.set_val('orbit_transfer.burn2.states:vr', value=burn2.interp('vr', [0, 0]))
-        p.set_val('orbit_transfer.burn2.states:vt', value=burn2.interp('vt', [1, np.sqrt(1 / r_target)]))
-        p.set_val('orbit_transfer.burn2.states:deltav', value=burn2.interp('deltav', [0.1, 0.2]))
-        p.set_val('orbit_transfer.burn2.states:accel', value=burn2.interp('accel', [0.1, 0]))
+        p.set_val('orbit_transfer.burn2.states:r', val=burn2.interp('r', [1, r_target]))
+        p.set_val('orbit_transfer.burn2.states:theta', val=burn2.interp('theta', [0, 4.0]))
+        p.set_val('orbit_transfer.burn2.states:vr', val=burn2.interp('vr', [0, 0]))
+        p.set_val('orbit_transfer.burn2.states:vt', val=burn2.interp('vt', [1, np.sqrt(1 / r_target)]))
+        p.set_val('orbit_transfer.burn2.states:deltav', val=burn2.interp('deltav', [0.1, 0.2]))
+        p.set_val('orbit_transfer.burn2.states:accel', val=burn2.interp('accel', [0.1, 0]))
 
-        p.set_val('orbit_transfer.burn2.controls:u1', value=burn2.interp('u1', [0, 0]))
+        p.set_val('orbit_transfer.burn2.controls:u1', val=burn2.interp('u1', [0, 0]))
 
     dm.run_problem(p, simulate=True)
 
@@ -242,7 +242,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 @use_tempdirs
 class TestTrajectoryParameters(unittest.TestCase):
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_param_explicit_connections_to_sequence(self):
         """
         Test that, when setting up a trajectory parameter, we can explicitly provide a sequence
@@ -250,21 +250,21 @@ class TestTrajectoryParameters(unittest.TestCase):
         automatically be added.
         """
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer='SLSQP',
+                                         compressed=False, optimizer='IPOPT',
                                          show_output=False, param_mode='param_sequence')
 
         if p.model.orbit_transfer.phases.burn2 in p.model.orbit_transfer.phases._subsystems_myproc:
             assert_near_equal(p.get_val('orbit_transfer.burn2.states:deltav')[-1], 0.3995,
                               tolerance=2.0E-3)
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_param_explicit_connections_to_sequence_missing_phase(self):
         """
         Test that, when setting up a trajectory parameter with a phase omitted from input,
         that we attempt to connect to an existing input variable in that phase of the same name.
         """
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer='SLSQP',
+                                         compressed=False, optimizer='IPOPT',
                                          show_output=False,
                                          param_mode='param_sequence_missing_phase')
 
@@ -272,14 +272,14 @@ class TestTrajectoryParameters(unittest.TestCase):
             assert_near_equal(p.get_val('orbit_transfer.burn2.states:deltav')[-1], 0.3995,
                               tolerance=2.0E-3)
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_param_no_targets(self):
         """
         Test that, when setting up a trajectory parameter with a phase omitted from input,
         that we attempt to connect to an existing input variable in that phase of the same name.
         """
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer='SLSQP',
+                                         compressed=False, optimizer='IPOPT',
                                          show_output=False,
                                          param_mode='param_no_targets')
 

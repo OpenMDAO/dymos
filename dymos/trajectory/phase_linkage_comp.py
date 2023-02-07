@@ -43,10 +43,10 @@ class PhaseLinkageComp(om.ExplicitComponent):
 
         The resulting linkage equation of constraint is:
 
-        C_linkage = sign_a * vars_a + sign_b * vars_b
+        C_linkage = mult_a * vars_a + mult_b * vars_b
 
-        Constraining this linkage to a value of zero, with the default signs
-        (sign_a = 1, sign_b = -1) will result in the two variables having the same value at the
+        Constraining this linkage to a value of zero, with the default multipliers
+        (mult_a = 1, mult_b = -1) will result in the two variables having the same value at the
         given locations.
 
         Parameters
@@ -119,10 +119,10 @@ class PhaseLinkageComp(om.ExplicitComponent):
         cs_b = rs if loc_b == 'initial' else size + rs
 
         self.declare_partials(of=output, wrt=input_a, rows=rs, cols=cs_a,
-                              val=lnk['sign_a'] * lnk._conv_a)
+                              val=lnk['mult_a'] * lnk._conv_a)
 
         self.declare_partials(of=output, wrt=input_b, rows=rs, cols=cs_b,
-                              val=lnk['sign_b'] * lnk._conv_b)
+                              val=lnk['mult_b'] * lnk._conv_b)
 
     def compute(self, inputs, outputs):
         """
@@ -142,7 +142,7 @@ class PhaseLinkageComp(om.ExplicitComponent):
             idxs_b = lnk._idxs_b
             output = lnk._output
 
-            a_val = lnk['sign_a'] * (inputs[input_a][idxs_a] + lnk._offset_a) * lnk._conv_a
-            b_val = lnk['sign_b'] * (inputs[input_b][idxs_b] + lnk._offset_b) * lnk._conv_b
+            a_val = lnk['mult_a'] * (inputs[input_a][idxs_a] + lnk._offset_a) * lnk._conv_a
+            b_val = lnk['mult_b'] * (inputs[input_b][idxs_b] + lnk._offset_b) * lnk._conv_b
 
             outputs[output] = a_val + b_val

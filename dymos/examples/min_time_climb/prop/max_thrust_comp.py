@@ -7,7 +7,7 @@ _LBF2N = 4.4482216
 
 # Note in the data that Mach varies fastest (the first 10 datapoints correspond to Alt=0)
 # Altitude is given in ft and thrust is given in lbf
-THR_DATA = {'mach': np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8], dtype=np.float64),
+THR_DATA = {'mach': np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8], dtype=float),
             'h': np.array([0.0, 5.0E3, 10.0E3, 15.0E3, 20.0E3,
                            25.0E3, 30.0E3, 40.0E3, 50.0E3, 70.0E3]),
             'thrust': np.array([30210., 26880.064, 28242.384, 31584.864, 34915.024,

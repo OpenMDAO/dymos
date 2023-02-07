@@ -13,10 +13,9 @@ def create_linear_time_series(n, t_begin, t_end, x_begin, x_end):
     Simple little function to generate a time series to be used for the tests in this file
     """
     slope = (x_end - x_begin) / (t_end - t_begin)
-    line = lambda t: slope * (t - t_begin) + x_begin
 
     t = np.linspace(t_begin, t_end, n).reshape(n, 1)
-    x = line(t)
+    x = slope * (t - t_begin) + x_begin
     return t, x
 
 

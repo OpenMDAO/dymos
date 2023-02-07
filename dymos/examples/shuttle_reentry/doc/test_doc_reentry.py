@@ -2,11 +2,13 @@ import os
 import unittest
 import matplotlib.pyplot as plt
 
-plt.switch_backend('Agg')
-plt.style.use('ggplot')
 import numpy as np
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+
+
+plt.switch_backend('Agg')
+plt.style.use('ggplot')
 
 
 @use_tempdirs

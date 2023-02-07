@@ -29,22 +29,23 @@ class TestTimeseriesUnits(unittest.TestCase):
                          order=transcription_order,
                          compressed=compressed)
 
-        ode = lambda num_nodes: om.ExecComp(['vdot = g * cos(theta)',
-                                             'xdot = v * sin(theta)',
-                                             'ydot = -v * cos(theta)'],
-                                            g={'val': 9.80665, 'units': 'm/s**2'},
-                                            v={'shape': (num_nodes,), 'units': 'm/s'},
-                                            theta={'shape': (num_nodes,), 'units': 'rad'},
-                                            vdot={'shape': (num_nodes,),
-                                                  'units': 'm/s**2',
-                                                  'tags': ['dymos.state_rate_source:v']},
-                                            xdot={'shape': (num_nodes,),
-                                                  'units': 'degR',
-                                                  'tags': ['dymos.state_rate_source:x']},
-                                            ydot={'shape': (num_nodes,),
-                                                  'units': 'degK',
-                                                  'tags': ['dymos.state_rate_source:y']},
-                                            has_diag_partials=True)
+        def ode(num_nodes):
+            return om.ExecComp(['vdot = g * cos(theta)',
+                                'xdot = v * sin(theta)',
+                                'ydot = -v * cos(theta)'],
+                               g={'val': 9.80665, 'units': 'm/s**2'},
+                               v={'shape': (num_nodes,), 'units': 'm/s'},
+                               theta={'shape': (num_nodes,), 'units': 'rad'},
+                               vdot={'shape': (num_nodes,),
+                                     'units': 'm/s**2',
+                                     'tags': ['dymos.state_rate_source:v']},
+                               xdot={'shape': (num_nodes,),
+                                     'units': 'degR',
+                                     'tags': ['dymos.state_rate_source:x']},
+                               ydot={'shape': (num_nodes,),
+                                     'units': 'degK',
+                                     'tags': ['dymos.state_rate_source:y']},
+                               has_diag_partials=True)
 
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=ode, transcription=t)

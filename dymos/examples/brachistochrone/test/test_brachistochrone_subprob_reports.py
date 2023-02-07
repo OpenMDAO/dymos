@@ -6,7 +6,6 @@ from packaging.version import Version
 
 import openmdao.api as om
 import openmdao.core.problem
-import openmdao.utils.reports_system as reports_system
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.tests.test_hooks import hooks_active
 from openmdao.visualization.n2_viewer.n2_viewer import _default_n2_filename
@@ -79,10 +78,7 @@ def setup_model_shooting(do_reports):
     prob.driver = om.ScipyOptimizeDriver()
     prob.driver.declare_coloring(tol=1.0E-12)
 
-    tx = dm.ExplicitShooting(num_segments=3, grid='gauss-lobatto',
-                             method='rk4', order=5,
-                             num_steps_per_segment=5,
-                             compressed=False,
+    tx = dm.ExplicitShooting(grid=dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=6, compressed=False),
                              subprob_reports=do_reports)
 
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
@@ -170,8 +166,8 @@ if Version(openmdao_version) > Version("3.18"):
             report_subdirs = sorted([e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()])
 
             # Test that a report subdir was made
-            # # There is the nominal problem, the simulation problem, and a subproblem for each segment in the simulation.
-            self.assertEqual(len(report_subdirs), 12)
+            # There is the nominal problem, the simulation problem, and a subproblem for the simulation.
+            self.assertEqual(len(report_subdirs), 3)
 
             for subdir in report_subdirs:
                 path = pathlib.Path(subdir).joinpath(self.n2_filename)
@@ -199,7 +195,7 @@ if Version(openmdao_version) > Version("3.18"):
 
             # Test that a report subdir was made
             # There is the nominal problem, a subproblem for integration, and a subproblem for the derivatives.
-            self.assertEqual(len(report_subdirs), 3)
+            self.assertEqual(len(report_subdirs), 2)
 
             path = pathlib.Path(report_subdirs[0]).joinpath(self.n2_filename)
             self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
@@ -299,8 +295,8 @@ else:  # old OM versions before reports API changed...
             report_subdirs = sorted([e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()])
 
             # Test that a report subdir was made
-            # There is the nominal problem, a subproblem for integration, and a subproblem for the derivatives.
-            self.assertEqual(len(report_subdirs), 3)
+            # There is the nominal problem and a subproblem for integration
+            self.assertEqual(len(report_subdirs), 2)
 
             path = pathlib.Path(problem_reports_dir).joinpath(self.n2_filename)
             self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')

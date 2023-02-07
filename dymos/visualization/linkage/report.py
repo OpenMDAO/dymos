@@ -159,7 +159,7 @@ def _trajectory_to_dict(traj):
             'type': 'variable',
             'class': 'parameter',
             'fixed': False,
-            'paramOpt': traj.parameter_options[param_name]['opt'],
+            'paramOpt': param['opt'],
             'connected': True
         }
 
@@ -269,7 +269,16 @@ def _linkages_to_list(traj, model_data):
 
 def _conn_name_to_path(name):
     """ Convert the full name of the connection to a format the diagram uses. """
-    tokens = re.split(r'\W+', name)
+    if re.search(r'.*param_comp.parameter_vals.*|.*param_comp.parameters.*', name):
+        # Special handling in case the name contains colons
+        tokens = re.split(r'\.', name)
+        last_name = tokens[-1]
+        param_name = re.split(r':', last_name, 1)
+        tokens[-1] = param_name[0]
+        tokens.append(param_name[1])
+    else:
+        tokens = re.split(r'\W+', name)
+
     if len(tokens) > 0:
         if tokens[1] == 'param_comp':
             return f'params.{tokens.pop()}'
@@ -284,12 +293,12 @@ def _conn_name_to_path(name):
     return name
 
 
-def _is_param_conn(name)->bool:
+def _is_param_conn(name) -> bool:
     """ Determine if the specified connection involves a parameter. """
     return re.match(r'.*param_comp.*', name) and not re.match(r'.*parameter_vals.*', name)
 
 
-def _is_ignored_conn(name)->bool:
+def _is_ignored_conn(name) -> bool:
     """ Determine if an connection endpoint should be ignored for this diagram. """
     return re.match(r'.*timeseries.*', name) or re.match(r'.*_auto_ivc.*', name)
 
@@ -312,7 +321,7 @@ def _var_ref_from_path(tree, path: str):
     return refpath
 
 
-def _get_fixed_val(tree, path: str)->bool:
+def _get_fixed_val(tree, path: str) -> bool:
     """ Get the value of the fixed property for the specified path. """
     ref = _var_ref_from_path(tree, path)
     fixed = False if (ref is None or 'fixed' not in ref) else ref['fixed']
@@ -375,14 +384,12 @@ def _run_linkage_report(prob):
     """ Function invoked by the reports system """
 
     # Find all Trajectory objects in the Problem. Usually, there's only one
-    for sysname, sysinfo in prob.model._subsystems_allprocs.items():
-        if isinstance(sysinfo.system, dm.Trajectory):
-            traj = sysinfo.system
-            # Only create a report for a trajectory with linkages
-            if traj._linkages:
-                report_filename = f'{sysname}_{_default_linkage_report_filename}'
-                report_path = str(Path(prob.get_reports_dir()) / report_filename)
-                create_linkage_report(traj, report_path)
+    for traj in prob.model.system_iter(include_self=True, recurse=True, typ=dm.Trajectory):
+        # Only create a report for a trajectory with linkages
+        if traj._linkages:
+            report_filename = f'{traj.pathname}_{_default_linkage_report_filename}'
+            report_path = str(Path(prob.get_reports_dir()) / report_filename)
+            create_linkage_report(traj, report_path)
 
 
 def _linkage_report_register():

@@ -88,11 +88,11 @@ class TestLoadCase(unittest.TestCase):
         # Run the model to ensure we find the same output values as those that we recorded
         p.run_driver()
 
-        outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
-                                                                out_stream=None)])
+        inputs = dict([(o[0], o[1]) for o in case.list_inputs(units=True, shape=True, out_stream=None)])
 
         assert_near_equal(p['phase0.controls:theta'],
-                          outputs['phase0.control_group.indep_controls.controls:theta']['value'])
+                          inputs['phase0.control_group.control_interp_comp.controls:theta']
+                          ['value'])
 
     def test_load_case_unchanged_grid_polynomial_control(self):
         import openmdao.api as om
@@ -117,11 +117,10 @@ class TestLoadCase(unittest.TestCase):
         # Run the model to ensure we find the same output values as those that we recorded
         p.run_driver()
 
-        outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
-                                                                out_stream=None)])
+        inputs = dict([(o[0], o[1]) for o in case.list_inputs(units=True, shape=True, out_stream=None)])
 
         assert_near_equal(p['phase0.polynomial_controls:theta'],
-                          outputs['phase0.polynomial_control_group.indep_polynomial_controls.polynomial_controls:theta']
+                          inputs['phase0.polynomial_control_group.interp_comp.polynomial_controls:theta']
                           ['value'])
 
     def test_load_case_lgl_to_radau(self):

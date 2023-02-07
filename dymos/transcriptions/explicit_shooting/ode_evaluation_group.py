@@ -19,6 +19,8 @@ class ODEEvaluationGroup(om.Group):
     ----------
     ode_class : class
         The class of the OpenMDAO system to be used to evaluate the ODE in this Group.
+    input_grid_data : GridData
+        The GridData used to define the controls used in this ODE.
     time_options : OptionsDictionary
         OptionsDictionary of time options.
     state_options : dict of {str: OptionsDictionary}
@@ -31,34 +33,27 @@ class ODEEvaluationGroup(om.Group):
         For each polynomial variable, a dictionary of its options, keyed by name.
     ode_init_kwargs : dict
         A dictionary of keyword arguments to be passed to the instantiation of the ODE.
-    grid_data : GridData
-        The GridData instance pertaining to the phase to which this ODEEvaluationGroup belongs.
     vec_size : int
-        The number of nodes at which the ODE is simultaneously evaluated. This is related to the
-        number of stages in the chosen shooting method and not associated with the number of
-        nodes in the GridData.
+        The number of points at which the ODE is simultaneously evaluated.
     **kwargs : dict
         Additional keyword arguments passed to Group.
     """
 
-    def __init__(self, ode_class, time_options, state_options, parameter_options, control_options,
-                 polynomial_control_options, ode_init_kwargs=None,
-                 grid_data=None, vec_size=1, **kwargs):
+    def __init__(self, ode_class, input_grid_data, time_options, state_options, parameter_options, control_options,
+                 polynomial_control_options, ode_init_kwargs=None, vec_size=1, **kwargs):
         super().__init__(**kwargs)
 
-        # Get the state vector.  This isn't necessarily ordered
-        # so just pick the default ordering and go with it.
-        self.state_options = state_options
-        self.parameter_options = parameter_options
-        self.time_options = time_options
-        self.control_options = control_options
-        self.polynomial_control_options = polynomial_control_options
-        self.control_interpolants = {}
-        self.polynomial_control_interpolants = {}
-        self.ode_class = ode_class
-        self.grid_data = grid_data
-        self.vec_size = vec_size
-        self.ode_init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
+        self._state_options = state_options
+        self._parameter_options = parameter_options
+        self._time_options = time_options
+        self._control_options = control_options
+        self._polynomial_control_options = polynomial_control_options
+        self._control_interpolants = {}
+        self._polynomial_control_interpolants = {}
+        self._ode_class = ode_class
+        self._input_grid_data = input_grid_data
+        self._vec_size = vec_size
+        self._ode_init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
 
     def set_segment_index(self, seg_idx):
         """
@@ -79,7 +74,9 @@ class ODEEvaluationGroup(om.Group):
         """
         Define the structure of the ODEEvaluationGroup.
         """
-        gd = self.grid_data
+        igd = self._input_grid_data
+        t_name = self._time_options['name']
+        t_units = self._time_options['units']
 
         # All states, controls, parameters, and polynomial controls need to exist
         # in the ODE evaluation group regardless of whether or not they have targets in the ODE.
@@ -87,31 +84,30 @@ class ODEEvaluationGroup(om.Group):
         self._ivc = self.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         # Add a component to compute the current non-dimensional phase time.
-        self.add_subsystem('tau_comp', TauComp(grid_data=self.grid_data,
-                                               vec_size=self.vec_size,
-                                               time_units=self.time_options['units']),
-                           promotes_inputs=['t', 't_initial', 't_duration'],
-                           promotes_outputs=['stau', 'ptau', 'dstau_dt', 't_phase'])
+        self.add_subsystem('tau_comp',
+                           TauComp(grid_data=self._input_grid_data, vec_size=self._vec_size, time_units=t_units),
+                           promotes_inputs=[('t', t_name), 't_initial', 't_duration'],
+                           promotes_outputs=['stau', 'ptau', 'dstau_dt', ('t_phase', f'{t_name}_phase')])
 
-        if self.control_options or self.polynomial_control_options:
-            c_options = self.control_options
-            pc_options = self.polynomial_control_options
+        if self._control_options or self._polynomial_control_options:
+            c_options = self._control_options
+            pc_options = self._polynomial_control_options
 
             # Add control interpolant
             self._control_comp = self.add_subsystem('control_interp',
-                                                    VandermondeControlInterpComp(grid_data=gd,
-                                                                                 vec_size=self.vec_size,
+                                                    VandermondeControlInterpComp(grid_data=igd,
+                                                                                 vec_size=self._vec_size,
                                                                                  control_options=c_options,
                                                                                  polynomial_control_options=pc_options,
-                                                                                 time_units=self.time_options['units']),
+                                                                                 time_units=t_units),
                                                     promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
 
-        self.add_subsystem('ode', self.ode_class(num_nodes=self.vec_size, **self.ode_init_kwargs))
+        self.add_subsystem('ode', self._ode_class(num_nodes=self._vec_size, **self._ode_init_kwargs))
 
         self.add_subsystem('state_rate_collector',
-                           StateRateCollectorComp(state_options=self.state_options,
-                                                  time_units=self.time_options['units'],
-                                                  vec_size=self.vec_size))
+                           StateRateCollectorComp(state_options=self._state_options,
+                                                  time_units=self._time_options['units'],
+                                                  vec_size=self._vec_size))
 
     def configure(self):
         """
@@ -122,44 +118,49 @@ class ODEEvaluationGroup(om.Group):
         """
         ode = self._get_subsystem('ode')
 
-        configure_time_introspection(self.time_options, ode)
+        configure_time_introspection(self._time_options, ode)
         self._configure_time()
 
-        configure_parameters_introspection(self.parameter_options, ode)
+        configure_parameters_introspection(self._parameter_options, ode)
         self._configure_params()
 
-        configure_controls_introspection(self.control_options, ode,
-                                         time_units=self.time_options['units'])
+        configure_controls_introspection(self._control_options, ode,
+                                         time_units=self._time_options['units'])
         self._configure_controls()
 
-        configure_controls_introspection(self.polynomial_control_options, ode,
-                                         time_units=self.time_options['units'])
+        configure_controls_introspection(self._polynomial_control_options, ode,
+                                         time_units=self._time_options['units'])
         self._configure_polynomial_controls()
 
-        if self.control_options or self.polynomial_control_options:
+        if self._control_options or self._polynomial_control_options:
             self._get_subsystem('control_interp').configure_io()
 
-        configure_states_discovery(self.state_options, ode)
-        configure_states_introspection(self.state_options, self.time_options, self.control_options,
-                                       self.parameter_options,
-                                       self.polynomial_control_options, ode)
+        configure_states_discovery(self._state_options, ode)
+        configure_states_introspection(self._state_options, self._time_options, self._control_options,
+                                       self._parameter_options,
+                                       self._polynomial_control_options, ode)
         self._configure_states()
 
         self.state_rate_collector.configure_io()
 
     def _configure_time(self):
-        vec_size = self.vec_size
-        targets = self.time_options['targets']
-        t_phase_targets = self.time_options['time_phase_targets']
-        t_initial_targets = self.time_options['t_initial_targets']
-        t_duration_targets = self.time_options['t_duration_targets']
-        units = self.time_options['units']
+        vec_size = self._vec_size
+        t_name = self._time_options['name']
+        targets = self._time_options['targets']
+        t_phase_targets = self._time_options['time_phase_targets']
+        t_initial_targets = self._time_options['t_initial_targets']
+        t_duration_targets = self._time_options['t_duration_targets']
+        units = self._time_options['units']
 
-        self._ivc.add_output('t', shape=(vec_size,), units=units)
+        self._ivc.add_output(t_name, shape=(vec_size,), units=units)
         self._ivc.add_output('t_initial', shape=(1,), units=units)
         self._ivc.add_output('t_duration', shape=(1,), units=units)
 
-        for tgts, var in [(targets, 't'), (t_phase_targets, 't_phase'),
+        self.add_design_var(t_name)
+        self.add_design_var('t_initial')
+        self.add_design_var('t_duration')
+
+        for tgts, var in [(targets, t_name), (t_phase_targets, f'{t_name}_phase'),
                           (t_initial_targets, 't_initial'), (t_duration_targets, 't_duration')]:
             for t in tgts:
                 self.promotes('ode', inputs=[(t, var)])
@@ -169,13 +170,13 @@ class ODEEvaluationGroup(om.Group):
                                         units=units)
 
     def _configure_states(self):
-        vec_size = self.vec_size
+        vec_size = self._vec_size
 
-        for name, options in self.state_options.items():
+        for name, options in self._state_options.items():
             shape = options['shape']
             units = options['units']
             targets = options['targets'] if options['targets'] is not None else []
-            rate_path, rate_io = self._get_rate_source_path(name)
+            rate_path = self._get_rate_source_path(name)
             var_name = f'states:{name}'
 
             self._ivc.add_output(var_name, shape=(vec_size,) + shape, units=units)
@@ -189,20 +190,14 @@ class ODEEvaluationGroup(om.Group):
                                         val=np.ones(shape),
                                         units=options['units'])
 
-            # If the state rate source is an output, connect it, otherwise
-            # promote it to the appropriate name
-            if rate_io == 'output':
-                self.connect(rate_path, f'state_rate_collector.state_rates_in:{name}_rate')
-            else:
-                self.promotes('state_rate_collector',
-                              inputs=[(f'state_rates_in:{name}_rate', rate_path)])
+            self.connect(rate_path, f'state_rate_collector.state_rates_in:{name}_rate')
 
             self.add_constraint(f'state_rate_collector.state_rates:{name}_rate')
 
     def _configure_params(self):
-        vec_size = self.vec_size
+        vec_size = self._vec_size
 
-        for name, options in self.parameter_options.items():
+        for name, options in self._parameter_options.items():
             var_name = f'parameters:{name}'
 
             targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
@@ -235,19 +230,19 @@ class ODEEvaluationGroup(om.Group):
                                         units=options['units'])
 
     def _configure_controls(self):
-        configure_controls_introspection(self.control_options, self.ode)
-        time_units = self.time_options['units']
+        configure_controls_introspection(self._control_options, self.ode)
+        time_units = self._time_options['units']
 
-        if self.control_options:
-            gd = self.grid_data
+        if self._control_options:
+            igd = self._input_grid_data
 
-            if gd is None:
+            if igd is None:
                 raise ValueError('ODEEvaluationGroup was provided with control options but '
                                  'a GridData object was not provided.')
 
-            num_control_input_nodes = gd.subset_num_nodes['control_input']
+            num_control_input_nodes = igd.subset_num_nodes['control_input']
 
-            for name, options in self.control_options.items():
+            for name, options in self._control_options.items():
                 shape = options['shape']
                 units = options['units']
                 rate_units = get_rate_units(units, time_units, deriv=1)
@@ -294,17 +289,17 @@ class ODEEvaluationGroup(om.Group):
                                             units=rate2_units)
 
     def _configure_polynomial_controls(self):
-        configure_controls_introspection(self.polynomial_control_options, self.ode)
+        configure_controls_introspection(self._polynomial_control_options, self.ode)
 
-        if self.polynomial_control_options:
-            time_units = self.time_options['units']
-            gd = self.grid_data
+        if self._polynomial_control_options:
+            time_units = self._time_options['units']
+            gd = self._input_grid_data
 
             if gd is None:
                 raise ValueError('ODEEvaluationGroup was provided with control options but '
                                  'a GridData object was not provided.')
 
-            for name, options in self.polynomial_control_options.items():
+            for name, options in self._polynomial_control_options.items():
                 shape = options['shape']
                 units = options['units']
                 rate_units = get_rate_units(units, time_units, deriv=1)
@@ -368,44 +363,33 @@ class ODEEvaluationGroup(om.Group):
             A string indicating whether the variable in the path is an 'input'
             or an 'output'.
         """
-        var = self.state_options[state_var]['rate_source']
-        time_name = self.time_options['name']
+        var = self._state_options[state_var]['rate_source']
+        t_name = self._time_options['name']
 
-        if var == time_name:
-            rate_path = 't'
-            io = 'input'
-        elif var == f'{time_name}_phase':
-            rate_path = 't_phase'
-            io = 'input'
-        elif self.state_options is not None and var in self.state_options:
+        if var == t_name:
+            rate_path = t_name
+        elif var == f'{t_name}_phase':
+            rate_path = f'{t_name}_phase'
+        elif self._state_options is not None and var in self._state_options:
             rate_path = f'states:{var}'
-            io = 'input'
-        elif self.control_options is not None and var in self.control_options:
+        elif self._control_options is not None and var in self._control_options:
             rate_path = f'control_values:{var}'
-            io = 'output'
-        elif self.polynomial_control_options is not None and var in self.polynomial_control_options:
+        elif self._polynomial_control_options is not None and var in self._polynomial_control_options:
             rate_path = f'polynomial_control_values:{var}'
-            io = 'output'
-        elif self.parameter_options is not None and var in self.parameter_options:
-            rate_path = f'parameter_vals:{var}'
-            io = 'input'
-        elif var.endswith('_rate') and self.control_options is not None and \
-                var[:-5] in self.control_options:
+        elif self._parameter_options is not None and var in self._parameter_options:
+            rate_path = f'parameters:{var}'
+        elif var.endswith('_rate') and self._control_options is not None and \
+                var[:-5] in self._control_options:
             rate_path = f'control_rates:{var}'
-            io = 'output'
-        elif var.endswith('_rate2') and self.control_options is not None and \
-                var[:-6] in self.control_options:
+        elif var.endswith('_rate2') and self._control_options is not None and \
+                var[:-6] in self._control_options:
             rate_path = f'control_rates:{var}'
-            io = 'output'
-        elif var.endswith('_rate') and self.polynomial_control_options is not None and \
-                var[:-5] in self.polynomial_control_options:
+        elif var.endswith('_rate') and self._polynomial_control_options is not None and \
+                var[:-5] in self._polynomial_control_options:
             rate_path = f'polynomial_control_rates:{var}'
-            io = 'output'
-        elif var.endswith('_rate2') and self.polynomial_control_options is not None and \
-                var[:-6] in self.polynomial_control_options:
+        elif var.endswith('_rate2') and self._polynomial_control_options is not None and \
+                var[:-6] in self._polynomial_control_options:
             rate_path = f'polynomial_control_rates:{var}'
-            io = 'output'
         else:
             rate_path = f'ode.{var}'
-            io = 'output'
-        return rate_path, io
+        return rate_path
