@@ -189,6 +189,7 @@ class CallableBrachistochroneODE(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
+        self.matrix_free = False
 
     def __call__(self, num_nodes, **kwargs):
         from copy import deepcopy
