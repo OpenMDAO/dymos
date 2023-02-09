@@ -35,7 +35,7 @@ Major improvements include:
 - Fixed load_case when a phase does not exist in the case. [#863](https://github.com/OpenMDAO/dymos/pull/863)
 - Fixed url in _config.yml so that documentation examples can open at the Google colab. [#868](https://github.com/OpenMDAO/dymos/pull/868)
 - Fixed dymos.load_case so that it does not load states or controls into AnalyticPhases [#871](https://github.com/OpenMDAO/dymos/pull/871)
-- Fixed a unnecessary error when linking phases with different units via connection. [#872](https://github.com/OpenMDAO/dymos/pull/872)
+- Fixed an unnecessary error when linking phases with different units via connection. [#872](https://github.com/OpenMDAO/dymos/pull/872)
 - Handle parameter names containing colons in Dymos linkage report [#900](https://github.com/OpenMDAO/dymos/pull/900)
 
 ## Miscellaneous
