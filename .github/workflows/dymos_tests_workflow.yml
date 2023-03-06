@@ -32,12 +32,11 @@ jobs:
             NUMPY: 1.22
             SCIPY: 1.7
             PETSc: 3.17
-            PYOPTSPARSE: 'v2.8.3'
+            PYOPTSPARSE: 'v2.9.3'
             SNOPT: 7.7
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
             JAX: '0.3.24'
-            DOCS: 0
 
           # baseline versions except no pyoptsparse or SNOPT
           - NAME: no_pyoptsparse
@@ -47,19 +46,16 @@ jobs:
             PETSc: 3.17
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
-            DOCS: 0
 
           # baseline versions except with pyoptsparse but no SNOPT
-          # build docs to verify those that use pyoptsparse do not use SNOPT
           - NAME: no_snopt
             PY: '3.10'
             NUMPY: 1.22
             SCIPY: 1.7
             PETSc: 3.17
-            PYOPTSPARSE: 'v2.8.3'
+            PYOPTSPARSE: 'v2.9.3'
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
-            DOCS: 0
 
           # try latest versions
           - NAME: latest
@@ -72,7 +68,6 @@ jobs:
             OPENMDAO: 'dev'
             OPTIONAL: '[test]'
             JAX: '0.3.24'
-            DOCS: 0
 
           # oldest supported versions
           - NAME: oldest
@@ -86,7 +81,6 @@ jobs:
             SNOPT: 7.2
             OPENMDAO: 3.19.0
             OPTIONAL: '[test]'
-            DOCS: 0
 
     steps:
       - name: Display run details
@@ -314,46 +308,6 @@ jobs:
           pip install coveralls
           SITE_DIR=`python -c 'import site; print(site.getsitepackages()[-1])'`
           coveralls --basedir $SITE_DIR
-
-      - name: Build docs
-        if: env.RUN_BUILD && (matrix.DOCS == '1' || matrix.DOCS == '2')
-        id: build_docs
-        shell: bash -l {0}
-        run: |
-          echo "============================================================="
-          echo "Building Docs"
-          echo "============================================================="
-          pip install jupyter-book==0.14
-          cd docs
-          jupyter-book build -W --keep-going dymos_book
-          python copy_build_artifacts.py
-
-      - name: Display doc build reports
-        continue-on-error: True
-        if: |
-          env.RUN_BUILD && (matrix.DOCS == '1' || matrix.DOCS == '2') &&
-          failure() && steps.build_docs.outcome == 'failure'
-        run: |
-          for f in /home/runner/work/dymos/dymos/docs/dymos_book/_build/html/reports/*; do
-            echo "============================================================="
-            echo $f
-            echo "============================================================="
-            cat $f
-          done
-
-      - name: Publish docs
-        if: |
-          github.event_name == 'push' && github.ref == 'refs/heads/master' &&
-          matrix.DOCS == '2'
-        shell: bash -l {0}
-        run: |
-          echo "============================================================="
-          echo "Publishing Docs"
-          echo "============================================================="
-          pip install ghp-import
-          cd $HOME/work/dymos/dymos
-          pwd
-          ghp-import -n -p -f docs/dymos_book/_build/html
 
   coveralls:
     name: Finish coveralls

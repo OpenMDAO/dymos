@@ -30,7 +30,7 @@ jobs:
             NUMPY: 1.22
             SCIPY: 1.7
             PETSc: 3.17
-            PYOPTSPARSE: 'v2.8.3'
+            PYOPTSPARSE: 'v2.9.3'
             OPENMDAO: 'latest'
             OPTIONAL: '[docs]'
             JAX: '0.3.24'
