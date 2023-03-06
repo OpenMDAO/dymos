@@ -109,8 +109,11 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
                 subsys.simulate(record_file=simulation_record_file, case_prefix=case_prefix, **_simulate_kwargs)
 
     if make_plots:
-        _sim_record_file = None if not simulate else simulation_record_file
-        timeseries_plots(solution_record_file, simulation_record_file=_sim_record_file,
-                         plot_dir=plot_dir, problem=problem)
+        # _sim_record_file = None if not simulate else simulation_record_file
+        # timeseries_plots(solution_record_file, simulation_record_file=_sim_record_file,
+        #                  plot_dir=plot_dir, problem=problem)
+        from dymos.visualization.timeseries.bokeh_timeseries_report import make_timeseries_report
+        make_timeseries_report(prob=problem, solution_record_file=solution_record_file,
+                               simulation_record_file=simulation_record_file)
 
     return failed

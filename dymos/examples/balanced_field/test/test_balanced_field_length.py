@@ -10,11 +10,11 @@ import dymos as dm
 from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestBalancedFieldLengthRestart(unittest.TestCase):
 
     def _make_problem(self):
-        p = om.Problem()
+        p = om.Problem(reports=True)
 
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'IPOPT'
@@ -216,6 +216,10 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         p.set_val('traj.climb.controls:alpha', 5.0, units='deg')
 
         return p
+
+    def test_make_plots(self):
+        p = self._make_problem()
+        dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_restart_from_sol(self):
