@@ -323,7 +323,7 @@ jobs:
           echo "============================================================="
           echo "Building Docs"
           echo "============================================================="
-          pip install git+https://github.com/executablebooks/jupyter-book
+          pip install jupyter-book==0.14
           cd docs
           jupyter-book build -W --keep-going dymos_book
           python copy_build_artifacts.py

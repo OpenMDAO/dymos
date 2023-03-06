@@ -190,11 +190,6 @@ jobs:
       - name: Install juptyter-book and jupyter
         shell: bash -l {0}
         run: |
-          echo "============================================================="
-          echo "Install jupyter-book"
-          echo "============================================================="
-          pip install git+https://github.com/executablebooks/jupyter-book
-
 
       - name: Install bokeh
         shell: bash -l {0}
