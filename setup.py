@@ -5,7 +5,7 @@ optional_dependencies = {
     'docs': [
         'matplotlib',
         'jupyter',
-        'jupyter-book',
+        'jupyter-book==0.14',
         'nbconvert',
         'notebook',
         'ipython',
