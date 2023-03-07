@@ -192,10 +192,6 @@ def load_case(problem, previous_solution):
                 prev_pc_path = [s for s in prev_vars if s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
                 prev_pc_val = prev_vars[prev_pc_path]['val']
                 prev_pc_units = prev_vars[prev_pc_path]['units']
-                n_pc = len(problem.get_val(pc_path))
-                # TODO: change the below line so it interpolates instead of making a length two list. Need to do a 1D interpolation. Also need to write a test for it.
-                if n_pc != len(prev_pc_val):
-                    prev_pc_val = [prev_pc_val[0], prev_pc_val[1]]
                 problem.set_val(pc_path, prev_pc_val, units=prev_pc_units)
                 if options['fix_final']:
                     warning_message = f"{phase_name}.polynomial_controls:{pc_name} specifies 'fix_final=True'. " \
