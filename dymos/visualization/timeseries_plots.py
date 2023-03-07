@@ -62,7 +62,6 @@ def _mpl_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
     cm = matplotlib.cm.get_cmap('tab20')
     plotfiles = []
 
-    print(include_parameters)
     for var_name, var_unit in var_units.items():
         if (not include_parameters) and ("parameters:" in var_name):
             continue
