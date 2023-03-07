@@ -1,4 +1,49 @@
 *******************************
+# Release Notes for Dymos 1.7.0
+
+February 09, 2023
+
+Version 1.7.0 contains some significant enhancements to its capabilities.
+
+Major improvements include:
+- Users may now specify boundary constraints, path constraints, and the objective within a phase as expressions. These expressions must contain an equals sign and must be complex-step-safe. This allows the user to impose constraints or objectives on quantities that may not be computed by the given equations of motion model.
+- The user can now rename the time variable. Integration with respect to another variable (such as range for an aircraft) has always been possible, but dymos still always called the variable "time". Now, it will be more clear.
+- The ExplicitShooting transcription has been reworked to include a continuous adjoint for derivatives and uses the stock scipy.integrate.solve_ivp integrators to perform the actual integraiton. Note that this method may result in inaccurate derivatives when the time step varies widely thoughout an integration. (We're working on that part).
+- Imposing rate2 continuity on controls would previously generate confusing errors with some optimizers like SLSQP. If the polynomial order of the control representation was quadratic, then the second derivative would always be zero. Continuity was thus guaranteed, but SLSQP would fail because it lacked the ability to affect that continuity despite it always being satisfied. Now Dymos will only respect control rate2 continuity across segment junctions if it can affect continuity at the segment junction.
+- The `run_problem` method now includes a sanity check on time bounds. If it detects that the linkage constraints between two phases in time cannot be satisfied due to initial time and duration bounds on all previous phases, a warning will be raised.
+
+## Backwards Incompatible API Changes & Deprecations
+
+- Deprecated Trajectory.add_linkage_constraint arguments sign_a and sign_b [#888](https://github.com/OpenMDAO/dymos/pull/888)
+- Deprecated SolveIVP transcription. The `simulate` method now uses the ExplicitShooting transcription without derivatives. [#898](https://github.com/OpenMDAO/dymos/pull/898)
+
+## Enhancements
+
+- Added ability to control continuity scaling for states and controls. [#866](https://github.com/OpenMDAO/dymos/pull/866)
+- Parameter flow added to linkage report diagram [#873](https://github.com/OpenMDAO/dymos/pull/873)
+- Added ability to allow the user to change the name of the integration variable. [#874](https://github.com/OpenMDAO/dymos/pull/874)
+- Added ability to add expressions as constraints [#875](https://github.com/OpenMDAO/dymos/pull/875)
+- Added the derivative of speed of sound wrt altitude as an output [#879](https://github.com/OpenMDAO/dymos/pull/879)
+- Phase objectives may now be given as expressions. [#880](https://github.com/OpenMDAO/dymos/pull/880)
+- Interim continuous-adjoint shooting implementation [#885](https://github.com/OpenMDAO/dymos/pull/885)
+- Replaced existing ExplicitShooting instance with the continuous-adjoint Implementation [#891](https://github.com/OpenMDAO/dymos/pull/891)
+- Selectively apply rate2 continuity to indices where it can be impacted. [#896](https://github.com/OpenMDAO/dymos/pull/896)
+- Raise an exception if the initial time of a phase is unreachable [#899](https://github.com/OpenMDAO/dymos/pull/899)
+
+## Bug Fixes
+
+- Fixed load_case when a phase does not exist in the case. [#863](https://github.com/OpenMDAO/dymos/pull/863)
+- Fixed url in _config.yml so that documentation examples can open at the Google colab. [#868](https://github.com/OpenMDAO/dymos/pull/868)
+- Fixed dymos.load_case so that it does not load states or controls into AnalyticPhases [#871](https://github.com/OpenMDAO/dymos/pull/871)
+- Fixed an unnecessary error when linking phases with different units via connection. [#872](https://github.com/OpenMDAO/dymos/pull/872)
+- Handle parameter names containing colons in Dymos linkage report [#900](https://github.com/OpenMDAO/dymos/pull/900)
+
+## Miscellaneous
+
+- Fixed broken image links in the water rocket example in the documentation.  [#902](https://github.com/OpenMDAO/dymos/pull/902)
+
+
+*******************************
 # Release Notes for Dymos 1.6.1
 
 November 14, 2022

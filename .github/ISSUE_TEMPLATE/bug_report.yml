@@ -24,7 +24,7 @@ body:
     attributes:
       label: Dymos Version
       description: What version of Dymos is being used.
-      placeholder: "1.6.2-dev"
+      placeholder: "1.7.1-dev"
     validations:
       required: true
   - type: textarea

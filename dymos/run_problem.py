@@ -18,6 +18,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
                 case_prefix=None,
                 reset_iter_counts=True,
                 simulate_kwargs=None,
+                plot_kwargs=None,
                 ):
     """
     A Dymos-specific interface to execute an OpenMDAO problem containing Dymos Trajectories or
@@ -54,6 +55,8 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         Name of the plot directory to be created.
     simulate_kwargs : dict
         A dictionary of argument: value pairs to be passed to simulate. These are ignored when simulate=False.
+    plot_kwargs : dict
+        A dictionary of argument: value pairs that are passed to `timeseries_plots`. Only used when make_plots=True.
     case_prefix : str or None
         Prefix to prepend to coordinates when recording.
     reset_iter_counts : bool
@@ -111,6 +114,6 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     if make_plots:
         _sim_record_file = None if not simulate else simulation_record_file
         timeseries_plots(solution_record_file, simulation_record_file=_sim_record_file,
-                         plot_dir=plot_dir, problem=problem)
+                         plot_dir=plot_dir, problem=problem, **plot_kwargs)
 
     return failed

@@ -5,7 +5,7 @@ optional_dependencies = {
     'docs': [
         'matplotlib',
         'jupyter',
-        'jupyter-book',
+        'jupyter-book==0.14',
         'nbconvert',
         'notebook',
         'ipython',
@@ -39,7 +39,7 @@ optional_dependencies['all'] = sorted([
 
 
 setup(name='dymos',
-    version='1.6.2-dev',
+    version='1.7.1-dev',
     description='Open-Source Optimization of Dynamic Multidisciplinary Systems',
     long_description='''
 Dymos is a framework for the simulation and optimization of dynamical systems within the OpenMDAO Multidisciplinary Analysis and Optimization environment.
