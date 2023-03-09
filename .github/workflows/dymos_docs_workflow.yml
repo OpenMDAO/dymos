@@ -187,10 +187,6 @@ jobs:
             pip install openmdao==${{ matrix.OPENMDAO }}
           fi
 
-      - name: Install juptyter-book and jupyter
-        shell: bash -l {0}
-        run: |
-
       - name: Install bokeh
         shell: bash -l {0}
         run: |
