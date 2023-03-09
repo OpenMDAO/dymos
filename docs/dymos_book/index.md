@@ -7,7 +7,7 @@ While it can optimize typical optimal control problems, its key feature is the a
 Other optimization software frequently relies on the parameterization of the hardware models to, for instance, approximate the mass of an engine as a function of its thrust level.
 Instead, Dymos allows you to impose higher-fidelity design considerations on these subsystems - from simple parameterized models to high-fidelity CFD models, and apply the resulting subsystem designs to the trajectory profile.
 
-To do this, Dymos relies on ability of OpenMDAO to compute accurate derivatives very efficiently.
+To do this, Dymos relies on the ability of OpenMDAO to compute accurate derivatives very efficiently.
 This capability enables users of Dymos to embed iterative procedures within their system dynamics.
 While normally this would significantly impair performance, Dymos can optimize such systems with minimal performance degradation, freeing the user from reformulating their design specifically for the purposes of the optimal control implementation.
 
@@ -19,7 +19,7 @@ While normally this would significantly impair performance, Dymos can optimize s
 -   Transform typical state variables into control variables (differential inclusion {cite}`Seywald1994`).
 -   Use nonlinear solvers to satisfy the collocation constraints.
 -   Single and multiple shooting within the same interface.
--   Leverage multiprocessing capabilities to improve performance
+-   Leverage multiprocessing capabilities to improve performance.
 
 ## Why Dymos?
 
@@ -52,7 +52,7 @@ But with the state-of-the-art differentiation approach of OpenMDAO, built upon t
 This enables more efficient optimization via differential inclusion {cite}`Seywald1994`, and allows us to employ shooting methods within the pseudospectral framework.
 
 Some developers involved in Dymos are involved with NASA's legacy optimal control software, OTIS.
-The general approach used by Dymos is similar to that of OTIS (trajectories divided into time portions called Phases, dynamic controls and static parameters, and both bound constraints as well as nonlinear boundary constraints and path constraints are all notions carried over from OTIS.
+The general approach used by Dymos is similar to that of OTIS (trajectories divided into time portions called Phases, dynamic controls and static parameters, and both bound constraints as well as nonlinear boundary constraints and path constraints are all notions carried over from OTIS).
 OTIS was pioneering software and offers some great capabilities, but it also lacks a lot of desirable modern features that have been developed by the community since its inception over thirty years ago.
 Dymos features a more modular way for users to define their dynamics, additional pseudospectral methods, and better differentiation approaches for more reliable convergence.
 

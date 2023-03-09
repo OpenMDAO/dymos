@@ -77,7 +77,7 @@ While faster, implicit techniques impose far more defect constraints on the prob
 In some cases, scaling the optimization problem can be a challenge and convergence is poor.
 For instance, if the thrust of a rocket engine is taken from experimental data, it can be extremely noisy.
 Without first smoothing the data, an implicit simulation of the resulting trajectory may be difficult.
-In this case, explicit intgration methods can power through and provide _an_ answer, even if it is subject to some amount of error.
+In this case, explicit integration methods can power through and provide _an_ answer, even if it is subject to some amount of error.
 
 **Explicit integration, at least using a fixed-step form, doesn't fail to provide an answer - but it's important that the user verify its accuracy.**
 
@@ -88,5 +88,5 @@ The equations of motion used in this problem are singular in vertical flight - t
 It is relatively easy to prescribe a profile of the angle-of-attack history (the control) that sends the aircraft into vertical flight when the integration is required to follow it.
 
 Conversely, the collocation techniques decouple the proposed control history and the trajectory.
-Rather than being governed by the control, the flight path angle at various times throughout the trajectory is itself a design variable, and can be bound to values such that avoid the singularities.
+Rather than being governed by the control, the flight path angle at various times throughout the trajectory is itself a design variable, and can be bound to values such that the singularities are avoided.
 The optimizer will then work to make the control history compatible with the corresponding state trajectory, but the two are only compatible when the defect constraints are satisfied.
