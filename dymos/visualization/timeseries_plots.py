@@ -53,7 +53,8 @@ def _get_phases_node_in_problem_metadata(node, path=""):
 
 
 def _mpl_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
-                          last_solution_case, last_simulation_case, plot_dir_path):
+                          last_solution_case, last_simulation_case, plot_dir_path,
+                          dpi, include_parameters):
     # get ready to plot
     backend_save = plt.get_backend()
     plt.switch_backend('Agg')
@@ -62,6 +63,9 @@ def _mpl_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
     plotfiles = []
 
     for var_name, var_unit in var_units.items():
+        if (not include_parameters) and ("parameters:" in var_name):
+            continue
+
         # start a new plot
         fig, ax = plt.subplots()
 
@@ -133,7 +137,7 @@ def _mpl_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
 
         # save to file
         plot_file_path = plot_dir_path.joinpath(f'{var_name.replace(":","_")}.png')
-        plt.savefig(plot_file_path)
+        plt.savefig(plot_file_path, dpi=dpi)
         plt.close(fig)
         plotfiles.append(plot_file_path)
 
@@ -325,7 +329,7 @@ except ImportError:
 
 
 def timeseries_plots(solution_recorder_filename, simulation_record_file=None, plot_dir="plots",
-                     problem=None):
+                     problem=None, dpi=150, make_html=True, include_parameters=True):
     """
     Create plots of the timeseries.
 
@@ -344,6 +348,14 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
     problem : Problem or None
         If not None, this is the owning Problem, and the plot_dir will be relative to the reports
         directory for this Problem.
+    dpi : float
+        The dpi (pixels per inch) for the matplotlib images to be saved. A larger dpi number
+        results in higher resolution images.
+    make_html : bool
+        If true, make .html files that wrap the generated images.
+    include_parameters : bool
+        If true, include parameters in the timeseries plots. It can be helpful to set this to false
+        for models with only static parameters that are uninteresting to plot.
     """
     # get ready to generate plot files
 
@@ -421,8 +433,9 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
                                 last_solution_case, last_simulation_case, plot_dir_path)
     elif dymos_options['plots'] == 'matplotlib':
         fnames = _mpl_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
-                                       last_solution_case, last_simulation_case, plot_dir_path)
-        if problem is not None:
+                                       last_solution_case, last_simulation_case, plot_dir_path,
+                                       dpi, include_parameters)
+        if (problem is not None) and make_html:
             for name in fnames:
                 # create html files that wrap the image files
                 fpath = pathlib.Path(name).resolve()

@@ -244,7 +244,7 @@ class Trajectory(om.Group):
             self.parameter_options[name]['name'] = name
         else:
             raise ValueError(f'Attempted to add parameter "{name}" to trajectory but trajectory already has a parameter'
-                             'of that name.')
+                             ' of that name.')
 
         self.set_parameter_options(name, units=units, val=val, desc=desc, opt=opt, targets=targets, lower=lower,
                                    upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref, shape=shape,

@@ -266,7 +266,8 @@ class SolveIVPControlGroup(om.Group):
             if options['opt']:
                 num_input_nodes = gd.subset_num_nodes['control_input']
 
+                val = np.outer(np.ones(num_input_nodes), options['val'])
                 self.indep_controls.add_output(name=f'controls:{name}',
-                                               val=options['val'],
+                                               val=val,
                                                shape=(num_input_nodes, np.prod(options['shape'])),
                                                units=options['units'])

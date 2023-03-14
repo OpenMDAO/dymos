@@ -122,7 +122,8 @@ def load_case(problem, previous_solution):
 
         # Get the initial time and duration from the previous result and set them into the new phase.
         try:
-            prev_time_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.time')][0]
+            integration_name = phase.time_options['name']
+            prev_time_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.{integration_name}')][0]
         except IndexError as e:
             continue
 
