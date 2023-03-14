@@ -92,7 +92,7 @@ class TestLoadCase(unittest.TestCase):
 
         assert_near_equal(p['phase0.controls:theta'],
                           inputs['phase0.control_group.control_interp_comp.controls:theta']
-                          ['value'])
+                          ['val'])
 
     def test_load_case_unchanged_grid_polynomial_control(self):
         import openmdao.api as om
@@ -121,7 +121,7 @@ class TestLoadCase(unittest.TestCase):
 
         assert_near_equal(p['phase0.polynomial_controls:theta'],
                           inputs['phase0.polynomial_control_group.interp_comp.polynomial_controls:theta']
-                          ['value'])
+                          ['val'])
 
     def test_load_case_lgl_to_radau(self):
         import openmdao.api as om
