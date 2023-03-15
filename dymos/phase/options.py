@@ -307,7 +307,7 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
                      desc='The unit-reference value of the parameter. This '
                           'option is invalid if opt=False.')
 
-        self.declare(name='include_timeseries', types=bool, default=True,
+        self.declare(name='include_timeseries', types=bool, default=False,
                      desc='True if the static parameters should be included in output timeseries, else False')
 
 
