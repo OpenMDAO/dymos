@@ -72,7 +72,8 @@ def _load_data_sources(prob, solution_record_file, simulation_record_file):
 
             param_outputs = {op: meta for op, meta in sol_outputs.items() if op.startswith(f'{phase.pathname}.param_comp.parameter_vals')}
 
-            for output_name, meta in dict(sorted(param_outputs.items())).items():
+            for output_name in sorted(param_outputs.keys(), key=str.casefold):
+                meta = param_outputs[output_name]
                 param_dict = data_dict[traj_name]['param_data_by_phase'][phase_name]
 
                 prom_name = abs2prom_map['output'][output_name]
@@ -84,8 +85,10 @@ def _load_data_sources(prob, solution_record_file, simulation_record_file):
 
             ts_outputs = {op: meta for op, meta in sol_outputs.items() if op.startswith(f'{phase.pathname}.timeseries')}
 
-            for output_name, meta in ts_outputs.items():
 
+
+            for output_name in sorted(ts_outputs.keys(), key=str.casefold):
+                meta = ts_outputs[output_name]
                 prom_name = abs2prom_map['output'][output_name]
                 var_name = prom_name.split('.')[-1]
 
@@ -149,9 +152,13 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
         figures = []
         x_range = None
 
-        for var_name in ts_units_dict.keys():
+        for var_name in sorted(ts_units_dict.keys(), key=str.casefold):
             fig_kwargs = {'x_range': x_range} if x_range is not None else {}
-            fig = figure(tools='pan,box_zoom,xwheel_zoom,undo,reset,save',
+
+            tool_tips  = [(f'{x_name}', '$x'), (f'{var_name}', '$y')]
+
+            fig = figure(tools='pan,box_zoom,xwheel_zoom,hover,undo,reset,save',
+                         tooltips=tool_tips,
                          x_axis_label=f'{x_name} ({ts_units_dict[x_name]})',
                          y_axis_label=f'{var_name} ({ts_units_dict[var_name]})',
                          toolbar_location='above',
@@ -159,6 +166,8 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                          min_height=250, max_height=300,
                          margin=margin,
                          **fig_kwargs)
+            fig.xaxis.axis_label_text_font_size = '10pt'
+            fig.yaxis.axis_label_text_font_size = '10pt'
             legend_data = []
             if x_range is None:
                 x_range = fig.x_range
@@ -173,29 +182,23 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                     sim_plot = fig.line(x='time', y=var_name, source=sim_source, color=color)
                     legend_data.append((phase_name, [sol_plot, sim_plot]))
 
-            legend = Legend(items=legend_data, location='center')
+            legend = Legend(items=legend_data, location='center', label_text_font_size='8pt')
             fig.add_layout(legend, 'right')
             figures.append(fig)
 
+        # Since we're putting figures in two columns, make sure we have an even number of things to put in the layout.
         if len(figures) % 2 == 1:
             figures.append(None)
 
-        # Put the DataTables in a GridBox so we can control the spacing
-        gbc = []
-        row = 0
-        col = 0
-        for i, table in enumerate(param_tables):
-            gbc.append((table, row, col, 1, 1))
-            col += 1
-            if col >= ncols:
-                col = 0
-                row += 1
-        param_panel = GridBox(children=gbc, spacing=50, sizing_mode='stretch_both')
+        param_panels = [TabPanel(child=table, title=f'{phase_names[i]} parameters')
+                        for i, table in enumerate(param_tables)]
 
         timeseries_panel = grid(children=figures, ncols=ncols, sizing_mode='stretch_both')
 
-        tab_panes = Tabs(tabs=[TabPanel(child=timeseries_panel, title='Timeseries'),
-                               TabPanel(child=param_panel, title='Parameters')],
+
+
+        tab_panes = Tabs(tabs=[TabPanel(child=timeseries_panel, title='Timeseries')] + param_panels,
+                               # TabPanel(child=param_panel, title='Parameters')],
                          sizing_mode='stretch_both',
                          active=0)
 
@@ -204,55 +207,6 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
         report_layout = column(children=[Div(text=summary), tab_panes], sizing_mode='stretch_both')
 
         save(report_layout, filename=report_path, title=f'trajectory results for {traj_name}')
-
-
-
-    # for traj in prob.model.system_iter(include_self=True, recurse=True, typ=dm.Trajectory):
-    #     report_filename = f'{traj.pathname}_{_default_timeseries_report_filename}'
-    #     report_path = str(Path(prob.get_reports_dir()) / report_filename)
-    #     output_file(report_path)
-    #     for phase in traj.system_iter(include_self=True, recurse=True, typ=dm.Phase):
-    #         phase_name = phase.pathname.split()[-1]
-    #
-    #         # if param_comp:
-            #
-            #     param_outputs = param_comp.list_outputs(prom_name=True, units=True, out_stream=None)
-            #
-            #
-            #     for abs_name, units in param_units_by_phase.items():
-            #         param_vals_by_phase[phase_name][f'sol::{prom_name}'] = sol_case.get_val(prom_name, units=units)
-            #         param_vals_by_phase[phase_name][f'sim::{prom_name}'] = sim_case.get_val(prom_name, units=units)
-
-            # timeseries_sys = phase._get_subsystem('timeseries_sys')
-            # if timeseries_sys:
-            #     param_units_by_phase = {meta['prom_name']: meta['units'] for op, meta in timeseries_sys.list_outputs(prom_name=True,
-            #                                                                                            units=True,
-            #                                                                                            out_stream=None)}
-            #     for prom_name, units in param_units_by_phase.items():
-            #         timeseries_vals_by_phase[phase_name][f'sol::{prom_name}'] = sol_case.get_val(prom_name, units=units)
-            #         timeseries_vals_by_phase[phase_name][f'sim::{prom_name}'] = sim_case.get_val(prom_name, units=units)
-
-
-            # timeseries_sys = phase._get_subsystem('timeseries')
-            # if timeseries_sys:
-            #     output_data = timeseries_sys.list_outputs(prom_name=True, units=True, val=True, out_stream=None)
-            #     timeseries_vals_by_phase[phase_name] = {meta['prom_name']: meta['val'] for _, meta in output_data}
-            #     timeseries_units_by_phase[phase_name] = {meta['prom_name']: meta['units'] for _, meta in output_data}
-            #
-
-
-
-            # for param_comp in traj.system_iter(include_self=True, recurse=True, typ=dm.Phase):
-
-            # print(phase.pathname)
-
-            # for path, meta in phase.list_inputs(out_stream=None, prom_name=True, units=True, val=True):
-            #     if meta['prom_name'].startswith('parameters:'):
-            #         parameters_by_phase[phase_name][meta['prom_name']] = {'val': meta['val'], 'units': meta['units']}
-            #
-            # for path, meta in phase.timeseries.list_outputs(out_stream=None, prom_name=True, units=True):
-            #     if not meta['prom_name'].startswith('parameters:'):
-            #         timeseries_by_phase[phase_name][meta['prom_name']] = {'val': meta['val'], 'units': meta['units']}
 
 if __name__ == '__main__':
     import openmdao.api as om

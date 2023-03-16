@@ -15,7 +15,7 @@ import dymos as dm
 from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     StateOptionsDictionary, TimeOptionsDictionary, ConstraintOptionsDictionary, \
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary, \
-    TimeseriesOutputOptionsDictionary
+    TimeseriesOutputOptionsDictionary, PhaseTimeseriesOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
@@ -68,6 +68,7 @@ class Phase(om.Group):
         self.refine_options = GridRefinementOptionsDictionary()
         self.simulate_options = SimulateOptionsDictionary()
         self.timeseries_ec_vars = {}
+        self.timeseries_options = PhaseTimeseriesOptionsDictionary()
 
         # Dictionaries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE

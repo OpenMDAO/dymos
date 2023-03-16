@@ -161,7 +161,8 @@ class SimulationPhase(Phase):
 
         # Assign initial state values
         for name in phs.state_options:
-            op = op_dict[f'timeseries.timeseries_comp.states:{name}']
+            prefix = 'states:' if from_phase.timeseries_options['use_prefix'] else ''
+            op = op_dict[f'timeseries.timeseries_comp.{prefix}{name}']
             prob[f'{self_path}states:{name}'][...] = op['val'][0, ...]
 
         # Assign control values

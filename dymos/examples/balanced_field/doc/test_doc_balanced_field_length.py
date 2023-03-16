@@ -20,16 +20,15 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.declare_coloring()
-
         dm.options['plots'] = 'bokeh'
 
         # Use IPOPT if available, with fallback to SLSQP
+        p.driver = om.pyOptSparseDriver(optimizer='SNOPT')
         p.driver.options['optimizer'] = optimizer
+        p.driver.declare_coloring()
         p.driver.options['print_results'] = False
         if optimizer == 'IPOPT':
-            p.driver.opt_settings['print_level'] = 0
+            p.driver.opt_settings['print_level'] = 5
             p.driver.opt_settings['derivative_test'] = 'first-order'
 
         # First Phase: Brake release to V1 - both engines operable
