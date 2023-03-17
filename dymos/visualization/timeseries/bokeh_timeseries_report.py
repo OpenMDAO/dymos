@@ -3,18 +3,34 @@ from pathlib import Path
 
 from bokeh.io import output_notebook, output_file, save, show
 from bokeh.layouts import gridplot, column, grid, GridBox, layout, row
-from bokeh.models import Legend, DataTable, Div, ColumnDataSource, Paragraph, TableColumn, TabPanel, Tabs
+from bokeh.models import Legend, DataTable, Div, ColumnDataSource, TableColumn, TabPanel, Tabs, CheckboxButtonGroup, CustomJS
 from bokeh.plotting import figure, curdoc
 import bokeh.palettes as bp
 
-import dymos as dm
-from dymos.options import options as dymos_options
-
 import openmdao.api as om
-import openmdao.utils.reports_system as rptsys
+import dymos as dm
 
-
-_default_timeseries_report_filename = 'dymos_results_{traj_name}.html'
+# Javascript Callback when the solution/simulation checkbox buttons are toggled
+# args: (figures)
+_SOL_SIM_TOGGLE_JS = """
+// Loop through figures and toggle the visibility of the renderers
+const active = cb_obj.active;
+var figures = figures;
+var renderer;
+for (var i = 0; i < figures.length; i++) {
+    if (figures[i]) {
+        for (var j =0; j < figures[i].renderers.length; j++) {
+            renderer = figures[i].renderers[j]
+            if (renderer.tags.includes('sol')) {
+                renderer.visible = active.includes(0);
+            }
+            else if (renderer.tags.includes('sim')) {
+                renderer.visible = active.includes(1);
+            }
+        }
+    }
+}
+"""
 
 
 def _meta_tree_subsys_iter(tree, recurse=True, cls=None):
@@ -127,7 +143,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
 
     for traj in prob.model.system_iter(include_self=True, recurse=True, typ=dm.Trajectory):
         traj_name = traj.pathname.split('.')[-1]
-        report_filename = f'dymos_traj_report_{traj.pathname}.html'
+        report_filename = f'{traj.pathname}_results_report.html'
         report_path = str(Path(prob.get_reports_dir()) / report_filename)
 
         param_tables = []
@@ -168,6 +184,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                          **fig_kwargs)
             fig.xaxis.axis_label_text_font_size = '10pt'
             fig.yaxis.axis_label_text_font_size = '10pt'
+            fig.toolbar.autohide = True
             legend_data = []
             if x_range is None:
                 x_range = fig.x_range
@@ -180,6 +197,8 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                 if x_name in sol_data and var_name in sol_data:
                     sol_plot = fig.circle(x='time', y=var_name, source=sol_source, color=color)
                     sim_plot = fig.line(x='time', y=var_name, source=sim_source, color=color)
+                    sol_plot.tags.append('sol')
+                    sim_plot.tags.append('sim')
                     legend_data.append((phase_name, [sol_plot, sim_plot]))
 
             legend = Legend(items=legend_data, location='center', label_text_font_size='8pt')
@@ -193,12 +212,15 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
         param_panels = [TabPanel(child=table, title=f'{phase_names[i]} parameters')
                         for i, table in enumerate(param_tables)]
 
+        sol_sim_toggle = CheckboxButtonGroup(labels=['Solution', 'Simulation'], active=[0, 1])
+
+        sol_sim_toggle.js_on_change("active", CustomJS(code=_SOL_SIM_TOGGLE_JS, args=dict(figures=figures)))
+
         timeseries_panel = grid(children=figures, ncols=ncols, sizing_mode='stretch_both')
 
+        ts_layout = column(children=[sol_sim_toggle, timeseries_panel], sizing_mode='stretch_both')
 
-
-        tab_panes = Tabs(tabs=[TabPanel(child=timeseries_panel, title='Timeseries')] + param_panels,
-                               # TabPanel(child=param_panel, title='Parameters')],
+        tab_panes = Tabs(tabs=[TabPanel(child=ts_layout, title='Timeseries')] + param_panels,
                          sizing_mode='stretch_both',
                          active=0)
 
@@ -211,14 +233,5 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
 if __name__ == '__main__':
     import openmdao.api as om
     cr = om.CaseReader('/Users/rfalck/Projects/dymos.git/dymos/examples/balanced_field/doc/dymos_solution.db')
-    # print(cr.problem_metadata['tree'])
-    # print(cr.problem_metadata['tree'])
-    # for traj_tree in _meta_tree_subsys_iter(cr.problem_metadata['tree'], recurse=True, cls='Trajectory'):
-    #     for phase_tree in _meta_tree_subsys_iter(traj_tree, recurse=True, cls=['Phase', 'AnalyticPhase']):
-    #         print(phase_tree['name'])
-    #         timeseries_meta = [child for child in phase_tree['children'] if child['name'] == 'timeseries'][0]
-    #         print(timeseries_meta)
-
-
 
 
