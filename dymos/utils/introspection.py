@@ -777,7 +777,7 @@ def configure_timeseries_output_introspection(phase):
 
         not_found = set()
 
-        for output_name, output_options in ts_opts['outputs'].items():
+        for name, output_options in ts_opts['outputs'].items():
             if output_options['is_expr']:
                 output_meta = phase.timeseries_ec_vars[ts_name][output_name]['meta_data']
             else:
@@ -786,7 +786,7 @@ def configure_timeseries_output_introspection(phase):
                                                                            output_options['output_name'],
                                                                            phase=phase)
                 except ValueError as e:
-                    not_found.add(output_name)
+                    not_found.add(name)
                     continue
 
             output_options['src'] = output_meta['src']
