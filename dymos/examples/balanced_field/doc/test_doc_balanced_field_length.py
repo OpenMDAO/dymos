@@ -199,6 +199,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
             phase.add_timeseries_output('T_nominal', output_name='T')
             phase.add_timeseries_output('T_engine_out', output_name='T')
             phase.add_timeseries_output('T_shutdown', output_name='T')
+            phase.add_timeseries_output('alpha')
 
         #
         # Setup the problem and set the initial guess

@@ -3,7 +3,8 @@ from pathlib import Path
 
 from bokeh.io import output_notebook, output_file, save, show
 from bokeh.layouts import gridplot, column, grid, GridBox, layout, row
-from bokeh.models import Legend, DataTable, Div, ColumnDataSource, TableColumn, TabPanel, Tabs, CheckboxButtonGroup, CustomJS
+from bokeh.models import Legend, DataTable, Div, ColumnDataSource, TableColumn, TabPanel, Tabs, CheckboxButtonGroup,\
+    CustomJS, MultiChoice
 from bokeh.plotting import figure, curdoc
 import bokeh.palettes as bp
 
@@ -17,6 +18,7 @@ _SOL_SIM_TOGGLE_JS = """
 const active = cb_obj.active;
 var figures = figures;
 var renderer;
+
 for (var i = 0; i < figures.length; i++) {
     if (figures[i]) {
         for (var j =0; j < figures[i].renderers.length; j++) {
@@ -27,6 +29,40 @@ for (var i = 0; i < figures.length; i++) {
             else if (renderer.tags.includes('sim')) {
                 renderer.visible = active.includes(1);
             }
+        }
+    }
+}
+"""
+
+# Javascript Callback when the solution/simulation checkbox buttons are toggled
+# args: (figures)
+_PHASE_SELECT_JS = """
+// Loop through figures and toggle the visibility of the renderers
+const phases_to_show = cb_obj.value;
+const kinds_to_show = sol_sim_toggle.active;
+var figures = figures;
+var renderer;
+var renderer_phase;
+
+function show_renderer(renderer, phases_to_show, kinds_to_show) {
+    var tags = renderer.tags;
+    for(var k=0; k < tags.length; k++) {
+        if (tags[k].substring(0, 6) == 'phase:') {
+            renderer_phase = tags[k].substring(6);
+            break;
+        }
+    }
+    return ((tags.includes('sol') && kinds_to_show.includes(0)) || 
+            (tags.includes('sim') && kinds_to_show.includes(1))) &&
+           phases_to_show.includes(renderer_phase);
+}
+
+for (var i = 0; i < figures.length; i++) {
+    if (figures[i]) {
+        for (var j=0; j < figures[i].renderers.length; j++) {
+            renderer = figures[i].renderers[j];
+            // Get the phase with which this renderer is associated
+            renderer.visible = show_renderer(renderer, phases_to_show, kinds_to_show);
         }
     }
 }
@@ -197,8 +233,8 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                 if x_name in sol_data and var_name in sol_data:
                     sol_plot = fig.circle(x='time', y=var_name, source=sol_source, color=color)
                     sim_plot = fig.line(x='time', y=var_name, source=sim_source, color=color)
-                    sol_plot.tags.append('sol')
-                    sim_plot.tags.append('sim')
+                    sol_plot.tags.extend(['sol', f'phase:{phase_name}'])
+                    sim_plot.tags.extend(['sim', f'phase:{phase_name}'])
                     legend_data.append((phase_name, [sol_plot, sim_plot]))
 
             legend = Legend(items=legend_data, location='center', label_text_font_size='8pt')
@@ -220,9 +256,23 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                           sizing_mode='stretch_both',
                           max_height=50)
 
+        phase_select = MultiChoice(options=[phase_name for phase_name in phase_names],
+                                   value=[phase_name for phase_name in phase_names],
+                                   sizing_mode='stretch_both',
+                                   min_width=400, min_height=50)
+        phase_select.js_on_change("value", CustomJS(code=_PHASE_SELECT_JS,
+                                                    args=dict(figures=figures,
+                                                              sol_sim_toggle=sol_sim_toggle)))
+
+        phase_select_row = row(children=[Div(text='Plot phases:'), phase_select],
+                               sizing_mode='stretch_width')
+
         figures_grid = grid(children=figures, ncols=ncols, sizing_mode='stretch_both')
 
-        ts_layout = column(children=[sol_sim_row, figures_grid], sizing_mode='stretch_both')
+        ts_layout = column(children=[sol_sim_row,
+                                     phase_select_row,
+                                     figures_grid],
+                           sizing_mode='stretch_both')
 
         tab_panes = Tabs(tabs=[TabPanel(child=ts_layout, title='Timeseries')] + param_panels,
                          sizing_mode='stretch_both',
