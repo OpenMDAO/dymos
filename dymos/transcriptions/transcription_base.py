@@ -175,8 +175,7 @@ class TranscriptionBase(object):
 
             for name, options in phase.control_options.items():
                 for ts_name, ts_options in phase._timeseries.items():
-                    if f'{control_prefix}{name}' not in ts_options['outputs'] and \
-                            phase.timeseries_options['include_controls']:
+                    if f'{control_prefix}{name}' not in ts_options['outputs']:
                         phase.add_timeseries_output(name, output_name=f'{control_prefix}{name}',
                                                     timeseries=ts_name)
                     if f'{control_rate_prefix}{name}_rate' not in ts_options['outputs'] and \
