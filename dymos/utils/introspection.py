@@ -6,6 +6,7 @@ import openmdao.api as om
 import numpy as np
 from openmdao.utils.array_utils import shape_to_len
 from dymos.utils.misc import _unspecified
+from dymos.options import options as dymos_options
 from ..phase.options import StateOptionsDictionary, TimeseriesOutputOptionsDictionary
 from .misc import get_rate_units
 
@@ -206,7 +207,7 @@ def _configure_constraint_introspection(phase):
                 con['constraint_path'] = f'timeseries.{time_name}_phase'
 
             elif var_type == 'state':
-                prefix = 'states:' if phase.timeseries_options['use_prefix'] else ''
+                prefix = 'states:' if dymos_options['use_timeseries_prefix'] else ''
                 state_shape = phase.state_options[var]['shape']
                 state_units = phase.state_options[var]['units']
                 con['shape'] = state_shape
@@ -221,7 +222,7 @@ def _configure_constraint_introspection(phase):
                 con['constraint_path'] = f'parameter_vals:{var}'
 
             elif var_type in ['indep_control', 'input_control']:
-                prefix = 'controls:' if phase.timeseries_options['use_prefix'] else ''
+                prefix = 'controls:' if dymos_options['use_timeseries_prefix'] else ''
                 control_shape = phase.control_options[var]['shape']
                 control_units = phase.control_options[var]['units']
 
@@ -230,7 +231,7 @@ def _configure_constraint_introspection(phase):
                 con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             # elif var_type == 'input_control':
-            #     prefix = 'controls:' if phase.timeseries_options['use_prefix'] else ''
+            #     prefix = 'controls:' if dymos_options['use_timeseries_prefix'] else ''
             #     control_shape = phase.control_options[var]['shape']
             #     control_units = phase.control_options[var]['units']
             #
@@ -239,7 +240,7 @@ def _configure_constraint_introspection(phase):
             #     con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-                prefix = 'polynomial_controls:' if phase.timeseries_options['use_prefix'] else ''
+                prefix = 'polynomial_controls:' if dymos_options['use_timeseries_prefix'] else ''
                 control_shape = phase.polynomial_control_options[var]['shape']
                 control_units = phase.polynomial_control_options[var]['units']
                 con['shape'] = control_shape
@@ -254,7 +255,7 @@ def _configure_constraint_introspection(phase):
             #     con['constraint_path'] = f'timeseries.polynomial_controls:{var}'
 
             elif var_type == 'control_rate':
-                prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
+                prefix = 'control_rates:' if dymos_options['use_timeseries_prefix'] else ''
                 control_name = var[:-5]
                 control_shape = phase.control_options[control_name]['shape']
                 control_units = phase.control_options[control_name]['units']
@@ -264,7 +265,7 @@ def _configure_constraint_introspection(phase):
                 con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type == 'control_rate2':
-                prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
+                prefix = 'control_rates:' if dymos_options['use_timeseries_prefix'] else ''
                 control_name = var[:-6]
                 control_shape = phase.control_options[control_name]['shape']
                 control_units = phase.control_options[control_name]['units']
@@ -274,7 +275,7 @@ def _configure_constraint_introspection(phase):
                 con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type == 'polynomial_control_rate':
-                prefix = 'polynomial_control_rates:' if phase.timeseries_options['use_prefix'] else ''
+                prefix = 'polynomial_control_rates:' if dymos_options['use_timeseries_prefix'] else ''
                 control_name = var[:-5]
                 control_shape = phase.polynomial_control_options[control_name]['shape']
                 control_units = phase.polynomial_control_options[control_name]['units']
@@ -284,7 +285,7 @@ def _configure_constraint_introspection(phase):
                 con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type == 'polynomial_control_rate2':
-                prefix = 'polynomial_control_rates:' if phase.timeseries_options['use_prefix'] else ''
+                prefix = 'polynomial_control_rates:' if dymos_options['use_timeseries_prefix'] else ''
                 control_name = var[:-6]
                 control_shape = phase.polynomial_control_options[control_name]['shape']
                 control_units = phase.polynomial_control_options[control_name]['units']

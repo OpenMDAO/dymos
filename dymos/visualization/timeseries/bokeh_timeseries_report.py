@@ -213,12 +213,16 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                         for i, table in enumerate(param_tables)]
 
         sol_sim_toggle = CheckboxButtonGroup(labels=['Solution', 'Simulation'], active=[0, 1])
-
         sol_sim_toggle.js_on_change("active", CustomJS(code=_SOL_SIM_TOGGLE_JS, args=dict(figures=figures)))
 
-        timeseries_panel = grid(children=figures, ncols=ncols, sizing_mode='stretch_both')
+        sol_sim_row = row(children=[Div(text='Display data:', sizing_mode='stretch_height'),
+                                    sol_sim_toggle],
+                          sizing_mode='stretch_both',
+                          max_height=50)
 
-        ts_layout = column(children=[sol_sim_toggle, timeseries_panel], sizing_mode='stretch_both')
+        figures_grid = grid(children=figures, ncols=ncols, sizing_mode='stretch_both')
+
+        ts_layout = column(children=[sol_sim_row, figures_grid], sizing_mode='stretch_both')
 
         tab_panes = Tabs(tabs=[TabPanel(child=ts_layout, title='Timeseries')] + param_panels,
                          sizing_mode='stretch_both',
@@ -229,9 +233,5 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
         report_layout = column(children=[Div(text=summary), tab_panes], sizing_mode='stretch_both')
 
         save(report_layout, filename=report_path, title=f'trajectory results for {traj_name}')
-
-if __name__ == '__main__':
-    import openmdao.api as om
-    cr = om.CaseReader('/Users/rfalck/Projects/dymos.git/dymos/examples/balanced_field/doc/dymos_solution.db')
 
 

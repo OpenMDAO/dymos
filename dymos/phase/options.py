@@ -761,13 +761,3 @@ class PhaseTimeseriesOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='include_t_phase', types=bool, default=False,
                      desc='If True, include the elapsed phase time in the timeseries outputs by default.')
-
-        self.declare(name='include_states', types=bool, default=True,
-                     desc='If True, include the states in the timeseries outputs by default.')
-
-        self.declare(name='include_controls', types=bool, default=True,
-                     desc='If True, include the controls in the timeseries outputs by default.')
-
-        self.declare(name='use_prefix', types=bool, default=False,
-                     desc='If True, prefix the timeseries outputs with the variable type for compatibility '
-                          'with earlier versions of dymos..')
