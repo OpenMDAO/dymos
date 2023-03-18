@@ -11,6 +11,23 @@ import bokeh.palettes as bp
 import openmdao.api as om
 import dymos as dm
 
+
+_js_show_renderer = """
+function show_renderer(renderer, phases_to_show, kinds_to_show) {
+    var tags = renderer.tags;
+    for(var k=0; k < tags.length; k++) {
+        if (tags[k].substring(0, 6) == 'phase:') {
+            renderer_phase = tags[k].substring(6);
+            break;
+        }
+    }
+    return ((tags.includes('sol') && kinds_to_show.includes(0)) || 
+            (tags.includes('sim') && kinds_to_show.includes(1))) &&
+           phases_to_show.includes(renderer_phase);
+}
+
+"""
+
 # Javascript Callback when the solution/simulation checkbox buttons are toggled
 # args: (figures)
 _SOL_SIM_TOGGLE_JS = """
@@ -36,9 +53,8 @@ for (var i = 0; i < figures.length; i++) {
 
 # Javascript Callback when the solution/simulation checkbox buttons are toggled
 # args: (figures)
-_PHASE_SELECT_JS = """
-// Loop through figures and toggle the visibility of the renderers
-const phases_to_show = cb_obj.value;
+_js_show_figures = """
+const phases_to_show = phase_select.value;
 const kinds_to_show = sol_sim_toggle.active;
 var figures = figures;
 var renderer;
@@ -192,7 +208,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
             # Make the parameter table
             source = ColumnDataSource(source_data[traj_name]['param_data_by_phase'][phase_name])
             columns = [
-                TableColumn(field='param', title=f'{phase_name} Parameters'),
+                TableColumn(field='param', title='Parameter'),
                 TableColumn(field='val', title='Value'),
                 TableColumn(field='units', title='Units'),
             ]
@@ -249,7 +265,6 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                         for i, table in enumerate(param_tables)]
 
         sol_sim_toggle = CheckboxButtonGroup(labels=['Solution', 'Simulation'], active=[0, 1])
-        sol_sim_toggle.js_on_change("active", CustomJS(code=_SOL_SIM_TOGGLE_JS, args=dict(figures=figures)))
 
         sol_sim_row = row(children=[Div(text='Display data:', sizing_mode='stretch_height'),
                                     sol_sim_toggle],
@@ -260,9 +275,6 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                                    value=[phase_name for phase_name in phase_names],
                                    sizing_mode='stretch_both',
                                    min_width=400, min_height=50)
-        phase_select.js_on_change("value", CustomJS(code=_PHASE_SELECT_JS,
-                                                    args=dict(figures=figures,
-                                                              sol_sim_toggle=sol_sim_toggle)))
 
         phase_select_row = row(children=[Div(text='Plot phases:'), phase_select],
                                sizing_mode='stretch_width')
@@ -281,6 +293,22 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
         summary = rf'Results of {prob._name}<br>Creation Date: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'
 
         report_layout = column(children=[Div(text=summary), tab_panes], sizing_mode='stretch_both')
+
+        # Assign callbacks
+
+        sol_sim_toggle.js_on_change("active",
+                                    CustomJS(code=_js_show_figures,
+                                             args=dict(figures=figures,
+                                                       sol_sim_toggle=sol_sim_toggle,
+                                                       phase_select=phase_select)))
+
+        phase_select.js_on_change("value",
+                                  CustomJS(code=_js_show_figures,
+                                           args=dict(figures=figures,
+                                                     sol_sim_toggle=sol_sim_toggle,
+                                                     phase_select=phase_select)))
+
+        # Save
 
         save(report_layout, filename=report_path, title=f'trajectory results for {traj_name}')
 
