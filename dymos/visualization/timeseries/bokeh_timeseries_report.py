@@ -112,16 +112,29 @@ def _meta_tree_subsys_iter(tree, recurse=True, cls=None):
                 yield child
 
 
-def _load_data_sources(prob, solution_record_file, simulation_record_file):
+def _load_data_sources(prob, solution_record_file=None, simulation_record_file=None):
 
     data_dict = {}
 
-    sol_cr = om.CaseReader(solution_record_file)
-    sol_case = sol_cr.get_case('final')
-    sim_case = om.CaseReader(simulation_record_file).get_case('final')
-    sol_outputs = {name: meta for name, meta in sol_case.list_outputs(units=True, out_stream=None)}
+    if Path(solution_record_file).is_file():
+        sol_cr = om.CaseReader(solution_record_file)
+        sol_case = sol_cr.get_case('final')
+        outputs = {name: meta for name, meta in sol_case.list_outputs(units=True, out_stream=None)}
+        abs2prom_map = sol_cr.problem_metadata['abs2prom']
+    else:
+        sol_case = None
 
-    abs2prom_map = sol_cr.problem_metadata['abs2prom']
+    if Path(simulation_record_file).is_file():
+        sim_cr = om.CaseReader(simulation_record_file)
+        sim_case = sim_cr.get_case('final')
+        outputs = {name: meta for name, meta in sim_case.list_outputs(units=True, out_stream=None)}
+        abs2prom_map = sim_cr.problem_metadata['abs2prom']
+    else:
+        sim_case = None
+
+    if sol_cr is None and sim_cr is None:
+        om.issue_warning('No recorded data provided. Trajectory results report will not be created.')
+        return
 
     for traj in prob.model.system_iter(include_self=True, recurse=True, typ=dm.Trajectory):
         traj_name = traj.pathname.split('.')[-1]
@@ -138,7 +151,8 @@ def _load_data_sources(prob, solution_record_file, simulation_record_file):
             phase_sim_data = data_dict[traj_name]['sim_data_by_phase'][phase_name] = {}
             ts_units_dict = data_dict[traj_name]['timeseries_units']
 
-            param_outputs = {op: meta for op, meta in sol_outputs.items() if op.startswith(f'{phase.pathname}.param_comp.parameter_vals')}
+            param_outputs = {op: meta for op, meta in outputs.items() if op.startswith(f'{phase.pathname}.param_comp.parameter_vals')}
+            param_case = sol_case if sol_case else sim_case
 
             for output_name in sorted(param_outputs.keys(), key=str.casefold):
                 meta = param_outputs[output_name]
@@ -149,11 +163,9 @@ def _load_data_sources(prob, solution_record_file, simulation_record_file):
 
                 param_dict['param'].append(param_name)
                 param_dict['units'].append(meta['units'])
-                param_dict['val'].append(sol_case.get_val(prom_name, units=meta['units']))
+                param_dict['val'].append(param_case.get_val(prom_name, units=meta['units']))
 
-            ts_outputs = {op: meta for op, meta in sol_outputs.items() if op.startswith(f'{phase.pathname}.timeseries')}
-
-
+            ts_outputs = {op: meta for op, meta in outputs.items() if op.startswith(f'{phase.pathname}.timeseries')}
 
             for output_name in sorted(ts_outputs.keys(), key=str.casefold):
                 meta = ts_outputs[output_name]
@@ -162,13 +174,16 @@ def _load_data_sources(prob, solution_record_file, simulation_record_file):
 
                 if meta['units'] not in ts_units_dict:
                     ts_units_dict[var_name] = meta['units']
-                phase_sol_data[var_name] = sol_case.get_val(prom_name, units=meta['units'])
-                phase_sim_data[var_name] = sim_case.get_val(prom_name, units=meta['units'])
+
+                if sol_case:
+                    phase_sol_data[var_name] = sol_case.get_val(prom_name, units=meta['units'])
+                if sim_case:
+                    phase_sim_data[var_name] = sim_case.get_val(prom_name, units=meta['units'])
 
     return data_dict
 
-def make_timeseries_report(prob, solution_record_file=None, simulation_record_file=None, solution_history=False, x_name='time',
-                           ncols=2, min_fig_height=250, max_fig_height=300, margin=10, theme='light_minimal'):
+def make_timeseries_report(prob, solution_record_file=None, simulation_record_file=None, solution_history=False,
+                           x_name='time', ncols=2, margin=10, theme='light_minimal'):
     """
 
     Parameters
@@ -247,11 +262,16 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                 sol_source = ColumnDataSource(sol_data)
                 sim_source = ColumnDataSource(sim_data)
                 if x_name in sol_data and var_name in sol_data:
-                    sol_plot = fig.circle(x='time', y=var_name, source=sol_source, color=color)
-                    sim_plot = fig.line(x='time', y=var_name, source=sim_source, color=color)
-                    sol_plot.tags.extend(['sol', f'phase:{phase_name}'])
-                    sim_plot.tags.extend(['sim', f'phase:{phase_name}'])
-                    legend_data.append((phase_name, [sol_plot, sim_plot]))
+                    legend_items = []
+                    if sol_data:
+                        sol_plot = fig.circle(x='time', y=var_name, source=sol_source, color=color)
+                        sol_plot.tags.extend(['sol', f'phase:{phase_name}'])
+                        legend_items.append(sol_plot)
+                    if sim_data:
+                        sim_plot = fig.line(x='time', y=var_name, source=sim_source, color=color)
+                        sim_plot.tags.extend(['sim', f'phase:{phase_name}'])
+                        legend_items.append(sim_plot)
+                    legend_data.append((phase_name, legend_items))
 
             legend = Legend(items=legend_data, location='center', label_text_font_size='8pt')
             fig.add_layout(legend, 'right')
