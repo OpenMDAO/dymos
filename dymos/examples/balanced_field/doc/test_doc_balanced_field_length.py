@@ -238,4 +238,4 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.set_val('traj.climb.states:gam', climb.interp('gam', [0, 5.0]), units='deg')
         p.set_val('traj.climb.controls:alpha', 5.0, units='deg')
 
-        dm.run_problem(p, run_driver=True, simulate=False, make_plots=True)
+        dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)
