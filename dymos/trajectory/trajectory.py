@@ -5,6 +5,7 @@ import sys
 
 from openmdao.utils.om_warnings import warn_deprecation
 from openmdao.utils.graph_utils import get_sccs_topo
+from openmdao.utils.units import unit_conversion
 
 import numpy as np
 import networkx as nx
@@ -596,10 +597,16 @@ class Trajectory(om.Group):
         if linkage_options['units_b'] is _unspecified:
             linkage_options['units_b'] = units['b']
 
-        if not linkage_options['connected'] and (linkage_options['units_a'] != linkage_options['units_b']) and \
-                linkage_options['units'] is _unspecified:
-            raise ValueError(f'{info_str}Linkage units were not specified but the units of '
-                             f'var_a ({units["a"]}) and var_b ({units["b"]}) are not the same. '
+        if units['a'] is not None and units['b'] is not None:
+            conversion_scaler, conversion_offset = unit_conversion(units['a'], units['b'])
+        else:
+            conversion_scaler, conversion_offset = (1.0, 0.0)
+
+        if not linkage_options['connected'] \
+                and linkage_options['units'] is _unspecified \
+                and (abs(conversion_scaler - 1.0) > 1.0E-15 or abs(conversion_offset) > 1.0E-15):
+            raise ValueError(f'{info_str}Linkage units were not specified but the units of {phase_name_a}.{var_a} '
+                             f'({units["a"]}) and {phase_name_b}.{var_b} ({units["b"]}) are not equivalent. '
                              f'Units for this linkage constraint must be specified explicitly.')
         else:
             linkage_options['units'] = units['a']
