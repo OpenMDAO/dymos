@@ -2,7 +2,7 @@ import datetime
 from pathlib import Path
 
 from bokeh.io import output_notebook, output_file, save, show
-from bokeh.layouts import gridplot, column, grid, GridBox, layout, row
+from bokeh.layouts import column, grid, row
 from bokeh.models import Legend, DataTable, Div, ColumnDataSource, TableColumn, TabPanel, Tabs, CheckboxButtonGroup,\
     CustomJS, MultiChoice
 from bokeh.plotting import figure, curdoc
@@ -182,22 +182,28 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
 
     return data_dict
 
-def make_timeseries_report(prob, solution_record_file=None, simulation_record_file=None, solution_history=False,
+
+def make_timeseries_report(prob, solution_record_file=None, simulation_record_file=None,
                            x_name='time', ncols=2, margin=10, theme='light_minimal'):
     """
+    Create the bokeh-based timeseries results report.
 
     Parameters
     ----------
-    prob
-    solution_record_file
-    simulation_record_file
-    solution_history
+    prob : om.Problem
+        The problem instance for which the timeseries plots are being created.
+    solution_record_file : str
+        The path to the solution record file, if available.
+    simulation_record_file : str
+        The path to the simulation record file, if available.
     x_name : str
         Name of the horizontal axis variable in the timeseries.
-
-    Returns
-    -------
-
+    ncols : int
+        The number of columns of timeseries output plots.
+    margin : int
+        A margin to be placed between the plot figures.
+    theme : str
+        A valid bokeh theme name to style the report.
     """
     # For the primary timeseries in each phase in each trajectory, build a set of the pathnames
     # to be plotted.
