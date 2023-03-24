@@ -1,7 +1,7 @@
 import numpy as np
 import openmdao.api as om
 from ...grid_data import GridData
-from ....options import options as dymos_options
+from ...._options import options as dymos_options
 
 
 class ControlEndpointDefectComp(om.ExplicitComponent):

@@ -21,7 +21,7 @@ from ..phase.options import TrajParameterOptionsDictionary
 from ..transcriptions.common import ParameterComp
 from ..utils.misc import get_rate_units, _unspecified
 from ..utils.introspection import get_promoted_vars, get_source_metadata
-from ..options import options as dymos_options
+from .._options import options as dymos_options
 
 
 class Trajectory(om.Group):
@@ -562,7 +562,7 @@ class Trajectory(om.Group):
                 units[i] = get_rate_units(units[i], phases[i].time_options['units'], deriv=deriv)
                 shapes[i] = phases[i].control_options[control_name]['shape']
             elif classes[i] in {'indep_polynomial_control', 'input_polynomial_control'}:
-                prefix = 'controls:' if dymos_options['use_timeseries_prefix'] else ''
+                prefix = 'polynomial_controls:' if dymos_options['use_timeseries_prefix'] else ''
                 sources[i] = f'timeseries.{prefix}{vars[i]}'
                 units[i] = phases[i].polynomial_control_options[vars[i]]['units']
                 shapes[i] = phases[i].polynomial_control_options[vars[i]]['shape']
@@ -726,7 +726,10 @@ class Trajectory(om.Group):
                     }
 
         def _get_prefixed_var(var, phase):
-            return f'{prefixes[phase.classify_var(var)]}{var}'
+            if dymos_options['use_timeseries_prefix']:
+                return f'{prefixes[phase.classify_var(var)]}{var}'
+            else:
+                return var
 
         # First, if the user requested all states and time be continuous ('*', '*'), then
         # expand it out.

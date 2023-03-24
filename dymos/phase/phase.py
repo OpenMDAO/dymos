@@ -1462,7 +1462,7 @@ class Phase(om.Group):
             if rate:
                 output_name = output_name + '_rate'
 
-        if name not in self._timeseries[timeseries]['outputs']:
+        if output_name not in self._timeseries[timeseries]['outputs']:
             ts_output = TimeseriesOutputOptionsDictionary()
             ts_output['name'] = name
             ts_output['output_name'] = output_name
@@ -1473,7 +1473,7 @@ class Phase(om.Group):
             ts_output['is_expr'] = expr
             ts_output['expr_kwargs'] = expr_kwargs
 
-            self._timeseries[timeseries]['outputs'][name] = ts_output
+            self._timeseries[timeseries]['outputs'][output_name] = ts_output
 
             return output_name
 

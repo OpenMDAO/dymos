@@ -1,7 +1,7 @@
 from openmdao.utils.mpi import MPI
 
 from .phase import Phase
-from ..options import options as dymos_options
+from .._options import options as dymos_options
 from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
 from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 

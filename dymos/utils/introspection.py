@@ -6,7 +6,7 @@ import openmdao.api as om
 import numpy as np
 from openmdao.utils.array_utils import shape_to_len
 from dymos.utils.misc import _unspecified
-from dymos.options import options as dymos_options
+from .._options import options as dymos_options
 from ..phase.options import StateOptionsDictionary, TimeseriesOutputOptionsDictionary
 from .misc import get_rate_units
 
@@ -777,7 +777,9 @@ def configure_timeseries_output_introspection(phase):
 
         not_found = set()
 
-        for name, output_options in ts_opts['outputs'].items():
+        for output_name, output_options in ts_opts['outputs'].items():
+            name = output_options['name']
+            print(phase.pathname, name, output_name)
             if output_options['is_expr']:
                 output_meta = phase.timeseries_ec_vars[ts_name][output_name]['meta_data']
             else:
@@ -786,7 +788,7 @@ def configure_timeseries_output_introspection(phase):
                                                                            output_options['output_name'],
                                                                            phase=phase)
                 except ValueError as e:
-                    not_found.add(name)
+                    not_found.add(output_name)
                     continue
 
             output_options['src'] = output_meta['src']
@@ -799,7 +801,7 @@ def configure_timeseries_output_introspection(phase):
                 output_options['units'] = output_meta['units']
 
         if not_found:
-            sorted_list = ', '.join(sorted(not_found))
+            sorted_list = ', '.join(sorted([ts_opts['outputs'][output_name]['name'] for output_name in not_found]))
             om.issue_warning(f'{phase.pathname}: The following timeseries outputs were requested but not found in the '
                              f'ODE: {sorted_list}')
 

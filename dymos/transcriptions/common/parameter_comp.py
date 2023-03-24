@@ -5,7 +5,7 @@ import numpy as np
 
 from openmdao.core.explicitcomponent import ExplicitComponent
 from ...utils.misc import _unspecified
-from ...options import options as dymos_options
+from ..._options import options as dymos_options
 
 
 class ParameterComp(ExplicitComponent):

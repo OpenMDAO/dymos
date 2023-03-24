@@ -3,7 +3,7 @@ import numpy as np
 import openmdao.api as om
 
 from dymos.utils.misc import get_rate_units
-from dymos.options import options as dymos_options
+from ..._options import options as dymos_options
 
 
 class StateRateCollectorComp(om.ExplicitComponent):

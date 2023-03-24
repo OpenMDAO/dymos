@@ -753,7 +753,7 @@ class PhaseTimeseriesOptionsDictionary(om.OptionsDictionary):
     def __init__(self, read_only=False):
         super().__init__(read_only)
 
-        self.declare(name='include_state_rates', types=bool, default=False,
+        self.declare(name='include_state_rates', types=bool, default=True,
                      desc='If True, include state rates in the timeseries outputs by default.')
 
         self.declare(name='include_control_rates', types=bool, default=False,

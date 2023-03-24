@@ -10,7 +10,7 @@ from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.misc import _unspecified
 from ..utils.introspection import configure_states_introspection, get_promoted_vars, get_target_metadata, \
     configure_states_discovery
-from ..options import options as dymos_options
+from .._options import options as dymos_options
 
 
 class TranscriptionBase(object):

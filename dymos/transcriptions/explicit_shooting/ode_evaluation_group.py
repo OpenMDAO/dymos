@@ -215,7 +215,7 @@ class ODEEvaluationGroup(om.Group):
             self.add_design_var(var_name)
 
             if options['static_target']:
-                src_idxs = None
+                src_idxs = om.slicer[0, ...]
             else:
                 src_rows = np.zeros(vec_size, dtype=int)
                 src_idxs = om.slicer[src_rows, ...]

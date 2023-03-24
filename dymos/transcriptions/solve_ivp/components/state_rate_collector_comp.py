@@ -1,6 +1,6 @@
 import numpy as np
 from ....utils.misc import get_rate_units
-from ....options import options as dymos_options
+from ...._options import options as dymos_options
 import openmdao.api as om
 
 

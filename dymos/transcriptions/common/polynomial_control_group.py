@@ -8,7 +8,7 @@ from ...utils.lagrange import lagrange_matrices
 from ...utils.misc import get_rate_units, reshape_val
 from ...utils.constants import INF_BOUND
 
-from ...options import options as dymos_options
+from ..._options import options as dymos_options
 
 
 class LGLPolynomialControlComp(om.ExplicitComponent):

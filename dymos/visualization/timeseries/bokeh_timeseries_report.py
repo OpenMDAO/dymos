@@ -1,12 +1,17 @@
 import datetime
 from pathlib import Path
 
-from bokeh.io import output_notebook, output_file, save, show
-from bokeh.layouts import column, grid, row
-from bokeh.models import Legend, DataTable, Div, ColumnDataSource, TableColumn, TabPanel, Tabs, CheckboxButtonGroup,\
-    CustomJS, MultiChoice
-from bokeh.plotting import figure, curdoc
-import bokeh.palettes as bp
+try:
+    from bokeh.io import output_notebook, output_file, save, show
+    from bokeh.layouts import column, grid, row
+    from bokeh.models import Legend, DataTable, Div, ColumnDataSource, TableColumn, TabPanel, Tabs,\
+        CheckboxButtonGroup, CustomJS, MultiChoice
+    from bokeh.plotting import figure, curdoc
+    import bokeh.palettes as bp
+    import bokeh.resources as bokeh_resources
+    _NO_BOKEH = False
+except ImportError:
+    _NO_BOKEH = True
 
 import openmdao.api as om
 import dymos as dm
@@ -210,7 +215,8 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
     source_data = _load_data_sources(prob, solution_record_file, simulation_record_file)
 
     # Colors of each phase in the plot. Start with the bright colors followed by the faded ones.
-    colors = bp.d3['Category20'][20][0::2] + bp.d3['Category20'][20][1::2]
+    if not _NO_BOKEH:
+        colors = bp.d3['Category20'][20][0::2] + bp.d3['Category20'][20][1::2]
 
     curdoc().theme = theme
 
@@ -218,6 +224,12 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
         traj_name = traj.pathname.split('.')[-1]
         report_filename = f'{traj.pathname}_results_report.html'
         report_path = str(Path(prob.get_reports_dir()) / report_filename)
+        if _NO_BOKEH:
+            with open(report_path) as f:
+                write("<html>\n<head>\n<title> \nError: bokeh not available</title>\n</head> <body>\n"
+                      "This report requires bokeh but bokeh was not available in this python installation.\n"
+                      "</body></html>")
+            continue
 
         param_tables = []
         phase_names = []
@@ -336,6 +348,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
 
         # Save
 
-        save(report_layout, filename=report_path, title=f'trajectory results for {traj_name}')
+        save(report_layout, filename=report_path, title=f'trajectory results for {traj_name}',
+             resources=bokeh_resources.INLINE)
 
 
