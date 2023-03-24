@@ -604,9 +604,9 @@ class TestPhaseBase(unittest.TestCase):
                 p['phase0.t_duration'] = 2.0
 
                 if txname == 'explicit-shooting':
-                    p['phase0.states:x'] = 0
-                    p['phase0.states:y'] = 10
-                    p['phase0.states:v'] = 0
+                    p['phase0.initial_states:x'] = 0
+                    p['phase0.initial_states:y'] = 10
+                    p['phase0.initial_states:v'] = 0
                 else:
                     p['phase0.states:x'] = phase.interp('x', [0, 10])
                     p['phase0.states:y'] = phase.interp('y', [10, 5])
@@ -749,9 +749,9 @@ class TestPhaseBase(unittest.TestCase):
                 p['phase0.t_duration'] = 2.0
 
                 if txname == 'explicit-shooting':
-                    p['phase0.states:x'] = 0
-                    p['phase0.states:y'] = 10
-                    p['phase0.states:v'] = 0
+                    p['phase0.initial_states:x'] = 0
+                    p['phase0.initial_states:y'] = 10
+                    p['phase0.initial_states:v'] = 0
                 else:
                     p['phase0.states:x'] = phase.interp('x', [0, 10])
                     p['phase0.states:y'] = phase.interp('y', [10, 5])
