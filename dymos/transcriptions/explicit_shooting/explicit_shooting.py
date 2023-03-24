@@ -260,7 +260,7 @@ class ExplicitShooting(TranscriptionBase):
         integ._configure_states()
 
         for name, options in phase.state_options.items():
-            phase.promotes('integrator', inputs=[f'states:{name}'])
+            phase.promotes('integrator', inputs=[(f'states:{name}', f'initial_states:{name}')])
             for ts_name, ts_options in phase._timeseries.items():
                 if f'states:{name}' not in ts_options['outputs']:
                     phase.add_timeseries_output(name, output_name=f'states:{name}',
@@ -272,7 +272,7 @@ class ExplicitShooting(TranscriptionBase):
                 raise ValueError('fix_final is not a valid option for states when using the '
                                  'ExplicitShooting transcription.')
             if options['opt'] and not options['fix_initial']:
-                phase.add_design_var(name=f'states:{state_name}',
+                phase.add_design_var(name=f'initial_states:{state_name}',
                                      lower=options['lower'],
                                      upper=options['upper'],
                                      scaler=options['scaler'],

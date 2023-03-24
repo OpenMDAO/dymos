@@ -110,7 +110,7 @@ class SimulationPhase(Phase):
 
         for name, options in self.state_options.items():
             val = from_phase.get_val(f'states:{name}', units=options['units'])[0, ...]
-            self.set_val(f'states:{name}', val, units=options['units'])
+            self.set_val(f'initial_states:{name}', val, units=options['units'])
 
         for name, options in self.parameter_options.items():
             val = from_phase.get_val(f'parameters:{name}', units=options['units'])
@@ -162,7 +162,7 @@ class SimulationPhase(Phase):
         # Assign initial state values
         for name in phs.state_options:
             op = op_dict[f'timeseries.timeseries_comp.states:{name}']
-            prob[f'{self_path}states:{name}'][...] = op['val'][0, ...]
+            prob[f'{self_path}initial_states:{name}'][...] = op['val'][0, ...]
 
         # Assign control values
         for name, options in phs.control_options.items():
