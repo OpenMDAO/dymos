@@ -7,7 +7,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 from dymos.examples.robertson_problem.doc.robertson_ode import RobertsonODE
 
 
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 plt.style.use('ggplot')
 
 
@@ -53,9 +53,9 @@ class TestRobertsonProblemForDocs(unittest.TestCase):
         p['traj.phase0.t_initial'] = 0.0
         p['traj.phase0.t_duration'] = t_final
 
-        p.set_val('traj.phase0.states:x0', phase.interp('x0', ys=[1.0, 0.7]))
-        p.set_val('traj.phase0.states:y0', phase.interp('y0', ys=[0.0, 1e-5]))
-        p.set_val('traj.phase0.states:z0', phase.interp('z0', ys=[0.0, 0.3]))
+        p.set_val('traj.phase0.initial_states:x0', phase.interp('x0', ys=[1.0, 0.7]))
+        p.set_val('traj.phase0.initial_states:y0', phase.interp('y0', ys=[0.0, 1e-5]))
+        p.set_val('traj.phase0.initial_states:z0', phase.interp('z0', ys=[0.0, 0.3]))
 
         return p
 
