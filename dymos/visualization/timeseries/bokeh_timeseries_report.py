@@ -217,8 +217,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
     # Colors of each phase in the plot. Start with the bright colors followed by the faded ones.
     if not _NO_BOKEH:
         colors = bp.d3['Category20'][20][0::2] + bp.d3['Category20'][20][1::2]
-
-    curdoc().theme = theme
+        curdoc().theme = theme
 
     for traj in prob.model.system_iter(include_self=True, recurse=True, typ=dm.Trajectory):
         traj_name = traj.pathname.split('.')[-1]
