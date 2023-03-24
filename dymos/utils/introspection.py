@@ -779,7 +779,6 @@ def configure_timeseries_output_introspection(phase):
 
         for output_name, output_options in ts_opts['outputs'].items():
             name = output_options['name']
-            print(phase.pathname, name, output_name)
             if output_options['is_expr']:
                 output_meta = phase.timeseries_ec_vars[ts_name][output_name]['meta_data']
             else:

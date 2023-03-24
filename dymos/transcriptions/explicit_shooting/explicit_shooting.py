@@ -454,8 +454,8 @@ class ExplicitShooting(TranscriptionBase):
             phase.add_subsystem('polynomial_control_group', subsys=sys,
                                 promotes_inputs=['*'], promotes_outputs=['*'])
 
-            control_prefix = 'controls:' if dymos_options['use_timeseries_prefix'] else ''
-            control_rate_prefix = 'control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+            control_prefix = 'polynomial_controls:' if dymos_options['use_timeseries_prefix'] else ''
+            control_rate_prefix = 'polynomial_control_rates:' if dymos_options['use_timeseries_prefix'] else ''
 
             for name, options in phase.polynomial_control_options.items():
 

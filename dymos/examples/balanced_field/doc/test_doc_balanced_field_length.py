@@ -6,7 +6,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 SHOW_PLOTS = True
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
