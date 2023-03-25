@@ -87,7 +87,8 @@ class TranscriptionBase(object):
         for ts_name, ts_options in phase._timeseries.items():
             if t_name not in ts_options['outputs']:
                 phase.add_timeseries_output(t_name, timeseries=ts_name)
-            if t_phase_name not in ts_options['outputs'] and phase.timeseries_options['include_t_phase']:
+            if t_phase_name not in ts_options['outputs'] and \
+                    (phase.timeseries_options['include_t_phase'] or time_options['time_phase_targets']):
                 phase.add_timeseries_output(t_phase_name, timeseries=ts_name)
 
     def configure_time(self, phase):
@@ -179,11 +180,11 @@ class TranscriptionBase(object):
                         phase.add_timeseries_output(name, output_name=f'{control_prefix}{name}',
                                                     timeseries=ts_name)
                     if f'{control_rate_prefix}{name}_rate' not in ts_options['outputs'] and \
-                            phase.timeseries_options['include_control_rates']:
+                            (phase.timeseries_options['include_control_rates'] or options['rate_targets']):
                         phase.add_timeseries_output(f'{name}_rate', output_name=f'{control_rate_prefix}{name}_rate',
                                                     timeseries=ts_name)
                     if f'{control_rate_prefix}{name}_rate2' not in ts_options['outputs'] and \
-                            phase.timeseries_options['include_control_rates']:
+                            (phase.timeseries_options['include_control_rates'] or options['rate2_targets']):
                         phase.add_timeseries_output(f'{name}_rate2', output_name=f'{control_rate_prefix}{name}_rate2',
                                                     timeseries=ts_name)
 
@@ -223,11 +224,11 @@ class TranscriptionBase(object):
                         phase.add_timeseries_output(name, output_name=f'{prefix}{name}',
                                                     timeseries=ts_name)
                     if f'polynomial_control_rates:{name}_rate' not in ts_options['outputs'] and \
-                            phase.timeseries_options['include_control_rates']:
+                            (phase.timeseries_options['include_control_rates'] or options['rate_targets']):
                         phase.add_timeseries_output(f'{name}_rate', output_name=f'{rate_prefix}{name}_rate',
                                                     timeseries=ts_name)
                     if f'polynomial_control_rates:{name}_rate2' not in ts_options['outputs'] and \
-                            phase.timeseries_options['include_control_rates']:
+                            (phase.timeseries_options['include_control_rates'] or options['rate2_targets']):
                         phase.add_timeseries_output(f'{name}_rate2', output_name=f'{rate_prefix}{name}_rate2',
                                                     timeseries=ts_name)
 

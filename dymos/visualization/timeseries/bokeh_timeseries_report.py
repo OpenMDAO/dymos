@@ -224,10 +224,10 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
         report_filename = f'{traj.pathname}_results_report.html'
         report_path = str(Path(prob.get_reports_dir()) / report_filename)
         if _NO_BOKEH:
-            with open(report_path) as f:
-                write("<html>\n<head>\n<title> \nError: bokeh not available</title>\n</head> <body>\n"
-                      "This report requires bokeh but bokeh was not available in this python installation.\n"
-                      "</body></html>")
+            with open(report_path, 'wb') as f:
+                f.write("<html>\n<head>\n<title> \nError: bokeh not available</title>\n</head> <body>\n"
+                        "This report requires bokeh but bokeh was not available in this python installation.\n"
+                        "</body></html>")
             continue
 
         param_tables = []
