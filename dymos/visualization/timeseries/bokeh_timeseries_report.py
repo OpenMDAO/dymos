@@ -223,9 +223,11 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
     for traj in prob.model.system_iter(include_self=True, recurse=True, typ=dm.Trajectory):
         traj_name = traj.pathname.split('.')[-1]
         report_filename = f'{traj.pathname}_results_report.html'
-        report_path = str(Path(prob.get_reports_dir()) / report_filename)
-        if os.path.isdir(prob.get_reports_dir()):
+        report_dir = Path(prob.get_reports_dir())
+        report_path = report_dir / report_filename
+        if not os.path.isdir(report_dir):
             om.issue_warning(f'Reports directory not available. {report_path} will not be created.')
+            continue
         if _NO_BOKEH:
             with open(report_path, 'wb') as f:
                 f.write("<html>\n<head>\n<title> \nError: bokeh not available</title>\n</head> <body>\n"
