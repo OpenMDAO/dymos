@@ -585,7 +585,7 @@ class ExplicitShooting(TranscriptionBase):
 
             if options['continuity'] and any_control_cnty:
                 controls_to_enforce.add(control_name)
-                phase.connect(f'controls:{control_name}',
+                phase.connect(f'control_values:{control_name}',
                               f'continuity_comp.controls:{control_name}',
                               src_indices=src_idxs)
             if options['rate_continuity'] and any_rate_cnty:

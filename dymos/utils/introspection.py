@@ -230,15 +230,6 @@ def _configure_constraint_introspection(phase):
                 con['units'] = control_units if con['units'] is None else con['units']
                 con['constraint_path'] = f'timeseries.{prefix}{var}'
 
-            # elif var_type == 'input_control':
-            #     prefix = 'controls:' if dymos_options['use_timeseries_prefix'] else ''
-            #     control_shape = phase.control_options[var]['shape']
-            #     control_units = phase.control_options[var]['units']
-            #
-            #     con['shape'] = control_shape
-            #     con['units'] = control_units if con['units'] is None else con['units']
-            #     con['constraint_path'] = f'timeseries.{prefix}{var}'
-
             elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
                 prefix = 'polynomial_controls:' if dymos_options['use_timeseries_prefix'] else ''
                 control_shape = phase.polynomial_control_options[var]['shape']
@@ -246,13 +237,6 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = control_shape
                 con['units'] = control_units if con['units'] is None else con['units']
                 con['constraint_path'] = f'timeseries.{prefix}{var}'
-
-            # elif var_type == 'input_polynomial_control':
-            #     control_shape = phase.polynomial_control_options[var]['shape']
-            #     control_units = phase.polynomial_control_options[var]['units']
-            #     con['shape'] = control_shape
-            #     con['units'] = control_units if con['units'] is None else con['units']
-            #     con['constraint_path'] = f'timeseries.polynomial_controls:{var}'
 
             elif var_type == 'control_rate':
                 prefix = 'control_rates:' if dymos_options['use_timeseries_prefix'] else ''

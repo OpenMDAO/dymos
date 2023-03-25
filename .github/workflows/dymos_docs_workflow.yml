@@ -237,12 +237,11 @@ jobs:
         continue-on-error: True
         if: failure() && steps.build_docs.outcome == 'failure'
         run: |
-          for f in /home/runner/work/dymos/dymos/docs/dymos_book/_build/html/reports/*; do
-            echo "============================================================="
-            echo $f
-            echo "============================================================="
-            cat $f
-          done
+          find dymos_book/_build/html/reports/ -type f -name '*.log' \
+          -exec echo "#################################################################" \; \
+          -exec echo {} \; \
+          -exec echo "#################################################################" \; \
+          -exec cat {} \;
 
       - name: Publish docs
         if: |
