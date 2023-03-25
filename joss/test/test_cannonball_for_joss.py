@@ -3,7 +3,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestCannonballForJOSS(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')
@@ -190,7 +190,7 @@ class TestCannonballForJOSS(unittest.TestCase):
         # maximize range
         descent.add_objective('r', loc='final', ref=-1.0)
 
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver(print_results=False)
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 
