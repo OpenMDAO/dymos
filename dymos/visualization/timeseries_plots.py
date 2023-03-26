@@ -151,7 +151,7 @@ def _bokeh_timeseries_plots(time_units, var_units, phase_names, phases_node_path
                             bg_fill_color='#282828', grid_line_color='#666666', open_browser=False):
     from bokeh.io import output_notebook, output_file, save, show
     from bokeh.layouts import gridplot, column
-    from bokeh.models import Legend, ColumnDataSource
+    from bokeh.models import Legend
     from bokeh.plotting import figure
     import bokeh.palettes as bp
 
@@ -161,7 +161,7 @@ def _bokeh_timeseries_plots(time_units, var_units, phase_names, phases_node_path
         output_file(os.path.join(plot_dir_path, 'plots.html'))
 
     # Prune the edges from the color map
-    phase_color_map = bp.d3['Category20b']
+    cmap = bp.turbo(len(phase_names) + 2)[1:-1]
     figures = []
     colors = {}
     sol_plots = {}
@@ -172,124 +172,107 @@ def _bokeh_timeseries_plots(time_units, var_units, phase_names, phases_node_path
     min_time = 1.0E21
     max_time = -1.0E21
 
-    # for iphase, phase_name in enumerate(phase_names):
-    #     if phases_node_path:
-    #         time_name = f'{phases_node_path}.{phase_name}.timeseries.time'
-    #     else:
-    #         time_name = f'{phase_name}.timeseries.time'
-    #     # min_time = min(min_time, np.min(last_solution_case.outputs[time_name]))
-    #     # max_time = max(max_time, np.max(last_solution_case.outputs[time_name]))
-    #     colors[phase_name] = phase_color_map[iphase + 3]
+    for iphase, phase_name in enumerate(phase_names):
+        if phases_node_path:
+            time_name = f'{phases_node_path}.{phase_name}.timeseries.time'
+        else:
+            time_name = f'{phase_name}.timeseries.time'
+        min_time = min(min_time, np.min(last_solution_case.outputs[time_name]))
+        max_time = max(max_time, np.max(last_solution_case.outputs[time_name]))
+        colors[phase_name] = cmap[iphase]
 
-    print(var_units)
+    for var_name, var_unit in var_units.items():
+        # Get the labels
+        time_label = f'time ({time_units[var_name]})'
+        var_label = f'{var_name} ({var_unit})'
+        title = f'timeseries.{var_name}'
 
-    # Build the ColumnDataSource
-    data = {}
+        # add labels, title, and legend
+        padding = 0.05 * (max_time - min_time)
+        fig = figure(title=title, background_fill_color=bg_fill_color,
+                     x_range=(min_time - padding, max_time + padding),
+                     width=180, height=180)
+        fig.xaxis.axis_label = time_label
+        fig.yaxis.axis_label = var_label
+        fig.xgrid.grid_line_color = grid_line_color
+        fig.ygrid.grid_line_color = grid_line_color
 
-    last_solution_case.list_outputs()
+        # Plot each phase
+        for iphase, phase_name in enumerate(phase_names):
+            sol_color = cmap[iphase]
+            sim_color = cmap[iphase]
 
-    for var_name, units in var_units.items():
-        if last_solution_case:
-            data[f'sol:{var_name}'] = last_solution_case.get_val(var_name, units=units)
-        if last_simulation_case:
-            data[f'sim:{var_name}'] = last_simulation_case.get_val(var_name, units=units)
+            if phases_node_path:
+                var_name_full = f'{phases_node_path}.{phase_name}.timeseries.{var_name}'
+                time_name = f'{phases_node_path}.{phase_name}.timeseries.time'
+            else:
+                var_name_full = f'{phase_name}.timeseries.{var_name}'
+                time_name = f'{phase_name}.timeseries.time'
 
-    data_source = ColumnDataSource(data=data)
+            # Get values
+            if var_name_full not in last_solution_case.outputs:
+                continue
 
-    # for var_name, var_unit in var_units.items():
-    #     # Get the labels
-    #     time_label = f'time ({time_units[var_name]})'
-    #     var_label = f'{var_name} ({var_unit})'
-    #     title = f'timeseries.{var_name}'
-    #
-    #
-    #
-    #     # add labels, title, and legend
-    #     padding = 0.05 * (max_time - min_time)
-    #     fig = figure(title=title, background_fill_color=bg_fill_color,
-    #                  x_range=(min_time - padding, max_time + padding),
-    #                  width=180, height=180)
-    #     fig.xaxis.axis_label = time_label
-    #     fig.yaxis.axis_label = var_label
-    #     fig.xgrid.grid_line_color = grid_line_color
-    #     fig.ygrid.grid_line_color = grid_line_color
-    #
-    #     # Plot each phase
-    #     for iphase, phase_name in enumerate(phase_names):
-    #         sol_color = phase_color_map[iphase]
-    #         sim_color = phase_color_map[iphase]
-    #
-    #         if phases_node_path:
-    #             var_name_full = f'{phases_node_path}.{phase_name}.timeseries.{var_name}'
-    #             time_name = f'{phases_node_path}.{phase_name}.timeseries.time'
-    #         else:
-    #             var_name_full = f'{phase_name}.timeseries.{var_name}'
-    #             time_name = f'{phase_name}.timeseries.time'
-    #
-    #         # Get values
-    #         if var_name_full not in last_solution_case.outputs:
-    #             continue
-    #
-    #         var_val = last_solution_case.outputs[var_name_full]
-    #         time_val = last_solution_case.outputs[time_name]
-    #
-    #         for idxs, i in np.ndenumerate(np.zeros(var_val.shape[1:])):
-    #             var_val_i = var_val[:, idxs].ravel()
-    #             sol_plots[phase_name] = fig.circle(time_val.ravel(), var_val_i, size=5,
-    #                                                color=sol_color, name='sol:' + phase_name)
-    #
-    #         # get simulation values, if plotting simulation
-    #         if last_simulation_case:
-    #             # if the phases_node_path is empty, need to pre-pend names with "sim_traj."
-    #             #   as that is pre-pended in Trajectory.simulate code
-    #             sim_prefix = '' if phases_node_path else 'sim_traj.'
-    #             var_val_simulate = last_simulation_case.outputs[sim_prefix + var_name_full]
-    #             time_val_simulate = last_simulation_case.outputs[sim_prefix + time_name]
-    #             for idxs, i in np.ndenumerate(np.zeros(var_val_simulate.shape[1:])):
-    #                 var_val_i = var_val_simulate[:, idxs].ravel()
-    #                 sim_plots[phase_name] = fig.line(time_val_simulate.ravel(), var_val_i,
-    #                                                  line_dash='solid', line_width=0.5, color=sim_color,
-    #                                                  name='sim:' + phase_name)
-    #     figures.append(fig)
-    #
-    # # Implement a single legend for all figures using the example here:
-    # # https://stackoverflow.com/a/56825812/754536
-    #
-    # # ## Use a dummy figure for the LEGEND
-    # dum_fig = figure(outline_line_alpha=0, toolbar_location=None,
-    #                  background_fill_color=bg_fill_color, width=250, max_width=250)
-    #
-    # # set the components of the figure invisible
-    # for fig_component in [dum_fig.grid, dum_fig.ygrid, dum_fig.xaxis, dum_fig.yaxis]:
-    #     fig_component.visible = False
-    #
-    # # The glyphs referred by the legend need to be present in the figure that holds the legend,
-    # # so we must add them to the figure renderers.
-    # sol_legend_items = [(phase_name + ' solution', [dum_fig.circle([0], [0],
-    #                                                                size=5,
-    #                                                                color=colors[phase_name],
-    #                                                                tags=['sol:' + phase_name])]) for phase_name in phase_names]
-    # sim_legend_items = [(phase_name + ' simulation', [dum_fig.line([0], [0],
-    #                                                                line_dash='solid',
-    #                                                                line_width=0.5,
-    #                                                                color=colors[phase_name],
-    #                                                                tags=['sim:' + phase_name])]) for phase_name in phase_names]
-    # legend_items = [j for i in zip(sol_legend_items, sim_legend_items) for j in i]
-    #
-    # # # set the figure range outside of the range of all glyphs
-    # dum_fig.x_range.end = 1005
-    # dum_fig.x_range.start = 1000
-    #
-    # legend = Legend(click_policy='hide', location='top_left', border_line_alpha=0, items=legend_items,
-    #                 background_fill_alpha=0.0, label_text_color='white', label_width=120, spacing=10)
-    #
-    # dum_fig.add_layout(legend, place='center')
-    #
-    # gd = gridplot(figures, ncols=num_cols, sizing_mode='scale_both')
-    #
-    # plots = gridplot([[gd, column(dum_fig, sizing_mode='stretch_height')]],
-    #                  toolbar_location=None,
-    #                  sizing_mode='scale_both')
+            var_val = last_solution_case.outputs[var_name_full]
+            time_val = last_solution_case.outputs[time_name]
+
+            for idxs, i in np.ndenumerate(np.zeros(var_val.shape[1:])):
+                var_val_i = var_val[:, idxs].ravel()
+                sol_plots[phase_name] = fig.circle(time_val.ravel(), var_val_i, size=5,
+                                                   color=sol_color, name='sol:' + phase_name)
+
+            # get simulation values, if plotting simulation
+            if last_simulation_case:
+                # if the phases_node_path is empty, need to pre-pend names with "sim_traj."
+                #   as that is pre-pended in Trajectory.simulate code
+                sim_prefix = '' if phases_node_path else 'sim_traj.'
+                var_val_simulate = last_simulation_case.outputs[sim_prefix + var_name_full]
+                time_val_simulate = last_simulation_case.outputs[sim_prefix + time_name]
+                for idxs, i in np.ndenumerate(np.zeros(var_val_simulate.shape[1:])):
+                    var_val_i = var_val_simulate[:, idxs].ravel()
+                    sim_plots[phase_name] = fig.line(time_val_simulate.ravel(), var_val_i,
+                                                     line_dash='solid', line_width=0.5, color=sim_color,
+                                                     name='sim:' + phase_name)
+        figures.append(fig)
+
+    # Implement a single legend for all figures using the example here:
+    # https://stackoverflow.com/a/56825812/754536
+
+    # ## Use a dummy figure for the LEGEND
+    dum_fig = figure(outline_line_alpha=0, toolbar_location=None,
+                     background_fill_color=bg_fill_color, width=250, max_width=250)
+
+    # set the components of the figure invisible
+    for fig_component in [dum_fig.grid, dum_fig.ygrid, dum_fig.xaxis, dum_fig.yaxis]:
+        fig_component.visible = False
+
+    # The glyphs referred by the legend need to be present in the figure that holds the legend,
+    # so we must add them to the figure renderers.
+    sol_legend_items = [(phase_name + ' solution', [dum_fig.circle([0], [0],
+                                                                   size=5,
+                                                                   color=colors[phase_name],
+                                                                   tags=['sol:' + phase_name])]) for phase_name in phase_names]
+    sim_legend_items = [(phase_name + ' simulation', [dum_fig.line([0], [0],
+                                                                   line_dash='solid',
+                                                                   line_width=0.5,
+                                                                   color=colors[phase_name],
+                                                                   tags=['sim:' + phase_name])]) for phase_name in phase_names]
+    legend_items = [j for i in zip(sol_legend_items, sim_legend_items) for j in i]
+
+    # # set the figure range outside of the range of all glyphs
+    dum_fig.x_range.end = 1005
+    dum_fig.x_range.start = 1000
+
+    legend = Legend(click_policy='hide', location='top_left', border_line_alpha=0, items=legend_items,
+                    background_fill_alpha=0.0, label_text_color='white', label_width=120, spacing=10)
+
+    dum_fig.add_layout(legend, place='center')
+
+    gd = gridplot(figures, ncols=num_cols, sizing_mode='scale_both')
+
+    plots = gridplot([[gd, column(dum_fig, sizing_mode='stretch_height')]],
+                     toolbar_location=None,
+                     sizing_mode='scale_both')
 
     if dymos_options['notebook_mode'] or open_browser:
         show(plots)

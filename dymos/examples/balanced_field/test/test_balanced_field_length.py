@@ -18,6 +18,7 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
 
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'IPOPT'
+        p.driver.options['invalid_desvar_behavior'] = 'ignore'
         p.driver.opt_settings['print_level'] = 0
         p.driver.opt_settings['derivative_test'] = 'first-order'
 

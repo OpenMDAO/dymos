@@ -65,7 +65,7 @@ class TestTimeseriesUnits(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_parameter('g', units='m/s**2', static_target=True)
+        phase.add_parameter('g', units='m/s**2', static_target=True, include_timeseries=True)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -74,6 +74,8 @@ class TestTimeseriesUnits(unittest.TestCase):
 
         phase.add_timeseries_output('xdot', units='degF')
         phase.add_timeseries_output('ydot', units='degC')
+
+        phase.timeseries_options['include_state_rates'] = True
 
         p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
 

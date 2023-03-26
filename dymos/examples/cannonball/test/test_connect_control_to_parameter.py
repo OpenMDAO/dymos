@@ -206,7 +206,7 @@ class TestConnectControlToParameter(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.descent.states:r')[-1], 3183.25, tolerance=1.0E-2)
         assert_near_equal(p.get_val('traj.ascent.timeseries.controls:CD')[-1],
-                          p.get_val('traj.descent.timeseries.parameters:CD')[0])
+                          p.get_val('traj.descent.parameter_vals:CD')[0])
 
 
 if __name__ == '__main__':  # pragma: no cover

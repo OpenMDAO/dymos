@@ -191,7 +191,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     return p
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
     def tearDown(self):
@@ -205,8 +205,8 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer='SLSQP', show_output=False)
 
-        plot_dir = pathlib.Path(_get_reports_dir(p)).joinpath('plots')
-        self.assertSetEqual({'plots.html'}, set(os.listdir(plot_dir)))
+        html_file = pathlib.Path(_get_reports_dir(p)) / 'traj_results_report.html'
+        self.assertTrue(html_file.exists(), msg=f'{html_file} does not exist!')
 
     def test_mpl_plots(self):
         dm.options['plots'] = 'matplotlib'
@@ -214,16 +214,13 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer='SLSQP', show_output=False)
 
-        expected_files = {'control_rates_u1_rate.png', 'state_rates_r.png', 'states_deltav.png',
-                          'states_r.png', 'state_rates_accel.png', 'state_rates_deltav.png',
-                          'states_accel.png', 'controls_u1.png', 'states_vr.png', 'pos_x.png',
-                          'states_vt.png', 'pos_y.png', 'parameters_u1.png', 'states_theta.png',
-                          'control_rates_u1_rate2.png', 'state_rates_vt.png', 'time_phase.png',
-                          'parameters_c.png', 'state_rates_theta.png', 'state_rates_vr.png', 'dt_dstau.png'}
+        expected_files = ('states_deltav.png', 'states_r.png', 'states_accel.png',
+                          'controls_u1.png', 'states_vr.png', 'pos_x.png',
+                          'states_vt.png', 'pos_y.png', 'states_theta.png')
 
-        html_files = {str(pathlib.Path(f).with_suffix('.html')) for f in expected_files}
-        plot_dir = pathlib.Path(_get_reports_dir(p)).joinpath('plots')
-        self.assertSetEqual(expected_files.union(html_files), set(os.listdir(plot_dir)))
+        for file in expected_files:
+            plotfile = pathlib.Path(_get_reports_dir(p)).joinpath('plots') / file
+            self.assertTrue(plotfile.exists(), msg=f'{plotfile} does not exist!')
 
 
 if __name__ == '__main__':  # pragma: no cover

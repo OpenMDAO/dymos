@@ -556,7 +556,7 @@ class Trajectory(om.Group):
                 shapes[i] = phases[i].control_options[vars[i]]['shape']
             elif classes[i] in {'control_rate', 'control_rate2'}:
                 prefix = 'control_rates:' if dymos_options['use_timeseries_prefix'] else ''
-                sources[i] = f'timeseries.{prefix}:{vars[i]}'
+                sources[i] = f'timeseries.{prefix}{vars[i]}'
                 control_name = vars[i][:-5] if classes[i] == 'control_rate' else vars[i][:-6]
                 units[i] = phases[i].control_options[control_name]['units']
                 deriv = 1 if classes[i].endswith('rate') else 2

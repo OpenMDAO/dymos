@@ -217,7 +217,7 @@ def eval_ode_on_grid(phase, transcription):
     for name, options in phase.parameter_options.items():
         targets = get_targets(ode, name, options['targets'])
         # The value of the parameter at one node
-        param[name] = phase.get_val(f'timeseries.parameters:{name}', units=options['units'])[0, ...]
+        param[name] = phase.get_val(f'parameter_vals:{name}', units=options['units'])[0, ...]
         if targets:
             p_refine.set_val(f'parameters:{name}', param[name], units=options['units'])
 
