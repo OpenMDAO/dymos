@@ -128,6 +128,8 @@ class TestPhaseTimeTargets(unittest.TestCase):
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
 
+        phase.timeseries_options['include_t_phase'] = True
+
         # Minimize time at the end of the phase
         phase.add_objective(time_name, loc='final', scaler=10)
 

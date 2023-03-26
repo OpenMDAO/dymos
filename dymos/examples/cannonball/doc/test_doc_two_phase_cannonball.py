@@ -324,23 +324,6 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
             axes[i].plot(time_exp['ascent'], x_exp['ascent'], 'b--')
             axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
 
-        params = ['m', 'S']
-        fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
-        for i, param in enumerate(params):
-            p_imp = {
-                'ascent': p.get_val(f'traj.ascent.timeseries.parameters:{param}'),
-                'descent': p.get_val(f'traj.descent.timeseries.parameters:{param}')}
-
-            p_exp = {'ascent': exp_out.get_val(f'traj.ascent.timeseries.parameters:{param}'),
-                     'descent': exp_out.get_val(f'traj.descent.timeseries.parameters:{param}')}
-
-            axes[i].set_ylabel(param)
-
-            axes[i].plot(time_imp['ascent'], p_imp['ascent'], 'bo')
-            axes[i].plot(time_imp['descent'], p_imp['descent'], 'ro')
-            axes[i].plot(time_exp['ascent'], p_exp['ascent'], 'b--')
-            axes[i].plot(time_exp['descent'], p_exp['descent'], 'r--')
-
         plt.show()
 
 

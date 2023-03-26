@@ -117,10 +117,23 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         dm.options['plots'] = temp
 
     def test_brachistochrone_timeseries_plots_solution_and_simulation(self):
+        temp = dm.options['plots']
+        dm.options['plots'] = 'matplotlib'
+
         dm.run_problem(self.p, simulate=True, make_plots=False,
                        simulation_record_file='simulation_record_file.db')
 
         timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db', problem=self.p)
+
+        plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath("plots").resolve()
+        self.assertTrue(plot_dir.joinpath('states_x.png').exists())
+        self.assertTrue(plot_dir.joinpath('states_y.png').exists())
+        self.assertTrue(plot_dir.joinpath('states_v.png').exists())
+        self.assertTrue(plot_dir.joinpath('controls_theta.png').exists())
+        self.assertTrue(plot_dir.joinpath('control_rates_theta_rate.png').exists())
+        self.assertTrue(plot_dir.joinpath('control_rates_theta_rate2.png').exists())
+
+        dm.options['plots'] = temp
 
     def test_brachistochrone_timeseries_plots_set_plot_dir(self):
 

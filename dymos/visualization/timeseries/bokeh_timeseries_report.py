@@ -27,7 +27,7 @@ function show_renderer(renderer, phases_to_show, kinds_to_show) {
             break;
         }
     }
-    return ((tags.includes('sol') && kinds_to_show.includes(0)) || 
+    return ((tags.includes('sol') && kinds_to_show.includes(0)) ||
             (tags.includes('sim') && kinds_to_show.includes(1))) &&
            phases_to_show.includes(renderer_phase);
 }
@@ -74,7 +74,7 @@ function show_renderer(renderer, phases_to_show, kinds_to_show) {
             break;
         }
     }
-    return ((tags.includes('sol') && kinds_to_show.includes(0)) || 
+    return ((tags.includes('sol') && kinds_to_show.includes(0)) ||
             (tags.includes('sim') && kinds_to_show.includes(1))) &&
            phases_to_show.includes(renderer_phase);
 }
@@ -157,7 +157,8 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
             phase_sim_data = data_dict[traj_name]['sim_data_by_phase'][phase_name] = {}
             ts_units_dict = data_dict[traj_name]['timeseries_units']
 
-            param_outputs = {op: meta for op, meta in outputs.items() if op.startswith(f'{phase.pathname}.param_comp.parameter_vals')}
+            param_outputs = {op: meta for op, meta in outputs.items()
+                             if op.startswith(f'{phase.pathname}.param_comp.parameter_vals')}
             param_case = sol_case if sol_case else sim_case
 
             for output_name in sorted(param_outputs.keys(), key=str.casefold):
@@ -260,7 +261,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
         for var_name in sorted(ts_units_dict.keys(), key=str.casefold):
             fig_kwargs = {'x_range': x_range} if x_range is not None else {}
 
-            tool_tips  = [(f'{x_name}', '$x'), (f'{var_name}', '$y')]
+            tool_tips = [(f'{x_name}', '$x'), (f'{var_name}', '$y')]
 
             fig = figure(tools='pan,box_zoom,xwheel_zoom,hover,undo,reset,save',
                          tooltips=tool_tips,
@@ -354,5 +355,3 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
 
         save(report_layout, filename=report_path, title=f'trajectory results for {traj_name}',
              resources=bokeh_resources.INLINE)
-
-

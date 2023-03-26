@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import openmdao.api as om
 import dymos as dm
-import dymos.options as dymos_options
+from dymos import options as dymos_options
 
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
