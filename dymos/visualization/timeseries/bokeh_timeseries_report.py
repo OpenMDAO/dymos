@@ -233,7 +233,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
             with open(report_path, 'wb') as f:
                 f.write("<html>\n<head>\n<title> \nError: bokeh not available</title>\n</head> <body>\n"
                         "This report requires bokeh but bokeh was not available in this python installation.\n"
-                        "</body></html>")
+                        "</body></html>".encode())
             continue
 
         param_tables = []
