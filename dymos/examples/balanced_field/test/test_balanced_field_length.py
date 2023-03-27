@@ -10,7 +10,7 @@ import dymos as dm
 from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestBalancedFieldLengthRestart(unittest.TestCase):
 
     def _make_problem(self):
@@ -218,6 +218,7 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
 
         return p
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_make_plots(self):
         p = self._make_problem()
         dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)

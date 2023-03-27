@@ -1,5 +1,6 @@
 import unittest
 
+import numpy as np
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
@@ -99,14 +100,16 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p['phase0.controls:theta'] = phase.interp('theta', [5, 100.5])
 
         # Solve for the optimal trajectory
-        p.run_driver()
+        failed = p.run_driver()
+        self.assertFalse(failed, msg='optimization failed')
 
         # Test the results
-        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        rate_path = 'control_rates:theta_rate2' if dm.options['use_timeseries_prefix'] else 'theta_rate2'
+        self.assertGreaterEqual(np.min(p.get_val(f'phase0.timeseries.{rate_path}')), -200.000001)
+        self.assertLessEqual(np.max(p.get_val(f'phase0.timeseries.{rate_path}')), 200.000001)
 
     def test_control_rate_path_constraint_radau(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -148,10 +151,13 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p['phase0.controls:theta'] = phase.interp('theta', ys=[0.9, 101.5])
 
         # Solve for the optimal trajectory
-        p.run_driver()
+        failed = p.run_driver()
+        self.assertFalse(failed, msg='optimization failed')
 
         # Test the results
-        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        rate_path = 'control_rates:theta_rate' if dm.options['use_timeseries_prefix'] else 'theta_rate'
+        self.assertGreaterEqual(np.min(p.get_val(f'phase0.timeseries.{rate_path}')), -0.000001)
+        self.assertLessEqual(np.max(p.get_val(f'phase0.timeseries.{rate_path}')), 100.000001)
 
     def test_control_rate2_path_constraint_radau(self):
         import openmdao.api as om
@@ -199,15 +205,17 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p['phase0.controls:theta'] = phase.interp('theta', [5, 100.5])
 
         # Solve for the optimal trajectory
-        p.run_driver()
+        failed = p.run_driver()
+        self.assertFalse(failed, msg='optimization failed')
 
         # Test the results
-        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        rate_path = 'control_rates:theta_rate2' if dm.options['use_timeseries_prefix'] else 'theta_rate2'
+        self.assertGreaterEqual(np.min(p.get_val(f'phase0.timeseries.{rate_path}')), -200.000001)
+        self.assertLessEqual(np.max(p.get_val(f'phase0.timeseries.{rate_path}')), 200.000001)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_state_path_constraint_radau(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -253,15 +261,16 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p['traj0.phase0.controls:theta'] = phase.interp('theta', ys=[0.9, 101.5])
 
         # Solve for the optimal trajectory
-        p.run_driver()
+        failed = p.run_driver()
+        self.assertFalse(failed, msg='optimization failed')
 
         # Test the results
-        assert_near_equal(p.get_val('traj0.phase0.timeseries.time')[-1], 1.8029, tolerance=1.0E-3)
+        state_path = 'states:y' if dm.options['use_timeseries_prefix'] else 'x'
+        self.assertGreaterEqual(np.min(p.get_val(f'traj0.phase0.timeseries.{state_path}')), 4.999999)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_state_path_constraint_gl(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -307,10 +316,12 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p['traj0.phase0.controls:theta'] = phase.interp('theta', ys=[0.9, 101.5])
 
         # Solve for the optimal trajectory
-        p.run_driver()
+        failed = p.run_driver()
+        self.assertFalse(failed, msg='optimization failed')
 
         # Test the results
-        assert_near_equal(p.get_val('traj0.phase0.timeseries.time')[-1], 1.8029, tolerance=1.0E-3)
+        state_path = 'states:y' if dm.options['use_timeseries_prefix'] else 'x'
+        self.assertGreaterEqual(np.min(p.get_val(f'traj0.phase0.timeseries.{state_path}')), 4.999999)
 
 
 if __name__ == '__main__':  # pragma: no cover

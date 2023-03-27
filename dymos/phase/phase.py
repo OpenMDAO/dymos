@@ -2025,7 +2025,7 @@ class Phase(om.Group):
             res = res.T
         return res
 
-    def interp(self, name=None, ys=None, xs=None, nodes=None, kind='linear', axis=0):
+    def interp(self, name=None, ys=None, xs=None, nodes=None, kind='linear', axis=0, respect_bounds=True):
         """
         Interpolate values onto the given subset of nodes in the phase.
 
