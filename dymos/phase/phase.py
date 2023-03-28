@@ -18,14 +18,13 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     TimeseriesOutputOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
-from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
-from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
     configure_timeseries_output_introspection, classify_var, configure_timeseries_expr_introspection
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
+from .._options import options as dymos_options
 
 
 om_dev_version = openmdao.__version__.endswith('dev')
@@ -2024,7 +2023,7 @@ class Phase(om.Group):
         return res
 
     def interp(self, name=None, ys=None, xs=None, nodes=None, kind='linear', axis=0,
-               respect_bounds=True):
+               respect_bounds=_unspecified):
         """
         Interpolate values onto the given subset of nodes in the phase.
 
@@ -2054,7 +2053,7 @@ class Phase(om.Group):
         axis : int
             Specifies the axis along which interpolation should be performed.  Default is
             the first axis (0).
-        respect_bounds : bool
+        respect_bounds : bool or _unspecified
             If True, and the variable being interpolated has bounds, clip the
             interpolated values to lie within those bounds.
 
@@ -2121,7 +2120,9 @@ class Phase(om.Group):
 
         res = np.atleast_2d(interpfunc(node_locations))
 
-        if respect_bounds and (lower is not None or upper is not None):
+        _respect_bounds = dymos_options['interp_respect_bounds'] if respect_bounds is _unspecified else respect_bounds
+
+        if _respect_bounds and (lower is not None or upper is not None):
             res = np.clip(res, lower, upper)
 
         if res.shape[0] == 1:

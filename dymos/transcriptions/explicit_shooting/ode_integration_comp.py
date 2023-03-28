@@ -2,7 +2,7 @@ import numpy as np
 import openmdao.api as om
 from scipy.integrate import solve_ivp
 
-from ...options import options as dymos_options
+from ..._options import options as dymos_options
 
 from .ode_evaluation_group import ODEEvaluationGroup
 

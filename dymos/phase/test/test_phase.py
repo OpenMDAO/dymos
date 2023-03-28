@@ -252,7 +252,7 @@ class TestPhaseBase(unittest.TestCase):
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
+        p['phase0.t_duration'] = 4.0
 
         p['phase0.states:x'] = phase.interp('x', [0, 10])
         p['phase0.states:y'] = phase.interp('y', [10, 5])
@@ -298,7 +298,7 @@ class TestPhaseBase(unittest.TestCase):
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
+        p['phase0.t_duration'] = 4.0
 
         p['phase0.states:x'] = phase.interp('x', [0, 10])
         p['phase0.states:y'] = phase.interp('y', [10, 5])

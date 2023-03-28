@@ -6,6 +6,8 @@ from .phase import AnalyticPhase, Phase
 from .trajectory import Trajectory
 from openmdao.utils.om_warnings import issue_warning
 
+from ._options import options as dymos_options
+
 
 def find_phases(sys):
     """
@@ -136,11 +138,19 @@ def load_case(problem, previous_solution):
 
         ti_path = [s for s in phase_vars.keys() if s.endswith(f'{phase_name}.t_initial')]
         if ti_path:
-            problem.set_val(ti_path[0], t_initial, units=prev_time_units)
+            if phase.time_options['initial_bounds'] != (None, None):
+                _t_initial = np.clip(t_initial, *phase.time_options['initial_bounds'])
+            else:
+                _t_initial = t_initial
+            problem.set_val(ti_path[0], _t_initial, units=prev_time_units)
 
         td_path = [s for s in phase_vars.keys() if s.endswith(f'{phase_name}.t_duration')]
         if td_path:
-            problem.set_val(td_path[0], t_duration, units=prev_time_units)
+            if phase.time_options['duration_bounds'] != (None, None):
+                _t_duration = np.clip(t_duration, *phase.time_options['duration_bounds'])
+            else:
+                _t_duration = t_initial
+            problem.set_val(td_path[0], _t_duration, units=prev_time_units)
 
         # Interpolate the timeseries state outputs from the previous solution onto the new grid.
         if not isinstance(phase, AnalyticPhase):
@@ -192,6 +202,10 @@ def load_case(problem, previous_solution):
                 prev_pc_path = [s for s in prev_vars if s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
                 prev_pc_val = prev_vars[prev_pc_path]['val']
                 prev_pc_units = prev_vars[prev_pc_path]['units']
+                lower = phase.polynomial_control_options[pc_name]['lower']
+                upper = phase.polynomial_control_options[pc_name]['upper']
+                if dymos_options['interp_respect_bounds'] and (lower is not None or upper is not None):
+                    prev_pc_val = np.clip(prev_pc_val, lower, upper)
                 problem.set_val(pc_path, prev_pc_val, units=prev_pc_units)
                 if options['fix_final']:
                     warning_message = f"{phase_name}.polynomial_controls:{pc_name} specifies 'fix_final=True'. " \
@@ -202,6 +216,8 @@ def load_case(problem, previous_solution):
         # Set the timeseries parameter outputs from the previous solution as the parameter value
         for param_name in phase.parameter_options:
             prev_match = [s for s in prev_vars if s.endswith(f'{phase_name}.parameters:{param_name}')]
+            lower = phase.parameter_options[param_name]['lower']
+            upper = phase.parameter_options[param_name]['upper']
             if prev_match:
                 # In previous outputs
                 prev_data = prev_vars[prev_match[0]]
@@ -210,4 +226,6 @@ def load_case(problem, previous_solution):
                 param_path = [s for s in phase_vars if s.endswith(f'{phase_name}.parameters:{param_name}')][0]
             else:
                 continue
+            if dymos_options['interp_respect_bounds'] and (lower is not None or upper is not None):
+                prev_param_val = np.clip(prev_param_val, lower, upper)
             problem.set_val(param_path, prev_param_val[0, ...], units=prev_param_units)

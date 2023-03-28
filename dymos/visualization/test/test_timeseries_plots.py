@@ -75,8 +75,6 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['traj0.phase0.parameters:g'] = 9.80665
 
-        p.setup()
-
         self.p = p
 
     def test_brachistochrone_timeseries_plots(self):

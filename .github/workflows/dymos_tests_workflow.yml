@@ -280,6 +280,7 @@ jobs:
         if: env.RUN_BUILD
         env:
           DYMOS_CHECK_PARTIALS: True
+          OPENMDAO_INVALID_DESVAR_BEHAVIOR: "raise"
         shell: bash -l {0}
         run: |
           echo "============================================================="
