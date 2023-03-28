@@ -2023,7 +2023,8 @@ class Phase(om.Group):
             res = res.T
         return res
 
-    def interp(self, name=None, ys=None, xs=None, nodes=None, kind='linear', axis=0):
+    def interp(self, name=None, ys=None, xs=None, nodes=None, kind='linear', axis=0,
+               respect_bounds=True):
         """
         Interpolate values onto the given subset of nodes in the phase.
 
@@ -2053,6 +2054,9 @@ class Phase(om.Group):
         axis : int
             Specifies the axis along which interpolation should be performed.  Default is
             the first axis (0).
+        respect_bounds : bool
+            If True, and the variable being interpolated has bounds, clip the
+            interpolated values to lie within those bounds.
 
         Returns
         -------
@@ -2077,6 +2081,7 @@ class Phase(om.Group):
             raise ValueError('xs must be viewable as a 1D array')
 
         gd = self.options['transcription'].grid_data
+        lower = upper = None
         if nodes is None:
             if name is None:
                 raise ValueError('nodes for interpolation were not specified but the name of the '
@@ -2089,10 +2094,16 @@ class Phase(om.Group):
                     node_locations = np.array([-1.0])
                 else:
                     node_locations = gd.node_ptau[gd.subset_node_indices['state_input']]
+                lower = self.state_options[name]['lower']
+                upper = self.state_options[name]['upper']
             elif name in self.control_options:
                 node_locations = gd.node_ptau[gd.subset_node_indices['control_input']]
+                lower = self.control_options[name]['lower']
+                upper = self.control_options[name]['upper']
             elif name in self.polynomial_control_options:
                 node_locations, _ = lgl(self.polynomial_control_options[name]['order'] + 1)
+                lower = self.polynomial_control_options[name]['lower']
+                upper = self.polynomial_control_options[name]['upper']
             else:
                 raise ValueError('Could not find a state, control, or polynomial control named '
                                  f'{name} to be interpolated.\nPlease explicitly specified the '
@@ -2107,7 +2118,12 @@ class Phase(om.Group):
         taus = m * _xs + b
         interpfunc = interpolate.interp1d(taus, ys, axis=axis, kind=kind,
                                           bounds_error=False, fill_value='extrapolate')
+
         res = np.atleast_2d(interpfunc(node_locations))
+
+        if respect_bounds and (lower is not None or upper is not None):
+            res = np.clip(res, lower, upper)
+
         if res.shape[0] == 1:
             res = res.T
         return res

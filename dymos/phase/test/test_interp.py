@@ -130,6 +130,28 @@ class TestPhaseInterp(unittest.TestCase):
 
         self.assertEqual(str(e.exception), expected)
 
+    def test_respect_bounds(self):
+        tx = dm.GaussLobatto(num_segments=8, order=3, compressed=False)
+        phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
+
+        phase.add_state('a', fix_initial=True, fix_final=True, lower=-6, upper=None)
+        phase.add_polynomial_control('u', fix_initial=True, fix_final=True, order=3, lower=-5, upper=5)
+        phase.add_control('u2', fix_initial=True, fix_final=True, upper=5)
+        xs = np.linspace(-10, 10, 100)
+        ys = xs ** 3
+
+        input_nodes, _ = lgl(4)
+        expected = np.clip(np.atleast_2d((10 * input_nodes) ** 3).T, -5, 5)
+        assert_near_equal(phase.interp('u', ys=ys, xs=xs, kind='cubic'), expected)
+
+        a_unbounded = phase.interp('a', ys=ys, xs=xs, kind='cubic', respect_bounds=False)[:, 0]
+        a_bounded = phase.interp('a', ys=ys, xs=xs, kind='cubic', respect_bounds=True)[:, 0]
+        assert_near_equal(a_bounded, np.clip(a_unbounded, -6, None))
+
+        u2_unbounded = phase.interp('u2', ys=ys, xs=xs, kind='cubic', respect_bounds=False)[:, 0]
+        u2_bounded = phase.interp('u2', ys=ys, xs=xs, kind='cubic', respect_bounds=True)[:, 0]
+        assert_near_equal(u2_bounded, np.clip(u2_unbounded, None, 5))
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()
