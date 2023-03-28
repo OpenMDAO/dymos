@@ -22,6 +22,7 @@ optional_dependencies = {
         'ipython'
     ],
     'test': [
+        'packaging',
         'pycodestyle',
         'testflo>=1.3.6',
         'matplotlib',

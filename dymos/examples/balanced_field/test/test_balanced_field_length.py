@@ -1,7 +1,9 @@
+from packaging.version import Version
 import unittest
 
 import numpy as np
 
+import openmdao
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
@@ -219,11 +221,13 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         return p
 
     @require_pyoptsparse(optimizer='IPOPT')
+    @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"))
     def test_make_plots(self):
         p = self._make_problem()
         dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)
 
     @require_pyoptsparse(optimizer='IPOPT')
+    @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"))
     def test_restart_from_sol(self):
         p = self._make_problem()
         dm.run_problem(p, run_driver=True, simulate=False)
@@ -244,6 +248,7 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         assert_near_equal(sim_results.get_val('traj.rto.timeseries.states:r')[-1], 2016, tolerance=0.01)
 
     @require_pyoptsparse(optimizer='IPOPT')
+    @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"))
     def test_restart_from_sim(self):
         p = self._make_problem()
         dm.run_problem(p, run_driver=True, simulate=True)
