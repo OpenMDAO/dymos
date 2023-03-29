@@ -236,9 +236,9 @@ class TestTimeseriesOutput(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase.interp('x', [0, 10])
-        p['phase0.states:y'] = phase.interp('y', [10, 5])
-        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        p['phase0.initial_states:x'] = 0
+        p['phase0.initial_states:y'] = 10
+        p['phase0.initial_states:v'] = 0
         p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
 
@@ -447,9 +447,15 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase.interp('x', [0, 10])
-        p['phase0.states:y'] = phase.interp('y', [10, 5])
-        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        if isinstance(transcription, dm.ExplicitShooting):
+            p['phase0.initial_states:x'] = 0
+            p['phase0.initial_states:y'] = 10
+            p['phase0.initial_states:v'] = 0
+        else:
+            p['phase0.states:x'] = phase.interp('x', [0, 10])
+            p['phase0.states:y'] = phase.interp('y', [10, 5])
+            p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+
         p[f'phase0.{control_name}'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
         return p

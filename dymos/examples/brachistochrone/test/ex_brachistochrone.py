@@ -78,9 +78,15 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.t_initial'] = 0.0
     p['traj0.phase0.t_duration'] = 2.0
 
-    p['traj0.phase0.states:x'] = phase.interp('x', [0, 10])
-    p['traj0.phase0.states:y'] = phase.interp('y', [10, 5])
-    p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
+    if transcription.startswith('shooting'):
+        p['traj0.phase0.initial_states:x'] = 0
+        p['traj0.phase0.initial_states:y'] = 10
+        p['traj0.phase0.initial_states:v'] = 0
+    else:
+        p['traj0.phase0.states:x'] = phase.interp('x', [0, 10])
+        p['traj0.phase0.states:y'] = phase.interp('y', [10, 5])
+        p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
+
     p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
     p['traj0.phase0.parameters:g'] = 9.80665
 

@@ -106,7 +106,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         t = {'gauss-lobatto': dm.GaussLobatto(num_segments=num_seg, order=transcription_order),
              'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order),
-             'explicit-shooting': dm.ExplicitShooting(num_segments=num_seg, grid='radau-ps', num_steps_per_segment=10)}
+             'explicit-shooting': dm.ExplicitShooting(num_segments=num_seg, grid='radau-ps')}
 
         phase = dm.Phase(ode_class=_BrachistochroneTestODE, transcription=t[transcription])
 
@@ -141,9 +141,14 @@ class TestPhaseTimeTargets(unittest.TestCase):
         p['phase0.t_initial'] = 1.0
         p['phase0.t_duration'] = 5.0
 
-        p['phase0.states:x'] = phase.interp('x', [0, 10])
-        p['phase0.states:y'] = phase.interp('y', [10, 5])
-        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+        if transcription == 'explicit-shooting':
+            p['phase0.initial_states:x'] = 0
+            p['phase0.initial_states:y'] = 10
+            p['phase0.initial_states:v'] = 0
+        else:
+            p['phase0.states:x'] = phase.interp('x', [0, 10])
+            p['phase0.states:y'] = phase.interp('y', [10, 5])
+            p['phase0.states:v'] = phase.interp('v', [0, 9.9])
         p['phase0.controls:theta'] = phase.interp('theta', [5, 100.5])
 
         return p
