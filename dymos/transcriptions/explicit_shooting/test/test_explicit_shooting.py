@@ -106,7 +106,7 @@ class TestExplicitShooting(unittest.TestCase):
 
         prob.set_val('phase0.t_initial', 0.0)
         prob.set_val('phase0.t_duration', 1.0)
-        prob.set_val('phase0.states:y', 1.0)
+        prob.set_val('phase0.initial_states:y', 1.0)
 
         prob.run_model()
 
@@ -142,8 +142,8 @@ class TestExplicitShooting(unittest.TestCase):
 
         prob.set_val('phase0.t_initial', 0.0)
         prob.set_val('phase0.t_duration', 1.0)
-        prob.set_val('phase0.states:x', 0.5)
-        prob.set_val('phase0.states:y', 1.0)
+        prob.set_val('phase0.initial_states:x', 0.5)
+        prob.set_val('phase0.initial_states:y', 1.0)
         prob.set_val('phase0.parameters:p', 1)
 
         prob.run_model()
@@ -208,9 +208,9 @@ class TestExplicitShooting(unittest.TestCase):
 
                 prob.set_val('traj0.phase0.t_initial', 0.0)
                 prob.set_val('traj0.phase0.t_duration', 2)
-                prob.set_val('traj0.phase0.states:x', 0.0)
-                prob.set_val('traj0.phase0.states:y', 10.0)
-                prob.set_val('traj0.phase0.states:v', 1.0E-6)
+                prob.set_val('traj0.phase0.initial_states:x', 0.0)
+                prob.set_val('traj0.phase0.initial_states:y', 10.0)
+                prob.set_val('traj0.phase0.initial_states:v', 1.0E-6)
                 prob.set_val('traj0.phase0.parameters:g', 9.80665, units='m/s**2')
                 prob.set_val('traj0.phase0.controls:theta', phase.interp('theta', ys=[0.01, 50]), units='deg')
 
@@ -277,9 +277,9 @@ class TestExplicitShooting(unittest.TestCase):
 
                 prob.set_val('traj0.phase0.t_initial', 0.0)
                 prob.set_val('traj0.phase0.t_duration', 2)
-                prob.set_val('traj0.phase0.states:x', 0.0)
-                prob.set_val('traj0.phase0.states:y', 10.0)
-                prob.set_val('traj0.phase0.states:v', 1.0E-6)
+                prob.set_val('traj0.phase0.initial_states:x', 0.0)
+                prob.set_val('traj0.phase0.initial_states:y', 10.0)
+                prob.set_val('traj0.phase0.initial_states:v', 1.0E-6)
                 prob.set_val('traj0.phase0.controls:theta', phase.interp('theta', ys=[0.01, 90]), units='deg')
 
                 prob.run_driver()
@@ -353,9 +353,9 @@ class TestExplicitShooting(unittest.TestCase):
 
                         prob.set_val('traj0.phase0.t_initial', 0.0)
                         prob.set_val('traj0.phase0.t_duration', 2)
-                        prob.set_val('traj0.phase0.states:x', 0.0)
-                        prob.set_val('traj0.phase0.states:y', 10.0)
-                        prob.set_val('traj0.phase0.states:v', 1.0E-6)
+                        prob.set_val('traj0.phase0.initial_states:x', 0.0)
+                        prob.set_val('traj0.phase0.initial_states:y', 10.0)
+                        prob.set_val('traj0.phase0.initial_states:v', 1.0E-6)
                         prob.set_val('traj0.phase0.parameters:g', 9.80665, units='m/s**2')
                         prob.set_val('traj0.phase0.polynomial_controls:theta',
                                      phase.interp('theta', ys=[0.01, 50]), units='deg')
@@ -472,9 +472,9 @@ class TestExplicitShooting(unittest.TestCase):
 
             prob.set_val('phase0.t_initial', 0.0)
             prob.set_val('phase0.t_duration', 2)
-            prob.set_val('phase0.states:x', 0.0)
-            prob.set_val('phase0.states:y', 10.0)
-            prob.set_val('phase0.states:v', 1.0E-6)
+            prob.set_val('phase0.initial_states:x', 0.0)
+            prob.set_val('phase0.initial_states:y', 10.0)
+            prob.set_val('phase0.initial_states:v', 1.0E-6)
             prob.set_val('phase0.parameters:g', 1.0, units='m/s**2')
             prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 90]), units='deg')
 
@@ -632,9 +632,9 @@ class TestExplicitShooting(unittest.TestCase):
             # We use the phase.interpolate method to linearly interpolate values onto the state input nodes.
             # Since fix_initial=True for all states and fix_final=True for x and y, the initial or final
             # values of the interpolation provided here will not be changed by the optimizer.
-            p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]))
-            p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]))
-            p.set_val('traj.phase0.states:v', phase.interp('v', [0, 9.9]))
+            p.set_val('traj.phase0.initial_states:x', phase.interp('x', [0, 10]))
+            p.set_val('traj.phase0.initial_states:y', phase.interp('y', [10, 5]))
+            p.set_val('traj.phase0.initial_states:v', phase.interp('v', [0, 9.9]))
 
             # Guesses for controls are provided at all control_input node.
             # Here phase.interpolate is used to linearly interpolate values onto the control input nodes.

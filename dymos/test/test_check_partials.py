@@ -41,9 +41,9 @@ class TestCheckPartials(unittest.TestCase):
 
         prob.set_val('phase0.t_initial', 0.0)
         prob.set_val('phase0.t_duration', 2)
-        prob.set_val('phase0.states:x', 0.0)
-        prob.set_val('phase0.states:y', 10.0)
-        prob.set_val('phase0.states:v', 1.0E-6)
+        prob.set_val('phase0.initial_states:x', 0.0)
+        prob.set_val('phase0.initial_states:y', 10.0)
+        prob.set_val('phase0.initial_states:v', 1.0E-6)
         prob.set_val('phase0.parameters:g', 1.0, units='m/s**2')
         prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 90]),
                      units='deg')

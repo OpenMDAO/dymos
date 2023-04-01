@@ -33,7 +33,7 @@ class ParameterComp(ExplicitComponent):
 
         self._no_check_partials = not dymos_options['include_check_partials']
 
-    def add_parameter(self, name, val=1.0, shape=None, output_name=None, src_indices=None, flat_src_indices=None,
+    def add_parameter(self, name, val=1.0, shape=None, output_name=None,
                       units=None, desc='', tags=None, input_tags=None, output_tags=None, input_shape_by_conn=False,
                       input_copy_shape=None, output_shape_by_conn=False, output_copy_shape=None,
                       distributed=None, res_units=None, lower=None, upper=None, ref=1.0, ref0=0.0, res_ref=1.0, ):
@@ -52,14 +52,6 @@ class ParameterComp(ExplicitComponent):
             val is not an array. Default is None.
         output_name : str
             Name given to the output variale in this component's namespace.  If None, f'{name}_value' is used.
-        src_indices : int or list or tuple or int ndarray or Iterable or None
-            The global indices of the source variable to transfer data from.
-            A value of None implies this input depends on all entries of the source array.
-            Default is None. The shapes of the target and src_indices must match,
-            and the form of the entries within is determined by the value of 'flat_src_indices'.
-        flat_src_indices : bool
-            If True and the source is non-flat, each entry of src_indices is assumed to be an index
-            into the flattened source.  Ignored if the source is flat.
         units : str or None
             Units in which this input variable will be provided to the component
             during execution. Default is None, which means it is unitless.
@@ -150,7 +142,7 @@ class ParameterComp(ExplicitComponent):
         out_val = np.expand_dims(in_val, axis=0)
 
         i_meta = self.add_input(name=f'parameters:{name}', val=in_val, shape=_shape, units=units, desc=desc,
-                                src_indices=src_indices, flat_src_indices=flat_src_indices, tags=tags + input_tags,
+                                tags=tags + input_tags,
                                 shape_by_conn=input_shape_by_conn, copy_shape=input_copy_shape, distributed=distributed)
 
         o_meta = self.add_output(name=_out_name, val=out_val, shape=_out_shape, units=units,

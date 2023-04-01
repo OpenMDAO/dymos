@@ -39,8 +39,12 @@ class TestHull(unittest.TestCase):
 
         p.setup(check=True)
 
-        p.set_val('traj.phase.states:x', phase0.interp('x', [1.5, 1]))
-        p.set_val('traj.phase.states:xL', phase0.interp('xL', [0, 1]))
+        if transcription is ExplicitShooting:
+            p.set_val('traj.phase.initial_states:x', 1.5)
+            p.set_val('traj.phase.initial_states:xL', 0.0)
+        else:
+            p.set_val('traj.phase.states:x', phase0.interp('x', [1.5, 1]))
+            p.set_val('traj.phase.states:xL', phase0.interp('xL', [0, 1]))
         p.set_val('traj.phase.t_initial', 0)
         p.set_val('traj.phase.t_duration', 10)
         p.set_val('traj.phase.controls:u', phase0.interp('u', [-7, -0.14]))
