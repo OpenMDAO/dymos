@@ -221,13 +221,15 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         return p
 
     @require_pyoptsparse(optimizer='IPOPT')
-    @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"))
+    @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"),
+                         reason='Test requires OpenMDAO 3.23.0 or later.')
     def test_make_plots(self):
         p = self._make_problem()
         dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)
 
     @require_pyoptsparse(optimizer='IPOPT')
-    @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"))
+    @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"),
+                         reason='Test requires OpenMDAO 3.23.0 or later.')
     def test_restart_from_sol(self):
         p = self._make_problem()
         dm.run_problem(p, run_driver=True, simulate=False)
@@ -248,7 +250,8 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         assert_near_equal(sim_results.get_val('traj.rto.timeseries.states:r')[-1], 2016, tolerance=0.01)
 
     @require_pyoptsparse(optimizer='IPOPT')
-    @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"))
+    @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"),
+                         reason='Test requires OpenMDAO 3.23.0 or later.')
     def test_restart_from_sim(self):
         p = self._make_problem()
         dm.run_problem(p, run_driver=True, simulate=True)
