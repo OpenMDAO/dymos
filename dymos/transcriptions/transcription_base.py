@@ -229,7 +229,6 @@ class TranscriptionBase(object):
                                                     timeseries=ts_name)
                     if f'{rate_prefix}{name}_rate2' not in ts_options['outputs'] and \
                             (phase.timeseries_options['include_control_rates'] or options['rate2_targets']):
-                        print(name, rate_prefix, ts_name)
                         phase.add_timeseries_output(f'{name}_rate2', output_name=f'{rate_prefix}{name}_rate2',
                                                     timeseries=ts_name)
 

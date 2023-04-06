@@ -15,6 +15,7 @@ except ImportError:
     _NO_BOKEH = True
 
 import openmdao.api as om
+from openmdao.utils.units import conversion_to_base_units
 import dymos as dm
 
 
@@ -174,18 +175,40 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
 
             ts_outputs = {op: meta for op, meta in outputs.items() if op.startswith(f'{phase.pathname}.timeseries')}
 
+            # Find the "largest" unit used for any timeseries output across all phases
             for output_name in sorted(ts_outputs.keys(), key=str.casefold):
                 meta = ts_outputs[output_name]
                 prom_name = abs2prom_map['output'][output_name]
                 var_name = prom_name.split('.')[-1]
 
-                if meta['units'] not in ts_units_dict:
+                if var_name not in ts_units_dict:
                     ts_units_dict[var_name] = meta['units']
+                else:
+                    _, new_conv_factor = conversion_to_base_units(meta['units'])
+                    _, old_conv_factor = conversion_to_base_units(ts_units_dict[var_name])
+                    if new_conv_factor < old_conv_factor:
+                        ts_units_dict[var_name] = meta['units']
+
+        # Now a second pass through the phases since we know the units of each timeseries variable output.
+        for phase in traj.system_iter(include_self=True, recurse=True, typ=dm.Phase):
+            phase_name = phase.pathname.split('.')[-1]
+
+            # data_dict[traj_name]['param_data_by_phase'][phase_name] = {'param': [], 'val': [], 'units': []}
+            phase_sol_data = data_dict[traj_name]['sol_data_by_phase'][phase_name] = {}
+            phase_sim_data = data_dict[traj_name]['sim_data_by_phase'][phase_name] = {}
+            ts_units_dict = data_dict[traj_name]['timeseries_units']
+
+            ts_outputs = {op: meta for op, meta in outputs.items() if op.startswith(f'{phase.pathname}.timeseries')}
+
+            for output_name in sorted(ts_outputs.keys(), key=str.casefold):
+                meta = ts_outputs[output_name]
+                prom_name = abs2prom_map['output'][output_name]
+                var_name = prom_name.split('.')[-1]
 
                 if sol_case:
-                    phase_sol_data[var_name] = sol_case.get_val(prom_name, units=meta['units'])
+                    phase_sol_data[var_name] = sol_case.get_val(prom_name, units=ts_units_dict[var_name])
                 if sim_case:
-                    phase_sim_data[var_name] = sim_case.get_val(prom_name, units=meta['units'])
+                    phase_sim_data[var_name] = sim_case.get_val(prom_name, units=ts_units_dict[var_name])
 
     return data_dict
 

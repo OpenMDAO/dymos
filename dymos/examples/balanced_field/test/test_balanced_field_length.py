@@ -12,7 +12,7 @@ import dymos as dm
 from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestBalancedFieldLengthRestart(unittest.TestCase):
 
     def _make_problem(self):
