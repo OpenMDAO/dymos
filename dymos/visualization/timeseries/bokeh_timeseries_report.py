@@ -167,7 +167,7 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
                 param_dict = data_dict[traj_name]['param_data_by_phase'][phase_name]
 
                 prom_name = abs2prom_map['output'][output_name]
-                param_name = prom_name.split(':')[-1]
+                param_name = output_name.replace(f'{phase.pathname}.param_comp.parameter_vals:', '', 1)
 
                 param_dict['param'].append(param_name)
                 param_dict['units'].append(meta['units'])
@@ -273,7 +273,8 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                 TableColumn(field='val', title='Value'),
                 TableColumn(field='units', title='Units'),
             ]
-            param_tables.append(DataTable(source=source, columns=columns, index_position=None, sizing_mode='stretch_width'))
+            param_tables.append(DataTable(source=source, columns=columns, index_position=None,
+                                          sizing_mode='stretch_both'))
 
         # Plot the timeseries
         ts_units_dict = source_data[traj_name]['timeseries_units']
