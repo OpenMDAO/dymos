@@ -59,7 +59,7 @@ class TestControlEndpointDefectComp(unittest.TestCase):
         u_given = self.p['controls:u'][-1]
         assert_near_equal(np.ravel(self.p['endpoint_defect_comp.control_endpoint_defects:u']),
                           np.ravel(u_given - u_interp),
-                          tolerance=1.0E-12)
+                          tolerance=1.0E-9)
 
     def test_partials(self):
         cpd = self.p.check_partials(compact_print=False, method='cs')

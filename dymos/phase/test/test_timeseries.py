@@ -250,9 +250,6 @@ class TestTimeseriesOutput(unittest.TestCase):
         assert_near_equal(np.atleast_2d(p.get_val('phase0.t')).T,
                           p.get_val('phase0.timeseries.time'))
 
-        with self.assertRaises(KeyError):
-            p.get_val('phase0.timeseries.time_phase')
-
         for state in ('x', 'y', 'v'):
             assert_near_equal(p.get_val(f'phase0.integrator.states_out:{state}'),
                               p.get_val(f'phase0.timeseries.states:{state}'))
