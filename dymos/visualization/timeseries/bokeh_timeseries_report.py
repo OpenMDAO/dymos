@@ -189,11 +189,11 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
                     if new_conv_factor < old_conv_factor:
                         ts_units_dict[var_name] = meta['units']
 
-        # Now a second pass through the phases since we know the units of each timeseries variable output.
+        # Now a second pass through the phases since we know the units in which to plot
+        # each timeseries variable output.
         for phase in traj.system_iter(include_self=True, recurse=True, typ=dm.Phase):
             phase_name = phase.pathname.split('.')[-1]
 
-            # data_dict[traj_name]['param_data_by_phase'][phase_name] = {'param': [], 'val': [], 'units': []}
             phase_sol_data = data_dict[traj_name]['sol_data_by_phase'][phase_name] = {}
             phase_sim_data = data_dict[traj_name]['sim_data_by_phase'][phase_name] = {}
             ts_units_dict = data_dict[traj_name]['timeseries_units']
@@ -274,7 +274,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                 TableColumn(field='units', title='Units'),
             ]
             param_tables.append(DataTable(source=source, columns=columns, index_position=None,
-                                          sizing_mode='stretch_both'))
+                                          height=30*len(source.data['param']), sizing_mode='stretch_both'))
 
         # Plot the timeseries
         ts_units_dict = source_data[traj_name]['timeseries_units']

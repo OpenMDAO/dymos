@@ -191,7 +191,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     return p
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
     def tearDown(self):
