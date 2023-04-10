@@ -2580,8 +2580,7 @@ class Phase(om.Group):
 
     def load_case(self, case):
         """
-        Populate a guess for the given problem involving Dymos Phases by interpolating results
-        from the previous solution.
+        Pull all input and output variables from a case into the Phase.
 
         Parameters
         ----------
