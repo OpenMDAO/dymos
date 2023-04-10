@@ -83,7 +83,7 @@ class TestLoadCase(unittest.TestCase):
         p.setup()
 
         # Load the values from the previous solution
-        dm.load_case(p, case)
+        p.load_case(case)
 
         # Run the model to ensure we find the same output values as those that we recorded
         p.run_driver()
@@ -112,7 +112,7 @@ class TestLoadCase(unittest.TestCase):
         p.setup()
 
         # Load the values from the previous solution
-        dm.load_case(p, case)
+        p.load_case(case)
 
         # Run the model to ensure we find the same output values as those that we recorded
         p.run_driver()
@@ -140,7 +140,7 @@ class TestLoadCase(unittest.TestCase):
         q = setup_problem(dm.Radau(num_segments=20))
 
         # Load the values from the previous solution
-        dm.load_case(q, case)
+        q.load_case(case)
 
         # Run the model to ensure we find the same output values as those that we recorded
         q.run_driver()
@@ -173,7 +173,7 @@ class TestLoadCase(unittest.TestCase):
         q = setup_problem(dm.GaussLobatto(num_segments=50))
 
         # Load the values from the previous solution
-        dm.load_case(q, case)
+        q.load_case(case)
 
         # Run the model to ensure we find the same output values as those that we recorded
         q.run_driver()
@@ -213,7 +213,7 @@ class TestLoadCase(unittest.TestCase):
                                       f" this will overwrite the user-specified value"))
 
         with assert_warnings(msgs):
-            dm.load_case(q, case)
+            q.load_case(case)
 
     def test_load_case_warn_fix_final_control(self):
         import openmdao.api as om
@@ -257,7 +257,7 @@ class TestLoadCase(unittest.TestCase):
               f" different final value this will overwrite the user-specified value"
 
         with assert_warning(UserWarning, msg):
-            dm.load_case(q, case)
+            q.load_case(case)
 
 
 if __name__ == '__main__':  # pragma: no cover

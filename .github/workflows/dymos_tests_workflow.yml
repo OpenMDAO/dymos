@@ -239,6 +239,11 @@ jobs:
             pip install openmdao==${{ matrix.OPENMDAO }}
           fi
 
+          echo "============================================================="
+          echo "Test against P84_load_case2 branch"
+          echo "============================================================="
+          pip install git+https://github.com/swryan/OpenMDAO@P84_load_case2
+
       - name: Install optional dependencies
         if: env.RUN_BUILD && matrix.OPTIONAL == '[all]'
         shell: bash -l {0}
