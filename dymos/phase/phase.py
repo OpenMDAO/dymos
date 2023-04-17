@@ -2584,23 +2584,29 @@ class Phase(om.Group):
 
         Parameters
         ----------
-        case : Case
-            A Case from a CaseRecorder file.
+        case : Case or dict
+            A Case from a CaseReader, or a dictionary with key 'inputs' mapped to the
+            output of problem.model.list_inputs and key 'outputs' mapped to the output
+            of prob.model.list_outputs. Both list_inputs and list_outputs should be called
+            with `units=True`, `prom_names=True` and `return_format='dict'`.
         """
-
         # allow old style arguments using a Case or OpenMDAO problem instead of dictionary
         assert (isinstance(case, Case) or isinstance(case, dict))
         if isinstance(case, Case):
-            previous_solution = {'inputs': case.list_inputs(out_stream=None, units=True, prom_name=True),
-                                 'outputs': case.list_outputs(out_stream=None, units=True, prom_name=True)}
+            previous_solution = {
+                'inputs': case.list_inputs(out_stream=None, return_format='dict',
+                                           units=True, prom_name=True),
+                'outputs': case.list_outputs(out_stream=None, return_format='dict',
+                                             units=True, prom_name=True)
+            }
         else:
             previous_solution = case
 
         prev_vars = {}
         prev_vars.update({v['prom_name']: {'val': v['val'], 'units': v['units'], 'abs_name': k}
-                          for k, v in previous_solution['inputs']})
+                          for k, v in previous_solution['inputs'].items()})
         prev_vars.update({v['prom_name']: {'val': v['val'], 'units': v['units'], 'abs_name': k}
-                          for k, v in previous_solution['outputs']})
+                          for k, v in previous_solution['outputs'].items()})
 
         phase_io = {'inputs': self.list_inputs(units=True, prom_name=True, out_stream=None),
                     'outputs': self.list_outputs(units=True, prom_name=True, out_stream=None)}

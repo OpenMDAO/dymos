@@ -3,7 +3,6 @@ import warnings
 import openmdao.api as om
 from openmdao.recorders.case import Case
 from dymos.trajectory.trajectory import Trajectory
-from dymos.load_case import load_case
 from dymos.visualization.timeseries_plots import timeseries_plots
 
 from .grid_refinement.refinement import _refine_iter
@@ -82,7 +81,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     problem.final_setup()
 
     if restart is not None:
-        load_case(problem, case)
+        problem.load_case(case)
 
     for traj in problem.model.system_iter(include_self=True, recurse=True, typ=Trajectory):
         traj._check_phase_graph()
