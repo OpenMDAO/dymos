@@ -80,6 +80,9 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         self.p = p
 
     def test_brachistochrone_timeseries_plots(self):
+        temp = dm.options['plots']
+        dm.options['plots'] = 'matplotlib'
+
         dm.run_problem(self.p, make_plots=False)
 
         timeseries_plots('dymos_solution.db', problem=self.p)
@@ -92,7 +95,12 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         self.assertTrue(plot_dir.joinpath('control_rates_theta_rate.png').exists())
         self.assertTrue(plot_dir.joinpath('control_rates_theta_rate2.png').exists())
 
+        dm.options['plots'] = temp
+
     def test_brachistochrone_timeseries_plots_solution_only_set_solution_record_file(self):
+        temp = dm.options['plots']
+        dm.options['plots'] = 'matplotlib'
+
         # records to the default file 'dymos_simulation.db'
         dm.run_problem(self.p, make_plots=False, solution_record_file='solution_record_file.db')
 
@@ -106,13 +114,32 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         self.assertTrue(plot_dir.joinpath('control_rates_theta_rate.png').exists())
         self.assertTrue(plot_dir.joinpath('control_rates_theta_rate2.png').exists())
 
+        dm.options['plots'] = temp
+
     def test_brachistochrone_timeseries_plots_solution_and_simulation(self):
+        temp = dm.options['plots']
+        dm.options['plots'] = 'matplotlib'
+
         dm.run_problem(self.p, simulate=True, make_plots=False,
                        simulation_record_file='simulation_record_file.db')
 
         timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db', problem=self.p)
 
+        plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath("plots").resolve()
+        self.assertTrue(plot_dir.joinpath('states_x.png').exists())
+        self.assertTrue(plot_dir.joinpath('states_y.png').exists())
+        self.assertTrue(plot_dir.joinpath('states_v.png').exists())
+        self.assertTrue(plot_dir.joinpath('controls_theta.png').exists())
+        self.assertTrue(plot_dir.joinpath('control_rates_theta_rate.png').exists())
+        self.assertTrue(plot_dir.joinpath('control_rates_theta_rate2.png').exists())
+
+        dm.options['plots'] = temp
+
     def test_brachistochrone_timeseries_plots_set_plot_dir(self):
+
+        temp = dm.options['plots']
+        dm.options['plots'] = 'matplotlib'
+
         dm.run_problem(self.p, make_plots=False)
 
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath("test_plot_dir").resolve()
@@ -125,12 +152,16 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         self.assertTrue(plot_dir.joinpath('control_rates_theta_rate.png').exists())
         self.assertTrue(plot_dir.joinpath('control_rates_theta_rate2.png').exists())
 
+        dm.options['plots'] = temp
+
 
 @use_tempdirs
 class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_trajectory_linked_phases_make_plot(self):
+        temp = dm.options['plots']
+        dm.options['plots'] = 'matplotlib'
 
         self.traj = dm.Trajectory()
         p = self.p = om.Problem(model=self.traj)
@@ -221,6 +252,10 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
 
+        for phase_name, phase in self.traj._phases.items():
+            phase.timeseries_options['include_state_rates'] = True
+            phase.timeseries_options['include_t_phase'] = True
+
         p.setup(check=True)
 
         # Set Initial Guesses
@@ -271,11 +306,16 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                         'state_rates:theta', 'states:vr', 'state_rates:vr', 'states:vt',
                         'state_rates:vt', 'states:accel',
                         'state_rates:accel', 'states:deltav', 'state_rates:deltav',
-                        'controls:u1', 'control_rates:u1_rate', 'control_rates:u1_rate2',
-                        'parameters:c']:
-            self.assertTrue(plot_dir.joinpath(varname.replace(":", "_") + '.png').exists())
+                        'controls:u1', 'control_rates:u1_rate', 'control_rates:u1_rate2']:
+            plotfile = plot_dir.joinpath(varname.replace(":", "_") + '.png')
+            self.assertTrue(plotfile.exists(), msg=f'{plotfile} does not exist!')
+
+        dm.options['plots'] = temp
 
     def test_overlapping_phases_make_plot(self):
+
+        _temp = dm.options['plots']
+        dm.options['plots'] = 'matplotlib'
 
         prob = om.Problem()
 
@@ -335,6 +375,10 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         prob.model.options['assembled_jac_type'] = 'csc'
         prob.model.linear_solver = om.DirectSolver(assemble_jac=True)
 
+        for phase_name, phase in traj._phases.items():
+            phase.timeseries_options['include_t_phase'] = True
+            phase.timeseries_options['include_state_rates'] = True
+
         prob.setup()
 
         prob['traj.phase0.t_initial'] = 0
@@ -361,12 +405,16 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         self.assertTrue(plot_dir.joinpath('states_state_of_charge.png').exists())
         self.assertTrue(plot_dir.joinpath('state_rates_state_of_charge.png').exists())
 
+        dm.options['plots'] = _temp
+
     @require_pyoptsparse(optimizer='IPOPT')
     def test_trajectory_linked_phases_make_plot_missing_data(self):
         """
         Test that plots are still generated even if the phases don't share the exact same
         variables in the timeseries.
         """
+        temp = dm.options['plots']
+        dm.options['plots'] = 'matplotlib'
 
         self.traj = dm.Trajectory()
         p = self.p = om.Problem(model=self.traj)
@@ -396,7 +444,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                         rate_source='deltav_dot', units='DU/TU')
         burn1.add_control('u1', targets=['u1'], rate_continuity=True, rate2_continuity=True,
                           units='deg', scaler=0.01, lower=-30, upper=30)
-        burn1.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
+        burn1.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU', include_timeseries=True)
 
         # Second Phase (Coast)
 
@@ -419,8 +467,8 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                         rate_source='at_dot', targets=['accel'], units='DU/TU**2')
         coast.add_state('deltav', fix_initial=False, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
-        coast.add_parameter('u1', targets=['u1'], opt=False, val=0.0, units='deg')
-        coast.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
+        coast.add_parameter('u1', targets=['u1'], opt=False, val=0.0, units='deg', include_timeseries=True)
+        coast.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU', include_timeseries=True)
 
         # Third Phase (burn)
 
@@ -445,7 +493,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                         rate_source='deltav_dot', units='DU/TU')
         burn2.add_control('u1', targets=['u1'], rate_continuity=True, rate2_continuity=True,
                           units='deg', scaler=0.01, lower=-30, upper=30)
-        burn2.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
+        burn2.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU', include_timeseries=True)
 
         burn2.add_objective('deltav', loc='final')
 
@@ -456,6 +504,11 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
+
+        for phase_name, phase in self.traj._phases.items():
+            phase.timeseries_options['include_t_phase'] = True
+            phase.timeseries_options['include_state_rates'] = True
+            phase.timeseries_options['include_control_rates'] = True
 
         p.setup(check=True)
 
@@ -507,7 +560,10 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                         'state_rates:accel', 'states:deltav', 'state_rates:deltav',
                         'controls:u1', 'control_rates:u1_rate', 'control_rates:u1_rate2',
                         'parameters:c', 'parameters:u1']:
-            self.assertTrue(plot_dir.joinpath(varname.replace(":", "_") + '.png').exists())
+            self.assertTrue(plot_dir.joinpath(varname.replace(":", "_") + '.png').exists(),
+                            msg=plot_dir.joinpath(varname.replace(":", "_") + '.png does not exist!'))
+
+        dm.options['plots'] = temp
 
 
 if __name__ == '__main__':  # pragma: no cover

@@ -297,7 +297,7 @@ class TestAnalyticPhaseInvalidOptions(unittest.TestCase):
         p.run_model()
 
         y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
-        y0 = p.get_val('traj.phase.timeseries.parameters:y0', units='unitless')
+        y0 = p.get_val('traj.phase.parameter_vals:y0', units='unitless')
 
         expected_z = y0 + y**2
         z = p.get_val('traj.phase.timeseries.z')

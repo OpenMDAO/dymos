@@ -130,8 +130,6 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         assert_near_equal(p.get_val('traj.descent.states:r')[-1],
                           3183.25, tolerance=1.0E-2)
 
-        exp_out = traj.simulate()
-
         print('optimal radius: {0:6.4f} m '.format(p.get_val('radius',
                                                              units='m')[0]))
         print('cannonball mass: {0:6.4f} kg '.format(p.get_val('size_comp.mass',
@@ -141,73 +139,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         print('maximum range: {0:6.4f} '
               'm '.format(p.get_val('traj.descent.timeseries.states:r')[-1, 0]))
 
-        fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
-
-        time_imp = {'ascent': p.get_val('traj.ascent.timeseries.time'),
-                    'descent': p.get_val('traj.descent.timeseries.time')}
-
-        time_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.time'),
-                    'descent': exp_out.get_val('traj.descent.timeseries.time')}
-
-        r_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:r'),
-                 'descent': p.get_val('traj.descent.timeseries.states:r')}
-
-        r_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:r'),
-                 'descent': exp_out.get_val('traj.descent.timeseries.states:r')}
-
-        h_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:h'),
-                 'descent': p.get_val('traj.descent.timeseries.states:h')}
-
-        h_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:h'),
-                 'descent': exp_out.get_val('traj.descent.timeseries.states:h')}
-
-        axes.plot(r_imp['ascent'], h_imp['ascent'], 'bo')
-
-        axes.plot(r_imp['descent'], h_imp['descent'], 'ro')
-
-        axes.plot(r_exp['ascent'], h_exp['ascent'], 'b--')
-
-        axes.plot(r_exp['descent'], h_exp['descent'], 'r--')
-
-        axes.set_xlabel('range (m)')
-        axes.set_ylabel('altitude (m)')
-
-        fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10, 6))
-        states = ['r', 'h', 'v', 'gam']
-        for i, state in enumerate(states):
-            x_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:{0}'.format(state)),
-                     'descent': p.get_val('traj.descent.timeseries.states:{0}'.format(state))}
-
-            x_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:{0}'.format(state)),
-                     'descent': exp_out.get_val('traj.descent.timeseries.states:{0}'.format(state))}
-
-            axes[i].set_ylabel(state)
-
-            axes[i].plot(time_imp['ascent'], x_imp['ascent'], 'bo')
-            axes[i].plot(time_imp['descent'], x_imp['descent'], 'ro')
-            axes[i].plot(time_exp['ascent'], x_exp['ascent'], 'b--')
-            axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
-
-        params = ['CD', 'mass', 'S']
-        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(12, 6))
-        for i, param in enumerate(params):
-            p_imp = {
-                'ascent': p.get_val('traj.ascent.timeseries.parameters:{0}'.format(param)),
-                'descent': p.get_val('traj.descent.timeseries.parameters:{0}'.format(param))}
-
-            p_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.'
-                                               'parameters:{0}'.format(param)),
-                     'descent': exp_out.get_val('traj.descent.timeseries.'
-                                                'parameters:{0}'.format(param))}
-
-            axes[i].set_ylabel(param)
-
-            axes[i].plot(time_imp['ascent'], p_imp['ascent'], 'bo')
-            axes[i].plot(time_imp['descent'], p_imp['descent'], 'ro')
-            axes[i].plot(time_exp['ascent'], p_exp['ascent'], 'b--')
-            axes[i].plot(time_exp['descent'], p_exp['descent'], 'r--')
-
-        plt.show()
+        assert_near_equal(p.get_val('traj.linkages.ascent:ke_final|descent:ke_initial'), 0.0)
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_traj_param_target_none(self):

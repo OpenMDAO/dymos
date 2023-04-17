@@ -307,7 +307,7 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
                      desc='The unit-reference value of the parameter. This '
                           'option is invalid if opt=False.')
 
-        self.declare(name='include_timeseries', types=bool, default=True,
+        self.declare(name='include_timeseries', types=bool, default=False,
                      desc='True if the static parameters should be included in output timeseries, else False')
 
 
@@ -739,3 +739,25 @@ class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='expr_kwargs', default={}, allow_none=False,
                      desc='Options to be passed to the timeseries expression comp when adding the expression.')
+
+
+class PhaseTimeseriesOptionsDictionary(om.OptionsDictionary):
+    """
+    An OptionsDictionary for phase options related to timeseries.
+
+    Parameters
+    ----------
+    read_only : bool
+        If True, setting (via __setitem__ or update) is not permitted.
+    """
+    def __init__(self, read_only=False):
+        super().__init__(read_only)
+
+        self.declare(name='include_state_rates', types=bool, default=True,
+                     desc='If True, include state rates in the timeseries outputs by default.')
+
+        self.declare(name='include_control_rates', types=bool, default=True,
+                     desc='If True, include control rates in the timeseries outputs by default.')
+
+        self.declare(name='include_t_phase', types=bool, default=True,
+                     desc='If True, include the elapsed phase time in the timeseries outputs by default.')

@@ -18,7 +18,7 @@ import dymos as dm
 from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     StateOptionsDictionary, TimeOptionsDictionary, ConstraintOptionsDictionary, \
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary, \
-    TimeseriesOutputOptionsDictionary
+    TimeseriesOutputOptionsDictionary, PhaseTimeseriesOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
@@ -71,6 +71,7 @@ class Phase(om.Group):
         self.refine_options = GridRefinementOptionsDictionary()
         self.simulate_options = SimulateOptionsDictionary()
         self.timeseries_ec_vars = {}
+        self.timeseries_options = PhaseTimeseriesOptionsDictionary()
 
         # Dictionaries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE
@@ -1453,15 +1454,16 @@ class Phase(om.Group):
         if timeseries not in self._timeseries:
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
-        if expr:
-            output_name = name.split('=')[0].strip()
-        elif '*' in name:
-            output_name = name
-        elif output_name is None:
-            output_name = name.rpartition('.')[-1]
+        if output_name is None:
+            if expr:
+                output_name = name.split('=')[0].strip()
+            elif '*' in name:
+                output_name = name
+            elif output_name is None:
+                output_name = name.rpartition('.')[-1]
 
-        if rate:
-            output_name = output_name + '_rate'
+            if rate:
+                output_name = output_name + '_rate'
 
         if output_name not in self._timeseries[timeseries]['outputs']:
             ts_output = TimeseriesOutputOptionsDictionary()

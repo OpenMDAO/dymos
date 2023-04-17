@@ -1,7 +1,9 @@
+from packaging.version import Version
 import unittest
 
 import numpy as np
 
+import openmdao
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
@@ -14,10 +16,11 @@ from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODECom
 class TestBalancedFieldLengthRestart(unittest.TestCase):
 
     def _make_problem(self):
-        p = om.Problem()
+        p = om.Problem(reports=True)
 
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'IPOPT'
+        p.driver.options['invalid_desvar_behavior'] = 'ignore'
         p.driver.opt_settings['print_level'] = 0
         p.driver.opt_settings['derivative_test'] = 'first-order'
 
@@ -218,6 +221,15 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         return p
 
     @require_pyoptsparse(optimizer='IPOPT')
+    @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"),
+                         reason='Test requires OpenMDAO 3.23.0 or later.')
+    def test_make_plots(self):
+        p = self._make_problem()
+        dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)
+
+    @require_pyoptsparse(optimizer='IPOPT')
+    @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"),
+                         reason='Test requires OpenMDAO 3.23.0 or later.')
     def test_restart_from_sol(self):
         p = self._make_problem()
         dm.run_problem(p, run_driver=True, simulate=False)
@@ -238,6 +250,8 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         assert_near_equal(sim_results.get_val('traj.rto.timeseries.states:r')[-1], 2016, tolerance=0.01)
 
     @require_pyoptsparse(optimizer='IPOPT')
+    @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"),
+                         reason='Test requires OpenMDAO 3.23.0 or later.')
     def test_restart_from_sim(self):
         p = self._make_problem()
         dm.run_problem(p, run_driver=True, simulate=True)

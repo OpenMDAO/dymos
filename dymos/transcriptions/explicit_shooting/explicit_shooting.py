@@ -10,6 +10,7 @@ from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
 from .ode_integration_comp import ODEIntegrationComp
+from ..._options import options as dymos_options
 from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.indexing import get_src_indices_by_row
 from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets
@@ -139,7 +140,7 @@ class ExplicitShooting(TranscriptionBase):
         for ts_name, ts_options in phase._timeseries.items():
             if t_name not in ts_options['outputs']:
                 phase.add_timeseries_output(t_name, timeseries=ts_name)
-            if t_phase_name not in ts_options['outputs']:
+            if t_phase_name not in ts_options['outputs'] and phase.timeseries_options['include_t_phase']:
                 phase.add_timeseries_output(t_phase_name, timeseries=ts_name)
 
         # if times_per_seg is None:
@@ -259,14 +260,16 @@ class ExplicitShooting(TranscriptionBase):
         integ = phase._get_subsystem('integrator')
         integ._configure_states()
 
+        state_prefix = 'states:' if dymos_options['use_timeseries_prefix'] else ''
+
         for name, options in phase.state_options.items():
             phase.promotes('integrator', inputs=[(f'states:{name}', f'initial_states:{name}')])
             for ts_name, ts_options in phase._timeseries.items():
-                if f'states:{name}' not in ts_options['outputs']:
-                    phase.add_timeseries_output(name, output_name=f'states:{name}',
+                if f'{state_prefix}{name}' not in ts_options['outputs']:
+                    phase.add_timeseries_output(name, output_name=f'{state_prefix}{name}',
                                                 timeseries=ts_name)
 
-        # Add the appropriate design parameters
+        # Add the appropriate design variables
         for state_name, options in phase.state_options.items():
             if options['fix_final']:
                 raise ValueError('fix_final is not a valid option for states when using the '
@@ -358,16 +361,22 @@ class ExplicitShooting(TranscriptionBase):
                                 subsys=control_group,
                                 promotes=['dt_dstau', 'controls:*', 'control_values:*', 'control_rates:*'])
 
+            control_prefix = 'controls:' if dymos_options['use_timeseries_prefix'] else ''
+            control_rate_prefix = 'control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+
             for name, options in phase.control_options.items():
                 for ts_name, ts_options in phase._timeseries.items():
-                    if f'controls:{name}' not in ts_options['outputs']:
-                        phase.add_timeseries_output(name, output_name=f'controls:{name}',
+
+                    if f'{control_prefix}{name}' not in ts_options['outputs']:
+                        phase.add_timeseries_output(name, output_name=f'{control_prefix}{name}',
                                                     timeseries=ts_name)
-                    if f'control_rates:{name}_rate' not in ts_options['outputs']:
-                        phase.add_timeseries_output(f'{name}_rate', output_name=f'control_rates:{name}_rate',
+                    if f'{control_rate_prefix}{name}_rate' not in ts_options['outputs'] \
+                            and phase.timeseries_options['include_control_rates']:
+                        phase.add_timeseries_output(f'{name}_rate', output_name=f'{control_rate_prefix}{name}_rate',
                                                     timeseries=ts_name)
-                    if f'control_rates:{name}_rate2' not in ts_options['outputs']:
-                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'control_rates:{name}_rate2',
+                    if f'{control_rate_prefix}{name}_rate2' not in ts_options['outputs'] \
+                            and phase.timeseries_options['include_control_rates']:
+                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'{control_rate_prefix}{name}_rate2',
                                                     timeseries=ts_name)
 
     def configure_controls(self, phase):
@@ -445,16 +454,22 @@ class ExplicitShooting(TranscriptionBase):
             phase.add_subsystem('polynomial_control_group', subsys=sys,
                                 promotes_inputs=['*'], promotes_outputs=['*'])
 
+            control_prefix = 'polynomial_controls:' if dymos_options['use_timeseries_prefix'] else ''
+            control_rate_prefix = 'polynomial_control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+
             for name, options in phase.polynomial_control_options.items():
+
                 for ts_name, ts_options in phase._timeseries.items():
-                    if f'polynomial_controls:{name}' not in ts_options['outputs']:
-                        phase.add_timeseries_output(name, output_name=f'polynomial_controls:{name}',
+                    if f'{control_prefix}{name}' not in ts_options['outputs']:
+                        phase.add_timeseries_output(name, output_name=f'{control_prefix}{name}',
                                                     timeseries=ts_name)
-                    if f'polynomial_control_rates:{name}_rate' not in ts_options['outputs']:
-                        phase.add_timeseries_output(f'{name}_rate', output_name=f'polynomial_control_rates:{name}_rate',
+                    if f'{control_rate_prefix}{name}_rate' not in ts_options['outputs'] \
+                            and phase.timeseries_options['include_control_rates']:
+                        phase.add_timeseries_output(f'{name}_rate', output_name=f'{control_rate_prefix}{name}_rate',
                                                     timeseries=ts_name)
-                    if f'polynomial_control_rates:{name}_rate2' not in ts_options['outputs']:
-                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'polynomial_control_rates:{name}_rate2',
+                    if f'{control_rate_prefix}{name}_rate2' not in ts_options['outputs'] \
+                            and phase.timeseries_options['include_control_rates']:
+                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'{control_rate_prefix}{name}_rate2',
                                                     timeseries=ts_name)
 
     def configure_polynomial_controls(self, phase):
@@ -570,17 +585,17 @@ class ExplicitShooting(TranscriptionBase):
 
             if options['continuity'] and any_control_cnty:
                 controls_to_enforce.add(control_name)
-                phase.connect(f'timeseries.controls:{control_name}',
+                phase.connect(f'control_values:{control_name}',
                               f'continuity_comp.controls:{control_name}',
                               src_indices=src_idxs)
             if options['rate_continuity'] and any_rate_cnty:
                 control_rates_to_enforce.add(control_name)
-                phase.connect(f'timeseries.control_rates:{control_name}_rate',
+                phase.connect(f'control_rates:{control_name}_rate',
                               f'continuity_comp.control_rates:{control_name}_rate',
                               src_indices=src_idxs)
             if options['rate2_continuity'] and any_rate_cnty:
                 control_rates2_to_enforce.add(control_name)
-                phase.connect(f'timeseries.control_rates:{control_name}_rate2',
+                phase.connect(f'control_rates:{control_name}_rate2',
                               f'continuity_comp.control_rates:{control_name}_rate2',
                               src_indices=src_idxs)
 

@@ -148,7 +148,7 @@ def eval_ode_on_grid(phase, transcription):
     t_phase_name = f'{t_name}_phase'
 
     t_prev = phase.get_val(f'timeseries.{t_name}', units=phase.time_options['units'])
-    t_phase_prev = phase.get_val(f'timeseries.{t_phase_name}', units=phase.time_options['units'])
+    t_phase_prev = t_prev - t_prev[0]
     t_initial = np.repeat(t_prev[0, 0], repeats=transcription.grid_data.num_nodes, axis=0)
     t_duration = np.repeat(t_prev[-1, 0], repeats=transcription.grid_data.num_nodes, axis=0)
     t = np.dot(L, t_prev)
@@ -183,14 +183,14 @@ def eval_ode_on_grid(phase, transcription):
         if targets:
             p_refine.set_val(f'controls:{name}', u[name])
 
-        u_rate_prev = phase.get_val(f'timeseries.control_rates:{name}_rate')
-        u_rate[name] = np.dot(L, u_rate_prev)
         if rate_targets:
+            u_rate_prev = phase.get_val(f'timeseries.control_rates:{name}_rate')
+            u_rate[name] = np.dot(L, u_rate_prev)
             p_refine.set_val(f'control_rates:{name}_rate', u_rate[name])
 
-        u_rate2_prev = phase.get_val(f'timeseries.control_rates:{name}_rate2')
-        u_rate2[name] = np.dot(L, u_rate2_prev)
         if rate2_targets:
+            u_rate2_prev = phase.get_val(f'timeseries.control_rates:{name}_rate2')
+            u_rate2[name] = np.dot(L, u_rate2_prev)
             p_refine.set_val(f'control_rates:{name}_rate2', u_rate2[name])
 
     for name, options in phase.polynomial_control_options.items():
@@ -217,7 +217,7 @@ def eval_ode_on_grid(phase, transcription):
     for name, options in phase.parameter_options.items():
         targets = get_targets(ode, name, options['targets'])
         # The value of the parameter at one node
-        param[name] = phase.get_val(f'timeseries.parameters:{name}', units=options['units'])[0, ...]
+        param[name] = phase.get_val(f'parameter_vals:{name}', units=options['units'])[0, ...]
         if targets:
             p_refine.set_val(f'parameters:{name}', param[name], units=options['units'])
 

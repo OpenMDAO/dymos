@@ -1,6 +1,7 @@
 from openmdao.utils.mpi import MPI
 
 from .phase import Phase
+from .._options import options as dymos_options
 from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
 from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 
@@ -161,7 +162,8 @@ class SimulationPhase(Phase):
 
         # Assign initial state values
         for name in phs.state_options:
-            op = op_dict[f'timeseries.timeseries_comp.states:{name}']
+            prefix = 'states:' if dymos_options['use_timeseries_prefix'] else ''
+            op = op_dict[f'timeseries.timeseries_comp.{prefix}{name}']
             prob[f'{self_path}initial_states:{name}'][...] = op['val'][0, ...]
 
         # Assign control values

@@ -190,7 +190,7 @@ class TestCannonballForJOSS(unittest.TestCase):
         # maximize range
         descent.add_objective('r', loc='final', ref=-1.0)
 
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver(print_results=False)
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 

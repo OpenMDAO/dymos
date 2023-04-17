@@ -158,7 +158,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
 
 
 def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP', r_target=3.0,
-                                 transcription_order=3, compressed=False,
+                                 transcription_order=3, compressed=False, run_driver=True, simulate=True,
                                  show_output=True, connected=False, param_mode='param_sequence'):
 
     p = om.Problem(model=om.Group())
@@ -234,7 +234,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
         p.set_val('orbit_transfer.burn2.controls:u1', val=burn2.interp('u1', [0, 0]))
 
-    dm.run_problem(p, simulate=True)
+    dm.run_problem(p, run_driver=run_driver, simulate=simulate)
 
     return p
 
@@ -250,12 +250,17 @@ class TestTrajectoryParameters(unittest.TestCase):
         automatically be added.
         """
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer='IPOPT',
-                                         show_output=False, param_mode='param_sequence')
+                                         compressed=False, optimizer='IPOPT', run_driver=False,
+                                         simulate=False, show_output=False, param_mode='param_sequence')
 
-        if p.model.orbit_transfer.phases.burn2 in p.model.orbit_transfer.phases._subsystems_myproc:
-            assert_near_equal(p.get_val('orbit_transfer.burn2.states:deltav')[-1], 0.3995,
-                              tolerance=2.0E-3)
+        traj_c = p.get_val('orbit_transfer.parameter_vals:c')
+        burn1_c = p.get_val('orbit_transfer.burn1.parameter_vals:c')
+        coast_c = p.get_val('orbit_transfer.coast.parameter_vals:c')
+        burn2_c = p.get_val('orbit_transfer.burn2.parameter_vals:c')
+
+        assert_near_equal(burn1_c, traj_c)
+        assert_near_equal(coast_c, traj_c)
+        assert_near_equal(burn2_c, traj_c)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_param_explicit_connections_to_sequence_missing_phase(self):
@@ -264,13 +269,18 @@ class TestTrajectoryParameters(unittest.TestCase):
         that we attempt to connect to an existing input variable in that phase of the same name.
         """
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer='IPOPT',
+                                         compressed=False, optimizer='IPOPT', run_driver=False, simulate=False,
                                          show_output=False,
                                          param_mode='param_sequence_missing_phase')
 
-        if p.model.orbit_transfer.phases.burn2 in p.model.orbit_transfer.phases._subsystems_myproc:
-            assert_near_equal(p.get_val('orbit_transfer.burn2.states:deltav')[-1], 0.3995,
-                              tolerance=2.0E-3)
+        traj_c = p.get_val('orbit_transfer.parameter_vals:c')
+        burn1_c = p.get_val('orbit_transfer.burn1.parameter_vals:c')
+        coast_c = p.get_val('orbit_transfer.coast.parameter_vals:c')
+        burn2_c = p.get_val('orbit_transfer.burn2.parameter_vals:c')
+
+        assert_near_equal(burn1_c, traj_c)
+        assert_near_equal(coast_c, traj_c)
+        assert_near_equal(burn2_c, traj_c)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_param_no_targets(self):
@@ -279,13 +289,18 @@ class TestTrajectoryParameters(unittest.TestCase):
         that we attempt to connect to an existing input variable in that phase of the same name.
         """
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer='IPOPT',
-                                         show_output=False,
+                                         compressed=False, optimizer='IPOPT', run_driver=False,
+                                         show_output=False, simulate=False,
                                          param_mode='param_no_targets')
 
-        if p.model.orbit_transfer.phases.burn2 in p.model.orbit_transfer.phases._subsystems_myproc:
-            assert_near_equal(p.get_val('orbit_transfer.burn2.states:deltav')[-1], 0.3995,
-                              tolerance=2.0E-3)
+        traj_c = p.get_val('orbit_transfer.parameter_vals:c')
+        burn1_c = p.get_val('orbit_transfer.burn1.parameter_vals:c')
+        coast_c = p.get_val('orbit_transfer.coast.parameter_vals:c')
+        burn2_c = p.get_val('orbit_transfer.burn2.parameter_vals:c')
+
+        assert_near_equal(burn1_c, traj_c)
+        assert_near_equal(coast_c, traj_c)
+        assert_near_equal(burn2_c, traj_c)
 
 
 @use_tempdirs

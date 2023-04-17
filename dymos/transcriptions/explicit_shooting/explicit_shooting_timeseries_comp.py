@@ -1,7 +1,7 @@
 import numpy as np
 
 from openmdao.utils.units import unit_conversion
-from ...options import options as dymos_options
+from ..._options import options as dymos_options
 
 from ..common.timeseries_output_comp import TimeseriesOutputCompBase
 

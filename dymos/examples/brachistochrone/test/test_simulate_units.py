@@ -92,8 +92,8 @@ class TestBrachistochroneSimulate_units(unittest.TestCase):
         sol_case = om.CaseReader('dymos_solution.db').get_case('final')
         sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
 
-        assert_near_equal(sim_case.get_val('traj.phase0.timeseries.parameters:g', units='m/s**2')[0],
-                          sol_case.get_val('traj.phase0.timeseries.parameters:g', units='m/s**2')[0])
+        assert_near_equal(sim_case.get_val('traj.phase0.parameter_vals:g', units='m/s**2')[0],
+                          sol_case.get_val('traj.phase0.parameter_vals:g', units='m/s**2')[0])
 
         assert_near_equal(sol_case.get_val('traj.phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-4)
         assert_near_equal(sim_case.get_val('traj.phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-4)

@@ -10,7 +10,7 @@ import matplotlib.lines as mlines
 import matplotlib.patches as mpatches
 
 import openmdao.api as om
-from dymos.options import options as dymos_options
+from .._options import options as dymos_options
 
 
 def _get_phases_node_in_problem_metadata(node, path=""):

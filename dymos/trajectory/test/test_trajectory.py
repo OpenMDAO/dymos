@@ -412,8 +412,8 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_c_final = p.get_val('burn1.timeseries.parameters:c')[-1, ...]
-        burn2_c_initial = p.get_val('burn2.timeseries.parameters:c')[0, ...]
+        burn1_c_final = p.get_val('burn1.parameter_vals:c')[-1, ...]
+        burn2_c_initial = p.get_val('burn2.parameter_vals:c')[0, ...]
 
         c_linkage_error = p.get_val('linkages.burn1:c_final|burn2:c_initial')
         assert_near_equal(c_linkage_error, burn1_c_final - burn2_c_initial)
@@ -626,6 +626,9 @@ class TestLinkages(unittest.TestCase):
                               vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
         self.traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
         self.traj.link_phases(phases=['burn1', 'burn2'], vars=['u1_rate'])
+
+        for phs in burn1, coast, burn2:
+            phs.timeseries_options['include_control_rates'] = True
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()

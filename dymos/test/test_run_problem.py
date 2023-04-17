@@ -39,7 +39,6 @@ class TestRunProblem(unittest.TestCase):
             p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         elif optimizer == 'IPOPT':
             p.driver.opt_settings['hessian_approximation'] = 'limited-memory'
-            # p.driver.opt_settings['nlp_scaling_method'] = 'user-scaling'
             p.driver.opt_settings['print_level'] = 0
             p.driver.opt_settings['max_iter'] = 200
             p.driver.opt_settings['linear_solver'] = 'mumps'
@@ -393,7 +392,6 @@ class TestRunProblem(unittest.TestCase):
             self.assertTrue(case.startswith('hp_') and 'pyOptSparse_SLSQP|' in case, msg=f'Unexpected case: {case}')
 
     @require_pyoptsparse(optimizer='SLSQP')
-    @unittest.skip(reason='Skipped until the OpenMDAO issue of coloring changing the case_prefix is resolved.')
     def test_run_brachistochrone_problem_refine_case_prefix(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
@@ -661,6 +659,9 @@ class TestRunProblemPlotting(unittest.TestCase):
 
         phase0.set_refine_options(refine=True)
 
+        phase0.timeseries_options['include_state_rates'] = True
+        phase0.timeseries_options['include_t_phase'] = True
+
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
@@ -676,24 +677,31 @@ class TestRunProblemPlotting(unittest.TestCase):
         self.p = p
 
     def test_run_brachistochrone_problem_make_plots(self):
+        plots_cache = dm.options['plots']
+        dm.options['plots'] = 'matplotlib'
         dm.run_problem(self.p, make_plots=True)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
         for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
-                        'control_rates:theta_rate2', 'parameters:g']:
-            self.assertTrue(plot_dir.joinpath(f'{varname.replace(":","_")}.png').exists())
+                        'control_rates:theta_rate2']:
+            self.assertTrue(plot_dir.joinpath(f'{varname.replace(":","_")}.png').exists(),
+                            msg=str(plot_dir.joinpath(f'{varname.replace(":","_")}.png')) + ' does not exist.')
+        dm.options['plots'] = plots_cache
 
     def test_run_brachistochrone_problem_make_plots_set_plot_dir(self):
+        _cache = dm.options['plots']
+        dm.options['plots'] = 'matplotlib'
+
         dm.run_problem(self.p, make_plots=True, plot_dir="test_plot_dir")
 
         plot_dir = pathlib.Path(_get_reports_dir(self.p))
-        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
-                        'state_rates:y', 'states:v',
-                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
-                        'control_rates:theta_rate2', 'parameters:g']:
-            self.assertTrue(plot_dir.joinpath('test_plot_dir', f'{varname.replace(":","_")}.png').exists())
+        for varname in ['states:x', 'states:y', 'states:v', 'controls:theta']:
+            plotfile = plot_dir.joinpath('test_plot_dir', f'{varname.replace(":","_")}.png')
+            self.assertTrue(plotfile.exists(), msg=str(plotfile) + ' does not exist.')
+
+        dm.options['plots'] = _cache
 
     def test_run_brachistochrone_problem_do_not_make_plots(self):
         dm.run_problem(self.p, make_plots=False)
@@ -703,7 +711,8 @@ class TestRunProblemPlotting(unittest.TestCase):
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
                         'control_rates:theta_rate2', 'parameters:g']:
-            self.assertFalse(plot_dir.joinpath(f'{varname.replace(":","_")}.png').exists())
+            plotfile = plot_dir.joinpath(f'{varname.replace(":","_")}.png')
+            self.assertFalse(plotfile.exists(), msg=f'Unexpectedly found plot file {plotfile}')
 
     def test_run_brachistochrone_problem_set_simulation_record_file(self):
         simulation_record_file = 'simulation_record_file.db'
@@ -718,24 +727,35 @@ class TestRunProblemPlotting(unittest.TestCase):
         self.assertTrue(os.path.exists(solution_record_file))
 
     def test_run_brachistochrone_problem_plot_simulation(self):
+        plots_cache = dm.options['plots']
+        dm.options['plots'] = 'matplotlib'
+
         dm.run_problem(self.p, make_plots=True, simulate=True)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
         for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
-                        'control_rates:theta_rate2', 'parameters:g']:
-            self.assertTrue(plot_dir.joinpath(f'{varname.replace(":","_")}.png').exists())
+                        'control_rates:theta_rate2']:
+            plotfile = plot_dir.joinpath(f'{varname.replace(":","_")}.png')
+            self.assertTrue(plotfile.exists(), msg=f'plot file {plotfile} does not exist!')
+        dm.options['plots'] = plots_cache
 
     def test_run_brachistochrone_problem_plot_no_simulation_record_file_given(self):
+        plots_cache = dm.options['plots']
+        dm.options['plots'] = 'matplotlib'
+
         dm.run_problem(self.p, make_plots=True, simulate=True)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
         for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
                         'state_rates:y', 'states:v',
                         'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
-                        'control_rates:theta_rate2', 'parameters:g']:
-            self.assertTrue(plot_dir.joinpath(f'{varname.replace(":","_")}.png').exists())
+                        'control_rates:theta_rate2']:
+            plotfile = plot_dir.joinpath(f'{varname.replace(":", "_")}.png')
+            self.assertTrue(plotfile.exists(), msg=f'plot file {plotfile} does not exist!')
+
+        dm.options['plots'] = plots_cache
 
 
 @use_tempdirs
@@ -813,8 +833,8 @@ class TestSimulateArrayParam(unittest.TestCase):
         sol_results = om.CaseReader('dymos_solution.db').get_case('final')
         sim_results = om.CaseReader('dymos_solution.db').get_case('final')
 
-        sol = sol_results.get_val('traj.phase0.timeseries.parameters:array')
-        sim = sim_results.get_val('traj.phase0.timeseries.parameters:array')
+        sol = sol_results.get_val('traj.phase0.parameter_vals:array')
+        sim = sim_results.get_val('traj.phase0.parameter_vals:array')
 
         assert_near_equal(sol - sim, np.zeros_like(sol))
 

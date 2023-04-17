@@ -927,47 +927,10 @@ class TestBrachistochronePolynomialControlExplicitRate2Targets(unittest.TestCase
         p['phase0.polynomial_controls:theta'] = [0, 10, 40, 60, 80, 100]
 
         # Solve for the optimal trajectory
-        p.run_driver()
+        dm.run_problem(p, simulate=True)
 
         # Test the results
         assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
-
-        # Generate the explicitly simulated trajectory
-        exp_out = phase.simulate()
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
-
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_control_rates:theta_rate')
-        t_exp = exp_out.get_val('phase0.timeseries.time')
-        theta_exp = exp_out.get_val('phase0.timeseries.polynomial_control_rates:theta_rate')
-
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-        ax.plot(t_exp, theta_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        plt.show()
 
 
 if __name__ == '__main__':  # pragma: no cover
