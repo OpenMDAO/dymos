@@ -88,7 +88,7 @@ class BenchmarkBrachistochrone(unittest.TestCase):
         v0 = p.get_val('phase0.timeseries.states:v')[0]
         vf = p.get_val('phase0.timeseries.states:v')[-1]
 
-        g = p.get_val('phase0.timeseries.parameters:g')[0]
+        g = p.get_val('phase0.parameter_vals:g')[0]
 
         thetaf = p.get_val('phase0.timeseries.controls:theta')[-1]
 

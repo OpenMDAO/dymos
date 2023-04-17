@@ -2,7 +2,7 @@ import numpy as np
 
 import openmdao.api as om
 
-from ...options import options as dymos_options
+from ..._options import options as dymos_options
 
 
 class TimeComp(om.ExplicitComponent):

@@ -618,9 +618,9 @@ class TestPhaseBase(unittest.TestCase):
 
                 assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016,
                                   tolerance=1.0E-4)
-                assert_near_equal(p.get_val('phase0.timeseries.parameters:g')[0], 9.80665,
+                assert_near_equal(p.get_val('phase0.parameter_vals:g')[0], 9.80665,
                                   tolerance=1.0E-6)
-                assert_near_equal(p.get_val('phase0.timeseries.parameters:g')[-1], 9.80665,
+                assert_near_equal(p.get_val('phase0.parameter_vals:g')[-1], 9.80665,
                                   tolerance=1.0E-6)
 
     def test_parameter_final_boundary_constraint(self):
@@ -691,9 +691,9 @@ class TestPhaseBase(unittest.TestCase):
 
                 assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016,
                                   tolerance=1.0E-4)
-                assert_near_equal(p.get_val('phase0.timeseries.parameters:g')[0], 9.80665,
+                assert_near_equal(p.get_val('phase0.parameter_vals:g')[0], 9.80665,
                                   tolerance=1.0E-6)
-                assert_near_equal(p.get_val('phase0.timeseries.parameters:g')[-1], 9.80665,
+                assert_near_equal(p.get_val('phase0.parameter_vals:g')[-1], 9.80665,
                                   tolerance=1.0E-6)
 
     def test_parameter_path_constraint(self):
@@ -763,9 +763,9 @@ class TestPhaseBase(unittest.TestCase):
 
                 assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016,
                                   tolerance=1.0E-4)
-                assert_near_equal(p.get_val('phase0.timeseries.parameters:g')[0], 9.80665,
+                assert_near_equal(p.get_val('phase0.parameter_vals:g')[0], 9.80665,
                                   tolerance=1.0E-6)
-                assert_near_equal(p.get_val('phase0.timeseries.parameters:g')[-1], 9.80665,
+                assert_near_equal(p.get_val('phase0.parameter_vals:g')[-1], 9.80665,
                                   tolerance=1.0E-6)
 
 

@@ -108,10 +108,9 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase0.timeseries.states:vy')[-1], 0, 1e-4)
 
         # upgrade_doc: begin parameter_timeseries
-        thrust = p.get_val('traj.phase0.timeseries.parameters:thrust')
+        thrust = p.get_val('traj.phase0.parameter_vals:thrust')
         # upgrade_doc: end parameter_timeseries
-        nn = phase.options['transcription'].grid_data.num_nodes
-        assert_near_equal(thrust, 2.1E6 * np.ones([nn, 1]))
+        assert_near_equal(thrust.ravel(), 2.1E6)
 
     def test_parameter_no_timeseries(self):
         import openmdao.api as om
@@ -752,7 +751,7 @@ class TestUpgrade_0_19_0(unittest.TestCase):
             v0 = p.get_val('traj0.phase0.timeseries.states:v')[0]
             vf = p.get_val('traj0.phase0.timeseries.states:v')[-1]
 
-            g = p.get_val('traj0.phase0.timeseries.parameters:g')[0]
+            g = p.get_val('traj0.phase0.parameter_vals:g')[0]
 
             thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1]
 

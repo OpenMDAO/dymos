@@ -10,6 +10,7 @@ from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.misc import _unspecified
 from ..utils.introspection import configure_states_introspection, get_promoted_vars, get_target_metadata, \
     configure_states_discovery
+from .._options import options as dymos_options
 
 
 class TranscriptionBase(object):
@@ -86,7 +87,8 @@ class TranscriptionBase(object):
         for ts_name, ts_options in phase._timeseries.items():
             if t_name not in ts_options['outputs']:
                 phase.add_timeseries_output(t_name, timeseries=ts_name)
-            if t_phase_name not in ts_options['outputs']:
+            if t_phase_name not in ts_options['outputs'] and \
+                    (phase.timeseries_options['include_t_phase'] or time_options['time_phase_targets']):
                 phase.add_timeseries_output(t_phase_name, timeseries=ts_name)
 
     def configure_time(self, phase):
@@ -169,16 +171,21 @@ class TranscriptionBase(object):
             phase.add_subsystem('control_group',
                                 subsys=control_group)
 
+            control_prefix = 'controls:' if dymos_options['use_timeseries_prefix'] else ''
+            control_rate_prefix = 'control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+
             for name, options in phase.control_options.items():
                 for ts_name, ts_options in phase._timeseries.items():
-                    if f'controls:{name}' not in ts_options['outputs']:
-                        phase.add_timeseries_output(name, output_name=f'controls:{name}',
+                    if f'{control_prefix}{name}' not in ts_options['outputs']:
+                        phase.add_timeseries_output(name, output_name=f'{control_prefix}{name}',
                                                     timeseries=ts_name)
-                    if f'control_rates:{name}_rate' not in ts_options['outputs']:
-                        phase.add_timeseries_output(f'{name}_rate', output_name=f'control_rates:{name}_rate',
+                    if f'{control_rate_prefix}{name}_rate' not in ts_options['outputs'] and \
+                            (phase.timeseries_options['include_control_rates'] or options['rate_targets']):
+                        phase.add_timeseries_output(f'{name}_rate', output_name=f'{control_rate_prefix}{name}_rate',
                                                     timeseries=ts_name)
-                    if f'control_rates:{name}_rate2' not in ts_options['outputs']:
-                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'control_rates:{name}_rate2',
+                    if f'{control_rate_prefix}{name}_rate2' not in ts_options['outputs'] and \
+                            (phase.timeseries_options['include_control_rates'] or options['rate2_targets']):
+                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'{control_rate_prefix}{name}_rate2',
                                                     timeseries=ts_name)
 
     def configure_controls(self, phase):
@@ -208,16 +215,21 @@ class TranscriptionBase(object):
             phase.add_subsystem('polynomial_control_group', subsys=sys,
                                 promotes_inputs=['*'], promotes_outputs=['*'])
 
+            prefix = 'polynomial_controls:' if dymos_options['use_timeseries_prefix'] else ''
+            rate_prefix = 'polynomial_control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+
             for name, options in phase.polynomial_control_options.items():
                 for ts_name, ts_options in phase._timeseries.items():
-                    if f'polynomial_controls:{name}' not in ts_options['outputs']:
-                        phase.add_timeseries_output(name, output_name=f'polynomial_controls:{name}',
+                    if f'{prefix}{name}' not in ts_options['outputs']:
+                        phase.add_timeseries_output(name, output_name=f'{prefix}{name}',
                                                     timeseries=ts_name)
-                    if f'polynomial_control_rates:{name}_rate' not in ts_options['outputs']:
-                        phase.add_timeseries_output(f'{name}_rate', output_name=f'polynomial_control_rates:{name}_rate',
+                    if f'{rate_prefix}{name}_rate' not in ts_options['outputs'] and \
+                            (phase.timeseries_options['include_control_rates'] or options['rate_targets']):
+                        phase.add_timeseries_output(f'{name}_rate', output_name=f'{rate_prefix}{name}_rate',
                                                     timeseries=ts_name)
-                    if f'polynomial_control_rates:{name}_rate2' not in ts_options['outputs']:
-                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'polynomial_control_rates:{name}_rate2',
+                    if f'{rate_prefix}{name}_rate2' not in ts_options['outputs'] and \
+                            (phase.timeseries_options['include_control_rates'] or options['rate2_targets']):
+                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'{rate_prefix}{name}_rate2',
                                                     timeseries=ts_name)
 
     def configure_polynomial_controls(self, phase):
@@ -242,6 +254,7 @@ class TranscriptionBase(object):
             The phase object to which this transcription instance applies.
         """
         phase._check_parameter_options()
+        param_prefix = 'parameters:' if dymos_options['use_timeseries_prefix'] else ''
 
         if phase.parameter_options:
             param_comp = ParameterComp()
@@ -250,8 +263,8 @@ class TranscriptionBase(object):
         for name, options in phase.parameter_options.items():
             if options['include_timeseries']:
                 for ts_name, ts_options in phase._timeseries.items():
-                    if f'parameters:{name}' not in ts_options['outputs']:
-                        phase.add_timeseries_output(name, output_name=f'parameters:{name}',
+                    if f'{param_prefix}{name}' not in ts_options['outputs']:
+                        phase.add_timeseries_output(name, output_name=f'{param_prefix}{name}',
                                                     timeseries=ts_name)
 
     def configure_parameters(self, phase):
@@ -341,13 +354,18 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        state_prefix = 'states:' if dymos_options['use_timeseries_prefix'] else ''
+        state_rate_prefix = 'state_rates:' if dymos_options['use_timeseries_prefix'] else ''
+
         for name, options in phase.state_options.items():
             for ts_name, ts_options in phase._timeseries.items():
-                if f'states:{name}' not in ts_options['outputs']:
-                    phase.add_timeseries_output(name, output_name=f'states:{name}',
+                if f'{state_prefix}{name}' not in ts_options['outputs']:
+                    phase.add_timeseries_output(name, output_name=f'{state_prefix}{name}',
                                                 timeseries=ts_name)
-                if options['rate_source'] and f'state_rates:{name}' not in ts_options['outputs']:
-                    phase.add_timeseries_output(name=options['rate_source'], output_name=f'state_rates:{name}',
+                if options['rate_source'] and \
+                        f'{state_rate_prefix}{name}' not in ts_options['outputs'] and \
+                        phase.timeseries_options['include_state_rates']:
+                    phase.add_timeseries_output(name=options['rate_source'], output_name=f'{state_rate_prefix}{name}',
                                                 timeseries=ts_name)
 
     def setup_ode(self, phase):

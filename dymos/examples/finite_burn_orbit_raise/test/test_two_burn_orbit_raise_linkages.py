@@ -625,8 +625,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                           tolerance=0.05)
 
         burn1_u1_final = p.get_val('traj.burn1.timeseries.controls:u1')[-1, ...]
-        coast_u1_initial = p.get_val('traj.coast.timeseries.parameters:u1')[0, ...]
-        coast_u1_final = p.get_val('traj.coast.timeseries.parameters:u1')[-1, ...]
+        coast_u1_initial = p.get_val('traj.coast.parameter_vals:u1')[0, ...]
+        coast_u1_final = p.get_val('traj.coast.parameter_vals:u1')[-1, ...]
         burn2_u1_initial = p.get_val('traj.burn2.timeseries.controls:u1')[0, ...]
 
         assert_near_equal(burn1_u1_final - coast_u1_initial, 0.0, 1e-12)

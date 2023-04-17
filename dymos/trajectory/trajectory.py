@@ -22,6 +22,7 @@ from ..phase.options import TrajParameterOptionsDictionary
 from ..transcriptions.common import ParameterComp
 from ..utils.misc import get_rate_units, _unspecified
 from ..utils.introspection import get_promoted_vars, get_source_metadata
+from .._options import options as dymos_options
 
 
 class Trajectory(om.Group):
@@ -544,26 +545,31 @@ class Trajectory(om.Group):
                 units[i] = phases[i].time_options['units']
                 shapes[i] = (1,)
             elif classes[i] == 'state':
-                sources[i] = f'timeseries.states:{vars[i]}'
+                prefix = 'states:' if dymos_options['use_timeseries_prefix'] else ''
+                sources[i] = f'timeseries.{prefix}{vars[i]}'
                 units[i] = phases[i].state_options[vars[i]]['units']
                 shapes[i] = phases[i].state_options[vars[i]]['shape']
             elif classes[i] in {'indep_control', 'input_control'}:
-                sources[i] = f'timeseries.controls:{vars[i]}'
+                prefix = 'controls:' if dymos_options['use_timeseries_prefix'] else ''
+                sources[i] = f'timeseries.{prefix}{vars[i]}'
                 units[i] = phases[i].control_options[vars[i]]['units']
                 shapes[i] = phases[i].control_options[vars[i]]['shape']
             elif classes[i] in {'control_rate', 'control_rate2'}:
-                sources[i] = f'timeseries.control_rates:{vars[i]}'
+                prefix = 'control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+                sources[i] = f'timeseries.{prefix}{vars[i]}'
                 control_name = vars[i][:-5] if classes[i] == 'control_rate' else vars[i][:-6]
                 units[i] = phases[i].control_options[control_name]['units']
                 deriv = 1 if classes[i].endswith('rate') else 2
                 units[i] = get_rate_units(units[i], phases[i].time_options['units'], deriv=deriv)
                 shapes[i] = phases[i].control_options[control_name]['shape']
             elif classes[i] in {'indep_polynomial_control', 'input_polynomial_control'}:
-                sources[i] = f'timeseries.polynomial_controls:{vars[i]}'
+                prefix = 'polynomial_controls:' if dymos_options['use_timeseries_prefix'] else ''
+                sources[i] = f'timeseries.{prefix}{vars[i]}'
                 units[i] = phases[i].polynomial_control_options[vars[i]]['units']
                 shapes[i] = phases[i].polynomial_control_options[vars[i]]['shape']
             elif classes[i] in {'polynomial_control_rate', 'polynomial_control_rate2'}:
-                sources[i] = f'timeseries.polynomial_control_rates:{vars[i]}'
+                prefix = 'polynomial_control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+                sources[i] = f'timeseries.{prefix}{vars[i]}'
                 control_name = vars[i][:-5] if classes[i] == 'polynomial_control_rate' else vars[i][:-6]
                 control_units = phases[i].polynomial_control_options[control_name]['units']
                 time_units = phases[i].time_options['units']
@@ -727,7 +733,10 @@ class Trajectory(om.Group):
                     }
 
         def _get_prefixed_var(var, phase):
-            return f'{prefixes[phase.classify_var(var)]}{var}'
+            if dymos_options['use_timeseries_prefix']:
+                return f'{prefixes[phase.classify_var(var)]}{var}'
+            else:
+                return var
 
         # First, if the user requested all states and time be continuous ('*', '*'), then
         # expand it out.

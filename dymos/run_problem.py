@@ -2,6 +2,7 @@ import warnings
 
 import openmdao.api as om
 from openmdao.recorders.case import Case
+from ._options import options as dymos_options
 from dymos.trajectory.trajectory import Trajectory
 from dymos.load_case import load_case
 from dymos.visualization.timeseries_plots import timeseries_plots
@@ -112,9 +113,14 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
                 subsys.simulate(record_file=simulation_record_file, case_prefix=case_prefix, **_simulate_kwargs)
 
     if make_plots:
-        _sim_record_file = None if not simulate else simulation_record_file
-        _plot_kwargs = plot_kwargs if plot_kwargs is not None else {}
-        timeseries_plots(solution_record_file, simulation_record_file=_sim_record_file,
-                         plot_dir=plot_dir, problem=problem, **_plot_kwargs)
+        if dymos_options['plots'] == 'bokeh':
+            from dymos.visualization.timeseries.bokeh_timeseries_report import make_timeseries_report
+            make_timeseries_report(prob=problem, solution_record_file=solution_record_file,
+                                   simulation_record_file=simulation_record_file)
+        else:
+            _sim_record_file = None if not simulate else simulation_record_file
+            _plot_kwargs = plot_kwargs if plot_kwargs is not None else {}
+            timeseries_plots(solution_record_file, simulation_record_file=_sim_record_file,
+                             plot_dir=plot_dir, problem=problem, **_plot_kwargs)
 
     return failed

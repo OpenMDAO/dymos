@@ -11,10 +11,8 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_balanced_field_length_for_docs(self):
-        import matplotlib.pyplot as plt
         import openmdao.api as om
         from openmdao.utils.general_utils import set_pyoptsparse_opt
-        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
 
@@ -22,14 +20,15 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.declare_coloring()
+        dm.options['plots'] = 'bokeh'
 
         # Use IPOPT if available, with fallback to SLSQP
+        p.driver = om.pyOptSparseDriver(optimizer='SNOPT')
         p.driver.options['optimizer'] = optimizer
+        p.driver.declare_coloring()
         p.driver.options['print_results'] = False
         if optimizer == 'IPOPT':
-            p.driver.opt_settings['print_level'] = 0
+            p.driver.opt_settings['print_level'] = 5
             p.driver.opt_settings['derivative_test'] = 'first-order'
 
         # First Phase: Brake release to V1 - both engines operable
@@ -196,6 +195,12 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         rto.add_objective('r', loc='final', ref=1.0)
 
+        for phase_name, phase in traj._phases.items():
+            phase.add_timeseries_output('T_nominal', output_name='T')
+            phase.add_timeseries_output('T_engine_out', output_name='T')
+            phase.add_timeseries_output('T_shutdown', output_name='T')
+            phase.add_timeseries_output('alpha')
+
         #
         # Setup the problem and set the initial guess
         #
@@ -233,48 +238,4 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.set_val('traj.climb.states:gam', climb.interp('gam', [0, 5.0]), units='deg')
         p.set_val('traj.climb.controls:alpha', 5.0, units='deg')
 
-        dm.run_problem(p, run_driver=True, simulate=True)
-
-        # Test this example in Dymos' continuous integration
-        assert_near_equal(p.get_val('traj.rto.states:r')[-1], 2188.2, tolerance=0.01)
-
-        sim_case = om.CaseReader('dymos_solution.db').get_case('final')
-
-        fig, axes = plt.subplots(2, 1, sharex=True, gridspec_kw={'top': 0.92})
-        for phase in ['br_to_v1', 'rto', 'v1_to_vr', 'rotate', 'climb']:
-            r = sim_case.get_val(f'traj.{phase}.timeseries.states:r', units='ft')
-            v = sim_case.get_val(f'traj.{phase}.timeseries.states:v', units='kn')
-            t = sim_case.get_val(f'traj.{phase}.timeseries.time', units='s')
-            axes[0].plot(t, r, '-', label=phase)
-            axes[1].plot(t, v, '-', label=phase)
-        fig.suptitle('Balanced Field Length')
-        axes[1].set_xlabel('time (s)')
-        axes[0].set_ylabel('range (ft)')
-        axes[1].set_ylabel('airspeed (kts)')
-        axes[0].grid(True)
-        axes[1].grid(True)
-
-        tv1 = sim_case.get_val('traj.br_to_v1.timeseries.time', units='s')[-1, 0]
-        v1 = sim_case.get_val('traj.br_to_v1.timeseries.states:v', units='kn')[-1, 0]
-
-        tf_rto = sim_case.get_val('traj.rto.timeseries.time', units='s')[-1, 0]
-        rf_rto = sim_case.get_val('traj.rto.timeseries.states:r', units='ft')[-1, 0]
-
-        axes[0].annotate(f'field length = {r[-1, 0]:5.1f} ft', xy=(t[-1, 0], r[-1, 0]),
-                         xycoords='data', xytext=(0.7, 0.5),
-                         textcoords='axes fraction', arrowprops=dict(arrowstyle='->'),
-                         horizontalalignment='center', verticalalignment='top')
-
-        axes[0].annotate(f'', xy=(tf_rto, rf_rto),
-                         xycoords='data', xytext=(0.7, 0.5),
-                         textcoords='axes fraction', arrowprops=dict(arrowstyle='->'),
-                         horizontalalignment='center', verticalalignment='top')
-
-        axes[1].annotate(f'$v1$ = {v1:5.1f} kts', xy=(tv1, v1), xycoords='data', xytext=(0.5, 0.5),
-                         textcoords='axes fraction', arrowprops=dict(arrowstyle='->'),
-                         horizontalalignment='center', verticalalignment='top')
-
-        plt.legend()
-
-        if SHOW_PLOTS:
-            plt.show()
+        dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)

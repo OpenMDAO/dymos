@@ -45,9 +45,9 @@ class TestTimeseriesOutput(unittest.TestCase):
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
 
         if test_smaller_timeseries:
-            phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665, include_timeseries=False)
-        else:
             phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
+        else:
+            phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665, include_timeseries=True)
 
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=10)
@@ -94,7 +94,7 @@ class TestTimeseriesOutput(unittest.TestCase):
                     with self.assertRaises(KeyError):
                         p.get_val(f'phase0.timeseries.parameters:{dp}')
                 else:
-                    assert_near_equal(p.get_val(f'phase0.parameters:{dp}')[0],
+                    assert_near_equal(p.get_val(f'phase0.parameter_vals:{dp}')[0],
                                       p.get_val(f'phase0.timeseries.parameters:{dp}')[i])
 
         # call simulate to test SolveIVP transcription
@@ -109,6 +109,7 @@ class TestTimeseriesOutput(unittest.TestCase):
         self.test_timeseries_gl(test_smaller_timeseries=True)
 
     def test_timeseries_radau(self, test_smaller_timeseries=False):
+
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
@@ -116,6 +117,8 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         phase = dm.Phase(ode_class=BrachistochroneODE,
                          transcription=dm.Radau(num_segments=8, order=3, compressed=True))
+
+        phase.timeseries_options['include_state_rates'] = True
 
         p.model.add_subsystem('phase0', phase)
 
@@ -131,9 +134,9 @@ class TestTimeseriesOutput(unittest.TestCase):
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
 
         if test_smaller_timeseries:
-            phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665, include_timeseries=False)
-        else:
             phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
+        else:
+            phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665, include_timeseries=True)
 
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=10)
@@ -246,9 +249,6 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         assert_near_equal(np.atleast_2d(p.get_val('phase0.t')).T,
                           p.get_val('phase0.timeseries.time'))
-
-        assert_near_equal(np.atleast_2d(p.get_val('phase0.t_phase')).T,
-                          p.get_val('phase0.timeseries.time_phase'))
 
         for state in ('x', 'y', 'v'):
             assert_near_equal(p.get_val(f'phase0.integrator.states_out:{state}'),

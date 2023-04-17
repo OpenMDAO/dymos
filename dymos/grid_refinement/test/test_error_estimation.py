@@ -54,6 +54,8 @@ class TestBrachistochroneExample(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=10)
 
+        phase.timeseries_options['include_state_rates'] = True
+
         p.setup()
 
         p['traj0.phase0.t_initial'] = 0.0
