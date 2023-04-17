@@ -743,7 +743,7 @@ class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
 
 class PhaseTimeseriesOptionsDictionary(om.OptionsDictionary):
     """
-    An OptionsDictionary for phase options related to timeseries..
+    An OptionsDictionary for phase options related to timeseries.
 
     Parameters
     ----------
