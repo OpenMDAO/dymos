@@ -177,15 +177,9 @@ jobs:
         shell: bash -l {0}
         run: |
           echo "============================================================="
-          echo "Install OpenMDAO"
+          echo "Test against P84_load_case2 branch"
           echo "============================================================="
-          if [[ "${{ matrix.OPENMDAO }}" == "dev" ]]; then
-            pip install git+https://github.com/OpenMDAO/OpenMDAO
-          elif [[ "${{ matrix.OPENMDAO }}" == "latest" ]]; then
-            pip install openmdao
-          else
-            pip install openmdao==${{ matrix.OPENMDAO }}
-          fi
+          pip install git+https://github.com/swryan/OpenMDAO@P84_load_case2
 
       - name: Install bokeh
         shell: bash -l {0}
