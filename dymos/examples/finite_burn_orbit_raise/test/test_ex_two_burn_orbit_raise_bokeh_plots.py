@@ -146,45 +146,45 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     p.setup(check=True)
 
     # Set Initial Guesses
-    p.set_val('traj.parameters:c', value=1.5, units='DU/TU')
+    p.set_val('traj.parameters:c', val=1.5, units='DU/TU')
 
     burn1 = p.model.traj.phases.burn1
     burn2 = p.model.traj.phases.burn2
     coast = p.model.traj.phases.coast
 
     if burn1 in p.model.traj.phases._subsystems_myproc:
-        p.set_val('traj.burn1.t_initial', value=0.0)
-        p.set_val('traj.burn1.t_duration', value=2.25)
+        p.set_val('traj.burn1.t_initial', val=0.0)
+        p.set_val('traj.burn1.t_duration', val=2.25)
 
-        p.set_val('traj.burn1.states:r', value=burn1.interp('r', [1, 1.5]))
-        p.set_val('traj.burn1.states:theta', value=burn1.interp('theta', [0, 1.7]))
-        p.set_val('traj.burn1.states:vr', value=burn1.interp('vr', [0, 0]))
-        p.set_val('traj.burn1.states:vt', value=burn1.interp('vt', [1, 1]))
-        p.set_val('traj.burn1.states:accel', value=burn1.interp('accel', [0.1, 0]))
-        p.set_val('traj.burn1.states:deltav', value=burn1.interp('deltav', [0, 0.1]))
-        p.set_val('traj.burn1.controls:u1', value=burn1.interp('u1', [-3.5, 13.0]))
+        p.set_val('traj.burn1.states:r', val=burn1.interp('r', [1, 1.5]))
+        p.set_val('traj.burn1.states:theta', val=burn1.interp('theta', [0, 1.7]))
+        p.set_val('traj.burn1.states:vr', val=burn1.interp('vr', [0, 0]))
+        p.set_val('traj.burn1.states:vt', val=burn1.interp('vt', [1, 1]))
+        p.set_val('traj.burn1.states:accel', val=burn1.interp('accel', [0.1, 0]))
+        p.set_val('traj.burn1.states:deltav', val=burn1.interp('deltav', [0, 0.1]))
+        p.set_val('traj.burn1.controls:u1', val=burn1.interp('u1', [-3.5, 13.0]))
 
     if coast in p.model.traj.phases._subsystems_myproc:
-        p.set_val('traj.coast.t_initial', value=2.25)
-        p.set_val('traj.coast.t_duration', value=3.0)
+        p.set_val('traj.coast.t_initial', val=2.25)
+        p.set_val('traj.coast.t_duration', val=3.0)
 
-        p.set_val('traj.coast.states:r', value=coast.interp('r', [1.3, 1.5]))
-        p.set_val('traj.coast.states:theta', value=coast.interp('theta', [2.1767, 1.7]))
-        p.set_val('traj.coast.states:vr', value=coast.interp('vr', [0.3285, 0]))
-        p.set_val('traj.coast.states:vt', value=coast.interp('vt', [0.97, 1]))
-        p.set_val('traj.coast.states:accel', value=coast.interp('accel', [0, 0]))
+        p.set_val('traj.coast.states:r', val=coast.interp('r', [1.3, 1.5]))
+        p.set_val('traj.coast.states:theta', val=coast.interp('theta', [2.1767, 1.7]))
+        p.set_val('traj.coast.states:vr', val=coast.interp('vr', [0.3285, 0]))
+        p.set_val('traj.coast.states:vt', val=coast.interp('vt', [0.97, 1]))
+        p.set_val('traj.coast.states:accel', val=coast.interp('accel', [0, 0]))
 
     if burn2 in p.model.traj.phases._subsystems_myproc:
-        p.set_val('traj.burn2.t_initial', value=5.25)
-        p.set_val('traj.burn2.t_duration', value=1.75)
+        p.set_val('traj.burn2.t_initial', val=5.25)
+        p.set_val('traj.burn2.t_duration', val=1.75)
 
-        p.set_val('traj.burn2.states:r', value=burn2.interp('r', [1, 3]))
-        p.set_val('traj.burn2.states:theta', value=burn2.interp('theta', [0, 4.0]))
-        p.set_val('traj.burn2.states:vr', value=burn2.interp('vr', [0, 0]))
-        p.set_val('traj.burn2.states:vt', value=burn2.interp('vt', [1, np.sqrt(1 / 3)]))
-        p.set_val('traj.burn2.states:accel', value=burn2.interp('accel', [0.1, 0]))
-        p.set_val('traj.burn2.states:deltav', value=burn2.interp('deltav', [0.1, 0.2]))
-        p.set_val('traj.burn2.controls:u1', value=burn2.interp('u1', [1, 1]))
+        p.set_val('traj.burn2.states:r', val=burn2.interp('r', [1, 3]))
+        p.set_val('traj.burn2.states:theta', val=burn2.interp('theta', [0, 4.0]))
+        p.set_val('traj.burn2.states:vr', val=burn2.interp('vr', [0, 0]))
+        p.set_val('traj.burn2.states:vt', val=burn2.interp('vt', [1, np.sqrt(1 / 3)]))
+        p.set_val('traj.burn2.states:accel', val=burn2.interp('accel', [0.1, 0]))
+        p.set_val('traj.burn2.states:deltav', val=burn2.interp('deltav', [0.1, 0.2]))
+        p.set_val('traj.burn2.controls:u1', val=burn2.interp('u1', [1, 1]))
 
     dm.run_problem(p, run_driver=False, simulate=True, make_plots=True)
 
