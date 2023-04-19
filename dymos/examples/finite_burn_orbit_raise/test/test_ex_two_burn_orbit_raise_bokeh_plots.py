@@ -194,9 +194,18 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
+    def setUp(self):
+        # We need to remove the TESTFLO_RUNNING environment variable for reports to be generated.
+        # The reports code checks to see if TESTFLO_RUNNING is set and will not do anything if set
+        self.testflo_running = os.environ.pop('TESTFLO_RUNNING', None)
+
     def tearDown(self):
         if os.path.isdir('plots'):
             shutil.rmtree('plots')
+
+        # restore what was there before running the test
+        if self.testflo_running is not None:
+            os.environ['TESTFLO_RUNNING'] = self.testflo_running
 
     @unittest.skipIf(not bokeh_available, 'bokeh unavailable')
     def test_bokeh_plots(self):

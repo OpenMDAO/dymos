@@ -35,7 +35,7 @@ jobs:
             PYOPTSPARSE: 'v2.9.3'
             SNOPT: 7.7
             OPENMDAO: 'latest'
-            OPTIONAL: '[test]'
+            OPTIONAL: '[all]'
             JAX: '0.3.24'
 
           # baseline versions except no pyoptsparse or SNOPT
@@ -238,15 +238,6 @@ jobs:
           else
             pip install openmdao==${{ matrix.OPENMDAO }}
           fi
-
-      - name: Install optional dependencies
-        if: env.RUN_BUILD && matrix.OPTIONAL == '[all]'
-        shell: bash -l {0}
-        run: |
-          echo "============================================================="
-          echo "Install additional packages for testing/coverage"
-          echo "============================================================="
-          pip install bokeh
 
       - name: Install Dymos
         if: env.RUN_BUILD
