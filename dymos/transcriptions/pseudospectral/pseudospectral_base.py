@@ -331,7 +331,7 @@ class PseudospectralBase(TranscriptionBase):
                 if options['fix_final']:
                     raise ValueError(f'Cannot use solve_segments in phase ({phase.name}) for state '
                                      f'({state_name}) with forward propagation when fix_final=True.'
-                                     f' Either set fix_final=False or set solve_segments=\'reverse\'')
+                                     f' Either set fix_final=False or set solve_segments=\'backward\'')
 
             # Backward propagation
             if options['solve_segments'] == 'backward':
@@ -339,7 +339,7 @@ class PseudospectralBase(TranscriptionBase):
                 if options['fix_initial']:
                     raise ValueError(f'Cannot use solve_segments in phase ({phase.name}) with '
                                      f'backward propagation when fix_initial=True. Either set '
-                                     f'fix_final=False or set solve_segments=\'reverse\'')
+                                     f'fix_final=False or set solve_segments=\'backward\'')
                 elif options['input_initial']:
                     raise ValueError(f'Cannot use solve_segments in phase ({phase.name}) with '
                                      f'backward propagation when input_initial=True. Either set '
