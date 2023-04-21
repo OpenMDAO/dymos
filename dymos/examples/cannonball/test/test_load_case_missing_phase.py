@@ -163,7 +163,7 @@ class TestTwoPhaseCannonballLoadCase(unittest.TestCase):
         p.set_val('traj.descent.states:gam', descent.interp('gam', [0, -45]), units='deg')
 
         case = om.CaseReader('dymos_solution.db').get_case('final')
-        dm.load_case(p, previous_solution=case)
+        p.load_case(case)
 
         p.run_model()
 

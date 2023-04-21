@@ -234,7 +234,7 @@ class TestLoadCase(unittest.TestCase):
               f" different final value this will overwrite the user-specified value"
 
         with assert_warning(UserWarning, msg):
-            dm.load_case(q, case)
+            q.load_case(case)
 
     def test_load_case_warn_fix_final_polynomial_control(self):
         import openmdao.api as om

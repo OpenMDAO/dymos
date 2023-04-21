@@ -2624,25 +2624,24 @@ class Phase(om.Group):
         # Get the initial time and duration from the previous result and set them into the new phase.
         try:
             integration_name = self.time_options['name']
-        except IndexError as e:
-            integration_name = None
-
-        if integration_name:
             prev_time_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.{integration_name}')][0]
-            prev_time_val = prev_vars[prev_time_path]['val']
-            prev_time_val, unique_idxs = np.unique(prev_time_val, return_index=True)
-            prev_time_units = prev_vars[prev_time_path]['units']
+        except IndexError as e:
+            return
 
-            t_initial = prev_time_val[0]
-            t_duration = prev_time_val[-1] - prev_time_val[0]
+        prev_time_val = prev_vars[prev_time_path]['val']
+        prev_time_val, unique_idxs = np.unique(prev_time_val, return_index=True)
+        prev_time_units = prev_vars[prev_time_path]['units']
 
-            ti_path = [s for s in phase_vars.keys() if s.endswith(f'{phase_name}.t_initial')]
-            if ti_path:
-                self.set_val(ti_path[0], t_initial, units=prev_time_units)
+        t_initial = prev_time_val[0]
+        t_duration = prev_time_val[-1] - prev_time_val[0]
 
-            td_path = [s for s in phase_vars.keys() if s.endswith(f'{phase_name}.t_duration')]
-            if td_path:
-                self.set_val(td_path[0], t_duration, units=prev_time_units)
+        ti_path = [s for s in phase_vars.keys() if s.endswith(f'{phase_name}.t_initial')]
+        if ti_path:
+            self.set_val(ti_path[0], t_initial, units=prev_time_units)
+
+        td_path = [s for s in phase_vars.keys() if s.endswith(f'{phase_name}.t_duration')]
+        if td_path:
+            self.set_val(td_path[0], t_duration, units=prev_time_units)
 
         # Interpolate the timeseries state outputs from the previous solution onto the new grid.
         if not isinstance(self, dm.AnalyticPhase):
