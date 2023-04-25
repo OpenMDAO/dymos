@@ -2,11 +2,14 @@ import unittest
 from numpy.testing import assert_almost_equal
 import numpy as np
 
+import openmdao
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.mpi import MPI
 
 import dymos as dm
 from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
+
+om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 @use_tempdirs
@@ -34,6 +37,7 @@ class TestVanderpolExample(unittest.TestCase):
         assert_almost_equal(p.get_val('traj.phase0.states:x1')[-1, ...], np.zeros(1))
         assert_almost_equal(p.get_val('traj.phase0.controls:u')[-1, ...], np.zeros(1), decimal=3)
 
+    @unittest.skipIf(om_version <= (3, 27, 0), 'refinement requires an OpenMDAO version later than 3.27.0')
     def test_vanderpol_optimal_grid_refinement(self):
         # enabling grid refinement gives a faster and better solution with fewer segments
         p = vanderpol(transcription='gauss-lobatto', num_segments=15)

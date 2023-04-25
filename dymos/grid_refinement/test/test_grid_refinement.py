@@ -2,9 +2,12 @@ import unittest
 
 
 import numpy as np
+import openmdao
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 import dymos as dm
+
+om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 class _BrysonDenhamODE(om.ExplicitComponent):
@@ -35,6 +38,7 @@ class _BrysonDenhamODE(om.ExplicitComponent):
         partials['J_dot', 'u'] = inputs['u']
 
 
+@unittest.skipIf(om_version <= (3, 27, 0), 'load_case requires an OpenMDAO version later than 3.27.0')
 @use_tempdirs
 class TestGridRefinement(unittest.TestCase):
 

@@ -5,6 +5,7 @@ import unittest
 
 import numpy as np
 
+import openmdao
 from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import printoptions
@@ -13,6 +14,8 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 import dymos as dm
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.robot_arm.robot_arm_ode import RobotArmODE
+
+om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 @use_tempdirs
@@ -84,6 +87,7 @@ class TestRobotArm(unittest.TestCase):
         with printoptions(linewidth=1024, edgeitems=100):
             cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
 
+    @unittest.skipIf(om_version <= (3, 27, 0), 'refinement requires an OpenMDAO version later than 3.27.0')
     @require_pyoptsparse(optimizer='IPOPT')
     def test_robot_arm_radau(self):
         p = self.make_problem(transcription=Radau, optimizer='IPOPT', numseg=12)
@@ -92,6 +96,7 @@ class TestRobotArm(unittest.TestCase):
         t = p.get_val('traj.phase.timeseries.time')
         assert_near_equal(t[-1], 9.14138, tolerance=1e-3)
 
+    @unittest.skipIf(om_version <= (3, 27, 0), 'refinement requires an OpenMDAO version later than 3.27.0')
     @require_pyoptsparse(optimizer='IPOPT')
     def test_robot_arm_gl(self):
         p = self.make_problem(transcription=GaussLobatto, optimizer='IPOPT', numseg=12)
