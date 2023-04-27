@@ -63,7 +63,7 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
                     write_refine_iter(stream, i, phases, refine_results)
 
                 om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
-                if om_version <= (3, 27, 0):
+                if om_version < (3, 26, 1):
                     prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
                                  'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
 

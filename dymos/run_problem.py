@@ -84,7 +84,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
 
     if restart is not None:
         om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
-        if om_version < (3, 27, 0):
+        if om_version < (3, 26, 1):
             from dymos.load_case import load_case
             load_case(problem, case, deprecation_warning=False)
         else:
