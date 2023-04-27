@@ -26,7 +26,6 @@ om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.'
 @use_tempdirs
 class TestRunProblem(unittest.TestCase):
 
-    @unittest.skipIf(om_version <= (3, 27, 0), 'refinement requires an OpenMDAO version later than 3.27.0')
     @require_pyoptsparse(optimizer='IPOPT')
     def test_run_HS_problem_radau_hp_refine(self):
         p = om.Problem(model=om.Group())
@@ -92,7 +91,6 @@ class TestRunProblem(unittest.TestCase):
                           J,
                           tolerance=5e-4)
 
-    @unittest.skipIf(om_version <= (3, 27, 0), 'refinement requires an OpenMDAO version later than 3.27.0')
     @require_pyoptsparse(optimizer='IPOPT')
     def test_run_HS_problem_radau_ph_refine(self):
         p = om.Problem(model=om.Group())
@@ -160,7 +158,6 @@ class TestRunProblem(unittest.TestCase):
                           J,
                           tolerance=5e-4)
 
-    @unittest.skipIf(om_version <= (3, 27, 0), 'refinement requires an OpenMDAO version later than 3.27.0')
     @require_pyoptsparse(optimizer='IPOPT')
     def test_run_HS_problem_gl(self):
         p = om.Problem(model=om.Group())
@@ -339,7 +336,7 @@ class TestRunProblem(unittest.TestCase):
                          'Key "case_prefix" was found in simulate_kwargs but should instead by provided by '
                          'the argument "case_prefix", not part of the simulate_kwargs dictionary.')
 
-    @unittest.skipIf(om_version <= (3, 27, 0), 'refinement requires an OpenMDAO version later than 3.27.0')
+    @unittest.skipIf(om_version < (3, 18, 0), 'test requires OpenMDAO >= 3.18.01')
     @require_pyoptsparse(optimizer='SLSQP')
     def test_run_brachistochrone_problem_refine_case_driver_case_prefix(self):
         p = om.Problem(model=om.Group())
@@ -394,7 +391,6 @@ class TestRunProblem(unittest.TestCase):
         for case in cases:
             self.assertTrue(case.startswith('hp_') and 'pyOptSparse_SLSQP|' in case, msg=f'Unexpected case: {case}')
 
-    @unittest.skipIf(om_version <= (3, 27, 0), 'refinement requires an OpenMDAO version later than 3.27.0')
     @require_pyoptsparse(optimizer='SLSQP')
     def test_run_brachistochrone_problem_refine_case_prefix(self):
         p = om.Problem(model=om.Group())
@@ -450,7 +446,6 @@ class TestRunProblem(unittest.TestCase):
         for case in cases:
             self.assertTrue(case.startswith('brach_test_hp_') and 'pyOptSparse_SLSQP|' in case, msg=f'Unexpected case: {case}')
 
-    @unittest.skipIf(om_version <= (3, 27, 0), 'refinement requires an OpenMDAO version later than 3.27.0')
     @require_pyoptsparse(optimizer='SLSQP')
     def test_run_brachistochrone_vector_states_problem(self):
         p = om.Problem(model=om.Group())
@@ -541,7 +536,6 @@ class TestRunProblem(unittest.TestCase):
         case = cr.get_case('final')
         assert_almost_equal(case.outputs['traj.phase0.timeseries.time'].max(), 1.8016, decimal=4)
 
-    @unittest.skipIf(om_version <= (3, 27, 0), 'refinement requires an OpenMDAO version later than 3.27.0')
     def test_restart_from_file(self):
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
         from dymos.run_problem import run_problem
@@ -590,7 +584,6 @@ class TestRunProblem(unittest.TestCase):
         assert_almost_equal(x0q, fx0s(tq), decimal=2)
         assert_almost_equal(uq, fus(tq), decimal=5)
 
-    @unittest.skipIf(om_version <= (3, 27, 0), 'refinement requires an OpenMDAO version later than 3.27.0')
     def test_restart_from_case(self):
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
         from dymos.run_problem import run_problem

@@ -6,39 +6,12 @@ from .hp_adaptive.hp_adaptive import HPAdaptive
 from .write_iteration import write_error, write_refine_iter
 
 from dymos.grid_refinement.error_estimation import check_error
-from dymos.phase.phase import Phase
+from dymos.load_case import load_case, find_phases
 
 import numpy as np
-import openmdao.api as om
-
 import sys
 
-
-def find_phases(sys):
-    """
-    Finds all instances of Dymos Phases within the given system, and returns them as a dictionary.
-
-    They are keyed by promoted name if use_prom_path=True, otherwise they are keyed by their
-    absolute name.
-
-    Parameters
-    ----------
-    sys : om.Group
-        The OpenMDAO Group to be searched for Dymos Phases.
-
-    Returns
-    -------
-    dict
-        A dictionary mapping the absolute path of each Phase object in the given group to each
-        Phase object.
-    """
-    phase_paths = {}
-    if isinstance(sys, Phase):
-        phase_paths[sys.pathname] = sys
-    elif isinstance(sys, om.Group):
-        for sub in sys.system_iter(recurse=False):
-            phase_paths.update(find_phases(sub))
-    return phase_paths
+import openmdao
 
 
 def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_prefix=None, reset_iter_counts=True):
@@ -89,16 +62,25 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
                 for stream in f, sys.stdout:
                     write_refine_iter(stream, i, phases, refine_results)
 
-                prev_soln = {
-                    'inputs': problem.model.list_inputs(out_stream=None, return_format='dict',
-                                                        units=True, prom_name=True),
-                    'outputs': problem.model.list_outputs(out_stream=None, return_format='dict',
-                                                          units=True, prom_name=True)
-                }
+                om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
+                if om_version <= (3, 27, 0):
+                    prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
+                                 'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
 
-                problem.setup()
+                    problem.setup()
 
-                problem.load_case(prev_soln)
+                    load_case(problem, prev_soln, deprecation_warning=False)
+                else:
+                    prev_soln = {
+                        'inputs': problem.model.list_inputs(out_stream=None, return_format='dict',
+                                                            units=True, prom_name=True),
+                        'outputs': problem.model.list_outputs(out_stream=None, return_format='dict',
+                                                              units=True, prom_name=True)
+                    }
+
+                    problem.setup()
+
+                    problem.load_case(prev_soln)
 
                 failed = problem.run_driver(case_prefix=f'{_case_prefix}{refine_method}_{i}_')
 

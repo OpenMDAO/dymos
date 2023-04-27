@@ -3,12 +3,9 @@ import unittest
 
 import numpy as np
 
-import openmdao
 import openmdao.api as om
 from dymos.utils.testing_utils import assert_timeseries_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 class BrachistochroneODE(om.ExplicitComponent):
@@ -91,7 +88,6 @@ class TestBrachistochroneIntegratedParameter(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @unittest.skipIf(om_version <= (3, 27, 0), 'load_case requires an OpenMDAO version later than 3.27.0')
     @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_integrated_param_gauss_lobatto(self):
         import numpy as np

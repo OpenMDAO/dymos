@@ -11,8 +11,6 @@ from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
 from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
 
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
-
 
 @use_tempdirs
 class TestBalancedFieldLengthRestart(unittest.TestCase):
@@ -251,7 +249,6 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         assert_near_equal(sol_results.get_val('traj.rto.timeseries.states:r')[-1], 2016, tolerance=0.01)
         assert_near_equal(sim_results.get_val('traj.rto.timeseries.states:r')[-1], 2016, tolerance=0.01)
 
-    @unittest.skipIf(om_version <= (3, 27, 0), 'load_case requires an OpenMDAO version later than 3.27.0')
     @require_pyoptsparse(optimizer='IPOPT')
     @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"),
                          reason='Test requires OpenMDAO 3.23.0 or later.')

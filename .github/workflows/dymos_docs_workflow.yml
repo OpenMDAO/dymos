@@ -177,12 +177,12 @@ jobs:
         shell: bash -l {0}
         run: |
           echo "============================================================="
-          echo "Test against P84_load_case2 branch"
+          echo "Install OpenMDAO"
           echo "============================================================="
           if [[ "${{ matrix.OPENMDAO }}" == "dev" ]]; then
             pip install git+https://github.com/swryan/OpenMDAO@P84_load_case2
           elif [[ "${{ matrix.OPENMDAO }}" == "latest" ]]; then
-            pip install git+https://github.com/swryan/OpenMDAO@P84_load_case2
+            pip install openmdao
           else
             pip install openmdao==${{ matrix.OPENMDAO }}
           fi

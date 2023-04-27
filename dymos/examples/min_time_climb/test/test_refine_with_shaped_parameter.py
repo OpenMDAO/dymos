@@ -4,15 +4,11 @@ from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
-import openmdao
 import openmdao.api as om
-
 from dymos.models.atmosphere import USatm1976Comp
 from dymos.examples.min_time_climb.aero import AeroGroup
 from dymos.examples.min_time_climb.prop import PropGroup
 from dymos.models.eom import FlightPathEOM2D
-
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 class _TestODE(om.Group):
@@ -149,7 +145,6 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     return p
 
 
-@unittest.skipIf(om_version <= (3, 27, 0), 'refinement requires an OpenMDAO version later than 3.27.0')
 @use_tempdirs
 class TestRefineShapedStaticParam(unittest.TestCase):
 
