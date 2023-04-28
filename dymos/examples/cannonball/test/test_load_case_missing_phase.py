@@ -166,7 +166,7 @@ class TestTwoPhaseCannonballLoadCase(unittest.TestCase):
         p.set_val('traj.descent.states:gam', descent.interp('gam', [0, -45]), units='deg')
 
         case = om.CaseReader('dymos_solution.db').get_case('final')
-        if om_version < (3, 25, 1):
+        if om_version < (3, 26, 1):
             dm.load_case(p, previous_solution=case)
         else:
             p.load_case(case)
