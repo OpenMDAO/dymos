@@ -2151,8 +2151,9 @@ class Phase(om.Group):
             times.  This instance has not yet been setup.
         """
         from .simulation_phase import SimulationPhase
-        sim_phase = SimulationPhase(from_phase=self, times_per_seg=times_per_seg, atol=atol, rtol=rtol,
-                                    first_step=first_step, max_step=max_step, reports=reports)
+        sim_phase = SimulationPhase(from_phase=self, times_per_seg=times_per_seg, method=method,
+                                    atol=atol, rtol=rtol, first_step=first_step, max_step=max_step,
+                                    reports=reports)
 
         return sim_phase
 
