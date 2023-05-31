@@ -17,6 +17,6 @@ options.declare('plots', default='bokeh', values=['matplotlib', 'bokeh'],
 options.declare('notebook_mode', default=False, types=bool,
                 desc='If True, provide notebook-enhanced plots and outputs.')
 
-options.declare('use_timeseries_prefix', default=True, types=bool,
+options.declare('use_timeseries_prefix', default=False, types=bool,
                 desc='If True, prefix timeseries outputs with the variable type for states, times, controls,'
                      'and parameters.')
