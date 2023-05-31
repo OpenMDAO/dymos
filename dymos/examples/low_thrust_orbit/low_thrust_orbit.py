@@ -153,9 +153,22 @@ class LowThrustOrbitODE(om.ExplicitComponent):
 p = om.Problem()
 
 p.driver = om.pyOptSparseDriver()
-p.driver.options['optimizer'] = 'SNOPT'
-p.driver.opt_settings['Verify level'] = 3
-p.driver.opt_settings['iSumm'] = 6
+p.driver.options['optimizer'] = 'IPOPT'
+p.driver.opt_settings['mu_init'] = 1e-3
+p.driver.opt_settings['max_iter'] = 500
+p.driver.opt_settings['acceptable_tol'] = 1e-3
+p.driver.opt_settings['constr_viol_tol'] = 1e-3
+p.driver.opt_settings['compl_inf_tol'] = 1e-3
+p.driver.opt_settings['acceptable_iter'] = 0
+p.driver.opt_settings['tol'] = 1e-3
+p.driver.opt_settings['print_level'] = 0
+p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
+p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+p.driver.opt_settings['mu_strategy'] = 'monotone'
+p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
+# p.driver.options['optimizer'] = 'SNOPT'
+# p.driver.opt_settings['Verify level'] = 3
+# p.driver.opt_settings['iSumm'] = 6
 # p.driver.opt_settings['Major optimality tolerance'] = 1.0E-5
 p.driver.declare_coloring()
 # p.driver.options['debug_print'] = ['desvars','ln_cons','nl_cons','objs']
@@ -166,11 +179,11 @@ traj = dm.Trajectory()
 traj.add_parameter('T', val=0.019779542235, units='N', targets={'spiral': ['T']}, opt=False)
 traj.add_parameter('Isp', val=450, units='s', targets={'spiral': ['Isp']}, opt=False)
 
-tx = dm.Radau(num_segments=35, order=4, compressed=True) #solve_segments='forward')
+tx = dm.Radau(num_segments=30, order=4, compressed=True) #solve_segments='forward')
 spiral = dm.Phase(ode_class=LowThrustOrbitODE, transcription=tx)
 spiral = traj.add_phase('spiral', spiral)
 
-spiral.set_time_options(fix_initial=True,# duration_bounds=(60000, 90000),
+spiral.set_time_options(fix_initial=True, duration_bounds=(50, 90000),
                         units='s')
 # spiral.set_time_options(fix_initial=True, fix_duration=True, units='s')
 # NOTE need defect scalars?
@@ -182,17 +195,17 @@ spiral.add_state('k', fix_initial=True, rate_source='k_dot', lower=-1, upper=1)
 spiral.add_state('L', fix_initial=True, rate_source='L_dot', lower=0.0, scaler=1e-2, defect_ref=1e-2)
 spiral.add_state('m', fix_initial=True, rate_source='m_dot', lower=0.01, upper=1.0)
 
-spiral.add_control('tau', opt=True, rate_continuity=False, rate2_continuity=False,
-                #    rate_continuity_scaler=1e-3,
+spiral.add_control('tau', opt=True, rate_continuity=True, rate2_continuity=False,
+                   rate_continuity_scaler=1e-3,
                    units='unitless', lower=-50, upper=0)
-spiral.add_control('u_r', opt=True, rate_continuity=False, rate2_continuity=False,
-                #    rate_continuity_scaler=1e-3,
+spiral.add_control('u_r', opt=True, rate_continuity=True, rate2_continuity=False,
+                   rate_continuity_scaler=1e-3,
                    units='unitless', lower=-1, upper=1)
-spiral.add_control('u_theta', opt=True, rate_continuity=False, rate2_continuity=False,
-                #    rate_continuity_scaler=1e-3,
+spiral.add_control('u_theta', opt=True, rate_continuity=True, rate2_continuity=False,
+                   rate_continuity_scaler=1e-3,
                    units='unitless', lower=-1, upper=1)
-spiral.add_control('u_h', opt=True, rate_continuity=False, rate2_continuity=False,
-                #    rate_continuity_scaler=1e-3,
+spiral.add_control('u_h', opt=True, rate_continuity=True, rate2_continuity=False,
+                   rate_continuity_scaler=1e-3,
                    units='unitless', lower=-1, upper=1)
 
 spiral.add_objective('m', loc='final', scaler=-1)
@@ -217,14 +230,15 @@ p.setup(check=True, force_alloc_complex=True)
 # p.set_val('traj.spiral.initial_states:L', 0)
 # p.set_val('traj.spiral.initial_states:m', 1)
 
-p.set_val('traj.spiral.states:p', 6655942.00010410789)
+p.set_val('traj.spiral.states:p', spiral.interp('p', [6655942.00010410789, 12194239.065442713]))
 p.set_val('traj.spiral.states:f', 0.0)
 p.set_val('traj.spiral.states:g', 0.0)
 p.set_val('traj.spiral.states:h', -0.25396764647494)
 p.set_val('traj.spiral.states:k', 0)
 p.set_val('traj.spiral.states:L', np.pi)
-p.set_val('traj.spiral.states:m', 1)
+p.set_val('traj.spiral.states:m', spiral.interp('m', [1, 0.4]))
 p.set_val('traj.spiral.t_initial', 0.0)
+# p.det_val('traj.spiral.t_duration', 80_000.0)
 # p.set_val('traj.spiral.t_duration', 5_000.0)
 # p.set_val('traj.spiral.controls:u_theta', 1)
 
