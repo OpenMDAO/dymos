@@ -265,7 +265,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         self.assertFalse(failed, msg='optimization failed')
 
         # Test the results
-        state_path = 'states:y' if dm.options['use_timeseries_prefix'] else 'x'
+        state_path = 'states:y' if dm.options['use_timeseries_prefix'] else 'y'
         self.assertGreaterEqual(np.min(p.get_val(f'traj0.phase0.timeseries.{state_path}')), 4.999999)
 
     @require_pyoptsparse(optimizer='IPOPT')
@@ -320,7 +320,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         self.assertFalse(failed, msg='optimization failed')
 
         # Test the results
-        state_path = 'states:y' if dm.options['use_timeseries_prefix'] else 'x'
+        state_path = 'states:y' if dm.options['use_timeseries_prefix'] else 'y'
         self.assertGreaterEqual(np.min(p.get_val(f'traj0.phase0.timeseries.{state_path}')), 4.999999)
 
 

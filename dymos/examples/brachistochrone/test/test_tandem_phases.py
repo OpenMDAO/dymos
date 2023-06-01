@@ -139,8 +139,8 @@ class TestTandemPhases(unittest.TestCase):
         #
         p.model.connect('phase0.t_duration', 'phase1.t_duration')
 
-        p.model.connect('phase0.timeseries2.controls:theta', 'phase1.controls:theta')
-        p.model.connect('phase0.timeseries2.states:v', 'phase1.controls:v')
+        p.model.connect('phase0.timeseries2.theta', 'phase1.controls:theta')
+        p.model.connect('phase0.timeseries2.v', 'phase1.controls:v')
 
         # Minimize time at the end of the phase
         # phase1.add_objective('time', loc='final', scaler=1)

@@ -194,7 +194,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
 
         io_meta = p.model.phase0.timeseries.timeseries_comp.get_io_metadata(
             iotypes=('input', 'output'), get_remote=True)
-        self.assertEqual(io_meta['controls:theta']['units'], 'rad*s')
+        self.assertEqual(io_meta['theta']['units'], 'rad*s')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
         ax.plot(t_exp, theta_exp, 'b-', label='simulated')
