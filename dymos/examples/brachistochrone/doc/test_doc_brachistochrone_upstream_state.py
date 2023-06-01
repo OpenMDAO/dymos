@@ -34,7 +34,7 @@ class TestBrachistochroneUpstreamState(unittest.TestCase):
         # Connect x0 to the state error component so we can constrain the given value of x0
         # to be equal to the value chosen in the phase.
         p.model.connect('x0', 'state_error_comp.x0_target')
-        p.model.connect('traj.phase0.timeseries.states:x', 'state_error_comp.x0_actual', src_indices=[0], flat_src_indices=True)
+        p.model.connect('traj.phase0.timeseries.x', 'state_error_comp.x0_actual', src_indices=[0], flat_src_indices=True)
 
         #
         # Define a Trajectory object
@@ -132,12 +132,12 @@ class TestBrachistochroneUpstreamState(unittest.TestCase):
         # Plot the results
         fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 4.5))
 
-        axes[0].plot(p.get_val('traj.phase0.timeseries.states:x'),
-                     p.get_val('traj.phase0.timeseries.states:y'),
+        axes[0].plot(p.get_val('traj.phase0.timeseries.x'),
+                     p.get_val('traj.phase0.timeseries.y'),
                      'ro', label='solution')
 
-        axes[0].plot(sim_out.get_val('traj.phase0.timeseries.states:x'),
-                     sim_out.get_val('traj.phase0.timeseries.states:y'),
+        axes[0].plot(sim_out.get_val('traj.phase0.timeseries.x'),
+                     sim_out.get_val('traj.phase0.timeseries.y'),
                      'b-', label='simulation')
 
         axes[0].set_xlabel('x (m)')
@@ -146,11 +146,11 @@ class TestBrachistochroneUpstreamState(unittest.TestCase):
         axes[0].grid()
 
         axes[1].plot(p.get_val('traj.phase0.timeseries.time'),
-                     p.get_val('traj.phase0.timeseries.controls:theta', units='deg'),
+                     p.get_val('traj.phase0.timeseries.theta', units='deg'),
                      'ro', label='solution')
 
         axes[1].plot(sim_out.get_val('traj.phase0.timeseries.time'),
-                     sim_out.get_val('traj.phase0.timeseries.controls:theta', units='deg'),
+                     sim_out.get_val('traj.phase0.timeseries.theta', units='deg'),
                      'b-', label='simulation')
 
         axes[1].set_xlabel('time (s)')

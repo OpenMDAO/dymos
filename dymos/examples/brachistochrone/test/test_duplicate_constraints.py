@@ -31,18 +31,18 @@ class TestDuplicateConstraints(unittest.TestCase):
         t_initial = p.get_val('traj0.phase0.timeseries.time')[0]
         tf = p.get_val('traj0.phase0.timeseries.time')[-1]
 
-        x0 = p.get_val('traj0.phase0.timeseries.states:x')[0]
-        xf = p.get_val('traj0.phase0.timeseries.states:x')[-1]
+        x0 = p.get_val('traj0.phase0.timeseries.x')[0]
+        xf = p.get_val('traj0.phase0.timeseries.x')[-1]
 
-        y0 = p.get_val('traj0.phase0.timeseries.states:y')[0]
-        yf = p.get_val('traj0.phase0.timeseries.states:y')[-1]
+        y0 = p.get_val('traj0.phase0.timeseries.y')[0]
+        yf = p.get_val('traj0.phase0.timeseries.y')[-1]
 
-        v0 = p.get_val('traj0.phase0.timeseries.states:v')[0]
-        vf = p.get_val('traj0.phase0.timeseries.states:v')[-1]
+        v0 = p.get_val('traj0.phase0.timeseries.v')[0]
+        vf = p.get_val('traj0.phase0.timeseries.v')[-1]
 
         g = p.get_val('traj0.phase0.timeseries.parameters:g')[0]
 
-        thetaf = p.get_val('traj0.phase0.timeseries.controls:theta', units='deg')[-1]
+        thetaf = p.get_val('traj0.phase0.timeseries.theta', units='deg')[-1]
 
         assert_near_equal(t_initial, 0.0, tolerance=0.01)
         assert_near_equal(x0, 0.0, tolerance=0.01)
@@ -565,8 +565,8 @@ class TestDuplicateConstraints(unittest.TestCase):
 
         p.run_model()
 
-        v = p.get_val('traj0.phase0.timeseries.states:v')
-        theta = p.get_val('traj0.phase0.timeseries.controls:theta', units='rad')
+        v = p.get_val('traj0.phase0.timeseries.v')
+        theta = p.get_val('traj0.phase0.timeseries.theta', units='rad')
 
         check_calc = v / np.sin(theta)
         check_1 = p.get_val('traj0.phase0.timeseries.check')

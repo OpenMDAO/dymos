@@ -79,15 +79,15 @@ class TestRunProblem(unittest.TestCase):
         J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) *
                    np.exp(-2 * val) - (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
                           ui,
                           tolerance=5e-4)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[-1],
                           uf,
                           tolerance=5e-4)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.xL')[-1],
                           J,
                           tolerance=5e-4)
 
@@ -146,15 +146,15 @@ class TestRunProblem(unittest.TestCase):
         J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) *
                    np.exp(-2 * val) - (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
                           ui,
                           tolerance=5e-4)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[-1],
                           uf,
                           tolerance=5e-4)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.xL')[-1],
                           J,
                           tolerance=5e-4)
 
@@ -211,15 +211,15 @@ class TestRunProblem(unittest.TestCase):
         J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) *
                    np.exp(-2 * val) - (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
                           ui,
                           tolerance=1e-2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[-1],
                           uf,
                           tolerance=1e-2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.xL')[-1],
                           J,
                           tolerance=5e-4)
 
@@ -564,16 +564,16 @@ class TestRunProblem(unittest.TestCase):
         tq = q.get_val('traj.phase0.timeseries.time')[:, 0]
         nodup = np.insert(tq[1:] != tq[:-1], 0, True)
         tq = tq[nodup]
-        x1q = q.get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
-        x0q = q.get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
-        uq = q.get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
+        x1q = q.get_val('traj.phase0.timeseries.x1')[:, 0][nodup]
+        x0q = q.get_val('traj.phase0.timeseries.x0')[:, 0][nodup]
+        uq = q.get_val('traj.phase0.timeseries.u')[:, 0][nodup]
 
         ts = s.get_val('traj.phase0.timeseries.time')[:, 0]
         nodup = np.insert(ts[1:] != ts[:-1], 0, True)
         ts = ts[nodup]
-        x1s = s.get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
-        x0s = s.get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
-        us = s.get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
+        x1s = s.get_val('traj.phase0.timeseries.x1')[:, 0][nodup]
+        x0s = s.get_val('traj.phase0.timeseries.x0')[:, 0][nodup]
+        us = s.get_val('traj.phase0.timeseries.u')[:, 0][nodup]
 
         # create interpolation functions so that values can be looked up at matching time points
         fx1s = interp1d(ts, x1s, kind='cubic')
@@ -610,16 +610,16 @@ class TestRunProblem(unittest.TestCase):
         tq = q.get_val('traj.phase0.timeseries.time')[:, 0]
         nodup = np.insert(tq[1:] != tq[:-1], 0, True)
         tq = tq[nodup]
-        x1q = q.get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
-        x0q = q.get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
-        uq = q.get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
+        x1q = q.get_val('traj.phase0.timeseries.x1')[:, 0][nodup]
+        x0q = q.get_val('traj.phase0.timeseries.x0')[:, 0][nodup]
+        uq = q.get_val('traj.phase0.timeseries.u')[:, 0][nodup]
 
         ts = s.get_val('traj.phase0.timeseries.time')[:, 0]
         nodup = np.insert(ts[1:] != ts[:-1], 0, True)
         ts = ts[nodup]
-        x1s = s.get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
-        x0s = s.get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
-        us = s.get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
+        x1s = s.get_val('traj.phase0.timeseries.x1')[:, 0][nodup]
+        x0s = s.get_val('traj.phase0.timeseries.x0')[:, 0][nodup]
+        us = s.get_val('traj.phase0.timeseries.u')[:, 0][nodup]
 
         # create interpolation functions so that values can be looked up at matching time points
         fx1s = interp1d(ts, x1s, kind='cubic')

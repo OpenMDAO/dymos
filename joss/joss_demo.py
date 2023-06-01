@@ -131,12 +131,12 @@ sim_out = traj.simulate()
 # Plot the results
 fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 4.5))
 
-axes[0].plot(p.get_val('traj.phase0.timeseries.states:x'),
-             p.get_val('traj.phase0.timeseries.states:y'),
+axes[0].plot(p.get_val('traj.phase0.timeseries.x'),
+             p.get_val('traj.phase0.timeseries.y'),
              'ro', label='solution')
 
-axes[0].plot(sim_out.get_val('traj.phase0.timeseries.states:x'),
-             sim_out.get_val('traj.phase0.timeseries.states:y'),
+axes[0].plot(sim_out.get_val('traj.phase0.timeseries.x'),
+             sim_out.get_val('traj.phase0.timeseries.y'),
              'b-', label='simulation')
 
 axes[0].set_xlabel('x (m)')
@@ -145,12 +145,12 @@ axes[0].legend()
 axes[0].grid()
 
 axes[1].plot(p.get_val('traj.phase0.timeseries.time'),
-             p.get_val('traj.phase0.timeseries.controls:theta',
+             p.get_val('traj.phase0.timeseries.theta',
                        units='deg'),
              'ro', label='solution')
 
 axes[1].plot(sim_out.get_val('traj.phase0.timeseries.time'),
-             sim_out.get_val('traj.phase0.timeseries.controls:theta',
+             sim_out.get_val('traj.phase0.timeseries.theta',
                              units='deg'),
              'b-', label='simulation')
 

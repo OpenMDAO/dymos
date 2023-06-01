@@ -120,9 +120,9 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         exp_out = traj.simulate()
 
-        plot_results([('traj.phase0.timeseries.states:x', 'traj.phase0.timeseries.states:y',
+        plot_results([('traj.phase0.timeseries.x', 'traj.phase0.timeseries.y',
                        'x (m)', 'y (m)'),
-                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.controls:theta',
+                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.theta',
                        'time (s)', 'theta (deg)')],
                      title='Brachistochrone Solution\nHigh-Order Gauss-Lobatto Method',
                      p_sol=p, p_sim=exp_out)
@@ -203,9 +203,9 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         exp_out = traj.simulate()
 
-        plot_results([('traj.phase0.timeseries.states:x', 'traj.phase0.timeseries.states:y',
+        plot_results([('traj.phase0.timeseries.x', 'traj.phase0.timeseries.y',
                        'x (m)', 'y (m)'),
-                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.controls:theta',
+                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.theta',
                        'time (s)', 'theta (deg)')],
                      title='Brachistochrone Solution\nRadau Pseudospectral Method',
                      p_sol=p, p_sim=exp_out)
@@ -290,9 +290,9 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         exp_out = traj.simulate()
 
-        plot_results([('traj.phase0.timeseries.states:x', 'traj.phase0.timeseries.states:y',
+        plot_results([('traj.phase0.timeseries.x', 'traj.phase0.timeseries.y',
                        'x (m)', 'y (m)'),
-                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.controls:theta',
+                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.theta',
                        'time (s)', 'theta (deg)')],
                      title='Brachistochrone Solution\nRadau Pseudospectral Method',
                      p_sol=p, p_sim=exp_out)
@@ -385,9 +385,9 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         exp_out = traj.simulate()
 
-        plot_results([('traj.phase0.timeseries.states:x', 'traj.phase0.timeseries.states:y',
+        plot_results([('traj.phase0.timeseries.x', 'traj.phase0.timeseries.y',
                        'x (m)', 'y (m)'),
-                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.controls:theta',
+                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.theta',
                        'time (s)', 'theta (deg)')],
                      title='Brachistochrone Solution\nRadau Pseudospectral Method',
                      p_sol=p, p_sim=exp_out)

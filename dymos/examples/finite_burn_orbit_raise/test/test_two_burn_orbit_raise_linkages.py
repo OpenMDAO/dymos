@@ -385,7 +385,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         p.run_driver()
 
-        assert_near_equal(p.get_val('traj.burn2.timeseries.states:deltav')[-1],
+        assert_near_equal(p.get_val('traj.burn2.timeseries.deltav')[-1],
                           0.3995,
                           tolerance=2.0E-3)
 
@@ -421,9 +421,9 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                      for phs in ['burn1', 'coast', 'burn2'])
         y_sol = dict((phs, p.get_val('traj.{0}.timeseries.pos_y'.format(phs)))
                      for phs in ['burn1', 'coast', 'burn2'])
-        dv_sol = dict((phs, p.get_val('traj.{0}.timeseries.states:deltav'.format(phs)))
+        dv_sol = dict((phs, p.get_val('traj.{0}.timeseries.deltav'.format(phs)))
                       for phs in ['burn1', 'coast', 'burn2'])
-        u1_sol = dict((phs, p.get_val('traj.{0}.timeseries.controls:u1'.format(phs), units='deg'))
+        u1_sol = dict((phs, p.get_val('traj.{0}.timeseries.u1'.format(phs), units='deg'))
                       for phs in ['burn1', 'burn2'])
 
         t_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.time'.format(phs)))
@@ -432,9 +432,9 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                      for phs in ['burn1', 'coast', 'burn2'])
         y_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.pos_y'.format(phs)))
                      for phs in ['burn1', 'coast', 'burn2'])
-        dv_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.states:deltav'.format(phs)))
+        dv_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.deltav'.format(phs)))
                       for phs in ['burn1', 'coast', 'burn2'])
-        u1_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.controls:u1'.format(phs),
+        u1_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.u1'.format(phs),
                                             units='deg'))
                       for phs in ['burn1', 'burn2'])
 
@@ -620,14 +620,14 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # This tolerance is loosened because we're testing that the control
         # stays continuous across the trajectory phases, which isn't necessarily optimal.
-        assert_near_equal(p.get_val('traj.burn2.timeseries.states:deltav')[-1],
+        assert_near_equal(p.get_val('traj.burn2.timeseries.deltav')[-1],
                           0.3995,
                           tolerance=0.05)
 
-        burn1_u1_final = p.get_val('traj.burn1.timeseries.controls:u1')[-1, ...]
+        burn1_u1_final = p.get_val('traj.burn1.timeseries.u1')[-1, ...]
         coast_u1_initial = p.get_val('traj.coast.parameter_vals:u1')[0, ...]
         coast_u1_final = p.get_val('traj.coast.parameter_vals:u1')[-1, ...]
-        burn2_u1_initial = p.get_val('traj.burn2.timeseries.controls:u1')[0, ...]
+        burn2_u1_initial = p.get_val('traj.burn2.timeseries.u1')[0, ...]
 
         assert_near_equal(burn1_u1_final - coast_u1_initial, 0.0, 1e-12)
         assert_near_equal(coast_u1_final - burn2_u1_initial, 0.0, 1e-12)
@@ -779,7 +779,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         p.run_driver()
 
-        assert_near_equal(p.get_val('traj.burn2.timeseries.states:deltav')[-1],
+        assert_near_equal(p.get_val('traj.burn2.timeseries.deltav')[-1],
                           0.3995,
                           tolerance=2.0E-3)
 
@@ -933,7 +933,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         p.run_driver()
 
-        assert_near_equal(p.get_val('traj.burn2.timeseries.states:deltav')[-1],
+        assert_near_equal(p.get_val('traj.burn2.timeseries.deltav')[-1],
                           0.3995,
                           tolerance=2.0E-3)
 
@@ -945,8 +945,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
             for phs in ['burn1', 'coast', 'burn2']:
                 x = np.array(prob.get_val('traj.{0}.timeseries.pos_x'.format(phs))).flatten()
                 y = np.array(prob.get_val('traj.{0}.timeseries.pos_y'.format(phs))).flatten()
-                t = np.array(prob.get_val('traj.{0}.timeseries.states:theta'.format(phs))).flatten()
-                r = np.array(prob.get_val('traj.{0}.timeseries.states:r'.format(phs))).flatten()
+                t = np.array(prob.get_val('traj.{0}.timeseries.theta'.format(phs))).flatten()
+                r = np.array(prob.get_val('traj.{0}.timeseries.r'.format(phs))).flatten()
 
                 xerr = x - r * np.cos(t)
                 yerr = y - r * np.sin(t)
@@ -1097,7 +1097,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         p.run_driver()
 
-        assert_near_equal(p.get_val('traj.burn2.timeseries.states:deltav')[-1],
+        assert_near_equal(p.get_val('traj.burn2.timeseries.deltav')[-1],
                           0.3995,
                           tolerance=2.0E-3)
 
@@ -1109,8 +1109,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
             for phs in ['burn1', 'coast', 'burn2']:
                 x = np.array(prob.get_val('traj.{0}.timeseries.pos_x'.format(phs))).flatten()
                 y = np.array(prob.get_val('traj.{0}.timeseries.pos_y'.format(phs))).flatten()
-                t = np.array(prob.get_val('traj.{0}.timeseries.states:theta'.format(phs))).flatten()
-                r = np.array(prob.get_val('traj.{0}.timeseries.states:r'.format(phs))).flatten()
+                t = np.array(prob.get_val('traj.{0}.timeseries.theta'.format(phs))).flatten()
+                r = np.array(prob.get_val('traj.{0}.timeseries.r'.format(phs))).flatten()
 
                 xerr = x - r * np.cos(t)
                 yerr = y - r * np.sin(t)

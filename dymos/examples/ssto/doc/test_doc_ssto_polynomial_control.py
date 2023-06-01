@@ -274,15 +274,15 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
         #
         fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 8))
 
-        axes[0].plot(p.get_val('traj.phase0.timeseries.states:x'),
-                     p.get_val('traj.phase0.timeseries.states:y'),
+        axes[0].plot(p.get_val('traj.phase0.timeseries.x'),
+                     p.get_val('traj.phase0.timeseries.y'),
                      marker='o',
                      ms=4,
                      linestyle='None',
                      label='solution')
 
-        axes[0].plot(exp_out.get_val('traj.phase0.timeseries.states:x'),
-                     exp_out.get_val('traj.phase0.timeseries.states:y'),
+        axes[0].plot(exp_out.get_val('traj.phase0.timeseries.x'),
+                     exp_out.get_val('traj.phase0.timeseries.y'),
                      marker=None,
                      linestyle='-',
                      label='simulation')

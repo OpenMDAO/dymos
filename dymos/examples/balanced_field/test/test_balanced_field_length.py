@@ -236,18 +236,18 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
 
         sol_results = om.CaseReader('dymos_solution.db').get_case('final')
 
-        assert_near_equal(sol_results.get_val('traj.climb.timeseries.states:r')[-1], 2016, tolerance=0.01)
+        assert_near_equal(sol_results.get_val('traj.climb.timeseries.r')[-1], 2016, tolerance=0.01)
 
         dm.run_problem(p, run_driver=True, simulate=True, restart='dymos_solution.db')
 
         sol_results = om.CaseReader('dymos_solution.db').get_case('final')
         sim_results = om.CaseReader('dymos_simulation.db').get_case('final')
 
-        assert_near_equal(sol_results.get_val('traj.climb.timeseries.states:r')[-1], 2016, tolerance=0.01)
-        assert_near_equal(sim_results.get_val('traj.climb.timeseries.states:r')[-1], 2016, tolerance=0.01)
+        assert_near_equal(sol_results.get_val('traj.climb.timeseries.r')[-1], 2016, tolerance=0.01)
+        assert_near_equal(sim_results.get_val('traj.climb.timeseries.r')[-1], 2016, tolerance=0.01)
 
-        assert_near_equal(sol_results.get_val('traj.rto.timeseries.states:r')[-1], 2016, tolerance=0.01)
-        assert_near_equal(sim_results.get_val('traj.rto.timeseries.states:r')[-1], 2016, tolerance=0.01)
+        assert_near_equal(sol_results.get_val('traj.rto.timeseries.r')[-1], 2016, tolerance=0.01)
+        assert_near_equal(sim_results.get_val('traj.rto.timeseries.r')[-1], 2016, tolerance=0.01)
 
     @require_pyoptsparse(optimizer='IPOPT')
     @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"),
@@ -258,7 +258,7 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
 
         sol_results = om.CaseReader('dymos_solution.db').get_case('final')
 
-        assert_near_equal(sol_results.get_val('traj.climb.timeseries.states:r')[-1], 2016,
+        assert_near_equal(sol_results.get_val('traj.climb.timeseries.r')[-1], 2016,
                           tolerance=0.01)
 
         dm.run_problem(p, run_driver=True, simulate=True, restart='dymos_simulation.db')
@@ -266,14 +266,14 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         sol_results = om.CaseReader('dymos_solution.db').get_case('final')
         sim_results = om.CaseReader('dymos_simulation.db').get_case('final')
 
-        assert_near_equal(sol_results.get_val('traj.climb.timeseries.states:r')[-1], 2016,
+        assert_near_equal(sol_results.get_val('traj.climb.timeseries.r')[-1], 2016,
                           tolerance=0.01)
-        assert_near_equal(sim_results.get_val('traj.climb.timeseries.states:r')[-1], 2016,
+        assert_near_equal(sim_results.get_val('traj.climb.timeseries.r')[-1], 2016,
                           tolerance=0.01)
 
-        assert_near_equal(sol_results.get_val('traj.rto.timeseries.states:r')[-1], 2016,
+        assert_near_equal(sol_results.get_val('traj.rto.timeseries.r')[-1], 2016,
                           tolerance=0.01)
-        assert_near_equal(sim_results.get_val('traj.rto.timeseries.states:r')[-1], 2016,
+        assert_near_equal(sim_results.get_val('traj.rto.timeseries.r')[-1], 2016,
                           tolerance=0.01)
 
 

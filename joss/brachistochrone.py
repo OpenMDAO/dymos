@@ -92,8 +92,8 @@ dm.run_problem(p, make_plots=True, simulate=True)
 
 # Additional custom plot of y vs x to show the actual wire shape
 fig, ax = plt.subplots(figsize=(6.4, 3.2))
-x = p.get_val('traj.phase0.timeseries.states:x', units='m')
-y = p.get_val('traj.phase0.timeseries.states:y', units='m')
+x = p.get_val('traj.phase0.timeseries.x', units='m')
+y = p.get_val('traj.phase0.timeseries.y', units='m')
 ax.plot(x,y, marker='o')
 ax.set_xlabel('x (m)')
 ax.set_ylabel('y (m)')

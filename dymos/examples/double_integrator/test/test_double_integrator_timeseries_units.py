@@ -66,11 +66,11 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
     def _assert_results(self, p, traj=True, tol=1.0E-4):
         if traj:
-            x = p.get_val('traj.phase0.timeseries.states:x')
-            v = p.get_val('traj.phase0.timeseries.states:v')
+            x = p.get_val('traj.phase0.timeseries.x')
+            v = p.get_val('traj.phase0.timeseries.v')
         else:
-            x = p.get_val('phase0.timeseries.states:x')
-            v = p.get_val('phase0.timeseries.states:v')
+            x = p.get_val('phase0.timeseries.x')
+            v = p.get_val('phase0.timeseries.v')
 
         assert_near_equal(x[0], 0.0, tolerance=tol)
         assert_near_equal(x[-1], 0.25, tolerance=tol)

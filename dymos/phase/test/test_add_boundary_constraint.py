@@ -114,7 +114,7 @@ class TestAddBoundaryConstraint(unittest.TestCase):
 
         p.run_driver()
 
-        assert_near_equal(p.get_val('traj0.phase0.timeseries.states:pos')[-1, ...],
+        assert_near_equal(p.get_val('traj0.phase0.timeseries.pos')[-1, ...],
                           [10, 5], tolerance=1.0E-5)
 
     def test_invalid_expression(self):

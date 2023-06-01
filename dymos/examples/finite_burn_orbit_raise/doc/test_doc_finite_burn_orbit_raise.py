@@ -207,9 +207,9 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
                      for phs in ['burn1', 'coast', 'burn2'])
         y_sol = dict((phs, p.get_val('traj.{0}.timeseries.pos_y'.format(phs)))
                      for phs in ['burn1', 'coast', 'burn2'])
-        dv_sol = dict((phs, p.get_val('traj.{0}.timeseries.states:deltav'.format(phs)))
+        dv_sol = dict((phs, p.get_val('traj.{0}.timeseries.deltav'.format(phs)))
                       for phs in ['burn1', 'coast', 'burn2'])
-        u1_sol = dict((phs, p.get_val('traj.{0}.timeseries.controls:u1'.format(phs), units='deg'))
+        u1_sol = dict((phs, p.get_val('traj.{0}.timeseries.u1'.format(phs), units='deg'))
                       for phs in ['burn1', 'burn2'])
 
         t_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.time'.format(phs)))
@@ -218,9 +218,9 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
                      for phs in ['burn1', 'coast', 'burn2'])
         y_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.pos_y'.format(phs)))
                      for phs in ['burn1', 'coast', 'burn2'])
-        dv_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.states:deltav'.format(phs)))
+        dv_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.deltav'.format(phs)))
                       for phs in ['burn1', 'coast', 'burn2'])
-        u1_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.controls:u1'.format(phs),
+        u1_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.u1'.format(phs),
                                             units='deg'))
                       for phs in ['burn1', 'burn2'])
 

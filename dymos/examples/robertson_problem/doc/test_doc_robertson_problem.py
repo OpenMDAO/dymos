@@ -92,16 +92,16 @@ class TestRobertsonProblemForDocs(unittest.TestCase):
 
         p.run_model()
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:x0')[-1], 0.71583161, tolerance=1E-4)
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:y0')[-1], 9.18571144e-06, tolerance=1E-4)
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:z0')[-1], 0.2841592, tolerance=1E-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.x0')[-1], 0.71583161, tolerance=1E-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.y0')[-1], 9.18571144e-06, tolerance=1E-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.z0')[-1], 0.2841592, tolerance=1E-4)
 
         t_sim = p.get_val('traj.phase0.timeseries.time')
 
         states = ['x0', 'y0', 'z0']
         fig, axes = plt.subplots(len(states), 1)
         for i, state in enumerate(states):
-            axes[i].plot(t_sim, p.get_val(f'traj.phase0.timeseries.states:{state}'), 'o')
+            axes[i].plot(t_sim, p.get_val(f'traj.phase0.timeseries.{state}'), 'o')
             axes[i].set_ylabel(state[0])
         axes[-1].set_xlabel('time (s)')
         plt.tight_layout()

@@ -167,7 +167,7 @@ def eval_ode_on_grid(phase, transcription):
         p_refine.set_val(f't_duration', t_duration)
 
     for name, options in phase.state_options.items():
-        x_prev = phase.get_val(f'timeseries.states:{name}', units=options['units'])
+        x_prev = phase.get_val(f'timeseries.{name}', units=options['units'])
         x[name] = np.dot(L, x_prev)
         targets = get_targets(ode, name, options['targets'])
         if targets:
@@ -178,7 +178,7 @@ def eval_ode_on_grid(phase, transcription):
         rate_targets = get_targets(ode, f'{name}_rate', options['rate_targets'])
         rate2_targets = get_targets(ode, f'{name}_rate12', options['rate2_targets'])
 
-        u_prev = phase.get_val(f'timeseries.controls:{name}', units=options['units'])
+        u_prev = phase.get_val(f'timeseries.{name}', units=options['units'])
         u[name] = np.dot(L, u_prev)
         if targets:
             p_refine.set_val(f'controls:{name}', u[name])
@@ -198,7 +198,7 @@ def eval_ode_on_grid(phase, transcription):
         rate_targets = get_targets(ode, f'{name}_rate', options['rate_targets'])
         rate2_targets = get_targets(ode, f'{name}_rate2', options['rate2_targets'])
 
-        p_prev = phase.get_val(f'timeseries.polynomial_controls:{name}', units=options['units'])
+        p_prev = phase.get_val(f'timeseries.{name}', units=options['units'])
         p[name] = np.dot(L, p_prev)
         if targets:
             p_refine.set_val(f'polynomial_controls:{name}', p[name])

@@ -111,21 +111,21 @@ def plot_trajectory(p, exp_out):
                 'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.time'),
                 'descent': exp_out.get_val('traj.descent.timeseries.time')}
 
-    r_imp = {'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.states:r'),
-             'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.states:r'),
-             'descent': p.get_val('traj.descent.timeseries.states:r')}
+    r_imp = {'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.r'),
+             'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.r'),
+             'descent': p.get_val('traj.descent.timeseries.r')}
 
-    r_exp = {'ballistic_ascent': exp_out.get_val('traj.ballistic_ascent.timeseries.states:r'),
-             'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.states:r'),
-             'descent': exp_out.get_val('traj.descent.timeseries.states:r')}
+    r_exp = {'ballistic_ascent': exp_out.get_val('traj.ballistic_ascent.timeseries.r'),
+             'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.r'),
+             'descent': exp_out.get_val('traj.descent.timeseries.r')}
 
-    h_imp = {'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.states:h'),
-             'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.states:h'),
-             'descent': p.get_val('traj.descent.timeseries.states:h')}
+    h_imp = {'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.h'),
+             'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.h'),
+             'descent': p.get_val('traj.descent.timeseries.h')}
 
-    h_exp = {'ballistic_ascent': exp_out.get_val('traj.ballistic_ascent.timeseries.states:h'),
-             'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.states:h'),
-             'descent': exp_out.get_val('traj.descent.timeseries.states:h')}
+    h_exp = {'ballistic_ascent': exp_out.get_val('traj.ballistic_ascent.timeseries.h'),
+             'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.h'),
+             'descent': exp_out.get_val('traj.descent.timeseries.h')}
 
     axes.plot(r_imp['propelled_ascent'], h_imp['propelled_ascent'], 'ro', markerfacecolor='None')
     axes.plot(r_imp['ballistic_ascent'], h_imp['ballistic_ascent'], 'mo', markerfacecolor='None')
@@ -157,13 +157,13 @@ def plot_states(p, exp_out):
                 'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.time'),
                 'descent': exp_out.get_val('traj.descent.timeseries.time')}
 
-    x_imp = {phase: {state: p.get_val(f"traj.{phase}.timeseries.states:{state}", unit)
+    x_imp = {phase: {state: p.get_val(f"traj.{phase}.timeseries.{state}", unit)
                      for state, unit in zip(states, units)
                      }
              for phase in phases
              }
 
-    x_exp = {phase: {state: exp_out.get_val(f"traj.{phase}.timeseries.states:{state}", unit)
+    x_exp = {phase: {state: exp_out.get_val(f"traj.{phase}.timeseries.{state}", unit)
                      for state, unit in zip(states, units)
                      }
              for phase in phases
@@ -194,13 +194,13 @@ def plot_propelled_ascent(p, exp_out):
     t_imp = p.get_val('traj.propelled_ascent.timeseries.time', 's')
     t_exp = exp_out.get_val('traj.propelled_ascent.timeseries.time', 's')
 
-    ax[0].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.states:p', 'bar'), 'ro', markerfacecolor='None')
-    ax[0].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.states:p', 'bar'), 'r-')
+    ax[0].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.p', 'bar'), 'ro', markerfacecolor='None')
+    ax[0].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.p', 'bar'), 'r-')
     ax[0].set_ylabel('p (bar)')
     ax[0].set_ylim(bottom=0)
 
-    ax[1].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L'), 'ro', markerfacecolor='None')
-    ax[1].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L'), 'r-')
+    ax[1].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.V_w', 'L'), 'ro', markerfacecolor='None')
+    ax[1].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.V_w', 'L'), 'r-')
     ax[1].set_ylabel('$V_w$ (L)')
     ax[1].set_ylim(0, p.get_val('traj.parameters:V_b', 'L')[0])
 
@@ -209,13 +209,13 @@ def plot_propelled_ascent(p, exp_out):
     ax[2].set_ylabel('T (N)')
     ax[2].set_ylim(bottom=0)
 
-    ax[3].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.states:v', 'm/s'), 'ro', markerfacecolor='None')
-    ax[3].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.states:v', 'm/s'), 'r-')
+    ax[3].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.v', 'm/s'), 'ro', markerfacecolor='None')
+    ax[3].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.v', 'm/s'), 'r-')
     ax[3].set_ylabel('v (m/s)')
     ax[3].set_ylim(bottom=0)
 
-    ax[4].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.states:gam', 'deg'), 'ro', markerfacecolor='None')
-    ax[4].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.states:gam', 'deg'), 'r-')
+    ax[4].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.gam', 'deg'), 'ro', markerfacecolor='None')
+    ax[4].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.gam', 'deg'), 'r-')
     ax[4].set_ylabel('$\gamma$ (deg)')
     ax[4].yaxis.set_major_locator(mpl.ticker.MaxNLocator(nbins='auto', steps=[1, 1.5, 3, 4.5, 6, 9, 10]))
 
@@ -228,14 +228,14 @@ def summarize_results(water_rocket_problem):
     p = water_rocket_problem
     Entry = namedtuple('Entry', 'value unit')
     summary = {
-        'Launch angle': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[0, 0], 'deg'),
-        'Flight angle at end of propulsion': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',
+        'Launch angle': Entry(p.get_val('traj.propelled_ascent.timeseries.gam',  units='deg')[0, 0], 'deg'),
+        'Flight angle at end of propulsion': Entry(p.get_val('traj.propelled_ascent.timeseries.gam',
                                                    units='deg')[-1, 0], 'deg'),
         'Empty mass': Entry(p.get_val('traj.parameters:m_empty', units='kg')[0], 'kg'),
-        'Water volume': Entry(p.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L')[0, 0], 'L'),
-        'Maximum range': Entry(p.get_val('traj.descent.timeseries.states:r', units='m')[-1, 0], 'm'),
-        'Maximum height': Entry(p.get_val('traj.ballistic_ascent.timeseries.states:h', units='m')[-1, 0], 'm'),
-        'Maximum velocity': Entry(p.get_val('traj.propelled_ascent.timeseries.states:v', units='m/s')[-1, 0], 'm/s'),
+        'Water volume': Entry(p.get_val('traj.propelled_ascent.timeseries.V_w', 'L')[0, 0], 'L'),
+        'Maximum range': Entry(p.get_val('traj.descent.timeseries.r', units='m')[-1, 0], 'm'),
+        'Maximum height': Entry(p.get_val('traj.ballistic_ascent.timeseries.h', units='m')[-1, 0], 'm'),
+        'Maximum velocity': Entry(p.get_val('traj.propelled_ascent.timeseries.v', units='m/s')[-1, 0], 'm/s'),
     }
 
     return summary

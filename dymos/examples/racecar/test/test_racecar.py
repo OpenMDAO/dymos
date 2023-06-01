@@ -175,11 +175,11 @@ class TestRaceCarForDocs(unittest.TestCase):
         print('Optimization finished')
 
         # Get optimized time series
-        n = p.get_val('traj.phase0.timeseries.states:n')
+        n = p.get_val('traj.phase0.timeseries.n')
         s = p.get_val('traj.phase0.timeseries.s')
-        V = p.get_val('traj.phase0.timeseries.states:V')
-        thrust = p.get_val('traj.phase0.timeseries.controls:thrust')
-        delta = p.get_val('traj.phase0.timeseries.controls:delta')
+        V = p.get_val('traj.phase0.timeseries.V')
+        thrust = p.get_val('traj.phase0.timeseries.thrust')
+        delta = p.get_val('traj.phase0.timeseries.delta')
         power = p.get_val('traj.phase0.timeseries.power', units='W')
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1, ...], 22.2657, tolerance=1.0E-2)
@@ -291,7 +291,7 @@ class TestRaceCarForDocs(unittest.TestCase):
 
         # Velocity vs s
         axes[0].plot(s,
-                     p.get_val('traj.phase0.timeseries.states:V'), label='solution')
+                     p.get_val('traj.phase0.timeseries.V'), label='solution')
 
         axes[0].set_xlabel('s (m)')
         axes[0].set_ylabel('V (m/s)')
@@ -300,7 +300,7 @@ class TestRaceCarForDocs(unittest.TestCase):
 
         # n vs s
         axes[1].plot(s,
-                     p.get_val('traj.phase0.timeseries.states:n', units='m'), label='solution')
+                     p.get_val('traj.phase0.timeseries.n', units='m'), label='solution')
 
         axes[1].set_xlabel('s (m)')
         axes[1].set_ylabel('n (m)')
@@ -317,7 +317,7 @@ class TestRaceCarForDocs(unittest.TestCase):
 
         # delta vs s
         axes[3].plot(s,
-                     p.get_val('traj.phase0.timeseries.controls:delta', units=None),
+                     p.get_val('traj.phase0.timeseries.delta', units=None),
                      label='solution')
 
         axes[3].set_xlabel('s (m)')

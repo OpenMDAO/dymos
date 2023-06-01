@@ -58,20 +58,20 @@ def make_problem(transcription=GaussLobatto, num_segments=10, order=3, compresse
     phase.add_state('z_dot', rate_source='vz_dot', fix_initial=True, units=None)
 
     p.model.add_subsystem('x_periodic_bc', om.ExecComp('bc_defect=final-initial'))
-    p.model.connect('traj.phase.timeseries.states:x', 'x_periodic_bc.initial', src_indices=0, flat_src_indices=True)
-    p.model.connect('traj.phase.timeseries.states:x', 'x_periodic_bc.final', src_indices=-1, flat_src_indices=True)
+    p.model.connect('traj.phase.timeseries.x', 'x_periodic_bc.initial', src_indices=0, flat_src_indices=True)
+    p.model.connect('traj.phase.timeseries.x', 'x_periodic_bc.final', src_indices=-1, flat_src_indices=True)
 
     p.model.add_constraint('x_periodic_bc.bc_defect', equals=0)
 
     p.model.add_subsystem('z_periodic_bc', om.ExecComp('bc_defect=final-initial'))
-    p.model.connect('traj.phase.timeseries.states:z', 'z_periodic_bc.initial', src_indices=0, flat_src_indices=True)
-    p.model.connect('traj.phase.timeseries.states:z', 'z_periodic_bc.final', src_indices=-1, flat_src_indices=True)
+    p.model.connect('traj.phase.timeseries.z', 'z_periodic_bc.initial', src_indices=0, flat_src_indices=True)
+    p.model.connect('traj.phase.timeseries.z', 'z_periodic_bc.final', src_indices=-1, flat_src_indices=True)
 
     p.model.add_constraint('z_periodic_bc.bc_defect', equals=0)
 
     p.model.add_subsystem('vy_periodic_bc', om.ExecComp('bc_defect=final-initial'))
-    p.model.connect('traj.phase.timeseries.states:y_dot', 'vy_periodic_bc.initial', src_indices=0, flat_src_indices=True)
-    p.model.connect('traj.phase.timeseries.states:y_dot', 'vy_periodic_bc.final', src_indices=-1, flat_src_indices=True)
+    p.model.connect('traj.phase.timeseries.y_dot', 'vy_periodic_bc.initial', src_indices=0, flat_src_indices=True)
+    p.model.connect('traj.phase.timeseries.y_dot', 'vy_periodic_bc.final', src_indices=-1, flat_src_indices=True)
 
     p.model.add_constraint('vy_periodic_bc.bc_defect', equals=0)
 

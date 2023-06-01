@@ -66,7 +66,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_near_equal(np.min(p.get_val('phase0.timeseries.states:pos')[:, 1]), 5.0,
+        assert_near_equal(np.min(p.get_val('phase0.timeseries.pos')[:, 1]), 5.0,
                           tolerance=1.0E-3)
 
         # Plot results
@@ -76,11 +76,11 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
 
-            x_imp = p.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
+            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
 
-            x_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
+            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -188,11 +188,11 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
 
-            x_imp = p.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
+            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
 
-            x_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
+            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -301,11 +301,11 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
 
-            x_imp = p.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
+            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
 
-            x_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
+            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -403,7 +403,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_near_equal(np.min(p.get_val('phase0.timeseries.states:pos')[:, 1]),
+        assert_near_equal(np.min(p.get_val('phase0.timeseries.pos')[:, 1]),
                           5,
                           tolerance=1.0E-2)
 
@@ -414,11 +414,11 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
 
-            x_imp = p.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
+            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
 
-            x_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
+            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -530,11 +530,11 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
 
-            x_imp = p.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
+            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
 
-            x_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
+            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -644,11 +644,11 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
 
-            x_imp = p.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
+            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
 
-            x_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
+            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')

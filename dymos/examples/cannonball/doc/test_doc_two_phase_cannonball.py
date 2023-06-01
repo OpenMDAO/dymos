@@ -272,9 +272,9 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         print(f'optimal radius: {rad} m ')
         mass = p.get_val('size_comp.mass', units='kg')[0]
         print(f'cannonball mass: {mass} kg ')
-        angle = p.get_val('traj.ascent.timeseries.states:gam', units='deg')[0, 0]
+        angle = p.get_val('traj.ascent.timeseries.gam', units='deg')[0, 0]
         print(f'launch angle: {angle} deg')
-        max_range = p.get_val('traj.descent.timeseries.states:r')[-1, 0]
+        max_range = p.get_val('traj.descent.timeseries.r')[-1, 0]
         print(f'maximum range: {max_range} m')
 
         fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
@@ -285,17 +285,17 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         time_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.time'),
                     'descent': exp_out.get_val('traj.descent.timeseries.time')}
 
-        r_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:r'),
-                 'descent': p.get_val('traj.descent.timeseries.states:r')}
+        r_imp = {'ascent': p.get_val('traj.ascent.timeseries.r'),
+                 'descent': p.get_val('traj.descent.timeseries.r')}
 
-        r_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:r'),
-                 'descent': exp_out.get_val('traj.descent.timeseries.states:r')}
+        r_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.r'),
+                 'descent': exp_out.get_val('traj.descent.timeseries.r')}
 
-        h_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:h'),
-                 'descent': p.get_val('traj.descent.timeseries.states:h')}
+        h_imp = {'ascent': p.get_val('traj.ascent.timeseries.h'),
+                 'descent': p.get_val('traj.descent.timeseries.h')}
 
-        h_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:h'),
-                 'descent': exp_out.get_val('traj.descent.timeseries.states:h')}
+        h_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.h'),
+                 'descent': exp_out.get_val('traj.descent.timeseries.h')}
 
         axes.plot(r_imp['ascent'], h_imp['ascent'], 'bo')
 
@@ -311,11 +311,11 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10, 6))
         states = ['r', 'h', 'v', 'gam']
         for i, state in enumerate(states):
-            x_imp = {'ascent': p.get_val(f'traj.ascent.timeseries.states:{state}'),
-                     'descent': p.get_val(f'traj.descent.timeseries.states:{state}')}
+            x_imp = {'ascent': p.get_val(f'traj.ascent.timeseries.{state}'),
+                     'descent': p.get_val(f'traj.descent.timeseries.{state}')}
 
-            x_exp = {'ascent': exp_out.get_val(f'traj.ascent.timeseries.states:{state}'),
-                     'descent': exp_out.get_val(f'traj.descent.timeseries.states:{state}')}
+            x_exp = {'ascent': exp_out.get_val(f'traj.ascent.timeseries.{state}'),
+                     'descent': exp_out.get_val(f'traj.descent.timeseries.{state}')}
 
             axes[i].set_ylabel(state)
 

@@ -79,13 +79,13 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         exp_out = phase.simulate()
 
-        assert_near_equal(exp_out.get_val('phase0.timeseries.states:h', units='km')[-1], 0.0,
+        assert_near_equal(exp_out.get_val('phase0.timeseries.h', units='km')[-1], 0.0,
                           tolerance=0.001)
-        assert_near_equal(exp_out.get_val('phase0.timeseries.states:r')[-1], v0**2 / g,
+        assert_near_equal(exp_out.get_val('phase0.timeseries.r')[-1], v0**2 / g,
                           tolerance=0.001)
-        assert_near_equal(exp_out.get_val('phase0.timeseries.states:gam')[-1], -gam0,
+        assert_near_equal(exp_out.get_val('phase0.timeseries.gam')[-1], -gam0,
                           tolerance=0.001)
-        assert_near_equal(exp_out.get_val('phase0.timeseries.states:v')[-1], v0,
+        assert_near_equal(exp_out.get_val('phase0.timeseries.v')[-1], v0,
                           tolerance=0.001)
 
     def test_cannonball_max_range(self):
@@ -114,11 +114,11 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         exp_out = phase.simulate(times_per_seg=None)
 
-        assert_near_equal(exp_out.get_val('phase0.timeseries.states:r')[-1], v0**2 / g,
+        assert_near_equal(exp_out.get_val('phase0.timeseries.r')[-1], v0**2 / g,
                           tolerance=0.001)
-        assert_near_equal(exp_out.get_val('phase0.timeseries.states:gam')[-1], -np.radians(45),
+        assert_near_equal(exp_out.get_val('phase0.timeseries.gam')[-1], -np.radians(45),
                           tolerance=0.001)
-        assert_near_equal(exp_out.get_val('phase0.timeseries.states:v')[-1], v0,
+        assert_near_equal(exp_out.get_val('phase0.timeseries.v')[-1], v0,
                           tolerance=0.001)
 
     def test_partials(self):

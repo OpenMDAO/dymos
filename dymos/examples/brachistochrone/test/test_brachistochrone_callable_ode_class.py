@@ -97,18 +97,18 @@ class TestBrachExecCompODE(unittest.TestCase):
             t_initial = p.get_val('traj0.phase0.timeseries.time')[0]
             tf = p.get_val('traj0.phase0.timeseries.time')[-1]
 
-            x0 = p.get_val('traj0.phase0.timeseries.states:x')[0]
-            xf = p.get_val('traj0.phase0.timeseries.states:x')[-1]
+            x0 = p.get_val('traj0.phase0.timeseries.x')[0]
+            xf = p.get_val('traj0.phase0.timeseries.x')[-1]
 
-            y0 = p.get_val('traj0.phase0.timeseries.states:y')[0]
-            yf = p.get_val('traj0.phase0.timeseries.states:y')[-1]
+            y0 = p.get_val('traj0.phase0.timeseries.y')[0]
+            yf = p.get_val('traj0.phase0.timeseries.y')[-1]
 
-            v0 = p.get_val('traj0.phase0.timeseries.states:v')[0]
-            vf = p.get_val('traj0.phase0.timeseries.states:v')[-1]
+            v0 = p.get_val('traj0.phase0.timeseries.v')[0]
+            vf = p.get_val('traj0.phase0.timeseries.v')[-1]
 
             g = p.get_val('traj0.phase0.parameter_vals:g')[0]
 
-            thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1]
+            thetaf = p.get_val('traj0.phase0.timeseries.theta')[-1]
 
             assert_near_equal(t_initial, 0.0)
             assert_near_equal(x0, 0.0)
@@ -308,18 +308,18 @@ class TestBrachCallableODE(unittest.TestCase):
             t_initial = p.get_val('traj0.phase0.timeseries.time')[0]
             tf = p.get_val('traj0.phase0.timeseries.time')[-1]
 
-            x0 = p.get_val('traj0.phase0.timeseries.states:x')[0]
-            xf = p.get_val('traj0.phase0.timeseries.states:x')[-1]
+            x0 = p.get_val('traj0.phase0.timeseries.x')[0]
+            xf = p.get_val('traj0.phase0.timeseries.x')[-1]
 
-            y0 = p.get_val('traj0.phase0.timeseries.states:y')[0]
-            yf = p.get_val('traj0.phase0.timeseries.states:y')[-1]
+            y0 = p.get_val('traj0.phase0.timeseries.y')[0]
+            yf = p.get_val('traj0.phase0.timeseries.y')[-1]
 
-            v0 = p.get_val('traj0.phase0.timeseries.states:v')[0]
-            vf = p.get_val('traj0.phase0.timeseries.states:v')[-1]
+            v0 = p.get_val('traj0.phase0.timeseries.v')[0]
+            vf = p.get_val('traj0.phase0.timeseries.v')[-1]
 
             g = p.get_val('traj0.phase0.parameter_vals:g')[0]
 
-            thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1]
+            thetaf = p.get_val('traj0.phase0.timeseries.theta')[-1]
 
             assert_near_equal(t_initial, 0.0)
             assert_near_equal(x0, 0.0)

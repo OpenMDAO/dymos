@@ -119,7 +119,7 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         p.run_model()
 
         t = p.get_val('traj.phase.timeseries.time', units='s')
-        y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
+        y = p.get_val('traj.phase.timeseries.y', units='unitless')
 
         expected = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
 
@@ -144,7 +144,7 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         p.run_model()
 
         t = p.get_val('traj.phase.timeseries.time', units='s')
-        y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
+        y = p.get_val('traj.phase.timeseries.y', units='unitless')
 
         expected = t * (1 - t) * (1 + t - t**2) / 12
 
@@ -197,7 +197,7 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         p.run_model()
 
         t = p.get_val('traj.phase.timeseries.time', units='s')
-        y = p.get_val('traj.phase.timeseries.states:foo', units='unitless')
+        y = p.get_val('traj.phase.timeseries.foo', units='unitless')
 
         expected = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
 
@@ -233,7 +233,7 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         dm.run_problem(p, simulate=False, restart='dymos_solution.db')
 
         t = p.get_val('traj.phase.timeseries.time', units='s')
-        y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
+        y = p.get_val('traj.phase.timeseries.y', units='unitless')
 
         expected = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
 
@@ -296,7 +296,7 @@ class TestAnalyticPhaseInvalidOptions(unittest.TestCase):
 
         p.run_model()
 
-        y = p.get_val('traj.phase.timeseries.states:y', units='unitless')
+        y = p.get_val('traj.phase.timeseries.y', units='unitless')
         y0 = p.get_val('traj.phase.parameter_vals:y0', units='unitless')
 
         expected_z = y0 + y**2
@@ -344,11 +344,11 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         p.run_driver()
 
         t_1 = p.get_val('traj.first_phase.timeseries.time', units='s')
-        x_1 = p.get_val('traj.first_phase.timeseries.states:y', units='unitless')
+        x_1 = p.get_val('traj.first_phase.timeseries.y', units='unitless')
         y0_1 = p.get_val('traj.first_phase.parameter_vals:y0')
 
         t_2 = p.get_val('traj.second_phase.timeseries.time', units='s')
-        x_2 = p.get_val('traj.second_phase.timeseries.states:y', units='unitless')
+        x_2 = p.get_val('traj.second_phase.timeseries.y', units='unitless')
         y0_2 = p.get_val('traj.second_phase.parameter_vals:y0')
 
         assert_near_equal(1.500000, x_1[-1, 0], tolerance=1.0E-6)
@@ -396,11 +396,11 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         p.run_driver()
 
         t_1 = p.get_val('traj.first_phase.timeseries.time', units='s')
-        x_1 = p.get_val('traj.first_phase.timeseries.states:y', units='unitless')
+        x_1 = p.get_val('traj.first_phase.timeseries.y', units='unitless')
         y0_1 = p.get_val('traj.first_phase.parameter_vals:y0')
 
         t_2 = p.get_val('traj.second_phase.timeseries.time', units='s')
-        x_2 = p.get_val('traj.second_phase.timeseries.states:y', units='unitless')
+        x_2 = p.get_val('traj.second_phase.timeseries.y', units='unitless')
         y0_2 = p.get_val('traj.second_phase.parameter_vals:y0')
 
         assert_near_equal(1.500000, x_1[-1, 0], tolerance=1.0E-6)
@@ -488,11 +488,11 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         p.run_driver()
 
         t_1 = p.get_val('traj.first_phase.timeseries.time', units='s')
-        x_1 = p.get_val('traj.first_phase.timeseries.states:y', units='unitless')
+        x_1 = p.get_val('traj.first_phase.timeseries.y', units='unitless')
         y0_1 = p.get_val('traj.first_phase.parameter_vals:y0')
 
         t_2 = p.get_val('traj.second_phase.timeseries.time', units='s')
-        x_2 = p.get_val('traj.second_phase.timeseries.states:y', units='unitless')
+        x_2 = p.get_val('traj.second_phase.timeseries.y', units='unitless')
         y0_2 = p.get_val('traj.second_phase.parameter_vals:y0')
 
         assert_near_equal(1.500000, x_1[-1, 0], tolerance=1.0E-6)
@@ -539,11 +539,11 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         p.run_driver()
 
         t_1 = p.get_val('traj.first_phase.timeseries.time', units='s')
-        x_1 = p.get_val('traj.first_phase.timeseries.states:y', units='unitless')
+        x_1 = p.get_val('traj.first_phase.timeseries.y', units='unitless')
         y0_1 = p.get_val('traj.first_phase.parameter_vals:y0')
 
         t_2 = p.get_val('traj.second_phase.timeseries.time', units='s')
-        x_2 = p.get_val('traj.second_phase.timeseries.states:y', units='unitless')
+        x_2 = p.get_val('traj.second_phase.timeseries.y', units='unitless')
         y0_2 = p.get_val('traj.second_phase.parameter_vals:y0')
 
         assert_near_equal(1.500000, x_1[-1, 0], tolerance=1.0E-6)
@@ -590,10 +590,10 @@ class TestLinkedAnalyticPhases(unittest.TestCase):
         dm.run_problem(p, simulate=False)
 
         t_1 = p.get_val('traj.first_phase.timeseries.time', units='s')
-        x_1 = p.get_val('traj.first_phase.timeseries.states:y', units='unitless')
+        x_1 = p.get_val('traj.first_phase.timeseries.y', units='unitless')
 
         t_2 = p.get_val('traj.second_phase.timeseries.time', units='s')
-        x_2 = p.get_val('traj.second_phase.timeseries.states:y', units='unitless')
+        x_2 = p.get_val('traj.second_phase.timeseries.y', units='unitless')
 
         assert_near_equal(1.500000, x_1[-1, 0], tolerance=1.0E-6)
         assert_near_equal(0.5338712554624387, t_1[-1, 0], tolerance=1.0E-6)

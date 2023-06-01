@@ -80,8 +80,8 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         #
         # Verify that the results are correct.
         #
-        x = p.get_val('traj.phase0.timeseries.states:x')
-        v = p.get_val('traj.phase0.timeseries.states:v')
+        x = p.get_val('traj.phase0.timeseries.x')
+        v = p.get_val('traj.phase0.timeseries.v')
 
         assert_near_equal(x[0], 0.0, tolerance=1.0E-4)
         assert_near_equal(x[-1], 0.25, tolerance=1.0E-4)
@@ -94,11 +94,11 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         #
         exp_out = traj.simulate()
 
-        plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.states:x',
+        plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.x',
                        'time (s)', 'x $(m)$'),
-                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.states:v',
+                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.v',
                        'time (s)', 'v $(m/s)$'),
-                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.controls:u',
+                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.u',
                        'time (s)', 'u $(m/s^2)$')],
                      title='Double Integrator Solution\nRadau Pseudospectral Method',
                      p_sol=p, p_sim=exp_out)
