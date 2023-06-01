@@ -674,8 +674,8 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_u1_final = p.get_val('burn1.timeseries.control_rates:u1_rate')[-1, ...]
-        burn2_u1_initial = p.get_val('burn2.timeseries.control_rates:u1_rate')[0, ...]
+        burn1_u1_final = p.get_val('burn1.timeseries.u1_rate')[-1, ...]
+        burn2_u1_initial = p.get_val('burn2.timeseries.u1_rate')[0, ...]
 
         u1_linkage_error = p.get_val('linkages.burn1:u1_rate_final|burn2:u1_rate_initial')
         assert_near_equal(u1_linkage_error, burn1_u1_final - burn2_u1_initial)
@@ -804,8 +804,8 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_u1_final = p.get_val('burn1.timeseries.control_rates:u1_rate2')[-1, ...]
-        burn2_u1_initial = p.get_val('burn2.timeseries.control_rates:u1_rate2')[0, ...]
+        burn1_u1_final = p.get_val('burn1.timeseries.u1_rate2')[-1, ...]
+        burn2_u1_initial = p.get_val('burn2.timeseries.u1_rate2')[0, ...]
 
         u1_linkage_error = p.get_val('linkages.burn1:u1_rate2_final|burn2:u1_rate2_initial')
         assert_near_equal(u1_linkage_error, burn1_u1_final - burn2_u1_initial)
@@ -934,8 +934,8 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_u1_final = p.get_val('burn1.timeseries.control_rates:u1_rate')[-1, ...]
-        burn2_u1_initial = p.get_val('burn2.timeseries.polynomial_control_rates:u1_rate')[0, ...]
+        burn1_u1_final = p.get_val('burn1.timeseries.u1_rate')[-1, ...]
+        burn2_u1_initial = p.get_val('burn2.timeseries.u1_rate')[0, ...]
 
         u1_linkage_error = p.get_val('linkages.burn1:u1_rate_final|burn2:u1_rate_initial')
         assert_near_equal(u1_linkage_error, burn1_u1_final - burn2_u1_initial)
@@ -1063,8 +1063,8 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_u1_final = p.get_val('burn1.timeseries.control_rates:u1_rate2')[-1, ...]
-        burn2_u1_initial = p.get_val('burn2.timeseries.polynomial_control_rates:u1_rate2')[0, ...]
+        burn1_u1_final = p.get_val('burn1.timeseries.u1_rate2')[-1, ...]
+        burn2_u1_initial = p.get_val('burn2.timeseries.u1_rate2')[0, ...]
 
         u1_linkage_error = p.get_val('linkages.burn1:u1_rate2_final|burn2:u1_rate2_initial')
         assert_near_equal(u1_linkage_error, burn1_u1_final - burn2_u1_initial)

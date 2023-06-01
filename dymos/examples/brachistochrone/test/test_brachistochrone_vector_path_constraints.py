@@ -117,10 +117,10 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
             fig.suptitle('Brachistochrone Solution')
 
             x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_imp = p.get_val('phase0.timeseries.theta_rate2')
 
             x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -229,10 +229,10 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
             fig.suptitle('Brachistochrone Solution')
 
             x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_imp = p.get_val('phase0.timeseries.theta_rate2')
 
             x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -342,10 +342,10 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
             fig.suptitle('Brachistochrone Solution')
 
             x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_imp = p.get_val('phase0.timeseries.theta_rate2')
 
             x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -455,10 +455,10 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
             fig.suptitle('Brachistochrone Solution')
 
             x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_imp = p.get_val('phase0.timeseries.theta_rate2')
 
             x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -571,10 +571,10 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
             fig.suptitle('Brachistochrone Solution')
 
             x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_imp = p.get_val('phase0.timeseries.theta_rate2')
 
             x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -685,10 +685,10 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
             fig.suptitle('Brachistochrone Solution')
 
             x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_imp = p.get_val('phase0.timeseries.theta_rate2')
 
             x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
