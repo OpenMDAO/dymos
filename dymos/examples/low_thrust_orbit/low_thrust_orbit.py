@@ -11,7 +11,6 @@ from functools import partial
 class LowThrustOrbitODE(om.ExplicitComponent):
     def initialize(self):
         self.options.declare('num_nodes', types=int)
-        self.options.declare('g0', types=float, default=32.174, desc='standard acceleration due to gravity (ft/sec^2)')
         self.options.declare('mu', types=float, default=3.986004418e14, desc='graviational parameter (m^3/sec^2)')
         self.options.declare('Re', types=float, default=6378100.0, desc='radius of the Earth (m)')
         self.options.declare('J2', types=float, default=1082.639e-6)
@@ -156,21 +155,25 @@ p.driver = om.pyOptSparseDriver()
 # p.driver.options['optimizer'] = 'IPOPT'
 # p.driver.opt_settings['mu_init'] = 1e-3
 # p.driver.opt_settings['max_iter'] = 500
+# p.driver.opt_settings['print_level'] = 5
 # p.driver.opt_settings['acceptable_tol'] = 1e-3
 # p.driver.opt_settings['constr_viol_tol'] = 1e-3
 # p.driver.opt_settings['compl_inf_tol'] = 1e-3
 # p.driver.opt_settings['acceptable_iter'] = 0
-# p.driver.opt_settings['tol'] = 1e-3
+# p.driver.opt_settings['tol'] = 1e-5
 # p.driver.opt_settings['print_level'] = 0
 # p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
 # p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
 # p.driver.opt_settings['mu_strategy'] = 'monotone'
 # p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
+
 p.driver.options['optimizer'] = 'SNOPT'
-p.driver.opt_settings['Verify level'] = 3
+# p.driver.opt_settings['Verify level'] = 3
 p.driver.opt_settings['iSumm'] = 6
 # p.driver.opt_settings['Major optimality tolerance'] = 1.0E-5
+
 p.driver.declare_coloring()
+
 # p.driver.options['debug_print'] = ['desvars','ln_cons','nl_cons','objs']
 
 traj = dm.Trajectory()
@@ -179,44 +182,53 @@ traj = dm.Trajectory()
 traj.add_parameter('T', val=0.019779542235, units='N', targets={'spiral': ['T']}, opt=False)
 traj.add_parameter('Isp', val=450, units='s', targets={'spiral': ['Isp']}, opt=False)
 
-tx = dm.Radau(num_segments=20, order=4, compressed=True) #solve_segments='forward')
+tx = dm.Radau(num_segments=30, order=3, compressed=True) #solve_segments='forward')
 spiral = dm.Phase(ode_class=LowThrustOrbitODE, transcription=tx)
 spiral = traj.add_phase('spiral', spiral)
 
-# spiral.set_time_options(fix_initial=True, #duration_bounds=(50, 90000),
-#                         units='s')
-spiral.set_time_options(fix_initial=True, fix_duration=True, units='s')
+spiral.set_time_options(fix_initial=True, duration_bounds=(50, 90000), duration_ref=3600,
+                        fix_duration=True,
+                        units='s')
+# spiral.set_time_options(fix_initial=True, fix_duration=True, units='s')
 # NOTE need defect scalars?
-spiral.add_state('p', fix_initial=True, rate_source='p_dot', lower=6378100.0, upper=100*6378100.0, ref=6378100.0)
+spiral.add_state('p', fix_initial=True, rate_source='p_dot', lower=6378.1370, upper=100*6378.1, ref=6378.137, units='km')
 spiral.add_state('f', fix_initial=True, rate_source='f_dot', lower=-1, upper=1)
 spiral.add_state('g', fix_initial=True, rate_source='g_dot', lower=-1, upper=1)
 spiral.add_state('h', fix_initial=True, rate_source='h_dot', lower=-1, upper=1)
 spiral.add_state('k', fix_initial=True, rate_source='k_dot', lower=-1, upper=1)
-spiral.add_state('L', fix_initial=True, rate_source='L_dot', lower=0.0, scaler=1e-2, defect_ref=1e-2)
+spiral.add_state('L', fix_initial=True, rate_source='L_dot', lower=0.0, ref=2*np.pi, defect_ref=2*np.pi)
 spiral.add_state('m', fix_initial=True, rate_source='m_dot', lower=0.01, upper=1.0)
 
-spiral.add_control('tau', opt=True, scaler=1000, rate_continuity=False, rate2_continuity=False,
-                #    rate_continuity_scaler=1e-3,
+spiral.add_control('tau', opt=True, continuity=True, rate_continuity=True, rate2_continuity=False,
+                   rate_continuity_scaler=1e-3,
+                   scaler=1,
                    units='unitless', lower=-50, upper=0)
-spiral.add_control('u_r', opt=True, scaler=1000, rate_continuity=False, rate2_continuity=False,
-                #    rate_continuity_scaler=1e-3,
+spiral.add_control('u_r', opt=True, continuity=True, rate_continuity=True, rate2_continuity=False,
+                   rate_continuity_scaler=1e-3,
+                   scaler=100,
                    units='unitless', lower=-1, upper=1)
-spiral.add_control('u_theta', opt=True, scaler=1000, rate_continuity=False, rate2_continuity=False,
-                #    rate_continuity_scaler=1e-3,
+spiral.add_control('u_theta', opt=True, continuity=True, rate_continuity=True, rate2_continuity=False,
+                   rate_continuity_scaler=1e-3,
+                   scaler=100,
                    units='unitless', lower=-1, upper=1)
-spiral.add_control('u_h', opt=True, scaler=1000, rate_continuity=False, rate2_continuity=False,
-                #    rate_continuity_scaler=1e-3,
+spiral.add_control('u_h', opt=True, continuity=True, rate_continuity=True, rate2_continuity=False,
+                   scaler=100,
+                   rate_continuity_scaler=1e-3,
                    units='unitless', lower=-1, upper=1)
 
-# spiral.add_objective('m', loc='final', scaler=-1000)
-spiral.add_objective('p', loc='final',# scaler=-1, 
-                     ref=6378137.0)
+spiral.add_objective('m', loc='final', scaler=-1)
+# spiral.add_objective('p', loc='final', ref=-1000)
 
-# spiral.add_boundary_constraint('p', loc='final', equals=12194239.065442713, ref=12194239.065442713)
-# spiral.add_boundary_constraint('eccentricity = (f**2 + g**2)**0.5', loc='final', equals=0.73550320568829)
-# spiral.add_boundary_constraint('tan_inclination = (h**2 + k**2)**0.5', loc='final', equals=0.61761258786099)
-# spiral.add_boundary_constraint('comp_const1 = f*h + g*k', loc='final', equals=0.0)
-# spiral.add_boundary_constraint('comp_const2 = g*h - k*f', loc='final', upper=0.0)
+# spiral.add_objective('a = p / (1 - f**2 - g**2)', loc='final', ref=-1000)
+
+# spiral.add_timeseries_output('eccentricity = (f**2 + g**2)**0.5', loc='final', equals=0.73550320568829)
+
+
+spiral.add_boundary_constraint('p', loc='final', equals=12194.239065442713, ref=12194.239065442713)
+spiral.add_boundary_constraint('eccentricity = (f**2 + g**2)**0.5', loc='final', equals=0.73550320568829)
+spiral.add_boundary_constraint('tan_inclination = (h**2 + k**2)**0.5', loc='final', equals=0.61761258786099)
+spiral.add_boundary_constraint('comp_const1 = f*h + g*k', loc='final', equals=0.0)
+spiral.add_boundary_constraint('comp_const2 = g*h - k*f', loc='final', upper=0.0)
 spiral.add_path_constraint('u_mag2 = u_r**2 + u_theta**2 + u_h**2', equals=1.0)
 
 p.model.add_subsystem('traj', traj)
@@ -231,19 +243,26 @@ p.setup(check=True, force_alloc_complex=True)
 # p.set_val('traj.spiral.initial_states:L', 0)
 # p.set_val('traj.spiral.initial_states:m', 1)
 
-p.set_val('traj.spiral.states:p', spiral.interp('p', [6655942.00010410789, 12194239.065442713]))
+p.set_val('traj.spiral.states:p', spiral.interp('p', [6655.94200010410789, 12194.239065442713]))
 p.set_val('traj.spiral.states:f', 0.0)
 p.set_val('traj.spiral.states:g', 0.0)
 p.set_val('traj.spiral.states:h', -0.25396764647494)
 p.set_val('traj.spiral.states:k', 0)
-p.set_val('traj.spiral.states:L', np.pi)
+p.set_val('traj.spiral.states:L', spiral.interp('L', [np.pi, 2*np.pi*8]))
 p.set_val('traj.spiral.states:m', spiral.interp('m', [1, 0.4]))
-p.set_val('traj.spiral.t_initial', 0.0)
-# p.det_val('traj.spiral.t_duration', 80_000.0)
-p.set_val('traj.spiral.t_duration', 5_000.0)
-# p.set_val('traj.spiral.controls:u_r', 0.5)
 
-# p.set_val('traj.spiral.t_duration', 90*60)
+
+p.set_val('traj.spiral.controls:u_r', spiral.interp('u_r', [0.0, 0.0]))
+p.set_val('traj.spiral.controls:u_theta', spiral.interp('u_theta', [1.0, 1.0]))
+p.set_val('traj.spiral.controls:u_h', spiral.interp('u_h', [0.0, 0.0]))
+p.set_val('traj.spiral.controls:tau', spiral.interp('tau', [0.0, 0.0]))
+
+p.set_val('traj.spiral.t_initial', 0.0)
+# p.set_val('traj.spiral.t_duration', 2000.0)
+# p.set_val('traj.spiral.t_duration', 5_000.0)
+# p.set_val('traj.spiral.controls:u_theta', 1)
+
+p.set_val('traj.spiral.t_duration', 90*60)
 
 
 # p.run_model()
