@@ -152,25 +152,25 @@ class LowThrustOrbitODE(om.ExplicitComponent):
 p = om.Problem()
 
 p.driver = om.pyOptSparseDriver()
-p.driver.options['optimizer'] = 'IPOPT'
-p.driver.opt_settings['mu_init'] = 1e-3
-p.driver.opt_settings['max_iter'] = 500
-p.driver.opt_settings['print_level'] = 5
+# p.driver.options['optimizer'] = 'IPOPT'
+# p.driver.opt_settings['mu_init'] = 1e-3
+# p.driver.opt_settings['max_iter'] = 500
+# p.driver.opt_settings['print_level'] = 5
 # p.driver.opt_settings['acceptable_tol'] = 1e-3
 # p.driver.opt_settings['constr_viol_tol'] = 1e-3
 # p.driver.opt_settings['compl_inf_tol'] = 1e-3
 # p.driver.opt_settings['acceptable_iter'] = 0
-p.driver.opt_settings['tol'] = 1e-5
+# p.driver.opt_settings['tol'] = 1e-5
 # p.driver.opt_settings['print_level'] = 0
 # p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
 # p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
-p.driver.opt_settings['mu_strategy'] = 'monotone'
-p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
+# p.driver.opt_settings['mu_strategy'] = 'monotone'
+# p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
 
-# p.driver.options['optimizer'] = 'SNOPT'
-# # p.driver.opt_settings['Verify level'] = 3
-# p.driver.opt_settings['iSumm'] = 6
-# # p.driver.opt_settings['Major optimality tolerance'] = 1.0E-5
+p.driver.options['optimizer'] = 'SNOPT'
+# p.driver.opt_settings['Verify level'] = 3
+p.driver.opt_settings['iSumm'] = 6
+# p.driver.opt_settings['Major optimality tolerance'] = 1.0E-5
 
 p.driver.declare_coloring()
 
@@ -182,7 +182,7 @@ traj = dm.Trajectory()
 traj.add_parameter('T', val=0.019779542235, units='N', targets={'spiral': ['T']}, opt=False)
 traj.add_parameter('Isp', val=450, units='s', targets={'spiral': ['Isp']}, opt=False)
 
-tx = dm.Radau(num_segments=20, order=3, compressed=True) #solve_segments='forward')
+tx = dm.Radau(num_segments=30, order=3, compressed=True) #solve_segments='forward')
 spiral = dm.Phase(ode_class=LowThrustOrbitODE, transcription=tx)
 spiral = traj.add_phase('spiral', spiral)
 
@@ -216,19 +216,19 @@ spiral.add_control('u_h', opt=True, continuity=True, rate_continuity=True, rate2
                    rate_continuity_scaler=1e-3,
                    units='unitless', lower=-1, upper=1)
 
-# spiral.add_objective('m', loc='final', scaler=-1)
+spiral.add_objective('m', loc='final', scaler=-1)
 # spiral.add_objective('p', loc='final', ref=-1000)
 
-spiral.add_objective('a = p / (1 - f**2 - g**2)', loc='final', ref=-1000)
+# spiral.add_objective('a = p / (1 - f**2 - g**2)', loc='final', ref=-1000)
 
 # spiral.add_timeseries_output('eccentricity = (f**2 + g**2)**0.5', loc='final', equals=0.73550320568829)
 
 
-# spiral.add_boundary_constraint('p', loc='final', equals=12194239.065442713, ref=12194239.065442713)
-# spiral.add_boundary_constraint('eccentricity = (f**2 + g**2)**0.5', loc='final', equals=0.73550320568829)
-# spiral.add_boundary_constraint('tan_inclination = (h**2 + k**2)**0.5', loc='final', equals=0.61761258786099)
-# spiral.add_boundary_constraint('comp_const1 = f*h + g*k', loc='final', equals=0.0)
-# spiral.add_boundary_constraint('comp_const2 = g*h - k*f', loc='final', upper=0.0)
+spiral.add_boundary_constraint('p', loc='final', equals=12194.239065442713, ref=12194.239065442713)
+spiral.add_boundary_constraint('eccentricity = (f**2 + g**2)**0.5', loc='final', equals=0.73550320568829)
+spiral.add_boundary_constraint('tan_inclination = (h**2 + k**2)**0.5', loc='final', equals=0.61761258786099)
+spiral.add_boundary_constraint('comp_const1 = f*h + g*k', loc='final', equals=0.0)
+spiral.add_boundary_constraint('comp_const2 = g*h - k*f', loc='final', upper=0.0)
 spiral.add_path_constraint('u_mag2 = u_r**2 + u_theta**2 + u_h**2', equals=1.0)
 
 p.model.add_subsystem('traj', traj)
@@ -248,7 +248,7 @@ p.set_val('traj.spiral.states:f', 0.0)
 p.set_val('traj.spiral.states:g', 0.0)
 p.set_val('traj.spiral.states:h', -0.25396764647494)
 p.set_val('traj.spiral.states:k', 0)
-p.set_val('traj.spiral.states:L', np.pi + 2 * np.pi * 8)
+p.set_val('traj.spiral.states:L', spiral.interp('L', [np.pi, 2*np.pi*8]))
 p.set_val('traj.spiral.states:m', spiral.interp('m', [1, 0.4]))
 
 
@@ -258,11 +258,11 @@ p.set_val('traj.spiral.controls:u_h', spiral.interp('u_h', [0.0, 0.0]))
 p.set_val('traj.spiral.controls:tau', spiral.interp('tau', [0.0, 0.0]))
 
 p.set_val('traj.spiral.t_initial', 0.0)
-p.set_val('traj.spiral.t_duration', 2000.0)
+# p.set_val('traj.spiral.t_duration', 2000.0)
 # p.set_val('traj.spiral.t_duration', 5_000.0)
 # p.set_val('traj.spiral.controls:u_theta', 1)
 
-# p.set_val('traj.spiral.t_duration', 90*60)
+p.set_val('traj.spiral.t_duration', 90*60)
 
 
 # p.run_model()
