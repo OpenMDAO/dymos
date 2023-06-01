@@ -92,7 +92,7 @@ class TestTimeseriesOutput(unittest.TestCase):
             for i in range(gd.subset_num_nodes['all']):
                 if test_smaller_timeseries:
                     with self.assertRaises(KeyError):
-                        p.get_val(f'phase0.timeseries.parameters:{dp}')
+                        p.get_val(f'phase0.timeseries.{dp}')
                 else:
                     assert_near_equal(p.get_val(f'phase0.parameter_vals:{dp}')[0],
                                       p.get_val(f'phase0.timeseries.{dp}')[i])
@@ -180,7 +180,7 @@ class TestTimeseriesOutput(unittest.TestCase):
             for i in range(gd.subset_num_nodes['all']):
                 if test_smaller_timeseries:
                     with self.assertRaises(KeyError):
-                        p.get_val(f'phase0.timeseries.parameters:{dp}')
+                        p.get_val(f'phase0.timeseries.{dp}')
                 else:
                     assert_near_equal(p.get_val(f'phase0.parameters:{dp}')[0],
                                       p.get_val(f'phase0.timeseries.{dp}')[i])
@@ -623,7 +623,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         x = p.get_val('phase0.timeseries.x')
         y = p.get_val('phase0.timeseries.y')
         theta = p.get_val('phase0.timeseries.theta')
-        g = p.get_val('phase0.timeseries.parameters:g')
+        g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta)**2
@@ -640,7 +640,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         x = p.get_val('phase0.timeseries.x')
         y = p.get_val('phase0.timeseries.y')
         theta = p.get_val('phase0.timeseries.theta')
-        g = p.get_val('phase0.timeseries.parameters:g')
+        g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta)**2
@@ -656,7 +656,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         x = p.get_val('phase0.timeseries.x')
         y = p.get_val('phase0.timeseries.y')
         theta = p.get_val('phase0.timeseries.theta')
-        g = p.get_val('phase0.timeseries.parameters:g')
+        g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta) ** 2
@@ -674,7 +674,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         x = p.get_val('phase0.timeseries.x')
         y = p.get_val('phase0.timeseries.y')
         theta = p.get_val('phase0.timeseries.theta')
-        g = p.get_val('phase0.timeseries.parameters:g')
+        g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta)**2
@@ -691,7 +691,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         x = p.get_val('phase0.timeseries.x')
         y = p.get_val('phase0.timeseries.y')
         theta = p.get_val('phase0.timeseries.theta')
-        g = p.get_val('phase0.timeseries.parameters:g')
+        g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta) ** 2
@@ -709,7 +709,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         x = p.get_val('phase0.timeseries.x')
         y = p.get_val('phase0.timeseries.y')
         theta = p.get_val('phase0.timeseries.theta')
-        g = p.get_val('phase0.timeseries.parameters:g')
+        g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta) ** 2

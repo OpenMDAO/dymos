@@ -160,7 +160,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         p.run_driver()
 
         with self.assertRaises(KeyError):
-            p.get_val('phase0.timeseries.parameters:g}')
+            p.get_val('phase0.timeseries.g}')
 
     def test_simplified_ode_timeseries_output(self):
         """

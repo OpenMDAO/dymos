@@ -40,7 +40,7 @@ class TestDuplicateConstraints(unittest.TestCase):
         v0 = p.get_val('traj0.phase0.timeseries.v')[0]
         vf = p.get_val('traj0.phase0.timeseries.v')[-1]
 
-        g = p.get_val('traj0.phase0.timeseries.parameters:g')[0]
+        g = p.get_val('traj0.phase0.timeseries.g')[0]
 
         thetaf = p.get_val('traj0.phase0.timeseries.theta', units='deg')[-1]
 
