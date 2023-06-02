@@ -116,8 +116,8 @@ class TestBrachistochroneTandemPhases(unittest.TestCase):
         #
         p.model.connect('phase0.t_duration', 'phase1.t_duration')
 
-        p.model.connect('phase0.timeseries2.controls:theta', 'phase1.controls:theta')
-        p.model.connect('phase0.timeseries2.states:v', 'phase1.controls:v')
+        p.model.connect('phase0.timeseries2.theta', 'phase1.controls:theta')
+        p.model.connect('phase0.timeseries2.v', 'phase1.controls:v')
 
         # Minimize arclength at the end of the second phase
         phase1.add_objective('S', loc='final', ref=1)

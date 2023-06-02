@@ -682,12 +682,10 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=True)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
-                        'state_rates:y', 'states:v',
-                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
-                        'control_rates:theta_rate2']:
-            self.assertTrue(plot_dir.joinpath(f'{varname.replace(":","_")}.png').exists(),
-                            msg=str(plot_dir.joinpath(f'{varname.replace(":","_")}.png')) + ' does not exist.')
+        for varname in ['time_phase', 'x', 'xdot', 'y',
+                        'ydot', 'v', 'vdot', 'theta', 'theta_rate', 'theta_rate2']:
+            self.assertTrue(plot_dir.joinpath(f'{varname}.png').exists(),
+                            msg=f'{varname}.png' + ' does not exist.')
         dm.options['plots'] = plots_cache
 
     def test_run_brachistochrone_problem_make_plots_set_plot_dir(self):
@@ -697,9 +695,9 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=True, plot_dir="test_plot_dir")
 
         plot_dir = pathlib.Path(_get_reports_dir(self.p))
-        for varname in ['states:x', 'states:y', 'states:v', 'controls:theta']:
-            plotfile = plot_dir.joinpath('test_plot_dir', f'{varname.replace(":","_")}.png')
-            self.assertTrue(plotfile.exists(), msg=str(plotfile) + ' does not exist.')
+        for varname in ['x', 'y', 'v', 'theta']:
+            plotfile = plot_dir.joinpath('test_plot_dir', f'{varname}.png')
+            self.assertTrue(str(plotfile) + ' does not exist.')
 
         dm.options['plots'] = _cache
 
@@ -707,11 +705,9 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=False)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
-                        'state_rates:y', 'states:v',
-                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
-                        'control_rates:theta_rate2', 'parameters:g']:
-            plotfile = plot_dir.joinpath(f'{varname.replace(":","_")}.png')
+        for varname in ['time_phase', 'x', 'xdot', 'y', 'ydot', 'v',
+                        'vdot', 'theta', 'theta_rate']:
+            plotfile = plot_dir.joinpath(f'{varname}.png')
             self.assertFalse(plotfile.exists(), msg=f'Unexpectedly found plot file {plotfile}')
 
     def test_run_brachistochrone_problem_set_simulation_record_file(self):
@@ -733,11 +729,9 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=True, simulate=True)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
-                        'state_rates:y', 'states:v',
-                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
-                        'control_rates:theta_rate2']:
-            plotfile = plot_dir.joinpath(f'{varname.replace(":","_")}.png')
+        for varname in ['time_phase', 'x', 'xdot', 'y',
+                        'ydot', 'v', 'vdot', 'theta', 'theta_rate', 'theta_rate2']:
+            plotfile = plot_dir.joinpath(f'{varname}.png')
             self.assertTrue(plotfile.exists(), msg=f'plot file {plotfile} does not exist!')
         dm.options['plots'] = plots_cache
 
@@ -748,10 +742,8 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=True, simulate=True)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
-                        'state_rates:y', 'states:v',
-                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
-                        'control_rates:theta_rate2']:
+        for varname in ['time_phase', 'x', 'xdot', 'y',
+                        'ydot', 'v', 'vdot', 'theta', 'theta_rate', 'theta_rate2']:
             plotfile = plot_dir.joinpath(f'{varname.replace(":", "_")}.png')
             self.assertTrue(plotfile.exists(), msg=f'plot file {plotfile} does not exist!')
 
