@@ -195,7 +195,6 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         p.set_val('traj.phase.parameters:y0', 0.5, units='unitless')
 
         p.run_model()
-
         t = p.get_val('traj.phase.timeseries.time', units='s')
         y = p.get_val('traj.phase.timeseries.foo', units='unitless')
 

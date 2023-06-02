@@ -162,6 +162,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
     def test_trajectory_linked_phases_make_plot(self):
         temp = dm.options['plots']
         dm.options['plots'] = 'matplotlib'
+        dm.options['use_timeseries_prefix'] = True
 
         self.traj = dm.Trajectory()
         p = self.p = om.Problem(model=self.traj)
@@ -402,8 +403,8 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         plot_dir = pathlib.Path(_get_reports_dir(prob)).joinpath("plots")
 
         self.assertTrue(plot_dir.joinpath('time_phase.png').exists())
-        self.assertTrue(plot_dir.joinpath('states_state_of_charge.png').exists())
-        self.assertTrue(plot_dir.joinpath('state_rates_state_of_charge.png').exists())
+        self.assertTrue(plot_dir.joinpath('state_of_charge.png').exists())
+        self.assertTrue(plot_dir.joinpath('state_of_charge.png').exists())
 
         dm.options['plots'] = _temp
 
