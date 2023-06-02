@@ -55,7 +55,7 @@ def double_integrator_direct_collocation(transcription=dm.GaussLobatto, compress
     return p
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestDoubleIntegratorExample(unittest.TestCase):
 
     @classmethod
@@ -87,7 +87,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         t_sol = sol_case.get_val('traj.phase0.timeseries.time')
         t_sim = sim_case.get_val('traj.phase0.timeseries.time')
 
-        for var in ['states:x', 'states:v', 'state_rates:x', 'state_rates:v', 'controls:u']:
+        for var in ['x', 'v', 'u']:
             sol = sol_case.get_val(f'traj.phase0.timeseries.{var}')
             sim = sim_case.get_val(f'traj.phase0.timeseries.{var}')
             assert_timeseries_near_equal(t_sim, sim, t_sol, sol, rel_tolerance=1.0E-3,
@@ -102,7 +102,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         t_sol = sol_case.get_val('traj.phase0.timeseries.time')
         t_sim = sim_case.get_val('traj.phase0.timeseries.time')
 
-        for var in ['states:x', 'states:v', 'state_rates:x']:
+        for var in ['x', 'v']:
             sol = sol_case.get_val(f'traj.phase0.timeseries.{var}')
             sim = sim_case.get_val(f'traj.phase0.timeseries.{var}')
             assert_timeseries_near_equal(t_sol, sol, t_sim, sim, rel_tolerance=1.0E-3, abs_tolerance=0.01)
