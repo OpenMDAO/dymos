@@ -161,6 +161,8 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_trajectory_linked_phases_make_plot(self):
         temp = dm.options['plots']
+        temp2 = dm.options['use_timeseries_prefix']
+
         dm.options['plots'] = 'matplotlib'
         dm.options['use_timeseries_prefix'] = True
 
@@ -312,6 +314,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
             self.assertTrue(plotfile.exists(), msg=f'{plotfile} does not exist!')
 
         dm.options['plots'] = temp
+        dm.options['use_timeseries_prefix'] = True
 
     def test_overlapping_phases_make_plot(self):
 
