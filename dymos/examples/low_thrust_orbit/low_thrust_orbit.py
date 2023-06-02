@@ -216,19 +216,19 @@ spiral.add_control('u_h', opt=True, continuity=True, rate_continuity=True, rate2
                    rate_continuity_scaler=1e-3,
                    units='unitless', lower=-1, upper=1)
 
-spiral.add_objective('m', loc='final', scaler=-1)
-# spiral.add_objective('p', loc='final', ref=-1000)
+# spiral.add_objective('m', loc='final', scaler=-1)
+spiral.add_objective('p', loc='final', ref=-1000)
 
 # spiral.add_objective('a = p / (1 - f**2 - g**2)', loc='final', ref=-1000)
 
 # spiral.add_timeseries_output('eccentricity = (f**2 + g**2)**0.5', loc='final', equals=0.73550320568829)
 
 
-spiral.add_boundary_constraint('p', loc='final', equals=12194.239065442713, ref=12194.239065442713)
-spiral.add_boundary_constraint('eccentricity = (f**2 + g**2)**0.5', loc='final', equals=0.73550320568829)
-spiral.add_boundary_constraint('tan_inclination = (h**2 + k**2)**0.5', loc='final', equals=0.61761258786099)
-spiral.add_boundary_constraint('comp_const1 = f*h + g*k', loc='final', equals=0.0)
-spiral.add_boundary_constraint('comp_const2 = g*h - k*f', loc='final', upper=0.0)
+# spiral.add_boundary_constraint('p', loc='final', equals=12194.239065442713, ref=12194.239065442713)
+# spiral.add_boundary_constraint('eccentricity = (f**2 + g**2)**0.5', loc='final', equals=0.73550320568829)
+# spiral.add_boundary_constraint('tan_inclination = (h**2 + k**2)**0.5', loc='final', equals=0.61761258786099)
+# spiral.add_boundary_constraint('comp_const1 = f*h + g*k', loc='final', equals=0.0)
+# spiral.add_boundary_constraint('comp_const2 = g*h - k*f', loc='final', upper=0.0)
 spiral.add_path_constraint('u_mag2 = u_r**2 + u_theta**2 + u_h**2', equals=1.0)
 
 p.model.add_subsystem('traj', traj)
@@ -258,11 +258,11 @@ p.set_val('traj.spiral.controls:u_h', spiral.interp('u_h', [0.0, 0.0]))
 p.set_val('traj.spiral.controls:tau', spiral.interp('tau', [0.0, 0.0]))
 
 p.set_val('traj.spiral.t_initial', 0.0)
-# p.set_val('traj.spiral.t_duration', 2000.0)
+p.set_val('traj.spiral.t_duration', 2000.0)
 # p.set_val('traj.spiral.t_duration', 5_000.0)
 # p.set_val('traj.spiral.controls:u_theta', 1)
 
-p.set_val('traj.spiral.t_duration', 90*60)
+# p.set_val('traj.spiral.t_duration', 90*60)
 
 
 # p.run_model()
@@ -280,7 +280,7 @@ dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)
 # with np.printoptions(linewidth=10000):
 #     p.check_partials(method='cs', compact_print=True)
 
-with open('orbital_elements_real.txt', 'w') as sys.stdout:
+with open('orbital_elements_min_p.txt', 'w') as sys.stdout:
     print('STATES: t p f g h k L m u_r u_theta u_h tau')
     print(f'MAX THRUST: {p.get_val("traj.parameter_vals:T")[0][0]}')
     print(f'ISP: {p.get_val("traj.parameter_vals:Isp")[0][0]}')
