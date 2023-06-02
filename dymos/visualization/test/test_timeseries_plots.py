@@ -161,10 +161,8 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_trajectory_linked_phases_make_plot(self):
         temp = dm.options['plots']
-        temp2 = dm.options['use_timeseries_prefix']
 
         dm.options['plots'] = 'matplotlib'
-        dm.options['use_timeseries_prefix'] = True
 
         self.traj = dm.Trajectory()
         p = self.p = om.Problem(model=self.traj)
@@ -256,6 +254,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
 
         for phase_name, phase in self.traj._phases.items():
+            phase.timeseries_options['use_prefix'] = True
             phase.timeseries_options['include_state_rates'] = True
             phase.timeseries_options['include_t_phase'] = True
 
@@ -314,7 +313,6 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
             self.assertTrue(plotfile.exists(), msg=f'{plotfile} does not exist!')
 
         dm.options['plots'] = temp
-        dm.options['use_timeseries_prefix'] = True
 
     def test_overlapping_phases_make_plot(self):
 
@@ -558,14 +556,13 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                          problem=p)
         plot_dir = pathlib.Path(_get_reports_dir(p)).joinpath("plots")
 
-        for varname in ['time_phase', 'states:r', 'state_rates:r', 'states:theta',
-                        'state_rates:theta', 'states:vr', 'state_rates:vr', 'states:vt',
-                        'state_rates:vt', 'states:accel',
-                        'state_rates:accel', 'states:deltav', 'state_rates:deltav',
-                        'controls:u1', 'control_rates:u1_rate', 'control_rates:u1_rate2',
-                        'parameters:c', 'parameters:u1']:
-            self.assertTrue(plot_dir.joinpath(varname.replace(":", "_") + '.png').exists(),
-                            msg=plot_dir.joinpath(varname.replace(":", "_") + '.png does not exist!'))
+        for varname in ['time_phase', 'r', 'r_dot', 'theta',
+                        'theta_dot', 'vr', 'vr_dot', 'vt',
+                        'vt_dot', 'accel',
+                        'at_dot', 'deltav', 'deltav_dot',
+                        'u1', 'u1_rate', 'u1_rate2']:
+            self.assertTrue(plot_dir.joinpath(varname + '.png').exists(),
+                            msg=varname + '.png does not exist!')
 
         dm.options['plots'] = temp
 

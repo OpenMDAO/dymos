@@ -172,7 +172,7 @@ class Analytic(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        state_prefix = 'states:' if dymos_options['use_timeseries_prefix'] else ''
+        state_prefix = 'states:' if phase.timeseries_options['use_prefix'] else ''
         for name, options in phase.state_options.items():
             for ts_name, ts_options in phase._timeseries.items():
                 if f'{state_prefix}{name}' not in ts_options['outputs']:
