@@ -100,10 +100,11 @@ m_ax.set_ylabel('m (kg)')
 
 element_fig.suptitle('Orbital Elements')
 
-plt.show()
+# plt.show()
+element_fig.savefig('Orbital_Elements.png')
 
 orbit.run_animation()
-plt.close()
+# plt.close()
 
 # state fig will plot:
 #   - velocity dir vs thrust dir -> angle btwn velocity and thrust
@@ -180,4 +181,4 @@ v_ax.set_ylabel('Velocity (m/s)')
 
 state_fig.suptitle('Important States')
 
-plt.show()
+state_fig.savefig('State_Plots.png')
