@@ -4,14 +4,12 @@ import openmdao.api as om
 from openmdao.recorders.case import Case
 from .phase import AnalyticPhase, Phase
 from .trajectory import Trajectory
-from openmdao.utils.om_warnings import issue_warning
+from openmdao.utils.om_warnings import issue_warning, warn_deprecation
 
 
 def find_phases(sys):
     """
     Finds all instances of Dymos Phases within the given system, and returns them as a dictionary.
-    They are keyed by promoted name if use_prom_path=True, otherwise they are keyed by their
-    absolute name.
 
     Parameters
     ----------
@@ -59,7 +57,7 @@ def find_trajectories(sys):
     return traj_paths
 
 
-def load_case(problem, previous_solution):
+def load_case(problem, previous_solution, deprecation_warning=True):
     """
     Populate a guess for the given problem involving Dymos Phases by interpolating results
     from the previous solution.
@@ -72,7 +70,13 @@ def load_case(problem, previous_solution):
         A dictionary with key 'inputs' mapped to the output of problem.model.list_inputs for
         a previous iteration, and key 'outputs' mapped to the output of prob.model.list_outputs.
         Both list_inputs and list_outputs should be called with `units=True` and `prom_names=True`.
+    deprecation_warning : bool
+        When False, no deprecation warning will be issued, otherwise warning will be issued.
+        (defaults to True)
     """
+    if deprecation_warning:
+        warn_deprecation("The Dymos load_case method is deprecated for OpenMDAO 3.27.0 and later, "
+                         "the load_case method on Problem should be used instead.")
 
     # allow old style arguments using a Case or OpenMDAO problem instead of dictionary
     assert (isinstance(previous_solution, Case) or isinstance(previous_solution, dict))
