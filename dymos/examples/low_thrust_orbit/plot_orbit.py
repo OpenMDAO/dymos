@@ -1,198 +1,183 @@
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import jax.numpy as jnp
 import numpy as np
-import sys
+from OrbitAnim import OrbitAnim
 
-mu = 3.986004418e14 # m^3/s^2
-Re = 6378.10 # km
-scale = 1000
+orbit = OrbitAnim('orbital_elements_max_p.txt', animate=True)
+orbit.extract_data()
+# orbit.set_elev(30)
+# orbit.set_azim(-120)
+# orbit.run_animation()
 
-def calc_r_v(p, f, g, h, k, L):
-    cosL = np.cos(L)
-    sinL = np.sin(L)
-    mu_p = np.sqrt(mu/p)
+states = orbit.states
+params = orbit.params
 
-    q = 1 + f*cosL + g*sinL
-    r = p/q
-    alpha_squared = h**2 - k**2
-    chi = np.sqrt(h**2 + k**2)
-    s_squared = 1 + chi**2
-    
-    r_vec = np.array([[(r/s_squared)*(cosL + alpha_squared*cosL + 2*h*k*sinL)],
-                      [(r/s_squared)*(sinL - alpha_squared*sinL + 2*h*k*cosL)],
-                      [(2*r/s_squared)*(h*sinL - k*cosL)]])    
-    v_vec = np.array([[(-1/s_squared)*mu_p*(sinL + alpha_squared*sinL - 2*h*k*cosL + g - 2*f*h*k + alpha_squared*g)],
-                      [(-1/s_squared)*mu_p*(-cosL + alpha_squared*cosL + 2*h*k*sinL - f + 2*g*h*k + alpha_squared*f)],
-                      [(2/s_squared)*mu_p*(h*cosL + k*sinL + f*h + g*k)]])
-    
-    return r_vec, v_vec
-
-
-file_name = 'orbital_elements_min_p.txt'
-for i in range(1, len(sys.argv), 2):
-    if sys.argv[i] == '-f':
-        file_name = sys.argv[i+1]
-
-with open(file_name, 'r') as file:
-    states = {}
-    params = {}
-    for line in file:
-        line = line.strip()
-        
-        if line.startswith('STATES:'):
-            for key in line.split()[1:]:
-                states[key] = []
-            continue
-        elif line.startswith('MAX THRUST:'):
-            params['T'] = float(line.split()[-1])
-            continue
-        elif line.startswith('ISP:'):
-            params['Isp'] = float(line.split()[-1])
-            continue
-        elif line == '':
-            continue
-        
-        line = line.split()
-        for i, key in enumerate(states.keys()):
-            states[key].append(float(line[i]))
-
-# r, v = r_and_v_calc(states)
-
-#####################
-#           p       f
-#   ORBIT   g       h
-#           k       L
-#               m
-#####################
-anim_fig = plt.figure(figsize=(12, 6))
-# anim_fig.subplot_tool()
-# anim_fig.tight_layout(pad=10)
-
-# orbit ax will have:
-#   - r timeseries
-#   - v direction (quiver)
-#   - thrust direction (quiver)
-#   - sphere for earth??
-orbit_ax = anim_fig.add_subplot(1, 2, 1, projection='3d')
-p_ax = anim_fig.add_subplot(3, 4, 3)
-fg_ax = anim_fig.add_subplot(3, 4, 4)
-hk_ax = anim_fig.add_subplot(3, 4, 7)
-L_ax = anim_fig.add_subplot(3, 4, 8)
-m_ax = anim_fig.add_subplot(3, 2, 6)
-
-anim_fig.subplots_adjust(left=0.07,
-                         bottom=0.09,
-                         right=0.95,
-                         top=0.9,
-                         wspace=0.26,
-                         hspace=0.55)
-
-def getNonRepeatedIndices(lst):
-    indices = []
-    for i in range(1,len(lst)):
-        if lst[i] != lst[i-1]:
-            indices.append(i)
-    
-    return indices
-
-t = states['t']
-non_repeated = getNonRepeatedIndices(t)
-
-t = [t[i] for i in non_repeated]
-p = [states['p'][i] for i in non_repeated]
-f = [states['f'][i] for i in non_repeated]
-g = [states['g'][i] for i in non_repeated]
-h = [states['h'][i] for i in non_repeated]
-k = [states['k'][i] for i in non_repeated]
-L = [states['L'][i] for i in non_repeated]
-m = [states['m'][i] for i in non_repeated]
-u_r = [states['u_r'][i] for i in non_repeated]
-u_theta = [states['u_theta'][i] for i in non_repeated]
-u_h = [states['u_h'][i] for i in non_repeated]
-tau = [states['tau'][i] for i in non_repeated]
-
-r, v = calc_r_v(p[0], f[0], g[0], h[0], k[0], L[0])
-
-r_mag = np.linalg.norm(r)
-v_mag = np.linalg.norm(v)
-
-rs = [[r[0][0]], [r[1][0]], [r[2][0]]]
-r_line, = orbit_ax.plot3D(rs[0], rs[1], rs[2], '-', color='k', zorder=10)
-
-v_pts = [[r[i], r[i] + v[i]/v_mag*scale] for i in range(len(r))]
-v_line, = orbit_ax.plot3D(v_pts[0][:], v_pts[1][:], v_pts[2][:], '-', color='red', zorder=10)
-
-u = [u_r[0], u_theta[0], u_h[0]]
-T_pts = [[r[i], r[i] + u[i]*scale] for i in range(len(r))]
-T_line, = orbit_ax.plot3D(T_pts[0][:], T_pts[1][:], T_pts[2][:], '-', color='orange', zorder=10)
-
-
-u, v = np.mgrid[0:2 * np.pi:30j, 0:np.pi:20j]
-x = Re*np.cos(u) * np.sin(v)
-y = Re*np.sin(u) * np.sin(v)
-z = Re*np.cos(v)
-earth = orbit_ax.plot_surface(x, y, z, color='b', alpha=1)
-earth.set_zorder(10)
-
-orbit_ax.set_box_aspect([1,1,1])
-ax_scale = 1.05
-orbit_ax.set_xlim(-Re*ax_scale, Re*ax_scale)
-orbit_ax.set_ylim(-Re*ax_scale, Re*ax_scale)
-orbit_ax.set_zlim(-Re*ax_scale, Re*ax_scale)
-orbit_ax.view_init(elev=60, azim=-90)
-
-p_line, = p_ax.plot(t[0], p[0], '-')
-f_line, = fg_ax.plot(t[0], f[0], '-')
-g_line, = fg_ax.plot(t[0], g[0], '-')
-h_line, = hk_ax.plot(t[0], h[0], '-')
-k_line, = hk_ax.plot(t[0], k[0], '-')
-L_line, = L_ax.plot(t[0], L[0], '-')
-m_line, = m_ax.plot(t[0], m[0], '-')
-
-def animate(step):
-    r, v = calc_r_v(p[step], f[step], g[step], h[step], k[step], L[step])
-    r_mag = np.linalg.norm(r)
-    v_mag = np.linalg.norm(v)
-    u = [u_r[step], u_theta[step], u_h[step]]
-
-    rs[0].append(r[0][0])
-    rs[1].append(r[1][0])
-    rs[2].append(r[2][0])
-    
-    r_line.set_data_3d((rs[0], rs[1], rs[2]))
-
-    v_pts = [[r[i][0], r[i][0] + v[i][0]/v_mag*scale] for i in range(len(r))]
-    v_line.set_data_3d((v_pts[0], v_pts[1], v_pts[2]))
-
-    T_pts = [[r[i][0], r[i][0] + u[i]*scale] for i in range(len(r))]
-    T_line.set_data_3d((T_pts[0], T_pts[1], T_pts[2]))
-    
-    p_line.set_xdata(t[:step])
-    p_line.set_ydata(p[:step])
-    p_ax.set_xlim(0, t[step]+5)
-    p_ax.set_ylim(p[0], p[step]+100)
-
-    return r_line, v_line, T_line, p_line, earth
-
-# TODO set up titles, labels, and legends
-ani = animation.FuncAnimation(anim_fig, animate, frames=np.arange(1, len(non_repeated)))
-# plt.show()
-ani.save('orbit.gif')
 # want to plot:
 #   - p and a on same ax
 #   - f, g, and e on same ax
 #   - h, k, and i on same ax
 #   - L, Omega, omega, and nu on same ax
 #   - m
-# element_fig = plt.figure()
+element_fig = plt.figure(figsize=(10, 8))
+
+pa_ax = element_fig.add_subplot(321)
+fge_ax = element_fig.add_subplot(322)
+hki_ax = element_fig.add_subplot(323)
+angles_ax = element_fig.add_subplot(324)
+m_ax = element_fig.add_subplot(313)
+
+element_fig.subplots_adjust(left=0.12,
+                            bottom=0.12,
+                            right=0.9,
+                            top=0.88,
+                            wspace=0.5,
+                            hspace=0.5)
+
+t = states['t']
+p = states['p']
+f = states['f']
+g = states['g']
+h = states['h']
+k = states['k']
+L = states['L']
+m = states['m']
+u_r = states['u_r']
+u_theta = states['u_theta']
+u_h = states['u_h']
+tau = states['tau']
+
+a = np.zeros(len(t))
+e = np.zeros(len(t))
+i = np.zeros(len(t))
+Omega = np.zeros(len(t))
+w = np.zeros(len(t))
+nu = np.zeros(len(t))
+
+for j in range(len(t)):
+    e[j] = np.sqrt(f[j]**2 + g[j]**2)
+    a[j] = p[j]/(1 - e[j])
+    i[j] = 2*np.arctan(np.sqrt(h[j]**2 + k[j]**2))
+    Omega[j] = np.arccos(h[j]/np.tan(i[j]/2))
+    Omega[j] = np.nan if np.isnan(Omega[j]) else Omega[j]
+    w[j] = np.arccos(f[j]/e[j]) - Omega[j]
+    nu[j] = L[j] - Omega[j] - w[j]
+
+pa_ax.plot(t, p, label='p')
+pa_ax.plot(t, a, label='a')
+pa_ax.legend()
+pa_ax.grid()
+pa_ax.set_xlabel('t (s)')
+pa_ax.set_ylabel('p, a (km)')
+
+fge_ax.plot(t, f, label='f')
+fge_ax.plot(t, g, label='g')
+fge_ax.plot(t, e, label='e')
+fge_ax.grid()
+fge_ax.legend()
+fge_ax.set_xlabel('t (s)')
+fge_ax.set_ylabel('f, g, e (unitless)')
+
+hki_ax.plot(t, h, label='h')
+hki_ax.plot(t, k, label='k')
+hki_ax.plot(t, i, label='i')
+hki_ax.grid()
+hki_ax.legend()
+hki_ax.set_xlabel('t (s)')
+hki_ax.set_ylabel('h, k, i (unitless)')
+
+angles_ax.plot(t, L, label='L')
+angles_ax.plot(t, Omega, label=r'$\Omega$')
+angles_ax.plot(t, w, label=r'$\omega$')
+angles_ax.plot(t, nu, label=r'$\nu$')
+angles_ax.legend()
+angles_ax.grid()
+angles_ax.set_xlabel('t (s)')
+angles_ax.set_ylabel(r'L, $\Omega$, $\omega$, $\nu$ (rad)')
+
+m_ax.plot(t, m)
+m_ax.grid()
+m_ax.set_xlabel('t (s)')
+m_ax.set_ylabel('m (kg)')
+
+element_fig.suptitle('Orbital Elements')
+
+plt.show()
+
+orbit.run_animation()
+plt.close()
 
 # state fig will plot:
-#   - velocity dir vs thrust dir
+#   - velocity dir vs thrust dir -> angle btwn velocity and thrust
 #   - r magnitude (AKA altitude)
 #   - v magnitude
 #   - perturbing acceleration
-#   - thrust
 #   - yaw and pitch
-# state_fig = plt.figure()
 
+state_fig = plt.figure(figsize=(10, 8))
+
+v_T_angle = np.zeros(len(t))
+r_mags = np.array(orbit.r_mags)
+v_mags = np.array(orbit.v_mags)
+vs = np.array(orbit.vs)
+us = np.array([u_r, u_h, u_theta])
+dT = np.zeros(len(t))
+yaw = np.zeros(len(t))
+pitch = np.zeros(len(t))
+
+for i in range(len(t)):
+    v_T_angle[i] = np.rad2deg(np.arccos(np.dot(vs[:, i], us[:, i])/(np.linalg.norm(vs[:, i])*np.linalg.norm(us[:, i]))))
+    dT[i] = (params['T']*(1 + 0.01*tau[i]))/m[i]
+    # NOTE the optimizer sometimes cheats, u_r, u_theta, and u_h should not be greater than 1,
+    # but if they are slightly over 1 that'll cause some nans to show up
+    # other nans seen in pitch are due to the arithmetic yielding a value barely greater than 1
+    # which means there might be some other thing to look at
+    u_r[i] = 1.0 if u_r[i] > 1.0 else u_r[i]
+    u_r[i] = -1.0 if u_r[i] < -1.0 else u_r[i]
+    yaw[i] = np.rad2deg(np.arcsin(-u_r[i]))
+    u_theta[i] = 1.0 if u_theta[i] > 1.0 else u_theta[i]
+    u_theta[i] = -1.0 if u_theta[i] < -1.0 else u_theta[i]
+    pitch[i] = np.rad2deg(np.arccos(u_theta[i]/np.cos(np.deg2rad(yaw[i]))))    
+        
+
+vT_ax = state_fig.add_subplot(321)
+dT_ax = state_fig.add_subplot(322)
+dir_ax = state_fig.add_subplot(323)
+r_ax = state_fig.add_subplot(324)
+v_ax = state_fig.add_subplot(313)
+
+state_fig.subplots_adjust(left=0.125,
+                          bottom=0.11,
+                          right=0.9,
+                          top=0.88,
+                          wspace=0.35,
+                          hspace=0.36)
+
+vT_ax.plot(t, v_T_angle)
+vT_ax.grid()
+vT_ax.set_xlabel('t (s)')
+vT_ax.set_ylabel('Angle btwn v and T (deg)')
+
+dT_ax.plot(t, dT)
+dT_ax.grid()
+dT_ax.set_xlabel('t (s)')
+dT_ax.set_ylabel(r'$\Delta_T$ $(N)$')
+
+dir_ax.plot(t, yaw, label='yaw')
+dir_ax.plot(t, pitch, label='pitch')
+dir_ax.legend()
+dir_ax.grid()
+dir_ax.set_xlabel('t (s)')
+dir_ax.set_ylabel('yaw, pitch (deg)')
+
+r_ax.plot(t, r_mags)
+r_ax.grid()
+r_ax.set_xlabel('t (s)')
+r_ax.set_ylabel('Altitude (km)')
+
+v_ax.plot(t, v_mags)
+v_ax.grid()
+v_ax.set_xlabel('t (s)')
+v_ax.set_ylabel('Velocity (m/s)')
+
+state_fig.suptitle('Important States')
+
+plt.show()

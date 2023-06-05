@@ -78,8 +78,8 @@ class OrbitAnim:
                                  bottom=0.09,
                                  right=0.95,
                                  top=0.9,
-                                 wspace=0.26,
-                                 hspace=0.55)
+                                 wspace=0.35,
+                                 hspace=0.7)
 
         self.extract_data()
         
@@ -99,6 +99,7 @@ class OrbitAnim:
         r, v = self.calc_r_v(p, f, g, h, k, L)
         u = [u_r, u_theta, u_h]
         self.rs = [[r[0][0]], [r[1][0]], [r[2][0]]]
+        self.vs = [[v[0][0]], [v[1][0]], [v[2][0]]]
         
         self.r_mags = [np.linalg.norm(r)]
         self.v_mags = [np.linalg.norm(v)]
@@ -125,12 +126,37 @@ class OrbitAnim:
         self.orbit_ax.view_init(elev=self.elev, azim=self.azim)
         
         self.p_line, = self.p_ax.plot(t, p, '-')
-        self.f_line, = self.fg_ax.plot(t, f, '-')
-        self.g_line, = self.fg_ax.plot(t, g, '-')
-        self.h_line, = self.hk_ax.plot(t, h, '-')
-        self.k_line, = self.hk_ax.plot(t, k, '-')
+        self.f_line, = self.fg_ax.plot(t, f, '-', label='f')
+        self.g_line, = self.fg_ax.plot(t, g, '-', label='g')
+        self.h_line, = self.hk_ax.plot(t, h, '-', label='h')
+        self.k_line, = self.hk_ax.plot(t, k, '-', label='k')
         self.L_line, = self.L_ax.plot(t, L, '-')
         self.m_line, = self.m_ax.plot(t, m, '-')
+
+        self.fg_ax.set_ylim(-1, 1)
+        self.hk_ax.set_ylim(-1, 1)
+        
+        self.p_ax.set_ylabel('p (km)')
+        self.fg_ax.set_ylabel('f, g (unitless)')
+        self.hk_ax.set_ylabel('h, k (unitless)')
+        self.L_ax.set_ylabel('L (rad)')
+        self.m_ax.set_ylabel('m (kg)')
+        
+        self.p_ax.set_xlabel('t (s)')
+        self.fg_ax.set_xlabel('t (s)')
+        self.hk_ax.set_xlabel('t (s)')
+        self.L_ax.set_xlabel('t (s)')
+        self.m_ax.set_xlabel('t (s)')
+        
+        self.fg_ax.legend()
+        self.hk_ax.legend()
+        
+        self.p_ax.grid()
+        self.fg_ax.grid()
+        self.hk_ax.grid()
+        self.L_ax.grid()
+        self.m_ax.grid()
+        
 
     # TODO have a bunch of setters for ax scaling
     
@@ -162,19 +188,27 @@ class OrbitAnim:
         u_h = self.states['u_h']
         tau = self.states['tau']
         
+        # needed to keep funcanimate from running animate twice
+        def init():
+            pass
+
         def animate(i):
             r, v = self.calc_r_v(p[i], f[i], g[i], h[i], k[i], L[i])
-            r_mag = np.linalg.norm(r)
-            v_mag = np.linalg.norm(v)
+            self.r_mags.append(np.linalg.norm(r))
+            self.v_mags.append(np.linalg.norm(v))
             u = [u_r[i], u_theta[i], u_h[i]]
 
             self.rs[0].append(r[0][0])
             self.rs[1].append(r[1][0])
             self.rs[2].append(r[2][0])
-            
+
+            self.vs[0].append(v[0][0])
+            self.vs[1].append(v[1][0])
+            self.vs[2].append(v[2][0])
+
             self.r_line.set_data_3d((self.rs[0], self.rs[1], self.rs[2]))
 
-            v_pts = [[r[j][0], r[j][0] + v[j][0]/v_mag*self.scale] for j in range(len(r))]
+            v_pts = [[r[j][0], r[j][0] + v[j][0]/self.v_mags[-1]*self.scale] for j in range(len(r))]
             self.v_line.set_data_3d((v_pts[0], v_pts[1], v_pts[2]))
 
             T_pts = [[r[j][0], r[j][0] + u[j]*self.scale] for j in range(len(r))]
@@ -187,29 +221,19 @@ class OrbitAnim:
             
             self.f_line.set_xdata(t[:i])
             self.f_line.set_ydata(f[:i])
-            # self.f_line.set_xlim(0, t[i]+5)
-            # self.f_line.set_ylim(f[0], f[i])
             
             self.g_line.set_xdata(t[:i])
             self.g_line.set_ydata(g[:i])
-            # self.g_line.set_xlim(0, t[i]+5)
-            # self.g_line.set_ylim(g[0], g[i])
             
             self.fg_ax.set_xlim(0, t[i]+5)
-            self.fg_ax.set_ylim(-1, 1)
             
             self.h_line.set_xdata(t[:i])
             self.h_line.set_ydata(h[:i])
-            # self.h_line.set_xlim(0, t[i]+5)
-            # self.h_line.set_ylim(h[0], h[i])
             
             self.k_line.set_xdata(t[:i])
             self.k_line.set_ydata(k[:i])
-            # self.k_line.set_xlim(0, t[i]+5)
-            # self.k_line.set_ylim(k[0], k[i])
             
             self.hk_ax.set_xlim(0, t[i]+5)
-            self.hk_ax.set_ylim(-1, 1)
             
             self.L_line.set_xdata(t[:i])
             self.L_line.set_ydata(L[:i])
@@ -223,7 +247,7 @@ class OrbitAnim:
 
             return self.r_line, self.v_line, self.T_line, self.p_line, self.f_line, self.g_line, self.h_line, self.k_line, self.L_line, self.m_line
         
-        self.ani = animation.FuncAnimation(self.fig, animate, frames=np.arange(1,len(t)))
+        self.ani = animation.FuncAnimation(self.fig, animate, frames=np.arange(1,len(t)), repeat=False, init_func=init)
 
         if self.animate:
             self.ani.save(self.savefile)
