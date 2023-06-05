@@ -111,7 +111,7 @@ class LowThrustOrbitODE(om.ExplicitComponent):
         
         sinL = jnp.sin(L)
         cosL = jnp.cos(L)
-        
+
         q = 1 + f*cosL + g*sinL
         # r_mag = p/q
         # alpha_squared = h**2 - k**2
@@ -217,9 +217,9 @@ spiral.add_control('u_h', opt=True, continuity=True, rate_continuity=True, rate2
                    units='unitless', lower=-1, upper=1)
 
 # spiral.add_objective('m', loc='final', scaler=-1)
-spiral.add_objective('p', loc='final', ref=-1000)
+# spiral.add_objective('p', loc='final', ref=1000)
 
-# spiral.add_objective('a = p / (1 - f**2 - g**2)', loc='final', ref=-1000)
+spiral.add_objective('a = p / (1 - f**2 - g**2)', loc='final', ref=1000)
 
 # spiral.add_timeseries_output('eccentricity = (f**2 + g**2)**0.5', loc='final', equals=0.73550320568829)
 
@@ -253,7 +253,7 @@ p.set_val('traj.spiral.states:m', spiral.interp('m', [1, 0.4]))
 
 
 p.set_val('traj.spiral.controls:u_r', spiral.interp('u_r', [0.0, 0.0]))
-p.set_val('traj.spiral.controls:u_theta', spiral.interp('u_theta', [1.0, 1.0]))
+p.set_val('traj.spiral.controls:u_theta', spiral.interp('u_theta', [-1.0, -1.0]))
 p.set_val('traj.spiral.controls:u_h', spiral.interp('u_h', [0.0, 0.0]))
 p.set_val('traj.spiral.controls:tau', spiral.interp('tau', [0.0, 0.0]))
 

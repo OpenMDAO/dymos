@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
 
+from rotation_matrices import R_PQW2IJK, R_PQW2RSW, Qr
+
 class OrbitAnim:
     def __init__(self, filename, savefile='orbit.gif', animate=True):
         self.filename = filename
@@ -97,7 +99,7 @@ class OrbitAnim:
         tau = self.states['tau'][0]
         
         r, v = self.calc_r_v(p, f, g, h, k, L)
-        u = [u_r, u_theta, u_h]
+        u = np.array([u_r, u_theta, u_h])
         self.rs = [[r[0][0]], [r[1][0]], [r[2][0]]]
         self.vs = [[v[0][0]], [v[1][0]], [v[2][0]]]
         
@@ -108,6 +110,11 @@ class OrbitAnim:
         
         v_pts = [[r[i], r[i] + v[i]/self.v_mags[0]*self.scale] for i in range(len(r))]
         self.v_line, = self.orbit_ax.plot3D(v_pts[0], v_pts[1], v_pts[2], '-', color='red', zorder=5)
+        
+        r = r.squeeze(); v = v.squeeze()
+        R = Qr(r, v)
+        
+        u = np.linalg.inv(R) @ u
         
         T_pts = [[r[i], r[i] + u[i]*self.scale] for i in range(len(r))]
         self.T_line, = self.orbit_ax.plot3D(T_pts[0], T_pts[1], T_pts[2], '-', color='orange', zorder=5)
@@ -196,7 +203,7 @@ class OrbitAnim:
             r, v = self.calc_r_v(p[i], f[i], g[i], h[i], k[i], L[i])
             self.r_mags.append(np.linalg.norm(r))
             self.v_mags.append(np.linalg.norm(v))
-            u = [u_r[i], u_theta[i], u_h[i]]
+            u = np.array([u_r[i], u_theta[i], u_h[i]])
 
             self.rs[0].append(r[0][0])
             self.rs[1].append(r[1][0])
@@ -211,7 +218,12 @@ class OrbitAnim:
             v_pts = [[r[j][0], r[j][0] + v[j][0]/self.v_mags[-1]*self.scale] for j in range(len(r))]
             self.v_line.set_data_3d((v_pts[0], v_pts[1], v_pts[2]))
 
-            T_pts = [[r[j][0], r[j][0] + u[j]*self.scale] for j in range(len(r))]
+            r = r.squeeze(); v = v.squeeze()
+            R = Qr(r, v)
+            
+            u = np.linalg.inv(R) @ u
+
+            T_pts = [[r[j], r[j] + u[j]*self.scale] for j in range(len(r))]
             self.T_line.set_data_3d((T_pts[0], T_pts[1], T_pts[2]))
             
             self.p_line.set_xdata(t[:i])

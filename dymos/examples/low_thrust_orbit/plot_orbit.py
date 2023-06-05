@@ -3,6 +3,8 @@ import numpy as np
 from OrbitAnim import OrbitAnim
 import sys
 
+from rotation_matrices import R_PQW2IJK, R_PQW2RSW
+
 filename = 'orbital_elements_real.txt'
 if len(sys.argv) > 1 and sys.argv[1] != '':
     filename = sys.argv[1]
@@ -59,7 +61,7 @@ nu = np.zeros(len(t))
 
 for j in range(len(t)):
     e[j] = np.sqrt(f[j]**2 + g[j]**2)
-    a[j] = p[j]/(1 - e[j])
+    a[j] = p[j]/(1 - e[j]**2)
     i[j] = 2*np.arctan(np.sqrt(h[j]**2 + k[j]**2))
     Omega[j] = np.arccos(h[j]/np.tan(i[j]/2))
     Omega[j] = np.nan if np.isnan(Omega[j]) else Omega[j]
@@ -109,7 +111,7 @@ element_fig.suptitle('Orbital Elements')
 element_fig.savefig('Orbital_Elements.png')
 
 orbit.run_animation()
-# plt.close()
+plt.close()
 
 # state fig will plot:
 #   - velocity dir vs thrust dir -> angle btwn velocity and thrust
@@ -148,7 +150,8 @@ vT_ax = state_fig.add_subplot(321)
 dT_ax = state_fig.add_subplot(322)
 dir_ax = state_fig.add_subplot(323)
 r_ax = state_fig.add_subplot(324)
-v_ax = state_fig.add_subplot(313)
+v_ax = state_fig.add_subplot(325)
+tau_ax = state_fig.add_subplot(326)
 
 state_fig.subplots_adjust(left=0.125,
                           bottom=0.11,
@@ -183,6 +186,11 @@ v_ax.plot(t, v_mags)
 v_ax.grid()
 v_ax.set_xlabel('t (s)')
 v_ax.set_ylabel('Velocity (m/s)')
+
+tau_ax.plot(t, tau)
+tau_ax.grid()
+tau_ax.set_xlabel('t (s)')
+tau_ax.set_ylabel('Throttle (unitless)')
 
 state_fig.suptitle('Important States')
 
