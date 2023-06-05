@@ -280,7 +280,11 @@ dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)
 # with np.printoptions(linewidth=10000):
 #     p.check_partials(method='cs', compact_print=True)
 
-with open('orbital_elements_min_p.txt', 'w') as sys.stdout:
+filename = 'orbital_elements_real.txt'
+if len(sys.argv) > 1 and sys.argv[1] != '':
+    filename = sys.argv[1]
+
+with open(filename, 'w') as sys.stdout:
     print('STATES: t p f g h k L m u_r u_theta u_h tau')
     print(f'MAX THRUST: {p.get_val("traj.parameter_vals:T")[0][0]}')
     print(f'ISP: {p.get_val("traj.parameter_vals:Isp")[0][0]}')

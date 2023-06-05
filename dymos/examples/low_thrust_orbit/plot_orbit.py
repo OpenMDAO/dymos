@@ -1,8 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from OrbitAnim import OrbitAnim
+import sys
 
-orbit = OrbitAnim('orbital_elements_max_p.txt', animate=True)
+filename = 'orbital_elements_real.txt'
+if len(sys.argv) > 1 and sys.argv[1] != '':
+    filename = sys.argv[1]
+
+orbit = OrbitAnim(filename, animate=True)
 orbit.extract_data()
 # orbit.set_elev(30)
 # orbit.set_azim(-120)
