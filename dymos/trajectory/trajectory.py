@@ -294,7 +294,9 @@ class Trajectory(om.Group):
                                   'ref': options['ref'],
                                   'adder': options['adder'],
                                   'scaler': options['scaler'],
-                                  'opt': options['opt'],
+                                  # The phase-level parameter is never optimized
+                                  # if governed by the trajectory-level parameter.
+                                  'opt': False,
                                   'lower': options['lower'],
                                   'upper': options['upper'],
                                   'targets': tgts[phase_name]}
@@ -374,6 +376,17 @@ class Trajectory(om.Group):
             promoted_inputs.append(f'parameters:{name}')
             targets = options['targets']
 
+            # First check that the user gave valid phase names, if providing
+            # parameter targets as a dict.
+            if isinstance(targets, dict):
+                target_phases = set(targets.keys())
+                avail_phases = set(self._phases.keys())
+                non_existing_phases = target_phases - avail_phases
+                if non_existing_phases:
+                    raise ValueError(f'The following phases were specified as\n'
+                                     f'targets for trajectory parameter {name}\n'
+                                     f'but are not valid phase names: {non_existing_phases}')
+
             # For each phase, use introspection to get the units and shape.
             # If units do not match across all phases, require user to set them.
             # If shapes do not match across all phases, this is an error.
@@ -430,6 +443,8 @@ class Trajectory(om.Group):
                     reason = f'Option `targets=None` but no phase in the trajectory has a parameter named `{name}`.'
                 elif all([t is None for t in targets.values()]) and targets.keys() == self._phases.keys():
                     reason = f'Option `targets` is a dictionary keyed by phase name but target for each phase is None.'
+                else:
+                    reason = ''
                 raise ValueError(f'No target was found for trajectory parameter `{name}` in any phase.\n{reason}')
 
             if options['shape'] is _unspecified:
