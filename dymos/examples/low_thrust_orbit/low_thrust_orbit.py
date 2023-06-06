@@ -1,4 +1,5 @@
 import openmdao.api as om
+from openmdao.utils.general_utils import is_truthy
 import dymos as dm
 import jax.numpy as jnp
 import jax
@@ -6,6 +7,17 @@ import numpy as np
 import sys
 
 from functools import partial
+
+LOAD_CASE = False
+filename = 'orbital_elements.txt'
+if len(sys.argv) > 1:
+    for i in range(1, len(sys.argv), 2):
+        if sys.argv[i] == '--load-case':
+            LOAD_CASE == is_truthy(sys.argv[i+1])
+        elif sys.argv[i] in ['--file', '-f']:
+            filename = sys.argv[i+1]
+        else:
+            raise Exception('Invalid argument')
 
 
 class LowThrustOrbitODE(om.ExplicitComponent):
@@ -35,8 +47,8 @@ class LowThrustOrbitODE(om.ExplicitComponent):
         self.add_input('u_theta', shape=nn, desc='percent thrust in tangential direction', units='unitless')
         self.add_input('u_h', shape=nn, desc='thrust in normal direction', units='unitless')
         
-        self.add_input('tau', shape=nn, desc='throttle factor', units='unitless')
-        
+        # NOTE changing tau to a static parameter
+        self.add_input('tau', shape=1, desc='throttle factor', units='unitless', tags=['dymos.static_target'])
         self.add_input('T', shape=1, desc='maximum thrust', units='N', tags=['dymos.static_target'])
         self.add_input('Isp', shape=1, desc='specific impulse', units='s', tags=['dymos.static_target'])
 
@@ -55,17 +67,17 @@ class LowThrustOrbitODE(om.ExplicitComponent):
         ar = np.arange(nn, dtype=int)
         # NOTE these are the partials that each vectorized input hasin common
         self.declare_partials(of=['p_dot', 'f_dot', 'g_dot', 'h_dot', 'k_dot', 'L_dot'],
-                              wrt=['p', 'f', 'g', 'L', 'm', 'tau'],
+                              wrt=['p', 'f', 'g', 'L', 'm'],#, 'tau'],
                               method=method, rows=ar, cols=ar)
-        self.declare_partials(of=['p_dot', 'f_dot', 'g_dot', 'h_dot', 'k_dot', 'L_dot'], wrt=['T'],
+        self.declare_partials(of=['p_dot', 'f_dot', 'g_dot', 'h_dot', 'k_dot', 'L_dot'], wrt=['T', 'tau'],
                               method=method)
         
         self.declare_partials(of='p_dot', wrt=['u_theta'], method=method, rows=ar, cols=ar)
         self.declare_partials(of=['f_dot', 'g_dot'], wrt=['h', 'k', 'u_r', 'u_theta', 'u_h'], method=method, rows=ar, cols=ar)
         self.declare_partials(of=['h_dot', 'k_dot', 'L_dot'], wrt=['h', 'k', 'u_h'], method=method, rows=ar, cols=ar)
 
-        self.declare_partials(of='m_dot', wrt=['tau'], rows=ar, cols=ar, method=method)
-        self.declare_partials(of='m_dot', wrt=['Isp', 'T'], method=method)
+        # self.declare_partials(of='m_dot', wrt=['tau'], rows=ar, cols=ar, method=method)
+        self.declare_partials(of='m_dot', wrt=['Isp', 'T', 'tau'], method=method)
     
     @partial(jax.jit, static_argnums=(0,))
     def _compute_partials_jacfwd(self, *inputs):
@@ -181,6 +193,8 @@ traj = dm.Trajectory()
 # T = 4.446618e-3 lb -> 0.019779542235 N
 traj.add_parameter('T', val=0.019779542235, units='N', targets={'spiral': ['T']}, opt=False)
 traj.add_parameter('Isp', val=450, units='s', targets={'spiral': ['Isp']}, opt=False)
+traj.add_parameter('tau', val=-9.1, lower=-50.0, upper=0.0, units='unitless', targets={'spiral': ['tau']}, opt=True)
+# traj.add_parameter('tau', val=)
 
 tx = dm.Radau(num_segments=30, order=3, compressed=True) #solve_segments='forward')
 spiral = dm.Phase(ode_class=LowThrustOrbitODE, transcription=tx)
@@ -199,10 +213,10 @@ spiral.add_state('k', fix_initial=True, rate_source='k_dot', lower=-1, upper=1)
 spiral.add_state('L', fix_initial=True, rate_source='L_dot', lower=0.0, ref=2*np.pi, defect_ref=2*np.pi)
 spiral.add_state('m', fix_initial=True, rate_source='m_dot', lower=0.01, upper=1.0)
 
-spiral.add_control('tau', opt=True, continuity=True, rate_continuity=True, rate2_continuity=False,
-                   rate_continuity_scaler=1e-3,
-                   scaler=1,
-                   units='unitless', lower=-50, upper=0)
+# spiral.add_control('tau', opt=True, # continuity=True, rate_continuity=True, rate2_continuity=False,
+#                    # rate_continuity_scaler=1e-3,
+#                    scaler=1,
+#                    units='unitless', lower=-50, upper=0)
 spiral.add_control('u_r', opt=True, continuity=True, rate_continuity=True, rate2_continuity=False,
                    rate_continuity_scaler=1e-3,
                    scaler=100,
@@ -216,19 +230,19 @@ spiral.add_control('u_h', opt=True, continuity=True, rate_continuity=True, rate2
                    rate_continuity_scaler=1e-3,
                    units='unitless', lower=-1, upper=1)
 
-# spiral.add_objective('m', loc='final', scaler=-1)
+spiral.add_objective('m', loc='final', scaler=-1)
 # spiral.add_objective('p', loc='final', ref=1000)
 
-spiral.add_objective('a = p / (1 - f**2 - g**2)', loc='final', ref=1000)
+# spiral.add_objective('a = p / (1 - f**2 - g**2)', loc='final', ref=-1000)
 
 # spiral.add_timeseries_output('eccentricity = (f**2 + g**2)**0.5', loc='final', equals=0.73550320568829)
 
 
-# spiral.add_boundary_constraint('p', loc='final', equals=12194.239065442713, ref=12194.239065442713)
-# spiral.add_boundary_constraint('eccentricity = (f**2 + g**2)**0.5', loc='final', equals=0.73550320568829)
-# spiral.add_boundary_constraint('tan_inclination = (h**2 + k**2)**0.5', loc='final', equals=0.61761258786099)
-# spiral.add_boundary_constraint('comp_const1 = f*h + g*k', loc='final', equals=0.0)
-# spiral.add_boundary_constraint('comp_const2 = g*h - k*f', loc='final', upper=0.0)
+spiral.add_boundary_constraint('p', loc='final', equals=12194.239065442713, ref=12194.239065442713)
+spiral.add_boundary_constraint('eccentricity = (f**2 + g**2)**0.5', loc='final', equals=0.73550320568829)
+spiral.add_boundary_constraint('tan_inclination = (h**2 + k**2)**0.5', loc='final', equals=0.61761258786099)
+spiral.add_boundary_constraint('comp_const1 = f*h + g*k', loc='final', equals=0.0)
+spiral.add_boundary_constraint('comp_const2 = g*h - k*f', loc='final', upper=0.0)
 spiral.add_path_constraint('u_mag2 = u_r**2 + u_theta**2 + u_h**2', equals=1.0)
 
 p.model.add_subsystem('traj', traj)
@@ -244,45 +258,32 @@ p.setup(check=True, force_alloc_complex=True)
 # p.set_val('traj.spiral.initial_states:m', 1)
 
 p.set_val('traj.spiral.states:p', spiral.interp('p', [6655.94200010410789, 12194.239065442713]))
-p.set_val('traj.spiral.states:f', 0.0)
-p.set_val('traj.spiral.states:g', 0.0)
-p.set_val('traj.spiral.states:h', -0.25396764647494)
-p.set_val('traj.spiral.states:k', 0)
-p.set_val('traj.spiral.states:L', spiral.interp('L', [np.pi, 2*np.pi*8]))
+p.set_val('traj.spiral.states:f', spiral.interp('f', [0.0, -0.1]))
+p.set_val('traj.spiral.states:g', spiral.interp('g', [0.0, 0.7286734286206346]))
+p.set_val('traj.spiral.states:h', spiral.interp('h', [-0.25396764647494, -0.6]))
+p.set_val('traj.spiral.states:k', spiral.interp('k', [0.0, -0.14644216839540852]))
+p.set_val('traj.spiral.states:L', spiral.interp('L', [np.pi, 2*np.pi*1.5]))
 p.set_val('traj.spiral.states:m', spiral.interp('m', [1, 0.4]))
 
 
-p.set_val('traj.spiral.controls:u_r', spiral.interp('u_r', [0.0, 0.0]))
-p.set_val('traj.spiral.controls:u_theta', spiral.interp('u_theta', [-1.0, -1.0]))
-p.set_val('traj.spiral.controls:u_h', spiral.interp('u_h', [0.0, 0.0]))
-p.set_val('traj.spiral.controls:tau', spiral.interp('tau', [0.0, 0.0]))
+p.set_val('traj.spiral.controls:u_r', spiral.interp('u_r', [0.2, 0.4]))
+p.set_val('traj.spiral.controls:u_theta', spiral.interp('u_theta', [0.8, -0.5]))
+p.set_val('traj.spiral.controls:u_h', spiral.interp('u_h', [0.5656854249492379, 0.7681145747868608]))
+# p.set_val('traj.spiral.controls:tau', spiral.interp('tau', [0.0, 0.0]))
 
 p.set_val('traj.spiral.t_initial', 0.0)
-p.set_val('traj.spiral.t_duration', 2000.0)
+# p.set_val('traj.spiral.t_duration', 80000.0)
 # p.set_val('traj.spiral.t_duration', 5_000.0)
 # p.set_val('traj.spiral.controls:u_theta', 1)
 
 # p.set_val('traj.spiral.t_duration', 90*60)
 
 
-# p.run_model()
-# p.model.list_outputs(print_arrays=True, units=True)
-
-# p.run_model()
+if LOAD_CASE:
+    case = om.CaseReader('dymos_solution.db').get_case('final')
+    p.load_case(case)
 
 dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)
-# p.run_model()
-# print('\n\n\n')
-# p.model.list_outputs(print_arrays=True, units=True)
-
-# p.model.list_outputs(print_arrays=True, units=True)
-
-# with np.printoptions(linewidth=10000):
-#     p.check_partials(method='cs', compact_print=True)
-
-filename = 'orbital_elements_real.txt'
-if len(sys.argv) > 1 and sys.argv[1] != '':
-    filename = sys.argv[1]
 
 with open(filename, 'w') as sys.stdout:
     print('STATES: t p f g h k L m u_r u_theta u_h tau')
@@ -301,8 +302,8 @@ with open(filename, 'w') as sys.stdout:
     u_r = p.get_val('traj.spiral.timeseries.controls:u_r')
     u_theta = p.get_val('traj.spiral.timeseries.controls:u_theta')
     u_h = p.get_val('traj.spiral.timeseries.controls:u_h')
-    tau = p.get_val('traj.spiral.timeseries.controls:tau')
+    # tau = p.get_val('traj.spiral.timeseries.controls:tau')
     
     for i in range(len(t)):
-        print(f'{t[i][0]} {_p[i][0]} {f[i][0]} {g[i][0]} {h[i][0]} {k[i][0]} {L[i][0]} {m[i][0]} {u_r[i][0]} {u_theta[i][0]} {u_h[i][0]} {tau[i][0]}')
+        print(f'{t[i][0]} {_p[i][0]} {f[i][0]} {g[i][0]} {h[i][0]} {k[i][0]} {L[i][0]} {m[i][0]} {u_r[i][0]} {u_theta[i][0]} {u_h[i][0]}')# {tau[i][0]}')
     

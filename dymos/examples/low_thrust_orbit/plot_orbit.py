@@ -5,7 +5,7 @@ import sys
 
 from rotation_matrices import R_PQW2IJK, R_PQW2RSW
 
-filename = 'orbital_elements_real.txt'
+filename = 'orbital_elements.txt'
 if len(sys.argv) > 1 and sys.argv[1] != '':
     filename = sys.argv[1]
 
@@ -150,8 +150,8 @@ vT_ax = state_fig.add_subplot(321)
 dT_ax = state_fig.add_subplot(322)
 dir_ax = state_fig.add_subplot(323)
 r_ax = state_fig.add_subplot(324)
-v_ax = state_fig.add_subplot(325)
-tau_ax = state_fig.add_subplot(326)
+v_ax = state_fig.add_subplot(313)
+# tau_ax = state_fig.add_subplot(326)
 
 state_fig.subplots_adjust(left=0.125,
                           bottom=0.11,
@@ -187,10 +187,10 @@ v_ax.grid()
 v_ax.set_xlabel('t (s)')
 v_ax.set_ylabel('Velocity (m/s)')
 
-tau_ax.plot(t, tau)
-tau_ax.grid()
-tau_ax.set_xlabel('t (s)')
-tau_ax.set_ylabel('Throttle (unitless)')
+# tau_ax.plot(t, tau)
+# tau_ax.grid()
+# tau_ax.set_xlabel('t (s)')
+# tau_ax.set_ylabel('Throttle (unitless)')
 
 state_fig.suptitle('Important States')
 
