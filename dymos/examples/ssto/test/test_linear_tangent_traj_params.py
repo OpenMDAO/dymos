@@ -264,6 +264,7 @@ class TestSSTOLinearTangentTrajParams(unittest.TestCase):
 
         self.assertEqual(expected, str(e.exception))
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_opt_traj_param_ode_targets(self):
         #
         # Setup and solve the optimal control problem
