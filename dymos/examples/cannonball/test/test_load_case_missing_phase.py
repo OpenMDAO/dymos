@@ -59,8 +59,12 @@ class TestTwoPhaseCannonballLoadCase(unittest.TestCase):
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
-        traj.add_parameter('m', units='kg', val=1.0,
-                           targets={'ascent': 'mass', 'descent': 'mass'})
+        if ascent_only:
+            traj.add_parameter('m', units='kg', val=1.0,
+                               targets={'ascent': 'mass'})
+        else:
+            traj.add_parameter('m', units='kg', val=1.0,
+                               targets={'ascent': 'mass', 'descent': 'mass'})
 
         # In this case, by omitting targets, we're connecting these parameters to parameters
         # with the same name in each phase.
