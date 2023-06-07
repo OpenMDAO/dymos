@@ -1,4 +1,0 @@
-STATES: t p f g h k L m u_r u_theta u_h tau
-MAX THRUST: 0.019779542235
-ISP: 450.0
-
