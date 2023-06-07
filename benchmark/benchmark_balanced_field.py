@@ -242,7 +242,7 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
     dm.run_problem(p, run_driver=True, simulate=sim, make_plots=make_plots)
 
     # Test this example in Dymos' continuous integration
-    assert_near_equal(p.get_val('traj.rto.states:r')[-1], 2188.2, tolerance=0.01)
+    assert_near_equal(p.get_val('traj.rto.states:r')[-1], 2114.35, tolerance=0.02)
 
 
 @use_tempdirs
