@@ -126,37 +126,37 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         traj.add_parameter('CD0', val=0.03, opt=False, units=None, static_target=True,
                            desc='zero-lift drag coefficient',
                            targets={f'{phase}': ['CD0'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                      'rto', 'rotate' 'climb']})
+                                                                      'rto', 'rotate', 'climb']})
 
         traj.add_parameter('AR', val=9.45, opt=False, units=None, static_target=True,
                            desc='wing aspect ratio',
                            targets={f'{phase}': ['AR'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                     'rto', 'rotate' 'climb']})
+                                                                     'rto', 'rotate', 'climb']})
 
         traj.add_parameter('e', val=801, opt=False, units=None, static_target=True,
                            desc='Oswald span efficiency factor',
                            targets={f'{phase}': ['e'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                    'rto', 'rotate' 'climb']})
+                                                                    'rto', 'rotate', 'climb']})
 
         traj.add_parameter('span', val=35.7, opt=False, units='m', static_target=True,
                            desc='wingspan',
                            targets={f'{phase}': ['span'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                       'rto', 'rotate' 'climb']})
+                                                                       'rto', 'rotate', 'climb']})
 
         traj.add_parameter('h_w', val=1.0, opt=False, units='m', static_target=True,
                            desc='height of wing above CG',
                            targets={f'{phase}': ['h_w'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                      'rto', 'rotate' 'climb']})
+                                                                      'rto', 'rotate', 'climb']})
 
         traj.add_parameter('CL0', val=0.5, opt=False, units=None, static_target=True,
                            desc='zero-alpha lift coefficient',
                            targets={f'{phase}': ['CL0'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                      'rto', 'rotate' 'climb']})
+                                                                      'rto', 'rotate', 'climb']})
 
         traj.add_parameter('CL_max', val=2.0, opt=False, units=None, static_target=True,
                            desc='maximum lift coefficient for linear fit',
                            targets={f'{phase}': ['CL_max'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                         'rto', 'rotate' 'climb']})
+                                                                         'rto', 'rotate', 'climb']})
 
         # Standard "end of first phase to beginning of second phase" linkages
         traj.link_phases(['br_to_v1', 'v1_to_vr'], vars=['time', 'r', 'v'])
@@ -236,18 +236,18 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
 
         sol_results = om.CaseReader('dymos_solution.db').get_case('final')
 
-        assert_near_equal(sol_results.get_val('traj.climb.timeseries.states:r')[-1], 2016, tolerance=0.01)
+        assert_near_equal(sol_results.get_val('traj.climb.timeseries.states:r')[-1], 1881, tolerance=0.01)
 
         dm.run_problem(p, run_driver=True, simulate=True, restart='dymos_solution.db')
 
         sol_results = om.CaseReader('dymos_solution.db').get_case('final')
         sim_results = om.CaseReader('dymos_simulation.db').get_case('final')
 
-        assert_near_equal(sol_results.get_val('traj.climb.timeseries.states:r')[-1], 2016, tolerance=0.01)
-        assert_near_equal(sim_results.get_val('traj.climb.timeseries.states:r')[-1], 2016, tolerance=0.01)
+        assert_near_equal(sol_results.get_val('traj.climb.timeseries.states:r')[-1], 1881, tolerance=0.01)
+        assert_near_equal(sim_results.get_val('traj.climb.timeseries.states:r')[-1], 1881, tolerance=0.01)
 
-        assert_near_equal(sol_results.get_val('traj.rto.timeseries.states:r')[-1], 2016, tolerance=0.01)
-        assert_near_equal(sim_results.get_val('traj.rto.timeseries.states:r')[-1], 2016, tolerance=0.01)
+        assert_near_equal(sol_results.get_val('traj.rto.timeseries.states:r')[-1], 1881, tolerance=0.01)
+        assert_near_equal(sim_results.get_val('traj.rto.timeseries.states:r')[-1], 1881, tolerance=0.01)
 
     @require_pyoptsparse(optimizer='IPOPT')
     @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"),
@@ -258,7 +258,7 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
 
         sol_results = om.CaseReader('dymos_solution.db').get_case('final')
 
-        assert_near_equal(sol_results.get_val('traj.climb.timeseries.states:r')[-1], 2016,
+        assert_near_equal(sol_results.get_val('traj.climb.timeseries.states:r')[-1], 1881,
                           tolerance=0.01)
 
         dm.run_problem(p, run_driver=True, simulate=True, restart='dymos_simulation.db')
@@ -266,14 +266,14 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         sol_results = om.CaseReader('dymos_solution.db').get_case('final')
         sim_results = om.CaseReader('dymos_simulation.db').get_case('final')
 
-        assert_near_equal(sol_results.get_val('traj.climb.timeseries.states:r')[-1], 2016,
+        assert_near_equal(sol_results.get_val('traj.climb.timeseries.states:r')[-1], 1881,
                           tolerance=0.01)
-        assert_near_equal(sim_results.get_val('traj.climb.timeseries.states:r')[-1], 2016,
+        assert_near_equal(sim_results.get_val('traj.climb.timeseries.states:r')[-1], 1881,
                           tolerance=0.01)
 
-        assert_near_equal(sol_results.get_val('traj.rto.timeseries.states:r')[-1], 2016,
+        assert_near_equal(sol_results.get_val('traj.rto.timeseries.states:r')[-1], 1881,
                           tolerance=0.01)
-        assert_near_equal(sim_results.get_val('traj.rto.timeseries.states:r')[-1], 2016,
+        assert_near_equal(sim_results.get_val('traj.rto.timeseries.states:r')[-1], 1881,
                           tolerance=0.01)
 
 
@@ -402,37 +402,37 @@ class TestBalancedFieldLengthDefaultValues(unittest.TestCase):
         traj.add_parameter('CD0', val=0.03, opt=False, units=None, static_target=True,
                            desc='zero-lift drag coefficient',
                            targets={f'{phase}': ['CD0'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                      'rto', 'rotate' 'climb']})
+                                                                      'rto', 'rotate', 'climb']})
 
         traj.add_parameter('AR', val=9.45, opt=False, units=None, static_target=True,
                            desc='wing aspect ratio',
                            targets={f'{phase}': ['AR'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                     'rto', 'rotate' 'climb']})
+                                                                     'rto', 'rotate', 'climb']})
 
         traj.add_parameter('e', val=801, opt=False, units=None, static_target=True,
                            desc='Oswald span efficiency factor',
                            targets={f'{phase}': ['e'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                    'rto', 'rotate' 'climb']})
+                                                                    'rto', 'rotate', 'climb']})
 
         traj.add_parameter('span', val=35.7, opt=False, units='m', static_target=True,
                            desc='wingspan',
                            targets={f'{phase}': ['span'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                       'rto', 'rotate' 'climb']})
+                                                                       'rto', 'rotate', 'climb']})
 
         traj.add_parameter('h_w', val=1.0, opt=False, units='m', static_target=True,
                            desc='height of wing above CG',
                            targets={f'{phase}': ['h_w'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                      'rto', 'rotate' 'climb']})
+                                                                      'rto', 'rotate', 'climb']})
 
         traj.add_parameter('CL0', val=0.5, opt=False, units=None, static_target=True,
                            desc='zero-alpha lift coefficient',
                            targets={f'{phase}': ['CL0'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                      'rto', 'rotate' 'climb']})
+                                                                      'rto', 'rotate', 'climb']})
 
         traj.add_parameter('CL_max', val=2.0, opt=False, units=None, static_target=True,
                            desc='maximum lift coefficient for linear fit',
                            targets={f'{phase}': ['CL_max'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                         'rto', 'rotate' 'climb']})
+                                                                         'rto', 'rotate', 'climb']})
 
         # Standard "end of first phase to beginning of second phase" linkages
         traj.link_phases(['br_to_v1', 'v1_to_vr'], vars=['time', 'r', 'v'])
