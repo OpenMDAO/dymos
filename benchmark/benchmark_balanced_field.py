@@ -138,42 +138,42 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
     traj.add_parameter('CD0', val=0.03, opt=False, units=None, static_target=True,
                        desc='zero-lift drag coefficient',
                        targets={f'{phase}': ['CD0'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                  'rto', 'rotate' 'climb']})
+                                                                  'rto', 'rotate', 'climb']})
 
     traj.add_parameter('AR', val=9.45, opt=False, units=None, static_target=True,
                        desc='wing aspect ratio',
                        targets={f'{phase}': ['AR'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                 'rto', 'rotate' 'climb']})
+                                                                 'rto', 'rotate', 'climb']})
 
     traj.add_parameter('e', val=801, opt=False, units=None, static_target=True,
                        desc='Oswald span efficiency factor',
                        targets={f'{phase}': ['e'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                'rto', 'rotate' 'climb']})
+                                                                'rto', 'rotate', 'climb']})
 
     traj.add_parameter('span', val=35.7, opt=False, units='m', static_target=True,
                        desc='wingspan',
                        targets={f'{phase}': ['span'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                   'rto', 'rotate' 'climb']})
+                                                                   'rto', 'rotate', 'climb']})
 
     traj.add_parameter('h_w', val=1.0, opt=False, units='m', static_target=True,
                        desc='height of wing above CG',
                        targets={f'{phase}': ['h_w'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                  'rto', 'rotate' 'climb']})
+                                                                  'rto', 'rotate', 'climb']})
 
     traj.add_parameter('CL0', val=0.5, opt=False, units=None, static_target=True,
                        desc='zero-alpha lift coefficient',
                        targets={f'{phase}': ['CL0'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                  'rto', 'rotate' 'climb']})
+                                                                  'rto', 'rotate', 'climb']})
 
     traj.add_parameter('CL_max', val=2.0, opt=False, units=None, static_target=True,
                        desc='maximum lift coefficient for linear fit',
                        targets={f'{phase}': ['CL_max'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                     'rto', 'rotate' 'climb']})
+                                                                     'rto', 'rotate', 'climb']})
 
     traj.add_parameter('alpha_max', val=10.0, opt=False, units='deg', static_target=True,
                        desc='angle of attack at maximum lift',
                        targets={f'{phase}': ['alpha_max'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                        'rto', 'rotate' 'climb']})
+                                                                        'rto', 'rotate', 'climb']})
 
     # Standard "end of first phase to beginning of second phase" linkages
     # Alpha changes from being a parameter in v1_to_vr to a polynomial control
@@ -268,6 +268,7 @@ class BenchmarkBalancedFieldLength(unittest.TestCase):
     def benchmark_radau_notimeseries_nosim_solveseg(self):
         _run_balanced_field_length_problem(tx=dm.Radau, timeseries=False, sim=False,
                                            solvesegs='forward')
+
 
 if __name__ == '__main__':
     _run_balanced_field_length_problem(make_plots=True)
