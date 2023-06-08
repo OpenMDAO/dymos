@@ -244,10 +244,10 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         sol = om.CaseReader('dymos_solution.db').get_case('final')
         sim = om.CaseReader('dymos_simulation.db').get_case('final')
 
-        sol_r_f_climb = sol.get_val('traj.climb.timeseries.states:r')[-1, ...]
-        sol_r_f_rto = sol.get_val('traj.rto.timeseries.states:r')[-1, ...]
-        sim_r_f_climb = sim.get_val('traj.climb.timeseries.states:r')[-1, ...]
-        sim_r_f_rto = sim.get_val('traj.rto.timeseries.states:r')[-1, ...]
+        sol_r_f_climb = sol.get_val('traj.climb.timeseries.r')[-1, ...]
+        sol_r_f_rto = sol.get_val('traj.rto.timeseries.r')[-1, ...]
+        sim_r_f_climb = sim.get_val('traj.climb.timeseries.r')[-1, ...]
+        sim_r_f_rto = sim.get_val('traj.rto.timeseries.r')[-1, ...]
 
         assert_near_equal(2114.387, sol_r_f_climb, tolerance=0.01)
         assert_near_equal(2114.387, sol_r_f_rto, tolerance=0.01)
