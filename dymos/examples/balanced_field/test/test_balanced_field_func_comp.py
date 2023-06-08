@@ -4,7 +4,6 @@ import openmdao.api as om
 import openmdao.func_api as omf
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-from openmdao import __version__ as om_version
 import dymos as dm
 import numpy as np
 
