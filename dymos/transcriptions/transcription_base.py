@@ -390,7 +390,8 @@ class TranscriptionBase(object):
             The phase object to which this transcription instance applies.
         """
 
-        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_solvers.')
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement'
+                                  f' method setup_duration_balance.')
 
     def configure_duration_balance(self, phase):
         """
@@ -401,7 +402,8 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_solvers.')
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement'
+                                  f' method setup_duration_balance.')
 
     def setup_solvers(self, phase):
         """
