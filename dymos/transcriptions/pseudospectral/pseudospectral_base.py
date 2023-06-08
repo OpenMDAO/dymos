@@ -6,7 +6,7 @@ from ..common import TimeComp, TimeseriesOutputGroup
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp, \
     PseudospectralTimeseriesOutputComp
 from ...utils.misc import CoerceDesvar, get_rate_units, reshape_val
-from ...utils.introspection import get_promoted_vars, get_source_metadata
+from ...utils.introspection import get_promoted_vars, get_source_metadata, configure_duration_balance_introspection
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 
@@ -436,6 +436,52 @@ class PseudospectralBase(TranscriptionBase):
                               f'continuity_comp.control_rates:{name}_rate2',
                               src_indices=src_idxs, flat_src_indices=True)
 
+    def setup_duration_balance(self, phase):
+        """
+        Setup the implicit computation of the phase duration
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+
+        if phase.time_options['t_duration_balance_options']:
+            self.implicit_duration = True
+            duration_balance_comp = om.BalanceComp()
+            phase.add_subsystem('t_duration_balance_comp', duration_balance_comp)
+
+    def configure_duration_balance(self, phase):
+        """
+        Configure the implicit computation of the phase duration
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+
+        if self.implicit_duration:
+            duration_balance_comp = phase._get_subsystem('t_duration_balance_comp')
+            configure_duration_balance_introspection(phase)
+            options = phase.time_options['t_duration_balance_options']
+
+            if options['mult_val'] is None:
+                use_mult = False
+                mult_val = 1.0
+            else:
+                use_mult = True
+                mult_val = options['mult_val']
+
+            duration_balance_comp.add_balance('t_duration', val=options['val'],
+                                              eq_units=options['units'], units=phase.time_options['units'],
+                                              use_mult=use_mult, mult_val=mult_val)
+
+            phase.connect('t_duration_balance_comp.t_duration', 't_duration')
+
+            phase.connect(options['var_path'], 't_duration_balance_comp.lhs:t_duration',
+                          src_indices=[-1])
+
     def setup_solvers(self, phase):
         """
         Setup the solvers.
@@ -456,7 +502,7 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        if self.any_solved_segs:
+        if self.any_solved_segs or self.implicit_duration:
             # Only override the solvers if the user hasn't set them to something else.
             if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
                 newton = phase.nonlinear_solver = om.NewtonSolver()
@@ -467,7 +513,7 @@ class PseudospectralBase(TranscriptionBase):
                 newton.linesearch = om.BoundsEnforceLS()
 
         # even though you don't need a nl_solver for connections, you still ln_solver since its implicit
-        if self.any_solved_segs or self.any_connected_opt_segs:
+        if self.any_solved_segs or self.any_connected_opt_segs or self.implicit_duration:
             if isinstance(phase.linear_solver, om.LinearRunOnce):
                 phase.linear_solver = om.DirectSolver()
 

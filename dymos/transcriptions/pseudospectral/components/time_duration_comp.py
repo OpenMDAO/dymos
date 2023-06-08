@@ -1,19 +1,16 @@
-"""Define the StateIndependents class."""
-
 import numpy as np
-
 import openmdao.api as om
 
-from ....transcriptions.grid_data import GridData
-from ...._options import options as dymos_options
+from dymos.transcriptions.grid_data import GridData
+from dymos._options import options as dymos_options
 
 
-class StateIndependentsComp(om.ImplicitComponent):
+class TimeDurationComp(om.ImplicitComponent):
     """
-    Class definition for the StateIndependentsComp.
+    Class definition for the TimeDurationComp.
 
-    A simple component that replaces the state IndepVarComps whenever the solver needs to solve for
-    the state or whenever the initial state is connected to an external source.
+    A simple component that computes the duration of the phase when the solver needs to solve for
+    the stopping condition.
 
     Parameters
     ----------
@@ -212,3 +209,4 @@ class StateIndependentsComp(om.ImplicitComponent):
                 output_name = f'states:{state_name}'
                 input_name = f'initial_states:{state_name}'
                 outputs[output_name][0, ...] = inputs[input_name]
+
