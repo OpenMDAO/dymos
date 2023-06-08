@@ -473,6 +473,8 @@ class PseudospectralBase(TranscriptionBase):
                 use_mult = True
                 mult_val = options['mult_val']
 
+            src_idx = [-1] if options['index'] is None else [[-1]]+options['index']
+
             duration_balance_comp.add_balance('t_duration', val=options['val'],
                                               eq_units=options['units'], units=phase.time_options['units'],
                                               use_mult=use_mult, mult_val=mult_val)
@@ -480,7 +482,7 @@ class PseudospectralBase(TranscriptionBase):
             phase.connect('t_duration_balance_comp.t_duration', 't_duration')
 
             phase.connect(options['var_path'], 't_duration_balance_comp.lhs:t_duration',
-                          src_indices=[-1])
+                          src_indices=src_idx)
 
     def setup_solvers(self, phase):
         """
