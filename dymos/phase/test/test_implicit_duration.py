@@ -68,7 +68,7 @@ class TestImplicitDuration(unittest.TestCase):
         if not expr_end:
             phase.add_duration_balance('h', val=0.0, units='m')
         else:
-            phase.add_duration_balance('pe=vdot*h', val=0, units='m**2/s**2')
+            phase.add_duration_balance('pe=9.80665*h', val=0.0, units='m**2/s**2')
 
         phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
 
@@ -124,9 +124,6 @@ class TestImplicitDuration(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.4735192, tolerance=1E-6)
         assert_near_equal(p.get_val('traj.phase.timeseries.states:h')[-1], 0.0, tolerance=1E-6)
-
-        print((p.get_val('traj.phase.timeseries.states:v')[-1])**2/2)
-
 
     def test_implicit_duration_gl(self):
         tx = dm.GaussLobatto(num_segments=12, order=3, solve_segments=False)
