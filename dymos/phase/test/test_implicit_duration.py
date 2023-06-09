@@ -70,7 +70,7 @@ class TestImplicitDuration(unittest.TestCase):
 
         phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
 
-        p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
+        p.driver = om.ScipyOptimizeDriver(optimizer='SLSQP')
         p.driver.declare_coloring(tol=1.0E-12)
 
         p.setup()
@@ -99,7 +99,7 @@ class TestImplicitDuration(unittest.TestCase):
 
         phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
 
-        p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
+        p.driver = om.ScipyOptimizeDriver(optimizer='SLSQP')
         p.driver.declare_coloring(tol=1.0E-12)
 
         p.setup()
