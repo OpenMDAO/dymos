@@ -46,6 +46,7 @@ class MatrixStateCannonball(om.ExplicitComponent):
         outputs['zdot'][:, 1, 0] = 0.0
         outputs['zdot'][:, 1, 1] = -9.81
 
+
 @use_tempdirs
 class TestImplicitDuration(unittest.TestCase):
 
@@ -202,4 +203,3 @@ class TestImplicitDuration(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.4735192, tolerance=1E-6)
         assert_near_equal(p.get_val('traj.phase.timeseries.states:h')[-1], 0.0, tolerance=1E-6)
-
