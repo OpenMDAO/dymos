@@ -1844,7 +1844,10 @@ class Phase(om.Group):
         transcription.setup_ode(self)
 
         transcription.setup_timeseries_outputs(self)
-        transcription.setup_duration_balance(self)
+
+        if transcription.implicit_duration:
+            transcription.setup_duration_balance(self)
+
         transcription.setup_defects(self)
         transcription.setup_solvers(self)
 
@@ -1904,7 +1907,8 @@ class Phase(om.Group):
 
         transcription.configure_timeseries_outputs(self)
 
-        transcription.configure_duration_balance(self)
+        if transcription.implicit_duration:
+            transcription.configure_duration_balance(self)
 
         transcription.configure_solvers(self)
 
