@@ -64,8 +64,6 @@ class TestImplicitDuration(unittest.TestCase):
         phase.add_state('h', rate_source='hdot', fix_initial=True, units='m', solve_segments='forward')
         phase.add_state('v', rate_source='vdot', fix_initial=True, units='m/s', solve_segments='forward')
 
-        phase.add_objective('time', loc='final')
-
         if not expr_end:
             phase.add_duration_balance('h', val=0.0, units='m')
         else:
@@ -97,8 +95,6 @@ class TestImplicitDuration(unittest.TestCase):
         phase.set_time_options(fix_initial=True, units='s')
         phase.add_state('z', rate_source='zdot', fix_initial=True, solve_segments='forward')
 
-        phase.add_objective('time', loc='final')
-
         index = None if shape_error else [[0], [1]]
         phase.add_duration_balance('z', val=0.0, index=index)
 
@@ -115,7 +111,6 @@ class TestImplicitDuration(unittest.TestCase):
 
         return p
 
-    @require_pyoptsparse(optimizer='IPOPT')
     def test_implicit_duration_radau(self):
         tx = dm.Radau(num_segments=12, order=3, solve_segments=False)
 
@@ -186,7 +181,6 @@ class TestImplicitDuration(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
 
-    @require_pyoptsparse(optimizer='IPOPT')
     def test_implicit_duration_radau_expr_condition(self):
         tx = dm.Radau(num_segments=12, order=3, solve_segments=False)
 
