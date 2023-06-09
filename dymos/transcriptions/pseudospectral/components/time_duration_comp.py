@@ -209,4 +209,3 @@ class TimeDurationComp(om.ImplicitComponent):
                 output_name = f'states:{state_name}'
                 input_name = f'initial_states:{state_name}'
                 outputs[output_name][0, ...] = inputs[input_name]
-

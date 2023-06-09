@@ -382,7 +382,7 @@ class TranscriptionBase(object):
 
     def setup_duration_balance(self, phase):
         """
-        Setup the implicit computation of the phase duration
+        Setup the implicit computation of the phase duration.
 
         Parameters
         ----------
@@ -395,7 +395,7 @@ class TranscriptionBase(object):
 
     def configure_duration_balance(self, phase):
         """
-        Configure the implicit computation of the phase duration
+        Configure the implicit computation of the phase duration.
 
         Parameters
         ----------
