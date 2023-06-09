@@ -46,7 +46,6 @@ class MatrixStateCannonball(om.ExplicitComponent):
         outputs['zdot'][:, 1, 0] = 0.0
         outputs['zdot'][:, 1, 1] = -9.81
 
-
 @use_tempdirs
 class TestImplicitDuration(unittest.TestCase):
 
@@ -181,6 +180,7 @@ class TestImplicitDuration(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_implicit_duration_radau_expr_condition(self):
         tx = dm.Radau(num_segments=12, order=3, solve_segments=False)
 
@@ -202,3 +202,4 @@ class TestImplicitDuration(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.4735192, tolerance=1E-6)
         assert_near_equal(p.get_val('traj.phase.timeseries.states:h')[-1], 0.0, tolerance=1E-6)
+
