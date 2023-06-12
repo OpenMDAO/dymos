@@ -447,7 +447,7 @@ class PseudospectralBase(TranscriptionBase):
         """
 
         if phase.time_options['t_duration_balance_options']:
-            self.implicit_duration = True
+            self._implicit_duration = True
             duration_balance_comp = om.BalanceComp()
             phase.add_subsystem('t_duration_balance_comp', duration_balance_comp)
 
@@ -461,7 +461,7 @@ class PseudospectralBase(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
 
-        if self.implicit_duration:
+        if self._implicit_duration:
             duration_balance_comp = phase._get_subsystem('t_duration_balance_comp')
             configure_duration_balance_introspection(phase)
             options = phase.time_options['t_duration_balance_options']
@@ -504,7 +504,7 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        if self.any_solved_segs or self.implicit_duration:
+        if self.any_solved_segs or self._implicit_duration:
             # Only override the solvers if the user hasn't set them to something else.
             if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
                 newton = phase.nonlinear_solver = om.NewtonSolver()
@@ -515,7 +515,7 @@ class PseudospectralBase(TranscriptionBase):
                 newton.linesearch = om.BoundsEnforceLS()
 
         # even though you don't need a nl_solver for connections, you still ln_solver since its implicit
-        if self.any_solved_segs or self.any_connected_opt_segs or self.implicit_duration:
+        if self.any_solved_segs or self.any_connected_opt_segs or self._implicit_duration:
             if isinstance(phase.linear_solver, om.LinearRunOnce):
                 phase.linear_solver = om.DirectSolver()
 

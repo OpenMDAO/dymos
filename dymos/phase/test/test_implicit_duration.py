@@ -65,9 +65,9 @@ class TestImplicitDuration(unittest.TestCase):
         phase.add_state('v', rate_source='vdot', fix_initial=True, units='m/s', solve_segments='forward')
 
         if not expr_end:
-            phase.add_duration_balance('h', val=0.0, units='m')
+            phase.set_duration_balance('h', val=0.0, units='m')
         else:
-            phase.add_duration_balance('pe=9.80665*h', val=0.0, units='m**2/s**2')
+            phase.set_duration_balance('pe=9.80665*h', val=0.0, units='m**2/s**2')
 
         phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
 
@@ -96,7 +96,7 @@ class TestImplicitDuration(unittest.TestCase):
         phase.add_state('z', rate_source='zdot', fix_initial=True, solve_segments='forward')
 
         index = None if shape_error else [[0], [1]]
-        phase.add_duration_balance('z', val=0.0, index=index)
+        phase.set_duration_balance('z', val=0.0, index=index)
 
         phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
 

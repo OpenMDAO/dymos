@@ -24,7 +24,7 @@ class TranscriptionBase(object):
     """
     def __init__(self, **kwargs):
 
-        self.implicit_duration = False
+        self._implicit_duration = False
         self.grid_data = None
 
         self.options = om.OptionsDictionary()
@@ -121,7 +121,7 @@ class TranscriptionBase(object):
         if not time_options['input_initial']:
             indeps.append('t_initial')
 
-        if not time_options['input_duration'] and not self.implicit_duration:
+        if not time_options['input_duration'] and not self._implicit_duration:
             indeps.append('t_duration')
 
         for var in indeps:

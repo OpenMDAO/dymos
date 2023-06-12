@@ -1707,7 +1707,7 @@ class Phase(om.Group):
         if name is not _unspecified:
             self.time_options['name'] = name
 
-    def add_duration_balance(self, name, val=0.0, index=None, units=None, mult_val=None, normalize=False):
+    def set_duration_balance(self, name, val=0.0, index=None, units=None, mult_val=None, normalize=False):
         """
         Adds a condition for the duration of the phase. This is satisfied using a nonlinear solver.
 
