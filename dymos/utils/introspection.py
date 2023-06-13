@@ -1166,7 +1166,7 @@ def configure_duration_balance_introspection(phase):
         # Failed to find variable, assume it is in the ODE. This requires introspection.
         ode = phase.options['transcription']._get_ode(phase)
 
-        meta = get_source_metadata(ode, src=var, user_units=options['units'], user_shape=options['shape'])
+        meta = get_source_metadata(ode, src=var, user_units=options['units'])
 
         options['shape'] = meta['shape']
         options['units'] = meta['units']
