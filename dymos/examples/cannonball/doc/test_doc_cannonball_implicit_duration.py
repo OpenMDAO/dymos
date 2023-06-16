@@ -1,19 +1,33 @@
 import unittest
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
-# plt.switch_backend('Agg')
+plt.switch_backend('Agg')
 
 
-# @use_tempdirs
+def initial_guess(t_dur, gam0=np.pi/3):
+    t = np.linspace(0, t_dur, num=100)
+    g = -9.80665
+    v0 = -0.5*g*t_dur/np.sin(gam0)
+    r = v0*np.cos(gam0)*t
+    h = v0*np.sin(gam0)*t + 0.5*g*t**2
+    v = np.sqrt(v0*np.cos(gam0)**2 + (v0*np.sin(gam0) + g*t)**2)
+    gam = np.arctan2(v0*np.sin(gam0) + g*t, v0*np.cos(gam0)**2)
+
+    guess = {'t': t, 'r': r, 'h': h, 'v': v, 'gam': gam}
+
+    return guess
+
+
+@use_tempdirs
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='SNOPT')
     def test_two_phase_cannonball_for_docs(self):
-        import numpy as np
         from scipy.interpolate import interp1d
 
         import openmdao.api as om
@@ -143,7 +157,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver.options['optimizer'] = 'SNOPT'
         p.driver.declare_coloring()
 
         p.model.add_subsystem('size_comp', CannonballSizeComp(),
@@ -154,81 +168,33 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
-        transcription = dm.Radau(num_segments=5, order=3, compressed=True)
-        ascent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
+        transcription = dm.Radau(num_segments=25, order=3, compressed=False)
+        phase = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
-        ascent = traj.add_phase('ascent', ascent)
+        phase = traj.add_phase('phase', phase)
 
-        # All initial states except flight path angle are fixed
-        # The output of the ODE which provides the rate source for each state
-        # is obtained from the tags used on those outputs in the ODE.
-        # The units of the states are automatically inferred by multiplying the units
-        # of those rates by the time units.
-        ascent.set_time_options(fix_initial=True, units='s')
-        ascent.set_state_options('r', fix_initial=True, fix_final=False, solve_segments='forward')
-        ascent.set_state_options('h', fix_initial=True, fix_final=False, solve_segments='forward')
-        ascent.set_state_options('gam', fix_initial=False, fix_final=False, solve_segments='forward',
-                                 initial_bounds=(0, 60))
-        ascent.set_state_options('v', fix_initial=False, fix_final=False, solve_segments='forward')
+        phase.set_time_options(fix_initial=True, duration_bounds=(1, 100), units='s')
+        phase.add_state('r', fix_initial=True, solve_segments='forward')
+        phase.add_state('h', fix_initial=True, solve_segments='forward')
+        phase.add_state('gam', fix_initial=False, solve_segments='forward')
+        phase.add_state('v', fix_initial=False, solve_segments='forward')
 
-        ascent.add_parameter('S', units='m**2', static_target=True)
-        ascent.add_parameter('m', units='kg', static_target=True)
+        phase.add_parameter('S', units='m**2', static_target=True)
+        phase.add_parameter('m', units='kg', static_target=True)
+        phase.add_parameter('CD', val=0.5, opt=False, static_target=True)
 
-        # Limit the muzzle energy
-        ascent.add_boundary_constraint('ke', loc='initial',
-                                       upper=400000, lower=0, ref=100000)
+        phase.add_boundary_constraint('ke', loc='initial',
+                                      upper=400000, lower=0, ref=100000)
 
-        # Specify the final flight path angle and use it solve for the duration
-        ascent.set_duration_balance('gam', val=0.0, units='rad')
+        phase.set_duration_balance('h', val=0.0)
 
-        # Second Phase (descent)
-        transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
-        descent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
+        phase.add_objective('r', loc='final', scaler=-1.0)
 
-        traj.add_phase('descent', descent)
+        p.model.connect('size_comp.mass', 'traj.phase.parameters:m')
+        p.model.connect('size_comp.S', 'traj.phase.parameters:S')
 
-        # All initial states and time are free, since
-        #    they will be linked to the final states of ascent.
-        descent.set_time_options(input_initial=True, duration_ref=100, units='s')
-        descent.add_state('r', input_initial=True, solve_segments='forward')
-        descent.add_state('h', input_initial=True, fix_final=False, solve_segments='forward')
-        descent.add_state('gam', input_initial=True, fix_final=False, solve_segments='forward')
-        descent.add_state('v', input_initial=True, fix_final=False, solve_segments='forward')
-
-        descent.add_parameter('S', units='m**2', static_target=True)
-        descent.add_parameter('m', units='kg', static_target=True)
-
-        descent.add_objective('r', loc='final', scaler=-1.0)
-
-        # Final altitude is fixed, because we will set
-        #    it to zero so that the phase ends at ground impact)
-        # This is used to compute the duration of the phase implicitly
-        descent.set_duration_balance('h', val=0.0)
-
-        # Add internally-managed design parameters to the trajectory.
-        traj.add_parameter('CD',
-                           targets={'ascent': ['CD'], 'descent': ['CD']},
-                           val=0.5, units=None, opt=False, static_target=True)
-
-        # Add externally-provided design parameters to the trajectory.
-        # In this case, we connect 'm' to pre-existing input parameters
-        # named 'm' in each phase.
-        traj.add_parameter('m', units='kg', val=1.0,
-                           targets={'ascent': 'm', 'descent': 'm'}, static_target=True)
-
-        # In this case, by omitting targets, we're connecting these
-        # parameters to parameters with the same name in each phase.
-        traj.add_parameter('S', units='m**2', val=0.005, static_target=True)
-
-        # Link Phases (link time and all state variables)
-        traj.link_phases(phases=['ascent', 'descent'], vars=['time', 'r', 'h', 'gam', 'v'], connected=True)
-
-        # Issue Connections
-        p.model.connect('size_comp.mass', 'traj.parameters:m')
-        p.model.connect('size_comp.S', 'traj.parameters:S')
-
-        # A linear solver at the top level can improve performance.
-        p.model.linear_solver = om.DirectSolver()
+        # # A linear solver at the top level can improve performance.
+        # p.model.linear_solver = om.DirectSolver()
 
         # Finish Problem Setup
         p.setup()
@@ -239,31 +205,25 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.set_val('radius', 0.05, units='m')
         p.set_val('dens', 7.87, units='g/cm**3')
 
-        p.set_val('traj.parameters:CD', 0.5)
+        p.set_val('traj.phase.parameters:CD', 0.5)
 
-        p.set_val('traj.ascent.t_initial', 0.0)
-        p.set_val('traj.ascent.t_duration', 10.0)
+        guess = initial_guess(t_dur=30.0)
 
-        p.set_val('traj.ascent.states:r', ascent.interp('r', [0, 100]))
-        p.set_val('traj.ascent.states:h', ascent.interp('h', [0, 100]))
-        p.set_val('traj.ascent.states:v', ascent.interp('v', [200, 150]))
-        p.set_val('traj.ascent.states:gam', ascent.interp('gam', [25, 0]), units='deg')
+        p.set_val('traj.phase.t_initial', 0.0)
+        p.set_val('traj.phase.t_duration', 30.0)
 
-        p.set_val('traj.descent.t_initial', 10.0)
-        p.set_val('traj.descent.t_duration', 10.0)
-
-        p.set_val('traj.descent.states:r', descent.interp('r', [100, 200]))
-        p.set_val('traj.descent.states:h', descent.interp('h', [100, 0]))
-        p.set_val('traj.descent.states:v', descent.interp('v', [150, 200]))
-        p.set_val('traj.descent.states:gam', descent.interp('gam', [0, -45]), units='deg')
+        p.set_val('traj.phase.states:r', phase.interp('r', ys=guess['r'], xs=guess['t']))
+        p.set_val('traj.phase.states:h', phase.interp('h', ys=guess['h'], xs=guess['t']))
+        p.set_val('traj.phase.states:v', phase.interp('v', ys=guess['v'], xs=guess['t']))
+        p.set_val('traj.phase.states:gam', phase.interp('gam', ys=guess['gam'], xs=guess['t']), units='rad')
 
         #####################################################
         # Run the optimization and final explicit simulation
         #####################################################
         dm.run_problem(p)
 
-        # assert_near_equal(p.get_val('traj.descent.states:r')[-1],
-        #                   3183.25, tolerance=1.0E-2)
+        assert_near_equal(p.get_val('traj.phase.states:r')[-1],
+                          3183.25, tolerance=15.0)
 
         exp_out = traj.simulate()
 
@@ -274,38 +234,28 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         print(f'optimal radius: {rad} m ')
         mass = p.get_val('size_comp.mass', units='kg')[0]
         print(f'cannonball mass: {mass} kg ')
-        angle = p.get_val('traj.ascent.timeseries.states:gam', units='deg')[0, 0]
+        angle = p.get_val('traj.phase.timeseries.states:gam', units='deg')[0, 0]
         print(f'launch angle: {angle} deg')
-        max_range = p.get_val('traj.descent.timeseries.states:r')[-1, 0]
+        max_range = p.get_val('traj.phase.timeseries.states:r')[-1, 0]
         print(f'maximum range: {max_range} m')
 
         fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
 
-        time_imp = {'ascent': p.get_val('traj.ascent.timeseries.time'),
-                    'descent': p.get_val('traj.descent.timeseries.time')}
+        time_imp = p.get_val('traj.phase.timeseries.time')
 
-        time_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.time'),
-                    'descent': exp_out.get_val('traj.descent.timeseries.time')}
+        time_exp = exp_out.get_val('traj.phase.timeseries.time')
 
-        r_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:r'),
-                 'descent': p.get_val('traj.descent.timeseries.states:r')}
+        r_imp = p.get_val('traj.phase.timeseries.states:r')
 
-        r_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:r'),
-                 'descent': exp_out.get_val('traj.descent.timeseries.states:r')}
+        r_exp = exp_out.get_val('traj.phase.timeseries.states:r')
 
-        h_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:h'),
-                 'descent': p.get_val('traj.descent.timeseries.states:h')}
+        h_imp = p.get_val('traj.phase.timeseries.states:h')
 
-        h_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:h'),
-                 'descent': exp_out.get_val('traj.descent.timeseries.states:h')}
+        h_exp = exp_out.get_val('traj.phase.timeseries.states:h')
 
-        axes.plot(r_imp['ascent'], h_imp['ascent'], 'bo')
+        axes.plot(r_imp, h_imp, 'bo')
 
-        axes.plot(r_imp['descent'], h_imp['descent'], 'ro')
-
-        axes.plot(r_exp['ascent'], h_exp['ascent'], 'b--')
-
-        axes.plot(r_exp['descent'], h_exp['descent'], 'r--')
+        axes.plot(r_exp, h_exp, 'b--')
 
         axes.set_xlabel('range (m)')
         axes.set_ylabel('altitude (m)')
@@ -313,18 +263,14 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10, 6))
         states = ['r', 'h', 'v', 'gam']
         for i, state in enumerate(states):
-            x_imp = {'ascent': p.get_val(f'traj.ascent.timeseries.states:{state}'),
-                     'descent': p.get_val(f'traj.descent.timeseries.states:{state}')}
+            x_imp = p.get_val(f'traj.phase.timeseries.states:{state}')
 
-            x_exp = {'ascent': exp_out.get_val(f'traj.ascent.timeseries.states:{state}'),
-                     'descent': exp_out.get_val(f'traj.descent.timeseries.states:{state}')}
+            x_exp = exp_out.get_val(f'traj.phase.timeseries.states:{state}')
 
             axes[i].set_ylabel(state)
 
-            axes[i].plot(time_imp['ascent'], x_imp['ascent'], 'bo')
-            axes[i].plot(time_imp['descent'], x_imp['descent'], 'ro')
-            axes[i].plot(time_exp['ascent'], x_exp['ascent'], 'b--')
-            axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
+            axes[i].plot(time_imp, x_imp, 'bo')
+            axes[i].plot(time_exp, x_exp, 'b--')
 
         plt.show()
 
