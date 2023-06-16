@@ -81,9 +81,16 @@ class TranscriptionBase(object):
         # Warn about invalid options
         phase.check_time_options()
 
-        if not time_options['input_initial'] or not time_options['input_duration']:
+        if phase.time_options['t_duration_balance_options']:
+            self._implicit_duration = True
+
+        if not time_options['input_initial']:
             phase.add_subsystem('time_extents', om.IndepVarComp(),
                                 promotes_outputs=['*'])
+        else:
+            if not time_options['input_duration'] and not self._implicit_duration:
+                phase.add_subsystem('time_extents', om.IndepVarComp(),
+                                    promotes_outputs=['*'])
 
         for ts_name, ts_options in phase._timeseries.items():
             if t_name not in ts_options['outputs']:
