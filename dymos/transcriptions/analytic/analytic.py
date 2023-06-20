@@ -268,6 +268,7 @@ class Analytic(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         pass
+
     def setup_solvers(self, phase):
         """
         Setup the solvers for this transcription.

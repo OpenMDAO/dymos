@@ -665,7 +665,6 @@ class ExplicitShooting(TranscriptionBase):
         """
         pass
 
-
     def setup_solvers(self, phase):
         """
         Setup the solvers for this transcription.
