@@ -78,8 +78,8 @@ class TestImplicitDuration(unittest.TestCase):
 
         p.set_val('traj.phase.t_initial', 0)
         p.set_val('traj.phase.t_duration', 2)
-        p.set_val('traj.phase.states:h', phase.interp('h', [30, 0]))
-        p.set_val('traj.phase.states:v', phase.interp('v', [0, -10]))
+        p.set_val('traj.phase.initial_states:h', phase.interp('h', [30, 0]))
+        p.set_val('traj.phase.initial_states:v', phase.interp('v', [0, -10]))
 
         return p
 
@@ -134,7 +134,7 @@ class TestImplicitDuration(unittest.TestCase):
     def test_implicit_duration_shooting(self):
         tx = dm.ExplicitShooting(num_segments=12, order=3)
 
-        expected = 'Transcription ExplicitShooting does not implement method setup_duration_balance.'
+        expected = 'Transcription ExplicitShooting does not implement method setup_duration_balance'
 
         with self.assertRaises(NotImplementedError) as e:
             self._make_simple_problem(tx)

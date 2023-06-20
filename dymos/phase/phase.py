@@ -1736,6 +1736,9 @@ class Phase(om.Group):
         elif self.time_options['input_duration']:
             raise ValueError('Cannot implicitly solve for phase duration when input_duration is True')
 
+        if isinstance(self.options['transcription'], ExplicitShooting):
+            raise NotImplementedError('Transcription ExplicitShooting does not implement method setup_duration_balance')
+
         options = {'name': name,
                    'val': val,
                    'index': index,
