@@ -26,7 +26,7 @@ def initial_guess(t_dur, gam0=np.pi/3):
 @use_tempdirs
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
-    @require_pyoptsparse(optimizer='SNOPT')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_two_phase_cannonball_for_docs(self):
         from scipy.interpolate import interp1d
 
@@ -157,8 +157,17 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver.options['optimizer'] = 'IPOPT'
         p.driver.declare_coloring()
+
+        p.driver.opt_settings['derivative_test'] = 'first-order'
+        p.driver.opt_settings['mu_strategy'] = 'monotone'
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+        p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
+        p.driver.opt_settings['mu_init'] = 0.01
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+
+        p.set_solver_print(level=0, depth=99)
 
         p.model.add_subsystem('size_comp', CannonballSizeComp(),
                               promotes_inputs=['radius', 'dens'])
@@ -223,7 +232,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         dm.run_problem(p)
 
         assert_near_equal(p.get_val('traj.phase.states:r')[-1],
-                          3183.25, tolerance=15.0)
+                          3183.25, tolerance=1.0)
 
         exp_out = traj.simulate()
 
