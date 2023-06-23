@@ -22,12 +22,10 @@ class TestAeroCoefComp(unittest.TestCase):
 
         interpND_CL, interpND_CD, interpND_CM, interp_num = setup_surrogates_all(MODEL)
 
-        prob.model.add_subsystem(name='aero',
-                                 subsys=InterpNDAeroCoeffComp(vec_size=NUM_NODES,
-                                                              interpND_CL=interpND_CL,
-                                                              interpND_CD=interpND_CD,
-                                                              interpND_CM=interpND_CM,
-                                                              interp_num=interp_num))
+        prob.model.add_subsystem(name='h_ivc',
+                                 subsys=om.IndepVarComp('h', val=np.zeros(NUM_NODES),
+                                                        units='km'),
+                                 promotes=['h'])
 
         prob.model.add_subsystem(name='M_ivc',
                                  subsys=om.IndepVarComp('M', val=np.zeros(NUM_NODES), units=None),
@@ -40,10 +38,13 @@ class TestAeroCoefComp(unittest.TestCase):
                                  subsys=om.IndepVarComp('eta', val=np.zeros(NUM_NODES),
                                                         units='rad'),
                                  promotes=['eta'])
-        prob.model.add_subsystem(name='h_ivc',
-                                 subsys=om.IndepVarComp('h', val=np.zeros(NUM_NODES),
-                                                        units='km'),
-                                 promotes=['h'])
+
+        prob.model.add_subsystem(name='aero',
+                                 subsys=InterpNDAeroCoeffComp(vec_size=NUM_NODES,
+                                                              interpND_CL=interpND_CL,
+                                                              interpND_CD=interpND_CD,
+                                                              interpND_CM=interpND_CM,
+                                                              interp_num=interp_num))
 
         prob.model.connect('M', 'aero.M')
         prob.model.connect('h', 'aero.h')
