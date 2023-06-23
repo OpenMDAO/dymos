@@ -19,14 +19,14 @@ class TestAeroCoefComp(unittest.TestCase):
 
         prob = om.Problem(model=om.Group())
 
-        prob.model.add_subsystem(name='aero', subsys=AeroCoefComp(vec_size=nn, method='lagrange3'))
-
         ivc = prob.model.add_subsystem(name='ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('mach', val=np.zeros(nn), units=None)
         ivc.add_output('alpha', val=np.zeros(nn), units='rad')
         ivc.add_output('alt', val=np.zeros(nn), units='km')
         ivc.add_output('eta', val=np.zeros(nn), units='rad')
+
+        prob.model.add_subsystem(name='aero', subsys=AeroCoefComp(vec_size=nn, method='lagrange3'))
 
         prob.model.connect('mach', 'aero.mach')
         prob.model.connect('alt', 'aero.alt')
