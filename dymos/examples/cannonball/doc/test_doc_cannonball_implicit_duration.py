@@ -182,6 +182,11 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         phase = traj.add_phase('phase', phase)
 
+        # All initial states except flight path angle are fixed
+        # The output of the ODE which provides the rate source for each state
+        # is obtained from the tags used on those outputs in the ODE.
+        # The units of the states are automatically inferred by multiplying the units
+        # of those rates by the time units.
         phase.set_time_options(fix_initial=True, duration_bounds=(1, 100), units='s')
         phase.add_state('r', fix_initial=True, solve_segments='forward')
         phase.add_state('h', fix_initial=True, solve_segments='forward')
@@ -195,15 +200,16 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         phase.add_boundary_constraint('ke', loc='initial',
                                       upper=400000, lower=0, ref=100000)
 
+        # A duration balance is added setting altitude to zero.
+        # A nonlinear solver is used to find the duration of required to satisfy the condition.
+        # The duration was bounded to be greater than 1 to ensure the solver did not
+        # converge to the initial point.
         phase.set_duration_balance('h', val=0.0)
 
         phase.add_objective('r', loc='final', scaler=-1.0)
 
         p.model.connect('size_comp.mass', 'traj.phase.parameters:m')
         p.model.connect('size_comp.S', 'traj.phase.parameters:S')
-
-        # # A linear solver at the top level can improve performance.
-        # p.model.linear_solver = om.DirectSolver()
 
         # Finish Problem Setup
         p.setup()
