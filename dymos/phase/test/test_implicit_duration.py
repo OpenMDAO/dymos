@@ -78,8 +78,8 @@ class TestImplicitDuration(unittest.TestCase):
 
         p.set_val('traj.phase.t_initial', 0)
         p.set_val('traj.phase.t_duration', 2)
-        p.set_val('traj.phase.initial_states:h', phase.interp('h', [30, 0]))
-        p.set_val('traj.phase.initial_states:v', phase.interp('v', [0, -10]))
+        p.set_val('traj.phase.states:h', phase.interp('h', [30, 0]))
+        p.set_val('traj.phase.states:v', phase.interp('v', [0, -10]))
 
         return p
 
