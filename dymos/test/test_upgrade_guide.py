@@ -176,17 +176,17 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         p.driver = om.ScipyOptimizeDriver()
         p.driver.declare_coloring()
 
-        transcription = dm.GaussLobatto(num_segments=1,
-                                        order=13,
-                                        compressed=False)
-        phase = dm.Phase(ode_class=AircraftODE, transcription=transcription)
-        p.model.add_subsystem('phase0', phase)
-
         # Pass Reference Area from an external source
         assumptions = p.model.add_subsystem('assumptions', om.IndepVarComp())
         assumptions.add_output('S', val=427.8, units='m**2')
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
+
+        transcription = dm.GaussLobatto(num_segments=1,
+                                        order=13,
+                                        compressed=False)
+        phase = dm.Phase(ode_class=AircraftODE, transcription=transcription)
+        p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(fix_initial=True,
                                duration_bounds=(3600, 3600),
