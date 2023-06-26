@@ -651,16 +651,17 @@ class Trajectory(om.Group):
             var_pair = ('*', '*')
             if var_pair in var_dict:
                 options = var_dict[var_pair]
-                self.add_linkage_constraint(phase_name_a, phase_name_b, var_a='time',
-                                            var_b='time', loc_a=options['loc_a'],
-                                            loc_b=options['loc_b'], mult_a=options['mult_a'],
-                                            mult_b=options['mult_b'])
+                self.add_linkage_constraint(phase_name_a, phase_name_b,
+                                            var_a='time', var_b='time',
+                                            loc_a=options['loc_a'], loc_b=options['loc_b'],
+                                            mult_a=options['mult_a'], mult_b=options['mult_b'],
+                                            connected=options['connected'])
                 for state_name in phase_b.state_options:
-                    self.add_linkage_constraint(phase_name_a, phase_name_b, var_a=state_name,
-                                                var_b=state_name, loc_a=options['loc_a'],
-                                                loc_b=options['loc_b'],
-                                                mult_a=options['mult_a'],
-                                                mult_b=options['mult_b'])
+                    self.add_linkage_constraint(phase_name_a, phase_name_b,
+                                                var_a=state_name, var_b=state_name,
+                                                loc_a=options['loc_a'], loc_b=options['loc_b'],
+                                                mult_a=options['mult_a'], mult_b=options['mult_b'],
+                                                connected=options['connected'])
                 self._linkages[phase_pair].pop(var_pair)
 
     def _is_valid_linkage(self, phase_name_a, phase_name_b, loc_a, loc_b, var_a, var_b, fixed_a, fixed_b):
