@@ -1714,9 +1714,9 @@ class Phase(om.Group):
         Parameters
         ----------
         name : str
-            Name of the objective variable.  This should be one of the integration variable, a state or control
-            variable, the path to an output from the top level of the RHS, or an expression to be evaluated.
-            If an expression, it must be provided in the form of an equation with a left- and right-hand side.
+            Name of the variable.  This should be a state or control variable, the path to an output
+            from the top level of the RHS, or an expression to be evaluated. If an expression,
+            it must be provided in the form of an equation with a left- and right-hand side.
         val :  float
             The value that the residual must equal at the end  point of the phase.
         index : int, optional
