@@ -119,7 +119,7 @@ class TestImplicitDuration(unittest.TestCase):
         dm.run_problem(p, run_driver=False, simulate=False)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.4735192, tolerance=1E-6)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:h')[-1], 0.0, tolerance=1E-6)
+        assert_near_equal(p.get_val('traj.phase.timeseries.h')[-1], 0.0, tolerance=1E-6)
 
     def test_implicit_duration_gl(self):
         tx = dm.GaussLobatto(num_segments=12, order=3, solve_segments=False)
@@ -129,7 +129,7 @@ class TestImplicitDuration(unittest.TestCase):
         dm.run_problem(p, run_driver=False, simulate=False)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.4735192, tolerance=1E-6)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:h')[-1], 0.0, tolerance=1E-6)
+        assert_near_equal(p.get_val('traj.phase.timeseries.h')[-1], 0.0, tolerance=1E-6)
 
     def test_implicit_duration_shooting(self):
         tx = dm.ExplicitShooting(num_segments=12, order=3)
@@ -190,9 +190,9 @@ class TestImplicitDuration(unittest.TestCase):
         dm.run_problem(p, run_driver=False, simulate=False)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.4735192, tolerance=1E-6)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:h')[-1], 0.0, tolerance=1E-6)
+        assert_near_equal(p.get_val('traj.phase.timeseries.h')[-1], 0.0, tolerance=1E-6)
 
-        print((p.get_val('traj.phase.timeseries.states:v')[-1]) ** 2 / 2)
+        print((p.get_val('traj.phase.timeseries.v')[-1]) ** 2 / 2)
 
     def test_implicit_duration_gl_expr_condition(self):
         tx = dm.GaussLobatto(num_segments=12, order=3, solve_segments=False)
@@ -202,4 +202,4 @@ class TestImplicitDuration(unittest.TestCase):
         dm.run_problem(p, run_driver=False, simulate=False)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.4735192, tolerance=1E-6)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:h')[-1], 0.0, tolerance=1E-6)
+        assert_near_equal(p.get_val('traj.phase.timeseries.h')[-1], 0.0, tolerance=1E-6)
