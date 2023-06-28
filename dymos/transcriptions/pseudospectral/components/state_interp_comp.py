@@ -241,9 +241,8 @@ class StateInterpComp(om.ExplicitComponent):
 
             dstau_dt_x_size = np.repeat(dstau_dt, size)[:, np.newaxis]
 
-            dxdotc_dxd = self.jacs['Ad'][name].multiply(dstau_dt_x_size).tocsr()
-
-            partials[xdotc_name, xd_name] = dxdotc_dxd[dxdotc_dxd.nonzero()].ravel()
+            dxdotc_dxd = self.jacs['Ad'][name].multiply(dstau_dt_x_size)
+            partials[xdotc_name, xd_name] = dxdotc_dxd.data
 
     def _compute_partials_gauss_lobatto(self, inputs, partials):
         ndn = self.options['grid_data'].subset_num_nodes['state_disc']
