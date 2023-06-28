@@ -113,11 +113,12 @@ class ControlInterpComp(om.ExplicitComponent):
 
             size = np.prod(shape)
             self.sizes[name] = size
+            sp_eye = sp.eye(size, format='csr')
 
             # The partial of interpolated value wrt the control input values is linear
             # and can be computed as the kronecker product of the interpolation matrix (L)
             # and eye(size).
-            J_val = sp.kron(self.L, sp.eye(size), format='csr')
+            J_val = sp.kron(self.L, sp_eye, format='csr')
             rs, cs, data = sp.find(J_val)
             self.declare_partials(of=self._output_val_names[name],
                                   wrt=self._input_names[name],
@@ -138,14 +139,14 @@ class ControlInterpComp(om.ExplicitComponent):
             # The partials of the rates and second derivatives are nonlinear but the sparsity
             # pattern is obtained from the kronecker product of the 1st and 2nd differentiation
             # matrices (D and D2) and eye(size).
-            self.rate_jacs[name] = sp.kron(sp.csr_matrix(self.D), sp.eye(size), format='csr')
+            self.rate_jacs[name] = sp.kron(self.D, sp_eye, format='csr')
             rs, cs = self.rate_jacs[name].nonzero()
 
             self.declare_partials(of=self._output_rate_names[name],
                                   wrt=self._input_names[name],
                                   rows=rs, cols=cs)
 
-            self.rate2_jacs[name] = sp.kron(sp.csr_matrix(self.D2), sp.eye(size), format='csr')
+            self.rate2_jacs[name] = sp.kron(self.D2, sp_eye, format='csr')
             rs, cs = self.rate2_jacs[name].nonzero()
 
             self.declare_partials(of=self._output_rate2_names[name],

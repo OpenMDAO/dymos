@@ -131,11 +131,10 @@ class StateInterpComp(om.ExplicitComponent):
 
             for key in self.jacs:
                 # Each jacobian matrix has a form that is defined by the Kronecker product
-                # of the interpolation matrix and np.eye(size). Make sure to specify csc format
-                # here to avoid spurious zeros.
+                # of the interpolation matrix eye(size).
                 self.jacs[key][name] = sp.kron(sp.csr_matrix(self.matrices[key]),
-                                               sp.eye(size),
-                                               format='csc')
+                                               sp.eye(size, format='csr'),
+                                               format='csr')
 
             self.sizes[name] = size
 
@@ -157,7 +156,7 @@ class StateInterpComp(om.ExplicitComponent):
                 self.declare_partials(of=self.xc_str[name], wrt=self.xd_str[name],
                                       rows=Ai_rows, cols=Ai_cols, val=data)
 
-                Bi_rows, Bi_cols, _ = sp.find(self.jacs['Bi'][name])
+                Bi_rows, Bi_cols = self.jacs['Bi'][name].nonzero()
                 self.declare_partials(of=self.xc_str[name], wrt=self.fd_str[name],
                                       rows=Bi_rows, cols=Bi_cols)
 
@@ -165,7 +164,7 @@ class StateInterpComp(om.ExplicitComponent):
                 self.declare_partials(of=self.xdotc_str[name], wrt=self.fd_str[name],
                                       rows=Bd_rows, cols=Bd_cols, val=data)
 
-            Ad_rows, Ad_cols, _ = sp.find(self.jacs['Ad'][name])
+            Ad_rows, Ad_cols = self.jacs['Ad'][name].nonzero()
             self.declare_partials(of=self.xdotc_str[name], wrt=self.xd_str[name],
                                   rows=Ad_rows, cols=Ad_cols)
 
@@ -242,7 +241,9 @@ class StateInterpComp(om.ExplicitComponent):
 
             dstau_dt_x_size = np.repeat(dstau_dt, size)[:, np.newaxis]
 
-            partials[xdotc_name, xd_name] = self.jacs['Ad'][name].multiply(dstau_dt_x_size).data
+            dxdotc_dxd = self.jacs['Ad'][name].multiply(dstau_dt_x_size).tocsr()
+
+            partials[xdotc_name, xd_name] = dxdotc_dxd[dxdotc_dxd.nonzero()].ravel()
 
     def _compute_partials_gauss_lobatto(self, inputs, partials):
         ndn = self.options['grid_data'].subset_num_nodes['state_disc']
