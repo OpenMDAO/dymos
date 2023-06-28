@@ -24,6 +24,7 @@ class TranscriptionBase(object):
     """
     def __init__(self, **kwargs):
 
+        self._implicit_duration = False
         self.grid_data = None
 
         self.options = om.OptionsDictionary()
@@ -80,9 +81,16 @@ class TranscriptionBase(object):
         # Warn about invalid options
         phase.check_time_options()
 
-        if not time_options['input_initial'] or not time_options['input_duration']:
+        if phase.time_options['t_duration_balance_options']:
+            self._implicit_duration = True
+
+        if not time_options['input_initial']:
             phase.add_subsystem('time_extents', om.IndepVarComp(),
                                 promotes_outputs=['*'])
+        else:
+            if not time_options['input_duration'] and not self._implicit_duration:
+                phase.add_subsystem('time_extents', om.IndepVarComp(),
+                                    promotes_outputs=['*'])
 
         for ts_name, ts_options in phase._timeseries.items():
             if t_name not in ts_options['outputs']:
@@ -120,7 +128,7 @@ class TranscriptionBase(object):
         if not time_options['input_initial']:
             indeps.append('t_initial')
 
-        if not time_options['input_duration']:
+        if not time_options['input_duration'] and not self._implicit_duration:
             indeps.append('t_duration')
 
         for var in indeps:
@@ -380,6 +388,31 @@ class TranscriptionBase(object):
             The phase object to which this transcription instance applies.
         """
         raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_ode.')
+
+    def setup_duration_balance(self, phase):
+        """
+        Setup the implicit computation of the phase duration.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement'
+                                  f' method setup_duration_balance.')
+
+    def configure_duration_balance(self, phase):
+        """
+        Configure the implicit computation of the phase duration.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement'
+                                  f' method setup_duration_balance.')
 
     def setup_solvers(self, phase):
         """
