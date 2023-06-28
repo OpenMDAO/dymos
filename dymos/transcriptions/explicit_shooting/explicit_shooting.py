@@ -643,6 +643,28 @@ class ExplicitShooting(TranscriptionBase):
         """
         super().configure_timeseries_outputs(phase)
 
+    def setup_duration_balance(self, phase):
+        """
+        Setup the implicit computation of the phase duration.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        pass
+
+    def configure_duration_balance(self, phase):
+        """
+        Configure the implicit computation of the phase duration.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        pass
+
     def setup_solvers(self, phase):
         """
         Setup the solvers for this transcription.
