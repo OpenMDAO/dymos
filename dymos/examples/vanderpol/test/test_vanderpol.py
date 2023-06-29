@@ -41,11 +41,11 @@ class TestVanderpolExample(unittest.TestCase):
         p.model.traj.phases.phase0.set_refine_options(refine=True)
         dm.run_problem(p, refine_iteration_limit=10)  # enable grid refinement and find optimal solution
 
-        print('Objective function minimized to', p.get_val('traj.phase0.timeseries.states:J')[-1, ...])
+        print('Objective function minimized to', p.get_val('traj.phase0.timeseries.J')[-1, ...])
         # check that ODE states (excluding J) and control are driven to near zero
-        assert_almost_equal(p.get_val('traj.phase0.timeseries.states:x0')[-1, ...], np.zeros(1))
-        assert_almost_equal(p.get_val('traj.phase0.timeseries.states:x1')[-1, ...], np.zeros(1))
-        assert_almost_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1, ...], np.zeros(1), decimal=4)
+        assert_almost_equal(p.get_val('traj.phase0.timeseries.x0')[-1, ...], np.zeros(1))
+        assert_almost_equal(p.get_val('traj.phase0.timeseries.x1')[-1, ...], np.zeros(1))
+        assert_almost_equal(p.get_val('traj.phase0.timeseries.u')[-1, ...], np.zeros(1), decimal=4)
 
 
 @use_tempdirs

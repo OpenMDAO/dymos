@@ -87,8 +87,8 @@ solutions = {}
 histories = {}
 
 for i, state in enumerate(states):
-    state_sol = prob.get_val(f'traj.phase0.timeseries.states:{state}')
-    state_sim = sim_out.get_val(f'traj.phase0.timeseries.states:{state}')
+    state_sol = prob.get_val(f'traj.phase0.timeseries.{state}')
+    state_sim = sim_out.get_val(f'traj.phase0.timeseries.{state}')
     state_dense = prob.get_val(f'traj.phase0.timeseries2.states:{state}')
     # sol = axes[i].plot(t_sol, state_sol, 'o')
     # sim = axes[i].plot(t_sim, state_sim, '-')
@@ -106,7 +106,7 @@ for i in range(NUM_FRAMES):
     prob.run_model()
 
     for j, state in enumerate(states):
-        state_sol = prob.get_val(f'traj.phase0.timeseries.states:{state}')
+        state_sol = prob.get_val(f'traj.phase0.timeseries.{state}')
         state_dense = prob.get_val(f'traj.phase0.timeseries2.states:{state}')
         sol = axes[j].plot(t_sol, state_sol, 'o')
         dense = axes[j].plot(t_dense, state_dense, '--', color='#CCCCCC')
@@ -137,10 +137,10 @@ def update(frame):
 
     prob.run_model()
 
-    x_sol = prob.get_val('traj.phase0.timeseries.states:x')
+    x_sol = prob.get_val('traj.phase0.timeseries.x')
     # x_dense = prob.get_val('traj.phase0.timeseries2.states:x')
 
-    v_sol = prob.get_val('traj.phase0.timeseries.states:v')
+    v_sol = prob.get_val('traj.phase0.timeseries.v')
     # v_dense = prob.get_val('traj.phase0.timeseries2.states:v')
 
     x_sol_line.set_ydata(x_sol)
@@ -181,8 +181,8 @@ plt.show()
 # plt.show()
 fig, axes = plt.subplots(len(states), 1)
 for i, state in enumerate(states):
-    state_sol = prob.get_val(f'traj.phase0.timeseries.states:{state}')
-    state_sim = sim_out.get_val(f'traj.phase0.timeseries.states:{state}')
+    state_sol = prob.get_val(f'traj.phase0.timeseries.{state}')
+    state_sim = sim_out.get_val(f'traj.phase0.timeseries.{state}')
     sol = axes[i].plot(t_sol, state_sol, 'o')
     # sim = axes[i].plot(t_sim, state_sim, '-')
     axes[i].set_ylabel(state)

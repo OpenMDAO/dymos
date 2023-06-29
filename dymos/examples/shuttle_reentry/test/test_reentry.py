@@ -101,7 +101,7 @@ class TestReentry(unittest.TestCase):
                           expected_results['constrained']['time'],
                           tolerance=1e-2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.theta', units='deg')[-1],
                           expected_results['constrained']['theta'],
                           tolerance=1e-2)
 
@@ -114,7 +114,7 @@ class TestReentry(unittest.TestCase):
                           expected_results['constrained']['time'],
                           tolerance=1e-2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.theta', units='deg')[-1],
                           expected_results['constrained']['theta'],
                           tolerance=1e-2)
 
@@ -127,7 +127,7 @@ class TestReentry(unittest.TestCase):
                           expected_results['unconstrained']['time'],
                           tolerance=1e-2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.theta', units='deg')[-1],
                           expected_results['unconstrained']['theta'],
                           tolerance=1e-2)
 
@@ -140,7 +140,7 @@ class TestReentry(unittest.TestCase):
                           expected_results['unconstrained']['time'],
                           tolerance=1e-2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.theta', units='deg')[-1],
                           expected_results['unconstrained']['theta'],
                           tolerance=1e-2)
 
@@ -219,10 +219,10 @@ class TestReentry(unittest.TestCase):
         from scipy.interpolate import interp1d
 
         t_sol = sol.get_val('traj.phase0.timeseries.time')
-        beta_sol = sol.get_val('traj.phase0.timeseries.polynomial_controls:beta', units='deg')
+        beta_sol = sol.get_val('traj.phase0.timeseries.beta', units='deg')
 
         t_sim = sim.get_val('traj.phase0.timeseries.time')
-        beta_sim = sim.get_val('traj.phase0.timeseries.polynomial_controls:beta', units='deg')
+        beta_sim = sim.get_val('traj.phase0.timeseries.beta', units='deg')
 
         sol_interp = interp1d(t_sol.ravel(), beta_sol.ravel())
         sim_interp = interp1d(t_sim.ravel(), beta_sim.ravel())
@@ -235,7 +235,7 @@ class TestReentry(unittest.TestCase):
                           expected_results['constrained']['time'],
                           tolerance=1e-2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.theta', units='deg')[-1],
                           expected_results['constrained']['theta'],
                           tolerance=1e-2)
 

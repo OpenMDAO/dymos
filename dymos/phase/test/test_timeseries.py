@@ -79,31 +79,31 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         for state in ('x', 'y', 'v'):
             assert_near_equal(p.get_val(f'phase0.states:{state}'),
-                              p.get_val(f'phase0.timeseries.states:{state}')[state_input_idxs])
+                              p.get_val(f'phase0.timeseries.{state}')[state_input_idxs])
 
             assert_near_equal(p.get_val(f'phase0.state_interp.state_col:{state}'),
-                              p.get_val(f'phase0.timeseries.states:{state}')[col_idxs])
+                              p.get_val(f'phase0.timeseries.{state}')[col_idxs])
 
         for control in ('theta',):
             assert_near_equal(p.get_val(f'phase0.controls:{control}'),
-                              p.get_val(f'phase0.timeseries.controls:{control}')[control_input_idxs])
+                              p.get_val(f'phase0.timeseries.{control}')[control_input_idxs])
 
         for dp in ('g',):
             for i in range(gd.subset_num_nodes['all']):
                 if test_smaller_timeseries:
                     with self.assertRaises(KeyError):
-                        p.get_val(f'phase0.timeseries.parameters:{dp}')
+                        p.get_val(f'phase0.timeseries.{dp}')
                 else:
                     assert_near_equal(p.get_val(f'phase0.parameter_vals:{dp}')[0],
-                                      p.get_val(f'phase0.timeseries.parameters:{dp}')[i])
+                                      p.get_val(f'phase0.timeseries.{dp}')[i])
 
         # call simulate to test SolveIVP transcription
         exp_out = phase.simulate()
         if test_smaller_timeseries:
             with self.assertRaises(KeyError):
-                exp_out.get_val(f'phase0.timeseries.parameters:{dp}')
+                exp_out.get_val(f'phase0.timeseries.{dp}')
         else:  # no error accessing timseries.parameter
-            exp_out.get_val(f'phase0.timeseries.parameters:{dp}')
+            exp_out.get_val(f'phase0.timeseries.{dp}')
 
     def test_timeseries_gl_smaller_timeseries(self):
         self.test_timeseries_gl(test_smaller_timeseries=True)
@@ -141,6 +141,8 @@ class TestTimeseriesOutput(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=10)
 
+        phase.timeseries_options['include_state_rates'] = True
+
         p.model.options['assembled_jac_type'] = 'csc'
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
@@ -168,39 +170,39 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         for state in ('x', 'y', 'v'):
             assert_near_equal(p.get_val(f'phase0.states:{state}'),
-                              p.get_val(f'phase0.timeseries.states:{state}')[state_input_idxs])
+                              p.get_val(f'phase0.timeseries.{state}')[state_input_idxs])
 
         for control in ('theta',):
             assert_near_equal(p.get_val(f'phase0.controls:{control}'),
-                              p.get_val(f'phase0.timeseries.controls:{control}')[control_input_idxs])
+                              p.get_val(f'phase0.timeseries.{control}')[control_input_idxs])
 
         for dp in ('g',):
             for i in range(gd.subset_num_nodes['all']):
                 if test_smaller_timeseries:
                     with self.assertRaises(KeyError):
-                        p.get_val(f'phase0.timeseries.parameters:{dp}')
+                        p.get_val(f'phase0.timeseries.{dp}')
                 else:
                     assert_near_equal(p.get_val(f'phase0.parameters:{dp}')[0],
-                                      p.get_val(f'phase0.timeseries.parameters:{dp}')[i])
+                                      p.get_val(f'phase0.timeseries.{dp}')[i])
 
         # call simulate to test SolveIVP transcription
         exp_out = phase.simulate()
         if test_smaller_timeseries:
             with self.assertRaises(KeyError):
-                exp_out.get_val(f'phase0.timeseries.parameters:{dp}')
+                exp_out.get_val(f'phase0.timeseries.{dp}')
         else:  # no error accessing timseries.parameter
-            exp_out.get_val(f'phase0.timeseries.parameters:{dp}')
+            exp_out.get_val(f'phase0.timeseries.{dp}')
 
         # Test that the state rates are output in both the radau and solveivp timeseries outputs
         t_sol = p.get_val('phase0.timeseries.time')
         t_sim = exp_out.get_val('phase0.timeseries.time')
 
-        for state_name in ('x', 'y', 'v'):
-            rate_sol = p.get_val(f'phase0.timeseries.state_rates:{state_name}')
-            rate_sim = exp_out.get_val(f'phase0.timeseries.state_rates:{state_name}')
+        p.model.list_outputs()
 
+        for state_name, rate_name in (('x', 'xdot'), ('y', 'ydot'), ('v', 'vdot')):
+            rate_sol = p.get_val(f'phase0.timeseries.{rate_name}')
+            rate_sim = exp_out.get_val(f'phase0.timeseries.{rate_name}')
             rate_t_sim = interp1d(t_sim.ravel(), rate_sim.ravel())
-
             assert_near_equal(rate_t_sim(t_sol), rate_sol, tolerance=1.0E-3)
 
     def test_timeseries_radau_smaller_timeseries(self):
@@ -252,11 +254,11 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         for state in ('x', 'y', 'v'):
             assert_near_equal(p.get_val(f'phase0.integrator.states_out:{state}'),
-                              p.get_val(f'phase0.timeseries.states:{state}'))
+                              p.get_val(f'phase0.timeseries.{state}'))
 
         for control in ('theta',):
             assert_near_equal(p.get_val(f'phase0.control_values:{control}'),
-                              p.get_val(f'phase0.timeseries.controls:{control}'))
+                              p.get_val(f'phase0.timeseries.{control}'))
 
 
 class MinTimeClimbODEDuplicateOutput(om.Group):
@@ -525,7 +527,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p.run_model()
 
         sin_theta = p.get_val('phase0.timeseries.sin_theta')
-        theta = p.get_val('phase0.timeseries.controls:theta', units='rad')
+        theta = p.get_val('phase0.timeseries.theta', units='rad')
 
         assert_near_equal(np.sin(theta), sin_theta)
 
@@ -618,10 +620,10 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p = self.make_problem_brachistochrone(transcription=tx)
         p.run_driver()
 
-        x = p.get_val('phase0.timeseries.states:x')
-        y = p.get_val('phase0.timeseries.states:y')
-        theta = p.get_val('phase0.timeseries.controls:theta')
-        g = p.get_val('phase0.timeseries.parameters:g')
+        x = p.get_val('phase0.timeseries.x')
+        y = p.get_val('phase0.timeseries.y')
+        theta = p.get_val('phase0.timeseries.theta')
+        g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta)**2
@@ -635,10 +637,10 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p = self.make_problem_brachistochrone(transcription=tx, polynomial_control=True)
         p.run_driver()
 
-        x = p.get_val('phase0.timeseries.states:x')
-        y = p.get_val('phase0.timeseries.states:y')
-        theta = p.get_val('phase0.timeseries.polynomial_controls:theta')
-        g = p.get_val('phase0.timeseries.parameters:g')
+        x = p.get_val('phase0.timeseries.x')
+        y = p.get_val('phase0.timeseries.y')
+        theta = p.get_val('phase0.timeseries.theta')
+        g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta)**2
@@ -651,10 +653,10 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         tx = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
         p = self.make_problem_brachistochrone(transcription=tx)
         p.run_driver()
-        x = p.get_val('phase0.timeseries.states:x')
-        y = p.get_val('phase0.timeseries.states:y')
-        theta = p.get_val('phase0.timeseries.controls:theta')
-        g = p.get_val('phase0.timeseries.parameters:g')
+        x = p.get_val('phase0.timeseries.x')
+        y = p.get_val('phase0.timeseries.y')
+        theta = p.get_val('phase0.timeseries.theta')
+        g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta) ** 2
@@ -669,10 +671,10 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p = self.make_problem_brachistochrone(transcription=tx, polynomial_control=True)
         p.run_driver()
 
-        x = p.get_val('phase0.timeseries.states:x')
-        y = p.get_val('phase0.timeseries.states:y')
-        theta = p.get_val('phase0.timeseries.polynomial_controls:theta')
-        g = p.get_val('phase0.timeseries.parameters:g')
+        x = p.get_val('phase0.timeseries.x')
+        y = p.get_val('phase0.timeseries.y')
+        theta = p.get_val('phase0.timeseries.theta')
+        g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta)**2
@@ -686,10 +688,10 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         p = self.make_problem_brachistochrone(transcription=tx)
         p.run_driver()
-        x = p.get_val('phase0.timeseries.states:x')
-        y = p.get_val('phase0.timeseries.states:y')
-        theta = p.get_val('phase0.timeseries.controls:theta')
-        g = p.get_val('phase0.timeseries.parameters:g')
+        x = p.get_val('phase0.timeseries.x')
+        y = p.get_val('phase0.timeseries.y')
+        theta = p.get_val('phase0.timeseries.theta')
+        g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta) ** 2
@@ -704,10 +706,10 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         p = self.make_problem_brachistochrone(transcription=tx, polynomial_control=True)
         p.run_driver()
-        x = p.get_val('phase0.timeseries.states:x')
-        y = p.get_val('phase0.timeseries.states:y')
-        theta = p.get_val('phase0.timeseries.polynomial_controls:theta')
-        g = p.get_val('phase0.timeseries.parameters:g')
+        x = p.get_val('phase0.timeseries.x')
+        y = p.get_val('phase0.timeseries.y')
+        theta = p.get_val('phase0.timeseries.theta')
+        g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
         f_computed = 3 * g * np.cos(theta) ** 2

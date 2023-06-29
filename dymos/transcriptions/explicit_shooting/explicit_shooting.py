@@ -260,7 +260,7 @@ class ExplicitShooting(TranscriptionBase):
         integ = phase._get_subsystem('integrator')
         integ._configure_states()
 
-        state_prefix = 'states:' if dymos_options['use_timeseries_prefix'] else ''
+        state_prefix = 'states:' if phase.timeseries_options['use_prefix'] else ''
 
         for name, options in phase.state_options.items():
             phase.promotes('integrator', inputs=[(f'states:{name}', f'initial_states:{name}')])
@@ -361,8 +361,8 @@ class ExplicitShooting(TranscriptionBase):
                                 subsys=control_group,
                                 promotes=['dt_dstau', 'controls:*', 'control_values:*', 'control_rates:*'])
 
-            control_prefix = 'controls:' if dymos_options['use_timeseries_prefix'] else ''
-            control_rate_prefix = 'control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+            control_prefix = 'controls:' if phase.timeseries_options['use_prefix'] else ''
+            control_rate_prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
 
             for name, options in phase.control_options.items():
                 for ts_name, ts_options in phase._timeseries.items():
@@ -454,8 +454,8 @@ class ExplicitShooting(TranscriptionBase):
             phase.add_subsystem('polynomial_control_group', subsys=sys,
                                 promotes_inputs=['*'], promotes_outputs=['*'])
 
-            control_prefix = 'polynomial_controls:' if dymos_options['use_timeseries_prefix'] else ''
-            control_rate_prefix = 'polynomial_control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+            control_prefix = 'polynomial_controls:' if phase.timeseries_options['use_prefix'] else ''
+            control_rate_prefix = 'polynomial_control_rates:' if phase.timeseries_options['use_prefix'] else ''
 
             for name, options in phase.polynomial_control_options.items():
 

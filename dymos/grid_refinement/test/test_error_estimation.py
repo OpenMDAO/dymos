@@ -104,17 +104,17 @@ class TestBrachistochroneExample(unittest.TestCase):
                         print(f'{tx_class.__name__} - {control_type} - g = {g}')
 
                         for name, options in phase.control_options.items():
-                            u_solution = phase.get_val(f'timeseries.controls:{name}')
+                            u_solution = phase.get_val(f'timeseries.{name}')
                             print(f'{name} interpolation error',
                                   max(np.abs(u[name].ravel() - u_solution.ravel())))
 
                         for name, options in phase.polynomial_control_options.items():
-                            p_solution = phase.get_val(f'timeseries.polynomial_controls:{name}')
+                            p_solution = phase.get_val(f'timeseries.{name}')
                             print(f'{name} interpolation error',
                                   max(np.abs(p[name].ravel() - p_solution.ravel())))
 
                         for name, options in phase.state_options.items():
-                            x_solution = phase.get_val(f'timeseries.states:{name}')
+                            x_solution = phase.get_val(f'timeseries.{name}')
                             f_solution = phase.get_val(f'timeseries.state_rates:{name}')
 
                             print(f'{name} interpolation error', max(np.abs(x[name].ravel() - x_solution.ravel())))

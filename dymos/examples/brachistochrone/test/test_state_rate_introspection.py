@@ -93,20 +93,20 @@ class TestIntegrateControl(unittest.TestCase):
         t_sol = sol.get_val('traj.phase0.timeseries.time')
         t_sim = sim.get_val('traj.phase0.timeseries.time')
 
-        x_sol = sol.get_val('traj.phase0.timeseries.states:x')
-        x_sim = sim.get_val('traj.phase0.timeseries.states:x')
+        x_sol = sol.get_val('traj.phase0.timeseries.x')
+        x_sim = sim.get_val('traj.phase0.timeseries.x')
 
-        y_sol = sol.get_val('traj.phase0.timeseries.states:y')
-        y_sim = sim.get_val('traj.phase0.timeseries.states:y')
+        y_sol = sol.get_val('traj.phase0.timeseries.y')
+        y_sim = sim.get_val('traj.phase0.timeseries.y')
 
-        v_sol = sol.get_val('traj.phase0.timeseries.states:v')
-        v_sim = sim.get_val('traj.phase0.timeseries.states:v')
+        v_sol = sol.get_val('traj.phase0.timeseries.v')
+        v_sim = sim.get_val('traj.phase0.timeseries.v')
 
-        int_theta_sol = sol.get_val('traj.phase0.timeseries.states:int_theta')
-        int_theta_sim = sim.get_val('traj.phase0.timeseries.states:int_theta')
+        int_theta_sol = sol.get_val('traj.phase0.timeseries.int_theta')
+        int_theta_sim = sim.get_val('traj.phase0.timeseries.int_theta')
 
-        theta_rate_sol = sol.get_val('traj.phase0.timeseries.controls:theta_rate')
-        theta_rate_sim = sim.get_val('traj.phase0.timeseries.controls:theta_rate')
+        theta_rate_sol = sol.get_val('traj.phase0.timeseries.theta_rate')
+        theta_rate_sim = sim.get_val('traj.phase0.timeseries.theta_rate')
 
         assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
@@ -198,20 +198,20 @@ class TestIntegrateControl(unittest.TestCase):
         t_sol = sol.get_val('traj.phase0.timeseries.time')
         t_sim = sim.get_val('traj.phase0.timeseries.time')
 
-        x_sol = sol.get_val('traj.phase0.timeseries.states:x')
-        x_sim = sim.get_val('traj.phase0.timeseries.states:x')
+        x_sol = sol.get_val('traj.phase0.timeseries.x')
+        x_sim = sim.get_val('traj.phase0.timeseries.x')
 
-        y_sol = sol.get_val('traj.phase0.timeseries.states:y')
-        y_sim = sim.get_val('traj.phase0.timeseries.states:y')
+        y_sol = sol.get_val('traj.phase0.timeseries.y')
+        y_sim = sim.get_val('traj.phase0.timeseries.y')
 
-        v_sol = sol.get_val('traj.phase0.timeseries.states:v')
-        v_sim = sim.get_val('traj.phase0.timeseries.states:v')
+        v_sol = sol.get_val('traj.phase0.timeseries.v')
+        v_sim = sim.get_val('traj.phase0.timeseries.v')
 
-        int_theta_sol = sol.get_val('traj.phase0.timeseries.states:int_theta')
-        int_theta_sim = sim.get_val('traj.phase0.timeseries.states:int_theta')
+        int_theta_sol = sol.get_val('traj.phase0.timeseries.int_theta')
+        int_theta_sim = sim.get_val('traj.phase0.timeseries.int_theta')
 
-        theta_sol = sol.get_val('traj.phase0.timeseries.controls:theta')
-        theta_sim = sim.get_val('traj.phase0.timeseries.controls:theta')
+        theta_sol = sol.get_val('traj.phase0.timeseries.theta')
+        theta_sim = sim.get_val('traj.phase0.timeseries.theta')
 
         assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
@@ -312,20 +312,20 @@ class TestIntegrateControl(unittest.TestCase):
         t_sol = sol.get_val('traj.phase0.timeseries.time')
         t_sim = sim.get_val('traj.phase0.timeseries.time')
 
-        x_sol = sol.get_val('traj.phase0.timeseries.states:x')
-        x_sim = sim.get_val('traj.phase0.timeseries.states:x')
+        x_sol = sol.get_val('traj.phase0.timeseries.x')
+        x_sim = sim.get_val('traj.phase0.timeseries.x')
 
-        y_sol = sol.get_val('traj.phase0.timeseries.states:y')
-        y_sim = sim.get_val('traj.phase0.timeseries.states:y')
+        y_sol = sol.get_val('traj.phase0.timeseries.y')
+        y_sim = sim.get_val('traj.phase0.timeseries.y')
 
-        v_sol = sol.get_val('traj.phase0.timeseries.states:v')
-        v_sim = sim.get_val('traj.phase0.timeseries.states:v')
+        v_sol = sol.get_val('traj.phase0.timeseries.v')
+        v_sim = sim.get_val('traj.phase0.timeseries.v')
 
-        int_theta_sol = sol.get_val('traj.phase0.timeseries.states:int_theta')
-        int_theta_sim = sim.get_val('traj.phase0.timeseries.states:int_theta')
+        int_theta_sol = sol.get_val('traj.phase0.timeseries.int_theta')
+        int_theta_sim = sim.get_val('traj.phase0.timeseries.int_theta')
 
-        theta_sol = sol.get_val('traj.phase0.timeseries.controls:theta')
-        theta_sim = sim.get_val('traj.phase0.timeseries.controls:theta')
+        theta_sol = sol.get_val('traj.phase0.timeseries.theta')
+        theta_sim = sim.get_val('traj.phase0.timeseries.theta')
 
         assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
@@ -436,20 +436,20 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         t_sol = sol.get_val('traj.phase0.timeseries.time')
         t_sim = sim.get_val('traj.phase0.timeseries.time')
 
-        x_sol = sol.get_val('traj.phase0.timeseries.states:x')
-        x_sim = sim.get_val('traj.phase0.timeseries.states:x')
+        x_sol = sol.get_val('traj.phase0.timeseries.x')
+        x_sim = sim.get_val('traj.phase0.timeseries.x')
 
-        y_sol = sol.get_val('traj.phase0.timeseries.states:y')
-        y_sim = sim.get_val('traj.phase0.timeseries.states:y')
+        y_sol = sol.get_val('traj.phase0.timeseries.y')
+        y_sim = sim.get_val('traj.phase0.timeseries.y')
 
-        v_sol = sol.get_val('traj.phase0.timeseries.states:v')
-        v_sim = sim.get_val('traj.phase0.timeseries.states:v')
+        v_sol = sol.get_val('traj.phase0.timeseries.v')
+        v_sim = sim.get_val('traj.phase0.timeseries.v')
 
-        int_theta_sol = sol.get_val('traj.phase0.timeseries.states:int_theta')
-        int_theta_sim = sim.get_val('traj.phase0.timeseries.states:int_theta')
+        int_theta_sol = sol.get_val('traj.phase0.timeseries.int_theta')
+        int_theta_sim = sim.get_val('traj.phase0.timeseries.int_theta')
 
-        theta_rate_sol = sol.get_val('traj.phase0.timeseries.polynomial_controls:theta_rate')
-        theta_rate_sim = sim.get_val('traj.phase0.timeseries.polynomial_controls:theta_rate')
+        theta_rate_sol = sol.get_val('traj.phase0.timeseries.theta_rate')
+        theta_rate_sim = sim.get_val('traj.phase0.timeseries.theta_rate')
 
         assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
@@ -541,20 +541,20 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         t_sol = sol.get_val('traj.phase0.timeseries.time')
         t_sim = sim.get_val('traj.phase0.timeseries.time')
 
-        x_sol = sol.get_val('traj.phase0.timeseries.states:x')
-        x_sim = sim.get_val('traj.phase0.timeseries.states:x')
+        x_sol = sol.get_val('traj.phase0.timeseries.x')
+        x_sim = sim.get_val('traj.phase0.timeseries.x')
 
-        y_sol = sol.get_val('traj.phase0.timeseries.states:y')
-        y_sim = sim.get_val('traj.phase0.timeseries.states:y')
+        y_sol = sol.get_val('traj.phase0.timeseries.y')
+        y_sim = sim.get_val('traj.phase0.timeseries.y')
 
-        v_sol = sol.get_val('traj.phase0.timeseries.states:v')
-        v_sim = sim.get_val('traj.phase0.timeseries.states:v')
+        v_sol = sol.get_val('traj.phase0.timeseries.v')
+        v_sim = sim.get_val('traj.phase0.timeseries.v')
 
-        int_theta_sol = sol.get_val('traj.phase0.timeseries.states:int_theta')
-        int_theta_sim = sim.get_val('traj.phase0.timeseries.states:int_theta')
+        int_theta_sol = sol.get_val('traj.phase0.timeseries.int_theta')
+        int_theta_sim = sim.get_val('traj.phase0.timeseries.int_theta')
 
-        theta_sol = sol.get_val('traj.phase0.timeseries.polynomial_controls:theta')
-        theta_sim = sim.get_val('traj.phase0.timeseries.polynomial_controls:theta')
+        theta_sol = sol.get_val('traj.phase0.timeseries.theta')
+        theta_sim = sim.get_val('traj.phase0.timeseries.theta')
 
         assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
@@ -656,17 +656,17 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         t_sol = sol.get_val('traj.phase0.timeseries.time')
         t_sim = sim.get_val('traj.phase0.timeseries.time')
 
-        x_sol = sol.get_val('traj.phase0.timeseries.states:x')
-        x_sim = sim.get_val('traj.phase0.timeseries.states:x')
+        x_sol = sol.get_val('traj.phase0.timeseries.x')
+        x_sim = sim.get_val('traj.phase0.timeseries.x')
 
-        y_sol = sol.get_val('traj.phase0.timeseries.states:y')
-        y_sim = sim.get_val('traj.phase0.timeseries.states:y')
+        y_sol = sol.get_val('traj.phase0.timeseries.y')
+        y_sim = sim.get_val('traj.phase0.timeseries.y')
 
-        v_sol = sol.get_val('traj.phase0.timeseries.states:v')
-        v_sim = sim.get_val('traj.phase0.timeseries.states:v')
+        v_sol = sol.get_val('traj.phase0.timeseries.v')
+        v_sim = sim.get_val('traj.phase0.timeseries.v')
 
-        int_theta_sol = sol.get_val('traj.phase0.timeseries.states:int_theta')
-        int_theta_sim = sim.get_val('traj.phase0.timeseries.states:int_theta')
+        int_theta_sol = sol.get_val('traj.phase0.timeseries.int_theta')
+        int_theta_sim = sim.get_val('traj.phase0.timeseries.int_theta')
 
         assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
 
@@ -806,17 +806,17 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
 
         time_sol = p.get_val(f'traj.phase0.timeseries.{time_name}')
         time_phase_sol = p.get_val(f'traj.phase0.timeseries.{time_name}_phase')
-        int_one_sol = p.get_val('traj.phase0.timeseries.states:int_one')
-        int_time_sol = p.get_val('traj.phase0.timeseries.states:int_time')
-        int_time_phase_sol = p.get_val('traj.phase0.timeseries.states:int_time_phase')
-        int_int_one_sol = p.get_val('traj.phase0.timeseries.states:int_int_one')
+        int_one_sol = p.get_val('traj.phase0.timeseries.int_one')
+        int_time_sol = p.get_val('traj.phase0.timeseries.int_time')
+        int_time_phase_sol = p.get_val('traj.phase0.timeseries.int_time_phase')
+        int_int_one_sol = p.get_val('traj.phase0.timeseries.int_int_one')
 
         time_sim = p.get_val(f'traj.phase0.timeseries.{time_name}')
         time_phase_sim = p.get_val(f'traj.phase0.timeseries.{time_name}_phase')
-        int_one_sim = p.get_val('traj.phase0.timeseries.states:int_one')
-        int_time_sim = p.get_val('traj.phase0.timeseries.states:int_time')
-        int_time_phase_sim = p.get_val('traj.phase0.timeseries.states:int_time_phase')
-        int_int_one_sim = p.get_val('traj.phase0.timeseries.states:int_int_one')
+        int_one_sim = p.get_val('traj.phase0.timeseries.int_one')
+        int_time_sim = p.get_val('traj.phase0.timeseries.int_time')
+        int_time_phase_sim = p.get_val('traj.phase0.timeseries.int_time_phase')
+        int_int_one_sim = p.get_val('traj.phase0.timeseries.int_int_one')
 
         # Integral of one should match time and time_phase in this case.
         assert_near_equal(int_one_sol, time_sol, tolerance=1.0E-12)

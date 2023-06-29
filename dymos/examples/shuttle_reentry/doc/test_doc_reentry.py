@@ -93,7 +93,7 @@ class TestReentryForDocs(unittest.TestCase):
         # Check the validity of the solution
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 2008.59,
                           tolerance=1e-3)
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.theta', units='deg')[-1],
                           34.1412, tolerance=1e-3)
 
         # Run the simulation to check if the model is physically valid
@@ -101,11 +101,11 @@ class TestReentryForDocs(unittest.TestCase):
 
         # Plot the results
 
-        plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.controls:alpha',
+        plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.alpha',
                        'time (s)', 'alpha (rad)'),
-                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.controls:beta',
+                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.beta',
                        'time (s)', 'beta (rad)'),
-                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.states:theta',
+                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.theta',
                        'time (s)', 'theta (rad)'),
                       ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.q',
                        'time (s)', 'q (btu/ft/ft/s')], title='Reentry Solution', p_sol=p,

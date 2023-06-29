@@ -249,9 +249,9 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         print(f'optimal radius: {rad} m ')
         mass = p.get_val('size_comp.mass', units='kg')[0]
         print(f'cannonball mass: {mass} kg ')
-        angle = p.get_val('traj.phase.timeseries.states:gam', units='deg')[0, 0]
+        angle = p.get_val('traj.phase.timeseries.gam', units='deg')[0, 0]
         print(f'launch angle: {angle} deg')
-        max_range = p.get_val('traj.phase.timeseries.states:r')[-1, 0]
+        max_range = p.get_val('traj.phase.timeseries.r')[-1, 0]
         print(f'maximum range: {max_range} m')
 
         fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
@@ -260,13 +260,13 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         time_exp = exp_out.get_val('traj.phase.timeseries.time')
 
-        r_imp = p.get_val('traj.phase.timeseries.states:r')
+        r_imp = p.get_val('traj.phase.timeseries.r')
 
-        r_exp = exp_out.get_val('traj.phase.timeseries.states:r')
+        r_exp = exp_out.get_val('traj.phase.timeseries.r')
 
-        h_imp = p.get_val('traj.phase.timeseries.states:h')
+        h_imp = p.get_val('traj.phase.timeseries.h')
 
-        h_exp = exp_out.get_val('traj.phase.timeseries.states:h')
+        h_exp = exp_out.get_val('traj.phase.timeseries.h')
 
         axes.plot(r_imp, h_imp, 'bo')
 
@@ -278,9 +278,9 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10, 6))
         states = ['r', 'h', 'v', 'gam']
         for i, state in enumerate(states):
-            x_imp = p.get_val(f'traj.phase.timeseries.states:{state}')
+            x_imp = p.get_val(f'traj.phase.timeseries.{state}')
 
-            x_exp = exp_out.get_val(f'traj.phase.timeseries.states:{state}')
+            x_exp = exp_out.get_val(f'traj.phase.timeseries.{state}')
 
             axes[i].set_ylabel(state)
 

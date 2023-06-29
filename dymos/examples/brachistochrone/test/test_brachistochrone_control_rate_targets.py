@@ -171,11 +171,11 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -188,13 +188,13 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.control_rates:theta_rate')
+        theta_imp = p.get_val('phase0.timeseries.theta_rate')
         t_exp = exp_out.get_val('phase0.timeseries.time')
-        theta_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate')
+        theta_exp = exp_out.get_val('phase0.timeseries.theta_rate')
 
         io_meta = p.model.phase0.timeseries.timeseries_comp.get_io_metadata(
             iotypes=('input', 'output'), get_remote=True)
-        self.assertEqual(io_meta['controls:theta']['units'], 'rad*s')
+        self.assertEqual(io_meta['theta']['units'], 'rad*s')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
         ax.plot(t_exp, theta_exp, 'b-', label='simulated')
@@ -268,11 +268,11 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -285,9 +285,9 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.control_rates:theta_rate')
+        theta_imp = p.get_val('phase0.timeseries.theta_rate')
         t_exp = exp_out.get_val('phase0.timeseries.time')
-        theta_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate')
+        theta_exp = exp_out.get_val('phase0.timeseries.theta_rate')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
         ax.plot(t_exp, theta_exp, 'b-', label='simulated')
@@ -365,11 +365,11 @@ class TestBrachistochroneExplicitControlRateTargets(unittest.TestCase):
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -382,9 +382,9 @@ class TestBrachistochroneExplicitControlRateTargets(unittest.TestCase):
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.control_rates:theta_rate')
+        theta_imp = p.get_val('phase0.timeseries.theta_rate')
         t_exp = exp_out.get_val('phase0.timeseries.time')
-        theta_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate')
+        theta_exp = exp_out.get_val('phase0.timeseries.theta_rate')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
         ax.plot(t_exp, theta_exp, 'b-', label='simulated')
@@ -459,11 +459,11 @@ class TestBrachistochroneExplicitControlRateTargets(unittest.TestCase):
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -476,9 +476,9 @@ class TestBrachistochroneExplicitControlRateTargets(unittest.TestCase):
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.control_rates:theta_rate')
+        theta_imp = p.get_val('phase0.timeseries.theta_rate')
         t_exp = exp_out.get_val('phase0.timeseries.time')
-        theta_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate')
+        theta_exp = exp_out.get_val('phase0.timeseries.theta_rate')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
         ax.plot(t_exp, theta_exp, 'b-', label='simulated')
@@ -556,11 +556,11 @@ class TestBrachistochronePolynomialControlRateTargets(unittest.TestCase):
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -573,9 +573,9 @@ class TestBrachistochronePolynomialControlRateTargets(unittest.TestCase):
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_control_rates:theta_rate')
+        theta_imp = p.get_val('phase0.timeseries.theta_rate')
         t_exp = exp_out.get_val('phase0.timeseries.time')
-        theta_exp = exp_out.get_val('phase0.timeseries.polynomial_control_rates:theta_rate')
+        theta_exp = exp_out.get_val('phase0.timeseries.theta_rate')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
         ax.plot(t_exp, theta_exp, 'b-', label='simulated')
@@ -650,11 +650,11 @@ class TestBrachistochronePolynomialControlRateTargets(unittest.TestCase):
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -667,9 +667,9 @@ class TestBrachistochronePolynomialControlRateTargets(unittest.TestCase):
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_control_rates:theta_rate')
+        theta_imp = p.get_val('phase0.timeseries.theta_rate')
         t_exp = exp_out.get_val('phase0.timeseries.time')
-        theta_exp = exp_out.get_val('phase0.timeseries.polynomial_control_rates:theta_rate')
+        theta_exp = exp_out.get_val('phase0.timeseries.theta_rate')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
         ax.plot(t_exp, theta_exp, 'b-', label='simulated')
@@ -747,11 +747,11 @@ class TestBrachistochronePolynomialControlExplicitRateTargets(unittest.TestCase)
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -764,9 +764,9 @@ class TestBrachistochronePolynomialControlExplicitRateTargets(unittest.TestCase)
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_control_rates:theta_rate')
+        theta_imp = p.get_val('phase0.timeseries.theta_rate')
         t_exp = exp_out.get_val('phase0.timeseries.time')
-        theta_exp = exp_out.get_val('phase0.timeseries.polynomial_control_rates:theta_rate')
+        theta_exp = exp_out.get_val('phase0.timeseries.theta_rate')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
         ax.plot(t_exp, theta_exp, 'b-', label='simulated')
@@ -841,11 +841,11 @@ class TestBrachistochronePolynomialControlExplicitRateTargets(unittest.TestCase)
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -858,9 +858,9 @@ class TestBrachistochronePolynomialControlExplicitRateTargets(unittest.TestCase)
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_control_rates:theta_rate')
+        theta_imp = p.get_val('phase0.timeseries.theta_rate')
         t_exp = exp_out.get_val('phase0.timeseries.time')
-        theta_exp = exp_out.get_val('phase0.timeseries.polynomial_control_rates:theta_rate')
+        theta_exp = exp_out.get_val('phase0.timeseries.theta_rate')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
         ax.plot(t_exp, theta_exp, 'b-', label='simulated')

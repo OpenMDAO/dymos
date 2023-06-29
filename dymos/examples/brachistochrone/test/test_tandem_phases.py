@@ -139,8 +139,8 @@ class TestTandemPhases(unittest.TestCase):
         #
         p.model.connect('phase0.t_duration', 'phase1.t_duration')
 
-        p.model.connect('phase0.timeseries2.controls:theta', 'phase1.controls:theta')
-        p.model.connect('phase0.timeseries2.states:v', 'phase1.controls:v')
+        p.model.connect('phase0.timeseries2.theta', 'phase1.controls:theta')
+        p.model.connect('phase0.timeseries2.v', 'phase1.controls:v')
 
         # Minimize time at the end of the phase
         # phase1.add_objective('time', loc='final', scaler=1)
@@ -165,7 +165,7 @@ class TestTandemPhases(unittest.TestCase):
         p.run_driver()
 
         expected = np.sqrt((10-0)**2 + (10 - 5)**2)
-        assert_near_equal(p['phase1.timeseries.states:S'][-1], expected, tolerance=1.0E-3)
+        assert_near_equal(p['phase1.timeseries.S'][-1], expected, tolerance=1.0E-3)
 
     def test_tandem_phases_radau(self):
         self._run_transcription('radau-ps')

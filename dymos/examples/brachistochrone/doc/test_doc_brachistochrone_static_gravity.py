@@ -143,15 +143,15 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         exp_out = om.CaseReader('dymos_simulation.db').get_case('final')
 
         # Extract the timeseries from the implicit solution and the explicit simulation
-        x = p.get_val('traj.phase0.timeseries.states:x')
-        y = p.get_val('traj.phase0.timeseries.states:y')
+        x = p.get_val('traj.phase0.timeseries.x')
+        y = p.get_val('traj.phase0.timeseries.y')
         t = p.get_val('traj.phase0.timeseries.time')
-        theta = p.get_val('traj.phase0.timeseries.controls:theta')
+        theta = p.get_val('traj.phase0.timeseries.theta')
 
-        x_exp = exp_out.get_val('traj.phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('traj.phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('traj.phase0.timeseries.x')
+        y_exp = exp_out.get_val('traj.phase0.timeseries.y')
         t_exp = exp_out.get_val('traj.phase0.timeseries.time')
-        theta_exp = exp_out.get_val('traj.phase0.timeseries.controls:theta')
+        theta_exp = exp_out.get_val('traj.phase0.timeseries.theta')
 
         fig, axes = plt.subplots(nrows=2, ncols=1)
 

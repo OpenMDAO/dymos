@@ -63,11 +63,11 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -80,7 +80,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
+        theta_imp = p.get_val('phase0.timeseries.theta')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
 
@@ -149,11 +149,11 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -166,7 +166,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
+        theta_imp = p.get_val('phase0.timeseries.theta')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
 
@@ -241,11 +241,11 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -258,7 +258,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
+        theta_imp = p.get_val('phase0.timeseries.theta')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
 
@@ -329,11 +329,11 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -346,7 +346,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
+        theta_imp = p.get_val('phase0.timeseries.theta')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
 
@@ -419,11 +419,11 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -436,7 +436,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
+        theta_imp = p.get_val('phase0.timeseries.theta')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
 
@@ -505,11 +505,11 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -522,7 +522,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
+        theta_imp = p.get_val('phase0.timeseries.theta')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
 
@@ -597,11 +597,11 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -614,7 +614,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
+        theta_imp = p.get_val('phase0.timeseries.theta')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
 
@@ -685,11 +685,11 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -702,7 +702,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
+        theta_imp = p.get_val('phase0.timeseries.theta')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
 
@@ -777,11 +777,11 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -794,7 +794,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
+        theta_imp = p.get_val('phase0.timeseries.theta')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
 
@@ -865,11 +865,11 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('phase0.timeseries.x')
+        y_imp = p.get_val('phase0.timeseries.y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('phase0.timeseries.x')
+        y_exp = exp_out.get_val('phase0.timeseries.y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -882,7 +882,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         fig, ax = plt.subplots()
 
         t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
+        theta_imp = p.get_val('phase0.timeseries.theta')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
 
@@ -948,8 +948,8 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
-        theta_exp = exp_out.get_val('phase0.timeseries.polynomial_controls:theta')
+        theta_imp = p.get_val('phase0.timeseries.theta')
+        theta_exp = exp_out.get_val('phase0.timeseries.theta')
 
         assert_near_equal(theta_exp[0], theta_imp[0])
         assert_near_equal(theta_exp[-1], theta_imp[-1])
@@ -1005,8 +1005,8 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
-        theta_exp = exp_out.get_val('phase0.timeseries.polynomial_controls:theta')
+        theta_imp = p.get_val('phase0.timeseries.theta')
+        theta_exp = exp_out.get_val('phase0.timeseries.theta')
 
         assert_near_equal(theta_exp[0], theta_imp[0])
         assert_near_equal(theta_exp[-1], theta_imp[-1])

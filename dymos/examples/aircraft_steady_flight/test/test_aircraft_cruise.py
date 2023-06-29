@@ -98,7 +98,7 @@ class TestAircraftCruise(unittest.TestCase):
 
         time = p.get_val('phase0.timeseries.time')
         tas = p.get_val('phase0.timeseries.TAS', units='km/s')
-        range = p.get_val('phase0.timeseries.states:range')
+        range = p.get_val('phase0.timeseries.range')
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
 
@@ -106,7 +106,7 @@ class TestAircraftCruise(unittest.TestCase):
 
         time = exp_out.get_val('phase0.timeseries.time')
         tas = exp_out.get_val('phase0.timeseries.TAS', units='km/s')
-        range = exp_out.get_val('phase0.timeseries.states:range')
+        range = exp_out.get_val('phase0.timeseries.range')
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
 
@@ -196,7 +196,7 @@ class TestAircraftCruise(unittest.TestCase):
 
         time = p.get_val('phase0.timeseries.time')
         tas = p.get_val('phase0.timeseries.TAS', units='km/s')
-        range = p.get_val('phase0.timeseries.states:range')
+        range = p.get_val('phase0.timeseries.range')
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
 
@@ -204,7 +204,7 @@ class TestAircraftCruise(unittest.TestCase):
 
         time = exp_out.get_val('phase0.timeseries.time')
         tas = exp_out.get_val('phase0.timeseries.TAS', units='km/s')
-        range = exp_out.get_val('phase0.timeseries.states:range')
+        range = exp_out.get_val('phase0.timeseries.range')
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
 

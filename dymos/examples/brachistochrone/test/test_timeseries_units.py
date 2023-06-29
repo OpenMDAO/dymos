@@ -94,16 +94,16 @@ class TestTimeseriesUnits(unittest.TestCase):
         sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
 
         assert_near_equal(sol_case.get_val('traj0.phase0.timeseries.xdot', units='degF'),
-                          sol_case.get_val('traj0.phase0.timeseries.state_rates:x', units='degF'))
+                          sol_case.get_val('traj0.phase0.timeseries.xdot', units='degF'))
 
         assert_near_equal(sol_case.get_val('traj0.phase0.timeseries.ydot', units='degC'),
-                          sol_case.get_val('traj0.phase0.timeseries.state_rates:y', units='degC'))
+                          sol_case.get_val('traj0.phase0.timeseries.ydot', units='degC'))
 
         assert_near_equal(sim_case.get_val('traj0.phase0.timeseries.xdot', units='degF'),
-                          sim_case.get_val('traj0.phase0.timeseries.state_rates:x', units='degF'))
+                          sim_case.get_val('traj0.phase0.timeseries.xdot', units='degF'))
 
         assert_near_equal(sim_case.get_val('traj0.phase0.timeseries.ydot', units='degC'),
-                          sim_case.get_val('traj0.phase0.timeseries.state_rates:y', units='degC'))
+                          sim_case.get_val('traj0.phase0.timeseries.ydot', units='degC'))
 
         return p
 

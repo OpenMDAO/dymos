@@ -68,9 +68,9 @@ class TestFlyingRobot(unittest.TestCase):
 
     def _assert_results(self, p, tol=1.0E-4):
         t = p.get_val('traj.phase0.timeseries.time')
-        x = p.get_val('traj.phase0.timeseries.states:x')
-        v = p.get_val('traj.phase0.timeseries.states:v')
-        u = p.get_val('traj.phase0.timeseries.controls:u')
+        x = p.get_val('traj.phase0.timeseries.x')
+        v = p.get_val('traj.phase0.timeseries.v')
+        u = p.get_val('traj.phase0.timeseries.u')
 
         assert_near_equal(t[-1], 20.0, tolerance=tol)
         assert_near_equal(x[-1, ...], [-100, 100], tolerance=tol)

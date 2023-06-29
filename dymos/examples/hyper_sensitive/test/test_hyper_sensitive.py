@@ -96,15 +96,15 @@ class TestHyperSensitive(unittest.TestCase):
         dm.run_problem(p, refine_iteration_limit=5)
         ui, uf, J = self.solution()
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
                           ui,
                           tolerance=5e-6)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[-1],
                           uf,
                           tolerance=5e-6)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.xL')[-1],
                           J,
                           tolerance=1e-6)
 
@@ -115,15 +115,15 @@ class TestHyperSensitive(unittest.TestCase):
 
         ui, uf, J = self.solution()
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
                           ui,
                           tolerance=1e-4)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[-1],
                           uf,
                           tolerance=1e-4)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.xL')[-1],
                           J,
                           tolerance=1e-4)
 

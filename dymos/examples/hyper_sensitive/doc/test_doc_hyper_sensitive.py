@@ -86,15 +86,15 @@ class TestHyperSensitive(unittest.TestCase):
         #
         ui, uf, J = solution()
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
                           ui,
                           tolerance=1.5e-2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[-1],
                           uf,
                           tolerance=1.5e-2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.xL')[-1],
                           J,
                           tolerance=1e-2)
 
@@ -103,9 +103,9 @@ class TestHyperSensitive(unittest.TestCase):
         #
         exp_out = traj.simulate()
 
-        plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.states:x',
+        plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.x',
                        'time (s)', 'x $(m)$'),
-                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.controls:u',
+                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.u',
                        'time (s)', 'u $(m/s^2)$')],
                      title='Hyper Sensitive Problem Solution\nRadau Pseudospectral Method',
                      p_sol=p, p_sim=exp_out)

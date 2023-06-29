@@ -282,8 +282,8 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_u1_final = p.get_val('burn1.timeseries.controls:u1')[-1, ...]
-        burn2_u1_initial = p.get_val('burn2.timeseries.controls:u1')[0, ...]
+        burn1_u1_final = p.get_val('burn1.timeseries.u1')[-1, ...]
+        burn2_u1_initial = p.get_val('burn2.timeseries.u1')[0, ...]
 
         u1_linkage_error = p.get_val('linkages.burn1:u1_final|burn2:u1_initial')
         assert_near_equal(u1_linkage_error, burn1_u1_final - burn2_u1_initial)
@@ -541,8 +541,8 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_u1_final = p.get_val('burn1.timeseries.controls:u1')[-1, ...]
-        burn2_u1_initial = p.get_val('burn2.timeseries.polynomial_controls:u1')[0, ...]
+        burn1_u1_final = p.get_val('burn1.timeseries.u1')[-1, ...]
+        burn2_u1_initial = p.get_val('burn2.timeseries.u1')[0, ...]
 
         u1_linkage_error = p.get_val('linkages.burn1:u1_final|burn2:u1_initial')
         assert_near_equal(u1_linkage_error, burn1_u1_final - burn2_u1_initial)
@@ -674,8 +674,8 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_u1_final = p.get_val('burn1.timeseries.control_rates:u1_rate')[-1, ...]
-        burn2_u1_initial = p.get_val('burn2.timeseries.control_rates:u1_rate')[0, ...]
+        burn1_u1_final = p.get_val('burn1.timeseries.u1_rate')[-1, ...]
+        burn2_u1_initial = p.get_val('burn2.timeseries.u1_rate')[0, ...]
 
         u1_linkage_error = p.get_val('linkages.burn1:u1_rate_final|burn2:u1_rate_initial')
         assert_near_equal(u1_linkage_error, burn1_u1_final - burn2_u1_initial)
@@ -804,8 +804,8 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_u1_final = p.get_val('burn1.timeseries.control_rates:u1_rate2')[-1, ...]
-        burn2_u1_initial = p.get_val('burn2.timeseries.control_rates:u1_rate2')[0, ...]
+        burn1_u1_final = p.get_val('burn1.timeseries.u1_rate2')[-1, ...]
+        burn2_u1_initial = p.get_val('burn2.timeseries.u1_rate2')[0, ...]
 
         u1_linkage_error = p.get_val('linkages.burn1:u1_rate2_final|burn2:u1_rate2_initial')
         assert_near_equal(u1_linkage_error, burn1_u1_final - burn2_u1_initial)
@@ -934,8 +934,8 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_u1_final = p.get_val('burn1.timeseries.control_rates:u1_rate')[-1, ...]
-        burn2_u1_initial = p.get_val('burn2.timeseries.polynomial_control_rates:u1_rate')[0, ...]
+        burn1_u1_final = p.get_val('burn1.timeseries.u1_rate')[-1, ...]
+        burn2_u1_initial = p.get_val('burn2.timeseries.u1_rate')[0, ...]
 
         u1_linkage_error = p.get_val('linkages.burn1:u1_rate_final|burn2:u1_rate_initial')
         assert_near_equal(u1_linkage_error, burn1_u1_final - burn2_u1_initial)
@@ -1063,8 +1063,8 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_u1_final = p.get_val('burn1.timeseries.control_rates:u1_rate2')[-1, ...]
-        burn2_u1_initial = p.get_val('burn2.timeseries.polynomial_control_rates:u1_rate2')[0, ...]
+        burn1_u1_final = p.get_val('burn1.timeseries.u1_rate2')[-1, ...]
+        burn2_u1_initial = p.get_val('burn2.timeseries.u1_rate2')[0, ...]
 
         u1_linkage_error = p.get_val('linkages.burn1:u1_rate2_final|burn2:u1_rate2_initial')
         assert_near_equal(u1_linkage_error, burn1_u1_final - burn2_u1_initial)
@@ -1625,9 +1625,9 @@ class TestInvalidLinkages(unittest.TestCase):
         lnk_ascent_h_m = p.get_val('traj.linkages.ascent:h', units='m')
         lnk_descent_h_m = p.get_val('traj.linkages.descent:h', units='m')
 
-        start_h_m = p.get_val('traj.start.timeseries.states:h', units='m')[[0, -1], ...]
-        ascent_h_m = p.get_val('traj.ascent.timeseries.states:h', units='m')[[0, -1], ...]
-        descent_h_m = p.get_val('traj.descent.timeseries.states:h', units='m')[[0, -1], ...]
+        start_h_m = p.get_val('traj.start.timeseries.h', units='m')[[0, -1], ...]
+        ascent_h_m = p.get_val('traj.ascent.timeseries.h', units='m')[[0, -1], ...]
+        descent_h_m = p.get_val('traj.descent.timeseries.h', units='m')[[0, -1], ...]
 
         assert_near_equal(lnk_start_h_m, start_h_m, tolerance=1.0E-12)
         assert_near_equal(lnk_ascent_h_m, ascent_h_m, tolerance=1.0E-12)
@@ -1886,8 +1886,8 @@ class TestInvalidLinkages(unittest.TestCase):
 
         p.model.list_inputs()
 
-        ascent_h_m = p.get_val('traj.ascent.timeseries.states:h', units='m')[[0, -1], ...]
-        descent_h_m = p.get_val('traj.descent.timeseries.states:h', units='m')[[0, -1], ...]
+        ascent_h_m = p.get_val('traj.ascent.timeseries.h', units='m')[[0, -1], ...]
+        descent_h_m = p.get_val('traj.descent.timeseries.h', units='m')[[0, -1], ...]
 
         lnk_2_manual = - descent_h_m[0, ...] + ascent_h_m[-1, ...]
 

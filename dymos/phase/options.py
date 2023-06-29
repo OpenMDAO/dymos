@@ -307,8 +307,10 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
                      desc='The unit-reference value of the parameter. This '
                           'option is invalid if opt=False.')
 
-        self.declare(name='include_timeseries', types=bool, default=False,
-                     desc='True if the static parameters should be included in output timeseries, else False')
+        self.declare(name='include_timeseries', types=bool, default=None,
+                     allow_none=True,
+                     desc='True if the static parameters should be included in output timeseries, else False.'
+                          'If None (default) set the value based on Phase.timeseries_options["include_parameters"]')
 
 
 class TrajParameterOptionsDictionary(ParameterOptionsDictionary):
@@ -756,11 +758,18 @@ class PhaseTimeseriesOptionsDictionary(om.OptionsDictionary):
     def __init__(self, read_only=False):
         super().__init__(read_only)
 
-        self.declare(name='include_state_rates', types=bool, default=True,
+        self.declare(name='use_prefix', types=bool, default=False,
+                     desc='If True, prefix the timeseries variable output with the type '
+                          'of variable (this is legacy behavior that changed in Dymos 1.8.0)')
+
+        self.declare(name='include_state_rates', types=bool, default=False,
                      desc='If True, include state rates in the timeseries outputs by default.')
 
-        self.declare(name='include_control_rates', types=bool, default=True,
+        self.declare(name='include_control_rates', types=bool, default=False,
                      desc='If True, include control rates in the timeseries outputs by default.')
 
-        self.declare(name='include_t_phase', types=bool, default=True,
+        self.declare(name='include_t_phase', types=bool, default=False,
                      desc='If True, include the elapsed phase time in the timeseries outputs by default.')
+
+        self.declare(name='include_parameters', types=bool, default=False,
+                     desc='If True, include the parameters in the timeseries outputs by default.')

@@ -104,7 +104,8 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         self.assertFalse(failed, msg='optimization failed')
 
         # Test the results
-        rate_path = 'control_rates:theta_rate2' if dm.options['use_timeseries_prefix'] else 'theta_rate2'
+        rate_path = 'control_rates:theta_rate2' \
+            if phase.timeseries_options['use_prefix'] else 'theta_rate2'
         self.assertGreaterEqual(np.min(p.get_val(f'phase0.timeseries.{rate_path}')), -200.000001)
         self.assertLessEqual(np.max(p.get_val(f'phase0.timeseries.{rate_path}')), 200.000001)
 
@@ -155,7 +156,8 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         self.assertFalse(failed, msg='optimization failed')
 
         # Test the results
-        rate_path = 'control_rates:theta_rate' if dm.options['use_timeseries_prefix'] else 'theta_rate'
+        rate_path = 'control_rates:theta_rate' \
+            if phase.timeseries_options['use_prefix'] else 'theta_rate'
         self.assertGreaterEqual(np.min(p.get_val(f'phase0.timeseries.{rate_path}')), -0.000001)
         self.assertLessEqual(np.max(p.get_val(f'phase0.timeseries.{rate_path}')), 100.000001)
 
@@ -209,7 +211,8 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         self.assertFalse(failed, msg='optimization failed')
 
         # Test the results
-        rate_path = 'control_rates:theta_rate2' if dm.options['use_timeseries_prefix'] else 'theta_rate2'
+        rate_path = 'control_rates:theta_rate2' \
+            if phase.timeseries_options['use_prefix'] else 'theta_rate2'
         self.assertGreaterEqual(np.min(p.get_val(f'phase0.timeseries.{rate_path}')), -200.000001)
         self.assertLessEqual(np.max(p.get_val(f'phase0.timeseries.{rate_path}')), 200.000001)
 
@@ -265,7 +268,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         self.assertFalse(failed, msg='optimization failed')
 
         # Test the results
-        state_path = 'states:y' if dm.options['use_timeseries_prefix'] else 'x'
+        state_path = 'states:y' if phase.timeseries_options['use_prefix'] else 'y'
         self.assertGreaterEqual(np.min(p.get_val(f'traj0.phase0.timeseries.{state_path}')), 4.999999)
 
     @require_pyoptsparse(optimizer='IPOPT')
@@ -320,7 +323,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         self.assertFalse(failed, msg='optimization failed')
 
         # Test the results
-        state_path = 'states:y' if dm.options['use_timeseries_prefix'] else 'x'
+        state_path = 'states:y' if phase.timeseries_options['use_prefix'] else 'y'
         self.assertGreaterEqual(np.min(p.get_val(f'traj0.phase0.timeseries.{state_path}')), 4.999999)
 
 

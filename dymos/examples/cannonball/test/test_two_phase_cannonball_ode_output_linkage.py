@@ -135,9 +135,9 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         print('cannonball mass: {0:6.4f} kg '.format(p.get_val('size_comp.mass',
                                                                units='kg')[0]))
         print('launch angle: {0:6.4f} '
-              'deg '.format(p.get_val('traj.ascent.timeseries.states:gam',  units='deg')[0, 0]))
+              'deg '.format(p.get_val('traj.ascent.timeseries.gam',  units='deg')[0, 0]))
         print('maximum range: {0:6.4f} '
-              'm '.format(p.get_val('traj.descent.timeseries.states:r')[-1, 0]))
+              'm '.format(p.get_val('traj.descent.timeseries.r')[-1, 0]))
 
         assert_near_equal(p.get_val('traj.linkages.ascent:ke_final|descent:ke_initial'), 0.0)
 

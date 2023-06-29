@@ -79,15 +79,15 @@ class TestRunProblem(unittest.TestCase):
         J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) *
                    np.exp(-2 * val) - (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
                           ui,
                           tolerance=5e-4)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[-1],
                           uf,
                           tolerance=5e-4)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.xL')[-1],
                           J,
                           tolerance=5e-4)
 
@@ -146,15 +146,15 @@ class TestRunProblem(unittest.TestCase):
         J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) *
                    np.exp(-2 * val) - (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
                           ui,
                           tolerance=5e-4)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[-1],
                           uf,
                           tolerance=5e-4)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.xL')[-1],
                           J,
                           tolerance=5e-4)
 
@@ -211,15 +211,15 @@ class TestRunProblem(unittest.TestCase):
         J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) *
                    np.exp(-2 * val) - (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
                           ui,
                           tolerance=1e-2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[-1],
                           uf,
                           tolerance=1e-2)
 
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.xL')[-1],
                           J,
                           tolerance=5e-4)
 
@@ -564,16 +564,16 @@ class TestRunProblem(unittest.TestCase):
         tq = q.get_val('traj.phase0.timeseries.time')[:, 0]
         nodup = np.insert(tq[1:] != tq[:-1], 0, True)
         tq = tq[nodup]
-        x1q = q.get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
-        x0q = q.get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
-        uq = q.get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
+        x1q = q.get_val('traj.phase0.timeseries.x1')[:, 0][nodup]
+        x0q = q.get_val('traj.phase0.timeseries.x0')[:, 0][nodup]
+        uq = q.get_val('traj.phase0.timeseries.u')[:, 0][nodup]
 
         ts = s.get_val('traj.phase0.timeseries.time')[:, 0]
         nodup = np.insert(ts[1:] != ts[:-1], 0, True)
         ts = ts[nodup]
-        x1s = s.get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
-        x0s = s.get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
-        us = s.get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
+        x1s = s.get_val('traj.phase0.timeseries.x1')[:, 0][nodup]
+        x0s = s.get_val('traj.phase0.timeseries.x0')[:, 0][nodup]
+        us = s.get_val('traj.phase0.timeseries.u')[:, 0][nodup]
 
         # create interpolation functions so that values can be looked up at matching time points
         fx1s = interp1d(ts, x1s, kind='cubic')
@@ -610,16 +610,16 @@ class TestRunProblem(unittest.TestCase):
         tq = q.get_val('traj.phase0.timeseries.time')[:, 0]
         nodup = np.insert(tq[1:] != tq[:-1], 0, True)
         tq = tq[nodup]
-        x1q = q.get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
-        x0q = q.get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
-        uq = q.get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
+        x1q = q.get_val('traj.phase0.timeseries.x1')[:, 0][nodup]
+        x0q = q.get_val('traj.phase0.timeseries.x0')[:, 0][nodup]
+        uq = q.get_val('traj.phase0.timeseries.u')[:, 0][nodup]
 
         ts = s.get_val('traj.phase0.timeseries.time')[:, 0]
         nodup = np.insert(ts[1:] != ts[:-1], 0, True)
         ts = ts[nodup]
-        x1s = s.get_val('traj.phase0.timeseries.states:x1')[:, 0][nodup]
-        x0s = s.get_val('traj.phase0.timeseries.states:x0')[:, 0][nodup]
-        us = s.get_val('traj.phase0.timeseries.controls:u')[:, 0][nodup]
+        x1s = s.get_val('traj.phase0.timeseries.x1')[:, 0][nodup]
+        x0s = s.get_val('traj.phase0.timeseries.x0')[:, 0][nodup]
+        us = s.get_val('traj.phase0.timeseries.u')[:, 0][nodup]
 
         # create interpolation functions so that values can be looked up at matching time points
         fx1s = interp1d(ts, x1s, kind='cubic')
@@ -682,12 +682,10 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=True)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
-                        'state_rates:y', 'states:v',
-                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
-                        'control_rates:theta_rate2']:
-            self.assertTrue(plot_dir.joinpath(f'{varname.replace(":","_")}.png').exists(),
-                            msg=str(plot_dir.joinpath(f'{varname.replace(":","_")}.png')) + ' does not exist.')
+        for varname in ['time_phase', 'x', 'xdot', 'y',
+                        'ydot', 'v', 'vdot', 'theta', 'theta_rate', 'theta_rate2']:
+            self.assertTrue(plot_dir.joinpath(f'{varname}.png').exists(),
+                            msg=f'{varname}.png' + ' does not exist.')
         dm.options['plots'] = plots_cache
 
     def test_run_brachistochrone_problem_make_plots_set_plot_dir(self):
@@ -697,9 +695,9 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=True, plot_dir="test_plot_dir")
 
         plot_dir = pathlib.Path(_get_reports_dir(self.p))
-        for varname in ['states:x', 'states:y', 'states:v', 'controls:theta']:
-            plotfile = plot_dir.joinpath('test_plot_dir', f'{varname.replace(":","_")}.png')
-            self.assertTrue(plotfile.exists(), msg=str(plotfile) + ' does not exist.')
+        for varname in ['x', 'y', 'v', 'theta']:
+            plotfile = plot_dir.joinpath('test_plot_dir', f'{varname}.png')
+            self.assertTrue(str(plotfile) + ' does not exist.')
 
         dm.options['plots'] = _cache
 
@@ -707,11 +705,9 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=False)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
-                        'state_rates:y', 'states:v',
-                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
-                        'control_rates:theta_rate2', 'parameters:g']:
-            plotfile = plot_dir.joinpath(f'{varname.replace(":","_")}.png')
+        for varname in ['time_phase', 'x', 'xdot', 'y', 'ydot', 'v',
+                        'vdot', 'theta', 'theta_rate']:
+            plotfile = plot_dir.joinpath(f'{varname}.png')
             self.assertFalse(plotfile.exists(), msg=f'Unexpectedly found plot file {plotfile}')
 
     def test_run_brachistochrone_problem_set_simulation_record_file(self):
@@ -733,11 +729,9 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=True, simulate=True)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
-                        'state_rates:y', 'states:v',
-                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
-                        'control_rates:theta_rate2']:
-            plotfile = plot_dir.joinpath(f'{varname.replace(":","_")}.png')
+        for varname in ['time_phase', 'x', 'xdot', 'y',
+                        'ydot', 'v', 'vdot', 'theta', 'theta_rate', 'theta_rate2']:
+            plotfile = plot_dir.joinpath(f'{varname}.png')
             self.assertTrue(plotfile.exists(), msg=f'plot file {plotfile} does not exist!')
         dm.options['plots'] = plots_cache
 
@@ -748,10 +742,8 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, make_plots=True, simulate=True)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
-                        'state_rates:y', 'states:v',
-                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
-                        'control_rates:theta_rate2']:
+        for varname in ['time_phase', 'x', 'xdot', 'y',
+                        'ydot', 'v', 'vdot', 'theta', 'theta_rate', 'theta_rate2']:
             plotfile = plot_dir.joinpath(f'{varname.replace(":", "_")}.png')
             self.assertTrue(plotfile.exists(), msg=f'plot file {plotfile} does not exist!')
 

@@ -70,8 +70,8 @@ class TestLengthConstrainedBrachistochrone(unittest.TestCase):
         p.model.add_subsystem('arc_length_comp',
                               subsys=ArcLengthComp(num_nodes=tx.grid_data.num_nodes))
 
-        p.model.connect('traj.phase0.timeseries.controls:theta', 'arc_length_comp.theta')
-        p.model.connect('traj.phase0.timeseries.states:x', 'arc_length_comp.x')
+        p.model.connect('traj.phase0.timeseries.theta', 'arc_length_comp.theta')
+        p.model.connect('traj.phase0.timeseries.x', 'arc_length_comp.x')
 
         p.model.add_constraint('arc_length_comp.S', upper=MAX_ARCLENGTH, ref=1)
 
@@ -96,15 +96,15 @@ class TestLengthConstrainedBrachistochrone(unittest.TestCase):
             exp_out = traj.simulate()
 
             # Extract the timeseries from the implicit solution and the explicit simulation
-            x = p.get_val('traj.phase0.timeseries.states:x')
-            y = p.get_val('traj.phase0.timeseries.states:y')
+            x = p.get_val('traj.phase0.timeseries.x')
+            y = p.get_val('traj.phase0.timeseries.y')
             t = p.get_val('traj.phase0.timeseries.time')
-            theta = p.get_val('traj.phase0.timeseries.controls:theta')
+            theta = p.get_val('traj.phase0.timeseries.theta')
 
-            x_exp = exp_out.get_val('traj.phase0.timeseries.states:x')
-            y_exp = exp_out.get_val('traj.phase0.timeseries.states:y')
+            x_exp = exp_out.get_val('traj.phase0.timeseries.x')
+            y_exp = exp_out.get_val('traj.phase0.timeseries.y')
             t_exp = exp_out.get_val('traj.phase0.timeseries.time')
-            theta_exp = exp_out.get_val('traj.phase0.timeseries.controls:theta')
+            theta_exp = exp_out.get_val('traj.phase0.timeseries.theta')
 
             fig, axes = plt.subplots(nrows=2, ncols=1)
 

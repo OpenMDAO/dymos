@@ -2,13 +2,13 @@ import numpy as np
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
-from ...utils.misc import get_rate_units
 from ...utils.introspection import configure_analytic_states_introspection, get_promoted_vars, get_targets, \
     get_source_metadata, configure_analytic_states_discovery
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 from .analytic_timeseries_output_comp import AnalyticTimeseriesOutputComp
 from ..common import TimeComp, TimeseriesOutputGroup
+from ..._options import options as dymos_options
 
 
 class Analytic(TranscriptionBase):
@@ -172,10 +172,12 @@ class Analytic(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        state_prefix = 'states:' if phase.timeseries_options['use_prefix'] else ''
         for name, options in phase.state_options.items():
             for ts_name, ts_options in phase._timeseries.items():
-                if f'states:{name}' not in ts_options['outputs']:
-                    phase.add_timeseries_output(options['source'], output_name=f'states:{name}',
+                if f'{state_prefix}{name}' not in ts_options['outputs']:
+                    phase.add_timeseries_output(options['source'],
+                                                output_name=f'{state_prefix}{name}',
                                                 timeseries=ts_name)
 
     def configure_states_discovery(self, phase):

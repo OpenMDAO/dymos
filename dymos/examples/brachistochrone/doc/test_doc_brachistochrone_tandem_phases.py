@@ -116,8 +116,8 @@ class TestBrachistochroneTandemPhases(unittest.TestCase):
         #
         p.model.connect('phase0.t_duration', 'phase1.t_duration')
 
-        p.model.connect('phase0.timeseries2.controls:theta', 'phase1.controls:theta')
-        p.model.connect('phase0.timeseries2.states:v', 'phase1.controls:v')
+        p.model.connect('phase0.timeseries2.theta', 'phase1.controls:theta')
+        p.model.connect('phase0.timeseries2.v', 'phase1.controls:v')
 
         # Minimize arclength at the end of the second phase
         phase1.add_objective('S', loc='final', ref=1)
@@ -140,14 +140,14 @@ class TestBrachistochroneTandemPhases(unittest.TestCase):
         dm.run_problem(p)
 
         expected = np.sqrt((10-0)**2 + (10 - 5)**2)
-        assert_near_equal(p.get_val('phase1.timeseries.states:S')[-1], expected, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase1.timeseries.S')[-1], expected, tolerance=1.0E-3)
 
         fig, (ax0, ax1) = plt.subplots(2, 1)
         fig.tight_layout()
-        ax0.plot(p.get_val('phase0.timeseries.states:x'), p.get_val('phase0.timeseries.states:y'), '.')
+        ax0.plot(p.get_val('phase0.timeseries.x'), p.get_val('phase0.timeseries.y'), '.')
         ax0.set_xlabel('x (m)')
         ax0.set_ylabel('y (m)')
-        ax1.plot(p.get_val('phase1.timeseries.time'), p.get_val('phase1.timeseries.states:S'), '+')
+        ax1.plot(p.get_val('phase1.timeseries.time'), p.get_val('phase1.timeseries.S'), '+')
         ax1.set_xlabel('t (s)')
         ax1.set_ylabel('S (m)')
         plt.show()

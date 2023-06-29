@@ -223,9 +223,9 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer='SLSQP', show_output=False)
 
-        expected_files = ('states_deltav.png', 'states_r.png', 'states_accel.png',
-                          'controls_u1.png', 'states_vr.png', 'pos_x.png',
-                          'states_vt.png', 'pos_y.png', 'states_theta.png')
+        expected_files = ('deltav.png', 'r.png', 'accel.png',
+                          'u1.png', 'vr.png', 'pos_x.png',
+                          'vt.png', 'pos_y.png', 'theta.png')
 
         for file in expected_files:
             plotfile = pathlib.Path(_get_reports_dir(p)).joinpath('plots') / file
