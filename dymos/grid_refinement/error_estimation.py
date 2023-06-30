@@ -166,8 +166,11 @@ def eval_ode_on_grid(phase, transcription):
     if t_duration_targets:
         p_refine.set_val(f't_duration', t_duration)
 
+    state_prefix = 'states:' if phase.timeseries_options['use_prefix'] else ''
+    control_prefix = 'controls:' if phase.timeseries_options['use_prefix'] else ''
+
     for name, options in phase.state_options.items():
-        x_prev = phase.get_val(f'timeseries.{name}', units=options['units'])
+        x_prev = phase.get_val(f'timeseries.{state_prefix}{name}', units=options['units'])
         x[name] = np.dot(L, x_prev)
         targets = get_targets(ode, name, options['targets'])
         if targets:
@@ -178,40 +181,42 @@ def eval_ode_on_grid(phase, transcription):
         rate_targets = get_targets(ode, f'{name}_rate', options['rate_targets'])
         rate2_targets = get_targets(ode, f'{name}_rate12', options['rate2_targets'])
 
-        u_prev = phase.get_val(f'timeseries.{name}', units=options['units'])
+        u_prev = phase.get_val(f'timeseries.{control_prefix}{name}', units=options['units'])
         u[name] = np.dot(L, u_prev)
         if targets:
             p_refine.set_val(f'controls:{name}', u[name])
 
-        if rate_targets:
-            u_rate_prev = phase.get_val(f'timeseries.{name}_rate')
-            u_rate[name] = np.dot(L, u_rate_prev)
-            p_refine.set_val(f'control_rates:{name}_rate', u_rate[name])
+        if phase.timeseries_options['include_control_rates']:
+            if rate_targets:
+                u_rate_prev = phase.get_val(f'timeseries.control_rates:{name}_rate')
+                u_rate[name] = np.dot(L, u_rate_prev)
+                p_refine.set_val(f'control_rates:{name}_rate', u_rate[name])
 
-        if rate2_targets:
-            u_rate2_prev = phase.get_val(f'timeseries.{name}_rate2')
-            u_rate2[name] = np.dot(L, u_rate2_prev)
-            p_refine.set_val(f'control_rates:{name}_rate2', u_rate2[name])
+            if rate2_targets:
+                u_rate2_prev = phase.get_val(f'timeseries.control_rates:{name}_rate2')
+                u_rate2[name] = np.dot(L, u_rate2_prev)
+                p_refine.set_val(f'control_rates:{name}_rate2', u_rate2[name])
 
     for name, options in phase.polynomial_control_options.items():
         targets = get_targets(ode, name, options['targets'])
         rate_targets = get_targets(ode, f'{name}_rate', options['rate_targets'])
         rate2_targets = get_targets(ode, f'{name}_rate2', options['rate2_targets'])
 
-        p_prev = phase.get_val(f'timeseries.{name}', units=options['units'])
+        p_prev = phase.get_val(f'timeseries.polynomial_controls:{name}', units=options['units'])
         p[name] = np.dot(L, p_prev)
         if targets:
             p_refine.set_val(f'polynomial_controls:{name}', p[name])
 
-        p_rate_prev = phase.get_val(f'timeseries.{name}_rate')
-        p_rate[name] = np.dot(L, p_rate_prev)
-        if rate_targets:
-            p_refine.set_val(f'polynomial_control_rates:{name}_rate', p_rate[name])
+        if phase.timeseries_options['include_control_rates']:
+            p_rate_prev = phase.get_val(f'timeseries.polynomial_control_rates:{name}_rate')
+            p_rate[name] = np.dot(L, p_rate_prev)
+            if rate_targets:
+                p_refine.set_val(f'polynomial_control_rates:{name}_rate', p_rate[name])
 
-        p_rate2_prev = phase.get_val(f'timeseries.{name}_rate2')
-        p_rate2[name] = np.dot(L, p_rate2_prev)
-        if rate2_targets:
-            p_refine.set_val(f'polynomial_control_rates:{name}_rate2', p_rate2[name])
+            p_rate2_prev = phase.get_val(f'timeseries.polynomial_control_rates:{name}_rate2')
+            p_rate2[name] = np.dot(L, p_rate2_prev)
+            if rate2_targets:
+                p_refine.set_val(f'polynomial_control_rates:{name}_rate2', p_rate2[name])
 
     # Configure the parameters
     for name, options in phase.parameter_options.items():

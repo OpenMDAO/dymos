@@ -31,6 +31,8 @@ class TestBrachistochroneExample(unittest.TestCase):
 
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
+        phase.timeseries_options['use_prefix'] = True
+        phase.timeseries_options['include_state_rates'] = True
         p.model.add_subsystem('traj0', traj)
         traj.add_phase('phase0', phase)
 
@@ -104,17 +106,17 @@ class TestBrachistochroneExample(unittest.TestCase):
                         print(f'{tx_class.__name__} - {control_type} - g = {g}')
 
                         for name, options in phase.control_options.items():
-                            u_solution = phase.get_val(f'timeseries.{name}')
+                            u_solution = phase.get_val(f'timeseries.controls:{name}')
                             print(f'{name} interpolation error',
                                   max(np.abs(u[name].ravel() - u_solution.ravel())))
 
                         for name, options in phase.polynomial_control_options.items():
-                            p_solution = phase.get_val(f'timeseries.{name}')
+                            p_solution = phase.get_val(f'timeseries.polynomial_controls:{name}')
                             print(f'{name} interpolation error',
                                   max(np.abs(p[name].ravel() - p_solution.ravel())))
 
                         for name, options in phase.state_options.items():
-                            x_solution = phase.get_val(f'timeseries.{name}')
+                            x_solution = phase.get_val(f'timeseries.states:{name}')
                             f_solution = phase.get_val(f'timeseries.state_rates:{name}')
 
                             print(f'{name} interpolation error', max(np.abs(x[name].ravel() - x_solution.ravel())))
