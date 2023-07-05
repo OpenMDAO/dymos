@@ -112,7 +112,7 @@ class TestDuplicateTimeseriesInput(unittest.TestCase):
             raise AssertionError('Multiple inputs connected to the same source exist')
 
         # Now check that the outputs are still the same.
-        nom_x = p.get_val('traj.phase0.timeseries.states:x').T
+        nom_x = p.get_val('traj.phase0.timeseries.x').T
         added_x = p.get_val('traj.phase0.timeseries.state_x').T
 
         assert_near_equal(nom_x, added_x)
@@ -132,7 +132,7 @@ class TestDuplicateTimeseriesInput(unittest.TestCase):
             raise AssertionError('Multiple inputs connected to the same source exist')
 
         # Now check that the outputs are still the same.
-        nom_x = p.get_val('traj.phase0.timeseries.states:x').T
+        nom_x = p.get_val('traj.phase0.timeseries.x').T
         added_x = p.get_val('traj.phase0.timeseries.state_x').T
 
         assert_near_equal(nom_x, added_x)

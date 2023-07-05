@@ -73,11 +73,11 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
 
-            x_imp = p.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
+            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
 
-            x_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
+            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -91,10 +91,10 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
             fig.suptitle('Brachistochrone Solution')
 
             x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_imp = p.get_val('phase0.timeseries.theta_rate2')
 
             x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -161,11 +161,11 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
 
-            x_imp = p.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
+            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
 
-            x_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
+            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -179,10 +179,10 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
             fig.suptitle('Brachistochrone Solution')
 
             x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_imp = p.get_val('phase0.timeseries.theta_rate2')
 
             x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -247,11 +247,11 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
 
-            x_imp = p.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
+            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
 
-            x_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 1]
+            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
+            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -265,10 +265,10 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
             fig.suptitle('Brachistochrone Solution')
 
             x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_imp = p.get_val('phase0.timeseries.theta_rate2')
 
             x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate2')
+            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
 
             ax.plot(x_imp, y_imp, 'ro', label='implicit')
             ax.plot(x_exp, y_exp, 'b-', label='explicit')

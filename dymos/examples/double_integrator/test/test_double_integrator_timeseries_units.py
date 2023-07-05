@@ -55,7 +55,7 @@ def double_integrator_direct_collocation(transcription=dm.GaussLobatto, compress
     return p
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestDoubleIntegratorExample(unittest.TestCase):
 
     @classmethod
@@ -66,11 +66,11 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
     def _assert_results(self, p, traj=True, tol=1.0E-4):
         if traj:
-            x = p.get_val('traj.phase0.timeseries.states:x')
-            v = p.get_val('traj.phase0.timeseries.states:v')
+            x = p.get_val('traj.phase0.timeseries.x')
+            v = p.get_val('traj.phase0.timeseries.v')
         else:
-            x = p.get_val('phase0.timeseries.states:x')
-            v = p.get_val('phase0.timeseries.states:v')
+            x = p.get_val('phase0.timeseries.x')
+            v = p.get_val('phase0.timeseries.v')
 
         assert_near_equal(x[0], 0.0, tolerance=tol)
         assert_near_equal(x[-1], 0.25, tolerance=tol)
@@ -87,7 +87,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         t_sol = sol_case.get_val('traj.phase0.timeseries.time')
         t_sim = sim_case.get_val('traj.phase0.timeseries.time')
 
-        for var in ['states:x', 'states:v', 'state_rates:x', 'state_rates:v', 'controls:u']:
+        for var in ['x', 'v', 'u']:
             sol = sol_case.get_val(f'traj.phase0.timeseries.{var}')
             sim = sim_case.get_val(f'traj.phase0.timeseries.{var}')
             assert_timeseries_near_equal(t_sim, sim, t_sol, sol, rel_tolerance=1.0E-3,
@@ -102,7 +102,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         t_sol = sol_case.get_val('traj.phase0.timeseries.time')
         t_sim = sim_case.get_val('traj.phase0.timeseries.time')
 
-        for var in ['states:x', 'states:v', 'state_rates:x']:
+        for var in ['x', 'v']:
             sol = sol_case.get_val(f'traj.phase0.timeseries.{var}')
             sim = sim_case.get_val(f'traj.phase0.timeseries.{var}')
             assert_timeseries_near_equal(t_sol, sol, t_sim, sim, rel_tolerance=1.0E-3, abs_tolerance=0.01)

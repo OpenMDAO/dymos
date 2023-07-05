@@ -164,7 +164,7 @@ def _run_racecar_problem(transcription, timeseries=False, make_plots=False):
     dm.run_problem(p, run_driver=True, simulate=False, make_plots=make_plots)
     print('Optimization finished')
 
-    t = p.get_val('traj.phase0.timeseries.states:t')
+    t = p.get_val('traj.phase0.timeseries.t')
     assert_near_equal(t[-1], 22.2657, tolerance=0.01)
 
 

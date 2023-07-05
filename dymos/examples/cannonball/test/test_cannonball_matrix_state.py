@@ -69,17 +69,17 @@ class TestCannonballMatrixState(unittest.TestCase):
 
         dm.run_problem(p, simulate=True)
 
-        print(p.get_val('traj.phase.timeseries.states:z'))
+        print(p.get_val('traj.phase.timeseries.z'))
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
         c = om.CaseReader('dymos_simulation.db').get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_cannonball_matrix_state_gl(self):
@@ -90,14 +90,14 @@ class TestCannonballMatrixState(unittest.TestCase):
         dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
         c = om.CaseReader('dymos_simulation.db').get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_cannonball_matrix_state_radau_solve_segments(self):
@@ -109,14 +109,14 @@ class TestCannonballMatrixState(unittest.TestCase):
         dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
         c = om.CaseReader('dymos_simulation.db').get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_cannonball_matrix_state_gl_solve_segments(self):
@@ -127,14 +127,14 @@ class TestCannonballMatrixState(unittest.TestCase):
         dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
         c = om.CaseReader('dymos_simulation.db').get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
 
 @use_tempdirs
@@ -180,14 +180,14 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
         dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
         c = om.CaseReader('dymos_simulation.db').get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
     def test_cannonball_matrix_state_gl(self):
         tx = dm.GaussLobatto(num_segments=10, order=3, solve_segments=False)
@@ -197,14 +197,14 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
         dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
         c = om.CaseReader('dymos_simulation.db').get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
     def test_cannonball_matrix_state_radau_solve_segments(self):
 
@@ -215,14 +215,14 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
         dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
         c = om.CaseReader('dymos_simulation.db').get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
     def test_cannonball_matrix_state_gl_solve_segments(self):
         tx = dm.GaussLobatto(num_segments=10, order=3, solve_segments='forward')
@@ -232,14 +232,14 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
         dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
         c = om.CaseReader('dymos_simulation.db').get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
 
 @use_tempdirs
@@ -286,14 +286,14 @@ class TestCannonballMatrixStateNonFlatIndices(unittest.TestCase):
         dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
         c = om.CaseReader('dymos_simulation.db').get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
     def test_cannonball_matrix_state_gl(self):
         tx = dm.GaussLobatto(num_segments=10, order=3, solve_segments=False)
@@ -303,14 +303,14 @@ class TestCannonballMatrixStateNonFlatIndices(unittest.TestCase):
         dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
         c = om.CaseReader('dymos_simulation.db').get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
     def test_cannonball_matrix_state_radau_solve_segments(self):
 
@@ -321,14 +321,14 @@ class TestCannonballMatrixStateNonFlatIndices(unittest.TestCase):
         dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
         c = om.CaseReader('dymos_simulation.db').get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
     def test_cannonball_matrix_state_gl_solve_segments(self):
         tx = dm.GaussLobatto(num_segments=10, order=3, solve_segments='forward')
@@ -338,14 +338,14 @@ class TestCannonballMatrixStateNonFlatIndices(unittest.TestCase):
         dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
         c = om.CaseReader('dymos_simulation.db').get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
-        assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
 
 if __name__ == "__main__":

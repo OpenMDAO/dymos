@@ -150,7 +150,7 @@ def load_case(problem, previous_solution, deprecation_warning=True):
         if not isinstance(phase, AnalyticPhase):
             for state_name, options in phase.state_options.items():
                 state_path = [s for s in phase_vars if s.endswith(f'{phase_name}.states:{state_name}')][0]
-                prev_state_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.states:{state_name}')][0]
+                prev_state_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.{state_name}')][0]
                 prev_state_val = prev_vars[prev_state_path]['val']
                 prev_state_units = prev_vars[prev_state_path]['units']
                 problem.set_val(state_path,
@@ -174,7 +174,7 @@ def load_case(problem, previous_solution, deprecation_warning=True):
             for control_name, options in phase.control_options.items():
                 control_path = [s for s in phase_vars if s.endswith(f'{phase_name}.controls:{control_name}')][0]
                 prev_control_path = [s for s in prev_vars
-                                     if s.endswith(f'{phase_name}.timeseries.controls:{control_name}')][0]
+                                     if s.endswith(f'{phase_name}.timeseries.{control_name}')][0]
                 prev_control_val = prev_vars[prev_control_path]['val']
                 prev_control_units = prev_vars[prev_control_path]['units']
                 problem.set_val(control_path,

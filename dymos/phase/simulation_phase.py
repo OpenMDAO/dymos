@@ -162,7 +162,7 @@ class SimulationPhase(Phase):
 
         # Assign initial state values
         for name in phs.state_options:
-            prefix = 'states:' if dymos_options['use_timeseries_prefix'] else ''
+            prefix = 'states:' if from_phase.timeseries_options['use_prefix'] else ''
             op = op_dict[f'timeseries.timeseries_comp.{prefix}{name}']
             prob[f'{self_path}initial_states:{name}'][...] = op['val'][0, ...]
 

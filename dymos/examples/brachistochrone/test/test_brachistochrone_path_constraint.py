@@ -61,7 +61,7 @@ class TestBrachistochroneExprPathConstraint(unittest.TestCase):
     def test_brachistochrone_expr_path_constraint(self):
         prob = self._make_problem(tx=dm.Radau(num_segments=5, order=3, compressed=True))
         prob.run_driver()
-        yf = prob.get_val('phase0.timeseries.states:y')[-1]
+        yf = prob.get_val('phase0.timeseries.y')[-1]
 
         assert_near_equal(yf, 6)
 

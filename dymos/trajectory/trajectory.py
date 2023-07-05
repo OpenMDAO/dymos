@@ -294,7 +294,9 @@ class Trajectory(om.Group):
                                   'ref': options['ref'],
                                   'adder': options['adder'],
                                   'scaler': options['scaler'],
-                                  'opt': options['opt'],
+                                  # The phase-level parameter is never optimized
+                                  # if governed by the trajectory-level parameter.
+                                  'opt': False,
                                   'lower': options['lower'],
                                   'upper': options['upper'],
                                   'targets': tgts[phase_name]}
@@ -374,6 +376,17 @@ class Trajectory(om.Group):
             promoted_inputs.append(f'parameters:{name}')
             targets = options['targets']
 
+            # First check that the user gave valid phase names, if providing
+            # parameter targets as a dict.
+            if isinstance(targets, dict):
+                target_phases = set(targets.keys())
+                avail_phases = set(self._phases.keys())
+                non_existing_phases = target_phases - avail_phases
+                if non_existing_phases:
+                    raise ValueError(f'The following phases were specified as\n'
+                                     f'targets for trajectory parameter {name}\n'
+                                     f'but are not valid phase names: {non_existing_phases}')
+
             # For each phase, use introspection to get the units and shape.
             # If units do not match across all phases, require user to set them.
             # If shapes do not match across all phases, this is an error.
@@ -430,6 +443,8 @@ class Trajectory(om.Group):
                     reason = f'Option `targets=None` but no phase in the trajectory has a parameter named `{name}`.'
                 elif all([t is None for t in targets.values()]) and targets.keys() == self._phases.keys():
                     reason = f'Option `targets` is a dictionary keyed by phase name but target for each phase is None.'
+                else:
+                    reason = ''
                 raise ValueError(f'No target was found for trajectory parameter `{name}` in any phase.\n{reason}')
 
             if options['shape'] is _unspecified:
@@ -533,6 +548,9 @@ class Trajectory(om.Group):
         units = {'a': _unspecified, 'b': _unspecified}
         shapes = {'a': _unspecified, 'b': _unspecified}
 
+        use_prefix = {'a': phase_a.timeseries_options['use_prefix'],
+                      'b': phase_b.timeseries_options['use_prefix']}
+
         for i in ('a', 'b'):
             if classes[i] == 't':
                 time_name = phases[i].time_options['name']
@@ -545,17 +563,17 @@ class Trajectory(om.Group):
                 units[i] = phases[i].time_options['units']
                 shapes[i] = (1,)
             elif classes[i] == 'state':
-                prefix = 'states:' if dymos_options['use_timeseries_prefix'] else ''
+                prefix = 'states:' if use_prefix[i] else ''
                 sources[i] = f'timeseries.{prefix}{vars[i]}'
                 units[i] = phases[i].state_options[vars[i]]['units']
                 shapes[i] = phases[i].state_options[vars[i]]['shape']
             elif classes[i] in {'indep_control', 'input_control'}:
-                prefix = 'controls:' if dymos_options['use_timeseries_prefix'] else ''
+                prefix = 'controls:' if use_prefix[i] else ''
                 sources[i] = f'timeseries.{prefix}{vars[i]}'
                 units[i] = phases[i].control_options[vars[i]]['units']
                 shapes[i] = phases[i].control_options[vars[i]]['shape']
             elif classes[i] in {'control_rate', 'control_rate2'}:
-                prefix = 'control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+                prefix = 'control_rates:' if use_prefix[i] else ''
                 sources[i] = f'timeseries.{prefix}{vars[i]}'
                 control_name = vars[i][:-5] if classes[i] == 'control_rate' else vars[i][:-6]
                 units[i] = phases[i].control_options[control_name]['units']
@@ -563,12 +581,12 @@ class Trajectory(om.Group):
                 units[i] = get_rate_units(units[i], phases[i].time_options['units'], deriv=deriv)
                 shapes[i] = phases[i].control_options[control_name]['shape']
             elif classes[i] in {'indep_polynomial_control', 'input_polynomial_control'}:
-                prefix = 'polynomial_controls:' if dymos_options['use_timeseries_prefix'] else ''
+                prefix = 'polynomial_controls:' if use_prefix[i] else ''
                 sources[i] = f'timeseries.{prefix}{vars[i]}'
                 units[i] = phases[i].polynomial_control_options[vars[i]]['units']
                 shapes[i] = phases[i].polynomial_control_options[vars[i]]['shape']
             elif classes[i] in {'polynomial_control_rate', 'polynomial_control_rate2'}:
-                prefix = 'polynomial_control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+                prefix = 'polynomial_control_rates:' if use_prefix[i] else ''
                 sources[i] = f'timeseries.{prefix}{vars[i]}'
                 control_name = vars[i][:-5] if classes[i] == 'polynomial_control_rate' else vars[i][:-6]
                 control_units = phases[i].polynomial_control_options[control_name]['units']
@@ -636,16 +654,17 @@ class Trajectory(om.Group):
             var_pair = ('*', '*')
             if var_pair in var_dict:
                 options = var_dict[var_pair]
-                self.add_linkage_constraint(phase_name_a, phase_name_b, var_a='time',
-                                            var_b='time', loc_a=options['loc_a'],
-                                            loc_b=options['loc_b'], mult_a=options['mult_a'],
-                                            mult_b=options['mult_b'])
+                self.add_linkage_constraint(phase_name_a, phase_name_b,
+                                            var_a='time', var_b='time',
+                                            loc_a=options['loc_a'], loc_b=options['loc_b'],
+                                            mult_a=options['mult_a'], mult_b=options['mult_b'],
+                                            connected=options['connected'])
                 for state_name in phase_b.state_options:
-                    self.add_linkage_constraint(phase_name_a, phase_name_b, var_a=state_name,
-                                                var_b=state_name, loc_a=options['loc_a'],
-                                                loc_b=options['loc_b'],
-                                                mult_a=options['mult_a'],
-                                                mult_b=options['mult_b'])
+                    self.add_linkage_constraint(phase_name_a, phase_name_b,
+                                                var_a=state_name, var_b=state_name,
+                                                loc_a=options['loc_a'], loc_b=options['loc_b'],
+                                                mult_a=options['mult_a'], mult_b=options['mult_b'],
+                                                connected=options['connected'])
                 self._linkages[phase_pair].pop(var_pair)
 
     def _is_valid_linkage(self, phase_name_a, phase_name_b, loc_a, loc_b, var_a, var_b, fixed_a, fixed_b):
@@ -733,7 +752,7 @@ class Trajectory(om.Group):
                     }
 
         def _get_prefixed_var(var, phase):
-            if dymos_options['use_timeseries_prefix']:
+            if phase.timeseries_options['use_prefix']:
                 return f'{prefixes[phase.classify_var(var)]}{var}'
             else:
                 return var

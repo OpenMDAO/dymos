@@ -410,6 +410,10 @@ class AnalyticPhase(Phase):
         if self.parameter_options:
             transcription.setup_parameters(self)
 
+        # Never allow state rate outputs for analytic phases
+        self.timeseries_options['include_state_rates'] = False
+        self.timeseries_options._dict['include_state_rates']['values'] = [False]
+
         transcription.setup_states(self)
         self._check_ode()
         transcription.setup_ode(self)

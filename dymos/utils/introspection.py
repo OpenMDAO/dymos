@@ -207,7 +207,7 @@ def _configure_constraint_introspection(phase):
                 con['constraint_path'] = f'timeseries.{time_name}_phase'
 
             elif var_type == 'state':
-                prefix = 'states:' if dymos_options['use_timeseries_prefix'] else ''
+                prefix = 'states:' if phase.timeseries_options['use_prefix'] else ''
                 state_shape = phase.state_options[var]['shape']
                 state_units = phase.state_options[var]['units']
                 con['shape'] = state_shape
@@ -222,7 +222,7 @@ def _configure_constraint_introspection(phase):
                 con['constraint_path'] = f'parameter_vals:{var}'
 
             elif var_type in ['indep_control', 'input_control']:
-                prefix = 'controls:' if dymos_options['use_timeseries_prefix'] else ''
+                prefix = 'controls:' if phase.timeseries_options['use_prefix'] else ''
                 control_shape = phase.control_options[var]['shape']
                 control_units = phase.control_options[var]['units']
 
@@ -231,7 +231,7 @@ def _configure_constraint_introspection(phase):
                 con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-                prefix = 'polynomial_controls:' if dymos_options['use_timeseries_prefix'] else ''
+                prefix = 'polynomial_controls:' if phase.timeseries_options['use_prefix'] else ''
                 control_shape = phase.polynomial_control_options[var]['shape']
                 control_units = phase.polynomial_control_options[var]['units']
                 con['shape'] = control_shape
@@ -239,7 +239,7 @@ def _configure_constraint_introspection(phase):
                 con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type == 'control_rate':
-                prefix = 'control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+                prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
                 control_name = var[:-5]
                 control_shape = phase.control_options[control_name]['shape']
                 control_units = phase.control_options[control_name]['units']
@@ -249,7 +249,7 @@ def _configure_constraint_introspection(phase):
                 con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type == 'control_rate2':
-                prefix = 'control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+                prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
                 control_name = var[:-6]
                 control_shape = phase.control_options[control_name]['shape']
                 control_units = phase.control_options[control_name]['units']
@@ -259,7 +259,7 @@ def _configure_constraint_introspection(phase):
                 con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type == 'polynomial_control_rate':
-                prefix = 'polynomial_control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+                prefix = 'polynomial_control_rates:' if phase.timeseries_options['use_prefix'] else ''
                 control_name = var[:-5]
                 control_shape = phase.polynomial_control_options[control_name]['shape']
                 control_units = phase.polynomial_control_options[control_name]['units']
@@ -269,7 +269,7 @@ def _configure_constraint_introspection(phase):
                 con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type == 'polynomial_control_rate2':
-                prefix = 'polynomial_control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+                prefix = 'polynomial_control_rates:' if phase.timeseries_options['use_prefix'] else ''
                 control_name = var[:-6]
                 control_shape = phase.polynomial_control_options[control_name]['shape']
                 control_units = phase.polynomial_control_options[control_name]['units']
@@ -1059,6 +1059,122 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
         shape = user_shape
 
     return shape, units, static_target
+
+
+def configure_duration_balance_introspection(phase):
+    """
+    Modify duration balance options in-place using introspection of the phase and its ODE.
+
+    Parameters
+    ----------
+    phase : Phase
+        The phase object whose boundary and path constraints are to be introspected.
+    """
+    time_units = phase.time_options['units']
+
+    options = phase.time_options['t_duration_balance_options']
+
+    # Determine the path to the variable which we will be constraining
+    var = options['balance_name'] if options['is_expr'] else options['name']
+    var_type = phase.classify_var(var)
+
+    if var != options['balance_name'] is not None and var_type != 'ode':
+        om.issue_warning(f"Option 'balance_name' on duration residual {var} is only "
+                         f"valid for ODE outputs. The option is being ignored.", om.UnusedOptionWarning)
+
+    if var_type == 't' or var_type == 't_phase':
+        raise ValueError(f'Cannot use a variable of type {var_type} in the duration balance')
+
+    elif var_type == 'state':
+        prefix = 'states:' if dymos_options['use_timeseries_prefix'] else ''
+        state_shape = phase.state_options[var]['shape']
+        state_units = phase.state_options[var]['units']
+        options['shape'] = state_shape
+        options['units'] = state_units if options['units'] is None else options['units']
+        options['var_path'] = f'timeseries.{prefix}{var}'
+
+    elif var_type == 'parameter':
+        param_shape = phase.parameter_options[var]['shape']
+        param_units = phase.parameter_options[var]['units']
+        options['shape'] = param_shape
+        options['units'] = param_units if options['units'] is None else options['units']
+        options['var_path'] = f'parameter_vals:{var}'
+
+    elif var_type in ['indep_control', 'input_control']:
+        prefix = 'controls:' if dymos_options['use_timeseries_prefix'] else ''
+        control_shape = phase.control_options[var]['shape']
+        control_units = phase.control_options[var]['units']
+
+        options['shape'] = control_shape
+        options['units'] = control_units if options['units'] is None else options['units']
+        options['var_path'] = f'timeseries.{prefix}{var}'
+
+    elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
+        prefix = 'polynomial_controls:' if dymos_options['use_timeseries_prefix'] else ''
+        control_shape = phase.polynomial_control_options[var]['shape']
+        control_units = phase.polynomial_control_options[var]['units']
+        options['shape'] = control_shape
+        options['units'] = control_units if options['units'] is None else options['units']
+        options['var_path'] = f'timeseries.{prefix}{var}'
+
+    elif var_type == 'control_rate':
+        prefix = 'control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+        control_name = var[:-5]
+        control_shape = phase.control_options[control_name]['shape']
+        control_units = phase.control_options[control_name]['units']
+        options['shape'] = control_shape
+        options['units'] = get_rate_units(control_units, time_units, deriv=1) \
+            if options['units'] is None else options['units']
+        options['var_path'] = f'timeseries.{prefix}{var}'
+
+    elif var_type == 'control_rate2':
+        prefix = 'control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+        control_name = var[:-6]
+        control_shape = phase.control_options[control_name]['shape']
+        control_units = phase.control_options[control_name]['units']
+        options['shape'] = control_shape
+        options['units'] = get_rate_units(control_units, time_units, deriv=2) \
+            if options['units'] is None else options['units']
+        options['var_path'] = f'timeseries.{prefix}{var}'
+
+    elif var_type == 'polynomial_control_rate':
+        prefix = 'polynomial_control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+        control_name = var[:-5]
+        control_shape = phase.polynomial_control_options[control_name]['shape']
+        control_units = phase.polynomial_control_options[control_name]['units']
+        options['shape'] = control_shape
+        options['units'] = get_rate_units(control_units, time_units, deriv=1) \
+            if options['units'] is None else options['units']
+        options['var_path'] = f'timeseries.{prefix}{var}'
+
+    elif var_type == 'polynomial_control_rate2':
+        prefix = 'polynomial_control_rates:' if dymos_options['use_timeseries_prefix'] else ''
+        control_name = var[:-6]
+        control_shape = phase.polynomial_control_options[control_name]['shape']
+        control_units = phase.polynomial_control_options[control_name]['units']
+        options['shape'] = control_shape
+        options['units'] = get_rate_units(control_units, time_units, deriv=2) \
+            if options['units'] is None else options['units']
+        options['var_path'] = f'timeseries.{prefix}{var}'
+
+    elif var_type == 'timeseries_exec_comp_output':
+        options['shape'] = (1,)
+        options['units'] = None
+        options['var_path'] = f'timeseries.timeseries_exec_comp.{var}'
+
+    else:
+        # Failed to find variable, assume it is in the ODE. This requires introspection.
+        ode = phase.options['transcription']._get_ode(phase)
+
+        meta = get_source_metadata(ode, src=var, user_units=options['units'])
+
+        options['shape'] = meta['shape']
+        options['units'] = meta['units']
+        options['var_path'] = f'timeseries.{options["balance_name"]}'
+
+    if options['shape'] != (1,) and options['index'] is None:
+        raise ValueError(f'Specified variable for the duration balance has shape {options["shape"]} and'
+                         f' has no index specified. The balance may only have shape (1,) or a single index')
 
 
 def _get_targets_metadata(ode, name, user_targets=_unspecified, user_units=_unspecified,

@@ -713,7 +713,7 @@ class Phase(om.Group):
                                ref=_unspecified, targets=_unspecified, rate_targets=_unspecified,
                                rate2_targets=_unspecified, shape=_unspecified):
         """
-        Adds an polynomial control variable to be tied to a parameter in the ODE.
+        Adds a polynomial control variable to be tied to a parameter in the ODE.
 
         Polynomial controls are defined by values at the Legendre-Gauss-Lobatto nodes of a
         single polynomial, defined on [-1, 1] in phase tau space.
@@ -1710,6 +1710,67 @@ class Phase(om.Group):
         if name is not _unspecified:
             self.time_options['name'] = name
 
+    def set_duration_balance(self, name, val=0.0, index=None, units=None, mult_val=None, normalize=False):
+        """
+        Adds a condition for the duration of the phase. This is satisfied using a nonlinear solver.
+
+        Parameters
+        ----------
+        name : str
+            Name of the variable.  This should be a state or control variable, the path to an output
+            from the top level of the RHS, or an expression to be evaluated. If an expression,
+            it must be provided in the form of an equation with a left- and right-hand side.
+        val :  float
+            The value that the residual must equal at the end  point of the phase.
+        index : int, optional
+            If variable is an array at each point in time, this indicates which index is to be
+            used as the objective, assuming C-ordered flattening.
+        units : str, optional
+            The units of the objective function.  If None, use the units associated with the target.
+            If provided, must be compatible with the target units.
+        mult_val : float, optional
+            Default value for the LHS multiplier.
+        normalize : bool, optional
+            Specifies whether the resulting residual should be normalized by a quadratic
+            function of the RHS.
+        """
+        if self.time_options['fix_duration']:
+            raise ValueError('Cannot implicitly solve for phase duration when fix_duration is True')
+        elif self.time_options['input_duration']:
+            raise ValueError('Cannot implicitly solve for phase duration when input_duration is True')
+
+        if isinstance(self.options['transcription'], ExplicitShooting):
+            raise NotImplementedError('Transcription ExplicitShooting does not implement method setup_duration_balance')
+
+        options = {'name': name,
+                   'val': val,
+                   'index': index,
+                   'units': units,
+                   'mult_val': mult_val,
+                   'normalize': normalize}
+
+        expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
+        if '=' in name:
+            is_expr = True
+        elif '=' not in name and any(opr in name for opr in expr_operators):
+            raise ValueError(f'The expression provided `{name}` has invalid format. '
+                             'Expression may be a single variable or an equation '
+                             'of the form `constraint_name = func(vars)`')
+        else:
+            is_expr = False
+
+        balance_name = name.split('=')[0].strip() if is_expr else name
+
+        options['is_expr'] = is_expr
+        options['balance_name'] = balance_name
+
+        self.time_options['t_duration_balance_options'] = options
+
+        var_type = self.classify_var(name)
+        if var_type == 'ode':
+            if balance_name not in self._timeseries['timeseries']['outputs']:
+                self.add_timeseries_output(name, output_name=balance_name, units=units)
+
     def classify_var(self, var):
         """
         Classifies a variable of the given name or path.
@@ -1789,6 +1850,9 @@ class Phase(om.Group):
         transcription.setup_ode(self)
 
         transcription.setup_timeseries_outputs(self)
+
+        transcription.setup_duration_balance(self)
+
         transcription.setup_defects(self)
         transcription.setup_solvers(self)
 
@@ -1847,6 +1911,8 @@ class Phase(om.Group):
                 from val_err
 
         transcription.configure_timeseries_outputs(self)
+
+        transcription.configure_duration_balance(self)
 
         transcription.configure_solvers(self)
 

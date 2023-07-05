@@ -65,11 +65,11 @@ class TestHull(unittest.TestCase):
 
         xf, uf = self.solution(1.5, 10)
 
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:x')[-1],
+        assert_near_equal(p.get_val('traj.phase.timeseries.x')[-1],
                           xf,
                           tolerance=1e-4)
 
-        assert_near_equal(p.get_val('traj.phase.timeseries.controls:u')[-1],
+        assert_near_equal(p.get_val('traj.phase.timeseries.u')[-1],
                           uf,
                           tolerance=1e-4)
 
@@ -79,11 +79,11 @@ class TestHull(unittest.TestCase):
 
         xf, uf = self.solution(1.5, 10)
 
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:x')[-1],
+        assert_near_equal(p.get_val('traj.phase.timeseries.x')[-1],
                           xf,
                           tolerance=1e-4)
 
-        assert_near_equal(p.get_val('traj.phase.timeseries.controls:u')[-1],
+        assert_near_equal(p.get_val('traj.phase.timeseries.u')[-1],
                           uf,
                           tolerance=1e-4)
 
@@ -93,10 +93,10 @@ class TestHull(unittest.TestCase):
 
         xf, uf = self.solution(1.5, 10)
 
-        assert_near_equal(p.get_val('traj.phase.timeseries.states:x')[-1],
+        assert_near_equal(p.get_val('traj.phase.timeseries.x')[-1],
                           xf,
                           tolerance=1e-4)
 
-        assert_near_equal(p.get_val('traj.phase.timeseries.controls:u')[-1],
+        assert_near_equal(p.get_val('traj.phase.timeseries.u')[-1],
                           uf,
                           tolerance=1e-4)

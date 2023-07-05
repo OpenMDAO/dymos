@@ -88,12 +88,12 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         timeseries_plots('dymos_solution.db', problem=self.p)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        self.assertTrue(plot_dir.joinpath('states_x.png').exists())
-        self.assertTrue(plot_dir.joinpath('states_y.png').exists())
-        self.assertTrue(plot_dir.joinpath('states_v.png').exists())
-        self.assertTrue(plot_dir.joinpath('controls_theta.png').exists())
-        self.assertTrue(plot_dir.joinpath('control_rates_theta_rate.png').exists())
-        self.assertTrue(plot_dir.joinpath('control_rates_theta_rate2.png').exists())
+        self.assertTrue(plot_dir.joinpath('x.png').exists())
+        self.assertTrue(plot_dir.joinpath('y.png').exists())
+        self.assertTrue(plot_dir.joinpath('v.png').exists())
+        self.assertTrue(plot_dir.joinpath('theta.png').exists())
+        self.assertTrue(plot_dir.joinpath('theta_rate.png').exists())
+        self.assertTrue(plot_dir.joinpath('theta_rate2.png').exists())
 
         dm.options['plots'] = temp
 
@@ -107,12 +107,12 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         timeseries_plots('solution_record_file.db', problem=self.p)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        self.assertTrue(plot_dir.joinpath('states_x.png').exists())
-        self.assertTrue(plot_dir.joinpath('states_y.png').exists())
-        self.assertTrue(plot_dir.joinpath('states_v.png').exists())
-        self.assertTrue(plot_dir.joinpath('controls_theta.png').exists())
-        self.assertTrue(plot_dir.joinpath('control_rates_theta_rate.png').exists())
-        self.assertTrue(plot_dir.joinpath('control_rates_theta_rate2.png').exists())
+        self.assertTrue(plot_dir.joinpath('x.png').exists())
+        self.assertTrue(plot_dir.joinpath('y.png').exists())
+        self.assertTrue(plot_dir.joinpath('v.png').exists())
+        self.assertTrue(plot_dir.joinpath('theta.png').exists())
+        self.assertTrue(plot_dir.joinpath('theta_rate.png').exists())
+        self.assertTrue(plot_dir.joinpath('theta_rate2.png').exists())
 
         dm.options['plots'] = temp
 
@@ -126,12 +126,12 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db', problem=self.p)
 
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath("plots").resolve()
-        self.assertTrue(plot_dir.joinpath('states_x.png').exists())
-        self.assertTrue(plot_dir.joinpath('states_y.png').exists())
-        self.assertTrue(plot_dir.joinpath('states_v.png').exists())
-        self.assertTrue(plot_dir.joinpath('controls_theta.png').exists())
-        self.assertTrue(plot_dir.joinpath('control_rates_theta_rate.png').exists())
-        self.assertTrue(plot_dir.joinpath('control_rates_theta_rate2.png').exists())
+        self.assertTrue(plot_dir.joinpath('x.png').exists())
+        self.assertTrue(plot_dir.joinpath('y.png').exists())
+        self.assertTrue(plot_dir.joinpath('v.png').exists())
+        self.assertTrue(plot_dir.joinpath('theta.png').exists())
+        self.assertTrue(plot_dir.joinpath('theta_rate.png').exists())
+        self.assertTrue(plot_dir.joinpath('theta_rate2.png').exists())
 
         dm.options['plots'] = temp
 
@@ -145,12 +145,12 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath("test_plot_dir").resolve()
         timeseries_plots('dymos_solution.db', plot_dir=plot_dir, problem=self.p)
 
-        self.assertTrue(plot_dir.joinpath('states_x.png').exists())
-        self.assertTrue(plot_dir.joinpath('states_y.png').exists())
-        self.assertTrue(plot_dir.joinpath('states_v.png').exists())
-        self.assertTrue(plot_dir.joinpath('controls_theta.png').exists())
-        self.assertTrue(plot_dir.joinpath('control_rates_theta_rate.png').exists())
-        self.assertTrue(plot_dir.joinpath('control_rates_theta_rate2.png').exists())
+        self.assertTrue(plot_dir.joinpath('x.png').exists())
+        self.assertTrue(plot_dir.joinpath('y.png').exists())
+        self.assertTrue(plot_dir.joinpath('v.png').exists())
+        self.assertTrue(plot_dir.joinpath('theta.png').exists())
+        self.assertTrue(plot_dir.joinpath('theta_rate.png').exists())
+        self.assertTrue(plot_dir.joinpath('theta_rate2.png').exists())
 
         dm.options['plots'] = temp
 
@@ -161,6 +161,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_trajectory_linked_phases_make_plot(self):
         temp = dm.options['plots']
+
         dm.options['plots'] = 'matplotlib'
 
         self.traj = dm.Trajectory()
@@ -253,6 +254,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
 
         for phase_name, phase in self.traj._phases.items():
+            phase.timeseries_options['use_prefix'] = True
             phase.timeseries_options['include_state_rates'] = True
             phase.timeseries_options['include_t_phase'] = True
 
@@ -402,8 +404,8 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         plot_dir = pathlib.Path(_get_reports_dir(prob)).joinpath("plots")
 
         self.assertTrue(plot_dir.joinpath('time_phase.png').exists())
-        self.assertTrue(plot_dir.joinpath('states_state_of_charge.png').exists())
-        self.assertTrue(plot_dir.joinpath('state_rates_state_of_charge.png').exists())
+        self.assertTrue(plot_dir.joinpath('state_of_charge.png').exists())
+        self.assertTrue(plot_dir.joinpath('state_of_charge.png').exists())
 
         dm.options['plots'] = _temp
 
@@ -554,14 +556,13 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                          problem=p)
         plot_dir = pathlib.Path(_get_reports_dir(p)).joinpath("plots")
 
-        for varname in ['time_phase', 'states:r', 'state_rates:r', 'states:theta',
-                        'state_rates:theta', 'states:vr', 'state_rates:vr', 'states:vt',
-                        'state_rates:vt', 'states:accel',
-                        'state_rates:accel', 'states:deltav', 'state_rates:deltav',
-                        'controls:u1', 'control_rates:u1_rate', 'control_rates:u1_rate2',
-                        'parameters:c', 'parameters:u1']:
-            self.assertTrue(plot_dir.joinpath(varname.replace(":", "_") + '.png').exists(),
-                            msg=plot_dir.joinpath(varname.replace(":", "_") + '.png does not exist!'))
+        for varname in ['time_phase', 'r', 'r_dot', 'theta',
+                        'theta_dot', 'vr', 'vr_dot', 'vt',
+                        'vt_dot', 'accel',
+                        'at_dot', 'deltav', 'deltav_dot',
+                        'u1', 'u1_rate', 'u1_rate2']:
+            self.assertTrue(plot_dir.joinpath(varname + '.png').exists(),
+                            msg=varname + '.png does not exist!')
 
         dm.options['plots'] = temp
 

@@ -286,7 +286,7 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
         #
         # Plot the results
         #
-        plot_results([('traj.phase0.timeseries.states:x', 'traj.phase0.timeseries.states:y',
+        plot_results([('traj.phase0.timeseries.x', 'traj.phase0.timeseries.y',
                        'range (m)', 'altitude (m)'),
                       ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.theta',
                        'range (m)', 'altitude (m)')],

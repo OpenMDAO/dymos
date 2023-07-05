@@ -31,6 +31,8 @@ class TestBrachistochroneExample(unittest.TestCase):
 
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
+        phase.timeseries_options['use_prefix'] = True
+        phase.timeseries_options['include_state_rates'] = True
         p.model.add_subsystem('traj0', traj)
         traj.add_phase('phase0', phase)
 

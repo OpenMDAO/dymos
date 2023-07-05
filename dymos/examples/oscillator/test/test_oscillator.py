@@ -62,8 +62,8 @@ class TestDocOscillator(unittest.TestCase):
         states = ['x', 'v']
         fig, axes = plt.subplots(len(states), 1)
         for i, state in enumerate(states):
-            sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.states:{state}'), 'o')
-            sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.states:{state}'), '-')
+            sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.{state}'), 'o')
+            sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.{state}'), '-')
             axes[i].set_ylabel(state)
         axes[-1].set_xlabel('time (s)')
         fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
@@ -126,8 +126,8 @@ class TestDocOscillator(unittest.TestCase):
         states = ['x', 'v']
         fig, axes = plt.subplots(len(states), 1)
         for i, state in enumerate(states):
-            sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.states:{state}'), 'o')
-            sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.states:{state}'), '-')
+            sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.{state}'), 'o')
+            sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.{state}'), '-')
             axes[i].set_ylabel(state)
         axes[-1].set_xlabel('time (s)')
         fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
@@ -201,8 +201,8 @@ class TestDocOscillator(unittest.TestCase):
         states = ['x', 'v']
         fig, axes = plt.subplots(len(states), 1)
         for i, state in enumerate(states):
-            sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.states:{state}'), 'o')
-            sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.states:{state}'), '-')
+            sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.{state}'), 'o')
+            sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.{state}'), '-')
             axes[i].set_ylabel(state)
         axes[-1].set_xlabel('time (s)')
         fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
@@ -276,8 +276,8 @@ class TestDocOscillator(unittest.TestCase):
         states = ['x', 'v']
         fig, axes = plt.subplots(len(states), 1)
         for i, state in enumerate(states):
-            sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.states:{state}'), 'o')
-            sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.states:{state}'), '-')
+            sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.{state}'), 'o')
+            sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.{state}'), '-')
             axes[i].set_ylabel(state)
         axes[-1].set_xlabel('time (s)')
         fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
@@ -351,8 +351,8 @@ class TestDocOscillator(unittest.TestCase):
         states = ['x', 'v']
         fig, axes = plt.subplots(len(states), 1)
         for i, state in enumerate(states):
-            sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.states:{state}'), 'o')
-            sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.states:{state}'), '-')
+            sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.{state}'), 'o')
+            sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.{state}'), '-')
             axes[i].set_ylabel(state)
         axes[-1].set_xlabel('time (s)')
         fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
@@ -426,8 +426,8 @@ class TestDocOscillator(unittest.TestCase):
         states = ['x', 'v']
         fig, axes = plt.subplots(len(states), 1)
         for i, state in enumerate(states):
-            sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.states:{state}'), 'o')
-            sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.states:{state}'), '-')
+            sol = axes[i].plot(t_sol, prob.get_val(f'traj.phase0.timeseries.{state}'), 'o')
+            sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.{state}'), '-')
             axes[i].set_ylabel(state)
         axes[-1].set_xlabel('time (s)')
         fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)

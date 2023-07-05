@@ -150,9 +150,9 @@ class TestLoadCase(unittest.TestCase):
 
         print(outputs)
         time_val = outputs['phase0.timeseries.timeseries_comp.time']['val']
-        theta_val = outputs['phase0.timeseries.timeseries_comp.controls:theta']['val']
+        theta_val = outputs['phase0.timeseries.timeseries_comp.theta']['val']
 
-        assert_near_equal(q['phase0.timeseries.timeseries_comp.controls:theta'],
+        assert_near_equal(q['phase0.timeseries.timeseries_comp.theta'],
                           q.model.phase0.interp(xs=time_val, ys=theta_val, nodes='all'),
                           tolerance=1.0E-3)
 
@@ -182,9 +182,9 @@ class TestLoadCase(unittest.TestCase):
                                                                 out_stream=None)])
 
         time_val = outputs['phase0.timeseries.timeseries_comp.time']['val']
-        theta_val = outputs['phase0.timeseries.timeseries_comp.controls:theta']['val']
+        theta_val = outputs['phase0.timeseries.timeseries_comp.theta']['val']
 
-        assert_near_equal(q['phase0.timeseries.timeseries_comp.controls:theta'],
+        assert_near_equal(q['phase0.timeseries.timeseries_comp.theta'],
                           q.model.phase0.interp(xs=time_val, ys=theta_val, nodes='all'),
                           tolerance=1.0E-2)
 

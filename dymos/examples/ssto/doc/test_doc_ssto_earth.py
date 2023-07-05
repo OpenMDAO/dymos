@@ -84,9 +84,9 @@ class TestDocSSTOEarth(unittest.TestCase):
         dm.run_problem(p)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 143, tolerance=0.05)
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:y')[-1], 1.85E5, 1e-4)
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:vx')[-1], 7796.6961, 1e-4)
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:vy')[-1], 0, 1e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.y')[-1], 1.85E5, 1e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.vx')[-1], 7796.6961, 1e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.vy')[-1], 0, 1e-4)
         #
         # Get the explicitly simulated results
         #
@@ -97,15 +97,15 @@ class TestDocSSTOEarth(unittest.TestCase):
         #
         fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 8))
 
-        axes[0].plot(p.get_val('traj.phase0.timeseries.states:x'),
-                     p.get_val('traj.phase0.timeseries.states:y'),
+        axes[0].plot(p.get_val('traj.phase0.timeseries.x'),
+                     p.get_val('traj.phase0.timeseries.y'),
                      marker='o',
                      ms=4,
                      linestyle='None',
                      label='solution')
 
-        axes[0].plot(exp_out.get_val('traj.phase0.timeseries.states:x'),
-                     exp_out.get_val('traj.phase0.timeseries.states:y'),
+        axes[0].plot(exp_out.get_val('traj.phase0.timeseries.x'),
+                     exp_out.get_val('traj.phase0.timeseries.y'),
                      marker=None,
                      linestyle='-',
                      label='simulation')
@@ -115,13 +115,13 @@ class TestDocSSTOEarth(unittest.TestCase):
         axes[0].set_aspect('equal')
 
         axes[1].plot(p.get_val('traj.phase0.timeseries.time'),
-                     p.get_val('traj.phase0.timeseries.controls:theta'),
+                     p.get_val('traj.phase0.timeseries.theta'),
                      marker='o',
                      ms=4,
                      linestyle='None')
 
         axes[1].plot(exp_out.get_val('traj.phase0.timeseries.time'),
-                     exp_out.get_val('traj.phase0.timeseries.controls:theta'),
+                     exp_out.get_val('traj.phase0.timeseries.theta'),
                      linestyle='-',
                      marker=None)
 

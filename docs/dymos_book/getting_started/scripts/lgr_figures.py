@@ -115,8 +115,8 @@ for i, case_name in enumerate(cr.list_cases()):
 
     # Plot the initial state
     time = case.get_val('traj.phase0.timeseries.time')
-    y = case.get_val('traj.phase0.timeseries.states:y')
-    vy = case.get_val('traj.phase0.timeseries.states:vy')
+    y = case.get_val('traj.phase0.timeseries.y')
+    vy = case.get_val('traj.phase0.timeseries.vy')
     dt_dstau = case.get_val('traj.phase0.dt_dstau')
 
     # Plot the rates at the discretization nodes

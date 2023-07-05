@@ -216,8 +216,8 @@ class TestExplicitShooting(unittest.TestCase):
 
                 dm.run_problem(prob)
 
-                x = prob.get_val('traj0.phase0.timeseries.states:x')
-                y = prob.get_val('traj0.phase0.timeseries.states:y')
+                x = prob.get_val('traj0.phase0.timeseries.x')
+                y = prob.get_val('traj0.phase0.timeseries.y')
                 t = prob.get_val('traj0.phase0.timeseries.time')
 
                 assert_near_equal(x[-1, ...], 10.0, tolerance=1.0E-3)
@@ -284,8 +284,8 @@ class TestExplicitShooting(unittest.TestCase):
 
                 prob.run_driver()
 
-                x = prob.get_val('traj0.phase0.timeseries.states:x')
-                y = prob.get_val('traj0.phase0.timeseries.states:y')
+                x = prob.get_val('traj0.phase0.timeseries.x')
+                y = prob.get_val('traj0.phase0.timeseries.y')
                 ydot = prob.get_val('traj0.phase0.timeseries.ydot')
 
                 assert_near_equal(x[-1, ...], 10.0, tolerance=1.0E-3)
@@ -362,8 +362,8 @@ class TestExplicitShooting(unittest.TestCase):
 
                         dm.run_problem(prob)
 
-                        x = prob.get_val('traj0.phase0.timeseries.states:x')
-                        y = prob.get_val('traj0.phase0.timeseries.states:y')
+                        x = prob.get_val('traj0.phase0.timeseries.x')
+                        y = prob.get_val('traj0.phase0.timeseries.y')
                         t = prob.get_val('traj0.phase0.timeseries.time')
 
                         assert_near_equal(x[-1, ...], 10.0, tolerance=1.0E-5)
@@ -480,10 +480,10 @@ class TestExplicitShooting(unittest.TestCase):
 
             dm.run_problem(prob, run_driver=True)
 
-            x = prob.get_val('phase0.timeseries.states:x')
-            y = prob.get_val('phase0.timeseries.states:y')
-            v = prob.get_val('phase0.timeseries.states:v')
-            theta = prob.get_val('phase0.timeseries.controls:theta', units='rad')
+            x = prob.get_val('phase0.timeseries.x')
+            y = prob.get_val('phase0.timeseries.y')
+            v = prob.get_val('phase0.timeseries.v')
+            theta = prob.get_val('phase0.timeseries.theta', units='rad')
             check = prob.get_val('phase0.timeseries.check')
             t = prob.get_val('phase0.timeseries.time')
 

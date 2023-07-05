@@ -17,18 +17,18 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         t_initial = p.get_val('traj0.phase0.timeseries.time')[0]
         t_final = p.get_val('traj0.phase0.timeseries.time')[-1]
 
-        x0 = p.get_val('traj0.phase0.timeseries.states:pos')[0, 0]
-        xf = p.get_val('traj0.phase0.timeseries.states:pos')[0, -1]
+        x0 = p.get_val('traj0.phase0.timeseries.pos')[0, 0]
+        xf = p.get_val('traj0.phase0.timeseries.pos')[0, -1]
 
-        y0 = p.get_val('traj0.phase0.timeseries.states:pos')[0, 1]
-        yf = p.get_val('traj0.phase0.timeseries.states:pos')[-1, 1]
+        y0 = p.get_val('traj0.phase0.timeseries.pos')[0, 1]
+        yf = p.get_val('traj0.phase0.timeseries.pos')[-1, 1]
 
-        v0 = p.get_val('traj0.phase0.timeseries.states:v')[0, 0]
-        vf = p.get_val('traj0.phase0.timeseries.states:v')[-1, 0]
+        v0 = p.get_val('traj0.phase0.timeseries.v')[0, 0]
+        vf = p.get_val('traj0.phase0.timeseries.v')[-1, 0]
 
         g = p.get_val('traj0.phase0.parameter_vals:g')
 
-        thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1, 0]
+        thetaf = p.get_val('traj0.phase0.timeseries.theta')[-1, 0]
 
         assert_almost_equal(t_initial, 0.0)
         assert_almost_equal(x0, 0.0)

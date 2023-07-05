@@ -103,9 +103,9 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         # Check the results.
         #
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 143, tolerance=0.05)
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:y')[-1], 1.85E5, 1e-4)
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:vx')[-1], 7796.6961, 1e-4)
-        assert_near_equal(p.get_val('traj.phase0.timeseries.states:vy')[-1], 0, 1e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.y')[-1], 1.85E5, 1e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.vx')[-1], 7796.6961, 1e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.vy')[-1], 0, 1e-4)
 
         # upgrade_doc: begin parameter_timeseries
         thrust = p.get_val('traj.phase0.parameter_vals:thrust')
@@ -160,7 +160,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         p.run_driver()
 
         with self.assertRaises(KeyError):
-            p.get_val('phase0.timeseries.parameters:g}')
+            p.get_val('phase0.timeseries.g}')
 
     def test_simplified_ode_timeseries_output(self):
         """
@@ -176,17 +176,17 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         p.driver = om.ScipyOptimizeDriver()
         p.driver.declare_coloring()
 
-        transcription = dm.GaussLobatto(num_segments=1,
-                                        order=13,
-                                        compressed=False)
-        phase = dm.Phase(ode_class=AircraftODE, transcription=transcription)
-        p.model.add_subsystem('phase0', phase)
-
         # Pass Reference Area from an external source
         assumptions = p.model.add_subsystem('assumptions', om.IndepVarComp())
         assumptions.add_output('S', val=427.8, units='m**2')
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
+
+        transcription = dm.GaussLobatto(num_segments=1,
+                                        order=13,
+                                        compressed=False)
+        phase = dm.Phase(ode_class=AircraftODE, transcription=transcription)
+        p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(fix_initial=True,
                                duration_bounds=(3600, 3600),
@@ -249,7 +249,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
 
         time = p.get_val('phase0.timeseries.time')
         tas = p.get_val('phase0.timeseries.TAS', units='km/s')
-        range = p.get_val('phase0.timeseries.states:range')
+        range = p.get_val('phase0.timeseries.range')
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
 
@@ -257,7 +257,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
 
         time = exp_out.get_val('phase0.timeseries.time')
         tas = exp_out.get_val('phase0.timeseries.TAS', units='km/s')
-        range = exp_out.get_val('phase0.timeseries.states:range')
+        range = exp_out.get_val('phase0.timeseries.range')
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
 
@@ -463,8 +463,8 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         p.run_model()
 
         # upgrade_doc: begin state_endpoint_values
-        final_range = p.get_val('traj.phase0.timeseries.states:r')[-1, ...]
-        final_alpha = p.get_val('traj.phase0.timeseries.controls:alpha')[-1, ...]
+        final_range = p.get_val('traj.phase0.timeseries.r')[-1, ...]
+        final_alpha = p.get_val('traj.phase0.timeseries.alpha')[-1, ...]
         # upgrade_doc: end state_endpoint_values
         self.assertEqual(final_range, 50000.0)
         self.assertEqual(final_alpha, 0.0)
@@ -742,18 +742,18 @@ class TestUpgrade_0_19_0(unittest.TestCase):
             t_initial = p.get_val('traj0.phase0.timeseries.time')[0]
             tf = p.get_val('traj0.phase0.timeseries.time')[-1]
 
-            x0 = p.get_val('traj0.phase0.timeseries.states:x')[0]
-            xf = p.get_val('traj0.phase0.timeseries.states:x')[-1]
+            x0 = p.get_val('traj0.phase0.timeseries.x')[0]
+            xf = p.get_val('traj0.phase0.timeseries.x')[-1]
 
-            y0 = p.get_val('traj0.phase0.timeseries.states:y')[0]
-            yf = p.get_val('traj0.phase0.timeseries.states:y')[-1]
+            y0 = p.get_val('traj0.phase0.timeseries.y')[0]
+            yf = p.get_val('traj0.phase0.timeseries.y')[-1]
 
-            v0 = p.get_val('traj0.phase0.timeseries.states:v')[0]
-            vf = p.get_val('traj0.phase0.timeseries.states:v')[-1]
+            v0 = p.get_val('traj0.phase0.timeseries.v')[0]
+            vf = p.get_val('traj0.phase0.timeseries.v')[-1]
 
             g = p.get_val('traj0.phase0.parameter_vals:g')[0]
 
-            thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1]
+            thetaf = p.get_val('traj0.phase0.timeseries.theta')[-1]
 
             assert_near_equal(t_initial, 0.0)
             assert_near_equal(x0, 0.0)

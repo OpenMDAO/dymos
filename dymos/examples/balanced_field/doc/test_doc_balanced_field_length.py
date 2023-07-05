@@ -1,6 +1,7 @@
 import unittest
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.assert_utils import assert_near_equal
 
 
 SHOW_PLOTS = True
@@ -131,42 +132,42 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         traj.add_parameter('CD0', val=0.03, opt=False, units=None, static_target=True,
                            desc='zero-lift drag coefficient',
                            targets={f'{phase}': ['CD0'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                      'rto', 'rotate' 'climb']})
+                                                                      'rto', 'rotate', 'climb']})
 
         traj.add_parameter('AR', val=9.45, opt=False, units=None, static_target=True,
                            desc='wing aspect ratio',
                            targets={f'{phase}': ['AR'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                     'rto', 'rotate' 'climb']})
+                                                                     'rto', 'rotate', 'climb']})
 
         traj.add_parameter('e', val=801, opt=False, units=None, static_target=True,
                            desc='Oswald span efficiency factor',
                            targets={f'{phase}': ['e'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                    'rto', 'rotate' 'climb']})
+                                                                    'rto', 'rotate', 'climb']})
 
         traj.add_parameter('span', val=35.7, opt=False, units='m', static_target=True,
                            desc='wingspan',
                            targets={f'{phase}': ['span'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                       'rto', 'rotate' 'climb']})
+                                                                       'rto', 'rotate', 'climb']})
 
         traj.add_parameter('h_w', val=1.0, opt=False, units='m', static_target=True,
                            desc='height of wing above CG',
                            targets={f'{phase}': ['h_w'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                      'rto', 'rotate' 'climb']})
+                                                                      'rto', 'rotate', 'climb']})
 
         traj.add_parameter('CL0', val=0.5, opt=False, units=None, static_target=True,
                            desc='zero-alpha lift coefficient',
                            targets={f'{phase}': ['CL0'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                      'rto', 'rotate' 'climb']})
+                                                                      'rto', 'rotate', 'climb']})
 
         traj.add_parameter('CL_max', val=2.0, opt=False, units=None, static_target=True,
                            desc='maximum lift coefficient for linear fit',
                            targets={f'{phase}': ['CL_max'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                         'rto', 'rotate' 'climb']})
+                                                                         'rto', 'rotate', 'climb']})
 
         traj.add_parameter('alpha_max', val=10.0, opt=False, units='deg', static_target=True,
                            desc='angle of attack at maximum lift',
                            targets={f'{phase}': ['alpha_max'] for phase in ['br_to_v1', 'v1_to_vr',
-                                                                            'rto', 'rotate' 'climb']})
+                                                                            'rto', 'rotate', 'climb']})
 
         # Standard "end of first phase to beginning of second phase" linkages
         # Alpha changes from being a parameter in v1_to_vr to a polynomial control
@@ -239,3 +240,16 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.set_val('traj.climb.controls:alpha', 5.0, units='deg')
 
         dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)
+
+        sol = om.CaseReader('dymos_solution.db').get_case('final')
+        sim = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        sol_r_f_climb = sol.get_val('traj.climb.timeseries.r')[-1, ...]
+        sol_r_f_rto = sol.get_val('traj.rto.timeseries.r')[-1, ...]
+        sim_r_f_climb = sim.get_val('traj.climb.timeseries.r')[-1, ...]
+        sim_r_f_rto = sim.get_val('traj.rto.timeseries.r')[-1, ...]
+
+        assert_near_equal(2114.387, sol_r_f_climb, tolerance=0.01)
+        assert_near_equal(2114.387, sol_r_f_rto, tolerance=0.01)
+        assert_near_equal(2114.387, sim_r_f_climb, tolerance=0.01)
+        assert_near_equal(2114.387, sim_r_f_rto, tolerance=0.01)

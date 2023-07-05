@@ -218,10 +218,10 @@ class TestCannonballForJOSS(unittest.TestCase):
         dm.run_problem(p, simulate=True, make_plots=True)
 
         fig, ax = plt.subplots()
-        x0 = p.get_val('traj.ascent.timeseries.states:r', units='m')
-        y0 = p.get_val('traj.ascent.timeseries.states:h', units='m')
-        x1 = p.get_val('traj.descent.timeseries.states:r', units='m')
-        y1 = p.get_val('traj.descent.timeseries.states:h', units='m')
+        x0 = p.get_val('traj.ascent.timeseries.r', units='m')
+        y0 = p.get_val('traj.ascent.timeseries.h', units='m')
+        x1 = p.get_val('traj.descent.timeseries.r', units='m')
+        y1 = p.get_val('traj.descent.timeseries.h', units='m')
         tab20 = plt.cm.get_cmap('tab20').colors
         ax.plot(x0, y0, marker='o', label='ascent', color=tab20[0])
         ax.plot(x1, y1, marker='o', label='descent', color=tab20[1])

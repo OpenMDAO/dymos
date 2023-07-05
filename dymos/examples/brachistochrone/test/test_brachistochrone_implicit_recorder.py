@@ -63,7 +63,7 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
         case = om.CaseReader('dymos_solution.db').get_case('final')
 
         assert_near_equal(p['phase0.control_values:theta'],
-                          case.get_val('phase0.timeseries.controls:theta'))
+                          case.get_val('phase0.timeseries.theta'))
 
 
 if __name__ == '__main__':  # pragma: no cover
