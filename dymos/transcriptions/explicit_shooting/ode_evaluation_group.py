@@ -216,6 +216,7 @@ class ODEEvaluationGroup(om.Group):
 
             if options['static_target']:
                 src_idxs = None
+                shape = None
             else:
                 src_rows = np.zeros(vec_size, dtype=int)
                 src_idxs = om.slicer[src_rows, ...]
@@ -223,7 +224,7 @@ class ODEEvaluationGroup(om.Group):
             # Promote targets from the ODE
             for tgt in targets:
                 self.promotes('ode', inputs=[(tgt, var_name)], src_indices=src_idxs,
-                              src_shape=options['shape'])
+                              src_shape=shape)
             if targets:
                 self.set_input_defaults(name=var_name,
                                         val=np.ones(shape),
