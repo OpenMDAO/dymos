@@ -14,6 +14,8 @@ class ParameterComp(ExplicitComponent):
 
     Parameters
     ----------
+    time_options : TimeOptionsDictionary or None
+        If None, specify time options for the creation of t_initial and t_duration inputs and outputs.
     **kwargs : dict
         Arguments to be passed to the component initialization method.
 
@@ -35,6 +37,9 @@ class ParameterComp(ExplicitComponent):
         self._no_check_partials = not dymos_options['include_check_partials']
 
     def setup(self):
+        """
+        Add time-related I/O to the ParameterComp at setup, if provided.
+        """
         time_options = self.time_options
 
         if time_options:
