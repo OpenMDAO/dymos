@@ -409,7 +409,7 @@ class PseudospectralBase(TranscriptionBase):
                               src_indices=(flattened_src_idxs,), flat_src_indices=True)
 
         if any_control_rate_cnty:
-            phase.promotes('continuity_comp', inputs=['t_duration'])
+            phase.connect('t_duration_val', 'continuity_comp.t_duration')
 
         for name, options in phase.control_options.items():
             control_src_name = f'control_values:{name}'
