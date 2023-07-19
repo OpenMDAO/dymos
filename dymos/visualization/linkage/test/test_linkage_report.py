@@ -4,7 +4,7 @@ import pathlib
 import unittest
 
 import openmdao.api as om
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 import dymos as dm
 from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
 
@@ -25,6 +25,7 @@ def _flatten_dict(d, parent_key='', sep='.'):
 @use_tempdirs
 class TestLinkageReport(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_model_data(self):
         """
         Test that model data for the linkage report contains the expected data.
