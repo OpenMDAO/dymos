@@ -77,7 +77,7 @@ jobs:
             OPENMPI: '4.0'
             MPI4PY: '3.0'
             PETSc: 3.13
-            PYOPTSPARSE: 'v2.8.1'
+            PYOPTSPARSE: 'v2.9.3'
             SNOPT: 7.2
             OPENMDAO: 3.21.0
             OPTIONAL: '[test]'
