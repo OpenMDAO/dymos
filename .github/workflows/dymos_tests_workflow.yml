@@ -254,7 +254,7 @@ jobs:
         run: |
           conda info
           conda list
-          conda env export --name test --file environment.yml
+          conda env export --name test --file ${{ matrix.NAME }}_environment.yml
 
           echo "============================================================="
           echo "Check installed versions of Python, Numpy and Scipy"
@@ -271,8 +271,8 @@ jobs:
       - name: 'Upload environment artifact'
         uses: actions/upload-artifact@v3
         with:
-          name: environment
-          path: environment.yml
+          name: ${{ matrix.NAME }}_environment
+          path: ${{ matrix.NAME }}_environment.yml
           retention-days: 5
 
       - name: Run tests
