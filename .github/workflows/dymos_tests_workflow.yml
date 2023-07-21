@@ -278,11 +278,10 @@ jobs:
           echo "Environment:"
           echo "   DYMOS_CHECK_PARTIALS: $DYMOS_CHECK_PARTIALS"
           echo "============================================================="
-#          testflo -n 1 docs/dymos_book/test --pre_announce
-#          testflo -n 1 joss/test --pre_announce
-#          testflo -b benchmark --pre_announce
+          testflo -n 1 docs/dymos_book/test --pre_announce
+          testflo -n 1 joss/test --pre_announce
+          testflo -b benchmark --pre_announce
           cd $HOME
-          cd dymos/examples/brachistochrone
           testflo dymos -n 2 --show_skipped --coverage --durations 20 --coverpkg dymos
 
       - name: Submit coverage
