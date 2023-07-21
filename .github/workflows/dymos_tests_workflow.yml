@@ -254,7 +254,7 @@ jobs:
         run: |
           conda info
           conda list
-          conda env export --name test --file $HOME/environment.yml
+          conda env export --name test --file environment.yml
 
           echo "============================================================="
           echo "Check installed versions of Python, Numpy and Scipy"
