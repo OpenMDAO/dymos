@@ -10,7 +10,6 @@ from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.misc import _unspecified
 from ..utils.introspection import configure_states_introspection, get_promoted_vars, get_target_metadata, \
     configure_states_discovery
-from .._options import options as dymos_options
 
 
 class TranscriptionBase(object):
@@ -84,13 +83,8 @@ class TranscriptionBase(object):
         if phase.time_options['t_duration_balance_options']:
             self._implicit_duration = True
 
-        if not time_options['input_initial']:
-            phase.add_subsystem('time_extents', om.IndepVarComp(),
-                                promotes_outputs=['*'])
-        else:
-            if not time_options['input_duration'] and not self._implicit_duration:
-                phase.add_subsystem('time_extents', om.IndepVarComp(),
-                                    promotes_outputs=['*'])
+        phase.add_subsystem('param_comp', subsys=ParameterComp(time_options=time_options),
+                            promotes_inputs=['*'], promotes_outputs=['*'])
 
         for ts_name, ts_options in phase._timeseries.items():
             if t_name not in ts_options['outputs']:
@@ -119,20 +113,6 @@ class TranscriptionBase(object):
                                                                user_targets=time_options['targets'],
                                                                user_units=time_options['units'],
                                                                user_shape='')
-
-        time_units = time_options['units']
-        indeps = []
-        default_vals = {'t_initial': phase.time_options['initial_val'],
-                        't_duration': phase.time_options['duration_val']}
-
-        if not time_options['input_initial']:
-            indeps.append('t_initial')
-
-        if not time_options['input_duration'] and not self._implicit_duration:
-            indeps.append('t_duration')
-
-        for var in indeps:
-            phase.time_extents.add_output(var, val=default_vals[var], units=time_units)
 
         if not (time_options['input_initial'] or time_options['fix_initial']):
             lb, ub = time_options['initial_bounds']
@@ -221,7 +201,11 @@ class TranscriptionBase(object):
                                          polynomial_control_options=phase.polynomial_control_options,
                                          time_units=phase.time_options['units'])
             phase.add_subsystem('polynomial_control_group', subsys=sys,
-                                promotes_inputs=['*'], promotes_outputs=['*'])
+                                promotes_inputs=['polynomial_controls:*'],
+                                promotes_outputs=['polynomial_control_values:*',
+                                                  'polynomial_control_rates:*'])
+
+            phase.connect('t_duration_val', 'polynomial_control_group.t_duration')
 
             prefix = 'polynomial_controls:' if phase.timeseries_options['use_prefix'] else ''
             rate_prefix = 'polynomial_control_rates:' if phase.timeseries_options['use_prefix'] else ''
@@ -264,10 +248,6 @@ class TranscriptionBase(object):
         phase._check_parameter_options()
         param_prefix = 'parameters:' if phase.timeseries_options['use_prefix'] else ''
         include_params = phase.timeseries_options['include_parameters']
-
-        if phase.parameter_options:
-            param_comp = ParameterComp()
-            phase.add_subsystem('param_comp', subsys=param_comp, promotes_inputs=['*'], promotes_outputs=['*'])
 
         for name, options in phase.parameter_options.items():
             if (options['include_timeseries'] is None and include_params) or options['include_timeseries']:

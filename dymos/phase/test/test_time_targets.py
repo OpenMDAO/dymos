@@ -1,16 +1,12 @@
 import unittest
 
 import numpy as np
-import matplotlib
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
-
-
-matplotlib.use('Agg')
 
 
 class _BrachistochroneTestODE(om.ExplicitComponent):
@@ -138,10 +134,10 @@ class TestPhaseTimeTargets(unittest.TestCase):
         if input_duration:
             p.model.add_design_var('phase0.t_duration', lower=0, upper=3, scaler=1.0)
 
-        p.setup(check=True)
+        p.setup(check=True, force_alloc_complex=True)
 
         p['phase0.t_initial'] = 1.0
-        p['phase0.t_duration'] = 5.0
+        p['phase0.t_duration'] = 2.0
 
         if transcription == 'explicit-shooting':
             p['phase0.initial_states:x'] = 0
@@ -151,7 +147,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
             p['phase0.states:x'] = phase.interp('x', [0, 10])
             p['phase0.states:y'] = phase.interp('y', [10, 5])
             p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['phase0.controls:theta'] = phase.interp('theta', [5, 100.5])
+        p['phase0.controls:theta'] = phase.interp('theta', [0.01, 100.5])
 
         return p
 
@@ -287,9 +283,9 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
                 assert_near_equal(p['phase0.t_phase'][-1], 1.8016, tolerance=1.0E-3)
 
-                assert_near_equal(p['phase0.t_initial'], p['phase0.t_initial'])
+                assert_near_equal(p['phase0.t_initial'], p['phase0.integrator.t_initial'])
 
-                assert_near_equal(p['phase0.t_duration'], p['phase0.t_duration'])
+                assert_near_equal(p['phase0.t_duration'], p['phase0.integrator.t_duration'])
 
                 assert_near_equal(np.atleast_2d(p['phase0.t_phase']).T, time_phase_all)
 
