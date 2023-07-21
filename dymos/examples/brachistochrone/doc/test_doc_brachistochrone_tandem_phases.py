@@ -114,7 +114,7 @@ class TestBrachistochroneTandemPhases(unittest.TestCase):
         #
         # Connect the two phases
         #
-        p.model.connect('phase0.t_duration', 'phase1.t_duration')
+        p.model.connect('phase0.t_duration_val', 'phase1.t_duration')
 
         p.model.connect('phase0.timeseries2.theta', 'phase1.controls:theta')
         p.model.connect('phase0.timeseries2.v', 'phase1.controls:v')

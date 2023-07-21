@@ -11,6 +11,25 @@ _default_linkage_report_title = 'Dymos Linkage Report'
 _default_linkage_report_filename = 'linkage_report.html'
 
 
+def _create_model_data(traj):
+    """
+    Creates the model_data dictionary for the given trajectory.
+
+    Parameters
+    ----------
+    traj : A dymos Trajectory object.
+
+    Returns
+    -------
+    dict
+        The generated model_data.
+    """
+    model_data = _trajectory_to_dict(traj)
+    model_data['connections_list'] = _linkages_to_list(traj, model_data)
+    model_data['connections_list'].extend(_parameter_connections(traj, model_data))
+    return model_data
+
+
 def create_linkage_report(traj, output_file: str = _default_linkage_report_filename,
                           show_all_vars=True,
                           title=_default_linkage_report_title, embedded=False):
@@ -30,9 +49,7 @@ def create_linkage_report(traj, output_file: str = _default_linkage_report_filen
     embedded : bool
         Whether the file is to be included in another. If True, leave out some tags.
     """
-    model_data = _trajectory_to_dict(traj)
-    model_data['connections_list'] = _linkages_to_list(traj, model_data)
-    model_data['connections_list'].extend(_parameter_connections(traj, model_data))
+    model_data = _create_model_data(traj)
 
     _convert_dicts_to_lists(model_data['tree'], show_all_vars)
 
@@ -295,7 +312,8 @@ def _conn_name_to_path(name):
 
 def _is_param_conn(name) -> bool:
     """ Determine if the specified connection involves a parameter. """
-    return re.match(r'.*param_comp.*', name) and not re.match(r'.*parameter_vals.*', name)
+    return re.match(r'.*param_comp\.parameters:.*', name) \
+        and not re.match(r'.*param_comp\.parameter_vals:.*', name)
 
 
 def _is_ignored_conn(name) -> bool:
