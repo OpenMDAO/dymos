@@ -75,7 +75,7 @@ def load_case(problem, previous_solution, deprecation_warning=True):
         (defaults to True)
     """
     if deprecation_warning:
-        warn_deprecation("The Dymos load_case method is deprecated for OpenMDAO 3.27.0 and later, "
+        warn_deprecation("The Dymos load_case method is deprecated for OpenMDAO 3.28.0 and later, "
                          "the load_case method on Problem should be used instead.")
 
     # allow old style arguments using a Case or OpenMDAO problem instead of dictionary
