@@ -2709,8 +2709,6 @@ class Phase(om.Group):
         prev_time_val, unique_idxs = np.unique(prev_time_val, return_index=True)
         prev_time_units = prev_vars[prev_time_path]['units']
 
-        print("\n".join(prev_vars.keys()))
-
         t_initial = prev_time_val[0]
         t_duration = prev_time_val[-1] - prev_time_val[0]
 

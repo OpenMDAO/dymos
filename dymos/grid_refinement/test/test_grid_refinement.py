@@ -45,7 +45,7 @@ class TestGridRefinement(unittest.TestCase):
         p.driver.declare_coloring()
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
-        tx = transcription = dm.Radau(num_segments=5)
+        tx = dm.Radau(num_segments=5)
         phase = traj.add_phase('phase0', dm.Phase(ode_class=_BrysonDenhamODE, transcription=tx))
 
         #

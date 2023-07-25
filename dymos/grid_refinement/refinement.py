@@ -5,6 +5,7 @@ from .ph_adaptive.ph_adaptive import PHAdaptive
 from .hp_adaptive.hp_adaptive import HPAdaptive
 from .write_iteration import write_error, write_refine_iter
 
+import openmdao.api as om
 from dymos.grid_refinement.error_estimation import check_error
 from dymos.load_case import load_case, find_phases
 
@@ -35,9 +36,10 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
     refinement_methods = {'hp': HPAdaptive, 'ph': PHAdaptive}
     _case_prefix = '' if case_prefix is None else f'{case_prefix}_'
 
-    failed = problem.run_driver(case_prefix=f'{_case_prefix}{refine_method}_0_'
-                                if refine_iteration_limit > 0 else _case_prefix,
+    case_prefix = f'{_case_prefix}{refine_method}_0_'
+    failed = problem.run_driver(case_prefix=case_prefix if refine_iteration_limit > 0 else _case_prefix,
                                 reset_iter_counts=reset_iter_counts)
+    problem.cleanup()
 
     if refine_iteration_limit > 0:
         out_file = 'grid_refinement.out'
@@ -68,7 +70,6 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
                                  'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
 
                     problem.setup()
-
                     load_case(problem, prev_soln, deprecation_warning=False)
                 else:
                     prev_soln = {
@@ -79,8 +80,9 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
                     }
 
                     problem.setup()
-
-                    problem.load_case(prev_soln)
+                    for phase_path in refined_phases:
+                        phs = problem.model._get_subsystem(phase_path)
+                        phs.load_case(prev_soln)
 
                 failed = problem.run_driver(case_prefix=f'{_case_prefix}{refine_method}_{i}_')
 

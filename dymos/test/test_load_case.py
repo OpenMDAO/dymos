@@ -148,7 +148,6 @@ class TestLoadCase(unittest.TestCase):
         outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
                                                                 out_stream=None)])
 
-        print(outputs)
         time_val = outputs['phase0.timeseries.timeseries_comp.time']['val']
         theta_val = outputs['phase0.timeseries.timeseries_comp.theta']['val']
 
