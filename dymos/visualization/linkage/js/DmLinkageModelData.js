@@ -16,6 +16,8 @@ class DmLinkageModelData extends ModelData {
      * @returns {DmLinkageTreeNode} The newly-created object.
      */
     _newNode(element, attribNames, parent) {
+        console.log(element)
+        console.log(attribNames)
         return new DmLinkageTreeNode(element, attribNames, parent);
     }
 }

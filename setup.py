@@ -77,7 +77,8 @@ The software has two primary objectives:
     zip_safe=False,
     package_data={
         'dymos.examples.aircraft_steady_flight.aero': ['data/CRM_aero_inputs.dat', 'data/CRM_aero_outputs.dat'],
-        'dymos.visualization.linkage': ['report_template.html', 'js/*', 'style/*']
+        'dymos.visualization.linkage': ['report_template.html', 'js/*', 'style/*'],
+        'dymos.visualization.linkage.test': ['model_data.dat']
     },
     entry_points = {
         'openmdao_report': [

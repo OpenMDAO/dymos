@@ -14,6 +14,8 @@ class ParameterComp(ExplicitComponent):
 
     Parameters
     ----------
+    time_options : TimeOptionsDictionary or None
+        If None, specify time options for the creation of t_initial and t_duration inputs and outputs.
     **kwargs : dict
         Arguments to be passed to the component initialization method.
 
@@ -25,18 +27,38 @@ class ParameterComp(ExplicitComponent):
         Container mapping name of variables to be muxed with associated inputs.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, time_options=None, **kwargs):
         """
         Instantiate MuxComp and populate private members.
         """
         super().__init__(**kwargs)
+        self.time_options = time_options
 
         self._no_check_partials = not dymos_options['include_check_partials']
+
+    def setup(self):
+        """
+        Add time-related I/O to the ParameterComp at setup, if provided.
+        """
+        time_options = self.time_options
+
+        if time_options:
+            ti_val = self.time_options['initial_val']
+            td_val = self.time_options['duration_val']
+            units = self.time_options['units']
+
+            self.add_input(name='t_initial', val=ti_val, shape=(1,), units=units)
+            self.add_output(name='t_initial_val', val=ti_val, shape=(1,), units=units)
+            self.declare_partials(of='t_initial_val', wrt='t_initial', val=1.0)
+
+            self.add_input(name=f't_duration', val=td_val, shape=(1,), units=units)
+            self.add_output(name='t_duration_val', val=td_val, shape=(1,), units=units)
+            self.declare_partials(of='t_duration_val', wrt='t_duration', val=1.0)
 
     def add_parameter(self, name, val=1.0, shape=None, output_name=None,
                       units=None, desc='', tags=None, input_tags=None, output_tags=None, input_shape_by_conn=False,
                       input_copy_shape=None, output_shape_by_conn=False, output_copy_shape=None,
-                      distributed=None, res_units=None, lower=None, upper=None, ref=1.0, ref0=0.0, res_ref=1.0, ):
+                      distributed=None, res_units=None, lower=None, upper=None, ref=1.0, ref0=0.0, res_ref=1.0,):
         """
         Add an input/output pair for a variable to this component.
 

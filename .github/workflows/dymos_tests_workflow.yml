@@ -77,9 +77,9 @@ jobs:
             OPENMPI: '4.0'
             MPI4PY: '3.0'
             PETSc: 3.13
-            PYOPTSPARSE: 'v2.4.0'
+            PYOPTSPARSE: 'v2.6.1'
             SNOPT: 7.2
-            OPENMDAO: 3.19.0
+            OPENMDAO: 3.26.0
             OPTIONAL: '[test]'
 
     steps:
@@ -254,6 +254,7 @@ jobs:
         run: |
           conda info
           conda list
+          conda env export --name test --file ${{ matrix.NAME }}_environment.yml
 
           echo "============================================================="
           echo "Check installed versions of Python, Numpy and Scipy"
@@ -266,6 +267,13 @@ jobs:
 
           python -c "import scipy; assert str(scipy.__version__).startswith(str(${{ matrix.SCIPY }})), \
                     f'Scipy version {scipy.__version__} is not the requested version (${{ matrix.SCIPY }})'"
+
+      - name: 'Upload environment artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.NAME }}_environment
+          path: ${{ matrix.NAME }}_environment.yml
+          retention-days: 5
 
       - name: Run tests
         if: env.RUN_BUILD
