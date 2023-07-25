@@ -39,7 +39,6 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
     case_prefix = f'{_case_prefix}{refine_method}_0_'
     failed = problem.run_driver(case_prefix=case_prefix if refine_iteration_limit > 0 else _case_prefix,
                                 reset_iter_counts=reset_iter_counts)
-    problem.cleanup()
 
     if refine_iteration_limit > 0:
         out_file = 'grid_refinement.out'
