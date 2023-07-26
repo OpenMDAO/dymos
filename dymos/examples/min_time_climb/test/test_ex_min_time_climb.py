@@ -117,12 +117,12 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p['traj.phase0.states:m'] = phase.interp('m', [19030.468, 16841.431])
     p['traj.phase0.controls:alpha'] = phase.interp('alpha', [0.0, 0.0])
 
-    dm.run_problem(p, simulate=True)
+    dm.run_problem(p, simulate=True, make_plots=True)
 
     return p
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestMinTimeClimb(unittest.TestCase):
 
     def _test_results(self, p, time_name='time'):

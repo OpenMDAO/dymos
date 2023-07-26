@@ -14,6 +14,7 @@ try:
 except ImportError:
     _NO_BOKEH = True
 
+import numpy as np
 import openmdao.api as om
 from openmdao.utils.units import conversion_to_base_units
 import dymos as dm
@@ -148,6 +149,7 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
         data_dict[traj_name] = {'param_data_by_phase': {},
                                 'sol_data_by_phase': {},
                                 'sim_data_by_phase': {},
+                                'bounds_by_phase': {},
                                 'timeseries_units': {}}
 
         for phase in traj.system_iter(include_self=True, recurse=True, typ=dm.Phase):
@@ -199,7 +201,6 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
             ts_outputs = {op: meta for op, meta in outputs.items() if op.startswith(f'{phase.pathname}.timeseries')}
 
             for output_name in sorted(ts_outputs.keys(), key=str.casefold):
-                meta = ts_outputs[output_name]
                 prom_name = abs2prom_map['output'][output_name]
                 var_name = prom_name.split('.')[-1]
 
@@ -279,6 +280,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
 
         figures = []
         x_range = None
+        size = 6
 
         for var_name in sorted(ts_units_dict.keys(), key=str.casefold):
             fig_kwargs = {'x_range': x_range} if x_range is not None else {}
@@ -309,9 +311,68 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                 if x_name in sol_data and var_name in sol_data:
                     legend_items = []
                     if sol_data:
-                        sol_plot = fig.circle(x='time', y=var_name, source=sol_source, color=color)
+                        lower = upper = None
+                        fix_initial = False
+                        fix_final = False
+                        opt = True
+                        if var_name in phase.state_options:
+                            lower = phase.state_options[var_name]['lower']
+                            upper = phase.state_options[var_name]['upper']
+                            fix_initial = phase.state_options[var_name]['fix_initial']
+                            fix_final = phase.state_options[var_name]['fix_final']
+                        elif var_name in phase.control_options:
+                            lower = phase.control_options[var_name]['lower']
+                            upper = phase.control_options[var_name]['upper']
+                            fix_initial = phase.control_options[var_name]['fix_initial']
+                            fix_final = phase.control_options[var_name]['fix_final']
+                            opt = phase.control_options[var_name]['opt']
+                        elif var_name in phase.polynomial_control_options:
+                            lower = phase.polynomial_control_options[var_name]['lower']
+                            upper = phase.polynomial_control_options[var_name]['upper']
+                            fix_initial = phase.polynomial_control_options[var_name]['fix_initial']
+                            fix_final = phase.polynomial_control_options[var_name]['fix_final']
+                            opt = phase.polynomial_control_options[var_name]['opt']
+                        elif var_name in phase.parameter_options:
+                            lower = phase.parameter_options[var_name]['lower']
+                            upper = phase.parameter_options[var_name]['upper']
+                            opt = phase.parameter_options[var_name]['opt']
+
+                        if opt:
+                            sol_plot = fig.circle(x=x_name, y=var_name, source=sol_source,
+                                                  color=color, size=size)
+                        else:
+                            sol_plot = fig.circle_cross(x=x_data[0], y=sol_data[var_name][0, ...],
+                                                        color=color, fill_color='white',
+                                                        size=size+2, line_width=1)
+
                         sol_plot.tags.extend(['sol', f'phase:{phase_name}'])
                         legend_items.append(sol_plot)
+
+                        # Plot the bounds if available
+                        x_data = sol_data[x_name].ravel()
+                        if lower:
+                            lb_plot = fig.line(x=x_data, y=lower * np.ones_like(x_data),
+                                               line_dash="dashed")
+                            lb_plot.tags.extend(['bounds'])
+                            lb_plot.tags.extend(['bounds', f'phase:{phase_name}'])
+
+                        if upper:
+                            ub_plot = fig.line(x=x_data, y=upper * np.ones_like(x_data),
+                                               line_dash="dashed")
+                            ub_plot.tags.extend(['bounds', f'phase:{phase_name}'])
+
+                        if fix_initial:
+                            fix_initial_plot = fig.circle_cross(x=x_data[0], y=sol_data[var_name][0, ...],
+                                                                color=color, fill_color='white',
+                                                                size=size+2, line_width=2)
+                            fix_initial_plot.tags.extend(['sol', f'phase:{phase_name}'])
+
+                        if fix_final:
+                            fix_final_plot = fig.circle_cross(x=x_data[-1], y=sol_data[var_name][-1, ...],
+                                                              color=color, fill_color='white',
+                                                              size=size+2, line_width=2)
+                            fix_final_plot.tags.extend(['sol', f'phase:{phase_name}'])
+
                     if sim_data:
                         sim_plot = fig.line(x='time', y=var_name, source=sim_source, color=color)
                         sim_plot.tags.extend(['sim', f'phase:{phase_name}'])
