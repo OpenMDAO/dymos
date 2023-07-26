@@ -486,28 +486,10 @@ class TranscriptionBase(object):
         for ibc in phase._initial_boundary_constraints:
             con_output, constraint_kwargs = self._get_constraint_kwargs('initial', ibc, phase)
             phase.add_constraint(con_output, **constraint_kwargs)
-            con_name = ibc['constraint_name']
-            # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
-            if con_name not in phase._timeseries['timeseries']['outputs']:
-                phase.add_timeseries_output(con_name, output_name=con_name,
-                                            units=ibc['units'], shape=ibc['shape'],
-                                            tags=[f'dymos.initial_boundary_constraint'])
-            else:
-                phase._timeseries['timeseries']['outputs'][con_name]['tags'] += \
-                    [f'dymos.initial_boundary_constraint']
 
         for fbc in phase._final_boundary_constraints:
             con_output, constraint_kwargs = self._get_constraint_kwargs('final', fbc, phase)
             phase.add_constraint(con_output, **constraint_kwargs)
-            # Automatically add the requested variable to the timeseries outputs if it's not already.
-            con_name = fbc['constraint_name']
-            if con_name not in phase._timeseries['timeseries']['outputs']:
-                phase.add_timeseries_output(con_name, output_name=con_name,
-                                            units=fbc['units'], shape=fbc['shape'],
-                                            tags=[f'dymos.final_boundary_constraint'])
-            else:
-                phase._timeseries['timeseries']['outputs'][con_name]['tags'] += \
-                    [f'dymos.final_boundary_constraint']
 
     def _get_constraint_kwargs(self, constraint_type, options, phase):
         """
@@ -606,14 +588,6 @@ class TranscriptionBase(object):
         for pc in phase._path_constraints:
             con_output, constraint_kwargs = self._get_constraint_kwargs('path', pc, phase)
             phase.add_constraint(con_output, **constraint_kwargs)
-            con_name = pc['constraint_name']
-            if con_name not in phase._timeseries['timeseries']['outputs']:
-                phase.add_timeseries_output(con_name, output_name=con_name,
-                                            units=pc['units'], shape=pc['shape'],
-                                            tags=[f'dymos.path_constraint'])
-            else:
-                phase._timeseries['timeseries']['outputs'][con_name]['tags'] += \
-                    [f'dymos.path_constraint']
 
     def configure_objective(self, phase):
         """

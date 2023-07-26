@@ -154,8 +154,6 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
             phase_name = phase.pathname.split('.')[-1]
 
             data_dict[traj_name]['param_data_by_phase'][phase_name] = {'param': [], 'val': [], 'units': []}
-            phase_sol_data = data_dict[traj_name]['sol_data_by_phase'][phase_name] = {}
-            phase_sim_data = data_dict[traj_name]['sim_data_by_phase'][phase_name] = {}
             ts_units_dict = data_dict[traj_name]['timeseries_units']
 
             param_outputs = {op: meta for op, meta in outputs.items()

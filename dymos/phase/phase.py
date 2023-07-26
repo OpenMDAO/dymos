@@ -1182,6 +1182,10 @@ class Phase(om.Group):
         bc['flat_indices'] = flat_indices
         bc['is_expr'] = is_expr
 
+        if constraint_name not in self._timeseries['timeseries']['outputs']:
+            self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+
+
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
                             ref0=None, linear=False, flat_indices=False):
@@ -1282,6 +1286,9 @@ class Phase(om.Group):
         pc['units'] = units
         pc['flat_indices'] = flat_indices
         pc['is_expr'] = is_expr
+
+        if constraint_name not in self._timeseries['timeseries']['outputs']:
+            self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                               timeseries='timeseries', tags=None, **kwargs):
