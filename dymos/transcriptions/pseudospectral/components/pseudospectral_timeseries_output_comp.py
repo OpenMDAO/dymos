@@ -95,7 +95,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
 
         self.add_input('dt_dstau', shape=(self.input_num_nodes,), units=self.options['time_units'])
 
-    def _add_output_configure(self, name, units, shape, desc='', src=None, rate=False):
+    def _add_output_configure(self, name, units, shape, desc='', src=None, rate=False, tags=None):
         """
         Add a single timeseries output.
 
@@ -117,6 +117,8 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             The src path of the variables input, used to prevent redundant inputs.
         rate : bool
             If True, timeseries output is a rate.
+        tags : list of str or None
+            The tags to be applied to the inputs and outputs of the timeseries.
 
         Returns
         -------
@@ -139,13 +141,13 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             input_name = f'input_values:{name}'
             self.add_input(input_name,
                            shape=(input_num_nodes,) + shape,
-                           units=units, desc=desc)
+                           units=units, desc=desc, tags=tags)
             self._sources[src] = input_name
             input_units = self._units[input_name] = units
             added_source = True
 
         output_name = name
-        self.add_output(output_name, shape=(output_num_nodes,) + shape, units=units, desc=desc)
+        self.add_output(output_name, shape=(output_num_nodes,) + shape, units=units, desc=desc, tags=tags)
 
         self._vars[name] = (input_name, output_name, shape, rate)
 

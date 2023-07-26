@@ -538,10 +538,6 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
-        import numpy as np
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
@@ -594,42 +590,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.x')
-        y_imp = p.get_val('phase0.timeseries.y')
-
-        x_exp = exp_out.get_val('phase0.timeseries.x')
-        y_exp = exp_out.get_val('phase0.timeseries.y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.theta')
-
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        plt.show()
-
     def test_brachistochrone_polynomial_control_radau(self):
-        import numpy as np
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
@@ -648,7 +609,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         phase.add_state('x', fix_initial=True, fix_final=True)
 
-        phase.add_state('y', fix_initial=True, fix_final=True)
+        phase.add_state('y', fix_initial=True, fix_final=False)
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
@@ -657,6 +618,8 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
         phase.add_path_constraint('theta_rate', lower=0, upper=120)
+        phase.add_path_constraint('y', lower=0, upper=10)
+        phase.add_boundary_constraint('y', loc='final', equals=5)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -682,46 +645,32 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
+        for prob in [p, exp_out]:
+            ts_group = prob.model._get_subsystem('phase0.timeseries')
 
-        x_imp = p.get_val('phase0.timeseries.x')
-        y_imp = p.get_val('phase0.timeseries.y')
+            map_type_to_promnames = {'dymos.type:time': {'time'},
+                                     'dymos.type:t_phase': set(),
+                                     'dymos.type:control': set(),
+                                     'dymos.type:polynomial_control': {'theta'},
+                                     'dymos.type:polynomial_control_rate': set(),
+                                     'dymos.type:polynomial_control_rate2': set(),
+                                     'dymos.type:parameter': set(),
+                                     'dymos.type:state': {'x', 'y', 'v'},
+                                     'dymos.initial_boundary_constraint': set(),
+                                     'dymos.final_boundary_constraint': {'y'},
+                                     'dymos.path_constraint': {'theta_rate', 'y'}}
 
-        x_exp = exp_out.get_val('phase0.timeseries.x')
-        y_exp = exp_out.get_val('phase0.timeseries.y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.theta')
-
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        plt.show()
+            for dymos_type, prom_names in map_type_to_promnames.items():
+                prom_outputs = {meta['prom_name'] for abs_path, meta in
+                                ts_group.list_outputs(tags=[dymos_type], out_stream=None)}
+                self.assertSetEqual(prom_outputs, prom_names,
+                                    msg=f'\n{dymos_type}\nin outputs: {prom_outputs}\nexpected: {prom_names}')
 
 
 @use_tempdirs
 class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
-        import numpy as np
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
@@ -774,42 +723,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.x')
-        y_imp = p.get_val('phase0.timeseries.y')
-
-        x_exp = exp_out.get_val('phase0.timeseries.x')
-        y_exp = exp_out.get_val('phase0.timeseries.y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.theta')
-
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        plt.show()
-
     def test_brachistochrone_polynomial_control_radau(self):
-        import numpy as np
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
@@ -861,37 +775,6 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.x')
-        y_imp = p.get_val('phase0.timeseries.y')
-
-        x_exp = exp_out.get_val('phase0.timeseries.x')
-        y_exp = exp_out.get_val('phase0.timeseries.y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.theta')
-
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        plt.show()
 
 
 @use_tempdirs

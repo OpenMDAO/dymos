@@ -31,6 +31,8 @@ class TestTimeseriesOutput(unittest.TestCase):
         phase = dm.Phase(ode_class=BrachistochroneODE,
                          transcription=dm.GaussLobatto(num_segments=8, order=3, compressed=True))
 
+        phase.timeseries_options['include_t_phase'] = True
+
         p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
@@ -53,6 +55,7 @@ class TestTimeseriesOutput(unittest.TestCase):
         phase.add_objective('time_phase', loc='final', scaler=10)
 
         p.model.linear_solver = om.DirectSolver()
+
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
@@ -104,6 +107,19 @@ class TestTimeseriesOutput(unittest.TestCase):
                 exp_out.get_val(f'phase0.timeseries.{dp}')
         else:  # no error accessing timseries.parameter
             exp_out.get_val(f'phase0.timeseries.{dp}')
+
+        ts_group = exp_out.model._get_subsystem('phase0.timeseries')
+
+        map_type_to_promnames = {'dymos.type:time': {'time'},
+                                 'dymos.type:t_phase': {'time_phase'},
+                                 'dymos.type:control': {'theta'},
+                                 'dymos.type:parameter': {'g'},
+                                 'dymos.type:state': {'x', 'y', 'v'}}
+
+        for dymos_type, prom_names in map_type_to_promnames.items():
+            prom_outputs = {meta['prom_name'] for abs_path, meta in
+                            ts_group.list_outputs(tags=[dymos_type], out_stream=None)}
+            self.assertSetEqual(prom_outputs, prom_names)
 
     def test_timeseries_gl_smaller_timeseries(self):
         self.test_timeseries_gl(test_smaller_timeseries=True)
