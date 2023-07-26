@@ -126,6 +126,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
+        phase.timeseries_options['include_control_rates'] = True
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', rate_source='xdot',
@@ -411,6 +412,7 @@ class TestBrachistochroneExplicitControlRateTargets(unittest.TestCase):
         phase = dm.Phase(ode_class=BrachistochroneRateTargetODE,
                          transcription=dm.Radau(num_segments=10))
 
+        phase.timeseries_options['include_control_rates'] = True
         p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))

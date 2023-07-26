@@ -32,6 +32,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
+        phase.timeseries_options['include_control_rates'] = True
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('pos', fix_initial=True, fix_final=True)
@@ -144,6 +145,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                          transcription=dm.Radau(num_segments=20, order=3))
 
+        phase.timeseries_options['include_control_rates'] = True
         p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
@@ -257,6 +259,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
                          transcription=dm.Radau(num_segments=20, order=3))
 
         p.model.add_subsystem('phase0', phase)
+        phase.timeseries_options['include_control_rates'] = True
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
@@ -369,6 +372,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                          transcription=dm.GaussLobatto(num_segments=20, order=3))
 
+        phase.timeseries_options['include_control_rates'] = True
         p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
@@ -598,6 +602,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                          transcription=dm.GaussLobatto(num_segments=20, order=3))
 
+        phase.timeseries_options['include_control_rates'] = True
         p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
