@@ -113,7 +113,7 @@ class TestTimeseriesOutput(unittest.TestCase):
         map_type_to_promnames = {'dymos.type:time': {'time'},
                                  'dymos.type:t_phase': {'time_phase'},
                                  'dymos.type:control': {'theta'},
-                                 'dymos.type:parameter': {'g'},
+                                 'dymos.type:parameter': set() if test_smaller_timeseries else {'g'},
                                  'dymos.type:state': {'x', 'y', 'v'}}
 
         for dymos_type, prom_names in map_type_to_promnames.items():
@@ -158,6 +158,7 @@ class TestTimeseriesOutput(unittest.TestCase):
         phase.add_objective('time_phase', loc='final', scaler=10)
 
         phase.timeseries_options['include_state_rates'] = True
+        phase.timeseries_options['include_t_phase'] = True
 
         p.model.options['assembled_jac_type'] = 'csc'
         p.model.linear_solver = om.DirectSolver()
