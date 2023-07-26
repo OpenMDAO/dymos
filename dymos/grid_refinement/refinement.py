@@ -5,11 +5,14 @@ from .ph_adaptive.ph_adaptive import PHAdaptive
 from .hp_adaptive.hp_adaptive import HPAdaptive
 from .write_iteration import write_error, write_refine_iter
 
+import openmdao.api as om
 from dymos.grid_refinement.error_estimation import check_error
 from dymos.load_case import load_case, find_phases
 
 import numpy as np
 import sys
+
+import openmdao
 
 
 def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_prefix=None, reset_iter_counts=True):
@@ -33,8 +36,8 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
     refinement_methods = {'hp': HPAdaptive, 'ph': PHAdaptive}
     _case_prefix = '' if case_prefix is None else f'{case_prefix}_'
 
-    failed = problem.run_driver(case_prefix=f'{_case_prefix}{refine_method}_0_'
-                                if refine_iteration_limit > 0 else _case_prefix,
+    case_prefix = f'{_case_prefix}{refine_method}_0_'
+    failed = problem.run_driver(case_prefix=case_prefix if refine_iteration_limit > 0 else _case_prefix,
                                 reset_iter_counts=reset_iter_counts)
 
     if refine_iteration_limit > 0:
@@ -60,12 +63,25 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
                 for stream in f, sys.stdout:
                     write_refine_iter(stream, i, phases, refine_results)
 
-                prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
-                             'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
+                om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
+                if om_version < (3, 27, 1):
+                    prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
+                                 'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
 
-                problem.setup()
+                    problem.setup()
+                    load_case(problem, prev_soln, deprecation_warning=False)
+                else:
+                    prev_soln = {
+                        'inputs': problem.model.list_inputs(out_stream=None, return_format='dict',
+                                                            units=True, prom_name=True),
+                        'outputs': problem.model.list_outputs(out_stream=None, return_format='dict',
+                                                              units=True, prom_name=True)
+                    }
 
-                load_case(problem, prev_soln)
+                    problem.setup()
+                    for phase_path in refined_phases:
+                        phs = problem.model._get_subsystem(phase_path)
+                        phs.load_case(prev_soln)
 
                 failed = problem.run_driver(case_prefix=f'{_case_prefix}{refine_method}_{i}_')
 
@@ -76,4 +92,5 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
                 else:
                     print('Successfully completed grid refinement.', file=stream)
             print(50 * '=')
+
     return failed
