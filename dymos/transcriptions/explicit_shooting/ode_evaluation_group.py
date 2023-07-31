@@ -5,7 +5,7 @@ from .vandermonde_control_interp_comp import VandermondeControlInterpComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from .tau_comp import TauComp
 
-from ...utils.introspection import get_targets, configure_controls_introspection,\
+from ...utils.introspection import get_targets, configure_controls_introspection, \
     configure_time_introspection, configure_parameters_introspection, \
     configure_states_discovery, configure_states_introspection, get_target_metadata
 from ...utils.misc import get_rate_units
