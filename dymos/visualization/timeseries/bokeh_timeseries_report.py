@@ -5,8 +5,8 @@ import os.path
 try:
     from bokeh.io import output_notebook, output_file, save, show
     from bokeh.layouts import column, grid, row
-    from bokeh.models import Legend, DataTable, Div, ColumnDataSource, TableColumn, TabPanel, Tabs, \
-        CheckboxButtonGroup, CustomJS, MultiChoice
+    from bokeh.models import Legend, DataTable, Div, ColumnDataSource, TableColumn, \
+        TabPanel, Tabs, CheckboxButtonGroup, CustomJS, MultiChoice
     from bokeh.plotting import figure, curdoc
     import bokeh.palettes as bp
     import bokeh.resources as bokeh_resources
