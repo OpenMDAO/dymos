@@ -648,6 +648,8 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         for prob in [p, exp_out]:
             ts_group = prob.model._get_subsystem('phase0.timeseries')
 
+            ts_group.list_outputs()
+
             map_type_to_promnames = {'dymos.type:time': {'time'},
                                      'dymos.type:t_phase': set(),
                                      'dymos.type:control': set(),
@@ -657,7 +659,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
                                      'dymos.type:parameter': set(),
                                      'dymos.type:state': {'x', 'y', 'v'},
                                      'dymos.initial_boundary_constraint': set(),
-                                     'dymos.final_boundary_constraint': {'y'},
+                                     'dymos.final_boundary_constraint': set('y'),
                                      'dymos.path_constraint': {'theta_rate', 'y'}}
 
             for dymos_type, prom_names in map_type_to_promnames.items():

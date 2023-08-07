@@ -573,8 +573,8 @@ class Trajectory(om.Group):
                 units[i] = phases[i].control_options[vars[i]]['units']
                 shapes[i] = phases[i].control_options[vars[i]]['shape']
             elif classes[i] in {'control_rate', 'control_rate2'}:
-                prefix = 'control_rates:' if use_prefix[i] else ''
-                sources[i] = f'timeseries.{prefix}{vars[i]}'
+                prefix = 'control_rates:'
+                sources[i] = f'{prefix}{vars[i]}'
                 control_name = vars[i][:-5] if classes[i] == 'control_rate' else vars[i][:-6]
                 units[i] = phases[i].control_options[control_name]['units']
                 deriv = 1 if classes[i].endswith('rate') else 2
@@ -586,8 +586,8 @@ class Trajectory(om.Group):
                 units[i] = phases[i].polynomial_control_options[vars[i]]['units']
                 shapes[i] = phases[i].polynomial_control_options[vars[i]]['shape']
             elif classes[i] in {'polynomial_control_rate', 'polynomial_control_rate2'}:
-                prefix = 'polynomial_control_rates:' if use_prefix[i] else ''
-                sources[i] = f'timeseries.{prefix}{vars[i]}'
+                prefix = 'polynomial_control_rates:'
+                sources[i] = f'{prefix}{vars[i]}'
                 control_name = vars[i][:-5] if classes[i] == 'polynomial_control_rate' else vars[i][:-6]
                 control_units = phases[i].polynomial_control_options[control_name]['units']
                 time_units = phases[i].time_options['units']

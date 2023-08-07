@@ -1182,8 +1182,9 @@ class Phase(om.Group):
         bc['flat_indices'] = flat_indices
         bc['is_expr'] = is_expr
 
-        if constraint_name not in self._timeseries['timeseries']['outputs']:
-            self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+        print('adding timeseries output', name, constraint_name)
+        self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape,
+                                   tags=[f'dymos.{loc}_boundary_constraint'])
 
 
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
@@ -1287,8 +1288,8 @@ class Phase(om.Group):
         pc['flat_indices'] = flat_indices
         pc['is_expr'] = is_expr
 
-        if constraint_name not in self._timeseries['timeseries']['outputs']:
-            self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+        self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape,
+                                   tags=['dymos.path_constraint'])
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                               timeseries='timeseries', tags=None, **kwargs):
@@ -1324,6 +1325,13 @@ class Phase(om.Group):
         **kwargs
             Additional arguments passed to the exec comp.
         """
+        if tags is None:
+            _tags = []
+        elif isinstance(tags, str):
+            _tags = [tags]
+        else:
+            _tags = tags
+
         if type(name) is list:
             for i, name_i in enumerate(name):
                 expr = True if '=' in name_i else False
@@ -1340,7 +1348,7 @@ class Phase(om.Group):
                                                     timeseries=timeseries,
                                                     rate=False,
                                                     expr=expr,
-                                                    tags=tags)
+                                                    tags=_tags)
 
                 # Handle specific units for wildcard names.
                 if oname is not None and '*' in name_i:
@@ -1355,7 +1363,7 @@ class Phase(om.Group):
                                         rate=False,
                                         expr=expr,
                                         expr_kwargs=kwargs,
-                                        tags=tags)
+                                        tags=_tags)
 
     def add_timeseries_rate_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                                    timeseries='timeseries'):
@@ -1480,11 +1488,14 @@ class Phase(om.Group):
             ts_output['is_rate'] = rate
             ts_output['is_expr'] = expr
             ts_output['expr_kwargs'] = expr_kwargs
-            ts_output['tags'] = [tags] if isinstance(tags, str) else tags
+            ts_output['tags'] = tags
 
             self._timeseries[timeseries]['outputs'][output_name] = ts_output
-
             return output_name
+        elif tags is not None:
+            # Output already present, update tags
+            self._timeseries[timeseries]['outputs'][output_name]['tags'].extend(tags)
+
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""

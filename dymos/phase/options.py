@@ -745,7 +745,7 @@ class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
         self.declare(name='expr_kwargs', default={}, allow_none=False,
                      desc='Options to be passed to the timeseries expression comp when adding the expression.')
 
-        self.declare(name='tags', default=None, allow_none=True,
+        self.declare(name='tags', default=[], allow_none=False,
                      desc='Tags to be applied to the timeseries inputs and outputs.')
 
 

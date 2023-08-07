@@ -472,21 +472,6 @@ class TestPhaseBase(unittest.TestCase):
 
         p.run_driver()
 
-        plt.plot(p.get_val('phase0.timeseries.x'),
-                 p.get_val('phase0.timeseries.y'), 'ko')
-
-        plt.figure()
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.theta'), 'ro')
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.theta_rate'), 'bo')
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.theta_rate2'), 'go')
-        plt.show()
-
         assert_near_equal(p.get_val('phase0.timeseries.theta_rate2')[-1], 0,
                           tolerance=1.0E-6)
 
