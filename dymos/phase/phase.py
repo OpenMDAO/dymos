@@ -92,6 +92,7 @@ class Phase(om.Group):
 
             self.refine_options.update(from_phase.refine_options)
             self.simulate_options.update(from_phase.simulate_options)
+            self.timeseries_options.update(from_phase.timeseries_options)
 
             self._initial_boundary_constraints = from_phase._initial_boundary_constraints.copy()
             self._final_boundary_constraints = from_phase._final_boundary_constraints.copy()
@@ -1182,7 +1183,6 @@ class Phase(om.Group):
         bc['flat_indices'] = flat_indices
         bc['is_expr'] = is_expr
 
-        print('adding timeseries output', name, constraint_name)
         self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape,
                                    tags=[f'dymos.{loc}_boundary_constraint'])
 

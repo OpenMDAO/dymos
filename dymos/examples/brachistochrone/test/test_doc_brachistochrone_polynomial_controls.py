@@ -590,6 +590,31 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
+        io = p.model.get_io_metadata(metadata_keys=['tags'])
+        from pprint import pprint
+        pprint(io)
+
+        for prob in [p, exp_out]:
+            ts_group = prob.model._get_subsystem('phase0.timeseries')
+
+            map_type_to_promnames = {'dymos.type:time': {'time'},
+                                     'dymos.type:t_phase': set(),
+                                     'dymos.type:control': set(),
+                                     'dymos.type:polynomial_control': {'theta'},
+                                     'dymos.type:polynomial_control_rate': set(),
+                                     'dymos.type:polynomial_control_rate2': set(),
+                                     'dymos.type:parameter': set(),
+                                     'dymos.type:state': {'x', 'y', 'v'},
+                                     'dymos.initial_boundary_constraint': set(),
+                                     'dymos.final_boundary_constraint': set(),
+                                     'dymos.path_constraint': {'theta_rate'}}
+
+            for dymos_type, prom_names in map_type_to_promnames.items():
+                prom_outputs = {meta['prom_name'] for abs_path, meta in
+                                ts_group.list_outputs(tags=[dymos_type], out_stream=None)}
+                self.assertSetEqual(prom_outputs, prom_names,
+                                    msg=f'\n{dymos_type}\nin outputs: {prom_outputs}\nexpected: {prom_names}')
+
     def test_brachistochrone_polynomial_control_radau(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
@@ -645,10 +670,12 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
+        io = p.model.get_io_metadata(metadata_keys=['tags'])
+        from pprint import pprint
+        pprint(io)
+
         for prob in [p, exp_out]:
             ts_group = prob.model._get_subsystem('phase0.timeseries')
-
-            ts_group.list_outputs()
 
             map_type_to_promnames = {'dymos.type:time': {'time'},
                                      'dymos.type:t_phase': set(),

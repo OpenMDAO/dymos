@@ -722,10 +722,11 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
         #
         # Set the time options
         # Time has no targets in our ODE.
-        # We fix the initial time so that the it is not a design variable in the optimization.
+        # We fix the initial time so that it is not a design variable in the optimization.
         # The duration of the phase is allowed to be optimized, but is bounded on [0.5, 10].
         #
         phase.set_time_options(fix_initial=True, fix_duration=True, units='s', name=time_name)
+        phase.timeseries_options['include_t_phase'] = True
 
         #
         # Set the time options
