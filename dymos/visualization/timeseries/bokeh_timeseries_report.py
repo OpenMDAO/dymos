@@ -152,8 +152,7 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
                                 'bounds_by_phase': {},
                                 'timeseries_units': {}}
 
-        for phase in traj.system_iter(include_self=True, recurse=True, typ=dm.Phase):
-            phase_name = phase.pathname.split('.')[-1]
+        for phase_name, phase in traj._phases.items():
 
             data_dict[traj_name]['param_data_by_phase'][phase_name] = {'param': [], 'val': [], 'units': []}
             ts_units_dict = data_dict[traj_name]['timeseries_units']
@@ -191,8 +190,7 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
 
         # Now a second pass through the phases since we know the units in which to plot
         # each timeseries variable output.
-        for phase in traj.system_iter(include_self=True, recurse=True, typ=dm.Phase):
-            phase_name = phase.pathname.split('.')[-1]
+        for phase_name, phase in traj._phases.items():
 
             phase_sol_data = data_dict[traj_name]['sol_data_by_phase'][phase_name] = {}
             phase_sim_data = data_dict[traj_name]['sim_data_by_phase'][phase_name] = {}
@@ -261,8 +259,8 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
         param_tables = []
         phase_names = []
 
-        for phase in traj.system_iter(include_self=True, recurse=True, typ=dm.Phase):
-            phase_name = phase.pathname.split('.')[-1]
+        for phase_name, phase in traj._phases.items():
+
             phase_names.append(phase_name)
 
             # Make the parameter table
