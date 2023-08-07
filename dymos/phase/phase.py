@@ -1186,7 +1186,6 @@ class Phase(om.Group):
         self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape,
                                    tags=[f'dymos.{loc}_boundary_constraint'])
 
-
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
                             ref0=None, linear=False, flat_indices=False):
@@ -1495,7 +1494,6 @@ class Phase(om.Group):
         elif tags is not None:
             # Output already present, update tags
             self._timeseries[timeseries]['outputs'][output_name]['tags'].extend(tags)
-
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""
