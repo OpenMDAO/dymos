@@ -51,16 +51,7 @@ class Trajectory(om.Group):
     _phase_graph : nx.DiGraph
         A graph of linked phases.
     """
-    def __init__(self, parallel_phases=True, **kwargs):
-        """
-        Initialize a Trajectory instance.
-
-        Parameters
-        ----------
-        parallel_phases : bool
-            If True, make the phases subsystem a ParallelGroup otherwise
-            it will be a standard OpenMDAO Group.
-        """
+    def __init__(self, **kwargs):
         super(Trajectory, self).__init__(**kwargs)
 
         self._linkages = {}
@@ -68,7 +59,7 @@ class Trajectory(om.Group):
         self._phase_graph = nx.DiGraph()
 
         self.parameter_options = {}
-        self.phases = om.ParallelGroup() if parallel_phases else om.Group()
+        self.phases = om.ParallelGroup()
 
     def initialize(self):
         """
