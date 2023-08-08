@@ -88,8 +88,7 @@ class TranscriptionBase(object):
 
         for ts_name, ts_options in phase._timeseries.items():
             phase.add_timeseries_output(t_name, timeseries=ts_name, tags=['dymos.type:time'])
-            if (phase.timeseries_options['include_t_phase'] or
-                    time_options['time_phase_targets'] is not _unspecified):
+            if phase.timeseries_options['include_t_phase']:
                 phase.add_timeseries_output(t_phase_name, timeseries=ts_name,
                                             tags=['dymos.type:t_phase'])
 
@@ -166,12 +165,10 @@ class TranscriptionBase(object):
                 for ts_name, ts_options in phase._timeseries.items():
                     phase.add_timeseries_output(name, output_name=f'{control_prefix}{name}',
                                                 timeseries=ts_name, tags=['dymos.type:control'])
-                    if phase.timeseries_options['include_control_rates'] \
-                            or options['rate_targets'] is not _unspecified:
+                    if phase.timeseries_options['include_control_rates']:
                         phase.add_timeseries_output(f'{name}_rate', output_name=f'{control_rate_prefix}{name}_rate',
                                                     timeseries=ts_name, tags=['dymos.type:control_rate'])
-                    if phase.timeseries_options['include_control_rates'] \
-                            or options['rate2_targets'] is not _unspecified:
+                    if phase.timeseries_options['include_control_rates']:
                         phase.add_timeseries_output(f'{name}_rate2', output_name=f'{control_rate_prefix}{name}_rate2',
                                                     timeseries=ts_name, tags=['dymos.type:control_rate2'])
 
@@ -213,12 +210,10 @@ class TranscriptionBase(object):
                 for ts_name, ts_options in phase._timeseries.items():
                     phase.add_timeseries_output(name, output_name=f'{prefix}{name}',
                                                 timeseries=ts_name, tags=['dymos.type:polynomial_control'])
-                    if phase.timeseries_options['include_control_rates'] or \
-                            options['rate_targets'] is not _unspecified:
+                    if phase.timeseries_options['include_control_rates']:
                         phase.add_timeseries_output(f'{name}_rate', output_name=f'{rate_prefix}{name}_rate',
                                                     timeseries=ts_name, tags=['dymos.type:polynomial_control_rate'])
-                    if phase.timeseries_options['include_control_rates'] or \
-                            options['rate2_targets'] is not _unspecified:
+                    if phase.timeseries_options['include_control_rates']:
                         phase.add_timeseries_output(f'{name}_rate2', output_name=f'{rate_prefix}{name}_rate2',
                                                     timeseries=ts_name, tags=['dymos.type:polynomial_control_rate2'])
 
