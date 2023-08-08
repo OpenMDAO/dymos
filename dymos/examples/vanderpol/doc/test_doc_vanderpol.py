@@ -5,7 +5,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.mpi import MPI
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestVanderpolForDocs(unittest.TestCase):
     def tearDown(self):
         for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out', 'SNOPT_summary.out']:

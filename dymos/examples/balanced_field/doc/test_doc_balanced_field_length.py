@@ -7,7 +7,7 @@ from openmdao.utils.assert_utils import assert_near_equal
 SHOW_PLOTS = True
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
