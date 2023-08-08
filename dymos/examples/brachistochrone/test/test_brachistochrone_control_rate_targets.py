@@ -455,6 +455,7 @@ class TestBrachistochroneExplicitControlRateTargets(unittest.TestCase):
                                          x_check=y_exp[estart:eend, :],
                                          rel_tolerance=1.0E-9)
 
+
 @use_tempdirs
 class TestBrachistochronePolynomialControlRateTargets(unittest.TestCase):
 
