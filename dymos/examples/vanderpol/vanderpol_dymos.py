@@ -69,7 +69,7 @@ def vanderpol(transcription='gauss-lobatto', num_segments=40, transcription_orde
     phase.add_boundary_constraint('x1', loc='initial', equals=1.0)
     phase.add_boundary_constraint('J', loc='initial', equals=0.0)
 
-    phase.add_boundary_constraint('x0', loc='final', lower=0, upper=0.1)
+    phase.add_boundary_constraint('x0', loc='final', equals=0.0)
     phase.add_boundary_constraint('x1', loc='final', equals=0.0)
 
     phase.add_path_constraint('x1', lower=-0.5, upper=1.5)
