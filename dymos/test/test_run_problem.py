@@ -660,6 +660,7 @@ class TestRunProblemPlotting(unittest.TestCase):
         phase0.set_refine_options(refine=True)
 
         phase0.timeseries_options['include_state_rates'] = True
+        phase0.timeseries_options['include_control_rates'] = True
         phase0.timeseries_options['include_t_phase'] = True
 
         p.model.linear_solver = om.DirectSolver()

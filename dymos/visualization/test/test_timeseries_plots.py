@@ -58,6 +58,8 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
                                                     compressed=compressed),
                              subset='control_input')
 
+        phase.timeseries_options['include_control_rates'] = True
+
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
         # Minimize time at the end of the phase
@@ -83,7 +85,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         temp = dm.options['plots']
         dm.options['plots'] = 'matplotlib'
 
-        dm.run_problem(self.p, make_plots=False)
+        dm.run_problem(self.p, make_plots=True)
 
         timeseries_plots('dymos_solution.db', problem=self.p)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
@@ -256,6 +258,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         for phase_name, phase in self.traj._phases.items():
             phase.timeseries_options['use_prefix'] = True
             phase.timeseries_options['include_state_rates'] = True
+            phase.timeseries_options['include_control_rates'] = True
             phase.timeseries_options['include_t_phase'] = True
 
         p.setup(check=True)

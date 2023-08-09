@@ -27,8 +27,8 @@ PATH_ALPHA = 0.1
 PATH_HATCH_PATTERN = 'x'
 PATH_HATCH_ALPHA = 0.5
 MARKER_SIZE = 8
-MIN_Y = -1.0E8
-MAX_Y = 1.0E8
+MIN_Y = -1.0E6
+MAX_Y = 1.0E6
 
 _js_show_renderer = """
 function show_renderer(renderer, phases_to_show, kinds_to_show) {
@@ -213,8 +213,6 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
         The path to the solution record file, if available.
     simulation_record_file : str
         The path to the simulation record file, if available.
-    x_name : str
-        Name of the horizontal axis variable in the timeseries.
     ncols : int
         The number of columns of timeseries output plots.
     margin : int
@@ -338,19 +336,18 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                         if var_name in bcis:
                             bci = [c for c in phase._initial_boundary_constraints
                                    if c['constraint_name'] == var_name][0]
-                            bci_lower = bci['equals'] or bci['lower']
-                            bci_upper = bci['equals'] or bci['upper']
+                            bci_lower = bci['equals'] if bci['equals'] is not None else bci['lower']
+                            bci_upper = bci['equals'] if bci['equals'] is not None else bci['upper']
                         if var_name in bcfs:
                             bcf = [c for c in phase._final_boundary_constraints
                                    if c['constraint_name'] == var_name][0]
-                            bcf_lower = bcf['equals'] or bcf['lower']
-                            bcf_upper = bcf['equals'] or bcf['upper']
+                            bcf_lower = bcf['equals'] if bcf['equals'] is not None else bcf['lower']
+                            bcf_upper = bcf['equals'] if bcf['equals'] is not None else bcf['upper']
                         if var_name in paths:
                             path = [c for c in phase._path_constraints
                                     if c['constraint_name'] == var_name][0]
-                            path_lower = path['equals'] or path['lower']
-                            path_upper = path['equals'] or path['upper']
-                            print(var_name, path_lower, path_upper, path['equals'])
+                            path_lower = path['equals'] if path['equals'] is not None else path['lower']
+                            path_upper = path['equals'] if path['equals'] is not None else path['upper']
 
                         x_data = sol_data[x_name].ravel()
 
@@ -378,30 +375,34 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                             sol_source.data[f'{var_name}:upper'] = 1.E8 * np.ones_like(x_data)
 
                         if lower is not None:
-                            fig.varea(x=[x_data[0], x_data[-1]], y1=[lower, lower], y2=[MIN_Y, MIN_Y],
-                                      fill_alpha=BOUNDS_ALPHA, fill_color=color,
-                                      hatch_pattern=BOUNDS_HATCH_PATTERN, hatch_color=color,
-                                      hatch_alpha=BOUNDS_HATCH_ALPHA,
-                                      hatch_weight=0.2).tags.extend([f'phase:{phase_name}', 'bounds'])
+                            area = fig.varea(x=[x_data[0], x_data[-1]], y1=[lower, lower], y2=[MIN_Y, MIN_Y],
+                                             fill_alpha=BOUNDS_ALPHA, fill_color=color,
+                                             hatch_pattern=BOUNDS_HATCH_PATTERN, hatch_color=color,
+                                             hatch_alpha=BOUNDS_HATCH_ALPHA,
+                                             hatch_weight=0.2)
+                            area.tags.extend([f'phase:{phase_name}', 'bounds'],)
 
                         if upper is not None:
-                            fig.varea(x=[x_data[0], x_data[-1]], y1=[upper, upper], y2=[MAX_Y, MAX_Y],
-                                      fill_alpha=BOUNDS_ALPHA, fill_color=color,
-                                      hatch_pattern=BOUNDS_HATCH_PATTERN, hatch_color=color,
-                                      hatch_alpha=BOUNDS_HATCH_ALPHA,
-                                      hatch_weight=0.2).tags.extend([f'phase:{phase_name}', 'bounds'])
+                            area = fig.varea(x=[x_data[0], x_data[-1]], y1=[upper, upper], y2=[MAX_Y, MAX_Y],
+                                             fill_alpha=BOUNDS_ALPHA, fill_color=color,
+                                             hatch_pattern=BOUNDS_HATCH_PATTERN, hatch_color=color,
+                                             hatch_alpha=BOUNDS_HATCH_ALPHA,
+                                             hatch_weight=0.2)
+                            area.tags.extend([f'phase:{phase_name}', 'bounds'])
 
                         if path_lower is not None:
-                            fig.varea(x=[x_data[0], x_data[-1]], y1=[path_lower, path_lower], y2=[MIN_Y, MIN_Y],
-                                      fill_alpha=PATH_ALPHA, fill_color=color,
-                                      hatch_pattern=PATH_HATCH_PATTERN, hatch_color=color, hatch_alpha=PATH_HATCH_ALPHA,
-                                      hatch_weight=0.2).tags.extend([f'phase:{phase_name}', 'constraints'])
+                            area = fig.varea(x=[x_data[0], x_data[-1]], y1=[path_lower, path_lower], y2=[MIN_Y, MIN_Y],
+                                             fill_alpha=PATH_ALPHA, fill_color=color,
+                                             hatch_pattern=PATH_HATCH_PATTERN, hatch_color=color,
+                                             hatch_alpha=PATH_HATCH_ALPHA, hatch_weight=0.2)
+                            area.tags.extend([f'phase:{phase_name}', 'constraints'])
 
                         if path_upper is not None:
-                            fig.varea(x=[x_data[0], x_data[-1]], y1=[path_upper, path_upper], y2=[MAX_Y, MAX_Y],
-                                      fill_alpha=PATH_ALPHA, fill_color=color,
-                                      hatch_pattern=PATH_HATCH_PATTERN, hatch_color=color, hatch_alpha=PATH_HATCH_ALPHA,
-                                      hatch_weight=0.2).tags.extend([f'phase:{phase_name}', 'constraints'])
+                            area = fig.varea(x=[x_data[0], x_data[-1]], y1=[path_upper, path_upper], y2=[MAX_Y, MAX_Y],
+                                             fill_alpha=PATH_ALPHA, fill_color=color,
+                                             hatch_pattern=PATH_HATCH_PATTERN, hatch_color=color,
+                                             hatch_alpha=PATH_HATCH_ALPHA, hatch_weight=0.2)
+                            area.tags.extend([f'phase:{phase_name}', 'constraints'])
 
                         # Plot fixed endpoints if appropriate
                         if fix_initial:
@@ -426,6 +427,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
             # Only scale the y axis based on the sol and sim data plots, not any bounds plots
             fig.y_range.renderers = renderers
 
+            # Add a phase legend outside of the axes
             legend = Legend(items=legend_data, location='center', label_text_font_size='8pt')
             fig.add_layout(legend, 'right')
             figures.append(fig)
@@ -438,7 +440,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                         for i, table in enumerate(param_tables)]
 
         sol_sim_toggle = CheckboxButtonGroup(labels=['Solution', 'Simulation', 'Bounds', 'Constraints'],
-                                             active=[0, 1, 2])
+                                             active=[0, 1, 2, 3])
 
         sol_sim_row = row(children=[Div(text='Display data:', sizing_mode='stretch_height'),
                                     sol_sim_toggle],
