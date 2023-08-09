@@ -192,7 +192,7 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
 
 
 def make_timeseries_report(prob, solution_record_file=None, simulation_record_file=None,
-                           x_name='time', ncols=2, margin=10, theme='light_minimal'):
+                           ncols=2, margin=10, theme='light_minimal'):
     """
     Create the bokeh-based timeseries results report.
 
@@ -259,6 +259,9 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
 
         figures = []
         x_range = None
+
+        # The x_axis label will use the name for time in the first phase.
+        x_name = list(traj._phases.values())[0].time_options['name']
 
         for var_name in sorted(ts_units_dict.keys(), key=str.casefold):
             fig_kwargs = {'x_range': x_range} if x_range is not None else {}
