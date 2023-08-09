@@ -5,8 +5,8 @@ import os.path
 try:
     from bokeh.io import output_notebook, output_file, save, show
     from bokeh.layouts import column, grid, row
-    from bokeh.models import Arrow, Legend, DataTable, Div, ColumnDataSource, TableColumn, \
-        TabPanel, Tabs, CheckboxButtonGroup, CustomJS, MultiChoice, Whisker, VeeHead
+    from bokeh.models import BoxAnnotation, Legend, DataTable, Div, ColumnDataSource, TableColumn, \
+        TabPanel, Tabs, CheckboxButtonGroup, CustomJS, MultiChoice
     from bokeh.plotting import figure, curdoc
     import bokeh.palettes as bp
     import bokeh.resources as bokeh_resources
@@ -20,8 +20,15 @@ from openmdao.utils.units import conversion_to_base_units
 import dymos as dm
 
 
-BOUNDS_ALPHA = 0.08
+BOUNDS_ALPHA = 0.1
+BOUNDS_HATCH_PATTERN = '/'
+BOUNDS_HATCH_ALPHA = 0.5
+PATH_ALPHA = 0.1
+PATH_HATCH_PATTERN = 'x'
+PATH_HATCH_ALPHA = 0.5
 MARKER_SIZE = 8
+MIN_Y = -1.0E8
+MAX_Y = 1.0E8
 
 _js_show_renderer = """
 function show_renderer(renderer, phases_to_show, kinds_to_show) {
@@ -63,11 +70,13 @@ function show_renderer(renderer, phases_to_show, kinds_to_show) {
        phases_to_show.includes(renderer_phase);
 }
 
+console.log(figures[0])
 for (var i = 0; i < figures.length; i++) {
     if (figures[i]) {
         for (var j=0; j < figures[i].renderers.length; j++) {
             renderer = figures[i].renderers[j];
             // Get the phase with which this renderer is associated
+            console.log(renderer.tags)
             renderer.visible = show_renderer(renderer, phases_to_show, kinds_to_show);
         }
     }
@@ -286,6 +295,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                 x_range = fig.x_range
             for i, phase_name in enumerate(phase_names):
                 phase = traj._phases[phase_name]
+                x_name = phase.time_options['name']
                 bcis = {con['constraint_name'] for con in phase._initial_boundary_constraints}
                 bcfs = {con['constraint_name'] for con in phase._final_boundary_constraints}
                 paths = {con['constraint_name'] for con in phase._path_constraints}
@@ -340,6 +350,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                                     if c['constraint_name'] == var_name][0]
                             path_lower = path['equals'] or path['lower']
                             path_upper = path['equals'] or path['upper']
+                            print(var_name, path_lower, path_upper, path['equals'])
 
                         x_data = sol_data[x_name].ravel()
 
@@ -366,11 +377,31 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                         else:
                             sol_source.data[f'{var_name}:upper'] = 1.E8 * np.ones_like(x_data)
 
-                        if lower is not None or upper is not None:
-                            band = fig.varea(x=x_name, y1=f'{var_name}:lower', y2=f'{var_name}:upper',
-                                             source=sol_source, fill_alpha=BOUNDS_ALPHA,
-                                             fill_color=color)
-                            band.tags.extend([f'phase:{phase_name}', 'bounds'])
+                        if lower is not None:
+                            fig.varea(x=[x_data[0], x_data[-1]], y1=[lower, lower], y2=[MIN_Y, MIN_Y],
+                                      fill_alpha=BOUNDS_ALPHA, fill_color=color,
+                                      hatch_pattern=BOUNDS_HATCH_PATTERN, hatch_color=color,
+                                      hatch_alpha=BOUNDS_HATCH_ALPHA,
+                                      hatch_weight=0.2).tags.extend([f'phase:{phase_name}', 'bounds'])
+
+                        if upper is not None:
+                            fig.varea(x=[x_data[0], x_data[-1]], y1=[upper, upper], y2=[MAX_Y, MAX_Y],
+                                      fill_alpha=BOUNDS_ALPHA, fill_color=color,
+                                      hatch_pattern=BOUNDS_HATCH_PATTERN, hatch_color=color,
+                                      hatch_alpha=BOUNDS_HATCH_ALPHA,
+                                      hatch_weight=0.2).tags.extend([f'phase:{phase_name}', 'bounds'])
+
+                        if path_lower is not None:
+                            fig.varea(x=[x_data[0], x_data[-1]], y1=[path_lower, path_lower], y2=[MIN_Y, MIN_Y],
+                                      fill_alpha=PATH_ALPHA, fill_color=color,
+                                      hatch_pattern=PATH_HATCH_PATTERN, hatch_color=color, hatch_alpha=PATH_HATCH_ALPHA,
+                                      hatch_weight=0.2).tags.extend([f'phase:{phase_name}', 'constraints'])
+
+                        if path_upper is not None:
+                            fig.varea(x=[x_data[0], x_data[-1]], y1=[path_upper, path_upper], y2=[MAX_Y, MAX_Y],
+                                      fill_alpha=PATH_ALPHA, fill_color=color,
+                                      hatch_pattern=PATH_HATCH_PATTERN, hatch_color=color, hatch_alpha=PATH_HATCH_ALPHA,
+                                      hatch_weight=0.2).tags.extend([f'phase:{phase_name}', 'constraints'])
 
                         # Plot fixed endpoints if appropriate
                         if fix_initial:
@@ -386,7 +417,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                             fix_final_plot.tags.extend(['sol', f'phase:{phase_name}'])
 
                     if sim_data:
-                        sim_plot = fig.line(x='time', y=var_name, source=sim_source, color=color)
+                        sim_plot = fig.line(x=x_name, y=var_name, source=sim_source, color=color)
                         sim_plot.tags.extend(['sim', f'phase:{phase_name}'])
                         legend_items.append(sim_plot)
                         renderers.append(sim_plot)
@@ -406,7 +437,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
         param_panels = [TabPanel(child=table, title=f'{phase_names[i]} parameters')
                         for i, table in enumerate(param_tables)]
 
-        sol_sim_toggle = CheckboxButtonGroup(labels=['Solution', 'Simulation', 'Bounds'],
+        sol_sim_toggle = CheckboxButtonGroup(labels=['Solution', 'Simulation', 'Bounds', 'Constraints'],
                                              active=[0, 1, 2])
 
         sol_sim_row = row(children=[Div(text='Display data:', sizing_mode='stretch_height'),

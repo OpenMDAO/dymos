@@ -122,7 +122,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     return p
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestMinTimeClimb(unittest.TestCase):
 
     def _test_results(self, p, time_name='time'):
