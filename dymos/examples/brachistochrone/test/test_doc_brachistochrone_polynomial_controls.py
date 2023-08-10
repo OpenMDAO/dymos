@@ -611,7 +611,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
             for dymos_type, prom_names in map_type_to_promnames.items():
                 prom_outputs = {meta['prom_name'] for abs_path, meta in
-                                ts_group.list_outputs(tags=[dymos_type], out_stream=None)}
+                                ts_group.list_outputs(tags=[dymos_type], prom_name=True, out_stream=None)}
                 self.assertSetEqual(prom_outputs, prom_names,
                                     msg=f'\n{dymos_type}\nin outputs: {prom_outputs}\nexpected: {prom_names}')
 
@@ -691,7 +691,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
             for dymos_type, prom_names in map_type_to_promnames.items():
                 prom_outputs = {meta['prom_name'] for abs_path, meta in
-                                ts_group.list_outputs(tags=[dymos_type], out_stream=None)}
+                                ts_group.list_outputs(tags=[dymos_type], prom_name=True, out_stream=None)}
                 self.assertSetEqual(prom_outputs, prom_names,
                                     msg=f'\n{dymos_type}\nin outputs: {prom_outputs}\nexpected: {prom_names}')
 
