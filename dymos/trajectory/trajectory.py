@@ -393,6 +393,7 @@ class Trajectory(om.Group):
             tgts = []
             tgt_units = {}
             tgt_shapes = {}
+            tgt_vals = {}
 
             for phase_name, phs in self._phases.items():
 
@@ -403,6 +404,7 @@ class Trajectory(om.Group):
                         tgt = f'{phase_name}.parameters:{name}'
                         tgt_shapes[phs.name] = phs.parameter_options[name]['shape']
                         tgt_units[phs.name] = phs.parameter_options[name]['units']
+                        tgt_vals[phs.name] = phs.parameter_options[name]['val']
                     else:
                         continue
                 elif targets[phase_name] is None:
@@ -414,6 +416,7 @@ class Trajectory(om.Group):
                         tgt = f'{phase_name}.parameters:{targets[phase_name]}'
                         tgt_shapes[phs.name] = phs.parameter_options[targets[phase_name]]['shape']
                         tgt_units[phs.name] = phs.parameter_options[targets[phase_name]]['units']
+                        tgt_vals[phs.name] = phs.parameter_options[targets[phase_name]]['val']
                     else:
                         msg = f'Invalid target for trajectory `{self.pathname}` parameter `{name}` in phase ' \
                               f"`{phase_name}`.\nTarget for phase `{phase_name}` is '{targets[phase_name]}' but " \
@@ -426,6 +429,7 @@ class Trajectory(om.Group):
                         tgt = f'{phase_name}.parameters:{name}'
                         tgt_shapes[phs.name] = phs.parameter_options[name]['shape']
                         tgt_units[phs.name] = phs.parameter_options[name]['units']
+                        tgt_vals[phs.name] = phs.parameter_options[name]['val']
                     else:
                         msg = f'Invalid target for trajectory `{self.pathname}` parameter `{name}` in phase ' \
                               f"`{phase_name}`.\nThe phase did not add the parameter as expected. Please file an " \
@@ -447,7 +451,7 @@ class Trajectory(om.Group):
                     reason = ''
                 raise ValueError(f'No target was found for trajectory parameter `{name}` in any phase.\n{reason}')
 
-            if options['shape'] is _unspecified:
+            if options['shape'] in {_unspecified, None}:
                 if len(set(tgt_shapes.values())) == 1:
                     options['shape'] = next(iter(tgt_shapes.values()))
                 else:
@@ -463,6 +467,20 @@ class Trajectory(om.Group):
                                f'targets in multiple phases that have different units. You must '
                                f'explicitly provide units for the parameter since they cannot be '
                                f'inferred.')
+
+            if options['val'] is _unspecified:
+                val_list = list(tgt_vals.values())
+                unique_val = True
+                for val in val_list[1:]:
+                    if not np.array_equal(val_list[0], val, equal_nan=True):
+                        unique_val = False
+                if unique_val:
+                    options['val'] = val_list[0]
+                else:
+                    raise ValueError(f'Unable to automatically assign {metadata_key} based on targets. \n'
+                                     f'Targets have multiple values assigned: {err_dict}. \n'
+                                     f'Either promote targets and use set_input_defaults to assign common '
+                                     f'{metadata_key}, or explicitly provide {metadata_key} to the variable.')
 
             param_comp = self._get_subsystem('param_comp')
             param_comp.add_parameter(name, val=options['val'], shape=options['shape'], units=options['units'])

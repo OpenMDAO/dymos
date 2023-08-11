@@ -13,7 +13,7 @@ from .ode_integration_comp import ODEIntegrationComp
 from ..._options import options as dymos_options
 from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.indexing import get_src_indices_by_row
-from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets, get_target_metadata
+from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets
 from ...utils.constants import INF_BOUND
 from ..common import TimeComp, TimeseriesOutputGroup, ControlGroup, PolynomialControlGroup, \
     ParameterComp

@@ -8,7 +8,7 @@ from .common import ControlGroup, PolynomialControlGroup, ParameterComp
 from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.misc import _unspecified
-from ..utils.introspection import configure_states_introspection, get_promoted_vars, get_target_metadata, \
+from ..utils.introspection import configure_states_introspection, get_promoted_vars, \
     configure_states_discovery
 
 

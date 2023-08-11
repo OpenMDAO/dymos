@@ -263,7 +263,7 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
                                  "option 'dynamic' set to False should now use 'static_target' set "
                                  "to True.")
 
-        self.declare(name='static_target', values=[True, False, _unspecified], default=_unspecified,
+        self.declare(name='static_target', default=_unspecified,
                      desc='True if the target of this parameter does NOT have a unique value at '
                           'each node in the ODE.'
                           'If _unspecified, attempt to determine through introspection.')
@@ -271,7 +271,7 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
         self.declare(name='targets', allow_none=True, default=_unspecified,
                      desc='Targets in the ODE to which the state is connected')
 
-        self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
+        self.declare(name='val', default=_unspecified,
                      desc='The default value of the parameter in the phase.')
 
         self.declare(name='shape', check_valid=check_valid_shape, default=_unspecified,

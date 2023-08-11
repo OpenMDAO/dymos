@@ -58,6 +58,9 @@ class Phase(om.Group):
         Dictionary of optional phase arguments.
     """
 
+    def connect(self, src_name, tgt_name, src_indices=None, flat_src_indices=None):
+        super().connect(src_name, tgt_name, src_indices, flat_src_indices)
+
     def __init__(self, from_phase=None, **kwargs):
         _kwargs = kwargs.copy()
 

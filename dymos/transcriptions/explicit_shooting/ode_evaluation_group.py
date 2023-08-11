@@ -7,7 +7,8 @@ from .tau_comp import TauComp
 
 from ...utils.introspection import get_targets, configure_controls_introspection, \
     configure_time_introspection, configure_parameters_introspection, \
-    configure_states_discovery, configure_states_introspection, get_target_metadata
+    configure_states_discovery, configure_states_introspection, _get_targets_metadata,\
+    _get_common_metadata, get_promoted_vars
 from ...utils.misc import get_rate_units
 
 
@@ -196,33 +197,40 @@ class ODEEvaluationGroup(om.Group):
 
     def _configure_params(self):
         vec_size = self._vec_size
+        ode_inputs = get_promoted_vars(self.ode, iotypes='input', metadata_keys=['shape', 'units', 'val', 'tags'])
 
         for name, options in self._parameter_options.items():
             var_name = f'parameters:{name}'
 
-            targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
+            targets = _get_targets_metadata(ode_inputs, name=name, user_targets=options['targets'],
+                                            user_units=options['units'], user_shape=options['shape'],
+                                            control_rate=False)
 
-            shape, units, static = get_target_metadata(self.ode, name=name,
-                                                       user_targets=targets,
-                                                       user_shape=options['shape'],
-                                                       user_units=options['units'],
-                                                       user_static_target=options['static_target'])
-            options['units'] = units
-            options['shape'] = shape
-            options['static_target'] = static
+            units = _get_common_metadata(targets, 'units')
+            shape = _get_common_metadata(targets, 'shape')
+            static_target = [tgt for tgt, meta in targets.items() if 'dymos.static_target' in meta['tags']]
+
+
 
             self._ivc.add_output(var_name, shape=shape, units=units)
             self.add_design_var(var_name)
 
-            if options['static_target']:
-                src_idxs = None
-                shape = None
-            else:
-                src_rows = np.zeros(vec_size, dtype=int)
-                src_idxs = om.slicer[src_rows, ...]
+            # if options['static_target']:
+            #     src_idxs = None
+            #     shape = None
+            # else:
+            #     src_rows = np.zeros(vec_size, dtype=int)
+            #     src_idxs = om.slicer[src_rows, ...]
 
             # Promote targets from the ODE
             for tgt in targets:
+                if tgt in options['static_target']:
+                    src_idxs = None
+                    shape = None
+                else:
+                    src_rows = np.zeros(vec_size, dtype=int)
+                    src_idxs = om.slicer[src_rows, ...]
+
                 self.promotes('ode', inputs=[(tgt, var_name)], src_indices=src_idxs,
                               src_shape=shape)
             if targets:
