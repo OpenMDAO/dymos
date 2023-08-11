@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 import fnmatch
 import re
 
@@ -383,7 +383,6 @@ def configure_parameters_introspection(parameter_options, ode):
         An instantiated System that serves as the ODE to which the parameters should be applied.
     """
     ode_inputs = get_promoted_vars(ode, iotypes='input', metadata_keys=['units', 'shape', 'val', 'tags'])
-
     for name, options in parameter_options.items():
         try:
             targets = _get_targets_metadata(ode_inputs, name=name, user_targets=options['targets'])
@@ -433,6 +432,9 @@ def configure_parameters_introspection(parameter_options, ode):
                                    f'{all_shapes}')
             else:
                 options['shape'] = next(iter(set(all_shapes.values())))
+
+        if isinstance(options['val'], Sequence):
+            options['val'] = np.asarray(options['val'])
 
         if np.ndim(options['val']) > 0 and options['val'].shape != options['shape']:
             # If the introspected val is a long array (a value at each node), then only

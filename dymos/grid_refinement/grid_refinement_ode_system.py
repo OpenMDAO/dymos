@@ -3,7 +3,7 @@ import openmdao.api as om
 
 from ..phase.options import TimeOptionsDictionary
 from ..utils.misc import get_rate_units
-from ..utils.introspection import get_targets
+from ..utils.introspection import get_targets, _get_targets_metadata
 from ..transcriptions.grid_data import GridData
 
 
@@ -192,13 +192,13 @@ class GridRefinementODESystem(om.Group):
             static_targets = options['static_targets']
             shape = options['shape']
             prom_name = f'parameters:{name}'
-            targets = get_targets(self.ode, name, options['targets'])
-            for tgt in targets:
-                if not tgt not in static_targets:
+            targets = _get_targets_metadata(self.ode, name, options['targets'])
+            for tgt, meta in targets.items():
+                if tgt in static_targets:
+                    self.promotes('ode', inputs=[(tgt, prom_name)])
+                else:
                     self.promotes('ode', inputs=[(tgt, prom_name)],
                                   src_indices=om.slicer[np.zeros(num_nodes, dtype=int), ...])
-                else:
-                    self.promotes('ode', inputs=[(tgt, prom_name)])
             if targets:
                 self.set_input_defaults(name=prom_name,
                                         src_shape=shape,
