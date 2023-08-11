@@ -1,3 +1,4 @@
+from copy import deepcopy
 import numpy as np
 import openmdao.api as om
 
@@ -9,7 +10,7 @@ from ...utils.introspection import get_targets, configure_controls_introspection
     configure_time_introspection, configure_parameters_introspection, \
     configure_states_discovery, configure_states_introspection, _get_targets_metadata,\
     _get_common_metadata, get_promoted_vars
-from ...utils.misc import get_rate_units
+from ...utils.misc import get_rate_units, _unspecified
 
 
 class ODEEvaluationGroup(om.Group):
@@ -44,11 +45,16 @@ class ODEEvaluationGroup(om.Group):
                  polynomial_control_options, ode_init_kwargs=None, vec_size=1, **kwargs):
         super().__init__(**kwargs)
 
-        self._state_options = state_options
-        self._parameter_options = parameter_options
-        self._time_options = time_options
-        self._control_options = control_options
-        self._polynomial_control_options = polynomial_control_options
+        # This component creates copies of the variable options from the phase.
+        # It needs to perform its own introspection with respect to its ODE instance,
+        # and this would override unspecified variables for parameter introspection
+        # at the phase level.
+        self._state_options = deepcopy(state_options)
+        self._parameter_options = deepcopy(parameter_options)
+        self._time_options = deepcopy(time_options)
+        self._control_options = deepcopy(control_options)
+        self._polynomial_control_options = deepcopy(polynomial_control_options)
+
         self._control_interpolants = {}
         self._polynomial_control_interpolants = {}
         self._ode_class = ode_class
@@ -204,18 +210,24 @@ class ODEEvaluationGroup(om.Group):
 
             targets = _get_targets_metadata(ode_inputs, name=name, user_targets=options['targets'])
 
-            units = _get_common_metadata(targets, 'units')
-            shape = _get_common_metadata(targets, 'shape')
+            if options['units'] is _unspecified:
+                units = _get_common_metadata(targets, 'units')
+            else:
+                units = options['units']
+
+            if options['shape'] in {None, _unspecified}:
+                shape = _get_common_metadata(targets, 'shape')
+            else:
+                shape = options['shape']
+
             static_target = [tgt for tgt, meta in targets.items() if 'dymos.static_target' in meta['tags']]
-
-
 
             self._ivc.add_output(var_name, shape=shape, units=units)
             self.add_design_var(var_name)
 
             # Promote targets from the ODE
             for tgt in targets:
-                if tgt in options['static_target']:
+                if tgt in options['static_targets']:
                     src_idxs = None
                     shape = None
                 else:

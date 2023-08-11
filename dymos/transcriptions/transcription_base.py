@@ -286,11 +286,8 @@ class TranscriptionBase(object):
                                          ref=options['ref'])
 
                 for tgts, src_idxs in self.get_parameter_connections(name, phase):
-                    if not options['static_target']:
-                        phase.connect(f'parameter_vals:{name}', tgts, src_indices=src_idxs,
-                                      flat_src_indices=True)
-                    else:
-                        phase.connect(f'parameter_vals:{name}', tgts)
+                    phase.connect(f'parameter_vals:{name}', tgts, src_indices=src_idxs,
+                                  flat_src_indices=True)
 
     def setup_states(self, phase):
         """

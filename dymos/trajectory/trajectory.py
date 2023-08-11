@@ -94,7 +94,8 @@ class Trajectory(om.Group):
     def set_parameter_options(self, name, units=_unspecified, val=_unspecified, desc=_unspecified, opt=False,
                               targets=_unspecified, lower=_unspecified, upper=_unspecified,
                               scaler=_unspecified, adder=_unspecified, ref0=_unspecified, ref=_unspecified,
-                              shape=_unspecified, dynamic=_unspecified, static_target=_unspecified):
+                              shape=_unspecified, dynamic=_unspecified, static_target=_unspecified,
+                              static_targets=_unspecified):
         """
         Set the options of an existing a parameter in the trajectory.
 
@@ -138,6 +139,12 @@ class Trajectory(om.Group):
         static_target : bool or _unspecified
             True if the targets in the ODE are not shaped with num_nodes as the first dimension
             (meaning they cannot have a unique value at each node).  Otherwise False.
+        static_targets : bool or Sequence or _unspecified
+            True if ALL targets in the ODE are not shaped with num_nodes as the first dimension
+            (meaning they cannot have a unique value at each node).  If False, ALL targets are
+            expected to be shaped with the first dimension as the number of nodes. If given
+            as a Sequence, it provides those targets not shaped with num_nodes. If left _unspecified,
+            static targets will be determined automatically.
         """
         if name not in self.parameter_options:
             self.parameter_options[name] = TrajParameterOptionsDictionary()
@@ -186,17 +193,28 @@ class Trajectory(om.Group):
 
         if static_target is not _unspecified:
             self.parameter_options[name]['static_target'] = static_target
+            self.parameter_options[name]['static_targets'] = static_target
+
+        if static_targets is not _unspecified:
+            self.parameter_options[name]['static_targets'] = static_target
 
         if dynamic is not _unspecified and static_target is not _unspecified:
-            raise ValueError("Both the deprecated 'dynamic' option and option 'static_target' were "
+            raise ValueError("Both the deprecated 'dynamic' option and option 'static_target' were\n"
+                             f"specified for parameter '{name}'. Going forward, please use only\n"
+                             "option static_targets. Options 'dynamic' and 'static_target'\n"
+                             "will be removed in Dymos 2.0.0.")
+
+        if dynamic is not _unspecified and static_targets is not _unspecified:
+            raise ValueError("Both the deprecated 'dynamic' option and option 'static_targets' were "
                              f"specified for parameter '{name}'. "
-                             f"Going forward, please use only option static_target.  Option "
+                             f"Going forward, please use only option static_targets.  Option "
                              f"'dynamic' will be removed in Dymos 2.0.0.")
 
     def add_parameter(self, name, units=_unspecified, val=_unspecified, desc=_unspecified, opt=False,
                       targets=_unspecified, lower=_unspecified, upper=_unspecified,
                       scaler=_unspecified, adder=_unspecified, ref0=_unspecified, ref=_unspecified,
-                      shape=_unspecified, dynamic=_unspecified, static_target=_unspecified):
+                      shape=_unspecified, dynamic=_unspecified, static_target=_unspecified,
+                      static_targets=_unspecified):
         """
         Add a parameter (static control) to the trajectory.
 
@@ -240,6 +258,12 @@ class Trajectory(om.Group):
         static_target : bool or _unspecified
             True if the targets in the ODE are not shaped with num_nodes as the first dimension
             (meaning they cannot have a unique value at each node).  Otherwise False.
+        static_targets : bool or Sequence or _unspecified
+            True if ALL targets in the ODE are not shaped with num_nodes as the first dimension
+            (meaning they cannot have a unique value at each node).  If False, ALL targets are
+            expected to be shaped with the first dimension as the number of nodes. If given
+            as a Sequence, it provides those targets not shaped with num_nodes. If left _unspecified,
+            static targets will be determined automatically.
         """
         if name not in self.parameter_options:
             self.parameter_options[name] = TrajParameterOptionsDictionary()
@@ -286,7 +310,7 @@ class Trajectory(om.Group):
                         # We need to add an input parameter to this phase.
 
                         # The default target in the phase is name unless otherwise specified.
-                        kwargs = {'static_target': options['static_target'],
+                        kwargs = {'static_targets': options['static_targets'],
                                   'units': options['units'],
                                   'val': options['val'],
                                   'shape': options['shape'],

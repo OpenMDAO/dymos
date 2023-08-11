@@ -157,10 +157,7 @@ class ParameterComp(ExplicitComponent):
         elif isinstance(output_tags, str):
             output_tags = [output_tags]
 
-        if np.ndim(val) == 0 or _val.shape == (1,):
-            in_val = _val[:np.prod(_shape, dtype=int)]
-        else:
-            in_val = _val
+        in_val = _val
         out_val = np.expand_dims(in_val, axis=0)
 
         i_meta = self.add_input(name=f'parameters:{name}', val=in_val, shape=_shape, units=units, desc=desc,

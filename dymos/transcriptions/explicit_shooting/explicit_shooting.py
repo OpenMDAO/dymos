@@ -13,7 +13,7 @@ from .ode_integration_comp import ODEIntegrationComp
 from ..._options import options as dymos_options
 from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.indexing import get_src_indices_by_row
-from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets
+from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets, _get_targets_metadata
 from ...utils.constants import INF_BOUND
 from ..common import TimeComp, TimeseriesOutputGroup, ControlGroup, PolynomialControlGroup, \
     ParameterComp
@@ -217,12 +217,13 @@ class ExplicitShooting(TranscriptionBase):
                 phase.connect(f'integrator.{name}', [f'ode.{t}' for t in targets], src_indices=src_idxs,
                               flat_src_indices=True if dynamic else None)
 
-        for name, targets in [('t_initial', time_options['t_initial_targets']),
-                              ('t_duration', time_options['t_duration_targets'])]:
-            for t in targets:
-                tgt_shape, _, static_tgt = get_target_metadata(ode, name=name,
-                                                               user_targets=t,
-                                                               user_units=time_options['units'])
+        for name, tgts in [('t_initial', time_options['t_initial_targets']),
+                           ('t_duration', time_options['t_duration_targets'])]:
+
+            targets = _get_targets_metadata(ode, name, user_targets=tgts)
+            for t, meta in targets.items():
+                tgt_shape = meta['shape']
+
                 if tgt_shape == (1,):
                     src_idxs = None
                     flat_src_idxs = None
@@ -707,18 +708,19 @@ class ExplicitShooting(TranscriptionBase):
 
         if name in phase.parameter_options:
             options = phase.parameter_options[name]
-            if not options['static_target']:
-                src_idxs_raw = np.zeros(self._output_grid_data.subset_num_nodes['all'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-                if options['shape'] == (1,):
-                    src_idxs = src_idxs.ravel()
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-                src_idxs = np.squeeze(src_idxs, axis=0)
+            for tgt in options['targets']:
+                if tgt in options['static_targets']:
+                    src_idxs_raw = np.zeros(1, dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                    src_idxs = np.squeeze(src_idxs, axis=0)
+                else:
+                    src_idxs_raw = np.zeros(self._output_grid_data.subset_num_nodes['all'], dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                    if options['shape'] == (1,):
+                        src_idxs = src_idxs.ravel()
 
+                connection_info.append((f'ode.{tgt}', (src_idxs,)))
             connection_info.append(([f'integrator.parameters:{name}'], None))
-            connection_info.append(([f'ode.{tgt}' for tgt in options['targets']], (src_idxs,)))
 
         return connection_info
 

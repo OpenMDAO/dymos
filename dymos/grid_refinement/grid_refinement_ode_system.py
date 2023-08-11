@@ -189,12 +189,12 @@ class GridRefinementODESystem(om.Group):
 
         # Configure the parameters
         for name, options in self.options['parameters'].items():
-            static_target = options['static_target']
+            static_targets = options['static_targets']
             shape = options['shape']
             prom_name = f'parameters:{name}'
             targets = get_targets(self.ode, name, options['targets'])
             for tgt in targets:
-                if not static_target:
+                if not tgt not in static_targets:
                     self.promotes('ode', inputs=[(tgt, prom_name)],
                                   src_indices=om.slicer[np.zeros(num_nodes, dtype=int), ...])
                 else:

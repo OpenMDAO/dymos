@@ -57,10 +57,6 @@ class Phase(om.Group):
     **kwargs : dict
         Dictionary of optional phase arguments.
     """
-
-    def connect(self, src_name, tgt_name, src_indices=None, flat_src_indices=None):
-        super().connect(src_name, tgt_name, src_indices, flat_src_indices)
-
     def __init__(self, from_phase=None, **kwargs):
         _kwargs = kwargs.copy()
 
@@ -905,7 +901,7 @@ class Phase(om.Group):
                       desc=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
                       adder=_unspecified, ref0=_unspecified, ref=_unspecified, targets=_unspecified,
                       shape=_unspecified, dynamic=_unspecified, static_target=_unspecified,
-                      include_timeseries=_unspecified):
+                      include_timeseries=_unspecified, static_targets=_unspecified):
         """
         Add a parameter (static control variable) to the phase.
 
@@ -951,6 +947,12 @@ class Phase(om.Group):
             (meaning they cannot have a unique value at each node).  Otherwise False.
         include_timeseries : bool
             True if the static parameters should be included in output timeseries, else False.
+        static_targets : bool or Sequence or _unspecified
+            True if ALL targets in the ODE are not shaped with num_nodes as the first dimension
+            (meaning they cannot have a unique value at each node).  If False, ALL targets are
+            expected to be shaped with the first dimension as the number of nodes. If given
+            as a Sequence, it provides those targets not shaped with num_nodes. If left _unspecified,
+            static targets will be determined automatically.
         """
         self.check_parameter(name)
 
@@ -958,16 +960,18 @@ class Phase(om.Group):
             self.parameter_options[name] = ParameterOptionsDictionary()
             self.parameter_options[name]['name'] = name
 
-        self.set_parameter_options(name, val, units, opt, desc, lower, upper,
-                                   scaler, adder, ref0, ref, targets, shape, dynamic,
-                                   static_target, include_timeseries)
+        self.set_parameter_options(name, val=val, units=units, opt=opt, desc=desc,
+                                   lower=lower, upper=upper, scaler=scaler, adder=adder,
+                                   ref0=ref0, ref=ref, targets=targets, shape=shape, dynamic=dynamic,
+                                   static_target=static_target, static_targets=static_targets,
+                                   include_timeseries=include_timeseries)
 
     def set_parameter_options(self, name, val=_unspecified, units=_unspecified, opt=False,
                               desc=_unspecified, lower=_unspecified, upper=_unspecified,
                               scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
                               ref=_unspecified, targets=_unspecified, shape=_unspecified,
                               dynamic=_unspecified, static_target=_unspecified,
-                              include_timeseries=_unspecified):
+                              include_timeseries=_unspecified, static_targets=_unspecified):
         """
         Set options for an existing parameter (static control variable) in the phase.
 
@@ -1013,6 +1017,12 @@ class Phase(om.Group):
             (meaning they cannot have a unique value at each node).  Otherwise False.
         include_timeseries : bool
             True if the static parameters should be included in output timeseries, else False.
+        static_targets : bool or Sequence or _unspecified
+            True if ALL targets in the ODE are not shaped with num_nodes as the first dimension
+            (meaning they cannot have a unique value at each node).  If False, ALL targets are
+            expected to be shaped with the first dimension as the number of nodes. If given
+            as a Sequence, it provides those targets not shaped with num_nodes. If left _unspecified,
+            static targets will be determined automatically.
         """
         if units is not _unspecified:
             self.parameter_options[name]['units'] = units
@@ -1046,14 +1056,26 @@ class Phase(om.Group):
 
         if dynamic is not _unspecified:
             self.parameter_options[name]['static_target'] = not dynamic
+            self.parameter_options[name]['static_targets'] = not dynamic
 
         if static_target is not _unspecified:
             self.parameter_options[name]['static_target'] = static_target
+            self.parameter_options[name]['static_targets'] = static_target
+
+        if static_targets is not _unspecified:
+            self.parameter_options[name]['static_target'] = static_targets
+            self.parameter_options[name]['static_targets'] = static_targets
 
         if dynamic is not _unspecified and static_target is not _unspecified:
-            raise ValueError("Both the deprecated 'dynamic' option and option 'static_target' were "
+            raise ValueError("Both the deprecated 'dynamic' option and option 'static_target' were\n"
+                             f"specified for parameter '{name}'. Going forward, please use only\n"
+                             "option static_targets. Options 'dynamic' and 'static_target'\n"
+                             "will be removed in Dymos 2.0.0.")
+
+        if dynamic is not _unspecified and static_targets is not _unspecified:
+            raise ValueError("Both the deprecated 'dynamic' option and option 'static_targets' were "
                              f"specified for parameter '{name}'. Going forward, please use only "
-                             "option static_target.  Option 'dynamic' will be removed in "
+                             "option static_targets.  Option 'dynamic' will be removed in "
                              "Dymos 2.0.0.")
 
         if lower is not _unspecified:
