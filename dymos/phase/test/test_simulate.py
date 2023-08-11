@@ -99,9 +99,6 @@ class TestSimulateShapedParams(unittest.TestCase):
 
         p.driver = om.ScipyOptimizeDriver()
 
-        # des_vars = p.model.add_subsystem('des_vars', om.IndepVarComp(), promotes_outputs=['*'])
-        # des_vars.add_output('chord', val=4 * np.ones(4), units='inch')
-
         hop0 = dm.Trajectory()
         p.model.add_subsystem('hop0', hop0)
         main_phase = hop0.add_phase(name='main_phase',

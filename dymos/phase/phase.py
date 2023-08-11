@@ -1048,11 +1048,6 @@ class Phase(om.Group):
                 self.parameter_options[name]['shape'] = tuple(shape)
             else:
                 self.parameter_options[name]['shape'] = shape
-        elif val is not _unspecified:
-            if isinstance(val, float) or isinstance(val, int) or isinstance(val, complex):
-                self.parameter_options[name]['shape'] = (1,)
-            else:
-                self.parameter_options[name]['shape'] = tuple(np.asarray(val).shape)
 
         if dynamic is not _unspecified:
             self.parameter_options[name]['static_target'] = not dynamic

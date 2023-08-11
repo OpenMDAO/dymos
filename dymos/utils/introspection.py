@@ -307,7 +307,6 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
     """
     ode_inputs = get_promoted_vars(ode, iotypes='input', metadata_keys=['shape', 'units', 'val', 'tags'])
     for name, options in control_options.items():
-
         targets = _get_targets_metadata(ode_inputs, name=name, user_targets=options['targets'])
 
         options['targets'] = list(targets.keys())
@@ -324,7 +323,7 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
 
             if any(['dymos.static_target' in meta['tags'] for meta in targets.values()]):
                 raise ValueError(f"Control '{name}' cannot be connected to its targets because one "
-                                f"or more targets are tagged with 'dymos.static_target'.")
+                                 f"or more targets are tagged with 'dymos.static_target'.")
 
         # Now check rate targets
         rate_targets = _get_targets_metadata(ode_inputs, name=f'{name}_rate',
@@ -345,7 +344,7 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
 
             if any(['dymos.static_target' in meta['tags'] for meta in rate_targets.values()]):
                 raise ValueError(f"Control rate of '{name}' cannot be connected to its targets because one "
-                                f"or more targets are tagged with 'dymos.static_target'.")
+                                 f"or more targets are tagged with 'dymos.static_target'.")
 
         # Now check rate2 targets
         rate2_targets = _get_targets_metadata(ode_inputs, name=f'{name}_rate2',
@@ -367,7 +366,7 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
 
             if any(['dymos.static_target' in meta['tags'] for meta in rate2_targets.values()]):
                 raise ValueError(f"Control rate2 of '{name}' cannot be connected to its targets because one "
-                                f"or more targets are tagged with 'dymos.static_target'.")
+                                 f"or more targets are tagged with 'dymos.static_target'.")
 
 
 def configure_parameters_introspection(parameter_options, ode):
@@ -382,10 +381,9 @@ def configure_parameters_introspection(parameter_options, ode):
     ode : om.System
         An instantiated System that serves as the ODE to which the parameters should be applied.
     """
-    ode_inputs = get_promoted_vars(ode, iotypes='input', metadata_keys=['units', 'shape', 'val', 'tags'])
     for name, options in parameter_options.items():
         try:
-            targets = _get_targets_metadata(ode_inputs, name=name, user_targets=options['targets'])
+            targets = _get_targets_metadata(ode, name=name, user_targets=options['targets'])
         except ValueError as e:
             raise ValueError(f'Parameter `{name}` has invalid target(s).\n{str(e)}') from e
 
@@ -404,8 +402,8 @@ def configure_parameters_introspection(parameter_options, ode):
             options['static_targets'] = []
 
         if static_tagged_targets and not options['static_targets']:
-            raise ValueError(f"Parameter `{name}` has invalid target(s).\n" \
-                             f"User has specified 'static_target = False' for parameter `{name}`,\nbut one or more " \
+            raise ValueError(f"Parameter `{name}` has invalid target(s).\n"
+                             f"User has specified 'static_target = False' for parameter `{name}`,\nbut one or more "
                              f"targets is tagged with 'dymos.static_target':\n{static_tagged_targets}")
 
         if options['units'] is _unspecified:
@@ -538,7 +536,7 @@ def configure_states_introspection(state_options, time_options, control_options,
 
             if any(['dymos.static_target' in meta['tags'] for meta in targets.values()]):
                 raise ValueError(f"State '{name}' cannot be connected to its targets because one "
-                                f"or more targets are tagged with 'dymos.static_target'.")
+                                 f"or more targets are tagged with 'dymos.static_target'.")
 
         # 3. Attempt rate-source introspection
         rate_src = options['rate_source']
