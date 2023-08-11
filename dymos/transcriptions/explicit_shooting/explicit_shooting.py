@@ -424,14 +424,14 @@ class ExplicitShooting(TranscriptionBase):
                               [f'ode.{t}' for t in targets])
 
             # Rate targets
-            rate_targets = get_targets(ode_inputs, control_name, options['rate_targets'], control_rates=1)
+            rate_targets = get_targets(ode_inputs, control_name, options['rate_targets'])
 
             if rate_targets:
                 phase.connect(f'control_rates:{control_name}_rate',
                               [f'ode.{t}' for t in rate_targets])
 
             # Second time derivative targets must be specified explicitly
-            rate2_targets = get_targets(ode_inputs, control_name, options['rate2_targets'], control_rates=2)
+            rate2_targets = get_targets(ode_inputs, control_name, options['rate2_targets'])
 
             if rate2_targets:
                 phase.connect(f'control_rates:{control_name}_rate2',
@@ -518,14 +518,14 @@ class ExplicitShooting(TranscriptionBase):
                               [f'ode.{t}' for t in targets])
 
             # Rate targets
-            rate_targets = get_targets(ode_inputs, control_name, options['rate_targets'], control_rates=1)
+            rate_targets = get_targets(ode_inputs, control_name, options['rate_targets'])
 
             if rate_targets:
                 phase.connect(f'polynomial_control_rates:{control_name}_rate',
                               [f'ode.{t}' for t in rate_targets])
 
             # Second time derivative targets must be specified explicitly
-            rate2_targets = get_targets(ode_inputs, control_name, options['rate2_targets'], control_rates=2)
+            rate2_targets = get_targets(ode_inputs, control_name, options['rate2_targets'])
 
             if rate2_targets:
                 phase.connect(f'polynomial_control_rates:{control_name}_rate2',

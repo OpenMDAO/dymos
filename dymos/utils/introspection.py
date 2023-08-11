@@ -115,7 +115,7 @@ def get_promoted_vars(ode, iotypes, metadata_keys=None, get_remote=True):
                                                                     metadata_keys=metadata_keys).values()}
 
 
-def get_targets(ode, name, user_targets, control_rates=False):
+def get_targets(ode, name, user_targets):
     """
     Return the targets of a variable in a given ODE system.
 
@@ -135,10 +135,6 @@ def get_targets(ode, name, user_targets, control_rates=False):
         The name of the variable whose targets are desired.
     user_targets : str or None or Sequence or _unspecified
         Targets for the variable as given by the user.
-    control_rates : bool or int
-        If True, search for the target of the variable with the given name.  If 1, search for
-        the first rate of the variable '{control_name}_rate', and if 2, search for the second
-        derivative of the variable '{control_name}_rate2'.
 
     Returns
     -------
@@ -312,9 +308,8 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
     ode_inputs = get_promoted_vars(ode, iotypes='input', metadata_keys=['shape', 'units', 'val', 'tags'])
     for name, options in control_options.items():
 
-        targets = _get_targets_metadata(ode_inputs, name=name, user_targets=options['targets'],
-                                        user_units=options['units'], user_shape=options['shape'],
-                                        control_rate=False)
+        targets = _get_targets_metadata(ode_inputs, name=name, user_targets=options['targets'])
+
         options['targets'] = list(targets.keys())
         if targets:
             if options['units'] is _unspecified:
@@ -353,9 +348,7 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
 
         # Now check rate targets
         rate_targets = _get_targets_metadata(ode_inputs, name=f'{name}_rate',
-                                             user_targets=options['rate_targets'],
-                                             user_units=options['units'],
-                                             user_shape=options['shape'])
+                                             user_targets=options['rate_targets'])
 
         options['rate_targets'] = list(rate_targets.keys())
         if rate_targets:
@@ -371,10 +364,7 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
 
         # Now check rate2 targets
         rate2_targets = _get_targets_metadata(ode_inputs, name=f'{name}_rate2',
-                                              user_targets=options['rate2_targets'],
-                                              user_units=options['units'],
-                                              user_shape=options['shape'],
-                                              control_rate=2)
+                                              user_targets=options['rate2_targets'])
 
         options['rate2_targets'] = list(rate2_targets.keys())
         if rate2_targets:
@@ -405,10 +395,7 @@ def configure_parameters_introspection(parameter_options, ode):
 
     for name, options in parameter_options.items():
         try:
-            targets = _get_targets_metadata(ode_inputs, name=name, user_targets=options['targets'],
-                                            user_units=options['units'],
-                                            user_shape=options['shape'],
-                                            user_static_target=options['static_target'])
+            targets = _get_targets_metadata(ode_inputs, name=name, user_targets=options['targets'])
         except ValueError as e:
             raise ValueError(f'Parameter `{name}` has invalid target(s).\n{str(e)}') from e
 
@@ -475,10 +462,7 @@ def configure_time_introspection(time_options, ode):
     time_name = time_options['name']
     t_phase_name = f'{time_name}_phase'
 
-    targets = _get_targets_metadata(ode_inputs, name=time_name,
-                                    user_targets=time_options['targets'],
-                                    user_units=time_options['units'],
-                                    user_shape=(1,))
+    targets = _get_targets_metadata(ode_inputs, name=time_name, user_targets=time_options['targets'])
 
     time_options['targets'] = targets
 
@@ -490,10 +474,7 @@ def configure_time_introspection(time_options, ode):
                          f"or more targets are tagged with 'dymos.static_target'.")
 
     # t_phase
-    targets = _get_targets_metadata(ode_inputs, name=t_phase_name,
-                                    user_targets=time_options['time_phase_targets'],
-                                    user_units=time_options['units'],
-                                    user_shape=(1,))
+    targets = _get_targets_metadata(ode_inputs, name=t_phase_name, user_targets=time_options['time_phase_targets'])
 
     time_options['time_phase_targets'] = targets
 
@@ -537,9 +518,7 @@ def configure_states_introspection(state_options, time_options, control_options,
     for state_name, options in state_options.items():
         # Automatically determine targets of state if left _unspecified
         targets = _get_targets_metadata(ode_inputs, state_name,
-                                        user_targets=options['targets'],
-                                        user_units=options['units'],
-                                        user_shape=options['shape'])
+                                        user_targets=options['targets'])
 
         options['targets'] = list(targets.keys())
         if targets:
@@ -1244,9 +1223,7 @@ def configure_duration_balance_introspection(phase):
                          f' has no index specified. The balance may only have shape (1,) or a single index')
 
 
-def _get_targets_metadata(ode, name, user_targets=_unspecified, user_units=_unspecified,
-                          user_shape=_unspecified, control_rate=False, user_static_target=_unspecified,
-                          user_val=_unspecified):
+def _get_targets_metadata(ode, name, user_targets=_unspecified):
     """
     Return the targets of a variable in a given ODE system and their metadata.
 
@@ -1267,19 +1244,6 @@ def _get_targets_metadata(ode, name, user_targets=_unspecified, user_units=_unsp
         The name of the variable whose targets are desired.
     user_targets : str or None or Sequence or _unspecified
         Targets for the variable as given by the user.
-    user_units : str or None or _unspecified
-        Units for the variable as given by the user.
-    user_shape : None or Sequence or _unspecified
-        Shape for the variable as given by the user.
-    control_rate : bool
-        When True, check for the control rate if the name is not in the ODE.
-    user_static_target : bool or None or _unspecified
-        When False, assume the shape of the target in the ODE includes the number of nodes as the
-        first dimension.  If True, the connecting parameter does not need to be "fanned out" to
-        connect to each node.  If _unspecified, attempt to resolve by the presence of a tag
-        `dymos.static_target` on the target variable, which is the same as `static_target=True`.
-    user_val : float or array
-        The default value as specified by the user.
 
     Returns
     -------
@@ -1297,7 +1261,7 @@ def _get_targets_metadata(ode, name, user_targets=_unspecified, user_units=_unsp
                                                                      metadata_keys=['shape', 'units',
                                                                                     'val', 'tags'])
 
-    targets = {t: {} for t in get_targets(ode_inputs, name, user_targets=user_targets, control_rates=control_rate)}
+    targets = {t: {} for t in get_targets(ode_inputs, name, user_targets=user_targets)}
 
     for tgt in targets:
         if tgt not in ode_inputs:

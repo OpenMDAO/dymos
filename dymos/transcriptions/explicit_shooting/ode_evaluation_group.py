@@ -202,9 +202,7 @@ class ODEEvaluationGroup(om.Group):
         for name, options in self._parameter_options.items():
             var_name = f'parameters:{name}'
 
-            targets = _get_targets_metadata(ode_inputs, name=name, user_targets=options['targets'],
-                                            user_units=options['units'], user_shape=options['shape'],
-                                            control_rate=False)
+            targets = _get_targets_metadata(ode_inputs, name=name, user_targets=options['targets'])
 
             units = _get_common_metadata(targets, 'units')
             shape = _get_common_metadata(targets, 'shape')
@@ -214,13 +212,6 @@ class ODEEvaluationGroup(om.Group):
 
             self._ivc.add_output(var_name, shape=shape, units=units)
             self.add_design_var(var_name)
-
-            # if options['static_target']:
-            #     src_idxs = None
-            #     shape = None
-            # else:
-            #     src_rows = np.zeros(vec_size, dtype=int)
-            #     src_idxs = om.slicer[src_rows, ...]
 
             # Promote targets from the ODE
             for tgt in targets:
@@ -235,7 +226,7 @@ class ODEEvaluationGroup(om.Group):
                               src_shape=shape)
             if targets:
                 self.set_input_defaults(name=var_name,
-                                        val=np.ones(shape),
+                                        val=1.0,
                                         units=options['units'])
 
     def _configure_controls(self):
