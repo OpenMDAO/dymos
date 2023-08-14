@@ -411,29 +411,40 @@ def configure_parameters_introspection(parameter_options, ode):
         if options['units'] is _unspecified:
             options['units'] = _get_common_metadata(targets, metadata_key='units')
 
+        # Check that all targets have the same shape.
+        static_shapes = {}
+        dynamic_shapes = {}
+        # First find the shapes of the static targets
+        for tgt, meta in targets.items():
+            if tgt in options['static_targets']:
+                static_shapes[tgt] = meta['shape']
+            else:
+                if len(meta['shape']) == 1:
+                    dynamic_shapes[tgt] = (1,)
+                else:
+                    dynamic_shapes[tgt] = meta['shape'][1:]
+        all_shapes = {**dynamic_shapes, **static_shapes}
+        # Check that they're unique
+        if len(set(all_shapes.values())) > 1:
+            raise RuntimeError(f'Invalid targets for parameter `{name}`.\n'
+                               f'Targets have multiple shapes.\n'
+                               f'{all_shapes}')
+        elif len(set(all_shapes.values())) == 1:
+            introspected_shape = next(iter(set(all_shapes.values())))
+        else:
+            introspected_shape = None
+
         if options['shape'] in {_unspecified, None}:
             if isinstance(options['val'], Number):
-                static_shapes = {}
-                dynamic_shapes = {}
-                # First find the shapes of the static targets
-                for tgt, meta in targets.items():
-                    if tgt in options['static_targets']:
-                        static_shapes[tgt] = meta['shape']
-                    else:
-                        if len(meta['shape']) == 1:
-                            dynamic_shapes[tgt] = (1,)
-                        else:
-                            dynamic_shapes[tgt] = meta['shape'][1:]
-                all_shapes = {**dynamic_shapes, **static_shapes}
-                # Check that they're unique
-                if len(set(all_shapes.values())) != 1:
-                    raise RuntimeError(f'Unable to obtain shape of parameter {name} via introspection.\n'
-                                       f'Targets have multiple shapes.\n'
-                                       f'{all_shapes}')
-                else:
-                    options['shape'] = next(iter(set(all_shapes.values())))
+                options['shape'] = introspected_shape
             else:
                 options['shape'] = np.asarray(options['val']).shape
+        else:
+            if introspected_shape is not None and options['shape'] != introspected_shape:
+                raise RuntimeError(f'Shape provided to parameter `{name}` differs from its targets.\n'
+                                   f'Given shape: {options["shape"]}\n'
+                                   f'Target shapes:\n'
+                                   f'{all_shapes}')
 
         options['val'], options['shape'] = ensure_compatible(name, options['val'], options['shape'])
 
@@ -1187,14 +1198,14 @@ def _get_common_metadata(targets, metadata_key):
     if len(meta_set) == 1:
         return next(iter(meta_set))
     elif len(meta_set) == 0:
-        raise ValueError(f'Unable to automatically assign {metadata_key} based on targets. \n'
-                         f'No targets were found.')
+        raise RuntimeError(f'Unable to automatically assign {metadata_key} based on targets. \n'
+                           f'No targets were found.')
     else:
         err_dict = {tgt: meta[metadata_key] for tgt, meta in targets.items()}
-        raise ValueError(f'Unable to automatically assign {metadata_key} based on targets. \n'
-                         f'Targets have multiple {metadata_key} assigned: {err_dict}. \n'
-                         f'Either promote targets and use set_input_defaults to assign common '
-                         f'{metadata_key}, or explicitly provide {metadata_key} to the variable.')
+        raise RuntimeError(f'Unable to automatically assign {metadata_key} based on targets.\n'
+                           f'Targets have multiple {metadata_key} assigned:\n{err_dict}.\n'
+                           f'Either promote targets and use set_input_defaults to assign common\n'
+                           f'{metadata_key}, or explicitly provide {metadata_key} to the variable.')
 
 
 def get_source_metadata(ode, src, user_units=_unspecified, user_shape=_unspecified):
