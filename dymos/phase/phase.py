@@ -2312,10 +2312,7 @@ class Phase(om.Group):
 
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.
-            if om_version < (3, 4, 1):
-                val = phs.get_val(f'parameters:{name}', units=units)[0, ...]
-            else:
-                val = phs.get_val(f'parameters:{name}', units=units)
+            val = phs.get_val(f'parameters:{name}', units=units)
 
             if phase_path:
                 prob_path = f'{phase_path}.{self.name}.parameters:{name}'

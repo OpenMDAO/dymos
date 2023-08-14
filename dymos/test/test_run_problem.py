@@ -336,7 +336,6 @@ class TestRunProblem(unittest.TestCase):
                          'Key "case_prefix" was found in simulate_kwargs but should instead by provided by '
                          'the argument "case_prefix", not part of the simulate_kwargs dictionary.')
 
-    @unittest.skipIf(om_version < (3, 18, 0), 'test requires OpenMDAO >= 3.18.01')
     @require_pyoptsparse(optimizer='SLSQP')
     def test_run_brachistochrone_problem_refine_case_driver_case_prefix(self):
         p = om.Problem(model=om.Group())

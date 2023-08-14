@@ -56,7 +56,6 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=Fal
     return p
 
 
-@unittest.skipIf(om_version <= (2, 9, 0), 'load_case requires an OpenMDAO version later than 2.9.0')
 @use_tempdirs
 class TestLoadCase(unittest.TestCase):
 

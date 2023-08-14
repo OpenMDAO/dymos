@@ -80,8 +80,6 @@ class CannonballODEVectorCD(om.ExplicitComponent):
 @use_tempdirs
 class TestConnectControlToParameter(unittest.TestCase):
 
-    @unittest.skipIf(om_version < (3, 4, 1) or (om_version == (3, 4, 1) and om_dev_version),
-                     'test requires OpenMDAO >= 3.4.1')
     @require_pyoptsparse(optimizer='SLSQP')
     def test_connect_control_to_parameter(self):
         """ Test that the final value of a control in one phase can be connected as the value
