@@ -21,7 +21,7 @@ from ..phase.analytic_phase import AnalyticPhase
 from ..phase.options import TrajParameterOptionsDictionary
 from ..transcriptions.common import ParameterComp
 from ..utils.misc import get_rate_units, _unspecified
-from ..utils.introspection import get_promoted_vars, get_source_metadata
+from ..utils.introspection import get_promoted_vars, get_source_metadata, _get_common_metadata
 from .._options import options as dymos_options
 
 
@@ -276,6 +276,29 @@ class Trajectory(om.Group):
                                    upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref, shape=shape,
                                    dynamic=dynamic, static_target=static_target)
 
+    def _get_phase_parameters(self):
+        """
+        Retrieve a dict of parameter options for each phase within the trajectory.
+
+        Returns
+        -------
+        dict
+            A dictionary keyed by phase name. Each associated value is a dictionary
+            keyed by parameter name and the associated values are parameter options
+            for each parameter.
+
+        """
+        phase_param_options = {}
+        for phs in self.phases._subsystems_myproc:
+            phase_param_options.update({phs.name: phs.parameter_options})
+
+        if self.comm.size > 1:
+            data = self.comm.gather(phase_param_options, root=0)
+            if data:
+                for d in data:
+                    phase_param_options.update(d)
+        return phase_param_options
+
     def _setup_parameters(self):
         """
         Adds an IndepVarComp if necessary and issues appropriate connections based
@@ -395,7 +418,6 @@ class Trajectory(om.Group):
         """
         parameter_options = self.parameter_options
         promoted_inputs = []
-
         for name, options in parameter_options.items():
             promoted_inputs.append(f'parameters:{name}')
             targets = options['targets']
@@ -414,21 +436,16 @@ class Trajectory(om.Group):
             # For each phase, use introspection to get the units and shape.
             # If units do not match across all phases, require user to set them.
             # If shapes do not match across all phases, this is an error.
-            tgts = []
-            tgt_units = {}
-            tgt_shapes = {}
-            tgt_vals = {}
+            targets_per_phase = {}
 
             for phase_name, phs in self._phases.items():
+                target_param = None
 
                 if targets is None or phase_name not in targets:
                     # Attempt to connect to an input parameter of the same name in the phase, if
                     # it exists.
                     if name in phs.parameter_options:
-                        tgt = f'{phase_name}.parameters:{name}'
-                        tgt_shapes[phs.name] = phs.parameter_options[name]['shape']
-                        tgt_units[phs.name] = phs.parameter_options[name]['units']
-                        tgt_vals[phs.name] = phs.parameter_options[name]['val']
+                        target_param = name
                     else:
                         continue
                 elif targets[phase_name] is None:
@@ -437,10 +454,7 @@ class Trajectory(om.Group):
                 elif isinstance(targets[phase_name], str):
                     if targets[phase_name] in phs.parameter_options:
                         # Connect to an input parameter with a different name in this phase
-                        tgt = f'{phase_name}.parameters:{targets[phase_name]}'
-                        tgt_shapes[phs.name] = phs.parameter_options[targets[phase_name]]['shape']
-                        tgt_units[phs.name] = phs.parameter_options[targets[phase_name]]['units']
-                        tgt_vals[phs.name] = phs.parameter_options[targets[phase_name]]['val']
+                        target_param = targets[phase_name]
                     else:
                         msg = f'Invalid target for trajectory `{self.pathname}` parameter `{name}` in phase ' \
                               f"`{phase_name}`.\nTarget for phase `{phase_name}` is '{targets[phase_name]}' but " \
@@ -450,10 +464,7 @@ class Trajectory(om.Group):
                     if name in phs.parameter_options:
                         # User gave a list of ODE targets which were passed to the creation of a
                         # new input parameter in setup, just connect to that new input parameter
-                        tgt = f'{phase_name}.parameters:{name}'
-                        tgt_shapes[phs.name] = phs.parameter_options[name]['shape']
-                        tgt_units[phs.name] = phs.parameter_options[name]['units']
-                        tgt_vals[phs.name] = phs.parameter_options[name]['val']
+                        target_param = name
                     else:
                         msg = f'Invalid target for trajectory `{self.pathname}` parameter `{name}` in phase ' \
                               f"`{phase_name}`.\nThe phase did not add the parameter as expected. Please file an " \
@@ -463,9 +474,11 @@ class Trajectory(om.Group):
                     raise ValueError(f'Unhandled target(s) ({targets[phase_name]}) for parameter {name} in '
                                      f'phase {phase_name}. If connecting to ODE inputs in the phase, '
                                      f'format the targets as a sequence of strings.')
-                tgts.append(tgt)
 
-            if not tgts:
+                if target_param is not None:
+                    targets_per_phase[phase_name] = target_param
+
+            if not targets_per_phase:
                 # Find the reason
                 if targets is None:
                     reason = f'Option `targets=None` but no phase in the trajectory has a parameter named `{name}`.'
@@ -475,36 +488,19 @@ class Trajectory(om.Group):
                     reason = ''
                 raise ValueError(f'No target was found for trajectory parameter `{name}` in any phase.\n{reason}')
 
-            if options['shape'] in {_unspecified, None}:
-                if len(set(tgt_shapes.values())) == 1:
-                    options['shape'] = next(iter(tgt_shapes.values()))
-                else:
-                    raise ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
-                                     f'targets in multiple phases that have different shapes.')
+            # If metadata is unspecified, use introspection to find
+            # it based on common values among the targets.
+            params_by_phase = self._get_phase_parameters()
+
+            targets = {phase_name: phs_params[targets_per_phase[phase_name]]
+                       for phase_name, phs_params in params_by_phase.items()
+                       if phase_name in targets_per_phase and targets_per_phase[phase_name] in phs_params}
 
             if options['units'] is _unspecified:
-                tgt_units_set = set(tgt_units.values())
-                if len(tgt_units_set) == 1:
-                    options['units'] = tgt_units_set.pop()
-                else:
-                    ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
-                               f'targets in multiple phases that have different units. You must '
-                               f'explicitly provide units for the parameter since they cannot be '
-                               f'inferred.')
+                options['units'] = _get_common_metadata(targets, metadata_key='units')
 
-            if options['val'] is _unspecified:
-                val_list = list(tgt_vals.values())
-                unique_val = True
-                for val in val_list[1:]:
-                    if not np.array_equal(val_list[0], val, equal_nan=True):
-                        unique_val = False
-                if unique_val:
-                    options['val'] = val_list[0]
-                else:
-                    raise ValueError(f'Unable to automatically assign {metadata_key} based on targets. \n'
-                                     f'Targets have multiple values assigned: {err_dict}. \n'
-                                     f'Either promote targets and use set_input_defaults to assign common '
-                                     f'{metadata_key}, or explicitly provide {metadata_key} to the variable.')
+            if options['shape'] in {None, _unspecified}:
+                options['shape'] = _get_common_metadata(targets, metadata_key='shape')
 
             param_comp = self._get_subsystem('param_comp')
             param_comp.add_parameter(name, val=options['val'], shape=options['shape'], units=options['units'])
@@ -520,6 +516,7 @@ class Trajectory(om.Group):
                                     ref0=options['ref0'],
                                     ref=options['ref'])
 
+            tgts = [f'{phase_name}.parameters:{param_name}' for phase_name, param_name in targets_per_phase.items()]
             self.connect(f'parameter_vals:{name}', tgts)
 
         return promoted_inputs

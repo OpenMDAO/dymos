@@ -1,10 +1,12 @@
 from collections.abc import Iterable, Sequence
 import fnmatch
+from numbers import Number
 import re
 
 import openmdao.api as om
 import numpy as np
 from openmdao.utils.array_utils import shape_to_len
+from openmdao.utils.general_utils import ensure_compatible
 from dymos.utils.misc import _unspecified
 from .._options import options as dymos_options
 from ..phase.options import StateOptionsDictionary, TimeseriesOutputOptionsDictionary
@@ -357,7 +359,7 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
                 options['units'] = f'{time_units**2}' if rate2_target_units is None \
                     else f'{rate2_target_units}*{time_units}**2'
 
-            if options['shape'] is _unspecified:
+            if options['shape'] in {None, _unspecified}:
                 shape = _get_common_metadata(rate2_targets, metadata_key='shape')
                 if len(shape) == 1:
                     options['shape'] = (1,)
@@ -410,36 +412,30 @@ def configure_parameters_introspection(parameter_options, ode):
             options['units'] = _get_common_metadata(targets, metadata_key='units')
 
         if options['shape'] in {_unspecified, None}:
-            static_shapes = {}
-            dynamic_shapes = {}
-            param_shape = None
-            # First find the shapes of the static targets
-            for tgt, meta in targets.items():
-                if tgt in options['static_targets']:
-                    static_shapes[tgt] = meta['shape']
-                else:
-                    if len(meta['shape']) == 1:
-                        dynamic_shapes[tgt] = (1,)
+            if isinstance(options['val'], Number):
+                static_shapes = {}
+                dynamic_shapes = {}
+                # First find the shapes of the static targets
+                for tgt, meta in targets.items():
+                    if tgt in options['static_targets']:
+                        static_shapes[tgt] = meta['shape']
                     else:
-                        dynamic_shapes[tgt] = meta['shape'][1:]
-            all_shapes = {**dynamic_shapes, **static_shapes}
-            # Check that they're unique
-            if len(set(all_shapes.values())) != 1:
-                raise RuntimeError(f'Unable to obtain shape of parameter {name} via introspection.\n'
-                                   f'Targets have multiple shapes.\n'
-                                   f'{all_shapes}')
+                        if len(meta['shape']) == 1:
+                            dynamic_shapes[tgt] = (1,)
+                        else:
+                            dynamic_shapes[tgt] = meta['shape'][1:]
+                all_shapes = {**dynamic_shapes, **static_shapes}
+                # Check that they're unique
+                if len(set(all_shapes.values())) != 1:
+                    raise RuntimeError(f'Unable to obtain shape of parameter {name} via introspection.\n'
+                                       f'Targets have multiple shapes.\n'
+                                       f'{all_shapes}')
+                else:
+                    options['shape'] = next(iter(set(all_shapes.values())))
             else:
-                options['shape'] = next(iter(set(all_shapes.values())))
+                options['shape'] = np.asarray(options['val']).shape
 
-        if isinstance(options['val'], Sequence):
-            options['val'] = np.asarray(options['val'])
-
-        if np.ndim(options['val']) > 0 and options['val'].shape != options['shape']:
-            # If the introspected val is a long array (a value at each node), then only
-            # take the value from the first node.
-            options['val'] = np.asarray([val[0, ...]])
-        else:
-            options['val'] = options['val'] * np.ones(options['shape'])
+        options['val'], options['shape'] = ensure_compatible(name, options['val'], options['shape'])
 
 
 def configure_time_introspection(time_options, ode):
@@ -1194,7 +1190,7 @@ def _get_common_metadata(targets, metadata_key):
         raise ValueError(f'Unable to automatically assign {metadata_key} based on targets. \n'
                          f'No targets were found.')
     else:
-        err_dict = {tgt: meta[metadata_key] for tgt in targets}
+        err_dict = {tgt: meta[metadata_key] for tgt, meta in targets.items()}
         raise ValueError(f'Unable to automatically assign {metadata_key} based on targets. \n'
                          f'Targets have multiple {metadata_key} assigned: {err_dict}. \n'
                          f'Either promote targets and use set_input_defaults to assign common '
