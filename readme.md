@@ -53,8 +53,8 @@ Documentation
 
 Documentation for the current development version of Dymos is available at
 [https://openmdao.github.io/dymos/](https://openmdao.github.io/dymos/) as well as on the OpenMDAO web site:
-[https://openmdao.org/dymos/docs/latest/index.html](https://openmdao.org/dymos/docs/latest/index.html).
-Archived versions for recent releases will be found here:
+[https://openmdao.org/dymos/docs/latest/](https://openmdao.org/dymos/docs/latest/).
+Archived versions for recent releases will also be found here:
 [https://openmdao.org/dymos-documentation/](https://openmdao.org/dymos-documentation/)
 
 Defining Ordinary Differential Equations
