@@ -1,48 +1,44 @@
-from collections import defaultdict
-from fnmatch import filter
-import warnings
-
 import numpy as np
+
 import openmdao.api as om
-from openmdao.utils.om_warnings import issue_warning
-
 from .pseudospectral_base import PseudospectralBase
-from .components import StateInterpComp, CollocationComp
-from ..common import RadauPSContinuityComp
-from ...utils.misc import get_rate_units, _unspecified
-from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata
-from ...utils.indexing import get_src_indices_by_row
-from ..grid_data import GridData
+from .components import BirkhoffCollocationComp
+
+from ..grid_data import GaussLobattoGrid, RadauGrid
+from dymos.utils.misc import get_rate_units, reshape_val
+from dymos.utils.introspection import get_promoted_vars, get_source_metadata, get_targets
+from dymos.utils.indexing import get_src_indices_by_row
 
 
-class Radau(PseudospectralBase):
-    """
-    Radau Pseudospectral Method Transcription.
-
-    Parameters
-    ----------
-    **kwargs : dict
-        Dictionary of optional arguments.
-
-    References
-    ----------
-    Garg, Divya et al. "Direct Trajectory Optimization and Costate Estimation of General Optimal
-    Control Problems Using a Radau Pseudospectral Method." American Institute of Aeronautics
-    and Astronautics, 2009.
-    """
+class Birkhoff(PseudospectralBase):
     def __init__(self, **kwargs):
-        super(Radau, self).__init__(**kwargs)
+        super(Birkhoff, self).__init__(**kwargs)
         self._rhs_source = 'rhs_all'
+
+    def initialize(self):
+        """
+        Declare transcription options.
+        """
+        self.options.declare('grid', types=(GaussLobattoGrid, RadauGrid, str), allow_none=True, default=None,
+                             desc='The grid distribution used to layout the control inputs and provide the default '
+                                  'output nodes.')
 
     def init_grid(self):
         """
         Setup the GridData object for the Transcription.
         """
-        self.grid_data = GridData(num_segments=self.options['num_segments'],
-                                  transcription='radau-ps',
-                                  transcription_order=self.options['order'],
-                                  segment_ends=self.options['segment_ends'],
-                                  compressed=self.options['compressed'])
+        if self.options['grid'] in ('gauss-lobatto', None):
+            self.grid_data = GaussLobattoGrid(num_segments=self.options['num_segments'],
+                                              nodes_per_seg=self.options['order'],
+                                              segment_ends=self.options['segment_ends'],
+                                              compressed=self.options['compressed'])
+        elif self.options['grid'] == 'radau-ps':
+            self.grid_data = RadauGrid(num_segments=self.options['num_segments'],
+                                       nodes_per_seg=self.options['order'] + 1,
+                                       segment_ends=self.options['segment_ends'],
+                                       compressed=self.options['compressed'])
+        else:
+            self.grid_data = self.options['grid']
 
     def configure_time(self, phase):
         """
@@ -57,7 +53,7 @@ class Radau(PseudospectralBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super(Radau, self).configure_time(phase)
+        super(Birkhoff, self).configure_time(phase)
         options = phase.time_options
         ode = phase._get_subsystem(self._rhs_source)
         ode_inputs = get_promoted_vars(ode, iotypes='input')
@@ -91,6 +87,54 @@ class Radau(PseudospectralBase):
                                          val=np.ones((1,)),
                                          units=options['units'])
 
+    def setup_states(self, phase):
+        """
+        Setup the states for this transcription.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        super(Birkhoff, self).setup_states(phase)
+        indep_state_rates = om.IndepVarComp()
+
+        phase.add_subsystem('indep_state_rates', indep_state_rates,
+                            promotes_outputs=['*'])
+
+    def configure_states(self, phase):
+        """
+        Configure state connections post-introspection.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+
+        super(Birkhoff, self).configure_states(phase)
+
+        grid_data = self.grid_data
+        num_state_input_nodes = grid_data.subset_num_nodes['state_input']
+
+        time_units = phase.time_options['units']
+
+        indep_state_rates = phase.indep_state_rates
+        for name, options in phase.state_options.items():
+            self._configure_solve_segments(name, options, phase)
+            shape = options['shape']
+            rate_units = get_rate_units(options['units'], time_units, deriv=1)
+            # In certain cases, we put an output on the IVC.
+            if isinstance(indep_state_rates, om.IndepVarComp):
+                default_val = reshape_val(options['val'], shape, num_state_input_nodes)
+                indep_state_rates.add_output(name=f'state_rates:{name}',
+                                             shape=(num_state_input_nodes,) + shape,
+                                             val=default_val,
+                                             units=rate_units)
+
+                if options['opt']:
+                    phase.add_design_var(name=f'state_rates:{name}')
+
     def configure_controls(self, phase):
         """
         Configure the inputs/outputs for the controls.
@@ -100,7 +144,7 @@ class Radau(PseudospectralBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super(Radau, self).configure_controls(phase)
+        super(Birkhoff, self).configure_controls(phase)
 
         for name, options in phase.control_options.items():
             if options['targets']:
@@ -123,7 +167,7 @@ class Radau(PseudospectralBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super(Radau, self).configure_polynomial_controls(phase)
+        super(Birkhoff, self).configure_polynomial_controls(phase)
 
         ode_inputs = get_promoted_vars(self._get_ode(phase), 'input')
 
@@ -154,15 +198,10 @@ class Radau(PseudospectralBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        super(Birkhoff, self).setup_ode(phase)
 
         ODEClass = phase.options['ode_class']
         grid_data = self.grid_data
-
-        phase.add_subsystem('state_interp',
-                            subsys=StateInterpComp(grid_data=grid_data,
-                                                   state_options=phase.state_options,
-                                                   time_units=phase.time_options['units'],
-                                                   transcription=grid_data.transcription))
 
         kwargs = phase.options['ode_init_kwargs']
         phase.add_subsystem('rhs_all',
@@ -178,8 +217,6 @@ class Radau(PseudospectralBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super(Radau, self).configure_ode(phase)
-
         grid_data = self.grid_data
         map_input_indices_to_disc = grid_data.input_maps['state_input_to_disc']
         ode_inputs = get_promoted_vars(phase.rhs_all, 'input')
@@ -201,18 +238,11 @@ class Radau(PseudospectralBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super(Radau, self).setup_defects(phase)
+        super(Birkhoff, self).setup_defects(phase)
         phase.add_subsystem('collocation_constraint',
-                            CollocationComp(grid_data=self.grid_data,
-                                            state_options=phase.state_options,
-                                            time_units=phase.time_options['units']))
-
-        if any(self._requires_continuity_constraints(phase)):
-            phase.add_subsystem('continuity_comp',
-                                RadauPSContinuityComp(grid_data=self.grid_data,
-                                                      state_options=phase.state_options,
-                                                      control_options=phase.control_options,
-                                                      time_units=phase.time_options['units']))
+                            BirkhoffCollocationComp(grid_data=self.grid_data,
+                                                    state_options=phase.state_options,
+                                                    time_units=phase.time_options['units']))
 
     def configure_defects(self, phase):
         """
@@ -223,13 +253,18 @@ class Radau(PseudospectralBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super(Radau, self).configure_defects(phase)
+        super(Birkhoff, self).configure_defects(phase)
 
         for name in phase.state_options:
-            phase.connect(f'state_interp.staterate_col:{name}',
-                          f'collocation_constraint.f_approx:{name}')
-
             rate_src_path, src_idxs = self._get_rate_source_path(name, 'col', phase)
+            phase.connect(f'states:{name}',
+                          f'collocation_constraint.state_value:{name}',
+                          src_indices=src_idxs)
+
+            phase.connect(f'state_rates:{name}',
+                          f'collocation_constraint.f_value:{name}',
+                          src_indices=src_idxs)
+
             phase.connect(rate_src_path,
                           f'collocation_constraint.f_computed:{name}',
                           src_indices=src_idxs)
@@ -523,3 +558,4 @@ class Radau(PseudospectralBase):
         any_rate_continuity = any_rate_continuity and num_seg > 1
 
         return any_state_continuity, any_control_continuity, any_rate_continuity
+

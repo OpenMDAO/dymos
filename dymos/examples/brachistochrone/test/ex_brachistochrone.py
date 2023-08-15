@@ -8,7 +8,7 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 
 
 SHOW_PLOTS = True
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 
 
 @require_pyoptsparse(optimizer='SLSQP')
@@ -39,6 +39,12 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                             nodes_per_seg=transcription_order + 1,
                             compressed=compressed)
         t = dm.ExplicitShooting(grid=grid)
+    elif transcription == 'birkhoff':
+        from dymos.transcriptions.pseudospectral.birkhoff import Birkhoff
+        grid = dm.RadauGrid(num_segments=num_segments,
+                            nodes_per_seg=transcription_order + 1,
+                            compressed=compressed)
+        t = Birkhoff(grid=grid)
 
     traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
@@ -92,10 +98,18 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     dm.run_problem(p, run_driver=run_driver, simulate=True, make_plots=True)
 
+    print(p.get_val('traj0.phase0.timeseries.time')[-1])
+    print(p.get_val('traj0.phase0.timeseries.x')[-1])
+    print(p.get_val('traj0.phase0.timeseries.y')[-1])
+    import matplotlib.pyplot as plt
+    plt.figure()
+    plt.plot(p.get_val('traj0.phase0.timeseries.x'), p.get_val('traj0.phase0.timeseries.y'))
+    plt.show()
+
     return p
 
 
 if __name__ == '__main__':
-    p = brachistochrone_min_time(transcription='gauss-lobatto', num_segments=5, run_driver=True,
-                                 transcription_order=5, compressed=False, optimizer='IPOPT',
+    p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
+                                 transcription_order=14, compressed=False, optimizer='IPOPT',
                                  solve_segments=False, force_alloc_complex=True)
