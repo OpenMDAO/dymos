@@ -30,7 +30,7 @@ Citation
 
 See our [overview paper](https://joss.theoj.org/papers/10.21105/joss.02809) in the Journal of Open Source Software
 
-If you use Dymos in your work, please cite: 
+If you use Dymos in your work, please cite:
 ```
 @article{Falck2021,
   doi = {10.21105/joss.02809},
@@ -51,7 +51,11 @@ If you use Dymos in your work, please cite:
 Documentation
 -------------
 
-Online documentation is available at [https://openmdao.github.io/dymos/](https://openmdao.github.io/dymos/)
+Documentation for the current development version of Dymos is available at
+[https://openmdao.github.io/dymos/](https://openmdao.github.io/dymos/) as well as on the OpenMDAO web site:
+[https://openmdao.org/dymos/docs/latest/index.html](https://openmdao.org/dymos/docs/latest/index.html).
+Archived versions for recent releases will be found here:
+[https://openmdao.org/dymos-documentation/](https://openmdao.org/dymos-documentation/)
 
 Defining Ordinary Differential Equations
 ----------------------------------------
