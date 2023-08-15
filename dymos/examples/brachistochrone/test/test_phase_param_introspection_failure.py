@@ -14,7 +14,7 @@ class _TestEOM(om.Group):
         self.options.declare('num_nodes', types=(int,))
         self.options.declare('foo_units', allow_none=True, default=None)
         self.options.declare('foo_shapes', allow_none=True, default=None)
-        self.options.declare('foo_static', types=dict, allow_none=True, default=None)
+        self.options.declare('foo_static', default=[])
 
     def setup(self):
         num_nodes = self.options['num_nodes']
@@ -24,7 +24,9 @@ class _TestEOM(om.Group):
 
         foo_unit = 'kg' if self.options['foo_units'] is None else self.options['foo_units']['vdot_comp']
 
-        foo_tags = ['dymos.static_target'] if self.options['foo_static']['vdot_comp'] else []
+        foo_tags = ['dymos.static_target']\
+            if 'vdot_comp' in self.options['foo_static'] and self.options['foo_static']['vdot_comp'] else []
+
         foo_shape = (1,) if 'dymos.static_target' in foo_tags else foo_shape
 
         vdot_comp = om.ExecComp(['vdot = g * cos(theta)',
@@ -40,7 +42,9 @@ class _TestEOM(om.Group):
 
         foo_unit = 'kg' if self.options['foo_units'] is None else self.options['foo_units']['xdot_comp']
 
-        foo_tags = ['dymos.static_target'] if self.options['foo_static']['xdot_comp'] else []
+        foo_tags = ['dymos.static_target']\
+            if 'xdot_comp' in self.options['foo_static'] and self.options['foo_static']['xdot_comp'] else []
+
         foo_shape = (1,) if 'dymos.static_target' in foo_tags else foo_shape
 
         xdot_comp = om.ExecComp(['xdot = v * sin(theta)',
@@ -56,7 +60,9 @@ class _TestEOM(om.Group):
 
         foo_unit = 'kg' if self.options['foo_units'] is None else self.options['foo_units']['ydot_comp']
 
-        foo_tags = ['dymos.static_target'] if self.options['foo_static']['ydot_comp'] else []
+        foo_tags = ['dymos.static_target']\
+            if 'ydot_comp' in self.options['foo_static'] and self.options['foo_static']['ydot_comp'] else []
+
         foo_shape = (1,) if 'dymos.static_target' in foo_tags else foo_shape
 
         ydot_comp = om.ExecComp(['ydot = -v * cos(theta)',

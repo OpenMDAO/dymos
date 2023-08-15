@@ -6,9 +6,9 @@ from .vandermonde_control_interp_comp import VandermondeControlInterpComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from .tau_comp import TauComp
 
-from ...utils.introspection import get_targets, configure_controls_introspection, \
+from ...utils.introspection import configure_controls_introspection, \
     configure_time_introspection, configure_parameters_introspection, \
-    configure_states_discovery, configure_states_introspection, _get_targets_metadata,\
+    configure_states_discovery, configure_states_introspection, _get_targets_metadata, \
     _get_common_metadata, get_promoted_vars
 from ...utils.misc import get_rate_units, _unspecified
 
