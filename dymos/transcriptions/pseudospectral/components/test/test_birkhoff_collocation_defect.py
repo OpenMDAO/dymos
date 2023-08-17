@@ -27,7 +27,7 @@ class TestCollocationComp(unittest.TestCase):
             num_segments=1, segment_ends=np.array([0., 10.]),
             transcription=transcription, transcription_order=20)
         n = gd.transcription_order[0]
-        tau, _ = lgr(n)
+        tau = gd.node_stau
         t = 5 * tau + 5
 
         self.p = om.Problem(model=om.Group())
@@ -62,7 +62,7 @@ class TestCollocationComp(unittest.TestCase):
             val=-x_val, units='m/s')
         indep_comp.add_output(
             'f_computed:x',
-            val=-x_val, units='m/s')
+            val=-x_val*5, units='m/s')
 
         # indep_comp.add_output(
         #     'f_value:v',
@@ -77,9 +77,9 @@ class TestCollocationComp(unittest.TestCase):
                                                           time_units='s'))
 
         self.p.model.connect('state_value:x', 'defect_comp.state_value:x')
-        self.p.model.connect('f_value:x', 'defect_comp.f_value:x')
+        self.p.model.connect('f_value:x', 'defect_comp.f_value:x', src_indices=om.slicer[:-1])
         # self.p.model.connect('f_value:v', 'defect_comp.f_value:v')
-        self.p.model.connect('f_computed:x', 'defect_comp.f_computed:x')
+        self.p.model.connect('f_computed:x', 'defect_comp.f_computed:x', src_indices=om.slicer[:-1])
         # self.p.model.connect('f_computed:v', 'defect_comp.f_computed:v')
         self.p.model.connect('dt_dstau', 'defect_comp.dt_dstau')
 
@@ -99,7 +99,11 @@ class TestCollocationComp(unittest.TestCase):
 
         assert_almost_equal(self.p['defect_comp.state_defects:x'], 0.0)
         assert_almost_equal(self.p['defect_comp.state_rate_defects:x'], 0.0)
-        assert_almost_equal(self.p['defect_comp.initial_state_rate_defects:x'], 0.0)
+        assert_almost_equal(self.p['defect_comp.final_state_defects:x'], 0.0)
+
+        print(self.p['defect_comp.state_defects:x'].shape)
+        print(self.p['defect_comp.state_rate_defects:x'].shape)
+        print(self.p['defect_comp.final_state_defects:x'].shape)
 
         # assert_almost_equal(self.p['defect_comp.defects:v'],
         #                     dt_dstau[:, np.newaxis, np.newaxis] *

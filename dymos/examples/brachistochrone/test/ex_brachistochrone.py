@@ -101,6 +101,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     print(p.get_val('traj0.phase0.timeseries.time')[-1])
     print(p.get_val('traj0.phase0.timeseries.x')[-1])
     print(p.get_val('traj0.phase0.timeseries.y')[-1])
+
     import matplotlib.pyplot as plt
     plt.figure()
     plt.plot(p.get_val('traj0.phase0.timeseries.x'), p.get_val('traj0.phase0.timeseries.y'))
