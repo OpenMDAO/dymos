@@ -109,9 +109,16 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     print(p.get_val('traj0.phase0.timeseries.x')[-1])
     print(p.get_val('traj0.phase0.timeseries.y')[-1])
 
+    t = p.get_val('traj0.phase0.timeseries.t')
+    x = p.get_val('traj0.phase0.timeseries.x')
+    y = p.get_val('traj0.phase0.timeseries.y')
+    v = p.get_val('traj0.phase0.timeseries.v')
+
     import matplotlib.pyplot as plt
     plt.figure()
-    plt.plot(p.get_val('traj0.phase0.timeseries.x'), p.get_val('traj0.phase0.timeseries.y'))
+    plt.plot(x, y)
+    plt.figure()
+    plt.plot(t, v)
     plt.show()
 
     return p
@@ -119,5 +126,5 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 if __name__ == '__main__':
     p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
-                                 transcription_order=14, compressed=False, optimizer='IPOPT',
+                                 transcription_order=13, compressed=False, optimizer='IPOPT',
                                  solve_segments=False, force_alloc_complex=True)

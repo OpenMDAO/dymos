@@ -38,7 +38,6 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
         """
         gd = self.options['grid_data']
         num_nodes = gd.subset_num_nodes['all']
-        print(num_nodes)
         time_units = self.options['time_units']
         state_options = self.options['state_options']
 
@@ -143,6 +142,15 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
         self.declare_partials(of='*', wrt='*', method='fd')
 
+        if gd.transcription == 'birkhoff-gauss-lobatto':
+            tau, self._w = lgl(num_nodes)
+        elif gd.transcription == 'radau-ps':
+            tau, self._w = lgr(num_nodes)
+        else:
+            raise ValueError('invalid transcription')
+
+        self._B, self._Bd = birkhoff_matrices(tau, self._w)
+
         # Setup partials
         # for state_name, options in state_options.items():
         #     shape = options['shape']
@@ -198,15 +206,19 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
         state_options = self.options['state_options']
         gd = self.options['grid_data']
         num_nodes = gd.transcription_order[0]
-        dt_dstau = inputs['dt_dstau']
-        if gd.transcription == 'birkhoff-gauss-lobatto':
-            tau, w = lgl(num_nodes)
-        elif gd.transcription == 'radau-ps':
-            tau, w = lgr(num_nodes)
-        else:
-            raise ValueError('invalid transcription')
+        dt_dstau = np.atleast_2d(inputs['dt_dstau']).T
+        # if gd.transcription == 'birkhoff-gauss-lobatto':
+        #     tau, w = lgl(num_nodes)
+        # elif gd.transcription == 'radau-ps':
+        #     tau, w = lgr(num_nodes)
+        # else:
+        #     raise ValueError('invalid transcription')
+        #
+        # # B, Bd = birkhoff_matrices(tau, w)
 
-        B, Bd = birkhoff_matrices(tau, w)
+        w = self._w
+        B = self._B
+        Bd = self._Bd
 
         for state_name in state_options:
             var_names = self.var_names[state_name]
@@ -221,17 +233,40 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
             f_initial_approx = Bd[0, 1:] @ f_value[1:] + state_value[0] * Bd[0, 0]
 
+            _A = np.zeros((num_nodes+1, 2 * num_nodes))
+            _A[:num_nodes, :num_nodes] = np.eye(num_nodes)
+            _A[:num_nodes, num_nodes:] = -B
+            _A[-1, num_nodes:] = w
+
+            _C = np.zeros((num_nodes + 1, 2))
+            _C[:-1, 0] = 1.
+            _C[-1, :] = [-1, 1]
+
+            x_a = state_value[0, ...]
+            x_b = state_value[-1, ...]
+            X_AB = np.vstack((x_a, x_b))
+            XV = np.vstack((state_value, f_value * dt_dstau))
+
+            with np.printoptions(linewidth=1024):
+                print(_A)
+                print(f'{state_name} defects')
+                print((np.dot(_A, XV) - np.dot(_C, X_AB)).T)
+                print(np.dot(_A, XV).T)
+
+
             state_approx = np.zeros((num_nodes-1, 1))
             for i in range(0, num_nodes - 1):
                 state_approx[i] = state_value[0] * B[i+1, 0]
                 for j in range(1, num_nodes):
-                    state_approx[i] += B[i+1, j] * f_value[j]*dt_dstau[j]
+                    state_approx[i] += B[i+1, j] * f_value[j] * dt_dstau[j]
+
+            # with np.printoptions(linewidth=1024, precision=6):
+            #     np.dot(_A, )
 
             outputs[var_names['state_defect']] = (state_value[1:num_nodes] - state_approx).T
             outputs[var_names['state_rate_defect']] = (f_value.T - f_computed.T) * dt_dstau.T
             # outputs[var_names['initial_state_rate_defect']] = ((f_initial_approx - f_value[0]).T * dt_dstau[0]).T
-            outputs[var_names['final_state_defect']] = state_value[0] + np.dot(w, f_value.ravel() * dt_dstau)\
-                                                       - state_value[-1]
+            outputs[var_names['final_state_defect']] = x_a + np.dot(w, f_value * dt_dstau) - x_b
 
     # def compute_partials(self, inputs, partials):
     #     """
