@@ -105,10 +105,6 @@ class TestCollocationComp(unittest.TestCase):
         print(self.p['defect_comp.state_rate_defects:x'].shape)
         print(self.p['defect_comp.final_state_defects:x'].shape)
 
-        # assert_almost_equal(self.p['defect_comp.defects:v'],
-        #                     dt_dstau[:, np.newaxis, np.newaxis] *
-        #                     (self.p['f_value:v']-self.p['f_computed:v']))
-
     def test_partials(self):
         np.set_printoptions(linewidth=1024)
         cpd = self.p.check_partials(compact_print=False, method='fd', out_stream=None)

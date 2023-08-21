@@ -37,7 +37,8 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
         I/O creation is delayed until configure so we can determine shape and units.
         """
         gd = self.options['grid_data']
-        num_nodes = gd.subset_num_nodes['col']
+        num_nodes = gd.subset_num_nodes['all']
+        print(num_nodes)
         time_units = self.options['time_units']
         state_options = self.options['state_options']
 
@@ -76,7 +77,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
             self.add_input(
                 name=var_names['state_value'],
-                shape=(num_nodes+1,) + shape,
+                shape=(num_nodes,) + shape,
                 units=units
             )
 
@@ -198,7 +199,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
         gd = self.options['grid_data']
         num_nodes = gd.transcription_order[0]
         dt_dstau = inputs['dt_dstau']
-        if gd.transcription == 'gauss-lobatto':
+        if gd.transcription == 'birkhoff-gauss-lobatto':
             tau, w = lgl(num_nodes)
         elif gd.transcription == 'radau-ps':
             tau, w = lgr(num_nodes)

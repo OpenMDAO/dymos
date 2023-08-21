@@ -41,17 +41,24 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         t = dm.ExplicitShooting(grid=grid)
     elif transcription == 'birkhoff':
         from dymos.transcriptions.pseudospectral.birkhoff import Birkhoff
-        grid = dm.RadauGrid(num_segments=num_segments,
-                            nodes_per_seg=transcription_order + 1,
-                            compressed=compressed)
-        t = Birkhoff(grid=grid)
+        from dymos.transcriptions.pseudospectral.birkhoff_gl import BirkhoffGL
+        from dymos.transcriptions.grid_data import BirkhoffGaussLobattoGrid
+        # grid = dm.RadauGrid(num_segments=num_segments,
+        #                     nodes_per_seg=transcription_order + 1,
+        #                     compressed=compressed)
+        # t = Birkhoff(grid=grid)
+
+        grid = BirkhoffGaussLobattoGrid(num_segments=num_segments,
+                                        nodes_per_seg=transcription_order + 1,
+                                        compressed=compressed)
+        t = BirkhoffGL(grid=grid)
 
     traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
     p.model.add_subsystem('traj0', traj)
     traj.add_phase('phase0', phase)
 
-    phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+    phase.set_time_options(fix_initial=True, duration_bounds=(1.8, 10))
 
     phase.add_state('x', fix_initial=True, fix_final=False, solve_segments=solve_segments)
     phase.add_state('y', fix_initial=True, fix_final=False, solve_segments=solve_segments)
@@ -96,7 +103,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
     p['traj0.phase0.parameters:g'] = 9.80665
 
-    dm.run_problem(p, run_driver=run_driver, simulate=True, make_plots=True)
+    dm.run_problem(p, run_driver=run_driver, simulate=False, make_plots=True)
 
     print(p.get_val('traj0.phase0.timeseries.time')[-1])
     print(p.get_val('traj0.phase0.timeseries.x')[-1])
