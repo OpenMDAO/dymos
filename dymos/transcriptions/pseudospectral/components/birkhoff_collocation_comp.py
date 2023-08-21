@@ -228,7 +228,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
                     state_approx[i] += B[i+1, j] * f_value[j]*dt_dstau[j]
 
             outputs[var_names['state_defect']] = (state_value[1:num_nodes] - state_approx).T
-            outputs[var_names['state_rate_defect']] = (f_value.T * dt_dstau - f_computed.T).T
+            outputs[var_names['state_rate_defect']] = (f_value.T - f_computed.T) * dt_dstau.T
             # outputs[var_names['initial_state_rate_defect']] = ((f_initial_approx - f_value[0]).T * dt_dstau[0]).T
             outputs[var_names['final_state_defect']] = state_value[0] + np.dot(w, f_value.ravel() * dt_dstau)\
                                                        - state_value[-1]
