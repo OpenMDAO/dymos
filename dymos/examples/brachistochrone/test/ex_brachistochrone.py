@@ -42,10 +42,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     elif transcription == 'birkhoff':
         from dymos.transcriptions.pseudospectral.birkhoff import Birkhoff
         from dymos.transcriptions.grid_data import BirkhoffGaussLobattoGrid
-        # grid = dm.RadauGrid(num_segments=num_segments,
-        #                     nodes_per_seg=transcription_order + 1,
-        #                     compressed=compressed)
-        # t = Birkhoff(grid=grid)
 
         grid = BirkhoffGaussLobattoGrid(num_segments=num_segments,
                                         nodes_per_seg=transcription_order + 1,
