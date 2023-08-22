@@ -204,7 +204,6 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         state_options = self.options['state_options']
-        gd = self.options['grid_data']
         dt_dstau = np.atleast_2d(inputs['dt_dstau']).T
 
         for state_name in state_options:

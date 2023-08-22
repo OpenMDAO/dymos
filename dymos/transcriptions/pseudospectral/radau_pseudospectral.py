@@ -7,7 +7,6 @@ import openmdao.api as om
 from openmdao.utils.om_warnings import issue_warning
 
 from .pseudospectral_base import PseudospectralBase
-from .components import StateInterpComp, CollocationComp
 from ..common import RadauPSContinuityComp
 from ...utils.misc import get_rate_units, _unspecified
 from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata
@@ -154,15 +153,10 @@ class Radau(PseudospectralBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        super(Radau, self).setup_ode(phase)
 
         ODEClass = phase.options['ode_class']
         grid_data = self.grid_data
-
-        phase.add_subsystem('state_interp',
-                            subsys=StateInterpComp(grid_data=grid_data,
-                                                   state_options=phase.state_options,
-                                                   time_units=phase.time_options['units'],
-                                                   transcription=grid_data.transcription))
 
         kwargs = phase.options['ode_init_kwargs']
         phase.add_subsystem('rhs_all',
@@ -202,10 +196,6 @@ class Radau(PseudospectralBase):
             The phase object to which this transcription instance applies.
         """
         super(Radau, self).setup_defects(phase)
-        phase.add_subsystem('collocation_constraint',
-                            CollocationComp(grid_data=self.grid_data,
-                                            state_options=phase.state_options,
-                                            time_units=phase.time_options['units']))
 
         if any(self._requires_continuity_constraints(phase)):
             phase.add_subsystem('continuity_comp',
