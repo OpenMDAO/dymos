@@ -4,7 +4,7 @@ import openmdao.api as om
 from .pseudospectral_base import PseudospectralBase
 from .components import BirkhoffCollocationComp
 
-from ..grid_data import GaussLobattoGrid, RadauGrid
+from ..grid_data import RadauGrid, BirkhoffGaussLobattoGrid
 from dymos.utils.misc import get_rate_units, reshape_val
 from dymos.utils.introspection import get_promoted_vars, get_source_metadata, get_targets
 from dymos.utils.indexing import get_src_indices_by_row
@@ -19,7 +19,8 @@ class Birkhoff(PseudospectralBase):
         """
         Declare transcription options.
         """
-        self.options.declare('grid', types=(GaussLobattoGrid, RadauGrid, str), allow_none=True, default=None,
+        self.options.declare('grid', types=(RadauGrid, BirkhoffGaussLobattoGrid, str),
+                             allow_none=True, default=None,
                              desc='The grid distribution used to layout the control inputs and provide the default '
                                   'output nodes.')
 
@@ -28,10 +29,10 @@ class Birkhoff(PseudospectralBase):
         Setup the GridData object for the Transcription.
         """
         if self.options['grid'] in ('gauss-lobatto', None):
-            self.grid_data = GaussLobattoGrid(num_segments=self.options['num_segments'],
-                                              nodes_per_seg=self.options['order'],
-                                              segment_ends=self.options['segment_ends'],
-                                              compressed=self.options['compressed'])
+            self.grid_data = BirkhoffGaussLobattoGrid(num_segments=self.options['num_segments'],
+                                                      nodes_per_seg=self.options['order'],
+                                                      segment_ends=self.options['segment_ends'],
+                                                      compressed=self.options['compressed'])
         elif self.options['grid'] == 'radau-ps':
             self.grid_data = RadauGrid(num_segments=self.options['num_segments'],
                                        nodes_per_seg=self.options['order'] + 1,
@@ -257,16 +258,15 @@ class Birkhoff(PseudospectralBase):
 
         for name in phase.state_options:
             rate_src_path, src_idxs = self._get_rate_source_path(name, 'col', phase)
+
             phase.connect(f'states:{name}',
                           f'collocation_constraint.state_value:{name}')
 
             phase.connect(f'state_rates:{name}',
-                          f'collocation_constraint.f_value:{name}',
-                          src_indices=src_idxs)
+                          f'collocation_constraint.f_value:{name}')
 
             phase.connect(rate_src_path,
-                          f'collocation_constraint.f_computed:{name}',
-                          src_indices=src_idxs)
+                          f'collocation_constraint.f_computed:{name}')
 
         any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
 
@@ -297,7 +297,7 @@ class Birkhoff(PseudospectralBase):
         try:
             var = phase.state_options[state_name]['rate_source']
         except RuntimeError:
-            raise ValueError(f"state '{state_name}' in phase '{ phase.name}' was not given a "
+            raise ValueError(f"state '{state_name}' in phase '{phase.name}' was not given a "
                              "rate_source")
 
         # Note the rate source must be shape-compatible with the state
@@ -420,22 +420,23 @@ class Birkhoff(PseudospectralBase):
             src_units = phase.state_options[var]['units']
             src_shape = phase.state_options[var]['shape']
 
-            # Find the state_input indices which occur at segment endpoints, and repeat them twice
-            state_input_idxs = gd.subset_node_indices['state_input']
-            repeat_idxs = np.ones_like(state_input_idxs)
-            if self.options['compressed']:
-                segment_end_idxs = gd.subset_node_indices['segment_ends'][1:-1]
-                # Repeat nodes that are on segment bounds (but not the first or last nodes in the phase)
-                nodes_to_repeat = list(set(state_input_idxs).intersection(set(segment_end_idxs)))
-                # Now find these nodes in the state input indices
-                idxs_of_ntr_in_state_inputs = np.where(np.in1d(state_input_idxs, nodes_to_repeat))[0]
-                # All state input nodes are used once, but nodes_to_repeat are used twice
-                repeat_idxs[idxs_of_ntr_in_state_inputs] = 2
-            # Now we have a way of mapping the state input indices to all nodes
-            map_input_node_idxs_to_all = np.repeat(np.arange(gd.subset_num_nodes['state_input'],
-                                                             dtype=int), repeats=repeat_idxs)
-            # Now select the subset of nodes we want to use.
-            node_idxs = map_input_node_idxs_to_all[gd.subset_node_indices['all']]
+            if gd.transcription == 'radau-ps':
+                # Find the state_input indices which occur at segment endpoints, and repeat them twice
+                state_input_idxs = gd.subset_node_indices['state_input']
+                repeat_idxs = np.ones_like(state_input_idxs)
+                if self.options['compressed']:
+                    segment_end_idxs = gd.subset_node_indices['segment_ends'][1:-1]
+                    # Repeat nodes that are on segment bounds (but not the first or last nodes in the phase)
+                    nodes_to_repeat = list(set(state_input_idxs).intersection(set(segment_end_idxs)))
+                    # Now find these nodes in the state input indices
+                    idxs_of_ntr_in_state_inputs = np.where(np.in1d(state_input_idxs, nodes_to_repeat))[0]
+                    # All state input nodes are used once, but nodes_to_repeat are used twice
+                    repeat_idxs[idxs_of_ntr_in_state_inputs] = 2
+                # Now we have a way of mapping the state input indices to all nodes
+                map_input_node_idxs_to_all = np.repeat(np.arange(gd.subset_num_nodes['state_input'],
+                                                                 dtype=int), repeats=repeat_idxs)
+                # Now select the subset of nodes we want to use.
+                node_idxs = map_input_node_idxs_to_all[gd.subset_node_indices['all']]
         elif var_type in ['indep_control', 'input_control']:
             path = f'control_values:{var}'
             src_units = phase.control_options[var]['units']
@@ -481,7 +482,8 @@ class Birkhoff(PseudospectralBase):
             src_units = meta['units']
             src_tags = meta['tags']
             if 'dymos.static_output' in src_tags:
-                raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" and cannot be a timeseries output.')
+                raise RuntimeError(
+                    f'ODE output {var} is tagged with "dymos.static_output" and cannot be a timeseries output.')
 
         src_idxs = om.slicer[node_idxs, ...]
 

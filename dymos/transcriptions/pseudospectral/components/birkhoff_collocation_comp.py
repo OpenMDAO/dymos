@@ -37,11 +37,11 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
         I/O creation is delayed until configure so we can determine shape and units.
         """
         gd = self.options['grid_data']
-        num_nodes = gd.subset_num_nodes['all']
+        num_nodes = gd.subset_num_nodes['col']
         time_units = self.options['time_units']
         state_options = self.options['state_options']
 
-        self.add_input('dt_dstau', units=time_units, shape=(num_nodes,))
+        self.add_input('dt_dstau', units=time_units, shape=(gd.subset_num_nodes['col'],))
         self.var_names = var_names = {}
         for state_name in state_options:
             var_names[state_name] = {
@@ -77,12 +77,13 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             self.add_input(
                 name=var_names['state_value'],
                 shape=(num_nodes,) + shape,
+                desc=f'Value of the design variable corresponding to state {state_name}',
                 units=units
             )
 
             self.add_output(
                 name=var_names['state_defect'],
-                shape=((num_nodes-1),) + shape,
+                shape=(num_nodes,) + shape,
                 units=units
             )
 
@@ -91,12 +92,6 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
                 shape=(num_nodes,) + shape,
                 units=rate_units
             )
-
-            # self.add_output(
-            #     name=var_names['initial_state_rate_defect'],
-            #     shape=shape,
-            #     units=rate_units
-            # )
 
             self.add_output(
                 name=var_names['final_state_defect'],
@@ -131,10 +126,6 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
                 self.add_constraint(name=var_names['state_rate_defect'],
                                     equals=0.0,
                                     ref=defect_ref)
-                #
-                # self.add_constraint(name=var_names['initial_state_rate_defect'],
-                #                     equals=0.0,
-                #                     ref=defect_ref)
 
                 self.add_constraint(name=var_names['final_state_defect'],
                                     equals=0.0,
@@ -149,7 +140,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
         else:
             raise ValueError('invalid transcription')
 
-        self._B, self._Bd = birkhoff_matrices(tau, self._w)
+        self._B = birkhoff_matrices(tau, self._w)
 
         # Setup partials
         # for state_name, options in state_options.items():
@@ -205,33 +196,18 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         state_options = self.options['state_options']
         gd = self.options['grid_data']
-        num_nodes = gd.transcription_order[0]
+        num_nodes = gd.subset_num_nodes['col']
         dt_dstau = np.atleast_2d(inputs['dt_dstau']).T
-        # if gd.transcription == 'birkhoff-gauss-lobatto':
-        #     tau, w = lgl(num_nodes)
-        # elif gd.transcription == 'radau-ps':
-        #     tau, w = lgr(num_nodes)
-        # else:
-        #     raise ValueError('invalid transcription')
-        #
-        # # B, Bd = birkhoff_matrices(tau, w)
 
         w = self._w
         B = self._B
-        Bd = self._Bd
 
         for state_name in state_options:
             var_names = self.var_names[state_name]
-            # state value: value of the state design variable
-            # state approx: value of the state as computed using the integration matrix
-            # f_value: value of the state rate design variable
-            # f_computed: output from rhs_all
 
             state_value = inputs[var_names['state_value']]
             f_value = inputs[var_names['f_value']]
             f_computed = inputs[var_names['f_computed']]
-
-            f_initial_approx = Bd[0, 1:] @ f_value[1:] + state_value[0] * Bd[0, 0]
 
             _A = np.zeros((num_nodes+1, 2 * num_nodes))
             _A[:num_nodes, :num_nodes] = np.eye(num_nodes)
@@ -246,27 +222,17 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             x_b = state_value[-1, ...]
             X_AB = np.vstack((x_a, x_b))
             XV = np.vstack((state_value, f_value * dt_dstau))
+            state_defect = (np.dot(_A, XV) - np.dot(_C, X_AB)).T
 
-            with np.printoptions(linewidth=1024):
-                print(_A)
-                print(f'{state_name} defects')
-                print((np.dot(_A, XV) - np.dot(_C, X_AB)).T)
-                print(np.dot(_A, XV).T)
-
-
-            state_approx = np.zeros((num_nodes-1, 1))
-            for i in range(0, num_nodes - 1):
-                state_approx[i] = state_value[0] * B[i+1, 0]
+            state_approx = np.zeros((num_nodes, 1))
+            for i in range(0, num_nodes):
+                state_approx[i] = state_value[0]  # * B[i+1, 0]
                 for j in range(1, num_nodes):
-                    state_approx[i] += B[i+1, j] * f_value[j] * dt_dstau[j]
+                    state_approx[i] += B[i, j] * f_value[j] * dt_dstau[j]
 
-            # with np.printoptions(linewidth=1024, precision=6):
-            #     np.dot(_A, )
-
-            outputs[var_names['state_defect']] = (state_value[1:num_nodes] - state_approx).T
+            outputs[var_names['state_defect']] = state_defect[0, :-1]
             outputs[var_names['state_rate_defect']] = (f_value.T - f_computed.T) * dt_dstau.T
-            # outputs[var_names['initial_state_rate_defect']] = ((f_initial_approx - f_value[0]).T * dt_dstau[0]).T
-            outputs[var_names['final_state_defect']] = x_a + np.dot(w, f_value * dt_dstau) - x_b
+            outputs[var_names['final_state_defect']] = state_defect[0, -1]
 
     # def compute_partials(self, inputs, partials):
     #     """

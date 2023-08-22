@@ -41,7 +41,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         t = dm.ExplicitShooting(grid=grid)
     elif transcription == 'birkhoff':
         from dymos.transcriptions.pseudospectral.birkhoff import Birkhoff
-        from dymos.transcriptions.pseudospectral.birkhoff_gl import BirkhoffGL
         from dymos.transcriptions.grid_data import BirkhoffGaussLobattoGrid
         # grid = dm.RadauGrid(num_segments=num_segments,
         #                     nodes_per_seg=transcription_order + 1,
@@ -51,7 +50,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         grid = BirkhoffGaussLobattoGrid(num_segments=num_segments,
                                         nodes_per_seg=transcription_order + 1,
                                         compressed=compressed)
-        t = BirkhoffGL(grid=grid)
+        t = Birkhoff(grid=grid)
 
     traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
@@ -108,18 +107,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     print(p.get_val('traj0.phase0.timeseries.time')[-1])
     print(p.get_val('traj0.phase0.timeseries.x')[-1])
     print(p.get_val('traj0.phase0.timeseries.y')[-1])
-
-    t = p.get_val('traj0.phase0.timeseries.time')
-    x = p.get_val('traj0.phase0.timeseries.x')
-    y = p.get_val('traj0.phase0.timeseries.y')
-    v = p.get_val('traj0.phase0.timeseries.v')
-
-    import matplotlib.pyplot as plt
-    plt.figure()
-    plt.plot(x, y)
-    plt.figure()
-    plt.plot(t, v)
-    plt.show()
 
     return p
 

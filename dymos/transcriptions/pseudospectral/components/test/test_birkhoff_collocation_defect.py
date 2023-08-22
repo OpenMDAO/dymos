@@ -19,14 +19,13 @@ CollocationComp = CompWrapperConfig(BirkhoffCollocationComp)
 
 class TestCollocationComp(unittest.TestCase):
 
-    def setUp(self):
+    def make_problem(self, transcription='radau-ps'):
         dm.options['include_check_partials'] = True
-        transcription = 'radau-ps'
 
         gd = GridData(
             num_segments=1, segment_ends=np.array([0., 10.]),
             transcription=transcription, transcription_order=20)
-        n = gd.transcription_order[0]
+        n = gd.subset_num_nodes['col']
         tau = gd.node_stau
         t = 5 * tau + 5
 
@@ -62,7 +61,7 @@ class TestCollocationComp(unittest.TestCase):
             val=-x_val, units='m/s')
         indep_comp.add_output(
             'f_computed:x',
-            val=-x_val*5, units='m/s')
+            val=-x_val, units='m/s')
 
         # indep_comp.add_output(
         #     'f_value:v',
@@ -76,10 +75,15 @@ class TestCollocationComp(unittest.TestCase):
                                                           state_options=state_options,
                                                           time_units='s'))
 
+        if transcription == 'radau-ps':
+            src_indices = om.slicer[:-1]
+        else:
+            src_indices = om.slicer[:]
+
         self.p.model.connect('state_value:x', 'defect_comp.state_value:x')
-        self.p.model.connect('f_value:x', 'defect_comp.f_value:x', src_indices=om.slicer[:-1])
+        self.p.model.connect('f_value:x', 'defect_comp.f_value:x', src_indices=src_indices)
         # self.p.model.connect('f_value:v', 'defect_comp.f_value:v')
-        self.p.model.connect('f_computed:x', 'defect_comp.f_computed:x', src_indices=om.slicer[:-1])
+        self.p.model.connect('f_computed:x', 'defect_comp.f_computed:x', src_indices=src_indices)
         # self.p.model.connect('f_computed:v', 'defect_comp.f_computed:v')
         self.p.model.connect('dt_dstau', 'defect_comp.dt_dstau')
 
@@ -94,16 +98,17 @@ class TestCollocationComp(unittest.TestCase):
     def tearDown(self):
         dm.options['include_check_partials'] = False
 
-    def test_results(self):
-        dt_dstau = self.p['dt_dstau']
-
+    def test_results_radau_grid(self):
+        self.make_problem(transcription='radau-ps')
         assert_almost_equal(self.p['defect_comp.state_defects:x'], 0.0)
         assert_almost_equal(self.p['defect_comp.state_rate_defects:x'], 0.0)
         assert_almost_equal(self.p['defect_comp.final_state_defects:x'], 0.0)
 
-        print(self.p['defect_comp.state_defects:x'].shape)
-        print(self.p['defect_comp.state_rate_defects:x'].shape)
-        print(self.p['defect_comp.final_state_defects:x'].shape)
+    def test_results_gl_grid(self):
+        self.make_problem(transcription='birkhoff-gauss-lobatto')
+        assert_almost_equal(self.p['defect_comp.state_defects:x'], 0.0)
+        assert_almost_equal(self.p['defect_comp.state_rate_defects:x'], 0.0)
+        assert_almost_equal(self.p['defect_comp.final_state_defects:x'], 0.0)
 
     def test_partials(self):
         np.set_printoptions(linewidth=1024)
