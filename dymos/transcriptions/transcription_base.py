@@ -7,8 +7,8 @@ import openmdao.api as om
 from .common import ControlGroup, PolynomialControlGroup, ParameterComp
 from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_constraint_flat_idxs
-from ..utils.misc import _unspecified
-from ..utils.introspection import configure_states_introspection, get_promoted_vars, get_target_metadata, \
+from ..utils.misc import _none_or_unspecified
+from ..utils.introspection import configure_states_introspection, get_promoted_vars, \
     configure_states_discovery
 
 
@@ -105,7 +105,7 @@ class TranscriptionBase(object):
         time_options = phase.time_options
 
         # Determine the time unit.
-        if time_options['units'] in {None, _unspecified}:
+        if time_options['units'] in _none_or_unspecified:
             if time_options['targets']:
                 ode = phase._get_subsystem(self._rhs_source)
 
@@ -273,7 +273,6 @@ class TranscriptionBase(object):
 
             for name, options in phase.parameter_options.items():
                 param_comp.add_parameter(name, val=options['val'], shape=options['shape'], units=options['units'])
-
                 if options['opt']:
                     lb = -INF_BOUND if options['lower'] is None else options['lower']
                     ub = INF_BOUND if options['upper'] is None else options['upper']
@@ -286,11 +285,8 @@ class TranscriptionBase(object):
                                          ref=options['ref'])
 
                 for tgts, src_idxs in self.get_parameter_connections(name, phase):
-                    if not options['static_target']:
-                        phase.connect(f'parameter_vals:{name}', tgts, src_indices=src_idxs,
-                                      flat_src_indices=True)
-                    else:
-                        phase.connect(f'parameter_vals:{name}', tgts)
+                    phase.connect(f'parameter_vals:{name}', tgts, src_indices=src_idxs,
+                                  flat_src_indices=True)
 
     def setup_states(self, phase):
         """

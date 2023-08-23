@@ -263,15 +263,25 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
                                  "option 'dynamic' set to False should now use 'static_target' set "
                                  "to True.")
 
-        self.declare(name='static_target', values=[True, False, _unspecified], default=_unspecified,
+        self.declare(name='static_target', default=_unspecified,
                      desc='True if the target of this parameter does NOT have a unique value at '
                           'each node in the ODE.'
-                          'If _unspecified, attempt to determine through introspection.')
+                          'If _unspecified, attempt to determine through introspection.',
+                     deprecation='Use option `static_targets` to specify whether all targets\n'
+                                 'are static (static_targegts=True), none are static (static_targets=False),\n'
+                                 'static_targets are determined via introspection (static_targets=_unspecified),\n'
+                                 'or give an explicit sequence of the static targets.')
+
+        self.declare(name='static_targets', default=_unspecified,
+                     desc='If a boolean, specifies whether all targets are static (True), or no\n'
+                          'targets are static (False). Otherwise, provide a list of the static\n'
+                          'targets within the ODE. If left unspecified, static targets will be\n'
+                          'determined by finding inptus tagged with \'dymos.static_target\'.')
 
         self.declare(name='targets', allow_none=True, default=_unspecified,
                      desc='Targets in the ODE to which the state is connected')
 
-        self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
+        self.declare(name='val', types=(Iterable, np.ndarray, Number), default=0.0,
                      desc='The default value of the parameter in the phase.')
 
         self.declare(name='shape', check_valid=check_valid_shape, default=_unspecified,

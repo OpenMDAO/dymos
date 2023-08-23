@@ -102,7 +102,6 @@ class HPAdaptive:
         dict
             A dictionary of phase paths : phases which were refined.
         """
-
         for phase_path, phase_refinement_results in refine_results.items():
             phase = self.phases[phase_path]
             tx = phase.options['transcription']

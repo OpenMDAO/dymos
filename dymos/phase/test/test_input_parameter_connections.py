@@ -105,11 +105,12 @@ class TestStaticParameters(unittest.TestCase):
             phase.add_parameter('alpha', val=np.ones((n_traj, 2)), units='m',
                                 targets='comp.alpha', dynamic=False, static_target=True)
 
-        expected_msg = "Both the deprecated 'dynamic' option and option 'static_target' were " \
-                       "specified for parameter 'alpha'. Going forward, please use only option " \
-                       "static_target.  Option 'dynamic' will be removed in Dymos 2.0.0."
+        expected_msg = "Both the deprecated 'dynamic' option and option 'static_target' were\n" \
+                       "specified for parameter 'alpha'. Going forward, please use only\n" \
+                       "option static_targets. Options 'dynamic' and 'static_target'\n" \
+                       "will be removed in Dymos 2.0.0."
 
-        self.assertEqual(str(e.exception), expected_msg)
+        self.assertEqual(expected_msg, str(e.exception))
 
     def test_static_and_dynamic_error_in_traj(self):
 
@@ -119,11 +120,12 @@ class TestStaticParameters(unittest.TestCase):
             t.add_parameter('alpha', val=np.ones((n_traj, 2)), units='m',
                             targets={'p': ['comp.alpha']}, dynamic=False, static_target=True)
 
-        expected_msg = "Both the deprecated 'dynamic' option and option 'static_target' were " \
-                       "specified for parameter 'alpha'. Going forward, please use only option " \
-                       "static_target.  Option 'dynamic' will be removed in Dymos 2.0.0."
+        expected_msg = "Both the deprecated 'dynamic' option and option 'static_target' were\n" \
+                       "specified for parameter 'alpha'. Going forward, please use only\n" \
+                       "option static_targets. Options 'dynamic' and 'static_target'\n" \
+                       "will be removed in Dymos 2.0.0."
 
-        self.assertEqual(str(e.exception), expected_msg)
+        self.assertEqual(expected_msg, str(e.exception))
 
 
 if __name__ == '__main__':  # pragma: no cover

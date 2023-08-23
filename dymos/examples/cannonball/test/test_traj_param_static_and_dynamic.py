@@ -13,6 +13,9 @@ om_dev_version = openmdao.__version__.endswith('dev')
 om_version = tuple(int(s) for s in openmdao.__version__.split('-')[0].split('.'))
 
 
+GRAVITY = 9.80665  # m/s**2
+
+
 class CannonballODEVectorCD(om.ExplicitComponent):
     """
     Cannonball ODE assuming flat earth and accounting for air resistance
@@ -20,6 +23,7 @@ class CannonballODEVectorCD(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
+        self.options.declare('static_gravity', types=bool)
 
     def setup(self):
         nn = self.options['num_nodes']
@@ -27,6 +31,11 @@ class CannonballODEVectorCD(om.ExplicitComponent):
         # static parameters
         self.add_input('m', units='kg')
         self.add_input('S', units='m**2')
+
+        if self.options['static_gravity']:
+            self.add_input('g', units='m/s**2', val=GRAVITY)
+        else:
+            self.add_input('g', units='m/s**2', val=GRAVITY * np.ones(nn,))
 
         # This will be used as both a control and a parameter
         self.add_input('CD', 0.5, shape=nn)
@@ -57,8 +66,6 @@ class CannonballODEVectorCD(om.ExplicitComponent):
         S = inputs['S']
         CD = inputs['CD']
 
-        GRAVITY = 9.80665  # m/s**2
-
         # handle complex-step gracefully from the interpolant
         if np.iscomplexobj(h):
             rho = rho_interp(inputs['h'])
@@ -78,10 +85,10 @@ class CannonballODEVectorCD(om.ExplicitComponent):
 
 
 @use_tempdirs
-class TestConnectControlToParameter(unittest.TestCase):
+class TestTrajParamStaticAndDynamic(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')
-    def test_connect_control_to_parameter(self):
+    def test_traj_param_static_and_dynamic(self):
         """ Test that the final value of a control in one phase can be connected as the value
         of a parameter in a subsequent phase. """
         import openmdao.api as om
@@ -108,7 +115,8 @@ class TestConnectControlToParameter(unittest.TestCase):
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
         transcription = dm.Radau(num_segments=5, order=3, compressed=True)
-        ascent = dm.Phase(ode_class=CannonballODEVectorCD, transcription=transcription)
+        ascent = dm.Phase(ode_class=CannonballODEVectorCD, transcription=transcription,
+                          ode_init_kwargs={'static_gravity': True})
 
         ascent = traj.add_phase('ascent', ascent)
 
@@ -132,7 +140,8 @@ class TestConnectControlToParameter(unittest.TestCase):
 
         # Second Phase (descent)
         transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
-        descent = dm.Phase(ode_class=CannonballODEVectorCD, transcription=transcription)
+        descent = dm.Phase(ode_class=CannonballODEVectorCD, transcription=transcription,
+                           ode_init_kwargs={'static_gravity': False})
 
         traj.add_phase('descent', descent)
 
