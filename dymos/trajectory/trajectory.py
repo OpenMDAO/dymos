@@ -1171,7 +1171,7 @@ class Trajectory(om.Group):
         phases : sequence of str
             The names of the phases in this trajectory to be sequentially linked.
         vars : sequence of str
-            The variables in the phases to be linked, or '*'.  Providing '*' will time and all
+            The variables in the phases to be linked, or '*'.  Providing '*' will link time and all
             states.  Linking control values or rates requires them to be listed explicitly.
         locs : tuple of str
             A two-element tuple of a location specification.  For every pair in
