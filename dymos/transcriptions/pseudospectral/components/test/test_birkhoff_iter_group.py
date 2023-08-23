@@ -168,14 +168,3 @@ class TestBirkhoffIterGroup(unittest.TestCase):
 
             cpd = p.check_partials(method='cs', compact_print=True, out_stream=None)
             assert_check_partials(cpd)
-
-            import matplotlib.pyplot as plt
-            plt.plot(times, p.get_val('birkhoff.states:x'), 'o')
-            plt.show()
-
-
-
-
-
-
-
