@@ -7,7 +7,7 @@ import openmdao.api as om
 from .common import ControlGroup, PolynomialControlGroup, ParameterComp
 from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_constraint_flat_idxs
-from ..utils.misc import _unspecified
+from ..utils.misc import _none_or_unspecified
 from ..utils.introspection import configure_states_introspection, get_promoted_vars, \
     configure_states_discovery
 
@@ -105,7 +105,7 @@ class TranscriptionBase(object):
         time_options = phase.time_options
 
         # Determine the time unit.
-        if time_options['units'] in {None, _unspecified}:
+        if time_options['units'] in _none_or_unspecified:
             if time_options['targets']:
                 ode = phase._get_subsystem(self._rhs_source)
 

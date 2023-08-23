@@ -20,7 +20,7 @@ from .phase_linkage_comp import PhaseLinkageComp
 from ..phase.analytic_phase import AnalyticPhase
 from ..phase.options import TrajParameterOptionsDictionary
 from ..transcriptions.common import ParameterComp
-from ..utils.misc import get_rate_units, _unspecified
+from ..utils.misc import get_rate_units, _unspecified, _none_or_unspecified
 from ..utils.introspection import get_promoted_vars, get_source_metadata, _get_common_metadata
 from .._options import options as dymos_options
 
@@ -290,10 +290,10 @@ class Trajectory(om.Group):
         """
         phase_param_options = {}
         for phs in self.phases._subsystems_myproc:
-            phase_param_options.update({phs.name: phs.parameter_options})
+            phase_param_options[phs.name] = phs.parameter_options
 
         if self.comm.size > 1:
-            data = self.comm.gather(phase_param_options, root=0)
+            data = self.comm.allgather(phase_param_options)
             if data:
                 for d in data:
                     phase_param_options.update(d)
@@ -499,7 +499,7 @@ class Trajectory(om.Group):
             if options['units'] is _unspecified:
                 options['units'] = _get_common_metadata(targets, metadata_key='units')
 
-            if options['shape'] in {None, _unspecified}:
+            if options['shape'] in _none_or_unspecified:
                 options['shape'] = _get_common_metadata(targets, metadata_key='shape')
 
             param_comp = self._get_subsystem('param_comp')
@@ -535,7 +535,7 @@ class Trajectory(om.Group):
 
                     all_ranks = self.comm.allgather(options['shape'])
                     for item in all_ranks:
-                        if item not in {None, _unspecified}:
+                        if item not in _none_or_unspecified:
                             options['shape'] = item
                             break
                     else:

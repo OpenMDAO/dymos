@@ -10,7 +10,7 @@ from ...utils.introspection import configure_controls_introspection, \
     configure_time_introspection, configure_parameters_introspection, \
     configure_states_discovery, configure_states_introspection, _get_targets_metadata, \
     _get_common_metadata, get_promoted_vars
-from ...utils.misc import get_rate_units, _unspecified
+from ...utils.misc import get_rate_units, _unspecified, _none_or_unspecified
 
 
 class ODEEvaluationGroup(om.Group):
@@ -215,7 +215,7 @@ class ODEEvaluationGroup(om.Group):
             else:
                 units = options['units']
 
-            if options['shape'] in {None, _unspecified}:
+            if options['shape'] in _none_or_unspecified:
                 shape = _get_common_metadata(targets, 'shape')
             else:
                 shape = options['shape']

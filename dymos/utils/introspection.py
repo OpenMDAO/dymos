@@ -5,9 +5,8 @@ import re
 
 import openmdao.api as om
 import numpy as np
-from openmdao.utils.array_utils import shape_to_len
 from openmdao.utils.general_utils import ensure_compatible
-from dymos.utils.misc import _unspecified
+from dymos.utils.misc import _unspecified, _none_or_unspecified
 from .._options import options as dymos_options
 from ..phase.options import StateOptionsDictionary, TimeseriesOutputOptionsDictionary
 from .misc import get_rate_units
@@ -316,7 +315,7 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
             if options['units'] is _unspecified:
                 options['units'] = _get_common_metadata(targets, metadata_key='units')
 
-            if options['shape'] in {_unspecified, None}:
+            if options['shape'] in _none_or_unspecified:
                 shape = _get_common_metadata(targets, metadata_key='shape')
                 if len(shape) == 1:
                     options['shape'] = (1,)
@@ -337,7 +336,7 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
                 rate_target_units = _get_common_metadata(rate_targets, metadata_key='units')
                 options['units'] = time_units if rate_target_units is None else f'{rate_target_units}*{time_units}'
 
-            if options['shape'] in {None, _unspecified}:
+            if options['shape'] in _none_or_unspecified:
                 shape = _get_common_metadata(rate_targets, metadata_key='shape')
                 if len(shape) == 1:
                     options['shape'] = (1,)
@@ -359,7 +358,7 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
                 options['units'] = f'{time_units**2}' if rate2_target_units is None \
                     else f'{rate2_target_units}*{time_units}**2'
 
-            if options['shape'] in {None, _unspecified}:
+            if options['shape'] in _none_or_unspecified:
                 shape = _get_common_metadata(rate2_targets, metadata_key='shape')
                 if len(shape) == 1:
                     options['shape'] = (1,)
@@ -412,29 +411,27 @@ def configure_parameters_introspection(parameter_options, ode):
             options['units'] = _get_common_metadata(targets, metadata_key='units')
 
         # Check that all targets have the same shape.
-        static_shapes = {}
-        dynamic_shapes = {}
+        tgt_shapes = {}
         # First find the shapes of the static targets
         for tgt, meta in targets.items():
             if tgt in options['static_targets']:
-                static_shapes[tgt] = meta['shape']
+                tgt_shapes[tgt] = meta['shape']
             else:
                 if len(meta['shape']) == 1:
-                    dynamic_shapes[tgt] = (1,)
+                    tgt_shapes[tgt] = (1,)
                 else:
-                    dynamic_shapes[tgt] = meta['shape'][1:]
-        all_shapes = {**dynamic_shapes, **static_shapes}
+                    tgt_shapes[tgt] = meta['shape'][1:]
         # Check that they're unique
-        if len(set(all_shapes.values())) > 1:
+        if len(set(tgt_shapes.values())) > 1:
             raise RuntimeError(f'Invalid targets for parameter `{name}`.\n'
                                f'Targets have multiple shapes.\n'
-                               f'{all_shapes}')
-        elif len(set(all_shapes.values())) == 1:
-            introspected_shape = next(iter(set(all_shapes.values())))
+                               f'{tgt_shapes}')
+        elif len(set(tgt_shapes.values())) == 1:
+            introspected_shape = next(iter(set(tgt_shapes.values())))
         else:
             introspected_shape = None
 
-        if options['shape'] in {_unspecified, None}:
+        if options['shape'] in _none_or_unspecified:
             if isinstance(options['val'], Number):
                 options['shape'] = introspected_shape
             else:
@@ -444,7 +441,7 @@ def configure_parameters_introspection(parameter_options, ode):
                 raise RuntimeError(f'Shape provided to parameter `{name}` differs from its targets.\n'
                                    f'Given shape: {options["shape"]}\n'
                                    f'Target shapes:\n'
-                                   f'{all_shapes}')
+                                   f'{tgt_shapes}')
 
         options['val'], options['shape'] = ensure_compatible(name, options['val'], options['shape'])
 
@@ -534,7 +531,7 @@ def configure_states_introspection(state_options, time_options, control_options,
             if options['units'] is _unspecified:
                 options['units'] = _get_common_metadata(targets, metadata_key='units')
 
-            if options['shape'] in {None, _unspecified}:
+            if options['shape'] in _none_or_unspecified:
                 shape = _get_common_metadata(targets, metadata_key='shape')
                 if len(shape) == 1:
                     options['shape'] = (1,)
@@ -593,7 +590,7 @@ def configure_states_introspection(state_options, time_options, control_options,
             rate_src_shape = (1,)
             rate_src_units = None
 
-        if options['shape'] in {None, _unspecified}:
+        if options['shape'] in _none_or_unspecified:
             options['shape'] = rate_src_shape
 
         if options['units'] is _unspecified:
@@ -643,7 +640,7 @@ def configure_analytic_states_introspection(state_options, ode):
             raise RuntimeError(f'ODE output {source} is tagged with `dymos.static_output` and cannot be used as a '
                                f'state variable in an AnalyticPhase.')
 
-        if options['shape'] in {None, _unspecified}:
+        if options['shape'] in _none_or_unspecified:
             options['shape'] = src_shape
 
         if options['units'] is _unspecified:
@@ -879,7 +876,7 @@ def configure_timeseries_expr_introspection(phase):
                 expr_reduced = expr
 
                 units = output_options['units'] if output_options['units'] is not _unspecified else None
-                shape = output_options['shape'] if output_options['shape'] not in {_unspecified, None} else (1,)
+                shape = output_options['shape'] if output_options['shape'] not in _none_or_unspecified else (1,)
 
                 abs_names = [x.strip() for x in re.findall(var_names_regex, expr)
                              if not x.endswith('(') and not x.endswith(':')]
@@ -1193,7 +1190,7 @@ def _get_common_metadata(targets, metadata_key):
     ValueError
         ValueError is raised if the targets do not all have the same metadata value.
     """
-    meta_set = {meta[metadata_key] for tgt, meta in targets.items()}
+    meta_set = {meta[metadata_key] for meta in targets.values()}
 
     if len(meta_set) == 1:
         return next(iter(meta_set))
@@ -1249,12 +1246,12 @@ def get_source_metadata(ode, src, user_units=_unspecified, user_shape=_unspecifi
     if src not in ode_outputs:
         raise ValueError(f"Unable to find the source '{src}' in the ODE.")
 
-    if user_units in {None, _unspecified}:
+    if user_units in _none_or_unspecified:
         meta['units'] = ode_outputs[src]['units']
     else:
         meta['units'] = user_units
 
-    if user_shape in {None, _unspecified}:
+    if user_shape in _none_or_unspecified:
         ode_shape = ode_outputs[src]['shape']
         meta['shape'] = (1,) if len(ode_shape) == 1 else ode_shape[1:]
     else:
