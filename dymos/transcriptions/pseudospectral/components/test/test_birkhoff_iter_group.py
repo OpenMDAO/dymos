@@ -1,14 +1,11 @@
 import unittest
 
 import numpy as np
-from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
 
 import dymos
-from dymos.utils.testing_utils import assert_check_partials
-
-import dymos as dm
+from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 
 from dymos.utils.misc import CompWrapperConfig
 from dymos.transcriptions.pseudospectral.components import BirkhoffIterGroup
@@ -66,7 +63,8 @@ class TestBirkhoffIterGroup(unittest.TestCase):
             state_options['x']['rate_source'] = 'x_dot'
 
             time_options = TimeOptionsDictionary()
-            grid_data = BirkhoffGaussLobattoGrid(num_segments=1, nodes_per_seg=13)
+            grid_data = BirkhoffGaussLobattoGrid(num_segments=1, nodes_per_seg=11)
+            nn = grid_data.subset_num_nodes['all']
             ode_class = SimpleODE
 
             p = om.Problem()
@@ -85,22 +83,28 @@ class TestBirkhoffIterGroup(unittest.TestCase):
             # Instead of using the TimeComp just transform the node segment taus onto [0, 2]
             times = grid_data.node_stau + 1
 
-            solution = times**2 + 2 * times + 1 - 0.5 * np.exp(times)
-
-            dsolution_dt = 2 * times + 2 - 0.5 * np.exp(times)
+            solution = np.reshape(times**2 + 2 * times + 1 - 0.5 * np.exp(times), (nn, 1))
+            dsolution_dt = np.reshape(2 * times + 2 - 0.5 * np.exp(times), (nn, 1))
 
             p.set_val('birkhoff.initial_states:x', 0.5)
+            p.set_val('birkhoff.ode.t', times)
+            p.set_val('birkhoff.ode.p', 1.0)
+
+            # We don't need to provide guesses for these values in this case
             # p.set_val('birkhoff.final_states:x', solution[-1])
             # p.set_val('birkhoff.states:x', solution)
             # p.set_val('birkhoff.state_rates:x', dsolution_dt)
-            p.set_val('birkhoff.ode.t', times)
-            p.set_val('birkhoff.ode.p', 1.0)
 
             p.final_setup()
             p.run_model()
 
-            with np.printoptions(linewidth=1024):
-                p.check_partials(method='cs', compact_print=True)
+            assert_near_equal(solution, p.get_val('birkhoff.states:x'), tolerance=1.0E-9)
+            assert_near_equal(dsolution_dt, p.get_val('birkhoff.state_rates:x'), tolerance=1.0E-9)
+            assert_near_equal(solution[0], p.get_val('birkhoff.initial_states:x'), tolerance=1.0E-9)
+            assert_near_equal(solution[-1], p.get_val('birkhoff.final_states:x'), tolerance=1.0E-9)
+
+            cpd = p.check_partials(method='cs', compact_print=True, out_stream=None)
+            assert_check_partials(cpd)
 
 
 
