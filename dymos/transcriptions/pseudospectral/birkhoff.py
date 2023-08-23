@@ -207,59 +207,89 @@ class Birkhoff(TranscriptionBase):
                 idx_mask = np.zeros(state_input_shape, dtype=int)
                 idx_mask[desvar_node_idxs, ...] = 1
 
-                if options['fix_initial']:
-                    if options['initial_bounds'] is not None:
-                        raise ValueError('Cannot specify \'fix_initial=True\' and specify '
-                                         f'initial_bounds for state {name} in phase {phase.name}')
-                    if options['input_initial']:
-                        raise ValueError('Cannot specify \'fix_initial=True\' and specify '
-                                         f'\'connected_initial=True\' for state {name} '
-                                         f'in phase {phase.name}')
-                    idx_mask[0, ...] = np.asarray(np.logical_not(options['fix_initial']), dtype=int)
-                elif options['input_initial']:
-                    if options['initial_bounds'] is not None:
-                        raise ValueError('Cannot specify \'connected_initial=True\' and specify '
-                                         f'initial_bounds for state {name} in phase {phase.name}')
-                    idx_mask[0, ...] = np.asarray(np.logical_not(options['input_initial']), dtype=int)
+                if not (options['fix_initial'] or options['input_initial']):
+                    ilb = options['lower']
+                    iub = options['upper']
 
-                if options['fix_final']:
+                    if options['initial_bounds'] is not None:
+                        ilb = options['initial_bounds'][0]
+                        iub = options['initial_bounds'][1]
+
+                    phase.add_design_var(name=f'initial_states:{name}',
+                                         lower=ilb,
+                                         upper=iub,
+                                         scaler=options['scaler'],
+                                         adder=options['adder'],
+                                         ref0=options['ref0'],
+                                         ref=options['ref'])
+
+                if not (options['fix_final'] or options['input_final']):
+                    flb = options['lower']
+                    fub = options['upper']
+
                     if options['final_bounds'] is not None:
-                        raise ValueError('Cannot specify \'fix_final=True\' and specify '
-                                         f'final_bounds for state {name}')
-                    idx_mask[-1, ...] = np.asarray(np.logical_not(options['fix_final']), dtype=int)
+                        flb = options['final_bounds'][0]
+                        fub = options['final_bounds'][1]
+
+                    phase.add_design_var(name=f'final_states:{name}',
+                                         lower=flb,
+                                         upper=fub,
+                                         scaler=options['scaler'],
+                                         adder=options['adder'],
+                                         ref0=options['ref0'],
+                                         ref=options['ref'])
+
+                # if options['fix_initial']:
+                #     if options['initial_bounds'] is not None:
+                #         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
+                #                          f'initial_bounds for state {name} in phase {phase.name}')
+                #     if options['input_initial']:
+                #         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
+                #                          f'\'connected_initial=True\' for state {name} '
+                #                          f'in phase {phase.name}')
+                #     idx_mask[0, ...] = np.asarray(np.logical_not(options['fix_initial']), dtype=int)
+                # elif options['input_initial']:
+                #     if options['initial_bounds'] is not None:
+                #         raise ValueError('Cannot specify \'connected_initial=True\' and specify '
+                #                          f'initial_bounds for state {name} in phase {phase.name}')
+                #     idx_mask[0, ...] = np.asarray(np.logical_not(options['input_initial']), dtype=int)
+
+                # if options['fix_final']:
+                #     if options['final_bounds'] is not None:
+                #         raise ValueError('Cannot specify \'fix_final=True\' and specify '
+                #                          f'final_bounds for state {name}')
+                #     idx_mask[-1, ...] = np.asarray(np.logical_not(options['fix_final']), dtype=int)
 
                 # Now convert the masked array into actual flat indices
-                desvar_indices = np.arange(idx_mask.size, dtype=int).reshape(state_input_shape)[idx_mask.nonzero()]
+                # desvar_indices = np.arange(idx_mask.size, dtype=int).reshape(state_input_shape)[idx_mask.nonzero()]
 
-                if len(desvar_indices) > 0:
-                    coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
-                                                        options)
+                # if len(desvar_indices) > 0:
+                #     coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
+                #                                         options)
+                #
+                #     lb = np.zeros_like(desvar_indices, dtype=float)
+                #     lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+                #         coerce_desvar_option('lower')
+                #
+                #     ub = np.zeros_like(desvar_indices, dtype=float)
+                #     ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+                #         coerce_desvar_option('upper')
 
-                    lb = np.zeros_like(desvar_indices, dtype=float)
-                    lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
-                        coerce_desvar_option('lower')
+                    # if options['initial_bounds'] is not None:
+                    #     lb[0] = options['initial_bounds'][0]
+                    #     ub[0] = options['initial_bounds'][-1]
+                    #
+                    # if options['final_bounds'] is not None:
+                    #     lb[-1] = options['final_bounds'][0]
+                    #     ub[-1] = options['final_bounds'][-1]
 
-                    ub = np.zeros_like(desvar_indices, dtype=float)
-                    ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
-                        coerce_desvar_option('upper')
-
-                    if options['initial_bounds'] is not None:
-                        lb[0] = options['initial_bounds'][0]
-                        ub[0] = options['initial_bounds'][-1]
-
-                    if options['final_bounds'] is not None:
-                        lb[-1] = options['final_bounds'][0]
-                        ub[-1] = options['final_bounds'][-1]
-
-                    phase.add_design_var(name=f'states:{name}',
-                                         lower=lb,
-                                         upper=ub,
-                                         scaler=coerce_desvar_option('scaler'),
-                                         adder=coerce_desvar_option('adder'),
-                                         ref0=coerce_desvar_option('ref0'),
-                                         ref=coerce_desvar_option('ref'),
-                                         indices=desvar_indices,
-                                         flat_indices=True)
+                phase.add_design_var(name=f'states:{name}',
+                                     lower=options['lower'],
+                                     upper=options['upper'],
+                                     scaler=options['scaler'],
+                                     adder=options['adder'],
+                                     ref0=options['ref0'],
+                                     ref=options['ref'])
 
         if isinstance(indep, StateIndependentsComp):
             indep.configure_io(self.state_idx_map)
@@ -382,7 +412,9 @@ class Birkhoff(TranscriptionBase):
         phase.add_subsystem('collocation_constraint',
                             BirkhoffCollocationComp(grid_data=self.grid_data,
                                                     state_options=phase.state_options,
-                                                    time_units=phase.time_options['units']))
+                                                    time_units=phase.time_options['units']),
+                            promotes_inputs=['states:*', 'state_rates:*', 'initial_states:*',
+                                             'final_states:*'])
 
     def configure_defects(self, phase):
         """
@@ -403,11 +435,11 @@ class Birkhoff(TranscriptionBase):
         for name in phase.state_options:
             rate_src_path, src_idxs = self._get_rate_source_path(name, 'col', phase)
 
-            phase.connect(f'states:{name}',
-                          f'collocation_constraint.state_value:{name}')
-
-            phase.connect(f'state_rates:{name}',
-                          f'collocation_constraint.f_value:{name}')
+            # phase.connect(f'states:{name}',
+            #               f'collocation_constraint.states:{name}')
+            #
+            # phase.connect(f'state_rates:{name}',
+            #               f'collocation_constraint.state_rates:{name}')
 
             phase.connect(rate_src_path,
                           f'collocation_constraint.f_computed:{name}')

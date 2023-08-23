@@ -19,6 +19,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
+    p.driver.opt_settings['print_level'] = 5
     p.driver.declare_coloring(tol=1.0E-12)
 
     if transcription == 'gauss-lobatto':
@@ -98,16 +99,20 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
     p['traj0.phase0.parameters:g'] = 9.80665
 
-    dm.run_problem(p, run_driver=run_driver, simulate=False, make_plots=True)
+    # p.run_model()
 
-    print(p.get_val('traj0.phase0.timeseries.time')[-1])
-    print(p.get_val('traj0.phase0.timeseries.x')[-1])
-    print(p.get_val('traj0.phase0.timeseries.y')[-1])
+    # p.check_totals(compact_print=True)
+
+    dm.run_problem(p, run_driver=run_driver, simulate=False, make_plots=True)
+    #
+    # print(p.get_val('traj0.phase0.timeseries.time')[-1])
+    # print(p.get_val('traj0.phase0.timeseries.x')[-1])
+    # print(p.get_val('traj0.phase0.timeseries.y')[-1])
 
     return p
 
 
 if __name__ == '__main__':
     p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
-                                 transcription_order=13, compressed=False, optimizer='IPOPT',
+                                 transcription_order=7, compressed=False, optimizer='IPOPT',
                                  solve_segments=False, force_alloc_complex=True)
