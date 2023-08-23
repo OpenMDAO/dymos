@@ -260,10 +260,10 @@ class Birkhoff(PseudospectralBase):
             rate_src_path, src_idxs = self._get_rate_source_path(name, 'col', phase)
 
             phase.connect(f'states:{name}',
-                          f'collocation_constraint.state_value:{name}')
+                          f'collocation_constraint.states:{name}')
 
             phase.connect(f'state_rates:{name}',
-                          f'collocation_constraint.f_value:{name}')
+                          f'collocation_constraint.state_rates:{name}')
 
             phase.connect(rate_src_path,
                           f'collocation_constraint.f_computed:{name}')

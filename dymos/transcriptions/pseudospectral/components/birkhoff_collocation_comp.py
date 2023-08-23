@@ -45,12 +45,13 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
         self.var_names = var_names = {}
         for state_name in state_options:
             var_names[state_name] = {
-                'f_value': f'f_value:{state_name}',
+                'f_value': f'state_rates:{state_name}',
                 'f_computed': f'f_computed:{state_name}',
-                'state_value': f'state_value:{state_name}',
+                'state_value': f'states:{state_name}',
+                'state_initial_value': f'initial_states:{state_name}',
+                'state_final_value': f'final_states:{state_name}',
                 'state_defect': f'state_defects:{state_name}',
                 'state_rate_defect': f'state_rate_defects:{state_name}',
-                'initial_state_rate_defect': f'initial_state_rate_defects:{state_name}',
                 'final_state_defect': f'final_state_defects:{state_name}'
             }
 
@@ -65,19 +66,33 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             self.add_input(
                 name=var_names['f_value'],
                 shape=(num_nodes,) + shape,
-                desc=f'Estimated derivative of state {state_name} at the collocation nodes',
+                desc=f'Estimated derivative of state {state_name} at the polynomial nodes',
                 units=rate_units)
 
             self.add_input(
                 name=var_names['f_computed'],
                 shape=(num_nodes,) + shape,
-                desc=f'Computed derivative of state {state_name} at the collocation nodes',
+                desc=f'Computed derivative of state {state_name} at the polynomial nodes',
                 units=rate_units)
 
             self.add_input(
                 name=var_names['state_value'],
                 shape=(num_nodes,) + shape,
-                desc=f'Value of the design variable corresponding to state {state_name}',
+                desc=f'Value of the state {state_name} at the polynomial nodes',
+                units=units
+            )
+
+            self.add_input(
+                name=var_names['state_initial_value'],
+                shape=shape,
+                desc=f'Desired initial value of state {state_name}',
+                units=units
+            )
+
+            self.add_input(
+                name=var_names['state_final_value'],
+                shape=shape,
+                desc=f'Desired final value of state {state_name}',
                 units=units
             )
 
@@ -203,26 +218,31 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
         #                           rows=r2, cols=np.zeros(size))
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
-        state_options = self.options['state_options']
-        gd = self.options['grid_data']
         dt_dstau = np.atleast_2d(inputs['dt_dstau']).T
 
-        for state_name in state_options:
+        for state_name in self.options['state_options']:
             var_names = self.var_names[state_name]
 
-            state_value = inputs[var_names['state_value']]
-            f_value = inputs[var_names['f_value']]
-            f_computed = inputs[var_names['f_computed']]
 
-            x_a = state_value[0, ...]
-            x_b = state_value[-1, ...]
+            x_a = inputs[var_names['state_initial_value']]
+            x_b = inputs[var_names['state_final_value']]
+            X = inputs[var_names['state_value']]
+            V = inputs[var_names['f_value']]
+            f = inputs[var_names['f_computed']]
+
             X_AB = np.vstack((x_a, x_b))
-            XV = np.vstack((state_value, f_value * dt_dstau))
-            state_defect = (np.dot(self._A, XV) - np.dot(self._C, X_AB)).T
+            XV = np.vstack((X, V * dt_dstau))
+            state_defect = (np.dot(self._A, XV) - np.dot(self._C, X_AB))
 
-            outputs[var_names['state_defect']] = state_defect[0, :-1]
-            outputs[var_names['state_rate_defect']] = (f_value.T - f_computed.T) * dt_dstau.T
-            outputs[var_names['final_state_defect']] = state_defect[0, -1]
+            # with np.printoptions(linewidth=1024):
+            #     print(self._A)
+            #     print()
+            #     print(state_defect)
+            #     print()
+
+            outputs[var_names['state_defect']] = state_defect[:-1, ...]
+            outputs[var_names['state_rate_defect']] = (V.T - f.T) * dt_dstau.T
+            outputs[var_names['final_state_defect']] = state_defect[-1, ...]
 
     # def compute_partials(self, inputs, partials):
     #     """
