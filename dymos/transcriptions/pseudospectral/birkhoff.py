@@ -1,17 +1,10 @@
 import numpy as np
 
 import openmdao.api as om
-from .components import BirkhoffCollocationComp
 
-from .pseudospectral_base import PseudospectralBase
 from ..transcription_base import TranscriptionBase
 from ..common import TimeComp, TimeseriesOutputGroup
-from .components import StateIndependentsComp, StateInterpComp, CollocationComp, \
-    PseudospectralTimeseriesOutputComp
-from ...utils.misc import CoerceDesvar, get_rate_units, reshape_val
-from ...utils.introspection import get_promoted_vars, get_source_metadata, configure_duration_balance_introspection
-from ...utils.constants import INF_BOUND
-from ...utils.indexing import get_src_indices_by_row
+from .components import StateIndependentsComp, PseudospectralTimeseriesOutputComp, BirkhoffCollocationComp
 
 from ..grid_data import RadauGrid, BirkhoffGaussLobattoGrid
 from dymos.utils.misc import get_rate_units, reshape_val
@@ -238,50 +231,6 @@ class Birkhoff(TranscriptionBase):
                                          adder=options['adder'],
                                          ref0=options['ref0'],
                                          ref=options['ref'])
-
-                # if options['fix_initial']:
-                #     if options['initial_bounds'] is not None:
-                #         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
-                #                          f'initial_bounds for state {name} in phase {phase.name}')
-                #     if options['input_initial']:
-                #         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
-                #                          f'\'connected_initial=True\' for state {name} '
-                #                          f'in phase {phase.name}')
-                #     idx_mask[0, ...] = np.asarray(np.logical_not(options['fix_initial']), dtype=int)
-                # elif options['input_initial']:
-                #     if options['initial_bounds'] is not None:
-                #         raise ValueError('Cannot specify \'connected_initial=True\' and specify '
-                #                          f'initial_bounds for state {name} in phase {phase.name}')
-                #     idx_mask[0, ...] = np.asarray(np.logical_not(options['input_initial']), dtype=int)
-
-                # if options['fix_final']:
-                #     if options['final_bounds'] is not None:
-                #         raise ValueError('Cannot specify \'fix_final=True\' and specify '
-                #                          f'final_bounds for state {name}')
-                #     idx_mask[-1, ...] = np.asarray(np.logical_not(options['fix_final']), dtype=int)
-
-                # Now convert the masked array into actual flat indices
-                # desvar_indices = np.arange(idx_mask.size, dtype=int).reshape(state_input_shape)[idx_mask.nonzero()]
-
-                # if len(desvar_indices) > 0:
-                #     coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
-                #                                         options)
-                #
-                #     lb = np.zeros_like(desvar_indices, dtype=float)
-                #     lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
-                #         coerce_desvar_option('lower')
-                #
-                #     ub = np.zeros_like(desvar_indices, dtype=float)
-                #     ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
-                #         coerce_desvar_option('upper')
-
-                    # if options['initial_bounds'] is not None:
-                    #     lb[0] = options['initial_bounds'][0]
-                    #     ub[0] = options['initial_bounds'][-1]
-                    #
-                    # if options['final_bounds'] is not None:
-                    #     lb[-1] = options['final_bounds'][0]
-                    #     ub[-1] = options['final_bounds'][-1]
 
                 phase.add_design_var(name=f'states:{name}',
                                      lower=options['lower'],

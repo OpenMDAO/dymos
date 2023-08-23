@@ -19,7 +19,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    p.driver.opt_settings['print_level'] = 5
+    # p.driver.opt_settings['print_level'] = 5
     p.driver.declare_coloring(tol=1.0E-12)
 
     if transcription == 'gauss-lobatto':
@@ -87,7 +87,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.t_initial'] = 0.0
     p['traj0.phase0.t_duration'] = 2.0
 
-    if transcription.startswith('shooting'):
+    if transcription.startswith('shooting') or transcription == 'birkhoff':
         p['traj0.phase0.initial_states:x'] = 0
         p['traj0.phase0.initial_states:y'] = 10
         p['traj0.phase0.initial_states:v'] = 0
@@ -104,10 +104,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     # p.check_totals(compact_print=True)
 
     dm.run_problem(p, run_driver=run_driver, simulate=False, make_plots=True)
-    #
-    # print(p.get_val('traj0.phase0.timeseries.time')[-1])
-    # print(p.get_val('traj0.phase0.timeseries.x')[-1])
-    # print(p.get_val('traj0.phase0.timeseries.y')[-1])
 
     return p
 

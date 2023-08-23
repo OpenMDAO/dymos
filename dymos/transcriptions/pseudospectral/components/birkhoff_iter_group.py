@@ -185,8 +185,4 @@ class BirkhoffIterGroup(om.Group):
                 states_balance_comp.add_implicit_output(f'state_rates:{name}', shape=(nn,) + shape, units=rate_units,
                                                         resid_input=f'state_rate_defects:{name}')
 
-
             self.connect(f'ode.{rate_source}', f'f_computed:{name}')
-
-
-

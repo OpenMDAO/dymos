@@ -80,14 +80,17 @@ class TestCollocationComp(unittest.TestCase):
         else:
             src_indices = om.slicer[:]
 
-        self.p.model.connect('state_value:x', 'defect_comp.state_value:x')
-        self.p.model.connect('f_value:x', 'defect_comp.f_value:x', src_indices=src_indices)
+        self.p.model.connect('state_value:x', 'defect_comp.states:x')
+        self.p.model.connect('f_value:x', 'defect_comp.state_rates:x', src_indices=src_indices)
         # self.p.model.connect('f_value:v', 'defect_comp.f_value:v')
         self.p.model.connect('f_computed:x', 'defect_comp.f_computed:x', src_indices=src_indices)
         # self.p.model.connect('f_computed:v', 'defect_comp.f_computed:v')
         self.p.model.connect('dt_dstau', 'defect_comp.dt_dstau')
 
         self.p.setup(force_alloc_complex=True)
+
+        self.p.set_val('defect_comp.initial_states:x', 10.0)
+        self.p.set_val('defect_comp.final_states:x', x_val[-1])
 
         # self.p['f_value:v'] = np.random.random((n-1, 3, 2))
 
@@ -111,8 +114,9 @@ class TestCollocationComp(unittest.TestCase):
         assert_almost_equal(self.p['defect_comp.final_state_defects:x'], 0.0)
 
     def test_partials(self):
+        self.make_problem(transcription='birkhoff-gauss-lobatto')
         np.set_printoptions(linewidth=1024)
-        cpd = self.p.check_partials(compact_print=False, method='fd', out_stream=None)
+        cpd = self.p.check_partials(compact_print=False, method='fd')
         assert_check_partials(cpd)
 
 
