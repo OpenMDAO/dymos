@@ -425,18 +425,17 @@ class Analytic(TranscriptionBase):
 
         if name in phase.parameter_options:
             options = phase.parameter_options[name]
-            if not options['static_target']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-                if options['shape'] == (1,):
-                    src_idxs = src_idxs.ravel()
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-                src_idxs = np.squeeze(src_idxs, axis=0)
-
-            rhs_tgts = [f'rhs.{t}' for t in options['targets']]
-            connection_info.append((rhs_tgts, (src_idxs,)))
+            for tgt in options['targets']:
+                if tgt in options['static_targets']:
+                    src_idxs_raw = np.zeros(1, dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                    src_idxs = np.squeeze(src_idxs, axis=0)
+                else:
+                    src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                    if options['shape'] == (1,):
+                        src_idxs = src_idxs.ravel()
+                connection_info.append((f'rhs.{tgt}', (src_idxs,)))
 
         return connection_info
 

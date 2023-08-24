@@ -13,9 +13,10 @@ from .ode_integration_comp import ODEIntegrationComp
 from ..._options import options as dymos_options
 from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.indexing import get_src_indices_by_row
-from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets
+from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets, _get_targets_metadata
 from ...utils.constants import INF_BOUND
-from ..common import TimeComp, TimeseriesOutputGroup, ControlGroup, PolynomialControlGroup
+from ..common import TimeComp, TimeseriesOutputGroup, ControlGroup, PolynomialControlGroup, \
+    ParameterComp
 
 
 class ExplicitShooting(TranscriptionBase):
@@ -152,7 +153,13 @@ class ExplicitShooting(TranscriptionBase):
         time_comp = TimeComp(num_nodes=num_nodes, node_ptau=node_ptau,
                              node_dptau_dstau=node_dptau_dstau, units=time_units)
 
-        phase.add_subsystem('time', time_comp, promotes=['*'])
+        phase.add_subsystem('param_comp', subsys=ParameterComp(time_options=time_options),
+                            promotes_inputs=['*'], promotes_outputs=['*'])
+
+        phase.add_subsystem('time', time_comp, promotes_outputs=['*'])
+
+        phase.connect('t_initial_val', ['time.t_initial', 'integrator.t_initial'])
+        phase.connect('t_duration_val', ['time.t_duration', 'integrator.t_duration'])
 
     def configure_time(self, phase):
         """
@@ -175,12 +182,6 @@ class ExplicitShooting(TranscriptionBase):
         time_comp.configure_io()
 
         ode = phase._get_subsystem('ode')
-        ode_inputs = get_promoted_vars(ode, 'input')
-
-        phase.set_input_defaults('t_initial', val=0.0)
-        phase.set_input_defaults('t_duration', val=1.0)
-
-        phase.promotes('integrator', inputs=['t_initial', 't_duration'])
 
         if not time_options['fix_initial']:
             lb, ub = time_options['initial_bounds']
@@ -216,12 +217,14 @@ class ExplicitShooting(TranscriptionBase):
                 phase.connect(f'integrator.{name}', [f'ode.{t}' for t in targets], src_indices=src_idxs,
                               flat_src_indices=True if dynamic else None)
 
-        for name, targets in [('t_initial', time_options['t_initial_targets']),
-                              ('t_duration', time_options['t_duration_targets'])]:
-            for t in targets:
-                shape = ode_inputs[t]['shape']
+        for name, tgts in [('t_initial', time_options['t_initial_targets']),
+                           ('t_duration', time_options['t_duration_targets'])]:
 
-                if shape == (1,):
+            targets = _get_targets_metadata(ode, name, user_targets=tgts)
+            for t, meta in targets.items():
+                tgt_shape = meta['shape']
+
+                if tgt_shape == (1,):
                     src_idxs = None
                     flat_src_idxs = None
                     src_shape = None
@@ -230,12 +233,9 @@ class ExplicitShooting(TranscriptionBase):
                     flat_src_idxs = True
                     src_shape = (1,)
 
-                phase.promotes('ode', inputs=[(t, name)], src_indices=src_idxs,
-                               flat_src_indices=flat_src_idxs, src_shape=src_shape)
-            if targets:
-                phase.set_input_defaults(name=name,
-                                         val=np.ones((1,)),
-                                         units=t_units)
+                phase.connect(f'{name}_val', f'ode.{name}',
+                              src_indices=src_idxs,
+                              flat_src_indices=flat_src_idxs)
 
     def setup_states(self, phase):
         """
@@ -425,14 +425,14 @@ class ExplicitShooting(TranscriptionBase):
                               [f'ode.{t}' for t in targets])
 
             # Rate targets
-            rate_targets = get_targets(ode_inputs, control_name, options['rate_targets'], control_rates=1)
+            rate_targets = get_targets(ode_inputs, control_name, options['rate_targets'])
 
             if rate_targets:
                 phase.connect(f'control_rates:{control_name}_rate',
                               [f'ode.{t}' for t in rate_targets])
 
             # Second time derivative targets must be specified explicitly
-            rate2_targets = get_targets(ode_inputs, control_name, options['rate2_targets'], control_rates=2)
+            rate2_targets = get_targets(ode_inputs, control_name, options['rate2_targets'])
 
             if rate2_targets:
                 phase.connect(f'control_rates:{control_name}_rate2',
@@ -519,14 +519,14 @@ class ExplicitShooting(TranscriptionBase):
                               [f'ode.{t}' for t in targets])
 
             # Rate targets
-            rate_targets = get_targets(ode_inputs, control_name, options['rate_targets'], control_rates=1)
+            rate_targets = get_targets(ode_inputs, control_name, options['rate_targets'])
 
             if rate_targets:
                 phase.connect(f'polynomial_control_rates:{control_name}_rate',
                               [f'ode.{t}' for t in rate_targets])
 
             # Second time derivative targets must be specified explicitly
-            rate2_targets = get_targets(ode_inputs, control_name, options['rate2_targets'], control_rates=2)
+            rate2_targets = get_targets(ode_inputs, control_name, options['rate2_targets'])
 
             if rate2_targets:
                 phase.connect(f'polynomial_control_rates:{control_name}_rate2',
@@ -563,6 +563,9 @@ class ExplicitShooting(TranscriptionBase):
                                                                state_options=phase.state_options,
                                                                control_options=phase.control_options,
                                                                time_units=phase.time_options['units']))
+
+            if rate_cont:
+                phase.connect('t_duration_val', 'continuity_comp.t_duration')
 
     def configure_defects(self, phase):
         """
@@ -603,9 +606,6 @@ class ExplicitShooting(TranscriptionBase):
             phase.continuity_comp.configure_io(controls_to_enforce=controls_to_enforce,
                                                control_rates_to_enforce=control_rates_to_enforce,
                                                control_rates2_to_enforce=control_rates2_to_enforce)
-
-        if any_rate_cnty:
-            phase.promotes('continuity_comp', inputs=['t_duration'])
 
     def setup_timeseries_outputs(self, phase):
         """
@@ -708,18 +708,19 @@ class ExplicitShooting(TranscriptionBase):
 
         if name in phase.parameter_options:
             options = phase.parameter_options[name]
-            if not options['static_target']:
-                src_idxs_raw = np.zeros(self._output_grid_data.subset_num_nodes['all'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-                if options['shape'] == (1,):
-                    src_idxs = src_idxs.ravel()
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-                src_idxs = np.squeeze(src_idxs, axis=0)
+            for tgt in options['targets']:
+                if tgt in options['static_targets']:
+                    src_idxs_raw = np.zeros(1, dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                    src_idxs = np.squeeze(src_idxs, axis=0)
+                else:
+                    src_idxs_raw = np.zeros(self._output_grid_data.subset_num_nodes['all'], dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                    if options['shape'] == (1,):
+                        src_idxs = src_idxs.ravel()
 
+                connection_info.append((f'ode.{tgt}', (src_idxs,)))
             connection_info.append(([f'integrator.parameters:{name}'], None))
-            connection_info.append(([f'ode.{tgt}' for tgt in options['targets']], (src_idxs,)))
 
         return connection_info
 

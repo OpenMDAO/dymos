@@ -10,7 +10,7 @@ from .components import SegmentSimulationComp, SegmentStateMuxComp, \
     SolveIVPControlGroup, SolveIVPPolynomialControlGroup, SolveIVPTimeseriesOutputComp
 from ..common import TimeComp, TimeseriesOutputGroup
 from ...utils.misc import get_rate_units
-from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata, get_target_metadata
+from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 
 

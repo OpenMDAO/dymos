@@ -75,10 +75,10 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
 
         expected_msg = "Invalid parameter in phase `traj.phases.phase0`.\n" \
                        "Parameter `g` has invalid target(s).\n" \
-                       "User has specified 'static_target = False' for parameter g,but one or more " \
-                       "targets is tagged with 'dymos.static_target': g"
+                       "User has specified 'static_target = False' for parameter `g`,\nbut one or more " \
+                       "targets is tagged with 'dymos.static_target':\n{'g'}"
 
-        self.assertEqual(str(e.exception), expected_msg)
+        self.assertEqual(expected_msg, str(e.exception))
 
     def test_control_to_static_target_fails_gl(self):
         """ Tests that control cannot be connected to target tagged as 'dymos.static_target'. """

@@ -56,7 +56,6 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=Fal
     return p
 
 
-@unittest.skipIf(om_version <= (2, 9, 0), 'load_case requires an OpenMDAO version later than 2.9.0')
 @use_tempdirs
 class TestLoadCase(unittest.TestCase):
 
@@ -148,7 +147,6 @@ class TestLoadCase(unittest.TestCase):
         outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
                                                                 out_stream=None)])
 
-        print(outputs)
         time_val = outputs['phase0.timeseries.timeseries_comp.time']['val']
         theta_val = outputs['phase0.timeseries.timeseries_comp.theta']['val']
 
