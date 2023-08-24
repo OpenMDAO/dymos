@@ -1,4 +1,5 @@
 import matplotlib
+import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.testing_utils import require_pyoptsparse
@@ -19,7 +20,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    # p.driver.opt_settings['print_level'] = 5
+    p.driver.opt_settings['iSumm'] = 6
     p.driver.declare_coloring(tol=1.0E-12)
 
     if transcription == 'gauss-lobatto':
@@ -109,6 +110,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 
 if __name__ == '__main__':
-    p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
-                                 transcription_order=7, compressed=False, optimizer='IPOPT',
-                                 solve_segments=False, force_alloc_complex=True)
+
+    with dm.options.temporary(include_check_partials=True):
+        p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
+                                     transcription_order=41, compressed=False, optimizer='SNOPT',
+                                     solve_segments=False, force_alloc_complex=True)
+
+        # with np.printoptions(linewidth=1024):
+        #     p.check_partials(method='cs', compact_print=False)
