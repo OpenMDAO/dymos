@@ -833,21 +833,18 @@ class Birkhoff(TranscriptionBase):
             given design variable is to be connected.
         """
         connection_info = []
-
         if name in phase.parameter_options:
             options = phase.parameter_options[name]
-            if not options['static_target']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-                if options['shape'] == (1,):
-                    src_idxs = src_idxs.ravel()
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-                src_idxs = np.squeeze(src_idxs, axis=0)
+            for tgt in options['targets']:
+                if tgt in options['static_targets']:
+                    src_idxs = np.squeeze(get_src_indices_by_row([0], options['shape']), axis=0)
+                else:
+                    src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                    if options['shape'] == (1,):
+                        src_idxs = src_idxs.ravel()
 
-            rhs_all_tgts = [f'rhs_all.{t}' for t in options['targets']]
-            connection_info.append((rhs_all_tgts, (src_idxs,)))
+                connection_info.append((f'rhs_all.{tgt}', (src_idxs,)))
 
         return connection_info
 
