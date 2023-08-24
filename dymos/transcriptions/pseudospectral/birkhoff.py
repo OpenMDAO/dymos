@@ -6,7 +6,7 @@ from ..transcription_base import TranscriptionBase
 from ..common import TimeComp, TimeseriesOutputGroup
 from .components import StateIndependentsComp, PseudospectralTimeseriesOutputComp, BirkhoffCollocationComp
 
-from ..grid_data import RadauGrid, BirkhoffGaussLobattoGrid
+from ..grid_data import BirkhoffRadauGrid, BirkhoffGaussLobattoGrid
 from dymos.utils.misc import get_rate_units, reshape_val
 from dymos.utils.introspection import get_promoted_vars, get_source_metadata, get_targets
 from dymos.utils.indexing import get_src_indices_by_row
@@ -21,7 +21,7 @@ class Birkhoff(TranscriptionBase):
         """
         Declare transcription options.
         """
-        self.options.declare('grid', types=(RadauGrid, BirkhoffGaussLobattoGrid, str),
+        self.options.declare('grid', types=(BirkhoffRadauGrid, BirkhoffGaussLobattoGrid, str),
                              allow_none=True, default=None,
                              desc='The grid distribution used to layout the control inputs and provide the default '
                                   'output nodes.')

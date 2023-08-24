@@ -145,9 +145,9 @@ def birkhoff_subsets_and_nodes(n, grid, *args, **kwargs):
     """
     acceptable_grids = {'lgl', 'lgr'}
     if grid == 'lgl':
-        lgl(n)[0]
+        nodes = lgl(n)[0]
     elif grid == 'lgr':
-        lgr(n, include_endpoint=False)[0]
+        nodes = lgr(n, include_endpoint=False)[0]
     else:
         raise ValueError(f'Unrecognized grid. Acceptable values are one of {acceptable_grids}')
 
@@ -162,7 +162,7 @@ def birkhoff_subsets_and_nodes(n, grid, *args, **kwargs):
         'solution': np.arange(n, dtype=int),
     }
 
-    return subsets, lgl(n)[0]
+    return subsets, nodes
 
 
 def uniform_subsets_and_nodes(n, *args, **kwargs):
@@ -363,6 +363,8 @@ class GridData(object):
             self.transcription = 'gauss-lobatto'
         elif transcription.lower() in ['birkhoff-gausslobatto', 'birkhoff-gauss-lobatto']:
             self.transcription = 'birkhoff-gauss-lobatto'
+        elif transcription.lower() in ['birkhoff-radau', 'birkhoff-gauss-lgr']:
+            self.transcription = 'birkhoff-radau'
         elif transcription.lower() in ['uniform']:
             self.transcription = 'uniform'
         else:
@@ -377,6 +379,8 @@ class GridData(object):
             get_subsets_and_nodes = uniform_subsets_and_nodes
         elif self.transcription == 'birkhoff-gauss-lobatto':
             get_subsets_and_nodes = functools.partial(birkhoff_subsets_and_nodes, grid='lgl')
+        elif self.transcription == 'birkhoff-radau':
+            get_subsets_and_nodes = functools.partial(birkhoff_subsets_and_nodes, grid='lgr')
 
         # Make sure transcription_order is a vector
         if isinstance(transcription_order, str):
@@ -672,6 +676,30 @@ class BirkhoffGaussLobattoGrid(GridData):
                          transcription_order=np.asarray(nodes_per_seg, dtype=int),
                          segment_ends=segment_ends, compressed=compressed)
 
+
+class BirkhoffRadauGrid(GridData):
+    """
+    A GridData object that provides the node information for a Gauss-Lobatto distribution.
+
+    Parameters
+    ----------
+    num_segments : int
+        The number of segments in the phase.
+    nodes_per_seg : int or iterable
+        The number of nodes in each segment. As an integer, it applies to each segment. If a sequence, its length
+        must be equal to num_segments.
+    segment_ends : Iterable[num_segments + 1] or None
+        The segments nodes on some arbitrary interval.
+        This will be normalized to the interval [-1, 1].
+    compressed : bool
+        If the transcription is compressed, then states and controls at shared
+        nodes of adjacent segments are only specified once, and then broadcast
+        to the appropriate indices.
+    """
+    def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
+        super().__init__(num_segments=num_segments, transcription='birkhoff-radau',
+                         transcription_order=np.asarray(nodes_per_seg, dtype=int),
+                         segment_ends=segment_ends, compressed=compressed)
 
 
 class RadauGrid(GridData):

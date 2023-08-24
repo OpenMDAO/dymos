@@ -43,9 +43,9 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         t = dm.ExplicitShooting(grid=grid)
     elif transcription == 'birkhoff':
         from dymos.transcriptions.pseudospectral.birkhoff import Birkhoff
-        from dymos.transcriptions.grid_data import BirkhoffGaussLobattoGrid
+        from dymos.transcriptions.grid_data import BirkhoffGaussLobattoGrid, BirkhoffRadauGrid
 
-        grid = BirkhoffGaussLobattoGrid(num_segments=num_segments,
+        grid = BirkhoffRadauGrid(num_segments=num_segments,
                                         nodes_per_seg=transcription_order + 1,
                                         compressed=compressed)
         t = Birkhoff(grid=grid)
@@ -105,6 +105,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     # p.check_totals(compact_print=True)
 
     dm.run_problem(p, run_driver=run_driver, simulate=False, make_plots=True)
+
+    import matplotlib.pyplot as plt
+    plt.figure()
+    plt.plot(p.get_val('traj0.phase0.timeseries.time'), p.get_val('traj0.phase0.timeseries.y'))
+    plt.show()
 
     return p
 
