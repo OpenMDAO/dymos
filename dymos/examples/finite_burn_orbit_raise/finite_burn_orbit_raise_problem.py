@@ -42,13 +42,13 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     burn1 = traj.add_phase('burn1', burn1)
 
     burn1.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='TU')
-    burn1.add_state('r', fix_initial=True, fix_final=False, defect_scaler=100.0,
+    burn1.add_state('r', fix_initial=True, fix_final=False, defect_scaler=1.0,
                     rate_source='r_dot', units='DU')
-    burn1.add_state('theta', fix_initial=True, fix_final=False, defect_scaler=100.0,
+    burn1.add_state('theta', fix_initial=True, fix_final=False, defect_scaler=1.0,
                     rate_source='theta_dot', units='rad')
-    burn1.add_state('vr', fix_initial=True, fix_final=False, defect_scaler=100.0,
+    burn1.add_state('vr', fix_initial=True, fix_final=False, defect_scaler=1.0,
                     rate_source='vr_dot', units='DU/TU')
-    burn1.add_state('vt', fix_initial=True, fix_final=False, defect_scaler=100.0,
+    burn1.add_state('vt', fix_initial=True, fix_final=False, defect_scaler=1.0,
                     rate_source='vt_dot', units='DU/TU')
     burn1.add_state('accel', fix_initial=True, fix_final=False,
                     rate_source='at_dot', units='DU/TU**2')
@@ -61,13 +61,13 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     coast = dm.Phase(ode_class=FiniteBurnODE, transcription=t[transcription])
 
     coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 50), duration_ref=50, units='TU')
-    coast.add_state('r', fix_initial=False, fix_final=False, defect_scaler=100.0,
+    coast.add_state('r', fix_initial=False, fix_final=False, defect_scaler=1.0,
                     rate_source='r_dot', units='DU')
-    coast.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
+    coast.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=1.0,
                     rate_source='theta_dot', units='rad')
-    coast.add_state('vr', fix_initial=False, fix_final=False, defect_scaler=100.0,
+    coast.add_state('vr', fix_initial=False, fix_final=False, defect_scaler=1.0,
                     rate_source='vr_dot', units='DU/TU')
-    coast.add_state('vt', fix_initial=False, fix_final=False, defect_scaler=100.0,
+    coast.add_state('vt', fix_initial=False, fix_final=False, defect_scaler=1.0,
                     rate_source='vt_dot', units='DU/TU')
     coast.add_state('accel', fix_initial=True, fix_final=True,
                     rate_source='at_dot', units='DU/TU**2')
@@ -87,13 +87,13 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
 
         burn2.set_time_options(initial_bounds=(1.0, 60), duration_bounds=(-10.0, -0.5),
                                initial_ref=10, units='TU')
-        burn2.add_state('r', fix_initial=True, fix_final=False, defect_scaler=100.0,
+        burn2.add_state('r', fix_initial=True, fix_final=False, defect_scaler=1.0,
                         rate_source='r_dot', units='DU')
-        burn2.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
+        burn2.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=1.0,
                         rate_source='theta_dot', units='rad')
-        burn2.add_state('vr', fix_initial=True, fix_final=False, defect_scaler=1000.0,
+        burn2.add_state('vr', fix_initial=True, fix_final=False, defect_scaler=1.0,
                         rate_source='vr_dot', units='DU/TU')
-        burn2.add_state('vt', fix_initial=True, fix_final=False, defect_scaler=1000.0,
+        burn2.add_state('vt', fix_initial=True, fix_final=False, defect_scaler=1.0,
                         rate_source='vt_dot', units='DU/TU')
         burn2.add_state('accel', fix_initial=False, fix_final=False, defect_scaler=1.0,
                         rate_source='at_dot', units='DU/TU**2')
@@ -107,13 +107,13 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     else:
 
         burn2.set_time_options(initial_bounds=(0.5, 50), duration_bounds=(.5, 10), initial_ref=10, units='TU')
-        burn2.add_state('r', fix_initial=False, fix_final=True, defect_scaler=100.0,
+        burn2.add_state('r', fix_initial=False, fix_final=True, defect_scaler=1.0,
                         rate_source='r_dot', targets=['r'], units='DU')
-        burn2.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
+        burn2.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=1.0,
                         rate_source='theta_dot', targets=['theta'], units='rad')
-        burn2.add_state('vr', fix_initial=False, fix_final=True, defect_scaler=1000.0,
+        burn2.add_state('vr', fix_initial=False, fix_final=True, defect_scaler=1.0,
                         rate_source='vr_dot', targets=['vr'], units='DU/TU')
-        burn2.add_state('vt', fix_initial=False, fix_final=True, defect_scaler=1000.0,
+        burn2.add_state('vt', fix_initial=False, fix_final=True, defect_scaler=1.0,
                         rate_source='vt_dot', targets=['vt'], units='DU/TU')
         burn2.add_state('accel', fix_initial=False, fix_final=False, defect_scaler=1.0,
                         rate_source='at_dot', targets=['accel'], units='DU/TU**2')

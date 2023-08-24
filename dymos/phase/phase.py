@@ -9,7 +9,10 @@ from scipy import interpolate
 import openmdao
 import openmdao.api as om
 from openmdao.utils.mpi import MPI
+from openmdao.utils.om_warnings import issue_warning
 from openmdao.core.system import System
+from openmdao.recorders.case import Case
+
 import dymos as dm
 
 from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
@@ -54,7 +57,6 @@ class Phase(om.Group):
     **kwargs : dict
         Dictionary of optional phase arguments.
     """
-
     def __init__(self, from_phase=None, **kwargs):
         _kwargs = kwargs.copy()
 
@@ -899,7 +901,7 @@ class Phase(om.Group):
                       desc=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
                       adder=_unspecified, ref0=_unspecified, ref=_unspecified, targets=_unspecified,
                       shape=_unspecified, dynamic=_unspecified, static_target=_unspecified,
-                      include_timeseries=_unspecified):
+                      include_timeseries=_unspecified, static_targets=_unspecified):
         """
         Add a parameter (static control variable) to the phase.
 
@@ -945,6 +947,12 @@ class Phase(om.Group):
             (meaning they cannot have a unique value at each node).  Otherwise False.
         include_timeseries : bool
             True if the static parameters should be included in output timeseries, else False.
+        static_targets : bool or Sequence or _unspecified
+            True if ALL targets in the ODE are not shaped with num_nodes as the first dimension
+            (meaning they cannot have a unique value at each node).  If False, ALL targets are
+            expected to be shaped with the first dimension as the number of nodes. If given
+            as a Sequence, it provides those targets not shaped with num_nodes. If left _unspecified,
+            static targets will be determined automatically.
         """
         self.check_parameter(name)
 
@@ -952,16 +960,18 @@ class Phase(om.Group):
             self.parameter_options[name] = ParameterOptionsDictionary()
             self.parameter_options[name]['name'] = name
 
-        self.set_parameter_options(name, val, units, opt, desc, lower, upper,
-                                   scaler, adder, ref0, ref, targets, shape, dynamic,
-                                   static_target, include_timeseries)
+        self.set_parameter_options(name, val=val, units=units, opt=opt, desc=desc,
+                                   lower=lower, upper=upper, scaler=scaler, adder=adder,
+                                   ref0=ref0, ref=ref, targets=targets, shape=shape, dynamic=dynamic,
+                                   static_target=static_target, static_targets=static_targets,
+                                   include_timeseries=include_timeseries)
 
     def set_parameter_options(self, name, val=_unspecified, units=_unspecified, opt=False,
                               desc=_unspecified, lower=_unspecified, upper=_unspecified,
                               scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
                               ref=_unspecified, targets=_unspecified, shape=_unspecified,
                               dynamic=_unspecified, static_target=_unspecified,
-                              include_timeseries=_unspecified):
+                              include_timeseries=_unspecified, static_targets=_unspecified):
         """
         Set options for an existing parameter (static control variable) in the phase.
 
@@ -1007,6 +1017,12 @@ class Phase(om.Group):
             (meaning they cannot have a unique value at each node).  Otherwise False.
         include_timeseries : bool
             True if the static parameters should be included in output timeseries, else False.
+        static_targets : bool or Sequence or _unspecified
+            True if ALL targets in the ODE are not shaped with num_nodes as the first dimension
+            (meaning they cannot have a unique value at each node).  If False, ALL targets are
+            expected to be shaped with the first dimension as the number of nodes. If given
+            as a Sequence, it provides those targets not shaped with num_nodes. If left _unspecified,
+            static targets will be determined automatically.
         """
         if units is not _unspecified:
             self.parameter_options[name]['units'] = units
@@ -1032,22 +1048,29 @@ class Phase(om.Group):
                 self.parameter_options[name]['shape'] = tuple(shape)
             else:
                 self.parameter_options[name]['shape'] = shape
-        elif val is not _unspecified:
-            if isinstance(val, float) or isinstance(val, int) or isinstance(val, complex):
-                self.parameter_options[name]['shape'] = (1,)
-            else:
-                self.parameter_options[name]['shape'] = tuple(np.asarray(val).shape)
 
         if dynamic is not _unspecified:
             self.parameter_options[name]['static_target'] = not dynamic
+            self.parameter_options[name]['static_targets'] = not dynamic
 
         if static_target is not _unspecified:
             self.parameter_options[name]['static_target'] = static_target
+            self.parameter_options[name]['static_targets'] = static_target
+
+        if static_targets is not _unspecified:
+            self.parameter_options[name]['static_target'] = static_targets
+            self.parameter_options[name]['static_targets'] = static_targets
 
         if dynamic is not _unspecified and static_target is not _unspecified:
-            raise ValueError("Both the deprecated 'dynamic' option and option 'static_target' were "
+            raise ValueError("Both the deprecated 'dynamic' option and option 'static_target' were\n"
+                             f"specified for parameter '{name}'. Going forward, please use only\n"
+                             "option static_targets. Options 'dynamic' and 'static_target'\n"
+                             "will be removed in Dymos 2.0.0.")
+
+        if dynamic is not _unspecified and static_targets is not _unspecified:
+            raise ValueError("Both the deprecated 'dynamic' option and option 'static_targets' were "
                              f"specified for parameter '{name}'. Going forward, please use only "
-                             "option static_target.  Option 'dynamic' will be removed in "
+                             "option static_targets.  Option 'dynamic' will be removed in "
                              "Dymos 2.0.0.")
 
         if lower is not _unspecified:
@@ -2289,10 +2312,7 @@ class Phase(om.Group):
 
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.
-            if om_version < (3, 4, 1):
-                val = phs.get_val(f'parameters:{name}', units=units)[0, ...]
-            else:
-                val = phs.get_val(f'parameters:{name}', units=units)
+            val = phs.get_val(f'parameters:{name}', units=units)
 
             if phase_path:
                 prob_path = f'{phase_path}.{self.name}.parameters:{name}'
@@ -2643,3 +2663,169 @@ class Phase(om.Group):
             return not self.parameter_options[var_name]['opt']
 
         return False  # No way to know so we allow these to go through
+
+    def load_case(self, case):
+        """
+        Pull all input and output variables from a case into the Phase.
+
+        Parameters
+        ----------
+        case : Case or dict
+            A Case from a CaseReader, or a dictionary with key 'inputs' mapped to the
+            output of problem.model.list_inputs and key 'outputs' mapped to the output
+            of prob.model.list_outputs. Both list_inputs and list_outputs should be called
+            with `units=True`, `prom_names=True` and `return_format='dict'`.
+        """
+        # allow old style arguments using a Case or OpenMDAO problem instead of dictionary
+        assert (isinstance(case, Case) or isinstance(case, dict))
+        if isinstance(case, Case):
+            previous_solution = {
+                'inputs': case.list_inputs(out_stream=None, return_format='dict',
+                                           units=True, prom_name=True),
+                'outputs': case.list_outputs(out_stream=None, return_format='dict',
+                                             units=True, prom_name=True)
+            }
+        else:
+            previous_solution = case
+
+        prev_vars_abs2prom = {}
+        prev_vars_abs2prom.update({k: v['prom_name'] for k, v in previous_solution['inputs'].items()})
+        prev_vars_abs2prom.update({k: v['prom_name'] for k, v in previous_solution['outputs'].items()})
+        prev_vars_prom2abs = {v: k for k, v in prev_vars_abs2prom.items()}
+
+        prev_vars = {}
+        prev_vars.update({v['prom_name']: {'val': v['val'], 'units': v['units'], 'abs_name': k}
+                          for k, v in previous_solution['inputs'].items()})
+        prev_vars.update({v['prom_name']: {'val': v['val'], 'units': v['units'], 'abs_name': k}
+                          for k, v in previous_solution['outputs'].items()})
+
+        phase_io = {'inputs': self.list_inputs(units=True, prom_name=True, out_stream=None),
+                    'outputs': self.list_outputs(units=True, prom_name=True, out_stream=None)}
+
+        phase_vars = {}
+        phase_vars.update({f"{self.pathname}.{v['prom_name']}": {'val': v['val'], 'units': v['units'], 'abs_name': k}
+                           for k, v in phase_io['inputs']})
+        phase_vars.update({f"{self.pathname}.{v['prom_name']}": {'val': v['val'], 'units': v['units'], 'abs_name': k}
+                           for k, v in phase_io['outputs']})
+
+        phase_name = self.name
+
+        # Get the initial time and duration from the previous result and set them into the new phase.
+        integration_name = self.time_options['name']
+
+        try:
+            prev_time_path = prev_vars_abs2prom[f'{self.pathname}.timeseries.timeseries_comp.{integration_name}']
+        except KeyError:
+            om.issue_warning(f'load_case for phase {self.name} failed - phase not found in case data.')
+            return
+
+        prev_timeseries_prom_path, _, _ = prev_time_path.rpartition(f'.{integration_name}')
+        prev_phase_prom_path, _, _ = prev_timeseries_prom_path.rpartition('.timeseries')
+
+        prev_time_val = prev_vars[prev_time_path]['val']
+        prev_time_val, unique_idxs = np.unique(prev_time_val, return_index=True)
+        prev_time_units = prev_vars[prev_time_path]['units']
+
+        t_initial = prev_time_val[0]
+        t_duration = prev_time_val[-1] - prev_time_val[0]
+
+        self.set_val('t_initial', t_initial, units=prev_time_units)
+        self.set_val('t_duration', t_duration, units=prev_time_units)
+
+        # Interpolate the timeseries state outputs from the previous solution onto the new grid.
+        if not isinstance(self, dm.AnalyticPhase):
+            for state_name, options in self.state_options.items():
+                if f'{prev_timeseries_prom_path}.states:{state_name}' in prev_vars_prom2abs:
+                    prev_state_path = f'{prev_timeseries_prom_path}.states:{state_name}'
+                elif f'{prev_timeseries_prom_path}.{state_name}' in prev_vars_prom2abs:
+                    prev_state_path = f'{prev_timeseries_prom_path}.{state_name}'
+                else:
+                    issue_warning(f'Unable to find state {state_name} in timeseries data from case being loaded.',
+                                  om.OpenMDAOWarning)
+                    continue
+
+                prev_state_val = prev_vars[prev_state_path]['val']
+                prev_state_units = prev_vars[prev_state_path]['units']
+                interp_vals = self.interp(name=state_name,
+                                          xs=prev_time_val,
+                                          ys=prev_state_val[unique_idxs],
+                                          kind='slinear')
+                if options['lower'] is not None or options['upper'] is not None:
+                    interp_vals = interp_vals.clip(options['lower'], options['upper'])
+                self.set_val(f'states:{state_name}',
+                             interp_vals,
+                             units=prev_state_units)
+                try:
+                    self.set_val(f'initial_states:{state_name}', prev_state_val[0, ...], units=prev_state_units)
+                except KeyError:
+                    pass
+
+                if options['fix_final']:
+                    warning_message = f"{phase_name}.states:{state_name} specifies 'fix_final=True'. " \
+                                      f"If the given restart file has a" \
+                                      f" different final value this will overwrite the user-specified value"
+                    issue_warning(warning_message)
+
+            # Interpolate the timeseries control outputs from the previous solution onto the new grid.
+            for control_name, options in self.control_options.items():
+                if f'{prev_timeseries_prom_path}.controls:{control_name}' in prev_vars_prom2abs:
+                    prev_control_path = f'{prev_timeseries_prom_path}.controls:{control_name}'
+                elif f'{prev_timeseries_prom_path}.{control_name}' in prev_vars_prom2abs:
+                    prev_control_path = f'{prev_timeseries_prom_path}.{control_name}'
+                else:
+                    issue_warning(f'Unable to find control {control_name} in timeseries data from case being loaded.',
+                                  om.OpenMDAOWarning)
+                    continue
+
+                prev_control_val = prev_vars[prev_control_path]['val']
+                prev_control_units = prev_vars[prev_control_path]['units']
+                interp_vals = self.interp(name=control_name,
+                                          xs=prev_time_val,
+                                          ys=prev_control_val[unique_idxs],
+                                          kind='slinear')
+                if options['lower'] is not None or options['upper'] is not None:
+                    interp_vals = interp_vals.clip(options['lower'], options['upper'])
+                self.set_val(f'controls:{control_name}', interp_vals, units=prev_control_units)
+                if options['fix_final']:
+                    warning_message = f"{phase_name}.controls:{control_name} specifies 'fix_final=True'. " \
+                                      f"If the given restart file has a" \
+                                      f" different final value this will overwrite the user-specified value"
+                    issue_warning(warning_message)
+
+            # Set the output polynomial control outputs from the previous solution as the value
+            for pc_name, options in self.polynomial_control_options.items():
+                if f'{prev_timeseries_prom_path}.polynomial_controls:{pc_name}' in prev_vars_prom2abs:
+                    prev_pc_path = f'{prev_timeseries_prom_path}.polynomial_controls:{pc_name}'
+                elif f'{prev_timeseries_prom_path}.{pc_name}' in prev_vars_prom2abs:
+                    prev_pc_path = f'{prev_timeseries_prom_path}.{pc_name}'
+                else:
+                    issue_warning(f'Unable to find polynomial control {pc_name} in timeseries data from case being '
+                                  f'loaded.', om.OpenMDAOWarning)
+                    continue
+
+                prev_pc_val = prev_vars[prev_pc_path]['val']
+                prev_pc_units = prev_vars[prev_pc_path]['units']
+                interp_vals = self.interp(name=pc_name,
+                                          xs=prev_time_val,
+                                          ys=prev_pc_val[unique_idxs],
+                                          kind='slinear')
+                if options['lower'] is not None or options['upper'] is not None:
+                    interp_vals = interp_vals.clip(options['lower'], options['upper'])
+                self.set_val(f'polynomial_controls:{pc_name}',
+                             interp_vals,
+                             units=prev_pc_units)
+                if options['fix_final']:
+                    warning_message = f"{phase_name}.polynomial_controls:{pc_name} specifies 'fix_final=True'. " \
+                                      f"If the given restart file has a" \
+                                      f" different final value this will overwrite the user-specified value"
+                    issue_warning(warning_message)
+
+        # Set the timeseries parameter outputs from the previous solution as the parameter value
+        for param_name in self.parameter_options:
+            if f'{prev_phase_prom_path}.parameter_vals:{param_name}' in prev_vars:
+                prev_param_val = prev_vars[f'{prev_phase_prom_path}.parameter_vals:{param_name}']['val']
+                prev_param_units = prev_vars[f'{prev_phase_prom_path}.parameter_vals:{param_name}']['units']
+                self.set_val(f'parameters:{param_name}', prev_param_val[0, ...], units=prev_param_units)
+            else:
+                issue_warning(f'Unable to find "{prev_phase_prom_path}.parameter_vals:{param_name}" '
+                              f'in data from case being loaded.')

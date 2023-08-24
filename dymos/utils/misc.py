@@ -9,6 +9,7 @@ from openmdao.core.constants import _ReprClass
 
 # unique object to check if default is given (when None is an allowed value)
 _unspecified = _ReprClass("unspecified")
+_none_or_unspecified = {None, _unspecified}
 
 
 def get_rate_units(units, time_units, deriv=1):

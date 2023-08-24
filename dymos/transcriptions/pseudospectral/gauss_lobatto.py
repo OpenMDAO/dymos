@@ -150,39 +150,33 @@ class GaussLobatto(PseudospectralBase):
             disc_src_idxs = (disc_src_idxs,)
             col_src_idxs = (col_src_idxs,)
 
-            # Control targets are detected automatically
-            targets = get_targets(ode_inputs, name, options['targets'])
-
-            if targets:
+            if options['targets']:
                 phase.connect(f'control_values:{name}',
-                              [f'rhs_disc.{t}' for t in targets],
+                              [f'rhs_disc.{t}' for t in options['targets']],
                               src_indices=disc_src_idxs, flat_src_indices=True)
 
                 phase.connect(f'control_values:{name}',
-                              [f'rhs_col.{t}' for t in targets],
+                              [f'rhs_col.{t}' for t in options['targets']],
                               src_indices=col_src_idxs, flat_src_indices=True)
 
             # Rate targets
-            targets = get_targets(ode_inputs, name, options['rate_targets'], control_rates=1)
-
-            if targets:
+            if options['rate_targets']:
                 phase.connect(f'control_rates:{name}_rate',
-                              [f'rhs_disc.{t}' for t in targets],
+                              [f'rhs_disc.{t}' for t in options['rate_targets']],
                               src_indices=disc_src_idxs, flat_src_indices=True)
 
                 phase.connect(f'control_rates:{name}_rate',
-                              [f'rhs_col.{t}' for t in targets],
+                              [f'rhs_col.{t}' for t in options['rate_targets']],
                               src_indices=col_src_idxs, flat_src_indices=True)
 
             # Second time derivative targets must be specified explicitly
-            targets = get_targets(ode_inputs, name, options['rate2_targets'], control_rates=2)
-            if targets:
+            if options['rate2_targets']:
                 phase.connect(f'control_rates:{name}_rate2',
-                              [f'rhs_disc.{t}' for t in targets],
+                              [f'rhs_disc.{t}' for t in options['rate2_targets']],
                               src_indices=disc_src_idxs, flat_src_indices=True)
 
                 phase.connect(f'control_rates:{name}_rate2',
-                              [f'rhs_col.{t}' for t in targets],
+                              [f'rhs_col.{t}' for t in options['rate2_targets']],
                               src_indices=col_src_idxs, flat_src_indices=True)
 
     def configure_polynomial_controls(self, phase):
@@ -213,33 +207,30 @@ class GaussLobatto(PseudospectralBase):
             disc_src_idxs = (disc_src_idxs,)
             col_src_idxs = (col_src_idxs,)
 
-            targets = get_targets(ode=ode_inputs, name=name, user_targets=options['targets'])
-            if targets:
+            if options['targets']:
                 phase.connect(f'polynomial_control_values:{name}',
-                              [f'rhs_disc.{t}' for t in targets],
+                              [f'rhs_disc.{t}' for t in options['targets']],
                               src_indices=disc_src_idxs, flat_src_indices=True)
                 phase.connect(f'polynomial_control_values:{name}',
-                              [f'rhs_col.{t}' for t in targets],
+                              [f'rhs_col.{t}' for t in options['targets']],
                               src_indices=col_src_idxs, flat_src_indices=True)
 
-            targets = get_targets(ode=ode_inputs, name=name, user_targets=options['rate_targets'])
-            if targets:
+            if options['rate_targets']:
                 phase.connect(f'polynomial_control_rates:{name}_rate',
-                              [f'rhs_disc.{t}' for t in targets],
+                              [f'rhs_disc.{t}' for t in options['rate_targets']],
                               src_indices=disc_src_idxs, flat_src_indices=True)
 
                 phase.connect(f'polynomial_control_rates:{name}_rate',
-                              [f'rhs_col.{t}' for t in targets],
+                              [f'rhs_col.{t}' for t in options['rate_targets']],
                               src_indices=col_src_idxs, flat_src_indices=True)
 
-            targets = get_targets(ode=ode_inputs, name=name, user_targets=options['rate2_targets'])
-            if targets:
+            if options['rate2_targets']:
                 phase.connect(f'polynomial_control_rates:{name}_rate2',
-                              [f'rhs_disc.{t}' for t in targets],
+                              [f'rhs_disc.{t}' for t in options['rate2_targets']],
                               src_indices=disc_src_idxs, flat_src_indices=True)
 
                 phase.connect(f'polynomial_control_rates:{name}_rate2',
-                              [f'rhs_col.{t}' for t in targets],
+                              [f'rhs_col.{t}' for t in options['rate2_targets']],
                               src_indices=col_src_idxs, flat_src_indices=True)
 
     def setup_ode(self, phase):
@@ -647,32 +638,30 @@ class GaussLobatto(PseudospectralBase):
 
         if name in phase.parameter_options:
             options = phase.parameter_options[name]
-            targets = options['targets']
-            static = options['static_target']
+            # targets = options['targets']
+            # static = options['static_targets']
             shape = options['shape']
 
-            if not static:
-                disc_rows = np.zeros(self.grid_data.subset_num_nodes['state_disc'], dtype=int)
-                col_rows = np.zeros(self.grid_data.subset_num_nodes['col'], dtype=int)
-                disc_src_idxs = get_src_indices_by_row(disc_rows, shape)
-                col_src_idxs = get_src_indices_by_row(col_rows, shape)
-                if shape == (1,):
-                    disc_src_idxs = disc_src_idxs.ravel()
-                    col_src_idxs = col_src_idxs.ravel()
-            else:
-                inds = np.squeeze(get_src_indices_by_row([0], shape), axis=0)
-                disc_src_idxs = inds
-                col_src_idxs = inds
+            for tgt in options['targets']:
+                if tgt in options['static_targets']:
+                    inds = np.squeeze(get_src_indices_by_row([0], shape), axis=0)
+                    disc_src_idxs = inds
+                    col_src_idxs = inds
+                else:
+                    disc_rows = np.zeros(self.grid_data.subset_num_nodes['state_disc'], dtype=int)
+                    col_rows = np.zeros(self.grid_data.subset_num_nodes['col'], dtype=int)
+                    disc_src_idxs = get_src_indices_by_row(disc_rows, shape)
+                    col_src_idxs = get_src_indices_by_row(col_rows, shape)
+                    if shape == (1,):
+                        disc_src_idxs = disc_src_idxs.ravel()
+                        col_src_idxs = col_src_idxs.ravel()
 
-            # enclose indices in tuple to ensure shaping of indices works
-            disc_src_idxs = (disc_src_idxs,)
-            col_src_idxs = (col_src_idxs,)
+                # enclose indices in tuple to ensure shaping of indices works
+                disc_src_idxs = (disc_src_idxs,)
+                col_src_idxs = (col_src_idxs,)
 
-            rhs_disc_tgts = [f'rhs_disc.{t}' for t in targets]
-            connection_info.append((rhs_disc_tgts, disc_src_idxs))
-
-            rhs_col_tgts = [f'rhs_col.{t}' for t in targets]
-            connection_info.append((rhs_col_tgts, col_src_idxs))
+                connection_info.append((f'rhs_disc.{tgt}', disc_src_idxs))
+                connection_info.append((f'rhs_col.{tgt}', col_src_idxs))
 
         return connection_info
 

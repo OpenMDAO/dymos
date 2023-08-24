@@ -440,8 +440,8 @@ class TestTrajectoryParametersDefinition(unittest.TestCase):
 
                 p.setup()
 
-                p['traj.phase0.t_initial'] = 0.0
-                p['traj.phase0.t_duration'] = 2.0
+                p['traj.t_initial'] = 0.0
+                p['traj.t_duration'] = 2.0
 
                 p['traj.phase0.states:x'] = phase.interp('x', ys=[0, 10])
                 p['traj.phase0.states:y'] = phase.interp('y', ys=[10, 5])
