@@ -40,7 +40,7 @@ class TestBrachistochroneExprPathConstraint(unittest.TestCase):
         phase.add_boundary_constraint('x', loc='final', equals=10.0)
         phase.add_path_constraint('pc = y-x/2-1', lower=0.0)
 
-        phase.add_parameter('g', opt=False, units='m/s**2', val=9.80665, include_timeseries=True)
+        phase.add_parameter('g', opt=False, units='m/s**2', val=9.80665, shape=None, include_timeseries=True)
 
         phase.add_objective('time_phase', loc='final', scaler=10)
 
