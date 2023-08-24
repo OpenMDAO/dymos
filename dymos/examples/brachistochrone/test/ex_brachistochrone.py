@@ -113,8 +113,8 @@ if __name__ == '__main__':
 
     with dm.options.temporary(include_check_partials=True):
         p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
-                                     transcription_order=41, compressed=False, optimizer='SNOPT',
+                                     transcription_order=9, compressed=False, optimizer='SNOPT',
                                      solve_segments=False, force_alloc_complex=True)
 
-        # with np.printoptions(linewidth=1024):
-        #     p.check_partials(method='cs', compact_print=False)
+        with np.printoptions(linewidth=1024):
+            p.check_partials(method='cs', compact_print=False)

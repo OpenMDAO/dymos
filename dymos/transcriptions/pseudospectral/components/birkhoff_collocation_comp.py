@@ -193,7 +193,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['f_value'],
-                                  val=np.dot(B, np.eye(num_nodes)))
+                                  val=-B)
 
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['state_initial_value'],
@@ -258,21 +258,11 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
         partials : Jacobian
             Subjac components written to partials[output_name, input_name].
         """
-        gd = self.options['grid_data']
-        num_nodes = gd.subset_num_nodes['col']
-
         dt_dstau = inputs['dt_dstau']
 
-        B = self._A[:num_nodes, num_nodes:]
-        w = self._A[-1, num_nodes:]
         for state_name, options in self.options['state_options'].items():
             var_names = self.var_names[state_name]
-            V = inputs[var_names['f_value']]
             f = inputs[var_names['f_computed']]
 
-            partials[var_names['state_defect'], var_names['f_value']] = np.dot(B, np.eye(num_nodes))
-            # partials[var_names['state_defect'], 'dt_dstau'] = np.dot(B, V*np.eye(num_nodes))
-
-            # partials[var_names['state_rate_defect'], var_names['f_value']] = dt_dstau
             partials[var_names['state_rate_defect'], var_names['f_computed']] = -dt_dstau
             partials[var_names['state_rate_defect'], 'dt_dstau'] = -f.ravel()
