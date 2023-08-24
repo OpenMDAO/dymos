@@ -1,3 +1,4 @@
+import functools
 import numpy as np
 
 from scipy.linalg import block_diag
@@ -109,14 +110,14 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     return subsets, lgr(n, include_endpoint=True)[0]
 
 
-def birkhoff_gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
+def birkhoff_subsets_and_nodes(n, grid, *args, **kwargs):
     """
     Provides node information and the location of the nodes for n Radau nodes on the range [-1, 1].
 
     Parameters
     ----------
     n : int
-        The total number of nodes in the Radau Pseudospectral segment (including right endpoint).
+        The total number of nodes in the segment.
     seg_idx : int
         The index of this segment within its phase.
     compressed : bool
@@ -142,10 +143,17 @@ def birkhoff_gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
     `first_seg == True`.  For Radau-Pseudospectral transcription, subset 'control_input' is always
     the same as subset 'control_disc'.
     """
+    acceptable_grids = {'lgl', 'lgr'}
+    if grid == 'lgl':
+        lgl(n)[0]
+    elif grid == 'lgr':
+        lgr(n, include_endpoint=False)[0]
+    else:
+        raise ValueError(f'Unrecognized grid. Acceptable values are one of {acceptable_grids}')
+
     subsets = {
         'state_disc': np.arange(n, dtype=int),
-        'state_input': np.arange(n, dtype=int) if not compressed or seg_idx == 0
-        else np.arange(1, n, dtype=int),
+        'state_input': np.arange(n, dtype=int),
         'control_disc': np.arange(n, dtype=int),
         'control_input': np.arange(n, dtype=int),
         'segment_ends': np.array([0, n], dtype=int),
@@ -368,7 +376,7 @@ class GridData(object):
         elif self.transcription == 'uniform':
             get_subsets_and_nodes = uniform_subsets_and_nodes
         elif self.transcription == 'birkhoff-gauss-lobatto':
-            get_subsets_and_nodes = birkhoff_gauss_lobatto_subsets_and_nodes
+            get_subsets_and_nodes = functools.partial(birkhoff_subsets_and_nodes, grid='lgl')
 
         # Make sure transcription_order is a vector
         if isinstance(transcription_order, str):

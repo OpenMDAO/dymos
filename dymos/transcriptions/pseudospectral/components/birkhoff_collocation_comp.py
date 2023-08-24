@@ -45,12 +45,13 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
         self.var_names = var_names = {}
         for state_name in state_options:
             var_names[state_name] = {
-                'f_value': f'f_value:{state_name}',
+                'f_value': f'state_rates:{state_name}',
                 'f_computed': f'f_computed:{state_name}',
-                'state_value': f'state_value:{state_name}',
+                'state_value': f'states:{state_name}',
+                'state_initial_value': f'initial_states:{state_name}',
+                'state_final_value': f'final_states:{state_name}',
                 'state_defect': f'state_defects:{state_name}',
                 'state_rate_defect': f'state_rate_defects:{state_name}',
-                'initial_state_rate_defect': f'initial_state_rate_defects:{state_name}',
                 'final_state_defect': f'final_state_defects:{state_name}'
             }
 
@@ -65,19 +66,33 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             self.add_input(
                 name=var_names['f_value'],
                 shape=(num_nodes,) + shape,
-                desc=f'Estimated derivative of state {state_name} at the collocation nodes',
+                desc=f'Estimated derivative of state {state_name} at the polynomial nodes',
                 units=rate_units)
 
             self.add_input(
                 name=var_names['f_computed'],
                 shape=(num_nodes,) + shape,
-                desc=f'Computed derivative of state {state_name} at the collocation nodes',
+                desc=f'Computed derivative of state {state_name} at the polynomial nodes',
                 units=rate_units)
 
             self.add_input(
                 name=var_names['state_value'],
                 shape=(num_nodes,) + shape,
-                desc=f'Value of the design variable corresponding to state {state_name}',
+                desc=f'Value of the state {state_name} at the polynomial nodes',
+                units=units
+            )
+
+            self.add_input(
+                name=var_names['state_initial_value'],
+                shape=shape,
+                desc=f'Desired initial value of state {state_name}',
+                units=units
+            )
+
+            self.add_input(
+                name=var_names['state_final_value'],
+                shape=shape,
+                desc=f'Desired final value of state {state_name}',
                 units=units
             )
 
@@ -131,8 +146,6 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
                                     equals=0.0,
                                     ref=defect_ref)
 
-        self.declare_partials(of='*', wrt='*', method='fd')
-
         if gd.transcription == 'birkhoff-gauss-lobatto':
             tau, w = lgl(num_nodes)
         elif gd.transcription == 'radau-ps':
@@ -152,104 +165,122 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
         self._C[-1, :] = [-1, 1]
 
         # Setup partials
-        # for state_name, options in state_options.items():
-        #     shape = options['shape']
-        #     size = np.prod(shape)
-        #
-        #     r1 = np.arange((num_nodes-1) * size)
-        #     r2 = np.arange(size)
-        #
-        #     c1 = np.arange(size, num_nodes*size)
-        #     c2 = np.repeat(np.arange(1, num_nodes), size)
-        #
-        #     var_names = self.var_names[state_name]
-        #
-        #     self.declare_partials(of=var_names['state_defect'],
-        #                           wrt=var_names['state_value'],
-        #                           rows=r1, cols=c1,
-        #                           val=1.0)
-        #
-        #     self.declare_partials(of=var_names['state_defect'],
-        #                           wrt=var_names['f_value'],
-        #                           rows=r1, cols=r1,
-        #                           val=-1.0)
-        #
-        #     self.declare_partials(of=var_names['state_rate_defect'],
-        #                           wrt=var_names['f_value'],
-        #                           rows=r1, cols=r1)
-        #
-        #     self.declare_partials(of=var_names['state_rate_defect'],
-        #                           wrt=var_names['f_computed'],
-        #                           rows=r1, cols=c1)
-        #
-        #     self.declare_partials(of=var_names['state_rate_defect'],
-        #                           wrt='dt_dstau',
-        #                           rows=r1, cols=c2)
-        #
-        #     self.declare_partials(of=var_names['initial_state_rate_defect'],
-        #                           wrt=var_names['f_value'],
-        #                           rows=r2, cols=r2)
-        #
-        #     self.declare_partials(of=var_names['initial_state_rate_defect'],
-        #                           wrt=var_names['state_value'],
-        #                           rows=r2, cols=r2)
-        #
-        #     self.declare_partials(of=var_names['initial_state_rate_defect'],
-        #                           wrt=var_names['f_computed'],
-        #                           rows=r2, cols=r2)
-        #
-        #     self.declare_partials(of=var_names['initial_state_rate_defect'],
-        #                           wrt='dt_dstau',
-        #                           rows=r2, cols=np.zeros(size))
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
-        state_options = self.options['state_options']
-        gd = self.options['grid_data']
-        dt_dstau = np.atleast_2d(inputs['dt_dstau']).T
+        for state_name, options in state_options.items():
+            shape = options['shape']
+            size = np.prod(shape)
 
-        for state_name in state_options:
+            dX_AB_dx_a = np.zeros(2 * size)
+            dX_AB_dx_a[:size] = 1.0
+
+            dX_AB_dx_b = np.zeros(2 * size)
+            dX_AB_dx_b[size:] = 1.0
+
+            dXV_dX = np.zeros(2 * size)
+            dXV_dX[:size] = 1.0
+
+            dXV_dV = np.zeros(2 * size)
+            dXV_dV[size:] = 1.0
+            ar1 = np.arange(num_nodes * size)
+            r2 = np.arange(size)
+
             var_names = self.var_names[state_name]
 
-            state_value = inputs[var_names['state_value']]
-            f_value = inputs[var_names['f_value']]
-            f_computed = inputs[var_names['f_computed']]
+            self.declare_partials(of=var_names['state_defect'],
+                                  wrt=var_names['state_value'],
+                                  rows=ar1, cols=ar1,
+                                  val=1.0)
 
-            x_a = state_value[0, ...]
-            x_b = state_value[-1, ...]
+            self.declare_partials(of=var_names['state_defect'],
+                                  wrt=var_names['f_value'])
+
+            self.declare_partials(of=var_names['state_defect'],
+                                  wrt=var_names['state_initial_value'],
+                                  rows=ar1, cols=np.repeat(np.arange(size), num_nodes),
+                                  val=-1.0)
+
+            self.declare_partials(of=var_names['state_defect'],
+                                  wrt='dt_dstau')
+
+            self.declare_partials(of=var_names['state_rate_defect'],
+                                  wrt=var_names['f_value'],
+                                  rows=ar1, cols=ar1)
+
+            self.declare_partials(of=var_names['state_rate_defect'],
+                                  wrt=var_names['f_computed'],
+                                  rows=ar1, cols=ar1)
+
+            self.declare_partials(of=var_names['state_rate_defect'],
+                                  wrt='dt_dstau',
+                                  rows=ar1, cols=ar1)
+
+            self.declare_partials(of=var_names['final_state_defect'],
+                                  wrt=var_names['f_value'],
+                                  rows=np.repeat(np.arange(size), num_nodes), cols=ar1)
+
+            self.declare_partials(of=var_names['final_state_defect'],
+                                  wrt=var_names['state_initial_value'],
+                                  rows=r2, cols=r2,
+                                  val=1.0)
+
+            self.declare_partials(of=var_names['final_state_defect'],
+                                  wrt=var_names['state_final_value'],
+                                  rows=r2, cols=r2,
+                                  val=-1.0)
+
+            self.declare_partials(of=var_names['final_state_defect'],
+                                  wrt='dt_dstau',
+                                  rows=np.repeat(np.arange(size), num_nodes), cols=ar1)
+
+    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+        dt_dstau = np.atleast_2d(inputs['dt_dstau']).T
+
+        for state_name in self.options['state_options']:
+            var_names = self.var_names[state_name]
+
+            x_a = inputs[var_names['state_initial_value']]
+            x_b = inputs[var_names['state_final_value']]
+            X = inputs[var_names['state_value']]
+            V = inputs[var_names['f_value']]
+            f = inputs[var_names['f_computed']]
+
             X_AB = np.vstack((x_a, x_b))
-            XV = np.vstack((state_value, f_value * dt_dstau))
-            state_defect = (np.dot(self._A, XV) - np.dot(self._C, X_AB)).T
+            XV = np.vstack((X, V * dt_dstau))
+            state_defect = (np.dot(self._A, XV) - np.dot(self._C, X_AB))
 
-            outputs[var_names['state_defect']] = state_defect[0, :-1]
-            outputs[var_names['state_rate_defect']] = (f_value.T - f_computed.T) * dt_dstau.T
-            outputs[var_names['final_state_defect']] = state_defect[0, -1]
+            outputs[var_names['state_defect']] = state_defect[:-1, ...]
+            outputs[var_names['state_rate_defect']] = (V - f) * dt_dstau
+            outputs[var_names['final_state_defect']] = state_defect[-1, ...]
 
-    # def compute_partials(self, inputs, partials):
-    #     """
-    #     Compute sub-jacobian parts. The model is assumed to be in an unscaled state.
-    #
-    #     Parameters
-    #     ----------
-    #     inputs : Vector
-    #         Unscaled, dimensional input variables read via inputs[key].
-    #     partials : Jacobian
-    #         Subjac components written to partials[output_name, input_name].
-    #     """
-    #     dt_dstau = inputs['dt_dstau']
-    #     for state_name, options in self.options['state_options'].items():
-    #         size = np.prod(options['shape'])
-    #         var_names = self.var_names[state_name]
-    #         f_value = inputs[var_names['f_value']]
-    #         f_computed = inputs[var_names['f_computed']]
-    #         f_initial_approx = inputs[var_names['f_initial_approx']]
-    #
-    #         k1 = np.repeat(dt_dstau[1:], size)
-    #         k2 = np.repeat(dt_dstau[0], size)
-    #
-    #         partials[var_names['state_rate_defect'], var_names['f_value']] = k1
-    #         partials[var_names['state_rate_defect'], var_names['f_computed']] = -k1
-    #         partials[var_names['state_rate_defect'], 'dt_dstau'] = (f_value - f_computed[1:]).ravel()
-    #
-    #         partials[var_names['initial_state_rate_defect'], var_names['f_initial_approx']] = k2
-    #         partials[var_names['initial_state_rate_defect'], var_names['f_computed']] = -k2
-    #         partials[var_names['initial_state_rate_defect'], 'dt_dstau'] = (f_initial_approx - f_computed[0]).ravel()
+    def compute_partials(self, inputs, partials):
+        """
+        Compute sub-jacobian parts. The model is assumed to be in an unscaled state.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        partials : Jacobian
+            Subjac components written to partials[output_name, input_name].
+        """
+        gd = self.options['grid_data']
+        num_nodes = gd.subset_num_nodes['col']
+
+        dt_dstau = inputs['dt_dstau']
+
+        B = self._A[:num_nodes, num_nodes:]
+        w = self._A[-1, num_nodes:]
+        for state_name, options in self.options['state_options'].items():
+            var_names = self.var_names[state_name]
+            V = inputs[var_names['f_value']]
+            f = inputs[var_names['f_computed']]
+
+            partials[var_names['state_defect'], var_names['f_value']] = np.dot(B, dt_dstau*np.eye(num_nodes))
+            partials[var_names['state_defect'], 'dt_dstau'] = np.dot(B, V*np.eye(num_nodes))
+
+            partials[var_names['state_rate_defect'], var_names['f_value']] = dt_dstau
+            partials[var_names['state_rate_defect'], var_names['f_computed']] = -dt_dstau
+            partials[var_names['state_rate_defect'], 'dt_dstau'] = (V-f).ravel()
+
+            partials[var_names['final_state_defect'], var_names['f_value']] = w * dt_dstau
+            partials[var_names['final_state_defect'], 'dt_dstau'] = w * V.ravel()

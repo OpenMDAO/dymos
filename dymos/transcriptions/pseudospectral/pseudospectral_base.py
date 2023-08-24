@@ -252,7 +252,12 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        grid_data = self.grid_data
+        phase.add_subsystem('state_interp',
+                            subsys=StateInterpComp(grid_data=grid_data,
+                                                   state_options=phase.state_options,
+                                                   time_units=phase.time_options['units'],
+                                                   transcription=grid_data.transcription))
 
     def configure_ode(self, phase):
         """
@@ -285,7 +290,10 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        phase.add_subsystem('collocation_constraint',
+                            CollocationComp(grid_data=self.grid_data,
+                                            state_options=phase.state_options,
+                                            time_units=phase.time_options['units']))
 
     def _configure_solve_segments(self, state_name, options, phase):
         """
