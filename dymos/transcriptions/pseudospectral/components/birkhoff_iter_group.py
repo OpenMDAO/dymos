@@ -166,22 +166,18 @@ class BirkhoffIterGroup(om.Group):
             implicit_outputs = self._configure_desvars(name, options)
 
             if f'states:{name}' in implicit_outputs:
-                # states_balance_comp.add_input(f'state_defects:{name}', shape=(nn,) + shape, units=units)
                 states_balance_comp.add_implicit_output(f'states:{name}', shape=(nn,) + shape, units=units,
                                                         resid_input=f'state_defects:{name}')
 
             if f'initial_states:{name}' in implicit_outputs:
-                # states_balance_comp.add_input(f'final_state_defects:{name}', shape=(nn,), units=units)
                 states_balance_comp.add_implicit_output(f'initial_states:{name}', shape=shape, units=units,
                                                         resid_input=f'final_state_defects:{name}')
 
             if f'final_states:{name}' in implicit_outputs:
-                # states_balance_comp.add_input(f'final_state_defects:{name}', shape=(nn,), units=units)
                 states_balance_comp.add_implicit_output(f'final_states:{name}', shape=shape, units=units,
                                                         resid_input=f'final_state_defects:{name}')
 
             if f'state_rates:{name}' in implicit_outputs:
-                # states_balance_comp.add_input(f'state_rate_defects:{name}', shape=(nn,) + shape, units=units)
                 states_balance_comp.add_implicit_output(f'state_rates:{name}', shape=(nn,) + shape, units=rate_units,
                                                         resid_input=f'state_rate_defects:{name}')
 

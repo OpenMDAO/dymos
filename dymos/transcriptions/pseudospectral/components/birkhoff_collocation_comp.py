@@ -148,8 +148,8 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
         if gd.transcription == 'birkhoff-gauss-lobatto':
             tau, w = lgl(num_nodes)
-        elif gd.transcription == 'radau-ps':
-            tau, w = lgr(num_nodes)
+        elif gd.transcription == 'birkhoff-radau':
+            tau, w = lgr(num_nodes, include_endpoint=False)
         else:
             raise ValueError('invalid transcription')
 
