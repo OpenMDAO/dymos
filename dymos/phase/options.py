@@ -284,7 +284,7 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=0.0,
                      desc='The default value of the parameter in the phase.')
 
-        self.declare(name='shape', check_valid=check_valid_shape, default=_unspecified,
+        self.declare(name='shape', check_valid=check_valid_shape, default=_unspecified, allow_none=True,
                      desc='The shape of the parameter.')
 
         self.declare(name='lower', types=(Iterable, Number), default=None,
