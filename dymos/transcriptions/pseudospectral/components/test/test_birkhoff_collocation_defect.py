@@ -80,7 +80,7 @@ class TestCollocationComp(unittest.TestCase):
         else:
             src_indices = om.slicer[:]
 
-        self.p.model.connect('state_value:x', 'defect_comp.states:x')
+        self.p.model.connect('state_value:x', 'defect_comp.states:x', src_indices=src_indices)
         self.p.model.connect('f_value:x', 'defect_comp.state_rates:x', src_indices=src_indices)
         # self.p.model.connect('f_value:v', 'defect_comp.f_value:v')
         self.p.model.connect('f_computed:x', 'defect_comp.f_computed:x', src_indices=src_indices)
