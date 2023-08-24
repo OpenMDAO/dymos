@@ -105,7 +105,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             self.add_output(
                 name=var_names['state_rate_defect'],
                 shape=(num_nodes,) + shape,
-                units=rate_units
+                units=units
             )
 
             self.add_output(
