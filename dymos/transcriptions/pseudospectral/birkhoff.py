@@ -170,19 +170,19 @@ class Birkhoff(TranscriptionBase):
         # outputs of the collocation comp)
         for name, options in phase.state_options.items():
             shape = options['shape']
-            rate_units = get_rate_units(options['units'], time_units, deriv=1)
+            units = options['units']
             # In certain cases, we put an output on the IVC.
             if isinstance(indep, om.IndepVarComp):
                 default_val = reshape_val(options['val'], shape, num_state_input_nodes)
                 indep.add_output(name=f'states:{name}',
                                  shape=(num_state_input_nodes,) + shape,
                                  val=default_val,
-                                 units=options['units'])
+                                 units=units)
 
                 indep_state_rates.add_output(name=f'state_rates:{name}',
                                              shape=(num_state_input_nodes,) + shape,
                                              val=default_val,
-                                             units=rate_units)
+                                             units=units)
 
                 phase.add_design_var(name=f'state_rates:{name}')
 
@@ -836,18 +836,16 @@ class Birkhoff(TranscriptionBase):
 
         if name in phase.parameter_options:
             options = phase.parameter_options[name]
-            if not options['static_target']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-                if options['shape'] == (1,):
-                    src_idxs = src_idxs.ravel()
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-                src_idxs = np.squeeze(src_idxs, axis=0)
+            for tgt in options['targets']:
+                if tgt in options['static_targets']:
+                    src_idxs = np.squeeze(get_src_indices_by_row([0], options['shape']), axis=0)
+                else:
+                    src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                    if options['shape'] == (1,):
+                        src_idxs = src_idxs.ravel()
 
-            rhs_all_tgts = [f'rhs_all.{t}' for t in options['targets']]
-            connection_info.append((rhs_all_tgts, (src_idxs,)))
+                connection_info.append((f'rhs_all.{tgt}', (src_idxs,)))
 
         return connection_info
 
