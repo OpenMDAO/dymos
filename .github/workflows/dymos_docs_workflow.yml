@@ -228,8 +228,8 @@ jobs:
           echo "============================================================="
           echo "Building Docs"
           echo "============================================================="
-          pip install git+https://github.com/executablebooks/jupyter-book
           cd docs
+          export PYDEVD_DISABLE_FILE_VALIDATION=1
           jupyter-book build -W --keep-going dymos_book
           python copy_build_artifacts.py
 
@@ -245,16 +245,40 @@ jobs:
           -exec echo "#################################################################" \; \
           -exec cat {} \;
 
-      - name: Publish docs
+      - name: Publish docs to github.io
         if: |
           github.event_name == 'push' && github.ref == 'refs/heads/master' &&
           matrix.PUBLISH_DOCS == '1'
         shell: bash -l {0}
         run: |
           echo "============================================================="
-          echo "Publishing Docs"
+          echo "Publishing Docs to github.io"
           echo "============================================================="
           pip install ghp-import
           cd $HOME/work/dymos/dymos
-          pwd
           ghp-import -n -p -f docs/dymos_book/_build/html
+
+
+      - name: Publish docs to openmdao.org
+        if: |
+          github.event_name == 'push' && github.ref == 'refs/heads/master' &&
+          matrix.PUBLISH_DOCS == '1'
+        env:
+          DOCS_LOCATION: ${{ secrets.DOCS_LOCATION }}
+        shell: bash -l {0}
+        run: |
+          if [[ "${#DOCS_LOCATION}" ]]; then
+            echo "============================================================="
+            echo "Install version of openssl compatible with hosting service"
+            echo "============================================================="
+            conda install -c conda-forge 'openssl=3.0'
+
+            echo "============================================================="
+            echo "Publishing Docs to openmdao.org"
+            echo "============================================================="
+            echo "Publish docs"
+            cd $HOME/work/dymos/dymos
+            python -m openmdao.docs.upload_doc_version docs/dymos_book/_build/html/ ${{ secrets.DOCS_LOCATION }}
+          else
+            echo "Docs destination not available."
+          fi
