@@ -293,7 +293,10 @@ class Trajectory(om.Group):
             phase_param_options[phs.name] = phs.parameter_options
 
         if self.comm.size > 1:
+            from time import time
+            t0 = time()
             data = self.comm.allgather(phase_param_options)
+            print(self.pathname, time() - t0)
             if data:
                 for d in data:
                     phase_param_options.update(d)
@@ -418,6 +421,8 @@ class Trajectory(om.Group):
         """
         parameter_options = self.parameter_options
         promoted_inputs = []
+        params_by_phase = self._get_phase_parameters()
+
         for name, options in parameter_options.items():
             promoted_inputs.append(f'parameters:{name}')
             targets = options['targets']
@@ -490,7 +495,6 @@ class Trajectory(om.Group):
 
             # If metadata is unspecified, use introspection to find
             # it based on common values among the targets.
-            params_by_phase = self._get_phase_parameters()
 
             targets = {phase_name: phs_params[targets_per_phase[phase_name]]
                        for phase_name, phs_params in params_by_phase.items()
