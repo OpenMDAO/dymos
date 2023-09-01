@@ -1444,9 +1444,8 @@ class Trajectory(om.Group):
         for name in self.parameter_options:
             sim_traj.set_val(f'parameters:{name}', self.get_val(f'parameters:{name}'))
 
-        sim_phases_group = sim_traj._get_subsystem('phases')
         for sim_phase_name, sim_phase in sim_traj._phases.items():
-            if sim_phase in sim_phases_group._subsystems_myproc:
+            if sim_phase._is_local:
                 sim_phase.set_vals_from_phase(from_phase=self._phases[sim_phase_name])
 
         if sim_traj.comm.rank == 0:

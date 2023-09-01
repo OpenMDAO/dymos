@@ -102,26 +102,30 @@ class SimulationPhase(Phase):
         from_phase : Phase
             The dymos phase from which this simulation phase should pull its values.
         """
-        t_initial = from_phase.get_val('t_initial', units=self.time_options['units'])
+        # The use of `from_src=False` in the get_val calls here is due to the fact that the input/output
+        # vectors are in `from_phase` are already populated and we don't need to track these values
+        # to their ultimate source.
+
+        t_initial = from_phase.get_val('t_initial', units=self.time_options['units'], from_src=False)
         self.set_val('t_initial', t_initial, units=self.time_options['units'])
 
-        t_duration = from_phase.get_val('t_duration', units=self.time_options['units'])
+        t_duration = from_phase.get_val('t_duration', units=self.time_options['units'], from_src=False)
         self.set_val('t_duration', t_duration, units=self.time_options['units'])
 
         for name, options in self.state_options.items():
-            val = from_phase.get_val(f'states:{name}', units=options['units'])[0, ...]
+            val = from_phase.get_val(f'states:{name}', units=options['units'], from_src=False)[0, ...]
             self.set_val(f'initial_states:{name}', val, units=options['units'])
 
         for name, options in self.parameter_options.items():
-            val = from_phase.get_val(f'parameters:{name}', units=options['units'])
+            val = from_phase.get_val(f'parameters:{name}', units=options['units'], from_src=False)
             self.set_val(f'parameters:{name}', val, units=options['units'])
 
         for name, options in self.control_options.items():
-            val = from_phase.get_val(f'controls:{name}', units=options['units'])
+            val = from_phase.get_val(f'controls:{name}', units=options['units'], from_src=False)
             self.set_val(f'controls:{name}', val, units=options['units'])
 
         for name, options in self.polynomial_control_options.items():
-            val = from_phase.get_val(f'polynomial_controls:{name}', units=options['units'])
+            val = from_phase.get_val(f'polynomial_controls:{name}', units=options['units'], from_src=False)
             self.set_val(f'polynomial_controls:{name}', val, units=options['units'])
 
     def initialize_values_from_phase(self, prob, from_phase, phase_path=''):
