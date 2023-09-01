@@ -93,7 +93,7 @@ class SimulationPhase(Phase):
         self._timeseries = {ts_name: ts_options for ts_name, ts_options in self._timeseries.items()
                             if ts_name == 'timeseries'}
 
-    def set_val_from_phase(self, from_phase):
+    def set_vals_from_phase(self, from_phase):
         """
         Set the necessary values to simulate the phase based on variables in the given phase.
 
@@ -102,7 +102,6 @@ class SimulationPhase(Phase):
         from_phase : Phase
             The dymos phase from which this simulation phase should pull its values.
         """
-
         t_initial = from_phase.get_val('t_initial', units=self.time_options['units'])
         self.set_val('t_initial', t_initial, units=self.time_options['units'])
 

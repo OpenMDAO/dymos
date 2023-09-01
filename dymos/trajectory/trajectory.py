@@ -352,6 +352,11 @@ class Trajectory(om.Group):
                             phs.add_parameter(name, **kwargs)
 
     def _setup_linkages(self):
+
+        if self.options['sim_mode']:
+            # Under simulation, theres no need to enforce any linkages
+            return
+
         has_linkage_constraints = False
 
         err_template = '{traj}: Phase `{phase1}` links variable `{var1}` to phase ' \
@@ -527,8 +532,8 @@ class Trajectory(om.Group):
         and units options to all procs for all dymos variables.
         """
         for phase in self._phases.values():
-            all_dicts = [phase.state_options, phase.control_options, phase.parameter_options,
-                         phase.polynomial_control_options]
+            all_dicts = [phase.state_options, phase.control_options,
+                         phase.parameter_options, phase.polynomial_control_options]
 
             for opt_dict in all_dicts:
                 for options in opt_dict.values():
@@ -769,6 +774,11 @@ class Trajectory(om.Group):
             return True, ''
 
     def _configure_linkages(self):
+
+        if self.options['sim_mode']:
+            # If this is a simulation trajectory, theres no need to link the phases.
+            return
+
         connected_linkage_inputs = []
 
         def _print_on_rank(rank=0, *args, **kwargs):
@@ -1397,6 +1407,9 @@ class Trajectory(om.Group):
         """
         sim_traj = Trajectory(sim_mode=True)
 
+        # self.phases.nonlinear_solver = om.NonlinearBlockJac()
+        # self.phases.linear_solver = om.LinearBlockJac()
+
         for name, phs in self._phases.items():
             if phs.simulate_options is None:
                 continue
@@ -1425,22 +1438,22 @@ class Trajectory(om.Group):
             sim_prob.recording_options['record_outputs'] = True
 
         sim_prob.setup()
+        sim_prob.final_setup()
 
         # Assign trajectory parameter values
         for name in self.parameter_options:
-            sim_prob_prom_path = f'{traj_name}.parameters:{name}'
-            sim_prob.set_val(sim_prob_prom_path, self.get_val(f'parameters:{name}'))
+            sim_traj.set_val(f'parameters:{name}', self.get_val(f'parameters:{name}'))
 
-        for phase_name, phs in sim_traj._phases.items():
-            # TODO: use the following method once OpenMDAO >= 3.25.1
-            # phs.set_val_from_phase(from_phase=self._phases[phase_name])
-            phs.initialize_values_from_phase(prob=sim_prob,
-                                             from_phase=self._phases[phase_name],
-                                             phase_path=traj_name)
+        sim_phases_group = sim_traj._get_subsystem('phases')
+        for sim_phase_name, sim_phase in sim_traj._phases.items():
+            if sim_phase in sim_phases_group._subsystems_myproc:
+                sim_phase.set_vals_from_phase(from_phase=self._phases[sim_phase_name])
 
-        print(f'\nSimulating trajectory {self.pathname}')
+        if sim_traj.comm.rank == 0:
+            print(f'\nSimulating trajectory {self.pathname}')
         sim_prob.run_model(case_prefix=case_prefix, reset_iter_counts=reset_iter_counts)
-        print(f'Done simulating trajectory {self.pathname}')
+        if sim_traj.comm.rank == 0:
+            print(f'Done simulating trajectory {self.pathname}')
         if record_file:
             _case_prefix = '' if case_prefix is None else f'{case_prefix}_'
             sim_prob.record(f'{_case_prefix}final')
