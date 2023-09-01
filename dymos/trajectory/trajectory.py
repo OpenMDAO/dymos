@@ -293,10 +293,7 @@ class Trajectory(om.Group):
             phase_param_options[phs.name] = phs.parameter_options
 
         if self.comm.size > 1:
-            from time import time
-            t0 = time()
             data = self.comm.allgather(phase_param_options)
-            print(self.pathname, time() - t0)
             if data:
                 for d in data:
                     phase_param_options.update(d)
