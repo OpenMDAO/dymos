@@ -1407,9 +1407,6 @@ class Trajectory(om.Group):
         """
         sim_traj = Trajectory(sim_mode=True)
 
-        # self.phases.nonlinear_solver = om.NonlinearBlockJac()
-        # self.phases.linear_solver = om.LinearBlockJac()
-
         for name, phs in self._phases.items():
             if phs.simulate_options is None:
                 continue
