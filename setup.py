@@ -4,6 +4,7 @@ from setuptools import find_packages, setup
 optional_dependencies = {
     'docs': [
         'matplotlib',
+        'pandas<2.1',
         'bokeh',
         'jupyter',
         'jupyter-book==0.14',
