@@ -7,6 +7,7 @@ from dymos.utils.misc import get_rate_units
 from dymos._options import options as dymos_options
 from dymos.utils.lgl import lgl
 from dymos.utils.lgr import lgr
+from dymos.utils.cgl import cgl
 from dymos.utils.birkhoff import birkhoff_matrices
 
 
@@ -146,14 +147,16 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
                                     equals=0.0,
                                     ref=defect_ref)
 
-        if gd.transcription == 'birkhoff-gauss-lobatto':
+        if gd.grid_type == 'lgl':
             tau, w = lgl(num_nodes)
-        elif gd.transcription == 'birkhoff-radau':
+        elif gd.grid_type == 'lgr':
             tau, w = lgr(num_nodes, include_endpoint=False)
+        elif gd.grid_type == 'cgl':
+            tau, w = cgl(num_nodes)
         else:
-            raise ValueError('invalid transcription')
+            raise ValueError('invalid grid type')
 
-        B = birkhoff_matrices(tau, w)
+        B = birkhoff_matrices(tau, w, grid_type=gd.grid_type)
 
         self._A = np.zeros((num_nodes + 1, 2 * num_nodes))
         self._A[:num_nodes, :num_nodes] = np.eye(num_nodes)

@@ -10,7 +10,7 @@ from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 from dymos.utils.misc import CompWrapperConfig
 from dymos.transcriptions.pseudospectral.components import BirkhoffIterGroup
 from dymos.phase.options import StateOptionsDictionary, TimeOptionsDictionary
-from dymos.transcriptions.grid_data import BirkhoffGaussLobattoGrid, BirkhoffRadauGrid
+from dymos.transcriptions.grid_data import BirkhoffGrid
 
 BirkhoffIterGroup = CompWrapperConfig(BirkhoffIterGroup)
 
@@ -63,7 +63,7 @@ class TestBirkhoffIterGroup(unittest.TestCase):
             state_options['x']['rate_source'] = 'x_dot'
 
             time_options = TimeOptionsDictionary()
-            grid_data = BirkhoffGaussLobattoGrid(num_segments=1, nodes_per_seg=31)
+            grid_data = BirkhoffGrid(num_segments=1, nodes_per_seg=31)
             nn = grid_data.subset_num_nodes['all']
             ode_class = SimpleODE
 
@@ -125,7 +125,7 @@ class TestBirkhoffIterGroup(unittest.TestCase):
             state_options['x']['rate_source'] = 'x_dot'
 
             time_options = TimeOptionsDictionary()
-            grid_data = BirkhoffGaussLobattoGrid(num_segments=1, nodes_per_seg=31)
+            grid_data = BirkhoffGrid(num_segments=1, nodes_per_seg=31)
             nn = grid_data.subset_num_nodes['all']
             ode_class = SimpleODE
 
@@ -183,7 +183,7 @@ class TestBirkhoffIterGroup(unittest.TestCase):
             state_options['x']['rate_source'] = 'x_dot'
 
             time_options = TimeOptionsDictionary()
-            grid_data = BirkhoffRadauGrid(num_segments=1, nodes_per_seg=31)
+            grid_data = BirkhoffGrid(num_segments=1, nodes_per_seg=31, grid_type='lgr')
             nn = grid_data.subset_num_nodes['all']
             ode_class = SimpleODE
 
@@ -247,7 +247,7 @@ class TestBirkhoffIterGroup(unittest.TestCase):
             state_options['x']['rate_source'] = 'x_dot'
 
             time_options = TimeOptionsDictionary()
-            grid_data = BirkhoffGaussLobattoGrid(num_segments=1, nodes_per_seg=31)
+            grid_data = BirkhoffGrid(num_segments=1, nodes_per_seg=31, grid_type='lgr')
             nn = grid_data.subset_num_nodes['all']
             ode_class = SimpleODE
 
