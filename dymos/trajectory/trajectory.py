@@ -277,29 +277,6 @@ class Trajectory(om.Group):
                                    upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref, shape=shape,
                                    dynamic=dynamic, static_target=static_target)
 
-    def _get_phase_parameters(self):
-        """
-        Retrieve a dict of parameter options for each phase within the trajectory.
-
-        Returns
-        -------
-        dict
-            A dictionary keyed by phase name. Each associated value is a dictionary
-            keyed by parameter name and the associated values are parameter options
-            for each parameter.
-
-        """
-        phase_param_options = {}
-        for phs in self.phases._subsystems_myproc:
-            phase_param_options[phs.name] = phs.parameter_options
-
-        if self.comm.size > 1:
-            data = self.comm.allgather(phase_param_options)
-            if data:
-                for d in data:
-                    phase_param_options.update(d)
-        return phase_param_options
-
     def _setup_parameters(self):
         """
         Adds an IndepVarComp if necessary and issues appropriate connections based
