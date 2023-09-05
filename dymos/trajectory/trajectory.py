@@ -520,10 +520,6 @@ class Trajectory(om.Group):
         Once populated, we gather this data from each proc and then populate self._phases variable
         options dictionaries with the updated information.
         """
-
-        # Because each phase performs introspection, on MPI the trajectory may not know certain
-        # metadata for phase variables that is necessary for things like linkage calculations.
-
         phase_options_dicts = {phase_name: {} for phase_name in self._phases.keys()}
         for phs in self.phases._subsystems_myproc:
             phase_options_dicts[phs.name]['time_options'] = phs.time_options
@@ -1015,7 +1011,9 @@ class Trajectory(om.Group):
         setup has already been called on all children of the Trajectory, we can query them for
         variables at this point.
         """
-        self._configure_phase_options_dicts()
+        if MPI:
+            self._configure_phase_options_dicts()
+
         if self.parameter_options:
             self._configure_parameters()
 
