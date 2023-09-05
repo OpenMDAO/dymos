@@ -1,5 +1,6 @@
 import unittest
 
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.mpi import MPI
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
@@ -16,24 +17,40 @@ class TestExampleTwoBurnOrbitRaiseMPI(unittest.TestCase):
     def test_ex_two_burn_orbit_raise_mpi(self):
         optimizer = 'IPOPT'
 
-        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer=optimizer, simulate=False,
-                                         show_output=False)
+        CONNECTED = False
 
-        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
-                              tolerance=2.0E-3)
+        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                         compressed=False, optimizer=optimizer, simulate=True,
+                                         connected=CONNECTED, show_output=False)
+
+        sol_case = om.CaseReader('dymos_solution.db').get_case('final')
+        sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        # The last phase in this case is run in reverse time if CONNECTED=True,
+        # so grab the correct index to test the resulting delta-V.
+        end_idx = 0 if CONNECTED else -1
+
+        assert_near_equal(sol_case.get_val('traj.burn2.timeseries.deltav')[end_idx], 0.3995, tolerance=2.0E-3)
+        assert_near_equal(sim_case.get_val('traj.burn2.timeseries.deltav')[end_idx], 0.3995, tolerance=2.0E-3)
 
     def test_ex_two_burn_orbit_raise_connected_mpi(self):
         optimizer = 'IPOPT'
 
-        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer=optimizer, simulate=False,
-                                         connected=True, show_output=False)
+        CONNECTED = True
 
-        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-            assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
-                              tolerance=2.0E-3)
+        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                         compressed=False, optimizer=optimizer, simulate=True,
+                                         connected=CONNECTED, show_output=False)
+
+        sol_case = om.CaseReader('dymos_solution.db').get_case('final')
+        sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        # The last phase in this case is run in reverse time if CONNECTED=True,
+        # so grab the correct index to test the resulting delta-V.
+        end_idx = 0 if CONNECTED else -1
+
+        assert_near_equal(sol_case.get_val('traj.burn2.timeseries.deltav')[end_idx], 0.3995, tolerance=2.0E-3)
+        assert_near_equal(sim_case.get_val('traj.burn2.timeseries.deltav')[end_idx], 0.3995, tolerance=2.0E-3)
 
 
 if __name__ == '__main__':  # pragma: no cover

@@ -61,7 +61,7 @@ class TestHull(unittest.TestCase):
 
     def test_hull_gauss_lobatto(self):
         p = self.make_problem(transcription=GaussLobatto)
-        dm.run_problem(p)
+        dm.run_problem(p, simulate=True)
 
         xf, uf = self.solution(1.5, 10)
 
@@ -75,7 +75,7 @@ class TestHull(unittest.TestCase):
 
     def test_hull_radau(self):
         p = self.make_problem(transcription=Radau)
-        dm.run_problem(p)
+        dm.run_problem(p, simulate=True)
 
         xf, uf = self.solution(1.5, 10)
 
@@ -89,7 +89,7 @@ class TestHull(unittest.TestCase):
 
     def test_hull_shooting(self):
         p = self.make_problem(transcription=ExplicitShooting)
-        dm.run_problem(p)
+        dm.run_problem(p, simulate=True)
 
         xf, uf = self.solution(1.5, 10)
 
