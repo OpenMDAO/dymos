@@ -112,8 +112,16 @@ class SimulationPhase(Phase):
         t_duration = from_phase.get_val('t_duration', units=self.time_options['units'], from_src=False)
         self.set_val('t_duration', t_duration, units=self.time_options['units'])
 
+        avail_io = {meta['prom_name'] for meta in
+                    from_phase.get_io_metadata(iotypes=('input', 'output'), get_remote=True).values()}
+
         for name, options in self.state_options.items():
-            val = from_phase.get_val(f'states:{name}', units=options['units'], from_src=False)[0, ...]
+            if f'states:{name}' in avail_io:
+                val = from_phase.get_val(f'states:{name}', units=options['units'], from_src=False)[0, ...]
+            elif f'initial_states:{name}' in avail_io:
+                val = from_phase.get_val(f'initial_states:{name}', units=options['units'], from_src=False)[0, ...]
+            else:
+                raise RuntimeError('Unable to find state values in original phase')
             self.set_val(f'initial_states:{name}', val, units=options['units'])
 
         for name, options in self.parameter_options.items():
