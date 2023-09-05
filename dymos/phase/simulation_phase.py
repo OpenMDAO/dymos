@@ -119,7 +119,7 @@ class SimulationPhase(Phase):
             if f'states:{name}' in avail_io:
                 val = from_phase.get_val(f'states:{name}', units=options['units'], from_src=False)[0, ...]
             elif f'initial_states:{name}' in avail_io:
-                val = from_phase.get_val(f'initial_states:{name}', units=options['units'], from_src=False)[0, ...]
+                val = from_phase.get_val(f'initial_states:{name}', units=options['units'], from_src=False)
             else:
                 raise RuntimeError('Unable to find state values in original phase')
             self.set_val(f'initial_states:{name}', val, units=options['units'])
