@@ -1,3 +1,4 @@
+import warnings
 from collections import OrderedDict
 from collections.abc import Sequence
 import itertools
@@ -1435,8 +1436,14 @@ class Trajectory(om.Group):
             # record_outputs is need to capture the timeseries outputs
             sim_prob.recording_options['record_outputs'] = True
 
-        sim_prob.setup()
-        sim_prob.final_setup()
+        with warnings.catch_warnings():
+            # Some timeseries options are duplicated (expression options may be provide duplicate shape)
+            # These filters suppress these warnings during simulation when they are not the
+            # fault of the user.
+            warnings.filterwarnings(action='ignore', category=om.UnusedOptionWarning)
+            warnings.filterwarnings(action='ignore', category=om.SetupWarning)
+            sim_prob.setup()
+            sim_prob.final_setup()
 
         # Assign trajectory parameter values
         for name in self.parameter_options:
