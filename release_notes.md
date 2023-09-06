@@ -47,6 +47,7 @@ be checked with explicit integration when working under MPI.
 - Fixed an MPI slowdown introduced by parameter introspection at the Trajectory level. [#977](https://github.com/OpenMDAO/dymos/pull/977)
 - Fixed some issues that were causing simulation to fail under MPI. [#978](https://github.com/OpenMDAO/dymos/pull/978)
 - Fixed an issue where dymos calling excessive allgathers during setup. [#980](https://github.com/OpenMDAO/dymos/pull/980)
+- Fixed an issue where a DirectSolver was automatically added to a phase if any state has input_initial=True. [#982](https://github.com/OpenMDAO/dymos/pull/982)
 
 ## Miscellaneous
 - Changed all uses of the deprecated 'value' keyword to 'val' [#926](https://github.com/OpenMDAO/dymos/pull/926)
