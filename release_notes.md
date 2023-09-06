@@ -5,7 +5,7 @@ September 07, 2023
 
 Dymos 1.9.0 changes the default timeseries behavior so that state rates,
 control rates, and t_phase are not included by default. These values tended
-to cluttern the timeseries plots on more complex problems.
+to clutter the timeseries plots on more complex problems.
 
 A new `add_duration_balance` method is added to phases that allows the final time
 of a phase to be found with a solver without the need for an optimizer. This is useful
