@@ -1,4 +1,70 @@
 *******************************
+# Release Notes for Dymos 1.9.0
+
+September 08, 2023
+
+Dymos 1.9.0 changes the default timeseries behavior so that state rates,
+control rates, and t_phase are not included by default. These values tended
+to cluttern the timeseries plots on more complex problems.
+
+A new `add_duration_balance` method is added to phases that allows the final time
+of a phase to be found with a solver without the need for an optimizer. This is useful
+for explicit shooting phases which are effectively just simulating out the dynamics
+until some target condition is achieved. An example of this behavior is available [in the docs](https://openmdao.github.io/dymos/examples/cannonball_implicit_duration/cannonball_implicit_duration.html?highlight=duration).
+
+Trajectory parameters are improved. Parameters can now have a mix of static and dynamic targets, which was not possible before.
+Also, trajectories will now use variable data obtained by introspection in the phases for
+setting properties of trajectory-level parameters.
+
+The behavior of some scipy.sparse routines was changed in 1.11 and caused incorrect derivatives.
+This has been addressed.
+
+Dymos had previously been calling `allgather` excessively under MPI which could
+cause performance issues during setup.
+
+Finally, Trajectory.simulate() should now work correctly under MPI so that results can 
+be checked with explicit integration when working under MPI.
+
+## Backwards Incompatible API Changes & Deprecations
+- Remove state rates, control rates, and t_phase from the timeseries by default, and remove type prefix. [#935](https://github.com/OpenMDAO/dymos/pull/935)
+
+## Enhancements
+- Remove state rates, control rates, and t_phase from the timeseries by default, and remove type prefix. [#935](https://github.com/OpenMDAO/dymos/pull/935)
+- Implicit duration [#939](https://github.com/OpenMDAO/dymos/pull/939)
+- Updated dymos to utilize new OpenMDAO load_case capability. [#954](https://github.com/OpenMDAO/dymos/pull/954)
+- Updated parameter introspection and traj parameters [#964](https://github.com/OpenMDAO/dymos/pull/964)
+- Allow parameter shape to be given as `None`, rather than just `_unspecified` [#970](https://github.com/OpenMDAO/dymos/pull/970)
+
+## Bug Fixes
+- Fixed an error message that gave outdated instructions solve segments [#930](https://github.com/OpenMDAO/dymos/pull/930)
+- Fixed a Trajectory.simulate method specification bug [#931](https://github.com/OpenMDAO/dymos/pull/931)
+- Fixed issue where optimal trajectory parameters would also attempt to make corresponding phase parameter a design variable. [#938](https://github.com/OpenMDAO/dymos/pull/938)
+- Fixed issue where "connected" could not be used when linking all variables of a phase [#942](https://github.com/OpenMDAO/dymos/pull/942)
+- Fixed issues with scipy sparse storage in scipy 1.11 [#943](https://github.com/OpenMDAO/dymos/pull/943)
+- Fixed an issue where grid refinement tests were still expecting some things to be in the timeseries. [#946](https://github.com/OpenMDAO/dymos/pull/946)
+- Fixed openmdao warning messages. [#950](https://github.com/OpenMDAO/dymos/pull/950)
+- Fixed timeseries plots under MPI so that all phases show up. [#959](https://github.com/OpenMDAO/dymos/pull/959)
+- Fixed an MPI slowdown introduced by parameter introspection at the Trajectory level. [#977](https://github.com/OpenMDAO/dymos/pull/977)
+- Fixed some issues that were causing simulation to fail under MPI. [#978](https://github.com/OpenMDAO/dymos/pull/978)
+- Fixed an issue where dymos calling excessive allgathers during setup. [#980](https://github.com/OpenMDAO/dymos/pull/980)
+
+## Miscellaneous
+- Changed all uses of the deprecated 'value' keyword to 'val' [#926](https://github.com/OpenMDAO/dymos/pull/926)
+- Bump to next dev cycle version [#927](https://github.com/OpenMDAO/dymos/pull/927)
+- Updated the GitHub workflow to test with '[all]' extra dependencies [#929](https://github.com/OpenMDAO/dymos/pull/929)
+- Fixed out-of-order systems in some tests [#941](https://github.com/OpenMDAO/dymos/pull/941)
+- Refactored time_extents away in favor of housing extents in param_comp [#952](https://github.com/OpenMDAO/dymos/pull/952)
+- Set defect_scaler values to 1.0 in finite_burn_orbit_raise problem [#953](https://github.com/OpenMDAO/dymos/pull/953)
+- Fixed a couple PEP8 failures [#961](https://github.com/OpenMDAO/dymos/pull/961)
+- Added various phase options dictionaries to the API documentation. [#956](https://github.com/OpenMDAO/dymos/pull/956)
+- Updated GitHub workflow to upload documentation to web site [#965](https://github.com/OpenMDAO/dymos/pull/965)
+- Minor doc fix [#967](https://github.com/OpenMDAO/dymos/pull/967)
+- Slight changes to scaling in the water rocket example. [#969](https://github.com/OpenMDAO/dymos/pull/969)
+- Updated baseline test to use Numpy version 1.22.4 [#975](https://github.com/OpenMDAO/dymos/pull/975)
+
+
+
+*******************************
 # Release Notes for Dymos 1.8.0
 
 April 18, 2023
