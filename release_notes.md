@@ -1,7 +1,7 @@
 *******************************
 # Release Notes for Dymos 1.9.0
 
-September 08, 2023
+September 07, 2023
 
 Dymos 1.9.0 changes the default timeseries behavior so that state rates,
 control rates, and t_phase are not included by default. These values tended
