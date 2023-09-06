@@ -186,6 +186,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             dXV_dV[size:] = 1.0
             ar1 = np.arange(num_nodes * size)
             r2 = np.arange(size)
+            c1 = np.repeat(r2, num_nodes)
 
             var_names = self.var_names[state_name]
 
@@ -213,12 +214,12 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
             self.declare_partials(of=var_names['state_rate_defect'],
                                   wrt='dt_dstau',
-                                  rows=ar1, cols=ar1)
+                                  rows=ar1, cols=c1)
 
             self.declare_partials(of=var_names['final_state_defect'],
                                   wrt=var_names['f_value'],
                                   rows=np.repeat(np.arange(size), num_nodes), cols=ar1,
-                                  val=w)
+                                  val=np.repeat(w, size))
 
             self.declare_partials(of=var_names['final_state_defect'],
                                   wrt=var_names['state_initial_value'],
@@ -233,7 +234,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         dt_dstau = np.atleast_2d(inputs['dt_dstau']).T
 
-        for state_name in self.options['state_options']:
+        for state_name, options in self.options['state_options'].items():
             var_names = self.var_names[state_name]
 
             x_a = inputs[var_names['state_initial_value']]
@@ -242,12 +243,12 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             V = inputs[var_names['f_value']]
             f = inputs[var_names['f_computed']]
 
-            X_AB = np.vstack((x_a, x_b))
+            X_AB = np.vstack((x_a[np.newaxis, :], x_b[np.newaxis, :]))
             XV = np.vstack((X, V))
-            state_defect = (np.dot(self._A, XV) - np.dot(self._C, X_AB))
+            state_defect = np.einsum('ij,jk...->ik...', self._A, XV) - np.einsum('ij, j...->i...', self._C, X_AB)
 
             outputs[var_names['state_defect']] = state_defect[:-1, ...]
-            outputs[var_names['state_rate_defect']] = (V - f * dt_dstau)
+            outputs[var_names['state_rate_defect']] = (V - np.einsum('i...,i...->i...', f, dt_dstau))
             outputs[var_names['final_state_defect']] = state_defect[-1, ...]
 
     def compute_partials(self, inputs, partials):
@@ -265,7 +266,9 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
         for state_name, options in self.options['state_options'].items():
             var_names = self.var_names[state_name]
+            shape = options['shape']
+            size = np.prod(shape)
             f = inputs[var_names['f_computed']]
 
-            partials[var_names['state_rate_defect'], var_names['f_computed']] = -dt_dstau
+            partials[var_names['state_rate_defect'], var_names['f_computed']] = np.repeat(-dt_dstau, size)
             partials[var_names['state_rate_defect'], 'dt_dstau'] = -f.ravel()
