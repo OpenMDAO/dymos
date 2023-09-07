@@ -49,6 +49,9 @@ class TestBrachistochroneExample(unittest.TestCase):
 
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
+        outputs = [op[1]['prom_name'] for op in p.model.list_outputs(out_stream=None)]
+        self.assertNotIn('traj0.phase0.timeseries.theta_rate', outputs)
+
     def test_ex_brachistochrone_radau_compressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
