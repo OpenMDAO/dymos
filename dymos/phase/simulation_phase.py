@@ -2,7 +2,7 @@ from openmdao.utils.mpi import MPI
 
 from .phase import Phase
 from .._options import options as dymos_options
-from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
+from ..transcriptions.grid_data import BirkhoffGrid, GaussLobattoGrid, RadauGrid, UniformGrid
 from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 
 from ..utils.misc import _unspecified
@@ -60,7 +60,7 @@ class SimulationPhase(Phase):
             grid = RadauGrid(num_segments=num_seg, nodes_per_seg=seg_order + 1, segment_ends=seg_ends,
                              compressed=compressed)
         elif isinstance(phase_tx.grid_data, GaussLobattoGrid) or \
-                isinstance(phase_tx.grid_data, RadauGrid):
+                isinstance(phase_tx.grid_data, RadauGrid) or isinstance(phase_tx.grid_data, BirkhoffGrid):
             grid = phase_tx.grid_data
         else:
             raise RuntimeError(f'Unexpected grid class for {phase_tx.grid_data}. Only phases with GaussLobatto '
