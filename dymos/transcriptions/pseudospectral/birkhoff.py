@@ -6,7 +6,7 @@ from ..transcription_base import TranscriptionBase
 from ..common import TimeComp, TimeseriesOutputGroup
 from .components import StateIndependentsComp, PseudospectralTimeseriesOutputComp, BirkhoffCollocationComp
 
-from ..grid_data import RadauGrid, BirkhoffGaussLobattoGrid
+from ..grid_data import BirkhoffGrid
 from dymos.utils.misc import get_rate_units, reshape_val
 from dymos.utils.introspection import get_promoted_vars, get_source_metadata, get_targets
 from dymos.utils.indexing import get_src_indices_by_row
@@ -21,7 +21,7 @@ class Birkhoff(TranscriptionBase):
         """
         Declare transcription options.
         """
-        self.options.declare('grid', types=(RadauGrid, BirkhoffGaussLobattoGrid, str),
+        self.options.declare('grid', types=(BirkhoffGrid, str),
                              allow_none=True, default=None,
                              desc='The grid distribution used to layout the control inputs and provide the default '
                                   'output nodes.')
@@ -31,15 +31,10 @@ class Birkhoff(TranscriptionBase):
         Setup the GridData object for the Transcription.
         """
         if self.options['grid'] in ('gauss-lobatto', None):
-            self.grid_data = BirkhoffGaussLobattoGrid(num_segments=self.options['num_segments'],
-                                                      nodes_per_seg=self.options['order'],
-                                                      segment_ends=self.options['segment_ends'],
-                                                      compressed=self.options['compressed'])
-        elif self.options['grid'] == 'radau-ps':
-            self.grid_data = RadauGrid(num_segments=self.options['num_segments'],
-                                       nodes_per_seg=self.options['order'] + 1,
-                                       segment_ends=self.options['segment_ends'],
-                                       compressed=self.options['compressed'])
+            self.grid_data = BirkhoffGrid(num_segments=self.options['num_segments'],
+                                          nodes_per_seg=self.options['order'],
+                                          segment_ends=self.options['segment_ends'],
+                                          compressed=self.options['compressed'])
         else:
             self.grid_data = self.options['grid']
 
@@ -170,19 +165,19 @@ class Birkhoff(TranscriptionBase):
         # outputs of the collocation comp)
         for name, options in phase.state_options.items():
             shape = options['shape']
-            rate_units = get_rate_units(options['units'], time_units, deriv=1)
+            units = options['units']
             # In certain cases, we put an output on the IVC.
             if isinstance(indep, om.IndepVarComp):
                 default_val = reshape_val(options['val'], shape, num_state_input_nodes)
                 indep.add_output(name=f'states:{name}',
                                  shape=(num_state_input_nodes,) + shape,
                                  val=default_val,
-                                 units=options['units'])
+                                 units=units)
 
                 indep_state_rates.add_output(name=f'state_rates:{name}',
                                              shape=(num_state_input_nodes,) + shape,
                                              val=default_val,
-                                             units=rate_units)
+                                             units=units)
 
                 phase.add_design_var(name=f'state_rates:{name}')
 

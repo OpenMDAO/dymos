@@ -7,6 +7,7 @@ from dymos.utils.misc import get_rate_units
 from dymos._options import options as dymos_options
 from dymos.utils.lgl import lgl
 from dymos.utils.lgr import lgr
+from dymos.utils.cgl import cgl
 from dymos.utils.birkhoff import birkhoff_matrices
 
 
@@ -67,7 +68,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
                 name=var_names['f_value'],
                 shape=(num_nodes,) + shape,
                 desc=f'Estimated derivative of state {state_name} at the polynomial nodes',
-                units=rate_units)
+                units=units)
 
             self.add_input(
                 name=var_names['f_computed'],
@@ -105,7 +106,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             self.add_output(
                 name=var_names['state_rate_defect'],
                 shape=(num_nodes,) + shape,
-                units=rate_units
+                units=units
             )
 
             self.add_output(
@@ -146,14 +147,16 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
                                     equals=0.0,
                                     ref=defect_ref)
 
-        if gd.transcription == 'birkhoff-gauss-lobatto':
+        if gd.grid_type == 'lgl':
             tau, w = lgl(num_nodes)
-        elif gd.transcription == 'radau-ps':
-            tau, w = lgr(num_nodes)
+        elif gd.grid_type == 'lgr':
+            tau, w = lgr(num_nodes, include_endpoint=False)
+        elif gd.grid_type == 'cgl':
+            tau, w = cgl(num_nodes)
         else:
-            raise ValueError('invalid transcription')
+            raise ValueError('invalid grid type')
 
-        B = birkhoff_matrices(tau, w)
+        B = birkhoff_matrices(tau, w, grid_type=gd.grid_type)
 
         self._A = np.zeros((num_nodes + 1, 2 * num_nodes))
         self._A[:num_nodes, :num_nodes] = np.eye(num_nodes)
@@ -170,19 +173,14 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             shape = options['shape']
             size = np.prod(shape)
 
-            dX_AB_dx_a = np.zeros(2 * size)
-            dX_AB_dx_a[:size] = 1.0
-
-            dX_AB_dx_b = np.zeros(2 * size)
-            dX_AB_dx_b[size:] = 1.0
-
-            dXV_dX = np.zeros(2 * size)
-            dXV_dX[:size] = 1.0
-
-            dXV_dV = np.zeros(2 * size)
-            dXV_dV[size:] = 1.0
             ar1 = np.arange(num_nodes * size)
-            r2 = np.arange(size)
+            ar2 = np.arange(size)
+            c1 = np.repeat(np.arange(num_nodes), size)
+
+            rB = np.zeros(num_nodes*num_nodes*size)
+            for j in range(num_nodes):
+                rB[j*num_nodes*size:(j+1)*num_nodes*size] = np.tile(np.arange(size), num_nodes) + j*size
+            cB = np.tile(np.arange(num_nodes*size), num_nodes)
 
             var_names = self.var_names[state_name]
 
@@ -192,19 +190,19 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
                                   val=1.0)
 
             self.declare_partials(of=var_names['state_defect'],
-                                  wrt=var_names['f_value'])
+                                  wrt=var_names['f_value'],
+                                  rows=rB,
+                                  cols=cB,
+                                  val=np.repeat(-B.flatten(), size))
 
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['state_initial_value'],
-                                  rows=ar1, cols=np.repeat(np.arange(size), num_nodes),
+                                  rows=ar1, cols=np.tile(np.arange(size), num_nodes),
                                   val=-1.0)
-
-            self.declare_partials(of=var_names['state_defect'],
-                                  wrt='dt_dstau')
 
             self.declare_partials(of=var_names['state_rate_defect'],
                                   wrt=var_names['f_value'],
-                                  rows=ar1, cols=ar1)
+                                  rows=ar1, cols=ar1, val=1.0)
 
             self.declare_partials(of=var_names['state_rate_defect'],
                                   wrt=var_names['f_computed'],
@@ -212,30 +210,27 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
             self.declare_partials(of=var_names['state_rate_defect'],
                                   wrt='dt_dstau',
-                                  rows=ar1, cols=ar1)
+                                  rows=ar1, cols=c1)
 
             self.declare_partials(of=var_names['final_state_defect'],
                                   wrt=var_names['f_value'],
-                                  rows=np.repeat(np.arange(size), num_nodes), cols=ar1)
+                                  rows=np.tile(np.arange(size), num_nodes), cols=ar1,
+                                  val=np.repeat(w, size))
 
             self.declare_partials(of=var_names['final_state_defect'],
                                   wrt=var_names['state_initial_value'],
-                                  rows=r2, cols=r2,
+                                  rows=ar2, cols=ar2,
                                   val=1.0)
 
             self.declare_partials(of=var_names['final_state_defect'],
                                   wrt=var_names['state_final_value'],
-                                  rows=r2, cols=r2,
+                                  rows=ar2, cols=ar2,
                                   val=-1.0)
-
-            self.declare_partials(of=var_names['final_state_defect'],
-                                  wrt='dt_dstau',
-                                  rows=np.repeat(np.arange(size), num_nodes), cols=ar1)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         dt_dstau = np.atleast_2d(inputs['dt_dstau']).T
 
-        for state_name in self.options['state_options']:
+        for state_name, options in self.options['state_options'].items():
             var_names = self.var_names[state_name]
 
             x_a = inputs[var_names['state_initial_value']]
@@ -244,12 +239,12 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             V = inputs[var_names['f_value']]
             f = inputs[var_names['f_computed']]
 
-            X_AB = np.vstack((x_a, x_b))
-            XV = np.vstack((X, V * dt_dstau))
-            state_defect = (np.dot(self._A, XV) - np.dot(self._C, X_AB))
+            X_AB = np.vstack((x_a[np.newaxis, :], x_b[np.newaxis, :]))
+            XV = np.vstack((X, V))
+            state_defect = np.einsum('ij,jk...->ik...', self._A, XV) - np.einsum('ij, j...->i...', self._C, X_AB)
 
             outputs[var_names['state_defect']] = state_defect[:-1, ...]
-            outputs[var_names['state_rate_defect']] = (V - f) * dt_dstau
+            outputs[var_names['state_rate_defect']] = (V - np.einsum('i...,i...->i...', f, dt_dstau))
             outputs[var_names['final_state_defect']] = state_defect[-1, ...]
 
     def compute_partials(self, inputs, partials):
@@ -263,24 +258,13 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
         partials : Jacobian
             Subjac components written to partials[output_name, input_name].
         """
-        gd = self.options['grid_data']
-        num_nodes = gd.subset_num_nodes['col']
-
         dt_dstau = inputs['dt_dstau']
 
-        B = self._A[:num_nodes, num_nodes:]
-        w = self._A[-1, num_nodes:]
         for state_name, options in self.options['state_options'].items():
             var_names = self.var_names[state_name]
-            V = inputs[var_names['f_value']]
+            shape = options['shape']
+            size = np.prod(shape)
             f = inputs[var_names['f_computed']]
 
-            partials[var_names['state_defect'], var_names['f_value']] = np.dot(B, dt_dstau*np.eye(num_nodes))
-            partials[var_names['state_defect'], 'dt_dstau'] = np.dot(B, V*np.eye(num_nodes))
-
-            partials[var_names['state_rate_defect'], var_names['f_value']] = dt_dstau
-            partials[var_names['state_rate_defect'], var_names['f_computed']] = -dt_dstau
-            partials[var_names['state_rate_defect'], 'dt_dstau'] = (V-f).ravel()
-
-            partials[var_names['final_state_defect'], var_names['f_value']] = w * dt_dstau
-            partials[var_names['final_state_defect'], 'dt_dstau'] = w * V.ravel()
+            partials[var_names['state_rate_defect'], var_names['f_computed']] = np.repeat(-dt_dstau, size)
+            partials[var_names['state_rate_defect'], 'dt_dstau'] = -f.ravel()

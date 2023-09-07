@@ -6,6 +6,7 @@ import scipy.sparse as sp
 
 from dymos.utils.lgl import lgl
 from dymos.utils.lgr import lgr
+from dymos.utils.cgl import cgl
 from dymos.utils.hermite import hermite_matrices
 from dymos.utils.lagrange import lagrange_matrices
 
@@ -143,13 +144,7 @@ def birkhoff_subsets_and_nodes(n, grid, *args, **kwargs):
     `first_seg == True`.  For Radau-Pseudospectral transcription, subset 'control_input' is always
     the same as subset 'control_disc'.
     """
-    acceptable_grids = {'lgl', 'lgr'}
-    if grid == 'lgl':
-        lgl(n)[0]
-    elif grid == 'lgr':
-        lgr(n, include_endpoint=False)[0]
-    else:
-        raise ValueError(f'Unrecognized grid. Acceptable values are one of {acceptable_grids}')
+    acceptable_grids = {'lgl', 'lgr', 'cgl'}
 
     subsets = {
         'state_disc': np.arange(n, dtype=int),
@@ -158,11 +153,22 @@ def birkhoff_subsets_and_nodes(n, grid, *args, **kwargs):
         'control_input': np.arange(n, dtype=int),
         'segment_ends': np.array([0, n], dtype=int),
         'col': np.arange(n, dtype=int),
-        'all': np.arange(n, dtype=int),
         'solution': np.arange(n, dtype=int),
     }
 
-    return subsets, lgl(n)[0]
+    if grid == 'lgl':
+        nodes = lgl(n)[0]
+        subsets['all'] = np.arange(n, dtype=int)
+    elif grid == 'lgr':
+        nodes = lgr(n, include_endpoint=False)[0]
+        subsets['all'] = np.arange(n, dtype=int)
+    elif grid == 'cgl':
+        nodes = cgl(n)[0]
+        subsets['all'] = np.arange(n, dtype=int)
+    else:
+        raise ValueError(f'Unrecognized grid. Acceptable values are one of {acceptable_grids}')
+
+    return subsets, nodes
 
 
 def uniform_subsets_and_nodes(n, *args, **kwargs):
@@ -361,8 +367,8 @@ class GridData(object):
             self.transcription = 'radau-ps'
         elif transcription.lower() in ['gausslobatto', 'gauss-lobatto', 'lgl']:
             self.transcription = 'gauss-lobatto'
-        elif transcription.lower() in ['birkhoff-gausslobatto', 'birkhoff-gauss-lobatto']:
-            self.transcription = 'birkhoff-gauss-lobatto'
+        elif transcription.lower() in ['birkhoff']:
+            self.transcription = 'birkhoff'
         elif transcription.lower() in ['uniform']:
             self.transcription = 'uniform'
         else:
@@ -375,8 +381,8 @@ class GridData(object):
             get_subsets_and_nodes = radau_pseudospectral_subsets_and_nodes
         elif self.transcription == 'uniform':
             get_subsets_and_nodes = uniform_subsets_and_nodes
-        elif self.transcription == 'birkhoff-gauss-lobatto':
-            get_subsets_and_nodes = functools.partial(birkhoff_subsets_and_nodes, grid='lgl')
+        elif self.transcription == 'birkhoff':
+            get_subsets_and_nodes = functools.partial(birkhoff_subsets_and_nodes, grid=self.grid_type)
 
         # Make sure transcription_order is a vector
         if isinstance(transcription_order, str):
@@ -648,9 +654,9 @@ class GaussLobattoGrid(GridData):
                          segment_ends=segment_ends, compressed=compressed)
 
 
-class BirkhoffGaussLobattoGrid(GridData):
+class BirkhoffGrid(GridData):
     """
-    A GridData object that provides the node information for a Gauss-Lobatto distribution.
+    A GridData object that provides the node information for the Birkhoff transcription.
 
     Parameters
     ----------
@@ -667,11 +673,11 @@ class BirkhoffGaussLobattoGrid(GridData):
         nodes of adjacent segments are only specified once, and then broadcast
         to the appropriate indices.
     """
-    def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
-        super().__init__(num_segments=num_segments, transcription='birkhoff-gauss-lobatto',
+    def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False, grid_type='lgl'):
+        self.grid_type = grid_type
+        super().__init__(num_segments=num_segments, transcription='birkhoff',
                          transcription_order=np.asarray(nodes_per_seg, dtype=int),
                          segment_ends=segment_ends, compressed=compressed)
-
 
 
 class RadauGrid(GridData):

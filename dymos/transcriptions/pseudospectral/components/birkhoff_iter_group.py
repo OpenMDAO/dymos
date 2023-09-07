@@ -5,11 +5,6 @@ from .birkhoff_collocation_comp import BirkhoffCollocationComp
 from .birkhoff_state_resid_comp import BirkhoffStateResidComp
 
 from ...grid_data import GridData
-from ....utils.misc import get_rate_units, CoerceDesvar, reshape_val
-from ....utils.lagrange import lagrange_matrices
-from ....utils.indexing import get_desvar_indices
-from ....utils.constants import INF_BOUND
-from ...._options import options as dymos_options
 from ....phase.options import TimeOptionsDictionary
 
 
@@ -156,7 +151,6 @@ class BirkhoffIterGroup(om.Group):
         for name, options in state_options.items():
             units = options['units']
             rate_source = options['rate_source']
-            rate_units = get_rate_units(units, time_units)
             shape = options['shape']
 
             for tgt in options['targets']:
@@ -166,23 +160,19 @@ class BirkhoffIterGroup(om.Group):
             implicit_outputs = self._configure_desvars(name, options)
 
             if f'states:{name}' in implicit_outputs:
-                # states_balance_comp.add_input(f'state_defects:{name}', shape=(nn,) + shape, units=units)
                 states_balance_comp.add_implicit_output(f'states:{name}', shape=(nn,) + shape, units=units,
                                                         resid_input=f'state_defects:{name}')
 
             if f'initial_states:{name}' in implicit_outputs:
-                # states_balance_comp.add_input(f'final_state_defects:{name}', shape=(nn,), units=units)
                 states_balance_comp.add_implicit_output(f'initial_states:{name}', shape=shape, units=units,
                                                         resid_input=f'final_state_defects:{name}')
 
             if f'final_states:{name}' in implicit_outputs:
-                # states_balance_comp.add_input(f'final_state_defects:{name}', shape=(nn,), units=units)
                 states_balance_comp.add_implicit_output(f'final_states:{name}', shape=shape, units=units,
                                                         resid_input=f'final_state_defects:{name}')
 
             if f'state_rates:{name}' in implicit_outputs:
-                # states_balance_comp.add_input(f'state_rate_defects:{name}', shape=(nn,) + shape, units=units)
-                states_balance_comp.add_implicit_output(f'state_rates:{name}', shape=(nn,) + shape, units=rate_units,
+                states_balance_comp.add_implicit_output(f'state_rates:{name}', shape=(nn,) + shape, units=units,
                                                         resid_input=f'state_rate_defects:{name}')
 
             self.connect(f'ode.{rate_source}', f'f_computed:{name}')

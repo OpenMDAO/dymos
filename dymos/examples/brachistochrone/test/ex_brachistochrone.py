@@ -1,4 +1,5 @@
 import matplotlib
+import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.testing_utils import require_pyoptsparse
@@ -19,7 +20,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    # p.driver.opt_settings['print_level'] = 5
+    p.driver.opt_settings['iSumm'] = 6
     p.driver.declare_coloring(tol=1.0E-12)
 
     if transcription == 'gauss-lobatto':
@@ -42,11 +43,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         t = dm.ExplicitShooting(grid=grid)
     elif transcription == 'birkhoff':
         from dymos.transcriptions.pseudospectral.birkhoff import Birkhoff
-        from dymos.transcriptions.grid_data import BirkhoffGaussLobattoGrid
+        from dymos.transcriptions.grid_data import BirkhoffGrid
 
-        grid = BirkhoffGaussLobattoGrid(num_segments=num_segments,
-                                        nodes_per_seg=transcription_order + 1,
-                                        compressed=compressed)
+        grid = BirkhoffGrid(num_segments=num_segments,
+                            nodes_per_seg=transcription_order + 1,
+                            compressed=compressed, grid_type='cgl')
         t = Birkhoff(grid=grid)
 
     traj = dm.Trajectory()
@@ -54,7 +55,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p.model.add_subsystem('traj0', traj)
     traj.add_phase('phase0', phase)
 
-    phase.set_time_options(fix_initial=True, duration_bounds=(1.8, 10))
+    phase.set_time_options(fix_initial=True, duration_bounds=(0.5, 10))
 
     phase.add_state('x', fix_initial=True, fix_final=False, solve_segments=solve_segments)
     phase.add_state('y', fix_initial=True, fix_final=False, solve_segments=solve_segments)
@@ -99,16 +100,19 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
     p['traj0.phase0.parameters:g'] = 9.80665
 
-    # p.run_model()
-
-    # p.check_totals(compact_print=True)
-
     dm.run_problem(p, run_driver=run_driver, simulate=False, make_plots=True)
+
+    import matplotlib.pyplot as plt
+    plt.figure()
+    plt.plot(p.get_val('traj0.phase0.timeseries.x'), p.get_val('traj0.phase0.timeseries.y'))
+    plt.show()
 
     return p
 
 
 if __name__ == '__main__':
-    p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
-                                 transcription_order=7, compressed=False, optimizer='IPOPT',
-                                 solve_segments=False, force_alloc_complex=True)
+
+    with dm.options.temporary(include_check_partials=True):
+        p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
+                                     transcription_order=9, compressed=False, optimizer='SNOPT',
+                                     solve_segments=False, force_alloc_complex=True)
