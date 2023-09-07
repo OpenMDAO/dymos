@@ -1050,15 +1050,12 @@ class Phase(om.Group):
                 self.parameter_options[name]['shape'] = shape
 
         if dynamic is not _unspecified:
-            self.parameter_options[name]['static_target'] = not dynamic
             self.parameter_options[name]['static_targets'] = not dynamic
 
         if static_target is not _unspecified:
-            self.parameter_options[name]['static_target'] = static_target
             self.parameter_options[name]['static_targets'] = static_target
 
         if static_targets is not _unspecified:
-            self.parameter_options[name]['static_target'] = static_targets
             self.parameter_options[name]['static_targets'] = static_targets
 
         if dynamic is not _unspecified and static_target is not _unspecified:
@@ -2363,9 +2360,9 @@ class Phase(om.Group):
             sim_prob.add_recorder(rec)
 
         sim_prob.setup(check=True)
+        sim_prob.final_setup()
 
-        # sim_phase.set_val_from_phase(from_phase=self)  # TODO: use this for OpenMDAO >= 3.25.1
-        sim_phase.initialize_values_from_phase(prob=sim_prob, from_phase=self)
+        sim_phase.set_vals_from_phase(from_phase=self)
 
         print(f'\nSimulating phase {self.pathname}')
         sim_prob.run_model()

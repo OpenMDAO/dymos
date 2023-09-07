@@ -53,14 +53,14 @@ def new_ballistic_ascent_phase(transcription):
         duration_ref=1, units='s')
 
     ballistic_ascent.add_state('r', units='m', rate_source='eom.r_dot', fix_initial=False,
-                               fix_final=False, ref=100.0, defect_ref=100.0)
+                               fix_final=False, ref=1.0, defect_ref=1.0)
     ballistic_ascent.add_state('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
-                               fix_initial=False, fix_final=False, ref=100.0, defect_ref=100.0)
+                               fix_initial=False, fix_final=False, ref=1.0)
     ballistic_ascent.add_state('gam', units='deg', rate_source='eom.gam_dot', targets=['eom.gam'],
-                               fix_initial=False, fix_final=True, upper=89, ref=90, defect_ref=90)
+                               fix_initial=False, fix_final=True, upper=89, ref=90)
     ballistic_ascent.add_state('v', units='m/s', rate_source='eom.v_dot',
                                targets=['dynamic_pressure.v', 'eom.v'], fix_initial=False,
-                               fix_final=False, ref=100, defect_ref=100)
+                               fix_final=False, ref=1.)
 
     ballistic_ascent.add_parameter('S', targets=['aero.S'], units='m**2')
     ballistic_ascent.add_parameter('m_empty', targets=['eom.m'], units='kg')
@@ -85,7 +85,7 @@ def new_descent_phase(transcription):
     descent.add_state('v', units='m/s', rate_source='eom.v_dot',
                       targets=['dynamic_pressure.v', 'eom.v'],
                       fix_initial=False, fix_final=False,
-                      ref=100, defect_ref=100)
+                      ref=1)
 
     descent.add_parameter('S', targets=['aero.S'], units='m**2')
     descent.add_parameter('mass', targets=['eom.m'], units='kg')

@@ -1,3 +1,4 @@
+import warnings
 from collections import OrderedDict
 from collections.abc import Sequence
 import itertools
@@ -276,29 +277,6 @@ class Trajectory(om.Group):
                                    upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref, shape=shape,
                                    dynamic=dynamic, static_target=static_target)
 
-    def _get_phase_parameters(self):
-        """
-        Retrieve a dict of parameter options for each phase within the trajectory.
-
-        Returns
-        -------
-        dict
-            A dictionary keyed by phase name. Each associated value is a dictionary
-            keyed by parameter name and the associated values are parameter options
-            for each parameter.
-
-        """
-        phase_param_options = {}
-        for phs in self.phases._subsystems_myproc:
-            phase_param_options[phs.name] = phs.parameter_options
-
-        if self.comm.size > 1:
-            data = self.comm.allgather(phase_param_options)
-            if data:
-                for d in data:
-                    phase_param_options.update(d)
-        return phase_param_options
-
     def _setup_parameters(self):
         """
         Adds an IndepVarComp if necessary and issues appropriate connections based
@@ -352,6 +330,11 @@ class Trajectory(om.Group):
                             phs.add_parameter(name, **kwargs)
 
     def _setup_linkages(self):
+
+        if self.options['sim_mode']:
+            # Under simulation, theres no need to enforce any linkages
+            return
+
         has_linkage_constraints = False
 
         err_template = '{traj}: Phase `{phase1}` links variable `{var1}` to phase ' \
@@ -418,6 +401,8 @@ class Trajectory(om.Group):
         """
         parameter_options = self.parameter_options
         promoted_inputs = []
+        params_by_phase = {phase_name: phs.parameter_options for phase_name, phs in self._phases.items()}
+
         for name, options in parameter_options.items():
             promoted_inputs.append(f'parameters:{name}')
             targets = options['targets']
@@ -490,8 +475,6 @@ class Trajectory(om.Group):
 
             # If metadata is unspecified, use introspection to find
             # it based on common values among the targets.
-            params_by_phase = self._get_phase_parameters()
-
             targets = {phase_name: phs_params[targets_per_phase[phase_name]]
                        for phase_name, phs_params in params_by_phase.items()
                        if phase_name in targets_per_phase and targets_per_phase[phase_name] in phs_params}
@@ -523,31 +506,38 @@ class Trajectory(om.Group):
 
     def _configure_phase_options_dicts(self):
         """
-        Called during configure if we are under MPI. Loops over all phases and broadcasts the shape
-        and units options to all procs for all dymos variables.
+        Called during configure if we are under MPI. Loops over all phases and populates the
+        phase options dictionaries in self._phases.
+
+        Because each phase performs introspection, on MPI the trajectory may not know certain
+        metadata for phase variables that is necessary for things like linkage calculations.
+
+        Note the phase objects exist in two places.  Traj._phases stores the phases for the purposes
+        of setup and configure. These instances are the ones being updated by this method. The `phases`
+        attribute is the actual OpenMDAO subsytem used in the trajectory model.
+
+        Each phase populates phase_options_dicts, which contains options for each dymos variable type.
+        Once populated, we gather this data from each proc and then populate self._phases variable
+        options dictionaries with the updated information.
         """
-        for phase in self._phases.values():
-            all_dicts = [phase.state_options, phase.control_options, phase.parameter_options,
-                         phase.polynomial_control_options]
+        phase_options_dicts = {phase_name: {} for phase_name in self._phases.keys()}
+        for phs in self.phases._subsystems_myproc:
+            phase_options_dicts[phs.name]['time_options'] = phs.time_options
+            phase_options_dicts[phs.name]['state_options'] = phs.state_options
+            phase_options_dicts[phs.name]['control_options'] = phs.control_options
+            phase_options_dicts[phs.name]['polynomial_control_options'] = phs.polynomial_control_options
+            phase_options_dicts[phs.name]['parameter_options'] = phs.parameter_options
 
-            for opt_dict in all_dicts:
-                for options in opt_dict.values():
+        all_ranks = self.comm.allgather(phase_options_dicts)
 
-                    all_ranks = self.comm.allgather(options['shape'])
-                    for item in all_ranks:
-                        if item not in _none_or_unspecified:
-                            options['shape'] = item
-                            break
-                    else:
-                        raise RuntimeError('Unexpectedly found no valid shape.')
-
-                    all_ranks = self.comm.allgather(options['units'])
-                    for item in all_ranks:
-                        if item is not _unspecified:
-                            options['units'] = item
-                            break
-                    else:
-                        raise RuntimeError('Unexpectedly found no valid units.')
+        for phase_name, phs in self._phases.items():
+            for rank_i, data in enumerate(all_ranks):
+                if phase_name in data and len(data[phase_name]) > 0:
+                    phs.time_options.update(data[phase_name]['time_options'])
+                    phs.state_options.update(data[phase_name]['state_options'])
+                    phs.control_options.update(data[phase_name]['control_options'])
+                    phs.polynomial_control_options.update(data[phase_name]['polynomial_control_options'])
+                    phs.parameter_options.update(data[phase_name]['parameter_options'])
 
     def _update_linkage_options_configure(self, linkage_options):
         """
@@ -769,6 +759,11 @@ class Trajectory(om.Group):
             return True, ''
 
     def _configure_linkages(self):
+
+        if self.options['sim_mode']:
+            # If this is a simulation trajectory, theres no need to link the phases.
+            return
+
         connected_linkage_inputs = []
 
         def _print_on_rank(rank=0, *args, **kwargs):
@@ -1016,12 +1011,13 @@ class Trajectory(om.Group):
         setup has already been called on all children of the Trajectory, we can query them for
         variables at this point.
         """
+        if MPI:
+            self._configure_phase_options_dicts()
+
         if self.parameter_options:
             self._configure_parameters()
 
         if self._linkages:
-            if MPI:
-                self._configure_phase_options_dicts()
             self._configure_linkages()
 
         self._constraint_report(outstream=sys.stdout)
@@ -1411,7 +1407,7 @@ class Trajectory(om.Group):
 
         sim_traj.parameter_options.update(self.parameter_options)
 
-        sim_prob = om.Problem(model=om.Group(), reports=reports)
+        sim_prob = om.Problem(model=om.Group(), reports=reports, comm=self.comm)
 
         traj_name = self.name if self.name else 'sim_traj'
         sim_prob.model.add_subsystem(traj_name, sim_traj)
@@ -1424,23 +1420,28 @@ class Trajectory(om.Group):
             # record_outputs is need to capture the timeseries outputs
             sim_prob.recording_options['record_outputs'] = True
 
-        sim_prob.setup()
+        with warnings.catch_warnings():
+            # Some timeseries options are duplicated (expression options may be provide duplicate shape)
+            # These filters suppress these warnings during simulation when they are not the
+            # fault of the user.
+            warnings.filterwarnings(action='ignore', category=om.UnusedOptionWarning)
+            warnings.filterwarnings(action='ignore', category=om.SetupWarning)
+            sim_prob.setup()
+            sim_prob.final_setup()
 
         # Assign trajectory parameter values
         for name in self.parameter_options:
-            sim_prob_prom_path = f'{traj_name}.parameters:{name}'
-            sim_prob.set_val(sim_prob_prom_path, self.get_val(f'parameters:{name}'))
+            sim_traj.set_val(f'parameters:{name}', self.get_val(f'parameters:{name}'))
 
-        for phase_name, phs in sim_traj._phases.items():
-            # TODO: use the following method once OpenMDAO >= 3.25.1
-            # phs.set_val_from_phase(from_phase=self._phases[phase_name])
-            phs.initialize_values_from_phase(prob=sim_prob,
-                                             from_phase=self._phases[phase_name],
-                                             phase_path=traj_name)
+        for sim_phase_name, sim_phase in sim_traj._phases.items():
+            if sim_phase._is_local:
+                sim_phase.set_vals_from_phase(from_phase=self._phases[sim_phase_name])
 
-        print(f'\nSimulating trajectory {self.pathname}')
+        if sim_traj.comm.rank == 0:
+            print(f'\nSimulating trajectory {self.pathname}')
         sim_prob.run_model(case_prefix=case_prefix, reset_iter_counts=reset_iter_counts)
-        print(f'Done simulating trajectory {self.pathname}')
+        if sim_traj.comm.rank == 0:
+            print(f'Done simulating trajectory {self.pathname}')
         if record_file:
             _case_prefix = '' if case_prefix is None else f'{case_prefix}_'
             sim_prob.record(f'{_case_prefix}final')

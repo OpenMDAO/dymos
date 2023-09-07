@@ -93,7 +93,7 @@ class SimulationPhase(Phase):
         self._timeseries = {ts_name: ts_options for ts_name, ts_options in self._timeseries.items()
                             if ts_name == 'timeseries'}
 
-    def set_val_from_phase(self, from_phase):
+    def set_vals_from_phase(self, from_phase):
         """
         Set the necessary values to simulate the phase based on variables in the given phase.
 
@@ -102,27 +102,38 @@ class SimulationPhase(Phase):
         from_phase : Phase
             The dymos phase from which this simulation phase should pull its values.
         """
+        # The use of `from_src=False` in the get_val calls here is due to the fact that the input/output
+        # vectors are in `from_phase` are already populated and we don't need to track these values
+        # to their ultimate source.
 
-        t_initial = from_phase.get_val('t_initial', units=self.time_options['units'])
+        t_initial = from_phase.get_val('t_initial', units=self.time_options['units'], from_src=False)
         self.set_val('t_initial', t_initial, units=self.time_options['units'])
 
-        t_duration = from_phase.get_val('t_duration', units=self.time_options['units'])
+        t_duration = from_phase.get_val('t_duration', units=self.time_options['units'], from_src=False)
         self.set_val('t_duration', t_duration, units=self.time_options['units'])
 
+        avail_io = {meta['prom_name'] for meta in
+                    from_phase.get_io_metadata(iotypes=('input', 'output'), get_remote=True).values()}
+
         for name, options in self.state_options.items():
-            val = from_phase.get_val(f'states:{name}', units=options['units'])[0, ...]
+            if f'states:{name}' in avail_io:
+                val = from_phase.get_val(f'states:{name}', units=options['units'], from_src=False)[0, ...]
+            elif f'initial_states:{name}' in avail_io:
+                val = from_phase.get_val(f'initial_states:{name}', units=options['units'], from_src=False)
+            else:
+                raise RuntimeError('Unable to find state values in original phase')
             self.set_val(f'initial_states:{name}', val, units=options['units'])
 
         for name, options in self.parameter_options.items():
-            val = from_phase.get_val(f'parameters:{name}', units=options['units'])
+            val = from_phase.get_val(f'parameters:{name}', units=options['units'], from_src=False)
             self.set_val(f'parameters:{name}', val, units=options['units'])
 
         for name, options in self.control_options.items():
-            val = from_phase.get_val(f'controls:{name}', units=options['units'])
+            val = from_phase.get_val(f'controls:{name}', units=options['units'], from_src=False)
             self.set_val(f'controls:{name}', val, units=options['units'])
 
         for name, options in self.polynomial_control_options.items():
-            val = from_phase.get_val(f'polynomial_controls:{name}', units=options['units'])
+            val = from_phase.get_val(f'polynomial_controls:{name}', units=options['units'], from_src=False)
             self.set_val(f'polynomial_controls:{name}', val, units=options['units'])
 
     def initialize_values_from_phase(self, prob, from_phase, phase_path=''):
