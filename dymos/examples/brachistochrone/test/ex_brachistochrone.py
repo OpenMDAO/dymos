@@ -47,7 +47,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
         grid = BirkhoffGrid(num_segments=num_segments,
                             nodes_per_seg=transcription_order + 1,
-                            compressed=compressed, grid_type='cgl')
+                            compressed=compressed, grid_type='lgl')
         t = Birkhoff(grid=grid)
 
     traj = dm.Trajectory()

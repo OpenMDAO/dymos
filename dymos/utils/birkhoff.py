@@ -28,7 +28,7 @@ def birkhoff_matrices(tau, w, grid_type):
         for i in range(0, N + 1):
             S[i, 0] = (tau[i] - tau[0]) / 2
 
-            for n in range(1, N):
+            for n in range(1, N+1):
                 gamma = 2 / (2 * n + 1)
                 int_p = (pol(n+1, tau[i]) - pol(n-1, tau[i])) / (2*n+1)
                 S[i, n] = int_p / gamma
@@ -36,10 +36,13 @@ def birkhoff_matrices(tau, w, grid_type):
     elif grid_type[0] == 'c':
         gamma = np.pi / 2
         for i in range(0, N+1):
+            # chebyshev polynomial of order 0: 1
             S[i, 0] = (tau[i] - tau[0]) / np.pi
+
+            # chebyshev polynomial of order 1: x
             S[i, 1] = (tau[i]**2 - tau[0]**2) / np.pi
 
-            for n in range(2, N):
+            for n in range(2, N+1):
                 int_p = pol(n+1, tau[i]) / (2*n+2) - pol(n-1, tau[i]) / (2*n-2) - (-1)**n / (n**2 - 1)
                 S[i, n] = int_p / gamma
 
