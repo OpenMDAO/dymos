@@ -173,20 +173,14 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             shape = options['shape']
             size = np.prod(shape)
 
-            dX_AB_dx_a = np.zeros(2 * size)
-            dX_AB_dx_a[:size] = 1.0
-
-            dX_AB_dx_b = np.zeros(2 * size)
-            dX_AB_dx_b[size:] = 1.0
-
-            dXV_dX = np.zeros(2 * size)
-            dXV_dX[:size] = 1.0
-
-            dXV_dV = np.zeros(2 * size)
-            dXV_dV[size:] = 1.0
             ar1 = np.arange(num_nodes * size)
-            r2 = np.arange(size)
-            c1 = np.repeat(r2, num_nodes)
+            ar2 = np.arange(size)
+            c1 = np.repeat(np.arange(num_nodes), size)
+
+            rB = np.zeros(num_nodes*num_nodes*size)
+            for j in range(num_nodes):
+                rB[j*num_nodes*size:(j+1)*num_nodes*size] = np.tile(np.arange(size), num_nodes) + j*size
+            cB = np.tile(np.arange(num_nodes*size), num_nodes)
 
             var_names = self.var_names[state_name]
 
@@ -197,11 +191,13 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['f_value'],
-                                  val=-B)
+                                  rows=rB,
+                                  cols=cB,
+                                  val=np.repeat(-B.flatten(), size))
 
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['state_initial_value'],
-                                  rows=ar1, cols=np.repeat(np.arange(size), num_nodes),
+                                  rows=ar1, cols=np.tile(np.arange(size), num_nodes),
                                   val=-1.0)
 
             self.declare_partials(of=var_names['state_rate_defect'],
@@ -218,17 +214,17 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
             self.declare_partials(of=var_names['final_state_defect'],
                                   wrt=var_names['f_value'],
-                                  rows=np.repeat(np.arange(size), num_nodes), cols=ar1,
+                                  rows=np.tile(np.arange(size), num_nodes), cols=ar1,
                                   val=np.repeat(w, size))
 
             self.declare_partials(of=var_names['final_state_defect'],
                                   wrt=var_names['state_initial_value'],
-                                  rows=r2, cols=r2,
+                                  rows=ar2, cols=ar2,
                                   val=1.0)
 
             self.declare_partials(of=var_names['final_state_defect'],
                                   wrt=var_names['state_final_value'],
-                                  rows=r2, cols=r2,
+                                  rows=ar2, cols=ar2,
                                   val=-1.0)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):

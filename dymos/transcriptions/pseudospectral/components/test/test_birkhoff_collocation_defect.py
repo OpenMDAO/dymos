@@ -129,7 +129,7 @@ class TestCollocationComp(unittest.TestCase):
     def test_partials(self):
         self.make_problem(grid_type='lgl')
         np.set_printoptions(linewidth=1024)
-        cpd = self.p.check_partials(compact_print=False, method='cs')
+        cpd = self.p.check_partials(compact_print=False, method='fd')
         assert_check_partials(cpd)
 
 
