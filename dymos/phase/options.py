@@ -268,7 +268,7 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
                           'each node in the ODE.'
                           'If _unspecified, attempt to determine through introspection.',
                      deprecation='Use option `static_targets` to specify whether all targets\n'
-                                 'are static (static_targegts=True), none are static (static_targets=False),\n'
+                                 'are static (static_targets=True), none are static (static_targets=False),\n'
                                  'static_targets are determined via introspection (static_targets=_unspecified),\n'
                                  'or give an explicit sequence of the static targets.')
 
