@@ -87,8 +87,8 @@ class TestBirkhoffIterGroup(unittest.TestCase):
             dsolution_dt = np.reshape(2 * times + 2 - 0.5 * np.exp(times), (nn, 1))
 
             p.set_val('birkhoff.initial_states:x', 0.5)
-            p.set_val('birkhoff.ode.t', times)
-            p.set_val('birkhoff.ode.p', 1.0)
+            p.set_val('birkhoff.ode_all.t', times)
+            p.set_val('birkhoff.ode_all.p', 1.0)
 
             # We don't need to provide guesses for these values in this case
             # p.set_val('birkhoff.final_states:x', solution[-1])
@@ -149,8 +149,8 @@ class TestBirkhoffIterGroup(unittest.TestCase):
             dsolution_dt = np.reshape(2 * times + 2 - 0.5 * np.exp(times), (nn, 1))
 
             p.set_val('birkhoff.final_states:x', solution[-1])
-            p.set_val('birkhoff.ode.t', times)
-            p.set_val('birkhoff.ode.p', 1.0)
+            p.set_val('birkhoff.ode_all.t', times)
+            p.set_val('birkhoff.ode_all.p', 1.0)
 
             # We don't need to provide guesses for these values in this case
             # p.set_val('birkhoff.final_states:x', solution[-1])
@@ -209,8 +209,8 @@ class TestBirkhoffIterGroup(unittest.TestCase):
             dsolution_dt = np.reshape(2 * times + 2 - 0.5 * np.exp(times), (nn, 1))
 
             p.set_val('birkhoff.initial_states:x', 0.5)
-            p.set_val('birkhoff.ode.t', times)
-            p.set_val('birkhoff.ode.p', 1.0)
+            p.set_val('birkhoff.ode_all.t', times)
+            p.set_val('birkhoff.ode_all.p', 1.0)
 
             # We don't need to provide guesses for these values in this case
             # p.set_val('birkhoff.final_states:x', solution[-1])
@@ -230,6 +230,7 @@ class TestBirkhoffIterGroup(unittest.TestCase):
 
             import matplotlib.pyplot as plt
             plt.plot(times, p.get_val('birkhoff.states:x'), 'o')
+            plt.plot(times, solution, '-')
             plt.show()
 
     def test_solve_segments_radau_bkwd(self):
@@ -262,6 +263,8 @@ class TestBirkhoffIterGroup(unittest.TestCase):
             birkhoff.nonlinear_solver = om.NewtonSolver(solve_subsystems=True)
             birkhoff.linear_solver = om.DirectSolver()
 
+            p.set_solver_print(2)
+
             p.setup(force_alloc_complex=True)
 
             # Instead of using the TimeComp just transform the node segment taus onto [0, 2]
@@ -269,13 +272,14 @@ class TestBirkhoffIterGroup(unittest.TestCase):
 
             solution = np.reshape(times**2 + 2 * times + 1 - 0.5 * np.exp(times), (nn, 1))
             dsolution_dt = np.reshape(2 * times + 2 - 0.5 * np.exp(times), (nn, 1))
+            x_final = 2.0**2 + 2 * 2.0 + 1 - 0.5 * np.exp(2.0)
 
-            p.set_val('birkhoff.final_states:x', solution[-1])
-            p.set_val('birkhoff.ode.t', times)
-            p.set_val('birkhoff.ode.p', 1.0)
+            p.set_val('birkhoff.final_states:x', x_final)
+            p.set_val('birkhoff.ode_all.t', times)
+            p.set_val('birkhoff.ode_all.p', 1.0)
 
             # We don't need to provide guesses for these values in this case
-            # p.set_val('birkhoff.final_states:x', solution[-1])
+            # p.set_val('birkhoff.initial_states:x', solution[0])
             # p.set_val('birkhoff.states:x', solution)
             # p.set_val('birkhoff.state_rates:x', dsolution_dt)
 
@@ -285,11 +289,12 @@ class TestBirkhoffIterGroup(unittest.TestCase):
             assert_near_equal(solution, p.get_val('birkhoff.states:x'), tolerance=1.0E-9)
             assert_near_equal(dsolution_dt, p.get_val('birkhoff.state_rates:x'), tolerance=1.0E-9)
             assert_near_equal(solution[0], p.get_val('birkhoff.initial_states:x'), tolerance=1.0E-9)
-            assert_near_equal(solution[-1], p.get_val('birkhoff.final_states:x'), tolerance=1.0E-9)
+            assert_near_equal(x_final, p.get_val('birkhoff.final_states:x'), tolerance=1.0E-9)
 
             cpd = p.check_partials(method='cs', compact_print=True, out_stream=None)
             assert_check_partials(cpd)
 
             import matplotlib.pyplot as plt
             plt.plot(times, p.get_val('birkhoff.states:x'), 'o')
+            plt.plot(times, solution, '-')
             plt.show()

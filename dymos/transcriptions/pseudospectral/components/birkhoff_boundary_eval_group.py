@@ -8,12 +8,20 @@ from ...grid_data import GridData
 from ....phase.options import TimeOptionsDictionary
 
 
-class BirkhoffIterGroup(om.Group):
+class BirkhoffBoundaryEvalGroup(om.Group):
     """
-    Class definition for the BirkhoffIterGroup.
+    Class definition for the BirkhoffBoundaryEvalGroup.
 
-    This group allows for iteration of the state variables and initial _or_ final value of the state
-    depending on the direction of the solve.
+    This group accepts values for initial and final times, states, controls, and parameters
+    and evaluates the ODE with those in order to compute the boundary values and
+    objectives.
+
+    Note that in the Birkhoff transcription, the initial and final state values are
+    decoupled from the initial and final states in the interpolating polynomial.
+
+    Dymos uses the Birkhoff LGL or CGL approaches so that the control values are provided
+    at the endpoints of the phase without the need for extrapolation (unlike the classical
+    Radau approach in Dymos)
 
     Parameters
     ----------
@@ -26,6 +34,12 @@ class BirkhoffIterGroup(om.Group):
         """
         self.options.declare('state_options', types=dict,
                              desc='Dictionary of options for the states.')
+        self.options.declare('control_options', types=dict,
+                             desc='Dictionary of options for the controls.')
+        self.options.declare('polynomial_control_options', types=dict,
+                             desc='Dictionary of options for the polynomial controls.')
+        self.options.declare('parameters', types=dict,
+                             desc='Dictionary of options for the parameters.')
         self.options.declare('time_options', types=TimeOptionsDictionary,
                              desc='Options for time in the phase.')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info.')
@@ -46,7 +60,9 @@ class BirkhoffIterGroup(om.Group):
         ode_class = self.options['ode_class']
         ode_init_kwargs = self.options['ode_init_kwargs']
 
-        self.add_subsystem('ode_all', subsys=ode_class(num_nodes=nn, **ode_init_kwargs))
+        self.add_subsystem('')
+
+        self.add_subsystem('boundary_ode', subsys=ode_class(num_nodes=nn, **ode_init_kwargs))
 
         self.add_subsystem('collocation_comp',
                            subsys=BirkhoffCollocationComp(grid_data=gd,

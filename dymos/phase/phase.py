@@ -1,4 +1,4 @@
-from collections.abc import Iterable, Callable
+from collections.abc import Iterable, Callable, Sequence
 import inspect
 import warnings
 
@@ -1461,7 +1461,11 @@ class Phase(om.Group):
         rate : bool
             If True, add the rate of change of the named variable to the timeseries outputs of the
             phase.  The rate variable will be named f'{name}_rate'.  Defaults to False.
-        expr :
+        expr : bool
+            True if the given name is an expression for an ExecComp.
+        expr_kwargs : dict
+            Keyword arguments for the expression.
+
 
         Returns
         -------
