@@ -42,13 +42,10 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                             compressed=compressed)
         t = dm.ExplicitShooting(grid=grid)
     elif transcription == 'birkhoff':
-        from dymos.transcriptions.pseudospectral.birkhoff import Birkhoff
-        from dymos.transcriptions.grid_data import BirkhoffGrid
-
-        grid = BirkhoffGrid(num_segments=num_segments,
-                            nodes_per_seg=transcription_order + 1,
-                            compressed=compressed, grid_type='cgl')
-        t = Birkhoff(grid=grid)
+        grid = dm.BirkhoffGrid(num_segments=num_segments,
+                               nodes_per_seg=transcription_order + 1,
+                               compressed=compressed, grid_type='cgl')
+        t = dm.Birkhoff(grid=grid)
 
     traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
