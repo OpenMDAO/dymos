@@ -46,7 +46,7 @@ class BirkhoffIterGroup(om.Group):
         ode_class = self.options['ode_class']
         ode_init_kwargs = self.options['ode_init_kwargs']
 
-        self.add_subsystem('ode', subsys=ode_class(num_nodes=nn, **ode_init_kwargs))
+        self.add_subsystem('ode_all', subsys=ode_class(num_nodes=nn, **ode_init_kwargs))
 
         self.add_subsystem('collocation_comp',
                            subsys=BirkhoffCollocationComp(grid_data=gd,
@@ -67,8 +67,8 @@ class BirkhoffIterGroup(om.Group):
         solve_segs = options['solve_segments']
         opt = options['opt']
 
-        ib = options['initial_bounds']
-        fb = options['final_bounds']
+        ib = (None, None) if options['initial_bounds'] is None else options['initial_bounds']
+        fb = (None, None) if options['final_bounds'] is None else options['final_bounds']
         lower = options['lower']
         upper = options['upper']
         scaler = options['scaler']
@@ -154,7 +154,7 @@ class BirkhoffIterGroup(om.Group):
             shape = options['shape']
 
             for tgt in options['targets']:
-                self.promotes('ode', [(tgt, f'states:{name}')])
+                self.promotes('ode_all', [(tgt, f'states:{name}')])
                 self.set_input_defaults(f'states:{name}', val=1.0, units=units, src_shape=(nn,) + shape)
 
             implicit_outputs = self._configure_desvars(name, options)
@@ -175,4 +175,4 @@ class BirkhoffIterGroup(om.Group):
                 states_balance_comp.add_implicit_output(f'state_rates:{name}', shape=(nn,) + shape, units=units,
                                                         resid_input=f'state_rate_defects:{name}')
 
-            self.connect(f'ode.{rate_source}', f'f_computed:{name}')
+            self.connect(f'ode_all.{rate_source}', f'f_computed:{name}')

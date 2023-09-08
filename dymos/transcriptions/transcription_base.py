@@ -346,13 +346,13 @@ class TranscriptionBase(object):
             for ts_name, ts_options in phase._timeseries.items():
                 if f'{state_prefix}{name}' not in ts_options['outputs']:
                     phase.add_timeseries_output(name, output_name=f'{state_prefix}{name}',
-                                                timeseries=ts_name)
+                                                timeseries=ts_name, tags='state')
                 if options['rate_source'] and phase.timeseries_options['include_state_rates']:
                     output_name = f'{state_rate_prefix}{name}' if state_rate_prefix else options['rate_source']
                     if output_name not in ts_options['outputs']:
                         phase.add_timeseries_output(name=options['rate_source'],
                                                     output_name=output_name,
-                                                    timeseries=ts_name)
+                                                    timeseries=ts_name, tags='state_rate')
 
     def setup_ode(self, phase):
         """

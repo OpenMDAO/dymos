@@ -148,3 +148,4 @@ if __name__ == '__main__':
                                      transcription_order=19, compressed=False, optimizer='SNOPT',
                                      solve_segments=False, force_alloc_complex=True)
 
+        om.n2(p)
