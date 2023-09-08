@@ -81,6 +81,8 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     # Minimize time at the end of the phase
     phase.add_objective('time_phase', loc='final', scaler=10)
 
+    phase.add_timeseries_output('check')
+
     p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
 
     phase.set_simulate_options(method='RK23')
@@ -107,5 +109,5 @@ if __name__ == '__main__':
 
     with dm.options.temporary(include_check_partials=True):
         p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
-                                     transcription_order=9, compressed=False, optimizer='SNOPT',
+                                     transcription_order=19, compressed=False, optimizer='SNOPT',
                                      solve_segments=False, force_alloc_complex=True)

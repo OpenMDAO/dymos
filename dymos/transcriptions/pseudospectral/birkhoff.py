@@ -828,7 +828,6 @@ class Birkhoff(TranscriptionBase):
             given design variable is to be connected.
         """
         connection_info = []
-
         if name in phase.parameter_options:
             options = phase.parameter_options[name]
             for tgt in options['targets']:

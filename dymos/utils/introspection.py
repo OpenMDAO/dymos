@@ -5,6 +5,7 @@ import re
 
 import openmdao.api as om
 import numpy as np
+from openmdao.utils.units import simplify_unit
 from openmdao.utils.general_utils import ensure_compatible
 from dymos.utils.misc import _unspecified, _none_or_unspecified
 from .._options import options as dymos_options
@@ -334,7 +335,8 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
         if rate_targets:
             if options['units'] is _unspecified:
                 rate_target_units = _get_common_metadata(rate_targets, metadata_key='units')
-                options['units'] = time_units if rate_target_units is None else f'{rate_target_units}*{time_units}'
+                options['units'] = time_units if rate_target_units is None else \
+                    simplify_unit(f'{rate_target_units}*{time_units}')
 
             if options['shape'] in _none_or_unspecified:
                 shape = _get_common_metadata(rate_targets, metadata_key='shape')
@@ -356,7 +358,7 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
             if options['units'] is _unspecified:
                 rate2_target_units = _get_common_metadata(rate_targets, metadata_key='units')
                 options['units'] = f'{time_units**2}' if rate2_target_units is None \
-                    else f'{rate2_target_units}*{time_units}**2'
+                    else simplify_unit(f'{rate2_target_units}*{time_units}**2')
 
             if options['shape'] in _none_or_unspecified:
                 shape = _get_common_metadata(rate2_targets, metadata_key='shape')
@@ -605,7 +607,7 @@ def configure_states_introspection(state_options, time_options, control_options,
                                        f'- Tag the state rate source `{rate_src}` with `dymos.state_units:{{units}}`\n'
                                        f'- Use the `set_state_options(\'{state_name}\', units={{units}})` method on the phase.')
                 else:
-                    options['units'] = f'{rate_src_units}*{time_units}'
+                    options['units'] = simplify_unit(f'{rate_src_units}*{time_units}')
 
 
 def configure_analytic_states_introspection(state_options, ode):

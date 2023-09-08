@@ -3,7 +3,7 @@ from numbers import Number
 import numpy as np
 
 import openmdao.api as om
-from ..utils.misc import _unspecified
+from ..utils.misc import _unspecified, _none_or_unspecified
 
 
 class ControlOptionsDictionary(om.OptionsDictionary):
@@ -224,7 +224,7 @@ def check_valid_shape(name, value):
         Shape to check, should be a Iterable, Number, list, or tuple.
     """
     if name == 'shape':
-        if value is not _unspecified and not isinstance(value, (Iterable, Number, list, tuple)):
+        if value not in _none_or_unspecified and not isinstance(value, (Iterable, Number, list, tuple)):
             raise ValueError(f"Option '{name}' with value {value} is not valid.")
 
 
@@ -268,7 +268,7 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
                           'each node in the ODE.'
                           'If _unspecified, attempt to determine through introspection.',
                      deprecation='Use option `static_targets` to specify whether all targets\n'
-                                 'are static (static_targegts=True), none are static (static_targets=False),\n'
+                                 'are static (static_targets=True), none are static (static_targets=False),\n'
                                  'static_targets are determined via introspection (static_targets=_unspecified),\n'
                                  'or give an explicit sequence of the static targets.')
 
@@ -284,7 +284,7 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=0.0,
                      desc='The default value of the parameter in the phase.')
 
-        self.declare(name='shape', check_valid=check_valid_shape, default=_unspecified,
+        self.declare(name='shape', check_valid=check_valid_shape, default=_unspecified, allow_none=True,
                      desc='The shape of the parameter.')
 
         self.declare(name='lower', types=(Iterable, Number), default=None,
