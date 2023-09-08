@@ -127,8 +127,14 @@ class TestCollocationComp(unittest.TestCase):
         assert_almost_equal(self.p['defect_comp.state_rate_defects:y'], 0.0)
         assert_almost_equal(self.p['defect_comp.final_state_defects:y'], 0.0)
 
-    def test_partials(self):
+    def test_partials_lgl(self):
         self.make_problem(grid_type='lgl')
+        np.set_printoptions(linewidth=1024)
+        cpd = self.p.check_partials(compact_print=False, method='fd')
+        assert_check_partials(cpd)
+
+    def test_partials_cgl(self):
+        self.make_problem(grid_type='cgl')
         np.set_printoptions(linewidth=1024)
         cpd = self.p.check_partials(compact_print=False, method='fd')
         assert_check_partials(cpd)

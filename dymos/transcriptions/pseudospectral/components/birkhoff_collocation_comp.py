@@ -215,7 +215,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             self.declare_partials(of=var_names['final_state_defect'],
                                   wrt=var_names['f_value'],
                                   rows=np.tile(np.arange(size), num_nodes), cols=ar1,
-                                  val=np.repeat(w, size))
+                                  val=np.repeat(B[-1, :], size))
 
             self.declare_partials(of=var_names['final_state_defect'],
                                   wrt=var_names['state_initial_value'],
