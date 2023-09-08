@@ -234,7 +234,6 @@ class TranscriptionBase(object):
                         phase.add_timeseries_output(f'{name}_rate2', output_name=f'{rate_prefix}{name}_rate2',
                                                     timeseries=ts_name)
 
-
     def setup_parameters(self, phase):
         """
         Sets input defaults for parameters and optionally adds design variables.
