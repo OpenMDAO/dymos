@@ -65,49 +65,6 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
 
         assert_near_equal(p.get_val('phase0.t')[-1], 1.8016, tolerance=1.0E-3)
 
-        # Plot results
-        if SHOW_PLOTS:
-            p.run_driver()
-            exp_out = phase.simulate(times_per_seg=10)
-
-            fig, ax = plt.subplots()
-            fig.suptitle('Brachistochrone Solution')
-
-            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
-
-            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
-
-            ax.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-            ax.set_xlabel('x (m)')
-            ax.set_ylabel('y (m)')
-            ax.grid(True)
-            ax.legend(loc='upper right')
-
-            fig, ax = plt.subplots()
-            fig.suptitle('Brachistochrone Solution')
-
-            x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.theta_rate2')
-
-            x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
-
-            ax.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-            ax.set_xlabel('time (s)')
-            ax.set_ylabel('theta rate2 (rad/s**2)')
-            ax.grid(True)
-            ax.legend(loc='lower right')
-
-            plt.show()
-
-        return p
-
     def test_brachistochrone_vector_boundary_constraints_radau_full_indices(self):
 
         p = om.Problem(model=om.Group())
@@ -153,49 +110,6 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
 
         assert_near_equal(p.get_val('phase0.t')[-1], 1.8016, tolerance=1.0E-3)
 
-        # Plot results
-        if SHOW_PLOTS:
-            p.run_driver()
-            exp_out = phase.simulate(times_per_seg=10)
-
-            fig, ax = plt.subplots()
-            fig.suptitle('Brachistochrone Solution')
-
-            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
-
-            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
-
-            ax.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-            ax.set_xlabel('x (m)')
-            ax.set_ylabel('y (m)')
-            ax.grid(True)
-            ax.legend(loc='upper right')
-
-            fig, ax = plt.subplots()
-            fig.suptitle('Brachistochrone Solution')
-
-            x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.theta_rate2')
-
-            x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
-
-            ax.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-            ax.set_xlabel('time (s)')
-            ax.set_ylabel('theta rate2 (rad/s**2)')
-            ax.grid(True)
-            ax.legend(loc='lower right')
-
-            plt.show()
-
-        return p
-
     def test_brachistochrone_vector_boundary_constraints_radau_partial_indices(self):
 
         p = om.Problem(model=om.Group())
@@ -238,49 +152,6 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
         p.run_driver()
 
         assert_near_equal(p.get_val('phase0.t')[-1], 1.8016, tolerance=1.0E-3)
-
-        # Plot results
-        if SHOW_PLOTS:
-            p.run_driver()
-            exp_out = phase.simulate(times_per_seg=20)
-
-            fig, ax = plt.subplots()
-            fig.suptitle('Brachistochrone Solution')
-
-            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
-
-            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
-
-            ax.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-            ax.set_xlabel('x (m)')
-            ax.set_ylabel('y (m)')
-            ax.grid(True)
-            ax.legend(loc='upper right')
-
-            fig, ax = plt.subplots()
-            fig.suptitle('Brachistochrone Solution')
-
-            x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.theta_rate2')
-
-            x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
-
-            ax.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-            ax.set_xlabel('time (s)')
-            ax.set_ylabel('theta rate2 (rad/s**2)')
-            ax.grid(True)
-            ax.legend(loc='lower right')
-
-            plt.show()
-
-        return p
 
 
 if __name__ == '__main__':  # pragma: no cover

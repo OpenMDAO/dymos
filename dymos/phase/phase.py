@@ -1201,9 +1201,14 @@ class Phase(om.Group):
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
-        if var_type == 'ode':
+        if var_type == 'ode' or 'control_rate' in var_type:
+            if self.timeseries_options['use_prefix']:
+                if var_type.startswith('control_rate'):
+                    bc['constraint_name'] = f'control_rates:{constraint_name}'
+                elif var_type.startswith('polynomial_control_rate'):
+                    bc['constraint_name'] = f'polynomial_control_rates:{constraint_name}'
             if constraint_name not in self._timeseries['timeseries']['outputs']:
-                self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+                self.add_timeseries_output(name, output_name=bc['constraint_name'], units=units, shape=shape)
 
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
@@ -1308,9 +1313,14 @@ class Phase(om.Group):
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
-        if var_type == 'ode':
+        if var_type == 'ode' or 'control_rate' in var_type:
+            if self.timeseries_options['use_prefix']:
+                if var_type.startswith('control_rate'):
+                    pc['constraint_name'] = f'control_rates:{constraint_name}'
+                elif var_type.startswith('polynomial_control_rate'):
+                    pc['constraint_name'] = f'polynomial_control_rates:{constraint_name}'
             if constraint_name not in self._timeseries['timeseries']['outputs']:
-                self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+                self.add_timeseries_output(name, output_name=pc['constraint_name'], units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                               timeseries='timeseries', **kwargs):
