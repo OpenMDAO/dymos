@@ -47,7 +47,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
         grid = BirkhoffGrid(num_segments=num_segments,
                             nodes_per_seg=transcription_order + 1,
-                            compressed=compressed, grid_type='lgl')
+                            compressed=compressed, grid_type='cgl')
         t = Birkhoff(grid=grid)
 
     traj = dm.Trajectory()
@@ -101,13 +101,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.parameters:g'] = 9.80665
 
     dm.run_problem(p, run_driver=run_driver, simulate=False, make_plots=True)
-
-    import matplotlib.pyplot as plt
-    plt.figure()
-    plt.plot(p.get_val('traj0.phase0.timeseries.x'), p.get_val('traj0.phase0.timeseries.y'))
-    plt.show()
-
-    return p
 
 
 if __name__ == '__main__':

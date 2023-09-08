@@ -2,7 +2,7 @@ import numpy as np
 import scipy.special as sp
 
 
-def birkhoff_matrices(tau, w, grid_type):
+def birkhoff_matrix(tau, w, grid_type):
     N = tau.size - 1
     end_node = N if tau[-1] == 1 else N + 1
 
