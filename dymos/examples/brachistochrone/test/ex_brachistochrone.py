@@ -21,6 +21,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
     p.driver.opt_settings['iSumm'] = 6
+    p.driver.opt_settings['Major iterations limit'] = 50
     p.driver.declare_coloring(tol=1.0E-12)
 
     if transcription == 'gauss-lobatto':
@@ -104,6 +105,8 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     dm.run_problem(p, run_driver=run_driver, simulate=False, make_plots=True)
 
+    return p
+
 
 if __name__ == '__main__':
 
@@ -111,3 +114,7 @@ if __name__ == '__main__':
         p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
                                      transcription_order=19, compressed=False, optimizer='SNOPT',
                                      solve_segments=False, force_alloc_complex=True)
+
+        p.check_totals(method='cs', compact_print=True)
+        p.check_partials(method='cs', compact_print=True)
+        # om.n2(p.model)

@@ -173,6 +173,9 @@ def _configure_constraint_introspection(phase):
     phase : Phase
         The phase object whose boundary and path constraints are to be introspected.
     """
+    from ..transcriptions import Birkhoff
+    birkhoff = isinstance(phase.options['transcription'], Birkhoff)
+
     for constraint_type, constraints in [('initial', phase._initial_boundary_constraints),
                                          ('final', phase._final_boundary_constraints),
                                          ('path', phase._path_constraints)]:
@@ -205,7 +208,10 @@ def _configure_constraint_introspection(phase):
                 state_units = phase.state_options[var]['units']
                 con['shape'] = state_shape
                 con['units'] = state_units if con['units'] is None else con['units']
-                con['constraint_path'] = f'timeseries.{prefix}{var}'
+                if birkhoff and constraint_type in ('initial', 'final'):
+                    con['constraint_path'] = f'{constraint_type}_states:{var}'
+                else:
+                    con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type == 'parameter':
                 param_shape = phase.parameter_options[var]['shape']
