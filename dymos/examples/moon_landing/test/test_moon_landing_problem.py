@@ -4,7 +4,7 @@ import unittest
 
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-from dymos.examples.moon_landing_problem import MoonLandingProblemODE
+from dymos.examples.moon_landing import MoonLandingProblemODE
 
 
 # @use_tempdirs
