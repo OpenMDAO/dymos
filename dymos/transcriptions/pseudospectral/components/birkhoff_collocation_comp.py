@@ -8,7 +8,7 @@ from dymos._options import options as dymos_options
 from dymos.utils.lgl import lgl
 from dymos.utils.lgr import lgr
 from dymos.utils.cgl import cgl
-from dymos.utils.birkhoff import birkhoff_matrices
+from dymos.utils.birkhoff import birkhoff_matrix
 
 
 class BirkhoffCollocationComp(om.ExplicitComponent):
@@ -156,12 +156,12 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
         else:
             raise ValueError('invalid grid type')
 
-        B = birkhoff_matrices(tau, w, grid_type=gd.grid_type)
+        B = birkhoff_matrix(tau, w, grid_type=gd.grid_type)
 
         self._A = np.zeros((num_nodes + 1, 2 * num_nodes))
         self._A[:num_nodes, :num_nodes] = np.eye(num_nodes)
         self._A[:num_nodes, num_nodes:] = -B
-        self._A[-1, num_nodes:] = w
+        self._A[-1, num_nodes:] = B[-1, :]
 
         self._C = np.zeros((num_nodes + 1, 2))
         self._C[:-1, 0] = 1.

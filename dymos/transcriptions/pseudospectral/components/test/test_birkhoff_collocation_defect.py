@@ -1,6 +1,7 @@
 import unittest
 
 import numpy as np
+import scipy.special
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
@@ -21,7 +22,7 @@ class TestCollocationComp(unittest.TestCase):
         dm.options['include_check_partials'] = True
 
         gd = BirkhoffGrid(num_segments=1, segment_ends=np.array([0., 10.]),
-                          nodes_per_seg=21, grid_type='lgl')
+                          nodes_per_seg=21, grid_type=grid_type)
         n = gd.subset_num_nodes['col']
         tau = gd.node_stau
         t = 5 * tau + 5
@@ -89,10 +90,10 @@ class TestCollocationComp(unittest.TestCase):
         self.p.setup(force_alloc_complex=True)
 
         self.p.set_val('defect_comp.initial_states:x', 10.0)
-        self.p.set_val('defect_comp.final_states:x', x_val[-1])
+        self.p.set_val('defect_comp.final_states:x', 10*np.exp(-10))
 
         self.p.set_val('defect_comp.initial_states:y', np.array([[10.0, 0.0], [0.0, 10.0]]))
-        self.p.set_val('defect_comp.final_states:y', np.array([[x_val[-1], 0.0], [0.0, x_val[-1]]]))
+        self.p.set_val('defect_comp.final_states:y', np.array([[10*np.exp(-10), 0.0], [0.0, 10*np.exp(-10)]]))
 
         self.p.run_model()
 

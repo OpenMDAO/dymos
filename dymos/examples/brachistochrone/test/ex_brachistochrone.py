@@ -21,7 +21,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
     p.driver.opt_settings['iSumm'] = 6
-    p.driver.opt_settings['Major optimality tolerance'] = 1.0E-9
     p.driver.declare_coloring(tol=1.0E-12)
 
     if transcription == 'gauss-lobatto':
@@ -103,42 +102,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
     p['traj0.phase0.parameters:g'] = 9.80665
 
-    dm.run_problem(p, run_driver=run_driver, simulate=True, make_plots=True, simulate_kwargs={'times_per_seg': 50})
-    
-    sol = om.CaseReader('dymos_solution.db').get_case('final')
-    sim = om.CaseReader('dymos_simulation.db').get_case('final')
-
-    import matplotlib.pyplot as plt
-    p.model.list_outputs()
-    plt.figure()
-    plt.plot(sol.get_val('traj0.phase0.timeseries.time'), sol.get_val('traj0.phase0.timeseries.x'), 'o')
-    plt.plot(sim.get_val('traj0.phase0.timeseries.time'), sim.get_val('traj0.phase0.timeseries.x'), '-')
-    # plt.plot(sol.get_val('traj0.phase0.t'), sol.get_val('traj0.phase0.states:x'), '.')
-    plt.suptitle('x')
-    plt.figure()
-    plt.plot(sol.get_val('traj0.phase0.timeseries.time'), sol.get_val('traj0.phase0.timeseries.y'), 'o')
-    plt.plot(sim.get_val('traj0.phase0.timeseries.time'), sim.get_val('traj0.phase0.timeseries.y'), '-')
-    # plt.plot(sol.get_val('traj0.phase0.t'), sol.get_val('traj0.phase0.states:y'), '.')
-    plt.suptitle('y')
-    plt.figure()
-    plt.plot(sol.get_val('traj0.phase0.timeseries.time'), sol.get_val('traj0.phase0.timeseries.v'), 'o')
-    plt.plot(sim.get_val('traj0.phase0.timeseries.time'), sim.get_val('traj0.phase0.timeseries.v'), '-')
-    # plt.plot(sol.get_val('traj0.phase0.t'), sol.get_val('traj0.phase0.states:v'), '.')
-    plt.suptitle('v')
-    plt.figure()
-    plt.plot(sol.get_val('traj0.phase0.timeseries.time'), sol.get_val('traj0.phase0.timeseries.theta'), 'o')
-    plt.plot(sim.get_val('traj0.phase0.timeseries.time'), sim.get_val('traj0.phase0.timeseries.theta'), '-')
-    # plt.plot(sol.get_val('traj0.phase0.t'), sol.get_val('traj0.phase0.control_values:theta'), '.')
-    theta = sol.get_val('traj0.phase0.timeseries.theta')
-    v = sol.get_val('traj0.phase0.timeseries.v')
-    plt.suptitle('theta')
-    plt.figure()
-    plt.plot(p.get_val('traj0.phase0.timeseries.time'), p.get_val('traj0.phase0.timeseries.check'), 'o')
-    plt.plot(sim.get_val('traj0.phase0.timeseries.time'), sim.get_val('traj0.phase0.timeseries.check'), '-')
-    plt.suptitle('check')
-    plt.show()
-
-    return p
+    dm.run_problem(p, run_driver=run_driver, simulate=False, make_plots=True)
 
 
 if __name__ == '__main__':
@@ -147,5 +111,3 @@ if __name__ == '__main__':
         p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
                                      transcription_order=19, compressed=False, optimizer='SNOPT',
                                      solve_segments=False, force_alloc_complex=True)
-
-        om.n2(p)
