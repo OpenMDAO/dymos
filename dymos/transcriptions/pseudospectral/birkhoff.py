@@ -279,15 +279,16 @@ class Birkhoff(TranscriptionBase):
         phase._get_subsystem('ode_iter_group').configure_io()
 
         for name, options in phase.state_options.items():
-            units = options['units']
-            rate_source = options['rate_source']
             shape = options['shape']
+            size = np.prod(shape)
+            idxs = [i for i in range(size)]
+            idxs += [j for j in range((nn-1)*size, nn*size)]
 
             for tgt in options['targets']:
                 phase.promotes('endpoint_ode', [(tgt, f'states:{name}')],
-                               src_indices=om.slicer[[0, -1], :],
+                               src_indices=idxs,
                                src_shape=(nn,) + shape,
-                               flat_src_indices=False)
+                               flat_src_indices=True)
                 # phase.set_input_defaults(f'states:{name}', val=1.0, units=units, src_shape=(nn,) + shape)
 
         # for name, options in phase.state_options.items():
