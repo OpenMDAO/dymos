@@ -47,6 +47,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                                nodes_per_seg=transcription_order + 1,
                                compressed=compressed, grid_type='cgl')
         t = dm.Birkhoff(grid=grid)
+        # phase = dm.ImplicitPhase(ode_class=BrachistochroneODE, num_nodes=11)
 
     traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
@@ -76,6 +77,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     phase.add_boundary_constraint('x', loc='final', equals=10)
     phase.add_boundary_constraint('y', loc='final', equals=5)
+    phase.add_path_constraint('y', lower=0, upper=20)
     # Minimize time at the end of the phase
     phase.add_objective('time_phase', loc='final', scaler=10)
 

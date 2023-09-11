@@ -37,6 +37,8 @@ class MoonLandingProblemODE(om.ExplicitComponent):
         outputs['v_dot'] = -1 + T/m
         outputs['m_dot'] = -T/2.349
 
+        print(m, T, outputs['m_dot'])
+
     def compute_partials(self, inputs, partials, discrete_inputs=None):
         m = inputs['m']
         T = inputs['T']

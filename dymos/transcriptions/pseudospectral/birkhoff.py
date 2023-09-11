@@ -564,7 +564,7 @@ class Birkhoff(TranscriptionBase):
 
         str_idxs = '' if options['indices'] is None else f'{options["indices"]}'
 
-        #constraint_kwargs['alias'] = f'{phase.pathname}->{alias_map[constraint_type]}->{con_name}{str_idxs}'
+        constraint_kwargs['alias'] = f'{phase.pathname}->{alias_map[constraint_type]}->{con_name}{str_idxs}'
         constraint_kwargs.pop('name')
         con_path = constraint_kwargs.pop('constraint_path')
         constraint_kwargs.pop('shape')
