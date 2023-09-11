@@ -1,5 +1,6 @@
 import openmdao.api as om
 import dymos as dm
+import numpy as np
 
 import unittest
 from openmdao.utils.assert_utils import assert_near_equal
@@ -56,6 +57,9 @@ class TestCannonballMatrixState(unittest.TestCase):
 
         p.set_val('traj.phase.t_initial', 0)
         p.set_val('traj.phase.t_duration', 5)
+        if isinstance(tx, dm.Birkhoff):
+            p.set_val('traj.phase.initial_states:z', np.array([[0, 0], [10, 10]]))
+            p.set_val('traj.phase.final_states:z', np.array([[10, 0], [10, -10]]))
         p.set_val('traj.phase.states:z', phase.interp('z', [[[0, 0], [10, 10]], [[10, 0], [10, -10]]]))
 
         return p
@@ -99,6 +103,41 @@ class TestCannonballMatrixState(unittest.TestCase):
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
+    @require_pyoptsparse(optimizer='IPOPT')
+    def test_cannonball_matrix_state_birkhoff_lgl(self):
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=20, grid_type='lgl'))
+
+        p = self._make_problem(tx)
+
+        dm.run_problem(p, simulate=True)
+
+        assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+
+        c = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+
+    @require_pyoptsparse(optimizer='IPOPT')
+    def test_cannonball_matrix_state_birkhoff_cgl(self):
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=20, grid_type='cgl'))
+
+        p = self._make_problem(tx)
+
+        dm.run_problem(p, simulate=True)
+
+        assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
+
+        c = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
+        assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
     @require_pyoptsparse(optimizer='IPOPT')
     def test_cannonball_matrix_state_radau_solve_segments(self):
 
