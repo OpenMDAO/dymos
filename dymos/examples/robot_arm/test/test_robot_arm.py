@@ -3,14 +3,13 @@ import unittest
 
 import numpy as np
 import matplotlib.pyplot as plt
+import openmdao.api as om
+import dymos as dm
 
-from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import printoptions
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
-import dymos as dm
-from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.robot_arm.robot_arm_ode import RobotArmODE
 
 plt.switch_backend('Agg')
@@ -27,9 +26,9 @@ class TestRobotArm(unittest.TestCase):
                 os.remove(filename)
 
     @require_pyoptsparse(optimizer='SLSQP')
-    def make_problem(self, transcription=Radau, optimizer='SLSQP', numseg=30):
-        p = Problem(model=Group())
-        p.driver = pyOptSparseDriver()
+    def make_problem(self, tx, optimizer='SLSQP', numseg=30):
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
         p.driver.options['optimizer'] = optimizer
         if optimizer == 'SNOPT':
@@ -39,10 +38,9 @@ class TestRobotArm(unittest.TestCase):
             p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
             p.driver.opt_settings['max_iter'] = 500
             p.driver.opt_settings['print_level'] = 0
-        traj = p.model.add_subsystem('traj', Trajectory())
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
 
-        phase = traj.add_phase('phase', Phase(ode_class=RobotArmODE,
-                                              transcription=transcription(num_segments=numseg, order=3)))
+        phase = traj.add_phase('phase', dm.Phase(ode_class=RobotArmODE, transcription=tx))
         phase.set_time_options(fix_initial=True, fix_duration=False)
 
         phase.add_state('x0', fix_initial=True, fix_final=True, rate_source='x0_dot', units='m')
@@ -71,24 +69,39 @@ class TestRobotArm(unittest.TestCase):
 
         p.set_val('traj.phase.t_initial', 0)
         p.set_val('traj.phase.t_duration', 10)
-        p.set_val('traj.phase.states:x0', phase.interp('x0', [4.5, 4.5]))
-        p.set_val('traj.phase.states:x1', phase.interp('x1', [0.0, 2 * np.pi / 3]))
-        p.set_val('traj.phase.states:x2', phase.interp('x2', [np.pi / 4, np.pi / 4]))
-        p.set_val('traj.phase.states:x3', phase.interp('x3', [0.0, 0.0]))
-        p.set_val('traj.phase.states:x4', phase.interp('x4', [0.0, 0.0]))
-        p.set_val('traj.phase.states:x5', phase.interp('x5', [0.0, 0.0]))
+
+        if isinstance(tx, dm.Birkhoff):
+            p.set_val('traj.phase.initial_states:x0', 4.5)
+            p.set_val('traj.phase.initial_states:x1', 0.0)
+            p.set_val('traj.phase.initial_states:x2', np.pi / 4)
+            p.set_val('traj.phase.initial_states:x3', 0.0)
+            p.set_val('traj.phase.initial_states:x4', 0.0)
+            p.set_val('traj.phase.initial_states:x5', 0.0)
+            p.set_val('traj.phase.final_states:x0', 4.5)
+            p.set_val('traj.phase.final_states:x1', 2 * np.pi / 3)
+            p.set_val('traj.phase.final_states:x2', np.pi / 4)
+            p.set_val('traj.phase.final_states:x3', 0.0)
+            p.set_val('traj.phase.final_states:x4', 0.0)
+            p.set_val('traj.phase.final_states:x5', 0.0)
+        else:
+            p.set_val('traj.phase.states:x0', phase.interp('x0', [4.5, 4.5]))
+            p.set_val('traj.phase.states:x1', phase.interp('x1', [0.0, 2 * np.pi / 3]))
+            p.set_val('traj.phase.states:x2', phase.interp('x2', [np.pi / 4, np.pi / 4]))
+            p.set_val('traj.phase.states:x3', phase.interp('x3', [0.0, 0.0]))
+            p.set_val('traj.phase.states:x4', phase.interp('x4', [0.0, 0.0]))
+            p.set_val('traj.phase.states:x5', phase.interp('x5', [0.0, 0.0]))
 
         return p
 
     def test_partials(self):
-        p = self.make_problem(transcription=Radau, optimizer='SLSQP')
+        p = self.make_problem(tx=dm.Radau(num_segments=30, order=3), optimizer='SLSQP')
         p.run_model()
         with printoptions(linewidth=1024, edgeitems=100):
             cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_robot_arm_radau(self):
-        p = self.make_problem(transcription=Radau, optimizer='IPOPT', numseg=12)
+        p = self.make_problem(tx=dm.Radau(num_segments=12, order=3), optimizer='IPOPT', numseg=12)
         dm.run_problem(p)
 
         t = p.get_val('traj.phase.timeseries.time')
@@ -129,7 +142,59 @@ class TestRobotArm(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_robot_arm_gl(self):
-        p = self.make_problem(transcription=GaussLobatto, optimizer='IPOPT', numseg=20)
+        p = self.make_problem(tx=dm.GaussLobatto(num_segments=20, order=3), optimizer='IPOPT')
+        dm.run_problem(p)
+
+        t = p.get_val('traj.phase.timeseries.time')
+        rho = p.get_val('traj.phase.timeseries.x0')
+        theta = p.get_val('traj.phase.timeseries.x1')
+        phi = p.get_val('traj.phase.timeseries.x2')
+        u0 = p.get_val('traj.phase.timeseries.u0')
+        u1 = p.get_val('traj.phase.timeseries.u1')
+        u2 = p.get_val('traj.phase.timeseries.u2')
+
+        if show_plots:
+            fig, axs = plt.subplots(2, 3)
+            axs[0, 0].plot(t, rho)
+            axs[0, 1].plot(t, theta)
+            axs[0, 2].plot(t, phi)
+            axs[1, 0].plot(t, u0)
+            axs[1, 1].plot(t, u1)
+            axs[1, 2].plot(t, u2)
+            plt.show()
+
+        assert_near_equal(t[-1], 9.14138, tolerance=1e-3)
+
+    @require_pyoptsparse(optimizer='IPOPT')
+    def test_robot_arm_birkhoff_lgl(self):
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=30, grid_type='lgl'))
+        p = self.make_problem(tx=tx, optimizer='IPOPT')
+        dm.run_problem(p)
+
+        t = p.get_val('traj.phase.timeseries.time')
+        rho = p.get_val('traj.phase.timeseries.x0')
+        theta = p.get_val('traj.phase.timeseries.x1')
+        phi = p.get_val('traj.phase.timeseries.x2')
+        u0 = p.get_val('traj.phase.timeseries.u0')
+        u1 = p.get_val('traj.phase.timeseries.u1')
+        u2 = p.get_val('traj.phase.timeseries.u2')
+
+        if show_plots:
+            fig, axs = plt.subplots(2, 3)
+            axs[0, 0].plot(t, rho)
+            axs[0, 1].plot(t, theta)
+            axs[0, 2].plot(t, phi)
+            axs[1, 0].plot(t, u0)
+            axs[1, 1].plot(t, u1)
+            axs[1, 2].plot(t, u2)
+            plt.show()
+
+        assert_near_equal(t[-1], 9.14138, tolerance=1e-3)
+
+    @require_pyoptsparse(optimizer='IPOPT')
+    def test_robot_arm_birkhoff_cgl(self):
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=30, grid_type='cgl'))
+        p = self.make_problem(tx=tx, optimizer='IPOPT')
         dm.run_problem(p)
 
         t = p.get_val('traj.phase.timeseries.time')
