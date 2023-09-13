@@ -49,7 +49,7 @@ class ExplicitShootingTimeseriesComp(TimeseriesOutputCompBase):
         self.input_num_nodes = igd.subset_num_nodes['segment_ends']
         self.output_num_nodes = self.input_num_nodes
 
-    def _add_output_configure(self, name, units, shape, desc='', src=None, rate=False):
+    def _add_output_configure(self, name, units, shape, desc='', src=None, rate=False, tags=None):
         """
         Add a single timeseries output.
 
@@ -71,6 +71,8 @@ class ExplicitShootingTimeseriesComp(TimeseriesOutputCompBase):
             The src path of the variables input, used to prevent redundant inputs.
         rate : bool
             If True, timeseries output is a rate.
+        tags : list of str or None
+            The tags to be applied to the inputs and outputs of the timeseries.
 
         Returns
         -------
@@ -97,12 +99,12 @@ class ExplicitShootingTimeseriesComp(TimeseriesOutputCompBase):
             input_name = f'input_values:{name}'
             self.add_input(input_name,
                            shape=(input_num_nodes,) + shape,
-                           units=units, desc=desc)
+                           units=units, desc=desc, tags=tags)
             self._sources[src] = input_name
             input_units = self._units[input_name] = units
             added_source = True
 
-        self.add_output(name, shape=(output_num_nodes,) + shape, units=units, desc=desc)
+        self.add_output(name, shape=(output_num_nodes,) + shape, units=units, desc=desc, tags=tags)
 
         self._vars[name] = (input_name, name, shape, rate)
 

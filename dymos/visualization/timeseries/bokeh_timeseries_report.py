@@ -5,7 +5,7 @@ import os.path
 try:
     from bokeh.io import output_notebook, output_file, save, show
     from bokeh.layouts import column, grid, row
-    from bokeh.models import Legend, DataTable, Div, ColumnDataSource, TableColumn, \
+    from bokeh.models import BoxAnnotation, Legend, DataTable, Div, ColumnDataSource, TableColumn, \
         TabPanel, Tabs, CheckboxButtonGroup, CustomJS, MultiChoice
     from bokeh.plotting import figure, curdoc
     import bokeh.palettes as bp
@@ -14,10 +14,21 @@ try:
 except ImportError:
     _NO_BOKEH = True
 
+import numpy as np
 import openmdao.api as om
 from openmdao.utils.units import conversion_to_base_units
 import dymos as dm
 
+
+BOUNDS_ALPHA = 0.1
+BOUNDS_HATCH_PATTERN = '/'
+BOUNDS_HATCH_ALPHA = 0.5
+PATH_ALPHA = 0.1
+PATH_HATCH_PATTERN = 'x'
+PATH_HATCH_ALPHA = 0.5
+MARKER_SIZE = 8
+MIN_Y = -1.0E6
+MAX_Y = 1.0E6
 
 _js_show_renderer = """
 function show_renderer(renderer, phases_to_show, kinds_to_show) {
@@ -33,29 +44,6 @@ function show_renderer(renderer, phases_to_show, kinds_to_show) {
            phases_to_show.includes(renderer_phase);
 }
 
-"""
-
-# Javascript Callback when the solution/simulation checkbox buttons are toggled
-# args: (figures)
-_SOL_SIM_TOGGLE_JS = """
-// Loop through figures and toggle the visibility of the renderers
-const active = cb_obj.active;
-var figures = figures;
-var renderer;
-
-for (var i = 0; i < figures.length; i++) {
-    if (figures[i]) {
-        for (var j =0; j < figures[i].renderers.length; j++) {
-            renderer = figures[i].renderers[j]
-            if (renderer.tags.includes('sol')) {
-                renderer.visible = active.includes(0);
-            }
-            else if (renderer.tags.includes('sim')) {
-                renderer.visible = active.includes(1);
-            }
-        }
-    }
-}
 """
 
 # Javascript Callback when the solution/simulation checkbox buttons are toggled
@@ -76,15 +64,19 @@ function show_renderer(renderer, phases_to_show, kinds_to_show) {
         }
     }
     return ((tags.includes('sol') && kinds_to_show.includes(0)) ||
-            (tags.includes('sim') && kinds_to_show.includes(1))) &&
-           phases_to_show.includes(renderer_phase);
+        (tags.includes('sim') && kinds_to_show.includes(1)) ||
+        (tags.includes('bounds') && kinds_to_show.includes(2)) ||
+        (tags.includes('constraints') && kinds_to_show.includes(3))) &&
+       phases_to_show.includes(renderer_phase);
 }
 
+console.log(figures[0])
 for (var i = 0; i < figures.length; i++) {
     if (figures[i]) {
         for (var j=0; j < figures[i].renderers.length; j++) {
             renderer = figures[i].renderers[j];
             // Get the phase with which this renderer is associated
+            console.log(renderer.tags)
             renderer.visible = show_renderer(renderer, phases_to_show, kinds_to_show);
         }
     }
@@ -153,8 +145,6 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
         for phase_name, phase in traj._phases.items():
 
             data_dict[traj_name]['param_data_by_phase'][phase_name] = {'param': [], 'val': [], 'units': []}
-            phase_sol_data = data_dict[traj_name]['sol_data_by_phase'][phase_name] = {}
-            phase_sim_data = data_dict[traj_name]['sim_data_by_phase'][phase_name] = {}
             ts_units_dict = data_dict[traj_name]['timeseries_units']
 
             param_outputs = {op: meta for op, meta in outputs.items()
@@ -199,7 +189,6 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
             ts_outputs = {op: meta for op, meta in outputs.items() if op.startswith(f'{phase.pathname}.timeseries')}
 
             for output_name in sorted(ts_outputs.keys(), key=str.casefold):
-                meta = ts_outputs[output_name]
                 prom_name = abs2prom_map['output'][output_name]
                 var_name = prom_name.split('.')[-1]
 
@@ -212,7 +201,7 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
 
 
 def make_timeseries_report(prob, solution_record_file=None, simulation_record_file=None,
-                           x_name='time', ncols=2, margin=10, theme='light_minimal'):
+                           ncols=2, margin=10, theme='light_minimal'):
     """
     Create the bokeh-based timeseries results report.
 
@@ -224,8 +213,6 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
         The path to the solution record file, if available.
     simulation_record_file : str
         The path to the simulation record file, if available.
-    x_name : str
-        Name of the horizontal axis variable in the timeseries.
     ncols : int
         The number of columns of timeseries output plots.
     margin : int
@@ -280,6 +267,9 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
         figures = []
         x_range = None
 
+        # The x_axis label will use the name for time in the first phase.
+        x_name = list(traj._phases.values())[0].time_options['name']
+
         for var_name in sorted(ts_units_dict.keys(), key=str.casefold):
             fig_kwargs = {'x_range': x_range} if x_range is not None else {}
 
@@ -298,9 +288,15 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
             fig.yaxis.axis_label_text_font_size = '10pt'
             fig.toolbar.autohide = True
             legend_data = []
+            renderers = []
             if x_range is None:
                 x_range = fig.x_range
             for i, phase_name in enumerate(phase_names):
+                phase = traj._phases[phase_name]
+                x_name = phase.time_options['name']
+                bcis = {con['constraint_name'] for con in phase._initial_boundary_constraints}
+                bcfs = {con['constraint_name'] for con in phase._final_boundary_constraints}
+                paths = {con['constraint_name'] for con in phase._path_constraints}
                 color = colors[i % 20]
                 sol_data = source_data[traj_name]['sol_data_by_phase'][phase_name]
                 sim_data = source_data[traj_name]['sim_data_by_phase'][phase_name]
@@ -309,15 +305,129 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                 if x_name in sol_data and var_name in sol_data:
                     legend_items = []
                     if sol_data:
-                        sol_plot = fig.circle(x='time', y=var_name, source=sol_source, color=color)
+                        lower = upper = None
+                        bci_lower = bci_upper = bci_equals = bcf_lower = bcf_upper = \
+                            bcf_equals = path_lower = path_upper = path_equals = None
+                        fix_initial = False
+                        fix_final = False
+                        opt = True
+                        if var_name in phase.state_options:
+                            lower = phase.state_options[var_name]['lower']
+                            upper = phase.state_options[var_name]['upper']
+                            fix_initial = phase.state_options[var_name]['fix_initial']
+                            fix_final = phase.state_options[var_name]['fix_final']
+                        elif var_name in phase.control_options:
+                            lower = phase.control_options[var_name]['lower']
+                            upper = phase.control_options[var_name]['upper']
+                            fix_initial = phase.control_options[var_name]['fix_initial']
+                            fix_final = phase.control_options[var_name]['fix_final']
+                            opt = phase.control_options[var_name]['opt']
+                        elif var_name in phase.polynomial_control_options:
+                            lower = phase.polynomial_control_options[var_name]['lower']
+                            upper = phase.polynomial_control_options[var_name]['upper']
+                            fix_initial = phase.polynomial_control_options[var_name]['fix_initial']
+                            fix_final = phase.polynomial_control_options[var_name]['fix_final']
+                            opt = phase.polynomial_control_options[var_name]['opt']
+                        elif var_name in phase.parameter_options:
+                            lower = phase.parameter_options[var_name]['lower']
+                            upper = phase.parameter_options[var_name]['upper']
+                            opt = phase.parameter_options[var_name]['opt']
+
+                        if var_name in bcis:
+                            bci = [c for c in phase._initial_boundary_constraints
+                                   if c['constraint_name'] == var_name][0]
+                            bci_lower = bci['equals'] if bci['equals'] is not None else bci['lower']
+                            bci_upper = bci['equals'] if bci['equals'] is not None else bci['upper']
+                        if var_name in bcfs:
+                            bcf = [c for c in phase._final_boundary_constraints
+                                   if c['constraint_name'] == var_name][0]
+                            bcf_lower = bcf['equals'] if bcf['equals'] is not None else bcf['lower']
+                            bcf_upper = bcf['equals'] if bcf['equals'] is not None else bcf['upper']
+                        if var_name in paths:
+                            path = [c for c in phase._path_constraints
+                                    if c['constraint_name'] == var_name][0]
+                            path_lower = path['equals'] if path['equals'] is not None else path['lower']
+                            path_upper = path['equals'] if path['equals'] is not None else path['upper']
+
+                        x_data = sol_data[x_name].ravel()
+
+                        if opt:
+                            sol_plot = fig.circle(x=x_name, y=var_name, source=sol_source,
+                                                  color=color, size=MARKER_SIZE)
+                        else:
+                            sol_plot = fig.circle_cross(x=x_data[0], y=sol_data[var_name][0, ...],
+                                                        color=color, fill_color='white',
+                                                        size=MARKER_SIZE+2, line_width=1)
+                        renderers.append(sol_plot)
+
                         sol_plot.tags.extend(['sol', f'phase:{phase_name}'])
                         legend_items.append(sol_plot)
+
+                        # Plot the bounds if available
+                        if lower is not None:
+                            sol_source.data[f'{var_name}:lower'] = lower * np.ones_like(x_data)
+                        else:
+                            sol_source.data[f'{var_name}:lower'] = -1.E8 * np.ones_like(x_data)
+
+                        if upper is not None:
+                            sol_source.data[f'{var_name}:upper'] = upper * np.ones_like(x_data)
+                        else:
+                            sol_source.data[f'{var_name}:upper'] = 1.E8 * np.ones_like(x_data)
+
+                        if lower is not None:
+                            area = fig.varea(x=[x_data[0], x_data[-1]], y1=[lower, lower], y2=[MIN_Y, MIN_Y],
+                                             fill_alpha=BOUNDS_ALPHA, fill_color=color,
+                                             hatch_pattern=BOUNDS_HATCH_PATTERN, hatch_color=color,
+                                             hatch_alpha=BOUNDS_HATCH_ALPHA,
+                                             hatch_weight=0.2)
+                            area.tags.extend([f'phase:{phase_name}', 'bounds'],)
+
+                        if upper is not None:
+                            area = fig.varea(x=[x_data[0], x_data[-1]], y1=[upper, upper], y2=[MAX_Y, MAX_Y],
+                                             fill_alpha=BOUNDS_ALPHA, fill_color=color,
+                                             hatch_pattern=BOUNDS_HATCH_PATTERN, hatch_color=color,
+                                             hatch_alpha=BOUNDS_HATCH_ALPHA,
+                                             hatch_weight=0.2)
+                            area.tags.extend([f'phase:{phase_name}', 'bounds'])
+
+                        if path_lower is not None:
+                            area = fig.varea(x=[x_data[0], x_data[-1]], y1=[path_lower, path_lower], y2=[MIN_Y, MIN_Y],
+                                             fill_alpha=PATH_ALPHA, fill_color=color,
+                                             hatch_pattern=PATH_HATCH_PATTERN, hatch_color=color,
+                                             hatch_alpha=PATH_HATCH_ALPHA, hatch_weight=0.2)
+                            area.tags.extend([f'phase:{phase_name}', 'constraints'])
+
+                        if path_upper is not None:
+                            area = fig.varea(x=[x_data[0], x_data[-1]], y1=[path_upper, path_upper], y2=[MAX_Y, MAX_Y],
+                                             fill_alpha=PATH_ALPHA, fill_color=color,
+                                             hatch_pattern=PATH_HATCH_PATTERN, hatch_color=color,
+                                             hatch_alpha=PATH_HATCH_ALPHA, hatch_weight=0.2)
+                            area.tags.extend([f'phase:{phase_name}', 'constraints'])
+
+                        # Plot fixed endpoints if appropriate
+                        if fix_initial:
+                            fix_initial_plot = fig.circle_cross(x=x_data[0], y=sol_data[var_name][0, ...],
+                                                                color=color, fill_color='white',
+                                                                size=MARKER_SIZE+2, line_width=2)
+                            fix_initial_plot.tags.extend(['sol', f'phase:{phase_name}'])
+
+                        if fix_final:
+                            fix_final_plot = fig.circle_cross(x=x_data[-1], y=sol_data[var_name][-1, ...],
+                                                              color=color, fill_color='white',
+                                                              size=MARKER_SIZE+2, line_width=2)
+                            fix_final_plot.tags.extend(['sol', f'phase:{phase_name}'])
+
                     if sim_data:
-                        sim_plot = fig.line(x='time', y=var_name, source=sim_source, color=color)
+                        sim_plot = fig.line(x=x_name, y=var_name, source=sim_source, color=color)
                         sim_plot.tags.extend(['sim', f'phase:{phase_name}'])
                         legend_items.append(sim_plot)
+                        renderers.append(sim_plot)
                     legend_data.append((phase_name, legend_items))
 
+            # Only scale the y axis based on the sol and sim data plots, not any bounds plots
+            fig.y_range.renderers = renderers
+
+            # Add a phase legend outside of the axes
             legend = Legend(items=legend_data, location='center', label_text_font_size='8pt')
             fig.add_layout(legend, 'right')
             figures.append(fig)
@@ -329,7 +439,8 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
         param_panels = [TabPanel(child=table, title=f'{phase_names[i]} parameters')
                         for i, table in enumerate(param_tables)]
 
-        sol_sim_toggle = CheckboxButtonGroup(labels=['Solution', 'Simulation'], active=[0, 1])
+        sol_sim_toggle = CheckboxButtonGroup(labels=['Solution', 'Simulation', 'Bounds', 'Constraints'],
+                                             active=[0, 1, 2, 3])
 
         sol_sim_row = row(children=[Div(text='Display data:', sizing_mode='stretch_height'),
                                     sol_sim_toggle],

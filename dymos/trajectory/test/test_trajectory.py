@@ -627,9 +627,6 @@ class TestLinkages(unittest.TestCase):
         self.traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
         self.traj.link_phases(phases=['burn1', 'burn2'], vars=['u1_rate'])
 
-        for phs in burn1, coast, burn2:
-            phs.timeseries_options['include_control_rates'] = True
-
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
 
@@ -674,8 +671,10 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_u1_final = p.get_val('burn1.timeseries.u1_rate')[-1, ...]
-        burn2_u1_initial = p.get_val('burn2.timeseries.u1_rate')[0, ...]
+        p.model.list_outputs()
+
+        burn1_u1_final = p.get_val('burn1.control_rates:u1_rate')[-1, ...]
+        burn2_u1_initial = p.get_val('burn2.control_rates:u1_rate')[0, ...]
 
         u1_linkage_error = p.get_val('linkages.burn1:u1_rate_final|burn2:u1_rate_initial')
         assert_near_equal(u1_linkage_error, burn1_u1_final - burn2_u1_initial)
@@ -804,8 +803,8 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_u1_final = p.get_val('burn1.timeseries.u1_rate2')[-1, ...]
-        burn2_u1_initial = p.get_val('burn2.timeseries.u1_rate2')[0, ...]
+        burn1_u1_final = p.get_val('burn1.control_rates:u1_rate2')[-1, ...]
+        burn2_u1_initial = p.get_val('burn2.control_rates:u1_rate2')[0, ...]
 
         u1_linkage_error = p.get_val('linkages.burn1:u1_rate2_final|burn2:u1_rate2_initial')
         assert_near_equal(u1_linkage_error, burn1_u1_final - burn2_u1_initial)
@@ -934,8 +933,8 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_u1_final = p.get_val('burn1.timeseries.u1_rate')[-1, ...]
-        burn2_u1_initial = p.get_val('burn2.timeseries.u1_rate')[0, ...]
+        burn1_u1_final = p.get_val('burn1.control_rates:u1_rate')[-1, ...]
+        burn2_u1_initial = p.get_val('burn2.polynomial_control_rates:u1_rate')[0, ...]
 
         u1_linkage_error = p.get_val('linkages.burn1:u1_rate_final|burn2:u1_rate_initial')
         assert_near_equal(u1_linkage_error, burn1_u1_final - burn2_u1_initial)
@@ -1063,8 +1062,8 @@ class TestLinkages(unittest.TestCase):
 
         p.run_model()
 
-        burn1_u1_final = p.get_val('burn1.timeseries.u1_rate2')[-1, ...]
-        burn2_u1_initial = p.get_val('burn2.timeseries.u1_rate2')[0, ...]
+        burn1_u1_final = p.get_val('burn1.control_rates:u1_rate2')[-1, ...]
+        burn2_u1_initial = p.get_val('burn2.polynomial_control_rates:u1_rate2')[0, ...]
 
         u1_linkage_error = p.get_val('linkages.burn1:u1_rate2_final|burn2:u1_rate2_initial')
         assert_near_equal(u1_linkage_error, burn1_u1_final - burn2_u1_initial)
@@ -1883,8 +1882,6 @@ class TestInvalidLinkages(unittest.TestCase):
         # Run the optimization and final explicit simulation
         #####################################################
         dm.run_problem(p, run_driver=False, simulate=False)
-
-        p.model.list_inputs()
 
         ascent_h_m = p.get_val('traj.ascent.timeseries.h', units='m')[[0, -1], ...]
         descent_h_m = p.get_val('traj.descent.timeseries.h', units='m')[[0, -1], ...]

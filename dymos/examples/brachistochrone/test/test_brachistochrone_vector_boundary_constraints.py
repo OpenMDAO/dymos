@@ -1,8 +1,5 @@
 import unittest
 
-import matplotlib
-import matplotlib.pyplot as plt
-
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
@@ -10,10 +7,10 @@ from openmdao.utils.testing_utils import use_tempdirs
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
+from dymos.utils.testing_utils import assert_timeseries_near_equal
 
 
 SHOW_PLOTS = True
-matplotlib.use('Agg')
 
 
 @use_tempdirs
@@ -65,46 +62,25 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
 
         assert_near_equal(p.get_val('phase0.t')[-1], 1.8016, tolerance=1.0E-3)
 
-        # Plot results
-        if SHOW_PLOTS:
-            p.run_driver()
-            exp_out = phase.simulate(times_per_seg=10)
+        exp_out = phase.simulate(times_per_seg=10)
 
-            fig, ax = plt.subplots()
-            fig.suptitle('Brachistochrone Solution')
+        x_imp = p.get_val('phase0.timeseries.time')
+        y_imp = p.get_val('phase0.control_rates:theta_rate2')
 
-            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
+        x_exp = exp_out.get_val('phase0.timeseries.time')
+        y_exp = exp_out.get_val('phase0.control_rates:theta_rate2')
 
-            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
+        igd = phase.options['transcription'].grid_data
+        egd = exp_out.model._get_subsystem('phase0').options['transcription'].options['output_grid']
 
-            ax.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-            ax.set_xlabel('x (m)')
-            ax.set_ylabel('y (m)')
-            ax.grid(True)
-            ax.legend(loc='upper right')
-
-            fig, ax = plt.subplots()
-            fig.suptitle('Brachistochrone Solution')
-
-            x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.theta_rate2')
-
-            x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
-
-            ax.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-            ax.set_xlabel('time (s)')
-            ax.set_ylabel('theta rate2 (rad/s**2)')
-            ax.grid(True)
-            ax.legend(loc='lower right')
-
-            plt.show()
+        for row in range(igd.num_segments):
+            istart, iend = igd.segment_indices[row, :]
+            estart, eend = egd.segment_indices[row, :]
+            assert_timeseries_near_equal(t_ref=x_imp[istart:iend, :],
+                                         x_ref=y_imp[istart:iend, :],
+                                         t_check=x_exp[estart:eend, :],
+                                         x_check=y_exp[estart:eend, :],
+                                         rel_tolerance=1.0E-9)
 
         return p
 
@@ -153,46 +129,25 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
 
         assert_near_equal(p.get_val('phase0.t')[-1], 1.8016, tolerance=1.0E-3)
 
-        # Plot results
-        if SHOW_PLOTS:
-            p.run_driver()
-            exp_out = phase.simulate(times_per_seg=10)
+        exp_out = phase.simulate(times_per_seg=10)
 
-            fig, ax = plt.subplots()
-            fig.suptitle('Brachistochrone Solution')
+        x_imp = p.get_val('phase0.timeseries.time')
+        y_imp = p.get_val('phase0.control_rates:theta_rate2')
 
-            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
+        x_exp = exp_out.get_val('phase0.timeseries.time')
+        y_exp = exp_out.get_val('phase0.control_rates:theta_rate2')
 
-            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
+        igd = phase.options['transcription'].grid_data
+        egd = exp_out.model._get_subsystem('phase0').options['transcription'].options['output_grid']
 
-            ax.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-            ax.set_xlabel('x (m)')
-            ax.set_ylabel('y (m)')
-            ax.grid(True)
-            ax.legend(loc='upper right')
-
-            fig, ax = plt.subplots()
-            fig.suptitle('Brachistochrone Solution')
-
-            x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.theta_rate2')
-
-            x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
-
-            ax.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-            ax.set_xlabel('time (s)')
-            ax.set_ylabel('theta rate2 (rad/s**2)')
-            ax.grid(True)
-            ax.legend(loc='lower right')
-
-            plt.show()
+        for row in range(igd.num_segments):
+            istart, iend = igd.segment_indices[row, :]
+            estart, eend = egd.segment_indices[row, :]
+            assert_timeseries_near_equal(t_ref=x_imp[istart:iend, :],
+                                         x_ref=y_imp[istart:iend, :],
+                                         t_check=x_exp[estart:eend, :],
+                                         x_check=y_exp[estart:eend, :],
+                                         rel_tolerance=1.0E-9)
 
         return p
 
@@ -239,46 +194,25 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
 
         assert_near_equal(p.get_val('phase0.t')[-1], 1.8016, tolerance=1.0E-3)
 
-        # Plot results
-        if SHOW_PLOTS:
-            p.run_driver()
-            exp_out = phase.simulate(times_per_seg=20)
+        exp_out = phase.simulate(times_per_seg=10)
 
-            fig, ax = plt.subplots()
-            fig.suptitle('Brachistochrone Solution')
+        x_imp = p.get_val('phase0.timeseries.time')
+        y_imp = p.get_val('phase0.control_rates:theta_rate2')
 
-            x_imp = p.get_val('phase0.timeseries.pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.pos')[:, 1]
+        x_exp = exp_out.get_val('phase0.timeseries.time')
+        y_exp = exp_out.get_val('phase0.control_rates:theta_rate2')
 
-            x_exp = exp_out.get_val('phase0.timeseries.pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.pos')[:, 1]
+        igd = phase.options['transcription'].grid_data
+        egd = exp_out.model._get_subsystem('phase0').options['transcription'].options['output_grid']
 
-            ax.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-            ax.set_xlabel('x (m)')
-            ax.set_ylabel('y (m)')
-            ax.grid(True)
-            ax.legend(loc='upper right')
-
-            fig, ax = plt.subplots()
-            fig.suptitle('Brachistochrone Solution')
-
-            x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.theta_rate2')
-
-            x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.theta_rate2')
-
-            ax.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-            ax.set_xlabel('time (s)')
-            ax.set_ylabel('theta rate2 (rad/s**2)')
-            ax.grid(True)
-            ax.legend(loc='lower right')
-
-            plt.show()
+        for row in range(igd.num_segments):
+            istart, iend = igd.segment_indices[row, :]
+            estart, eend = egd.segment_indices[row, :]
+            assert_timeseries_near_equal(t_ref=x_imp[istart:iend, :],
+                                         x_ref=y_imp[istart:iend, :],
+                                         t_check=x_exp[estart:eend, :],
+                                         x_check=y_exp[estart:eend, :],
+                                         rel_tolerance=1.0E-9)
 
         return p
 

@@ -91,6 +91,7 @@ class Phase(om.Group):
 
             self.refine_options.update(from_phase.refine_options)
             self.simulate_options.update(from_phase.simulate_options)
+            self.timeseries_options.update(from_phase.timeseries_options)
 
             self._initial_boundary_constraints = from_phase._initial_boundary_constraints.copy()
             self._final_boundary_constraints = from_phase._final_boundary_constraints.copy()
@@ -1199,11 +1200,8 @@ class Phase(om.Group):
         bc['flat_indices'] = flat_indices
         bc['is_expr'] = is_expr
 
-        # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
-        var_type = self.classify_var(name)
-        if var_type == 'ode':
-            if constraint_name not in self._timeseries['timeseries']['outputs']:
-                self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+        self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape,
+                                   tags=[f'dymos.{loc}_boundary_constraint'])
 
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
@@ -1306,14 +1304,11 @@ class Phase(om.Group):
         pc['flat_indices'] = flat_indices
         pc['is_expr'] = is_expr
 
-        # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
-        var_type = self.classify_var(name)
-        if var_type == 'ode':
-            if constraint_name not in self._timeseries['timeseries']['outputs']:
-                self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+        self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape,
+                                   tags=['dymos.path_constraint'])
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
-                              timeseries='timeseries', **kwargs):
+                              timeseries='timeseries', tags=None, **kwargs):
         r"""
         Add a variable to the timeseries outputs of the phase.
 
@@ -1341,9 +1336,18 @@ class Phase(om.Group):
             since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
         timeseries : str or None
             The name of the timeseries to which the output is being added.
+        tags : str or list of str or None
+            Any tags to be applied to the timeseries output.
         **kwargs
             Additional arguments passed to the exec comp.
         """
+        if tags is None:
+            _tags = []
+        elif isinstance(tags, str):
+            _tags = [tags]
+        else:
+            _tags = tags
+
         if type(name) is list:
             for i, name_i in enumerate(name):
                 expr = True if '=' in name_i else False
@@ -1359,7 +1363,8 @@ class Phase(om.Group):
                                                     shape=shape,
                                                     timeseries=timeseries,
                                                     rate=False,
-                                                    expr=expr)
+                                                    expr=expr,
+                                                    tags=_tags)
 
                 # Handle specific units for wildcard names.
                 if oname is not None and '*' in name_i:
@@ -1373,7 +1378,8 @@ class Phase(om.Group):
                                         timeseries=timeseries,
                                         rate=False,
                                         expr=expr,
-                                        expr_kwargs=kwargs)
+                                        expr_kwargs=kwargs,
+                                        tags=_tags)
 
     def add_timeseries_rate_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                                    timeseries='timeseries'):
@@ -1431,7 +1437,7 @@ class Phase(om.Group):
                                         rate=True)
 
     def _add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
-                               timeseries='timeseries', rate=False, expr=False, expr_kwargs=None):
+                               timeseries='timeseries', rate=False, expr=False, expr_kwargs=None, tags=None):
         r"""
         Add a single variable or rate to the timeseries outputs of the phase.
 
@@ -1461,7 +1467,13 @@ class Phase(om.Group):
         rate : bool
             If True, add the rate of change of the named variable to the timeseries outputs of the
             phase.  The rate variable will be named f'{name}_rate'.  Defaults to False.
-        expr :
+        expr : bool
+            If True, the given name is an equation to be evaluated by an ExecComp.
+        expr_kwargs : dict or None
+            A dictionary of keyword arguments to be passed to the ExecComp when expr = True.
+        tags : str or list of str or None
+            A string or list of strings used as tags for the timeseries inputs and outputs. Dymos uses
+            this to tag the timeseries outputs with the variable type (state, time, control, parameter).
 
         Returns
         -------
@@ -1492,10 +1504,13 @@ class Phase(om.Group):
             ts_output['is_rate'] = rate
             ts_output['is_expr'] = expr
             ts_output['expr_kwargs'] = expr_kwargs
+            ts_output['tags'] = tags
 
             self._timeseries[timeseries]['outputs'][output_name] = ts_output
-
             return output_name
+        elif tags is not None:
+            # Output already present, update tags
+            self._timeseries[timeseries]['outputs'][output_name]['tags'].extend(tags)
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""
