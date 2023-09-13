@@ -7,7 +7,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from dymos.examples.moon_landing import MoonLandingProblemODE
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestMoonLandingProblem(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
@@ -36,8 +36,8 @@ class TestMoonLandingProblem(unittest.TestCase):
         phase.add_boundary_constraint('h', loc='final', equals=0.0)
         phase.add_boundary_constraint('v', loc='final', equals=0.0)
 
-        phase.add_objective('m', loc='final', scaler=-1.0)
-        phase.set_simulate_options(atol=1.0E-2, rtol=1.0E-2)
+        phase.add_objective('m', scaler=-1)
+        phase.set_simulate_options(atol=1.0E-1, rtol=1.0E-2)
 
         traj.add_phase('phase', phase)
 
@@ -56,6 +56,7 @@ class TestMoonLandingProblem(unittest.TestCase):
                        make_plots=True)
         h = self.p.get_val('traj.phase.timeseries.h')
         v = self.p.get_val('traj.phase.timeseries.v')
+        m = self.p.get_val('traj.phase.timeseries.m')
         T = self.p.get_val('traj.phase.timeseries.T')
 
         assert_near_equal(T[0], 0.0, tolerance=1e-5)
@@ -64,6 +65,7 @@ class TestMoonLandingProblem(unittest.TestCase):
         assert_near_equal(T[-1], 1.227, tolerance=1e-5)
         assert_near_equal(h[-1], 0.0, tolerance=1e-5)
         assert_near_equal(v[-1], 0.0, tolerance=1e-5)
+        # assert_near_equal(m[-1], 0.5, tolerance=1e-5)
 
     def test_problem_cgl(self):
         self.make_problem(grid_type='cgl')

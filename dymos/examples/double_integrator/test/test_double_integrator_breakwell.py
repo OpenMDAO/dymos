@@ -10,12 +10,13 @@ import dymos as dm
 from dymos.examples.double_integrator.double_integrator_breakwell_ode import DoubleIntegratorBreakwellODE
 
 
-@require_pyoptsparse(optimizer='SLSQP')
+@require_pyoptsparse(optimizer='IPOPT')
 def double_integrator_direct_collocation(transcription='gauss-lobatto', compressed=True):
 
     p = om.Problem(model=om.Group())
     p.driver = om.pyOptSparseDriver()
     p.driver.declare_coloring()
+    p.driver.options['optimizer'] = 'IPOPT'
 
     if transcription == 'gauss-lobatto':
         t = dm.GaussLobatto(num_segments=30, order=3, compressed=compressed)
@@ -33,8 +34,8 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
 
     phase.set_time_options(fix_initial=True, fix_duration=True, units='s')
 
-    phase.add_state('v', fix_initial=True, rate_source='u', units='m/s')
-    phase.add_state('x', fix_initial=True, rate_source='v', units='m', shape=(1, ))
+    phase.add_state('v', fix_initial=True, rate_source='v_dot', units='m/s')
+    phase.add_state('x', fix_initial=True, rate_source='x_dot', units='m', shape=(1, ))
     phase.add_state('J', fix_initial=True, rate_source='J_dot')
 
     phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
@@ -143,8 +144,21 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
     def test_ex_double_integrator_birkhoff(self):
         p = double_integrator_direct_collocation('birkhoff')
+
+        t = p.get_val('traj.phase0.timeseries.time')
         x = p.get_val('traj.phase0.timeseries.x')
         v = p.get_val('traj.phase0.timeseries.v')
+        u = p.get_val('traj.phase0.timeseries.u')
+
+        import matplotlib.pyplot as plt
+        plt.figure()
+        plt.plot(t, x)
+        plt.plot(t, v)
+
+        plt.figure()
+        plt.plot(t, u)
+
+        plt.show()
 
 
 if __name__ == "__main__":

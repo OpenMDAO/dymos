@@ -151,8 +151,6 @@ class Birkhoff(TranscriptionBase):
         #                     promotes_outputs=['*'])
 
 
-
-
     def configure_controls(self, phase):
         """
         Configure the inputs/outputs for the controls.
@@ -281,17 +279,17 @@ class Birkhoff(TranscriptionBase):
 
         phase._get_subsystem('ode_iter_group').configure_io()
 
-        phase._get_subsystem('boundary_vals').configure_io(phase)
-        # for name, options in phase.state_options.items():
-        #     units = options['units']
-        #     rate_source = options['rate_source']
-        #     shape = options['shape']
-        #
-        #     for tgt in options['targets']:
-        #         phase.promotes('boundary_ode', [(tgt, f'states:{name}')],
-        #                        src_indices=om.slicer[[0, -1,], ...],
-        #                        src_shape=(nn,) + shape,
-        #                        flat_src_indices=True)
+        for name, options in phase.state_options.items():
+            shape = options['shape']
+            size = np.prod(shape)
+            idxs = [i for i in range(size)]
+            idxs += [j for j in range((nn-1)*size, nn*size)]
+
+            for tgt in options['targets']:
+                phase.promotes('endpoint_ode', [(tgt, f'states:{name}')],
+                               src_indices=idxs,
+                               src_shape=(nn,) + shape,
+                               flat_src_indices=True)
                 # phase.set_input_defaults(f'states:{name}', val=1.0, units=units, src_shape=(nn,) + shape)
 
         # for name, options in phase.state_options.items():
@@ -535,13 +533,11 @@ class Birkhoff(TranscriptionBase):
                                    f'or path constraints.\nParameters are single values that do not change in '
                                    f'time, and may only be used in a single boundary or path constraint.')
             constraint_kwargs['indices'] = flat_idxs
-        elif var_type in ('state', 'ode'):
-            constraint_kwargs['indices'] = None
         else:
             if constraint_type == 'initial':
                 constraint_kwargs['indices'] = flat_idxs
             elif constraint_type == 'final':
-                constraint_kwargs['indices'] = size * (num_nodes - 1) + flat_idxs
+                constraint_kwargs['indices'] = flat_idxs
             else:
                 # This is a path constraint.
                 # Remove any flat indices involved in an initial constraint from the path constraint
