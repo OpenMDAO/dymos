@@ -22,7 +22,7 @@ def double_integrator(transcription='gauss-lobatto', compressed=True, grid_type=
     elif transcription == "radau-ps":
         t = dm.Radau(num_segments=30, order=3, compressed=compressed)
     elif transcription == 'birkhoff':
-        t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=131, grid_type=grid_type))
+        t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=130, grid_type=grid_type))
     else:
         raise ValueError('invalid transcription')
 
@@ -63,7 +63,7 @@ def double_integrator(transcription='gauss-lobatto', compressed=True, grid_type=
     return p
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestDoubleIntegratorExample(unittest.TestCase):
 
     @classmethod
