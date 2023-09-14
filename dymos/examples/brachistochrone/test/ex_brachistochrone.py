@@ -47,6 +47,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                                nodes_per_seg=transcription_order + 1,
                                compressed=compressed, grid_type='cgl')
         t = dm.Birkhoff(grid=grid)
+        # phase = dm.ImplicitPhase(ode_class=BrachistochroneODE, num_nodes=11)
 
     traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
@@ -76,6 +77,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     phase.add_boundary_constraint('x', loc='final', equals=10)
     phase.add_boundary_constraint('y', loc='final', equals=5)
+    phase.add_path_constraint('y', lower=0, upper=20)
     # Minimize time at the end of the phase
     phase.add_objective('time_phase', loc='final', scaler=10)
 
@@ -100,7 +102,8 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
     p['traj0.phase0.parameters:g'] = 9.80665
 
-    dm.run_problem(p, run_driver=run_driver, simulate=False, make_plots=True)
+    dm.run_problem(p, run_driver=run_driver, simulate=True, make_plots=True,
+                   simulate_kwargs={'times_per_seg': 100})
 
     return p
 
@@ -112,6 +115,6 @@ if __name__ == '__main__':
                                      transcription_order=19, compressed=False, optimizer='SNOPT',
                                      solve_segments=False, force_alloc_complex=True)
 
-        p.check_totals(method='cs', compact_print=True)
-        p.check_partials(method='cs', compact_print=True)
+        # p.check_totals(method='cs', compact_print=True)
+        # p.check_partials(method='cs', compact_print=True)
         # om.n2(p.model)

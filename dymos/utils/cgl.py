@@ -22,7 +22,7 @@ def clenshaw_curtis(n):
         An array of the LGL nodes for a polynomial of the given order.
 
     w : numpy.array
-        An array of the corresponding LGL weights at the nodes in x.
+        An array of the corresponding CGL weights at the nodes in x.
     """
     x = -np.cos(np.pi * np.arange(n) / (n-1))
     w = np.zeros(n)
@@ -56,15 +56,15 @@ def _cgl(n):
     Parameters
     ----------
     n : int
-        The number of LGL nodes requested.  The order of the polynomial is n-1.
+        The number of CGL nodes requested.  The order of the polynomial is n-1.
 
     Returns
     -------
     x : numpy.array
-        An array of the LGL nodes for a polynomial of the given order.
+        An array of the CGL nodes for a polynomial of the given order.
 
     w : numpy.array
-        An array of the corresponding LGL weights at the nodes in x.
+        An array of the corresponding CGL weights at the nodes in x.
     """
     x = -np.cos(np.pi * np.arange(n) / (n-1))
     w = np.pi / (n-1) * np.ones(n)
@@ -76,7 +76,7 @@ def _cgl(n):
 
 def cgl(n):
     """
-    Retrieve the lgl nodes and weights for n nodes.
+    Retrieve the cgl nodes and weights for n nodes.
 
     Results are cached to avoid repeated calculation of nodes and weights for a given n.
 
@@ -88,7 +88,7 @@ def cgl(n):
     Returns
     -------
     float
-        Tuple with lgl nodes and weights.
+        Tuple with cgl nodes and weights.
     """
     if n not in _cgl_cache:
         _cgl_cache[n] = _cgl(n)
