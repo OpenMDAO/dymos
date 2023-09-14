@@ -41,7 +41,7 @@ optional_dependencies['all'] = sorted([
 
 
 setup(name='dymos',
-    version='1.9.1',
+    version='1.9.2-dev',
     description='Open-Source Optimization of Dynamic Multidisciplinary Systems',
     long_description='''
 Dymos is a framework for the simulation and optimization of dynamical systems within the OpenMDAO Multidisciplinary Analysis and Optimization environment.
