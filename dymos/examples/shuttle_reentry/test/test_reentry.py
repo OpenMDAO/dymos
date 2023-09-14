@@ -1,12 +1,12 @@
 import unittest
 
 import numpy as np
-
 import openmdao.api as om
+import dymos as dm
+
 from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
-from dymos import Trajectory, GaussLobatto, Phase, Radau, run_problem
 from dymos.examples.shuttle_reentry.shuttle_ode import ShuttleODE
 
 # Expected results from Betts
@@ -17,8 +17,7 @@ expected_results = {'constrained': {'time': 2198.67, 'theta': 30.6255},
 @use_tempdirs
 class TestReentry(unittest.TestCase):
 
-    def make_problem(self, constrained=True, transcription=GaussLobatto, optimizer='SLSQP',
-                     numseg=50):
+    def make_problem(self, constrained=True, transcription=dm.GaussLobatto, optimizer='SLSQP',):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver(optimizer=optimizer)
         p.driver.declare_coloring()
@@ -30,11 +29,17 @@ class TestReentry(unittest.TestCase):
             p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
             p.driver.opt_settings['tol'] = 1.0E-7
             p.driver.opt_settings['mu_strategy'] = 'monotone'
+        elif optimizer == 'SNOPT':
+            p.driver.declare_coloring()
+            p.driver.opt_settings['iSumm'] = 6
+            p.driver.opt_settings['Major iterations limit'] = 100
+            p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-5
+            p.driver.opt_settings['Major optimality tolerance'] = 1.0E-3
 
-        traj = p.model.add_subsystem('traj', Trajectory())
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0',
-                                Phase(ode_class=ShuttleODE,
-                                      transcription=transcription(num_segments=numseg, order=3)))
+                                dm.Phase(ode_class=ShuttleODE,
+                                         transcription=transcription))
 
         phase0.set_time_options(fix_initial=True, units='s', duration_ref=200)
         phase0.add_state('h', fix_initial=True, fix_final=True, units='ft', rate_source='hdot',
@@ -83,18 +88,32 @@ class TestReentry(unittest.TestCase):
         p.set_val('traj.phase0.controls:beta',
                   phase0.interp('beta', [-75 * np.pi / 180, 0 * np.pi / 180]), units='rad')
 
+        if isinstance(transcription, dm.Birkhoff):
+            p.set_val('traj.phase0.initial_states:h', 260000, units='ft')
+            p.set_val('traj.phase0.initial_states:gamma', -1 * np.pi / 180, units='rad')
+            p.set_val('traj.phase0.initial_states:phi', 0.0, units='rad')
+            p.set_val('traj.phase0.initial_states:psi', 90 * np.pi / 180, units='rad')
+            p.set_val('traj.phase0.initial_states:theta', 0.0, units='rad')
+            p.set_val('traj.phase0.initial_states:v', 25600, units='ft/s')
+
+            p.set_val('traj.phase0.final_states:h', 80000, units='ft')
+            p.set_val('traj.phase0.final_states:gamma', -5 * np.pi / 180, units='rad')
+            p.set_val('traj.phase0.final_states:v', 2500, units='ft/s')
+
         return p
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_partials(self):
-        p = self.make_problem(constrained=True, transcription=Radau, optimizer='SLSQP', numseg=5)
+        tx = dm.Radau(num_segments=5, order=3)
+        p = self.make_problem(constrained=True, transcription=tx, optimizer='SLSQP')
         p.run_model()
         cpd = p.check_partials(method='cs', compact_print=True, out_stream=None)
         assert_check_partials(cpd, atol=1.0E-4, rtol=1.1)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_constrained_radau(self):
-        p = self.make_problem(constrained=True, transcription=Radau, optimizer='IPOPT')
+        tx = dm.Radau(num_segments=50, order=3)
+        p = self.make_problem(constrained=True, transcription=tx, optimizer='IPOPT')
 
         p.run_driver()
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
@@ -107,7 +126,22 @@ class TestReentry(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_constrained_gauss_lobatto(self):
-        p = self.make_problem(constrained=True, transcription=GaussLobatto, optimizer='IPOPT')
+        tx = dm.GaussLobatto(num_segments=50, order=3)
+        p = self.make_problem(constrained=True, transcription=tx, optimizer='IPOPT')
+
+        p.run_driver()
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
+                          expected_results['constrained']['time'],
+                          tolerance=1e-2)
+
+        assert_near_equal(p.get_val('traj.phase0.timeseries.theta', units='deg')[-1],
+                          expected_results['constrained']['theta'],
+                          tolerance=1e-2)
+
+    @require_pyoptsparse(optimizer='IPOPT')
+    def test_reentry_constrained_birkhoff_lgl(self):
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=100, grid_type='lgl'))
+        p = self.make_problem(constrained=True, transcription=tx, optimizer='IPOPT')
 
         p.run_driver()
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
@@ -120,7 +154,8 @@ class TestReentry(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_unconstrained_radau(self):
-        p = self.make_problem(constrained=False, transcription=Radau, optimizer='IPOPT')
+        tx = dm.Radau(num_segments=50, order=3)
+        p = self.make_problem(constrained=False, transcription=tx, optimizer='IPOPT')
 
         p.run_driver()
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
@@ -133,7 +168,8 @@ class TestReentry(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_unconstrained_gauss_lobatto(self):
-        p = self.make_problem(constrained=False, transcription=GaussLobatto, optimizer='IPOPT')
+        tx = dm.GaussLobatto(num_segments=50, order=3)
+        p = self.make_problem(constrained=False, transcription=tx, optimizer='IPOPT')
 
         p.run_driver()
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
@@ -142,6 +178,20 @@ class TestReentry(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.theta', units='deg')[-1],
                           expected_results['unconstrained']['theta'],
+                          tolerance=1e-2)
+
+    @require_pyoptsparse(optimizer='IPOPT')
+    def test_reentry_unconstrained_birkhoff_lgl(self):
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=100, grid_type='lgl'))
+        p = self.make_problem(constrained=False, transcription=tx, optimizer='IPOPT')
+
+        p.run_driver()
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
+                          expected_results['constrained']['time'],
+                          tolerance=1e-2)
+
+        assert_near_equal(p.get_val('traj.phase0.timeseries.theta', units='deg')[-1],
+                          expected_results['constrained']['theta'],
                           tolerance=1e-2)
 
     @require_pyoptsparse(optimizer='IPOPT')
@@ -156,10 +206,10 @@ class TestReentry(unittest.TestCase):
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.opt_settings['mu_strategy'] = 'monotone'
 
-        traj = p.model.add_subsystem('traj', Trajectory())
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0',
-                                Phase(ode_class=ShuttleODE,
-                                      transcription=Radau(num_segments=30, order=3)))
+                                dm.Phase(ode_class=ShuttleODE,
+                                         transcription=dm.Radau(num_segments=30, order=3)))
 
         phase0.set_time_options(fix_initial=True, units='s', duration_ref=200)
         phase0.add_state('h', fix_initial=True, fix_final=True, units='ft', rate_source='hdot',
@@ -211,7 +261,7 @@ class TestReentry(unittest.TestCase):
         p.set_val('traj.phase0.polynomial_controls:beta',
                   phase0.interp('beta', [-20, 0]), units='deg')
 
-        run_problem(p, simulate=True)
+        dm.run_problem(p, simulate=True)
 
         sol = om.CaseReader('dymos_solution.db').get_case('final')
         sim = om.CaseReader('dymos_simulation.db').get_case('final')
