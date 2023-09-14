@@ -15,6 +15,5 @@ body:
     attributes:
       label: Example
       description: Please provide an example of how this feature might be used in Dymos.
-      render: python
     validations:
       required: false
