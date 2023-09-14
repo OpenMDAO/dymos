@@ -1353,7 +1353,7 @@ class Trajectory(om.Group):
 
         printer('', file=outstream)
 
-    def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
+    def simulate(self, times_per_seg=_unspecified, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None, case_prefix=None,
                  reset_iter_counts=True, reports=False):
         """
