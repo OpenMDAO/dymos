@@ -159,23 +159,6 @@ class TranscriptionBase(object):
             phase.add_subsystem('control_group',
                                 subsys=control_group)
 
-            control_prefix = 'controls:' if phase.timeseries_options['use_prefix'] else ''
-            control_rate_prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
-
-            for name, options in phase.control_options.items():
-                for ts_name, ts_options in phase._timeseries.items():
-                    if f'{control_prefix}{name}' not in ts_options['outputs']:
-                        phase.add_timeseries_output(name, output_name=f'{control_prefix}{name}',
-                                                    timeseries=ts_name)
-                    if f'{control_rate_prefix}{name}_rate' not in ts_options['outputs'] and \
-                            (phase.timeseries_options['include_control_rates'] or options['rate_targets']):
-                        phase.add_timeseries_output(f'{name}_rate', output_name=f'{control_rate_prefix}{name}_rate',
-                                                    timeseries=ts_name)
-                    if f'{control_rate_prefix}{name}_rate2' not in ts_options['outputs'] and \
-                            (phase.timeseries_options['include_control_rates'] or options['rate2_targets']):
-                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'{control_rate_prefix}{name}_rate2',
-                                                    timeseries=ts_name)
-
     def configure_controls(self, phase):
         """
         Configure the inputs/outputs for the controls.
@@ -185,7 +168,22 @@ class TranscriptionBase(object):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        control_prefix = 'controls:' if phase.timeseries_options['use_prefix'] else ''
+        control_rate_prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
+
+        for name, options in phase.control_options.items():
+            for ts_name, ts_options in phase._timeseries.items():
+                if f'{control_prefix}{name}' not in ts_options['outputs']:
+                    phase.add_timeseries_output(name, output_name=f'{control_prefix}{name}',
+                                                timeseries=ts_name)
+                if f'{control_rate_prefix}{name}_rate' not in ts_options['outputs'] and \
+                        (phase.timeseries_options['include_control_rates'] or options['rate_targets']):
+                    phase.add_timeseries_output(f'{name}_rate', output_name=f'{control_rate_prefix}{name}_rate',
+                                                timeseries=ts_name)
+                if f'{control_rate_prefix}{name}_rate2' not in ts_options['outputs'] and \
+                        (phase.timeseries_options['include_control_rates'] or options['rate2_targets']):
+                    phase.add_timeseries_output(f'{name}_rate2', output_name=f'{control_rate_prefix}{name}_rate2',
+                                                timeseries=ts_name)
 
     def setup_polynomial_controls(self, phase):
         """
@@ -207,6 +205,18 @@ class TranscriptionBase(object):
 
             phase.connect('t_duration_val', 'polynomial_control_group.t_duration')
 
+    def configure_polynomial_controls(self, phase):
+        """
+        Configure the inputs/outputs for the polynomial controls.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        if phase.polynomial_control_options:
+            phase.polynomial_control_group.configure_io()
+
             prefix = 'polynomial_controls:' if phase.timeseries_options['use_prefix'] else ''
             rate_prefix = 'polynomial_control_rates:' if phase.timeseries_options['use_prefix'] else ''
 
@@ -223,18 +233,6 @@ class TranscriptionBase(object):
                             (phase.timeseries_options['include_control_rates'] or options['rate2_targets']):
                         phase.add_timeseries_output(f'{name}_rate2', output_name=f'{rate_prefix}{name}_rate2',
                                                     timeseries=ts_name)
-
-    def configure_polynomial_controls(self, phase):
-        """
-        Configure the inputs/outputs for the polynomial controls.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        if phase.polynomial_control_options:
-            phase.polynomial_control_group.configure_io()
 
     def setup_parameters(self, phase):
         """

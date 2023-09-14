@@ -37,6 +37,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
                             compressed=compressed)
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
+        phase.timeseries_options['include_control_rates'] = True
         traj.add_phase('phase0', phase)
 
         p.model.add_subsystem('traj0', traj)
@@ -80,22 +81,18 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         self.p = p
 
     def test_brachistochrone_timeseries_plots(self):
-        temp = dm.options['plots']
-        dm.options['plots'] = 'matplotlib'
+        with dm.options.temporary(plots='matplotlib'):
+            dm.run_problem(self.p, make_plots=False)
 
-        dm.run_problem(self.p, make_plots=False)
+            timeseries_plots('dymos_solution.db', problem=self.p)
+            plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
-        timeseries_plots('dymos_solution.db', problem=self.p)
-        plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
-
-        self.assertTrue(plot_dir.joinpath('x.png').exists())
-        self.assertTrue(plot_dir.joinpath('y.png').exists())
-        self.assertTrue(plot_dir.joinpath('v.png').exists())
-        self.assertTrue(plot_dir.joinpath('theta.png').exists())
-        self.assertTrue(plot_dir.joinpath('theta_rate.png').exists())
-        self.assertTrue(plot_dir.joinpath('theta_rate2.png').exists())
-
-        dm.options['plots'] = temp
+            self.assertTrue(plot_dir.joinpath('x.png').exists())
+            self.assertTrue(plot_dir.joinpath('y.png').exists())
+            self.assertTrue(plot_dir.joinpath('v.png').exists())
+            self.assertTrue(plot_dir.joinpath('theta.png').exists())
+            self.assertTrue(plot_dir.joinpath('theta_rate.png').exists())
+            self.assertTrue(plot_dir.joinpath('theta_rate2.png').exists())
 
     def test_brachistochrone_timeseries_plots_solution_only_set_solution_record_file(self):
         temp = dm.options['plots']
@@ -257,6 +254,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
             phase.timeseries_options['use_prefix'] = True
             phase.timeseries_options['include_state_rates'] = True
             phase.timeseries_options['include_t_phase'] = True
+            phase.timeseries_options['include_control_rates'] = True
 
         p.setup(check=True)
 
@@ -380,6 +378,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         for phase_name, phase in traj._phases.items():
             phase.timeseries_options['include_t_phase'] = True
             phase.timeseries_options['include_state_rates'] = True
+            phase.timeseries_options['include_control_rates'] = True
 
         prob.setup()
 

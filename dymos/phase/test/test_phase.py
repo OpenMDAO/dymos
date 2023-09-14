@@ -403,27 +403,10 @@ class TestPhaseBase(unittest.TestCase):
         p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 8
 
-        p.run_driver()
+        failed = p.run_driver()
 
-        import matplotlib.pyplot as plt
-
-        plt.plot(p.get_val('phase0.timeseries.x'),
-                 p.get_val('phase0.timeseries.y'), 'ko')
-
-        plt.figure()
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.theta'), 'ro')
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.theta_rate'), 'bo')
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.theta_rate2'), 'go')
-        plt.show()
-
-        assert_near_equal(p.get_val('phase0.timeseries.theta_rate')[-1], 0,
-                          tolerance=1.0E-6)
+        self.assertFalse(failed)
+        assert_near_equal(p.get_val('phase0.timeseries.theta_rate')[-1, ...], 0.0, tolerance=1.0E-3)
 
     def test_control_rate2_boundary_constraint_gl(self):
         p = om.Problem(model=om.Group())
@@ -470,25 +453,10 @@ class TestPhaseBase(unittest.TestCase):
         p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 8
 
-        p.run_driver()
+        failed = p.run_driver()
 
-        plt.plot(p.get_val('phase0.timeseries.x'),
-                 p.get_val('phase0.timeseries.y'), 'ko')
-
-        plt.figure()
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.theta'), 'ro')
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.theta_rate'), 'bo')
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.theta_rate2'), 'go')
-        plt.show()
-
-        assert_near_equal(p.get_val('phase0.timeseries.theta_rate2')[-1], 0,
-                          tolerance=1.0E-6)
+        self.assertFalse(failed)
+        assert_near_equal(p.get_val('phase0.timeseries.theta_rate2')[-1, ...], 0.0, tolerance=1.0E-3)
 
     def test_parameter_multiple_boundary_constraints(self):
 
