@@ -33,7 +33,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             'time_units', default=None, allow_none=True, types=str,
             desc='Units of time')
 
-    def configure_io(self):
+    def configure_io(self, phase):
         """
         I/O creation is delayed until configure so we can determine shape and units.
         """
@@ -44,7 +44,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
         self.add_input('dt_dstau', units=time_units, shape=(gd.subset_num_nodes['col'],))
         self.var_names = var_names = {}
-        for state_name in state_options:
+        for state_name, options in state_options.items():
             var_names[state_name] = {
                 'f_value': f'state_rates:{state_name}',
                 'f_computed': f'f_computed:{state_name}',
@@ -61,8 +61,10 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             units = options['units']
 
             rate_units = get_rate_units(units, time_units)
-
             var_names = self.var_names[state_name]
+
+            rate_source = options['rate_source']
+            rate_source_type = phase.classify_var(rate_source)
 
             self.add_input(
                 name=var_names['f_value'],
@@ -70,11 +72,14 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
                 desc=f'Estimated derivative of state {state_name} at the polynomial nodes',
                 units=units)
 
-            self.add_input(
-                name=var_names['f_computed'],
-                shape=(num_nodes,) + shape,
-                desc=f'Computed derivative of state {state_name} at the polynomial nodes',
-                units=rate_units)
+            if rate_source_type == 'state':
+                var_names['f_computed'] = f'states:{rate_source}'
+            else:
+                self.add_input(
+                    name=var_names['f_computed'],
+                    shape=(num_nodes,) + shape,
+                    desc=f'Computed derivative of state {state_name} at the polynomial nodes',
+                    units=rate_units)
 
             self.add_input(
                 name=var_names['state_value'],

@@ -10,11 +10,11 @@ import dymos as dm
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 
 
-@require_pyoptsparse(optimizer='SLSQP')
+@require_pyoptsparse(optimizer='IPOPT')
 def double_integrator(transcription='gauss-lobatto', compressed=True, grid_type='lgl'):
 
     p = om.Problem(model=om.Group())
-    p.driver = om.pyOptSparseDriver()
+    p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
     p.driver.declare_coloring()
 
     if transcription == 'gauss-lobatto':
@@ -22,7 +22,7 @@ def double_integrator(transcription='gauss-lobatto', compressed=True, grid_type=
     elif transcription == "radau-ps":
         t = dm.Radau(num_segments=30, order=3, compressed=compressed)
     elif transcription == 'birkhoff':
-        t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=50, grid_type=grid_type))
+        t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=51, grid_type=grid_type))
     else:
         raise ValueError('invalid transcription')
 
@@ -35,7 +35,7 @@ def double_integrator(transcription='gauss-lobatto', compressed=True, grid_type=
     phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s')
     phase.add_state('x', fix_initial=True, rate_source='v', units='m', shape=(1, ))
 
-    phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
+    phase.add_control('u', units='m/s**2', scaler=1.0, continuity=False, rate_continuity=False,
                       rate2_continuity=False, shape=(1, ), lower=-1.0, upper=1.0)
 
     # Maximize distance travelled in one second.
@@ -55,13 +55,15 @@ def double_integrator(transcription='gauss-lobatto', compressed=True, grid_type=
     if transcription == 'birkhoff':
         p['traj.phase0.initial_states:x'] = 0.0
         p['traj.phase0.initial_states:v'] = 0.0
+        p['traj.phase0.final_states:v'] = 0.0
 
-    p.run_driver()
+    simulate_kwargs = {'times_per_seg': 100 if transcription == 'birkhoff' else 10}
+    dm.run_problem(p, simulate=False, make_plots=True, simulate_kwargs=simulate_kwargs)
 
     return p
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestDoubleIntegratorExample(unittest.TestCase):
 
     @classmethod
