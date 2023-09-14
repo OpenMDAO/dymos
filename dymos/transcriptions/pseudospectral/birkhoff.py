@@ -286,19 +286,11 @@ class Birkhoff(TranscriptionBase):
             idxs += [j for j in range((nn-1)*size, nn*size)]
 
             for tgt in options['targets']:
-                phase.promotes('endpoint_ode', [(tgt, f'states:{name}')],
+                phase.promotes('boundary_vals', inputs=[(tgt, f'states:{name}')],
                                src_indices=idxs,
                                src_shape=(nn,) + shape,
                                flat_src_indices=True)
-                # phase.set_input_defaults(f'states:{name}', val=1.0, units=units, src_shape=(nn,) + shape)
 
-        # for name, options in phase.state_options.items():
-        #
-        #     targets = get_targets(ode_inputs, name=name, user_targets=options['targets'])
-        #     if targets:
-        #         phase.connect(f'states:{name}',
-        #                       [f'ode_all.{tgt}' for tgt in targets],
-        #                       src_indices=om.slicer[map_input_indices_to_disc, ...])
 
     def setup_defects(self, phase):
         """
@@ -738,7 +730,6 @@ class Birkhoff(TranscriptionBase):
         else:
             # Failed to find variable, assume it is in the ODE
             rate_path = f'ode_all.{var}'
-            node_idxs = gd.subset_node_indices[nodes]
 
         return rate_path
 

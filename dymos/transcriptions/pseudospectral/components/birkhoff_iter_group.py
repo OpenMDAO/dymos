@@ -184,6 +184,9 @@ class BirkhoffIterGroup(om.Group):
             # Note the rate source must be shape-compatible with the state
             var_type = phase.classify_var(rate_source_var)
 
+            if var_type == 'ode':
+                self.connect(f'ode_all.{rate_source}', f'f_computed:{name}')
+
     def _get_rate_source_path(self, state_name, nodes, phase):
         """
         Return the rate source location and indices for a given state name.
