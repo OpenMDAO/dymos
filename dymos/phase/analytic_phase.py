@@ -463,7 +463,7 @@ class AnalyticPhase(Phase):
         ----------
         *args
             Position arguments.
-        *kwargs : float
+        **kwargs : float
             Keyword arguments.
 
         Raises
