@@ -277,7 +277,7 @@ class Birkhoff(TranscriptionBase):
         ode = phase._get_subsystem(self._rhs_source)
         ode_inputs = get_promoted_vars(ode, 'input')
 
-        phase._get_subsystem('ode_iter_group').configure_io()
+        phase._get_subsystem('ode_iter_group').configure_io(phase)
 
         for name, options in phase.state_options.items():
             shape = options['shape']
@@ -328,24 +328,11 @@ class Birkhoff(TranscriptionBase):
         """
         grid_data = self.grid_data
 
-        # phase.connect('dt_dstau', ('collocation_constraint.dt_dstau'),
-        #               src_indices=grid_data.subset_node_indices['col'], flat_src_indices=True)
-
-        # phase.collocation_constraint.configure_io()
-        #
-        # phase._get_subsystem('ode_iter_group').configure_io()
-
-        # for name in phase.state_options:
-        #     rate_src_path, src_idxs = self._get_rate_source_path(name, 'col', phase)
-
-            # phase.connect(f'states:{name}',
-            #               f'collocation_constraint.states:{name}')
-            #
-            # phase.connect(f'state_rates:{name}',
-            #               f'collocation_constraint.state_rates:{name}')
-
-            # phase.connect(rate_src_path,
-            #               f'collocation_constraint.f_computed:{name}')
+        for name, options in phase.state_options.items():
+            rate_source_type = phase.classify_var(options['rate_source'])
+            rate_src_path = self._get_rate_source_path(name, phase)
+            if rate_source_type not in ('state', 'ode'):
+                phase.connect(rate_src_path, f'f_computed:{name}')
 
     def setup_duration_balance(self, phase):
         """
@@ -686,104 +673,74 @@ class Birkhoff(TranscriptionBase):
         """
         return self.grid_data.num_nodes
 
-    # def _get_rate_source_path(self, state_name, nodes, phase):
-    #     """
-    #     Return the rate source location and indices for a given state name.
-    #
-    #     Parameters
-    #     ----------
-    #     state_name : str
-    #         Name of the state.
-    #     nodes : str
-    #         One of ['col', 'all'].
-    #     phase : dymos.Phase
-    #         Phase object containing the rate source.
-    #
-    #     Returns
-    #     -------
-    #     str
-    #         Path to the rate source.
-    #     ndarray
-    #         Array of source indices.
-    #     """
-    #     gd = self.grid_data
-    #     try:
-    #         var = phase.state_options[state_name]['rate_source']
-    #     except RuntimeError:
-    #         raise ValueError(f"state '{state_name}' in phase '{phase.name}' was not given a "
-    #                          "rate_source")
-    #
-    #     # Note the rate source must be shape-compatible with the state
-    #     var_type = phase.classify_var(var)
-    #
-    #     # Determine the path to the variable
-    #     if var_type == 't':
-    #         rate_path = 't'
-    #         node_idxs = gd.subset_node_indices[nodes]
-    #     elif var_type == 't_phase':
-    #         rate_path = 't_phase'
-    #         node_idxs = gd.subset_node_indices[nodes]
-    #     elif var_type == 'state':
-    #         rate_path = f'states:{var}'
-    #         # Find the state_input indices which occur at segment endpoints, and repeat them twice
-    #         state_input_idxs = gd.subset_node_indices['state_input']
-    #         repeat_idxs = np.ones_like(state_input_idxs)
-    #         if self.options['compressed']:
-    #             segment_end_idxs = gd.subset_node_indices['segment_ends'][1:-1]
-    #             # Repeat nodes that are on segment bounds (but not the first or last nodes in the phase)
-    #             nodes_to_repeat = list(set(state_input_idxs).intersection(segment_end_idxs))
-    #             # Now find these nodes in the state input indices
-    #             idxs_of_ntr_in_state_inputs = np.where(np.in1d(state_input_idxs, nodes_to_repeat))[0]
-    #             # All state input nodes are used once, but nodes_to_repeat are used twice
-    #             repeat_idxs[idxs_of_ntr_in_state_inputs] = 2
-    #         # Now we have a way of mapping the state input indices to all nodes
-    #         map_input_node_idxs_to_all = np.repeat(np.arange(gd.subset_num_nodes['state_input'],
-    #                                                          dtype=int), repeats=repeat_idxs)
-    #         # Now select the subset of nodes we want to use.
-    #         node_idxs = map_input_node_idxs_to_all[gd.subset_node_indices[nodes]]
-    #     elif var_type == 'indep_control':
-    #         rate_path = f'control_values:{var}'
-    #         node_idxs = gd.subset_node_indices[nodes]
-    #     elif var_type == 'input_control':
-    #         rate_path = f'control_values:{var}'
-    #         node_idxs = gd.subset_node_indices[nodes]
-    #     elif var_type == 'control_rate':
-    #         control_name = var[:-5]
-    #         rate_path = f'control_rates:{control_name}_rate'
-    #         node_idxs = gd.subset_node_indices[nodes]
-    #     elif var_type == 'control_rate2':
-    #         control_name = var[:-6]
-    #         rate_path = f'control_rates:{control_name}_rate2'
-    #         node_idxs = gd.subset_node_indices[nodes]
-    #     elif var_type == 'indep_polynomial_control':
-    #         rate_path = f'polynomial_control_values:{var}'
-    #         node_idxs = gd.subset_node_indices[nodes]
-    #     elif var_type == 'input_polynomial_control':
-    #         rate_path = f'polynomial_control_values:{var}'
-    #         node_idxs = gd.subset_node_indices[nodes]
-    #     elif var_type == 'polynomial_control_rate':
-    #         control_name = var[:-5]
-    #         rate_path = f'polynomial_control_rates:{control_name}_rate'
-    #         node_idxs = gd.subset_node_indices[nodes]
-    #     elif var_type == 'polynomial_control_rate2':
-    #         control_name = var[:-6]
-    #         rate_path = f'polynomial_control_rates:{control_name}_rate2'
-    #         node_idxs = gd.subset_node_indices[nodes]
-    #     elif var_type == 'parameter':
-    #         rate_path = f'parameter_vals:{var}'
-    #         dynamic = not phase.parameter_options[var]['static_target']
-    #         if dynamic:
-    #             node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
-    #         else:
-    #             node_idxs = np.zeros(1, dtype=int)
-    #     else:
-    #         # Failed to find variable, assume it is in the ODE
-    #         rate_path = f'ode_all.{var}'
-    #         node_idxs = gd.subset_node_indices[nodes]
-    #
-    #     src_idxs = om.slicer[node_idxs, ...]
-    #
-    #     return rate_path, src_idxs
+    def _get_rate_source_path(self, state_name, phase):
+        """
+        Return the rate source location and indices for a given state name.
+
+        Parameters
+        ----------
+        state_name : str
+            Name of the state.
+        phase : dymos.Phase
+            Phase object containing the rate source.
+
+        Returns
+        -------
+        str
+            Path to the rate source.
+        ndarray
+            Array of source indices.
+        """
+        gd = self.grid_data
+        try:
+            var = phase.state_options[state_name]['rate_source']
+        except RuntimeError:
+            raise ValueError(f"state '{state_name}' in phase '{phase.name}' was not given a "
+                             "rate_source")
+
+        # Note the rate source must be shape-compatible with the state
+        var_type = phase.classify_var(var)
+
+        # Determine the path to the variable
+        if var_type == 't':
+            rate_path = 't'
+        elif var_type == 't_phase':
+            rate_path = 't_phase'
+        elif var_type == 'state':
+            rate_path = f'states:{var}'
+        elif var_type == 'indep_control':
+            rate_path = f'control_values:{var}'
+        elif var_type == 'input_control':
+            rate_path = f'control_values:{var}'
+        elif var_type == 'control_rate':
+            control_name = var[:-5]
+            rate_path = f'control_rates:{control_name}_rate'
+        elif var_type == 'control_rate2':
+            control_name = var[:-6]
+            rate_path = f'control_rates:{control_name}_rate2'
+        elif var_type == 'indep_polynomial_control':
+            rate_path = f'polynomial_control_values:{var}'
+        elif var_type == 'input_polynomial_control':
+            rate_path = f'polynomial_control_values:{var}'
+        elif var_type == 'polynomial_control_rate':
+            control_name = var[:-5]
+            rate_path = f'polynomial_control_rates:{control_name}_rate'
+        elif var_type == 'polynomial_control_rate2':
+            control_name = var[:-6]
+            rate_path = f'polynomial_control_rates:{control_name}_rate2'
+        elif var_type == 'parameter':
+            rate_path = f'parameter_vals:{var}'
+            dynamic = not phase.parameter_options[var]['static_target']
+            if dynamic:
+                node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+            else:
+                node_idxs = np.zeros(1, dtype=int)
+        else:
+            # Failed to find variable, assume it is in the ODE
+            rate_path = f'ode_all.{var}'
+            node_idxs = gd.subset_node_indices[nodes]
+
+        return rate_path
 
     def _get_timeseries_var_source(self, var, output_name, phase):
         """
