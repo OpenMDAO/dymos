@@ -1,4 +1,30 @@
 *******************************
+# Release Notes for Dymos 1.9.1
+
+September 14, 2023
+
+Dymos 1.9.1 fixes a few bugs introduced in 1.9.0.
+For problems in which phases are directly connected, the total derivatives
+could be wrong in some cases due to the lack of a linear solver covering
+the initial value defect. Also, control rates were showing up in timeseries
+outputs by default. Now, as expected, they must be requested explicitly
+as a timeseries output.
+
+## Backwards Incompatible API Changes & Deprecations
+- None
+- 
+## Enhancements
+- None
+
+## Bug Fixes
+- Added linear solver for cases where states solved via optimizer have input_initial=True. [#991](https://github.com/OpenMDAO/dymos/pull/991)
+- Fixed an issue where control rate values are showing up in timeseries outputs by default. [#987](https://github.com/OpenMDAO/dymos/pull/987)
+
+## Miscellaneous
+- Minor tweaks to the github issue templates. [#985](https://github.com/OpenMDAO/dymos/pull/985) [#993](https://github.com/OpenMDAO/dymos/pull/993)
+
+
+*******************************
 # Release Notes for Dymos 1.9.0
 
 September 07, 2023
