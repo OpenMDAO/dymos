@@ -12,14 +12,14 @@ from openmdao.utils.general_utils import printoptions
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
-from dymos import Trajectory, GaussLobatto, Phase, Radau
+from dymos import Trajectory, GaussLobatto, Phase, Radau, Birkhoff, BirkhoffGrid
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 
 
-tf = 10
+tf = 1000
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestHyperSensitive(unittest.TestCase):
 
     def tearDown(self):
@@ -28,7 +28,7 @@ class TestHyperSensitive(unittest.TestCase):
                 os.remove(filename)
 
     @require_pyoptsparse(optimizer='SLSQP')
-    def make_problem(self, transcription=GaussLobatto, optimizer='SLSQP', numseg=30):
+    def make_problem(self, transcription=GaussLobatto, optimizer='SLSQP', numseg=30, order=3):
         p = Problem(model=Group())
         p.driver = pyOptSparseDriver()
         p.driver.declare_coloring()
@@ -36,21 +36,24 @@ class TestHyperSensitive(unittest.TestCase):
 
         if optimizer == 'SNOPT':
             p.driver.declare_coloring()
-            p.driver.opt_settings['Major iterations limit'] = 100
+            p.driver.opt_settings['Major iterations limit'] = 1000
+            p.driver.opt_settings['iSumm'] = 6
             p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
             p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         elif optimizer == 'IPOPT':
-            p.driver.opt_settings['hessian_approximation'] = 'limited-memory'
-            # p.driver.opt_settings['nlp_scaling_method'] = 'user-scaling'
-            p.driver.opt_settings['print_level'] = 0
-            p.driver.opt_settings['linear_solver'] = 'mumps'
+            p.driver.opt_settings['print_level'] = 5
+            p.driver.opt_settings['mu_strategy'] = 'adaptive'
+            p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
+            p.driver.opt_settings['mu_init'] = 0.01
+            p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+            p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
             p.driver.declare_coloring()
         else:
             p.driver.declare_coloring()
 
         traj = p.model.add_subsystem('traj', Trajectory())
         phase0 = traj.add_phase('phase0', Phase(ode_class=HyperSensitiveODE,
-                                                transcription=transcription(num_segments=numseg, order=3)))
+                                                transcription=transcription))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot')
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L')
@@ -69,6 +72,12 @@ class TestHyperSensitive(unittest.TestCase):
         p.set_val('traj.phase0.t_initial', 0)
         p.set_val('traj.phase0.t_duration', tf)
         p.set_val('traj.phase0.controls:u', phase0.interp('u', [-0.6, 2.4]))
+
+        if transcription == Birkhoff:
+            p.set_val('traj.phase0.initial_states:x', 1.5)
+            p.set_val('traj.phase0.final_states:x', 1.0)
+            p.set_val('traj.phase0.initial_states:xL', 0.0)
+            p.set_val('traj.phase0.final_states:xL', 1.0)
 
         return p
 
@@ -92,7 +101,8 @@ class TestHyperSensitive(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_hyper_sensitive_radau(self):
-        p = self.make_problem(transcription=Radau, optimizer='IPOPT')
+        tx = Radau(num_segments=30, order=3)
+        p = self.make_problem(transcription=tx, optimizer='IPOPT')
         dm.run_problem(p, refine_iteration_limit=5)
         ui, uf, J = self.solution()
 
@@ -109,8 +119,28 @@ class TestHyperSensitive(unittest.TestCase):
                           tolerance=1e-6)
 
     @require_pyoptsparse(optimizer='IPOPT')
+    def test_hyper_sensitive_birkhoff(self):
+        tx = Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=101, grid_type='lgl'))
+        p = self.make_problem(transcription=tx, optimizer='SNOPT')
+        dm.run_problem(p, make_plots=True)
+        ui, uf, J = self.solution()
+
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
+                          ui,
+                          tolerance=5e-6)
+
+        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[-1],
+                          uf,
+                          tolerance=5e-6)
+
+        assert_near_equal(p.get_val('traj.phase0.timeseries.xL')[-1],
+                          J,
+                          tolerance=1e-6)
+
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_hyper_sensitive_gauss_lobatto(self):
-        p = self.make_problem(transcription=GaussLobatto, optimizer='IPOPT')
+        tx = GaussLobatto(num_segments=30, order=3)
+        p = self.make_problem(transcription=tx, optimizer='IPOPT')
         dm.run_problem(p, refine_iteration_limit=5)
 
         ui, uf, J = self.solution()
