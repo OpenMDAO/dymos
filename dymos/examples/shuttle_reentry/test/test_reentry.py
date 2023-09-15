@@ -27,8 +27,11 @@ class TestReentry(unittest.TestCase):
             p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
             p.driver.opt_settings['print_level'] = 0
             p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
-            p.driver.opt_settings['tol'] = 1.0E-7
+            p.driver.opt_settings['tol'] = 1.0E-2
+            p.driver.opt_settings['constr_viol_tol'] = 1.0E-6
             p.driver.opt_settings['mu_strategy'] = 'monotone'
+            p.driver.opt_settings['mu_init'] = 0.01
+            p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
         elif optimizer == 'SNOPT':
             p.driver.declare_coloring()
             p.driver.opt_settings['iSumm'] = 6
@@ -140,7 +143,21 @@ class TestReentry(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_constrained_birkhoff_lgl(self):
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=100, grid_type='lgl'))
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=30, grid_type='lgl'))
+        p = self.make_problem(constrained=True, transcription=tx, optimizer='IPOPT')
+
+        p.run_driver()
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
+                          expected_results['constrained']['time'],
+                          tolerance=1e-2)
+
+        assert_near_equal(p.get_val('traj.phase0.timeseries.theta', units='deg')[-1],
+                          expected_results['constrained']['theta'],
+                          tolerance=1e-2)
+
+    @require_pyoptsparse(optimizer='IPOPT')
+    def test_reentry_constrained_birkhoff_cgl(self):
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=30, grid_type='cgl'))
         p = self.make_problem(constrained=True, transcription=tx, optimizer='IPOPT')
 
         p.run_driver()
@@ -182,16 +199,30 @@ class TestReentry(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_unconstrained_birkhoff_lgl(self):
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=100, grid_type='lgl'))
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=30, grid_type='lgl'))
         p = self.make_problem(constrained=False, transcription=tx, optimizer='IPOPT')
 
         p.run_driver()
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
-                          expected_results['constrained']['time'],
+                          expected_results['unconstrained']['time'],
                           tolerance=1e-2)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.theta', units='deg')[-1],
-                          expected_results['constrained']['theta'],
+                          expected_results['unconstrained']['theta'],
+                          tolerance=1e-2)
+
+    @require_pyoptsparse(optimizer='IPOPT')
+    def test_reentry_unconstrained_birkhoff_cgl(self):
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=60, grid_type='cgl'))
+        p = self.make_problem(constrained=False, transcription=tx, optimizer='IPOPT')
+
+        p.run_driver()
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
+                          expected_results['unconstrained']['time'],
+                          tolerance=1e-2)
+
+        assert_near_equal(p.get_val('traj.phase0.timeseries.theta', units='deg')[-1],
+                          expected_results['unconstrained']['theta'],
                           tolerance=1e-2)
 
     @require_pyoptsparse(optimizer='IPOPT')
