@@ -11,18 +11,25 @@ from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegra
 
 
 @require_pyoptsparse(optimizer='IPOPT')
-def double_integrator(transcription='gauss-lobatto', compressed=True, grid_type='lgl'):
+def double_integrator(transcription='gauss-lobatto', compressed=True, grid_type='lgl', optimizer='IPOPT'):
 
     p = om.Problem(model=om.Group())
-    p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
+    p.driver = om.pyOptSparseDriver(optimizer=optimizer)
     p.driver.declare_coloring()
+
+    if optimizer == 'IPOPT':
+        p.driver.opt_settings['max_iter'] = 500
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+        p.driver.opt_settings['print_level'] = 0
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+        p.driver.opt_settings['tol'] = 1.0E-7
 
     if transcription == 'gauss-lobatto':
         t = dm.GaussLobatto(num_segments=30, order=3, compressed=compressed)
     elif transcription == "radau-ps":
         t = dm.Radau(num_segments=30, order=3, compressed=compressed)
     elif transcription == 'birkhoff':
-        t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=130, grid_type=grid_type))
+        t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=100, grid_type=grid_type))
     else:
         raise ValueError('invalid transcription')
 
@@ -107,7 +114,6 @@ class TestDoubleIntegratorExample(unittest.TestCase):
     def test_ex_double_integrator_radau_uncompressed(self):
         p = double_integrator('radau-ps',
                               compressed=False)
-        om.n2(p)
 
         self._assert_results(p)
 

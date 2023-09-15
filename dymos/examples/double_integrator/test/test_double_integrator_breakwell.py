@@ -11,12 +11,19 @@ from dymos.examples.double_integrator.double_integrator_breakwell_ode import Dou
 
 
 @require_pyoptsparse(optimizer='IPOPT')
-def double_integrator_direct_collocation(transcription='gauss-lobatto', compressed=True):
+def double_integrator_direct_collocation(transcription='gauss-lobatto', compressed=True, optimizer='IPOPT'):
 
     p = om.Problem(model=om.Group())
     p.driver = om.pyOptSparseDriver()
     p.driver.declare_coloring()
-    p.driver.options['optimizer'] = 'IPOPT'
+    p.driver.options['optimizer'] = optimizer
+
+    if optimizer == 'IPOPT':
+        p.driver.opt_settings['max_iter'] = 500
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+        p.driver.opt_settings['tol'] = 1.0E-7
 
     if transcription == 'gauss-lobatto':
         t = dm.GaussLobatto(num_segments=30, order=3, compressed=compressed)
@@ -34,8 +41,8 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
 
     phase.set_time_options(fix_initial=True, fix_duration=True, units='s')
 
-    phase.add_state('v', fix_initial=True, rate_source='v_dot', units='m/s')
-    phase.add_state('x', fix_initial=True, rate_source='x_dot', units='m', shape=(1, ))
+    phase.add_state('v', fix_initial=True, rate_source='u', units='m/s')
+    phase.add_state('x', fix_initial=True, rate_source='v', units='m', shape=(1, ))
     phase.add_state('J', fix_initial=True, rate_source='J_dot')
 
     phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
@@ -54,11 +61,10 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
 
     p['traj.phase0.t_initial'] = 0.0
     p['traj.phase0.t_duration'] = 1.0
-    if transcription == 'gauss-lobatto' or transcription == 'radau-ps':
-        p['traj.phase0.states:x'] = phase.interp('x', [0, 0.25])
-        p['traj.phase0.states:v'] = phase.interp('v', [1, 0])
-        p['traj.phase0.controls:u'] = phase.interp('u', [1, -1])
-    else:
+    p['traj.phase0.states:x'] = phase.interp('x', [0, 0.25])
+    p['traj.phase0.states:v'] = phase.interp('v', [1, 0])
+    p['traj.phase0.controls:u'] = phase.interp('u', [1, -1])
+    if transcription == 'birkhoff':
         p['traj.phase0.initial_states:x'] = 0.0
         p['traj.phase0.initial_states:v'] = 1.0
 

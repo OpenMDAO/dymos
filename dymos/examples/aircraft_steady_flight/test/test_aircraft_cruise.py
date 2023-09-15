@@ -279,7 +279,6 @@ class TestAircraftCruise(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
 
         p.setup()
-        om.n2(p)
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 1.0 * 3600.0
