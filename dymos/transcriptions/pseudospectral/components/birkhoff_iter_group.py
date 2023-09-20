@@ -178,7 +178,7 @@ class BirkhoffIterGroup(om.Group):
             try:
                 rate_source_var = options['rate_source']
             except RuntimeError:
-                raise ValueError(f"state '{state_name}' in phase '{phase.name}' was not given a "
+                raise ValueError(f"state '{name}' in phase '{phase.name}' was not given a "
                                  "rate_source")
 
             # Note the rate source must be shape-compatible with the state

@@ -724,7 +724,7 @@ class Birkhoff(TranscriptionBase):
             rate_path = f'parameter_vals:{var}'
             dynamic = not phase.parameter_options[var]['static_target']
             if dynamic:
-                node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+                node_idxs = np.zeros(gd.subset_num_nodes['col'], dtype=int)
             else:
                 node_idxs = np.zeros(1, dtype=int)
         else:
