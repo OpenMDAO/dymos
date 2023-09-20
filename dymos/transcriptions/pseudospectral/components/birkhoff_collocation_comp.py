@@ -214,7 +214,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['state_segment_ends'],
-                                  rows=c_rows, cols=c_cols, val=-c_data)
+                                  rows=c_rows, cols=c_cols, val=-c_data.ravel())
 
             # The derivative of the state defect wrt [X;V] is [A].
             # Since X comprises the first n elements in [X;V], we only
@@ -237,7 +237,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['f_value'],
-                                  rows=b_rows, cols=b_cols, val=b_data)
+                                  rows=b_rows, cols=b_cols, val=b_data.ravel())
 
             self.declare_partials(of=var_names['state_rate_defect'],
                                   wrt=var_names['f_value'],

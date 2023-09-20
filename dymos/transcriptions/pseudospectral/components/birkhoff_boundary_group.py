@@ -8,6 +8,51 @@ from ...grid_data import GridData
 from ....phase.options import TimeOptionsDictionary
 
 
+class BirkhoffBoundaryMuxComp(om.ExplicitComponent):
+    """
+    Class definition of the BirtkhoffBoundaryMuxComp.
+
+    This component takes the initial and final values of states
+    and muxes them into a single output.
+
+    For a state of a given `shape` in a phase with `num_seg` segments,
+    the shape of `initial_states:{state_name}` and `final_states:{state_name}`
+    are both `(num_seg,) + shape` and the shape of the resulting
+    `states:{state_name}` is `(2,) + shape`.
+    """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._io_names = {}
+
+    def configure_io(self, num_segs, state_options):
+        self._io_names = {}
+        for state_name, options in state_options.items():
+            shape = options['shape']
+            size = np.prod(shape, dtype=int)
+            units = options['units']
+            self._io_names[state_name] = {'initial': f'initial_states:{state_name}',
+                                          'final': f'final_states:{state_name}',
+                                          'boundary': state_name}
+
+            iname = self._io_names[state_name]['initial']
+            fname = self._io_names[state_name]['final']
+            bname = self._io_names[state_name]['boundary']
+
+            self.add_input(iname, shape=shape, units=units)
+            self.add_input(fname, shape=shape, units=units)
+            self.add_output(bname, shape=(2,) + shape, units=units)
+
+            ar = np.arange(size, dtype=int)
+
+            self.declare_partials(of=bname, wrt=iname, rows=ar, cols=ar, val=1.0)
+            self.declare_partials(of=bname, wrt=fname, rows=ar + size, cols=ar, val=1.0)
+
+    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+        for state_name, io_names in self._io_names.items():
+            outputs[io_names['boundary']][0] = inputs[io_names['initial']]
+            outputs[io_names['boundary']][1] = inputs[io_names['final']]
+
+
 class BirkhoffBoundaryGroup(om.Group):
     """
     Class definition for the BirkhoffBoundaryEvalGroup.
@@ -67,6 +112,9 @@ class BirkhoffBoundaryGroup(om.Group):
         fbcs = self.options['final_boundary_constraints']
         objs = [meta for meta in self.options['objectives'].values()]
 
+        self.add_subsystem('boundary_mux', subsys=BirkhoffBoundaryMuxComp(),
+                           promotes_inputs=['*'], promotes_outputs=['*'])
+
         self.add_subsystem('boundary_ode', subsys=ode_class(num_nodes=2, **ode_init_kwargs),
                            promotes_inputs=['*'], promotes_outputs=['*'])
 
@@ -78,13 +126,16 @@ class BirkhoffBoundaryGroup(om.Group):
     def configure_io(self, phase):
         grid_data = phase.options['transcription'].grid_data
         nn = grid_data.subset_num_nodes['all']
-        # for name, options in phase.state_options.items():
-        #     units = options['units']
-        #     rate_source = options['rate_source']
-        #     shape = options['shape']
-        #
-        #     for tgt in options['targets']:
-        #         self.promotes('boundary_ode', [(tgt, f'states:{name}')],
-        #                        src_indices=om.slicer[[0, -1,], ...],
-        #                        src_shape=(nn,) + shape,
-        #                        flat_src_indices=True)
+
+        self._get_subsystem('boundary_mux').configure_io(num_segs=grid_data.num_segments,
+                                                         state_options=phase.state_options)
+
+        for state_name, options in phase.state_options.items():
+            # self.connect(state_name, [tgt for tgt in options['targets']])
+            for tgt in options['targets']:
+                self.promotes('boundary_ode', inputs=[(tgt, state_name)])
+            if options['targets']:
+                self.set_input_defaults(name=state_name,
+                                        val=options['val'],
+                                        units=options['units'])
+
