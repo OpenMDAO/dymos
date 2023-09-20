@@ -70,10 +70,11 @@ class TestBrachistochroneSimulate(unittest.TestCase):
         import numpy as np
         import openmdao.api as om
         import dymos as dm
+        from dymos.utils.misc import _unspecified
 
-        for method, atol, first_step in itertools.product(('RK23', 'RK45'), (0.01, 0.001),
-                                                          (None, 0.01, .1)):
-            with self.subTest():
+        for method, atol, first_step, times_per_seg in \
+                itertools.product(('RK23', 'RK45'), (0.01, 0.001), (None, 0.01, .1), (_unspecified, 10, 20)):
+            with self.subTest(msg=f'{method} {atol} {first_step} {times_per_seg}'):
 
                 #
                 # Define the OpenMDAO problem
@@ -91,7 +92,7 @@ class TestBrachistochroneSimulate(unittest.TestCase):
                 # Define a Dymos Phase object with GaussLobatto Transcription
                 #
                 phase = dm.Phase(ode_class=BrachistochroneODE,
-                                 transcription=dm.GaussLobatto(num_segments=10, order=3))
+                                 transcription=dm.GaussLobatto(num_segments=5, order=3))
 
                 traj.add_phase(name='phase0', phase=phase)
 
@@ -121,7 +122,8 @@ class TestBrachistochroneSimulate(unittest.TestCase):
                 phase.add_objective('time', loc='final')
 
                 # Set the simulate options
-                phase.set_simulate_options(method=method, atol=atol, first_step=first_step)
+                phase.set_simulate_options(method=method, atol=atol,
+                                           first_step=first_step, times_per_seg=times_per_seg)
 
                 # Set the driver.
                 p.driver = om.ScipyOptimizeDriver()
@@ -142,5 +144,22 @@ class TestBrachistochroneSimulate(unittest.TestCase):
 
                 p.set_val('traj.phase0.controls:theta', phase.interp('theta', [90, 90]), units='deg')
 
-                # Run the driver to solve the problem
-                dm.run_problem(p, run_driver=True, simulate=True)
+                # Run the driver to simulate the problem
+                dm.run_problem(p, run_driver=False, simulate=True)
+
+                sim = om.CaseReader('dymos_simulation.db').get_case('final')
+                t = sim.get_val('traj.phase0.timeseries.time')
+
+                opt_times_per_seg = phase.simulate_options['times_per_seg']
+                num_segments = phase.options['transcription'].grid_data.num_segments
+
+                expected_num_times = opt_times_per_seg * num_segments if times_per_seg is _unspecified \
+                    else times_per_seg * num_segments
+
+                self.assertEqual(expected_num_times, t.size)
+
+                dm.run_problem(p, run_driver=False, simulate=True, simulate_kwargs={'times_per_seg': 7})
+
+                sim = om.CaseReader('dymos_simulation.db').get_case('final')
+                t = sim.get_val('traj.phase0.timeseries.time')
+                self.assertEqual(7 * num_segments, t.size)

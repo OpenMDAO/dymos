@@ -12,7 +12,7 @@ as a timeseries output.
 
 ## Backwards Incompatible API Changes & Deprecations
 - None
-- 
+
 ## Enhancements
 - None
 
