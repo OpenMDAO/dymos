@@ -231,7 +231,7 @@ class TestAircraftCruise(unittest.TestCase):
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
 
-        grid = dm.BirkhoffGrid(num_segments=1, nodes_per_seg=80, grid_type='lgl')
+        grid = dm.BirkhoffGrid(num_segments=1, nodes_per_seg=10, grid_type='lgl')
 
         transcription = dm.Birkhoff(grid=grid)
         phase = dm.Phase(ode_class=AircraftODE, transcription=transcription)

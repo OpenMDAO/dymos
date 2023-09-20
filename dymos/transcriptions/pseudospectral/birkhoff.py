@@ -291,7 +291,6 @@ class Birkhoff(TranscriptionBase):
                                src_shape=(nn,) + shape,
                                flat_src_indices=True)
 
-
     def setup_defects(self, phase):
         """
         Create the continuity_comp to house the defects.
