@@ -755,6 +755,11 @@ class TestLinkages(unittest.TestCase):
         burn2.add_objective('deltav', loc='final')
 
         # Link Phases
+
+        # Note we have to manually add the control rate here to link it between phases.
+        for phs in (burn1, burn2):
+            phs.add_timeseries_output('u1_rate2')
+
         self.traj.link_phases(phases=['burn1', 'coast', 'burn2'],
                               vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
         self.traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
@@ -885,6 +890,11 @@ class TestLinkages(unittest.TestCase):
         burn2.add_objective('deltav', loc='final')
 
         # Link Phases
+
+        # Note that we have to add the control rate to the timeseries in order to link it.
+        for phs in (burn1, burn2):
+            phs.add_timeseries_output('u1_rate')
+
         self.traj.link_phases(phases=['burn1', 'coast', 'burn2'],
                               vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
         self.traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
@@ -1015,6 +1025,11 @@ class TestLinkages(unittest.TestCase):
         burn2.add_objective('deltav', loc='final')
 
         # Link Phases
+
+        # Note that we have to add the control rate to the timeseries in order to link it.
+        for phs in (burn1, burn2):
+            phs.add_timeseries_output('u1_rate2')
+
         self.traj.link_phases(phases=['burn1', 'coast', 'burn2'],
                               vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
         self.traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])

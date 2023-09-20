@@ -63,6 +63,7 @@ class BirkhoffIterGroup(om.Group):
         initial_state_name = f'initial_states:{name}'
         final_state_name = f'final_states:{name}'
         state_rate_name = f'state_rates:{name}'
+        state_segment_ends_name = f'state_segment_ends:{name}'
 
         solve_segs = options['solve_segments']
         opt = options['opt']
@@ -78,12 +79,12 @@ class BirkhoffIterGroup(om.Group):
         fix_initial = options['fix_initial']
         fix_final = options['fix_final']
 
-        free_vars = {state_name, state_rate_name, initial_state_name, final_state_name}
+        free_vars = {state_name, state_rate_name, state_segment_ends_name, initial_state_name, final_state_name}
 
         if solve_segs == 'forward':
-            implicit_outputs = {state_name, state_rate_name, final_state_name}
+            implicit_outputs = {state_name, state_rate_name, final_state_name, state_segment_ends_name}
         elif solve_segs == 'backward':
-            implicit_outputs = {state_name, state_rate_name, initial_state_name}
+            implicit_outputs = {state_name, state_rate_name, initial_state_name, state_segment_ends_name}
         else:
             implicit_outputs = set()
 
@@ -98,6 +99,15 @@ class BirkhoffIterGroup(om.Group):
             # Add design variables for the remaining free variables
             if state_name in free_vars:
                 self.add_design_var(name=state_name,
+                                    lower=lower,
+                                    upper=upper,
+                                    scaler=scaler,
+                                    adder=adder,
+                                    ref0=ref0,
+                                    ref=ref)
+
+            if state_segment_ends_name in free_vars:
+                self.add_design_var(name=state_segment_ends_name,
                                     lower=lower,
                                     upper=upper,
                                     scaler=scaler,

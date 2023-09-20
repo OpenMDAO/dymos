@@ -189,11 +189,10 @@ class Trajectory(om.Group):
         if shape is not _unspecified:
             self.parameter_options[name]['shape'] = shape
 
-        if dynamic is not _unspecified:
-            self.parameter_options[name]['static_target'] = not dynamic
+        if dynamic is not _unspecified:  # Deprecated
+            self.parameter_options[name]['static_targets'] = not dynamic
 
-        if static_target is not _unspecified:
-            self.parameter_options[name]['static_target'] = static_target
+        if static_target is not _unspecified:  # Deprecated
             self.parameter_options[name]['static_targets'] = static_target
 
         if static_targets is not _unspecified:

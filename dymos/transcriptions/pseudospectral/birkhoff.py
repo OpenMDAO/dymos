@@ -277,19 +277,8 @@ class Birkhoff(TranscriptionBase):
         ode = phase._get_subsystem(self._rhs_source)
         ode_inputs = get_promoted_vars(ode, 'input')
 
+        phase._get_subsystem('boundary_vals').configure_io(phase)
         phase._get_subsystem('ode_iter_group').configure_io(phase)
-
-        for name, options in phase.state_options.items():
-            shape = options['shape']
-            size = np.prod(shape)
-            idxs = [i for i in range(size)]
-            idxs += [j for j in range((nn-1)*size, nn*size)]
-
-            for tgt in options['targets']:
-                phase.promotes('boundary_vals', inputs=[(tgt, f'states:{name}')],
-                               src_indices=idxs,
-                               src_shape=(nn,) + shape,
-                               flat_src_indices=True)
 
     def setup_defects(self, phase):
         """

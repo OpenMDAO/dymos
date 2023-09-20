@@ -278,6 +278,10 @@ class TestIntegrateControl(unittest.TestCase):
                                     loc_a='initial', loc_b='initial',
                                     units='rad/s')
 
+        # Note we have to add theta_rate to the timeseries outputs here because
+        # linkages get boundary values from that output.
+        phase.add_timeseries_output('theta_rate')
+
         # Minimize final time.
         phase.add_objective('time', loc='final')
 
@@ -621,6 +625,10 @@ class TestIntegratePolynomialControl(unittest.TestCase):
                                     var_a='int_theta_dot', var_b='theta_rate',
                                     loc_a='initial', loc_b='initial',
                                     units='rad/s')
+
+        # Note for this test we have to add theta rate to the timeseries outputs since it's
+        # not there by default.
+        phase.add_timeseries_output('theta_rate')
 
         # Minimize final time.
         phase.add_objective('time', loc='final')

@@ -224,6 +224,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
         p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
         p.driver.opt_settings['mu_strategy'] = 'monotone'
+        p.driver.opt_settings['derivative_test'] = 'first-order'
         if show_output:
             p.driver.opt_settings['print_level'] = 5
 
