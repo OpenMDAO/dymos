@@ -455,29 +455,20 @@ class AnalyticPhase(Phase):
         """
         raise NotImplementedError('Method `simulate` is not available for AnalyticPhase.')
 
-    def set_simulate_options(self, method=_unspecified, atol=_unspecified, rtol=_unspecified,
-                             first_step=_unspecified, max_step=_unspecified):
+    def set_simulate_options(self, *args, **kwargs):
         """
         Stub to make sure users are informed that simulate cannot be done on AnalyticPhase.
 
         Parameters
         ----------
-        method : str
-            The scipy.integrate.solve_ivp integration method.
-        atol : float
-            Absolute convergence tolerance for scipy.integrate.solve_ivp.
-        rtol : float
-            Relative convergence tolerance for scipy.integrate.solve_ivp.
-        first_step : float
-            Initial step size for the integration.
-        max_step : float
-            Maximum step size for the integration.
+        *args
+            Position arguments.
+        **kwargs : float
+            Keyword arguments.
 
-        Returns
-        -------
-        problem
-            An OpenMDAO Problem in which the simulation is implemented.  This Problem interface
-            can be interrogated to obtain timeseries outputs in the same manner as other Phases
-            to obtain results at the requested times.
+        Raises
+        ------
+        NotImplementedError
+            Simulation cannot be performed on AnalyticPhase.
         """
         raise NotImplementedError('Method set_simulate_options is not available for AnalyticPhase.')
