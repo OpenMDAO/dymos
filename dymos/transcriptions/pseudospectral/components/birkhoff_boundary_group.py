@@ -77,16 +77,6 @@ class BirkhoffBoundaryGroup(om.Group):
         """
         Declare group options.
         """
-        # self.options.declare('state_options', types=dict,
-        #                      desc='Dictionary of options for the states.')
-        # self.options.declare('control_options', types=dict,
-        #                      desc='Dictionary of options for the controls.')
-        # self.options.declare('polynomial_control_options', types=dict,
-        #                      desc='Dictionary of options for the polynomial controls.')
-        # self.options.declare('parameters', types=dict,
-        #                      desc='Dictionary of options for the parameters.')
-        # self.options.declare('time_options', types=TimeOptionsDictionary,
-        #                      desc='Options for time in the phase.')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info.')
         self.options.declare('ode_class', default=None,
                              desc='Callable that instantiates the ODE system.',
@@ -131,7 +121,6 @@ class BirkhoffBoundaryGroup(om.Group):
                                                          state_options=phase.state_options)
 
         for state_name, options in phase.state_options.items():
-            # self.connect(state_name, [tgt for tgt in options['targets']])
             for tgt in options['targets']:
                 self.promotes('boundary_ode', inputs=[(tgt, state_name)])
             if options['targets']:
