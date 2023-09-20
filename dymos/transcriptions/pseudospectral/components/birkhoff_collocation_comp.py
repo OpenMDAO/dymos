@@ -204,44 +204,40 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
             var_names = self.var_names[state_name]
 
-            # self.declare_partials(of=var_names['state_defect'],
-            #                       wrt=var_names['state_value'],
-            #                       rows=ar1, cols=ar1,
-            #                       val=1.0)
-            #
-            # self.declare_partials(of=var_names['state_defect'],
-            #                       wrt=var_names['f_value'],
-            #                       rows=rB,
-            #                       cols=cB,
-            #                       val=np.repeat(-B.flatten(), size))
-            #
-
-            c_sparse = sp.csr_matrix(self._C)
+            # The derivative of the state defect wrt x_ab is [-C].
+            # Take the Kronecker product of that and an identity matrix
+            # of the state's size to get the pattern that includes each
+            # individual element in the state.
+            c_sparse = sp.kron(self._C, sp.eye(size))
             c_rows, c_cols = c_sparse.nonzero()
             c_data = c_sparse.data
+
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['state_segment_ends'],
                                   rows=c_rows, cols=c_cols, val=-c_data)
 
-            ddefect_dXV = sp.csr_matrix(self._A)
-            dXV_dX_rows = dXV_dX_cols = dXV_dV_cols = np.repeat(np.arange(num_nodes), size)
-            dXV_dV_rows = num_nodes + np.repeat(np.arange(num_nodes), size)
-            dXV_dX = np.vstack((np.eye(num_nodes), np.zeros((num_nodes, num_nodes))))
-            dXV_dV = np.vstack((np.zeros((num_nodes, num_nodes)), np.eye(num_nodes)))
-            ddefect_dX = ddefect_dXV.dot(dXV_dX)
-            ddefect_dV = ddefect_dXV.dot(dXV_dV)
-            ddefect_dX_rows, ddefect_dX_cols = ddefect_dX.nonzero()
-            ddefect_dX_val = ddefect_dX[ddefect_dX_rows, ddefect_dX_cols]
-            ddefect_dV_rows, ddefect_dV_cols = ddefect_dV.nonzero()
-            ddefect_dV_val = ddefect_dV[ddefect_dV_rows, ddefect_dV_cols]
-
+            # The derivative of the state defect wrt [X;V] is [A].
+            # Since X comprises the first n elements in [X;V], we only
+            # need the first `n` columns of [A], which are an identity matrix
+            # with a row of zeros beneath for each segment.
+            # Take the Kronecker product of that and an identity matrix
+            # of the state's size to get the pattern that includes each
+            # individual element in the state.
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['state_value'],
-                                  rows=ddefect_dX_rows, cols=ddefect_dX_cols, val=ddefect_dX_val)
+                                  rows=ar1, cols=ar1, val=1)
+
+            # Similar to the states wrt X, since V is the final n elements in
+            # [X;V] we take the last n columns of A and take the kronecker product
+            # of it and an identity matrix of the state's size to get the
+            # overall sparsity pattern.
+            b_sparse = sp.kron(self._A[:, num_nodes:], sp.eye(size))
+            b_rows, b_cols = b_sparse.nonzero()
+            b_data = b_sparse.data
 
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['f_value'],
-                                  rows=ddefect_dV_rows, cols=ddefect_dV_cols, val=ddefect_dV_val)
+                                  rows=b_rows, cols=b_cols, val=b_data)
 
             self.declare_partials(of=var_names['state_rate_defect'],
                                   wrt=var_names['f_value'],
