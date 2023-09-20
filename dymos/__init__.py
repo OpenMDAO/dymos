@@ -1,4 +1,5 @@
-__version__ = '1.9.1'
+__version__ = '1.9.2-dev'
+
 
 from .phase import Phase, AnalyticPhase
 from .transcriptions import GaussLobatto, Radau, ExplicitShooting, Analytic
