@@ -1,3 +1,4 @@
+import numpy as np
 import openmdao.api as om
 import dymos as dm
 import unittest
@@ -7,7 +8,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from dymos.examples.moon_landing import MoonLandingProblemODE
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestMoonLandingProblem(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
@@ -51,9 +52,15 @@ class TestMoonLandingProblem(unittest.TestCase):
         self.p.set_val('traj.phase.controls:T', phase.interp('T', [0.0, 1.227]))
 
     def test_problem_lgl(self):
-        self.make_problem(grid_type='lgl')
-        dm.run_problem(self.p, simulate=True, simulate_kwargs={'times_per_seg': 100},
-                       make_plots=True)
+
+        with dm.options.temporary(include_check_partials=True):
+            self.make_problem(grid_type='lgl')
+            dm.run_problem(self.p, simulate=True, simulate_kwargs={'times_per_seg': 100},
+                           make_plots=True)
+
+            with np.printoptions(linewidth=1024):
+                self.p.check_partials(compact_print=True, method='cs')
+
         h = self.p.get_val('traj.phase.timeseries.h')
         v = self.p.get_val('traj.phase.timeseries.v')
         m = self.p.get_val('traj.phase.timeseries.m')
