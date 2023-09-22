@@ -78,6 +78,8 @@ class BirkhoffIterGroup(om.Group):
         ref = options['ref']
         fix_initial = options['fix_initial']
         fix_final = options['fix_final']
+        input_initial = options['input_initial']
+        input_final = options['input_final']
 
         free_vars = {state_name, state_rate_name, state_segment_ends_name, initial_state_name, final_state_name}
 
@@ -90,9 +92,9 @@ class BirkhoffIterGroup(om.Group):
 
         free_vars = free_vars - implicit_outputs
 
-        if fix_initial:
+        if fix_initial or input_initial:
             free_vars = free_vars - {initial_state_name}
-        if fix_final:
+        if fix_final or input_final:
             free_vars = free_vars - {final_state_name}
 
         if opt:

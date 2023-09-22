@@ -255,10 +255,9 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.set_val('traj.descent.states:gam', descent.interp('gam', [0, -45]), units='deg')
         p.set_val('traj.descent.final_states:h', 0.0)
 
-        # om.n2(p)
         dm.run_problem(p)
-        # assert_near_equal(p.get_val('traj.descent.states:r')[-1],
-        #                   3183.25, tolerance=1.0E-4)
+        assert_near_equal(p.get_val('traj.descent.states:r')[-1],
+                          3183.25, tolerance=1.0E-4)
 
     def test_two_phase_cannonball_birkhoff_unconnected(self):
         self.make_problem(connected=False)
