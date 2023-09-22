@@ -760,7 +760,7 @@ class Trajectory(om.Group):
     def _configure_linkages(self):
 
         if self.options['sim_mode']:
-            # If this is a simulation trajectory, theres no need to link the phases.
+            # If this is a simulation trajectory, there's no need to link the phases.
             return
 
         connected_linkage_inputs = []

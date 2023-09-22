@@ -866,6 +866,7 @@ class Birkhoff(TranscriptionBase):
             for tgt in options['targets']:
                 if tgt in options['static_targets']:
                     src_idxs = np.squeeze(get_src_indices_by_row([0], options['shape']), axis=0)
+                    endpoint_src_idxs = om.slicer[:, ...]
                 else:
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
