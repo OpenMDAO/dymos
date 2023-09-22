@@ -306,19 +306,21 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
                     units=units
                 )
 
-                deriv_pattern = np.zeros((num_segs - 1, 2 * num_segs * size))
-                for i in range(num_segs - 1):
-                    deriv_pattern[i, i+1] = 1.0
-                    deriv_pattern[i, i+2] = -1.0
-                deriv = sp.kron(sp.csr_matrix(deriv_pattern), sp.eye(size))
-                rs, cs = deriv.nonzero()
-                val = deriv.data.ravel()
+                # Build the derivative matrix for the derivative of state continuity wrt the segment end vals.
+                cnty_deriv_pattern = np.zeros((num_segs - 1,) + (size,) + (num_segs, 2) + (size,))
+                for of_segbound in range(num_segs - 1):
+                    next_seg_idx = of_segbound + 1
+                    prev_seg_idx = of_segbound
+                    for state_idx in range(size):
+                        cnty_deriv_pattern[of_segbound, state_idx, prev_seg_idx, 1, state_idx] = 1.0
+                        cnty_deriv_pattern[of_segbound, state_idx, next_seg_idx, 0, state_idx] = -1.0
+                cnty_deriv = sp.csr_matrix(cnty_deriv_pattern.reshape((num_segs - 1) * size, num_segs * 2 * size))
+                rs, cs = cnty_deriv.nonzero()
+                val = cnty_deriv.data.ravel()
 
                 self.declare_partials(of=var_names['state_continuity_defect'],
                                       wrt=var_names['state_segment_ends'],
-                                      rows=np.repeat(np.arange(num_segs - 1, dtype=int), 2),
-                                      cols=np.arange(1, 2 * num_segs - 1, dtype=int),
-                                      val=np.tile([1, -1], num_segs - 1))
+                                      rows=rs, cols=cs, val=val)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         dt_dstau = np.atleast_2d(inputs['dt_dstau']).T
@@ -348,12 +350,8 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             outputs[var_names['initial_state_defect']] = x_ab[0, 0, ...] - x_a
             outputs[var_names['final_state_defect']] = x_ab[-1, 1, ...] - x_b
 
-            # print()
-            # print(x_ab)
-            # print(x_ab[1:, 1, ...], '\n', x_ab[:-1, 0, ...])
-            # print()
-
             if num_segs > 1:
+                (num_segs - 1) * size
                 outputs[var_names['state_continuity_defect']] = x_ab[:-1, 1, ...] - x_ab[1:, 0, ...]
 
     def compute_partials(self, inputs, partials):
