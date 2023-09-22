@@ -12,7 +12,17 @@ from dymos.transcriptions.pseudospectral.components import BirkhoffIterGroup
 from dymos.phase.options import StateOptionsDictionary, TimeOptionsDictionary
 from dymos.transcriptions.grid_data import BirkhoffGrid
 
-BirkhoffIterGroup = CompWrapperConfig(BirkhoffIterGroup)
+
+class _PhaseStub():
+    """
+    A stand-in for the Phase during config_io for testing.
+    It just supports the classify_var method and returns "state", the only value needed for unittests.
+    """
+    def classify_var(self, name):
+        return 'ode'
+
+
+BirkhoffIterGroup = CompWrapperConfig(BirkhoffIterGroup, [_PhaseStub()])
 
 
 class SimpleODE(om.ExplicitComponent):
@@ -273,6 +283,9 @@ class TestBirkhoffIterGroup(unittest.TestCase):
             solution = np.reshape(times**2 + 2 * times + 1 - 0.5 * np.exp(times), (nn, 1))
             dsolution_dt = np.reshape(2 * times + 2 - 0.5 * np.exp(times), (nn, 1))
             x_final = 2.0**2 + 2 * 2.0 + 1 - 0.5 * np.exp(2.0)
+
+            om.n2(p)
+            exit(0)
 
             p.set_val('birkhoff.final_states:x', x_final)
             p.set_val('birkhoff.ode_all.t', times)

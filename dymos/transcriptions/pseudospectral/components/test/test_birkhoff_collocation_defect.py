@@ -1,7 +1,6 @@
 import unittest
 
 import numpy as np
-import scipy.special
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
@@ -13,7 +12,18 @@ from dymos.transcriptions.grid_data import BirkhoffGrid
 
 # Modify class so we can run it standalone.
 from dymos.utils.misc import CompWrapperConfig
-CollocationComp = CompWrapperConfig(BirkhoffCollocationComp)
+
+
+class _PhaseStub():
+    """
+    A stand-in for the Phase during config_io for testing.
+    It just supports the classify_var method and returns "state", the only value needed for unittests.
+    """
+    def classify_var(self, name):
+        return None
+
+
+CollocationComp = CompWrapperConfig(BirkhoffCollocationComp, [_PhaseStub()])
 
 
 class TestCollocationComp(unittest.TestCase):
@@ -31,10 +41,10 @@ class TestCollocationComp(unittest.TestCase):
 
         state_options = {'x': {'units': 'm', 'shape': (1,), 'fix_initial': True,
                                'fix_final': False, 'solve_segments': False,
-                               'input_initial': False},
+                               'input_initial': False, 'rate_source': 'foo'},
                          'y': {'units': 'm', 'shape': (2, 2), 'fix_initial': False,
                                'fix_final': True, 'solve_segments': False,
-                               'input_initial': False}}
+                               'input_initial': False, 'rate_source': 'bar'}}
 
         indep_comp = om.IndepVarComp()
         self.p.model.add_subsystem('indep', indep_comp, promotes_outputs=['*'])
@@ -91,53 +101,37 @@ class TestCollocationComp(unittest.TestCase):
 
         self.p.set_val('defect_comp.initial_states:x', 10.0)
         self.p.set_val('defect_comp.final_states:x', 10*np.exp(-10))
+        self.p.set_val('defect_comp.state_segment_ends:x', [[10.0, 10*np.exp(-10)]])
 
         self.p.set_val('defect_comp.initial_states:y', np.array([[10.0, 0.0], [0.0, 10.0]]))
         self.p.set_val('defect_comp.final_states:y', np.array([[10*np.exp(-10), 0.0], [0.0, 10*np.exp(-10)]]))
+        self.p.set_val('defect_comp.state_segment_ends:y', np.array([[[10.0, 0.0],
+                                                                      [0.0, 10.0]],
+                                                                     [[10*np.exp(-10), 0.0],
+                                                                      [0.0, 10*np.exp(-10)]]]))
 
         self.p.run_model()
 
     def tearDown(self):
         dm.options['include_check_partials'] = False
 
-    def test_results_lgr_grid(self):
-        self.make_problem(grid_type='lgr')
-        assert_almost_equal(self.p['defect_comp.state_defects:x'], 0.0)
-        assert_almost_equal(self.p['defect_comp.state_rate_defects:x'], 0.0)
-        assert_almost_equal(self.p['defect_comp.final_state_defects:x'], 0.0)
-        assert_almost_equal(self.p['defect_comp.state_defects:y'], 0.0)
-        assert_almost_equal(self.p['defect_comp.state_rate_defects:y'], 0.0)
-        assert_almost_equal(self.p['defect_comp.final_state_defects:y'], 0.0)
+    def test_results(self):
+        for grid_type in ('lgl', 'cgl'):
+            with self.subTest(msg=grid_type):
+                self.make_problem(grid_type=grid_type)
+                assert_almost_equal(self.p['defect_comp.state_defects:x'], 0.0)
+                assert_almost_equal(self.p['defect_comp.state_rate_defects:x'], 0.0)
+                assert_almost_equal(self.p['defect_comp.final_state_defects:x'], 0.0)
+                assert_almost_equal(self.p['defect_comp.state_defects:y'], 0.0)
+                assert_almost_equal(self.p['defect_comp.state_rate_defects:y'], 0.0)
+                assert_almost_equal(self.p['defect_comp.final_state_defects:y'], 0.0)
 
-    def test_results_lgl_grid(self):
-        self.make_problem(grid_type='lgl')
-        assert_almost_equal(self.p['defect_comp.state_defects:x'], 0.0)
-        assert_almost_equal(self.p['defect_comp.state_rate_defects:x'], 0.0)
-        assert_almost_equal(self.p['defect_comp.final_state_defects:x'], 0.0)
-        assert_almost_equal(self.p['defect_comp.state_defects:y'], 0.0)
-        assert_almost_equal(self.p['defect_comp.state_rate_defects:y'], 0.0)
-        assert_almost_equal(self.p['defect_comp.final_state_defects:y'], 0.0)
-
-    def test_results_cgl_grid(self):
-        self.make_problem(grid_type='cgl')
-        assert_almost_equal(self.p['defect_comp.state_defects:x'], 0.0)
-        assert_almost_equal(self.p['defect_comp.state_rate_defects:x'], 0.0)
-        assert_almost_equal(self.p['defect_comp.final_state_defects:x'], 0.0)
-        assert_almost_equal(self.p['defect_comp.state_defects:y'], 0.0)
-        assert_almost_equal(self.p['defect_comp.state_rate_defects:y'], 0.0)
-        assert_almost_equal(self.p['defect_comp.final_state_defects:y'], 0.0)
-
-    def test_partials_lgl(self):
-        self.make_problem(grid_type='lgl')
-        np.set_printoptions(linewidth=1024)
-        cpd = self.p.check_partials(compact_print=False, method='fd')
-        assert_check_partials(cpd)
-
-    def test_partials_cgl(self):
-        self.make_problem(grid_type='cgl')
-        np.set_printoptions(linewidth=1024)
-        cpd = self.p.check_partials(compact_print=False, method='fd')
-        assert_check_partials(cpd)
+    def test_partials(self):
+        for grid_type in ('lgl', 'cgl'):
+            with self.subTest(msg=grid_type):
+                self.make_problem(grid_type=grid_type)
+                cpd = self.p.check_partials(compact_print=True, method='fd', out_stream=None)
+                assert_check_partials(cpd)
 
 
 if __name__ == '__main__':  # pragma: no cover

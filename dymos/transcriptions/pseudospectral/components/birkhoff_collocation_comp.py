@@ -8,7 +8,6 @@ from dymos.transcriptions.grid_data import GridData
 from dymos.utils.misc import get_rate_units
 from dymos._options import options as dymos_options
 from dymos.utils.lgl import lgl
-from dymos.utils.lgr import lgr
 from dymos.utils.cgl import cgl
 from dymos.utils.birkhoff import birkhoff_matrix
 
@@ -38,6 +37,11 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
     def configure_io(self, phase):
         """
         I/O creation is delayed until configure so we can determine shape and units.
+
+        Parameters
+        ----------
+        phase : Phase
+            The phase object that contains this collocation comp.
         """
         gd = self.options['grid_data']
         num_nodes = gd.subset_num_nodes['col']
@@ -324,7 +328,6 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         dt_dstau = np.atleast_2d(inputs['dt_dstau']).T
-        num_nodes = self.options['grid_data'].subset_num_nodes['all']
         num_segs = self.options['grid_data'].num_segments
 
         for state_name, options in self.options['state_options'].items():
