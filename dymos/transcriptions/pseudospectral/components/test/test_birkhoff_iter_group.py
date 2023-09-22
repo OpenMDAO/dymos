@@ -7,7 +7,7 @@ import openmdao.api as om
 import dymos
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 
-from dymos.utils.misc import CompWrapperConfig
+from dymos.utils.misc import GroupWrapperConfig
 from dymos.transcriptions.pseudospectral.components import BirkhoffIterGroup
 from dymos.phase.options import StateOptionsDictionary, TimeOptionsDictionary
 from dymos.transcriptions.grid_data import BirkhoffGrid
@@ -22,7 +22,7 @@ class _PhaseStub():
         return 'ode'
 
 
-BirkhoffIterGroup = CompWrapperConfig(BirkhoffIterGroup, [_PhaseStub()])
+BirkhoffIterGroup = GroupWrapperConfig(BirkhoffIterGroup, [_PhaseStub()])
 
 
 class SimpleODE(om.ExplicitComponent):
@@ -110,8 +110,8 @@ class TestBirkhoffIterGroup(unittest.TestCase):
 
             assert_near_equal(solution, p.get_val('birkhoff.states:x'), tolerance=1.0E-9)
             assert_near_equal(dsolution_dt, p.get_val('birkhoff.state_rates:x'), tolerance=1.0E-9)
-            assert_near_equal(solution[0], p.get_val('birkhoff.initial_states:x'), tolerance=1.0E-9)
-            assert_near_equal(solution[-1], p.get_val('birkhoff.final_states:x'), tolerance=1.0E-9)
+            assert_near_equal(solution[np.newaxis, 0], p.get_val('birkhoff.initial_states:x'), tolerance=1.0E-9)
+            assert_near_equal(solution[np.newaxis, -1], p.get_val('birkhoff.final_states:x'), tolerance=1.0E-9)
 
             cpd = p.check_partials(method='cs', compact_print=True, out_stream=None)
             assert_check_partials(cpd)

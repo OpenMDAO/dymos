@@ -177,7 +177,7 @@ def CompWrapperConfig(comp_class, config_io_args=None):
 
 
 # Modify class so we can run it standalone.
-def GroupWrapperConfig(comp_class):
+def GroupWrapperConfig(comp_class, config_io_args=None):
     """
     Returns a wrapped group_class that calls its configure_io method at the end of setup.
 
@@ -206,6 +206,7 @@ def GroupWrapperConfig(comp_class):
             """
             Call configure_io during configure.
             """
-            self.configure_io()
+            args = [] if config_io_args is None else config_io_args
+            self.configure_io(*args)
 
     return WrappedClass

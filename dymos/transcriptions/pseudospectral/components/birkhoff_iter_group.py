@@ -183,6 +183,14 @@ class BirkhoffIterGroup(om.Group):
                                                             shape=(nn+ns,) + shape,
                                                             units=units)
 
+                states_balance_comp.add_residual_from_input(f'initial_state_defects:{name}',
+                                                            shape=(1,) + shape,
+                                                            units=units)
+
+                states_balance_comp.add_residual_from_input(f'final_state_defects:{name}',
+                                                            shape=(1,) + shape,
+                                                            units=units)
+
             if f'state_rates:{name}' in implicit_outputs:
                 states_balance_comp.add_output(f'state_rates:{name}', shape=(nn,) + shape, units=units)
                 states_balance_comp.add_residual_from_input(f'state_rate_defects:{name}',
@@ -190,10 +198,10 @@ class BirkhoffIterGroup(om.Group):
                                                             units=units)
 
             if f'initial_states:{name}' in implicit_outputs:
-                states_balance_comp.add_output(f'initial_states:{name}', shape=shape, units=units)
+                states_balance_comp.add_output(f'initial_states:{name}', shape=(1,) + shape, units=units)
 
             if f'final_states:{name}' in implicit_outputs:
-                states_balance_comp.add_output(f'final_states:{name}', shape=shape, units=units)
+                states_balance_comp.add_output(f'final_states:{name}', shape=(1,) + shape, units=units)
 
             try:
                 rate_source_var = options['rate_source']
