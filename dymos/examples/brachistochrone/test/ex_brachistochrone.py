@@ -114,7 +114,3 @@ if __name__ == '__main__':
         p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
                                      transcription_order=19, compressed=False, optimizer='SNOPT',
                                      solve_segments=False, force_alloc_complex=True)
-
-        # p.check_totals(method='cs', compact_print=True)
-        # p.check_partials(method='cs', compact_print=True)
-        # om.n2(p.model)

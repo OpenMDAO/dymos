@@ -1,4 +1,5 @@
 import numpy as np
+import scipy
 import scipy.sparse as sp
 
 import openmdao.api as om
@@ -57,7 +58,8 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
                 'state_defect': f'state_defects:{state_name}',
                 'state_rate_defect': f'state_rate_defects:{state_name}',
                 'initial_state_defect': f'initial_state_defects:{state_name}',
-                'final_state_defect': f'final_state_defects:{state_name}'
+                'final_state_defect': f'final_state_defects:{state_name}',
+                'state_continuity_defect': f'state_cnty_defects:{state_name}'
             }
 
         for state_name, options in state_options.items():
@@ -94,7 +96,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
             self.add_input(
                 name=var_names['state_segment_ends'],
-                shape=(2,) + shape,
+                shape=(num_segs, 2) + shape,
                 desc=f'Initial and final value of the state {state_name} at each segment end.',
                 units=units
             )
@@ -115,7 +117,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
             self.add_output(
                 name=var_names['state_defect'],
-                shape=(num_nodes + 1,) + shape,
+                shape=(num_nodes + num_segs,) + shape,
                 units=units
             )
 
@@ -173,28 +175,56 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
                                     equals=0.0,
                                     ref=defect_ref)
 
-        if gd.grid_type == 'lgl':
-            tau, w = lgl(num_nodes)
-        elif gd.grid_type == 'lgr':
-            tau, w = lgr(num_nodes, include_endpoint=False)
-        elif gd.grid_type == 'cgl':
-            tau, w = cgl(num_nodes)
-        else:
-            raise ValueError('invalid grid type')
+                if gd.num_segments > 1:
+                    self.add_constraint(name=var_names['state_continuity_defect'],
+                                        equals=0.0,
+                                        ref=defect_ref)
 
-        B = birkhoff_matrix(tau, w, grid_type=gd.grid_type)
+        A_blocks = []
+        B_blocks = []
+        C_blocks = []
 
-        self._A = np.zeros((num_nodes + 1, 2 * num_nodes))
-        self._A[:num_nodes, :num_nodes] = np.eye(num_nodes)
-        self._A[:num_nodes, num_nodes:] = -B
-        self._A[-1, num_nodes:] = B[-1, :]
+        # _xv_idxs is a set of indices that arranges the stacked
+        # [[X^T],[V^T]] arrays into a segment-by-segment ordering
+        # instead of all of the state values followed by all of the state rates.
+        self._xv_idxs = []
 
-        self._C = np.zeros((num_nodes + 1, 2))
-        self._C[:-1, 0] = 1.
-        self._C[-1, :] = [-1, 1]
+        idx0 = 0
+
+        for i in range(num_segs):
+            nnps_i = gd.subset_num_nodes_per_segment['all'][0]
+            if gd.grid_type == 'lgl':
+                tau_i, w_i = lgl(nnps_i)
+            elif gd.grid_type == 'cgl':
+                tau_i, w_i = cgl(nnps_i)
+            else:
+                raise ValueError('invalid grid type')
+
+            B_i = birkhoff_matrix(tau_i, w_i, grid_type=gd.grid_type)
+
+            A_i = np.zeros((nnps_i + 1, 2 * nnps_i))
+            A_i[:nnps_i, :nnps_i] = np.eye(nnps_i)
+            A_i[:nnps_i, nnps_i:] = -B_i
+            A_i[-1, nnps_i:] = B_i[-1, :]
+
+            C_i = np.zeros((nnps_i + 1, 2))
+            C_i[:-1, 0] = 1.
+            C_i[-1, :] = [-1, 1]
+
+            A_blocks.append(A_i)
+            B_blocks.append(B_i)
+            C_blocks.append(C_i)
+
+            ar_nnps = np.arange(nnps_i, dtype=int)
+            self._xv_idxs.extend(idx0 + ar_nnps)
+            self._xv_idxs.extend(idx0 + ar_nnps + num_nodes)
+            idx0 += nnps_i
+
+        self._A = scipy.linalg.block_diag(*A_blocks)
+        self._B = scipy.linalg.block_diag(*B_blocks)
+        self._C = scipy.linalg.block_diag(*C_blocks)
 
         # Setup partials
-
         for state_name, options in state_options.items():
             shape = options['shape']
             size = np.prod(shape)
@@ -210,34 +240,28 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             # individual element in the state.
             c_sparse = sp.kron(self._C, sp.eye(size))
             c_rows, c_cols = c_sparse.nonzero()
-            c_data = c_sparse.data
+            c_data = c_sparse.data.ravel()
 
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['state_segment_ends'],
-                                  rows=c_rows, cols=c_cols, val=-c_data.ravel())
+                                  rows=c_rows, cols=c_cols, val=-c_data)
 
-            # The derivative of the state defect wrt [X;V] is [A].
-            # Since X comprises the first n elements in [X;V], we only
-            # need the first `n` columns of [A], which are an identity matrix
-            # with a row of zeros beneath for each segment.
-            # Take the Kronecker product of that and an identity matrix
-            # of the state's size to get the pattern that includes each
-            # individual element in the state.
+            d_state_defect_dXV = self._A
+            dXV_dX = np.vstack((np.eye(num_nodes), np.zeros((num_nodes, num_nodes))))[self._xv_idxs]
+            dXV_dV = np.vstack((np.zeros((num_nodes, num_nodes)), np.eye(num_nodes)))[self._xv_idxs]
+            d_state_defect_dX = sp.csr_matrix(np.kron(np.dot(d_state_defect_dXV, dXV_dX), np.eye(size)))
+            d_state_defect_dV = sp.csr_matrix(np.kron(np.dot(d_state_defect_dXV, dXV_dV), np.eye(size)))
+
+            rs_dX, cs_dX = d_state_defect_dX.nonzero()
+            rs_dV, cs_dV = d_state_defect_dV.nonzero()
+
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['state_value'],
-                                  rows=ar1, cols=ar1, val=1)
-
-            # Similar to the states wrt X, since V is the final n elements in
-            # [X;V] we take the last n columns of A and take the kronecker product
-            # of it and an identity matrix of the state's size to get the
-            # overall sparsity pattern.
-            b_sparse = sp.kron(self._A[:, num_nodes:], sp.eye(size))
-            b_rows, b_cols = b_sparse.nonzero()
-            b_data = b_sparse.data
+                                  rows=rs_dX, cols=cs_dX, val=d_state_defect_dX.data.ravel())
 
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['f_value'],
-                                  rows=b_rows, cols=b_cols, val=b_data.ravel())
+                                  rows=rs_dV, cols=cs_dV, val=d_state_defect_dV.data.ravel())
 
             self.declare_partials(of=var_names['state_rate_defect'],
                                   wrt=var_names['f_value'],
@@ -272,20 +296,36 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             self.declare_partials(of=var_names['final_state_defect'],
                                   wrt=var_names['state_segment_ends'],
                                   rows=np.arange(size, dtype=int),
-                                  cols=size + np.arange(size, dtype=int),
+                                  cols=size * (2 * num_segs - 1) + np.arange(size, dtype=int),
                                   val=1.0)
 
-            # self.declare_partials(of=var_names['final_state_defect'],
-            #                       wrt=var_names['state_segment_ends'],
-            #                       method='fd')
+            if num_segs > 1:
+                self.add_output(
+                    name=var_names['state_continuity_defect'],
+                    shape=(num_segs - 1,) + shape,
+                    units=units
+                )
 
-            # self.declare_partials(of=var_names['final_state_defect'],
-            #                       wrt=var_names['state_final_value'],
-            #                       rows=ar2, cols=ar2,
-            #                       val=-1.0)
+                # Build the derivative matrix for the derivative of state continuity wrt the segment end vals.
+                cnty_deriv_pattern = np.zeros((num_segs - 1,) + (size,) + (num_segs, 2) + (size,))
+                for of_segbound in range(num_segs - 1):
+                    next_seg_idx = of_segbound + 1
+                    prev_seg_idx = of_segbound
+                    for state_idx in range(size):
+                        cnty_deriv_pattern[of_segbound, state_idx, prev_seg_idx, 1, state_idx] = 1.0
+                        cnty_deriv_pattern[of_segbound, state_idx, next_seg_idx, 0, state_idx] = -1.0
+                cnty_deriv = sp.csr_matrix(cnty_deriv_pattern.reshape((num_segs - 1) * size, num_segs * 2 * size))
+                rs, cs = cnty_deriv.nonzero()
+                val = cnty_deriv.data.ravel()
+
+                self.declare_partials(of=var_names['state_continuity_defect'],
+                                      wrt=var_names['state_segment_ends'],
+                                      rows=rs, cols=cs, val=val)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         dt_dstau = np.atleast_2d(inputs['dt_dstau']).T
+        num_nodes = self.options['grid_data'].subset_num_nodes['all']
+        num_segs = self.options['grid_data'].num_segments
 
         for state_name, options in self.options['state_options'].items():
             var_names = self.var_names[state_name]
@@ -296,15 +336,23 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             X = inputs[var_names['state_value']]
             V = inputs[var_names['f_value']]
             f = inputs[var_names['f_computed']]
+            shape = x_a.shape[1:]
+            size = x_a.size
 
-            # X_AB = np.vstack((x_a[np.newaxis, :], x_b[np.newaxis, :]))
-            XV = np.vstack((X, V))
-            state_defect = np.einsum('ij,jk...->ik...', self._A, XV) - np.einsum('ij, j...->i...', self._C, x_ab)
+            # Get stacked XV, but sorted in segment-by-segment order
+            XV = np.vstack((X, V))[self._xv_idxs]
+
+            state_defect = np.einsum('ij,jk...->ik...', self._A, XV) - \
+                           np.einsum('ij, j...->i...', self._C, x_ab.reshape((2 * num_segs,) + shape))
 
             outputs[var_names['state_defect']] = state_defect
             outputs[var_names['state_rate_defect']] = (V - np.einsum('i...,i...->i...', f, dt_dstau))
-            outputs[var_names['initial_state_defect']] = x_ab[0, ...] - x_a
-            outputs[var_names['final_state_defect']] = x_ab[1, ...] - x_b
+            outputs[var_names['initial_state_defect']] = x_ab[0, 0, ...] - x_a
+            outputs[var_names['final_state_defect']] = x_ab[-1, 1, ...] - x_b
+
+            if num_segs > 1:
+                (num_segs - 1) * size
+                outputs[var_names['state_continuity_defect']] = x_ab[:-1, 1, ...] - x_ab[1:, 0, ...]
 
     def compute_partials(self, inputs, partials):
         """
