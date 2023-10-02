@@ -40,7 +40,7 @@ class LowThrustODE(om.ExplicitComponent):
         vt = inputs['vt']
         alpha = inputs['alpha']
 
-        T = 5e-3
+        T = 1e-3
 
         outputs['theta_dot'] = vt/r
         outputs['vr_dot'] = vt**2/r - 1/r**2 + T*np.sin(alpha)
@@ -52,7 +52,7 @@ class LowThrustODE(om.ExplicitComponent):
         vt = inputs['vt']
         alpha = inputs['alpha']
 
-        T = 5e-4
+        T = 1e-3
 
         partials['theta_dot', 'r'] = -vt/r**2
         partials['theta_dot', 'vt'] = 1/r

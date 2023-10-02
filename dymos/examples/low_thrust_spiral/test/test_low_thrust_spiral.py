@@ -5,12 +5,12 @@ import numpy as np
 
 from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-from openmdao.utils.general_utils import printoptions
-
 from dymos.examples.low_thrust_spiral import LowThrustODE
 
+show_plots = False
 
-@require_pyoptsparse(optimizer='SLSQP')
+
+@require_pyoptsparse(optimizer='SNOPT')
 def low_thrust_spiral_direct_collocation(grid_type='lgl'):
 
     optimizer = 'SNOPT'
@@ -21,24 +21,24 @@ def low_thrust_spiral_direct_collocation(grid_type='lgl'):
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = 1000
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
-        p.driver.opt_settings['Major optimality tolerance'] = 1.0E-3
+        p.driver.opt_settings['Major optimality tolerance'] = 5.0E-4
         p.driver.opt_settings['iSumm'] = 6
 
-    t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=200, grid_type=grid_type))
+    t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=12, nodes_per_seg=50, grid_type=grid_type))
 
     traj = p.model.add_subsystem('traj', dm.Trajectory())
 
     phase = traj.add_phase('phase0', dm.Phase(ode_class=LowThrustODE, transcription=t))
 
-    phase.set_time_options(fix_initial=True, fix_duration=False, units='s', duration_bounds=(10, 1200),
-                           duration_ref=1500)
+    phase.set_time_options(fix_initial=True, fix_duration=False, units='s', duration_bounds=(100, 500))
 
-    phase.add_state('r', fix_initial=True, fix_final=True, rate_source='vr')
-    phase.add_state('theta', fix_initial=True, fix_final=False, rate_source='theta_dot', units='rad')
-    phase.add_state('vr', fix_initial=True, fix_final=True, rate_source='vr_dot', units='1/s')
-    phase.add_state('vt', fix_initial=True, fix_final=True, rate_source='vt_dot', units='1/s')
+    phase.add_state('r', fix_initial=True, fix_final=True, rate_source='vr', lower=0.5, upper=6.5,
+                    defect_ref=1e2)
+    phase.add_state('theta', fix_initial=True, fix_final=False, rate_source='theta_dot', units='rad', defect_ref=1e2)
+    phase.add_state('vr', fix_initial=True, fix_final=True, rate_source='vr_dot', units='1/s', defect_ref=1e2)
+    phase.add_state('vt', fix_initial=True, fix_final=True, rate_source='vt_dot', units='1/s', defect_ref=1e2)
 
-    phase.add_control('alpha', units='rad', lower=-np.pi, upper=np.pi, ref0=-np.pi, ref=np.pi)
+    phase.add_control('alpha', units='rad')
 
     # Minimize the control effort
     phase.add_objective('time', loc='final')
@@ -48,7 +48,7 @@ def low_thrust_spiral_direct_collocation(grid_type='lgl'):
     p.setup(check=True, force_alloc_complex=True)
 
     p['traj.phase0.t_initial'] = 0.0
-    p['traj.phase0.t_duration'] = 500.0
+    p['traj.phase0.t_duration'] = 300.0
 
     p['traj.phase0.initial_states:r'] = 1.0
     p['traj.phase0.initial_states:theta'] = 0.0
@@ -66,7 +66,7 @@ def low_thrust_spiral_direct_collocation(grid_type='lgl'):
     return p
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestLowThrustSpiral(unittest.TestCase):
 
     # @classmethod
@@ -77,9 +77,10 @@ class TestLowThrustSpiral(unittest.TestCase):
 
     @staticmethod
     def _assert_results(p, tol=1.0E-4):
-        h = p.get_val('traj.phase0.timeseries.r')
-
-        # assert_near_equal(h[-1], 18550.9, tolerance=tol)
+        # t = p.get_val('traj.phase0.timeseries.time')
+        #
+        # assert_near_equal(t[-1], 228, tolerance=tol)
+        return
 
     def test_low_thrust_spiral_lgl(self):
         p = low_thrust_spiral_direct_collocation(grid_type='lgl')
@@ -87,17 +88,28 @@ class TestLowThrustSpiral(unittest.TestCase):
         theta = p.get_val('traj.phase0.timeseries.theta')
         r = p.get_val('traj.phase0.timeseries.r')
 
-        import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-        ax.plot(theta, r)
-        ax.grid(True)
-        plt.show()
+        if show_plots:
+            import matplotlib.pyplot as plt
+            fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+            ax.plot(theta, r)
+            ax.grid(True)
+            plt.show()
 
         self._assert_results(p)
 
     def test_low_thrust_spiral_cgl(self):
         p = low_thrust_spiral_direct_collocation(grid_type='cgl')
         dm.run_problem(p)
+        theta = p.get_val('traj.phase0.timeseries.theta')
+        r = p.get_val('traj.phase0.timeseries.r')
+
+        if show_plots:
+            import matplotlib.pyplot as plt
+            fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+            ax.plot(theta, r)
+            ax.grid(True)
+            plt.show()
+
         self._assert_results(p)
 
     def test_check_partials(self):
@@ -108,7 +120,4 @@ class TestLowThrustSpiral(unittest.TestCase):
 
 
 if __name__ == "__main__":
-
     unittest.main()
-
-

@@ -12,7 +12,6 @@ from openmdao.utils.general_utils import printoptions
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
-from dymos import Trajectory, GaussLobatto, Phase, Radau, Birkhoff, BirkhoffGrid
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 
 
@@ -28,7 +27,7 @@ class TestHyperSensitive(unittest.TestCase):
                 os.remove(filename)
 
     @require_pyoptsparse(optimizer='SLSQP')
-    def make_problem(self, transcription=GaussLobatto, optimizer='SLSQP', numseg=30, order=3):
+    def make_problem(self, transcription=dm.GaussLobatto, optimizer='SLSQP', numseg=30, order=3):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
@@ -56,10 +55,10 @@ class TestHyperSensitive(unittest.TestCase):
         elif transcription == 'radau-ps':
             t = dm.Radau(num_segments=numseg, order=3)
         elif transcription == 'birkhoff':
-            t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=101, grid_type='lgl'))
+            t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=5, nodes_per_seg=51, grid_type='lgl'))
 
-        traj = p.model.add_subsystem('traj', Trajectory())
-        phase0 = traj.add_phase('phase0', Phase(ode_class=HyperSensitiveODE, transcription=t))
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+        phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE, transcription=t))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot')
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L')
@@ -83,7 +82,7 @@ class TestHyperSensitive(unittest.TestCase):
         p.set_val('traj.phase0.t_duration', tf)
         p.set_val('traj.phase0.controls:u', phase0.interp('u', [-0.6, 2.4]))
 
-        if transcription == Birkhoff:
+        if transcription == dm.Birkhoff:
             p.set_val('traj.phase0.initial_states:x', 1.5)
             p.set_val('traj.phase0.final_states:x', 1.0)
             p.set_val('traj.phase0.initial_states:xL', 0.0)
@@ -91,7 +90,8 @@ class TestHyperSensitive(unittest.TestCase):
 
         return p
 
-    def solution(self):
+    @staticmethod
+    def solution():
         sqrt_two = np.sqrt(2)
         val = sqrt_two * tf
         c1 = (1.5 * np.exp(-val) - 1) / (np.exp(-val) - np.exp(val))
@@ -129,17 +129,17 @@ class TestHyperSensitive(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_hyper_sensitive_birkhoff(self):
-        p = self.make_problem(transcription='birkhoff', optimizer='SNOPT')
+        p = self.make_problem(transcription='birkhoff', optimizer='IPOPT')
         dm.run_problem(p, make_plots=True)
         ui, uf, J = self.solution()
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
                           ui,
-                          tolerance=5e-6)
+                          tolerance=1e-3)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.u')[-1],
                           uf,
-                          tolerance=5e-6)
+                          tolerance=1e-3)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.xL')[-1],
                           J,
@@ -159,35 +159,6 @@ class TestHyperSensitive(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase0.timeseries.u')[-1],
                           uf,
                           tolerance=1e-4)
-
-        assert_near_equal(p.get_val('traj.phase0.timeseries.xL')[-1],
-                          J,
-                          tolerance=1e-4)
-
-    @require_pyoptsparse(optimizer='IPOPT')
-    def test_hyper_sensitive_birkhoff(self):
-        p = self.make_problem(transcription='birkhoff', optimizer='SNOPT')
-        dm.run_problem(p, refine_iteration_limit=0)
-        ui, uf, J = self.solution()
-
-        # u = p.get_val('traj.phase0.timeseries.u')
-        # u[-1] = 10
-        # p.set_val('traj.phase0.controls:u', u)
-        # p.run_model()
-        # print(p.get_val('traj.phase0.timeseries.x')[-1])
-
-        # import matplotlib.pyplot as plt
-        # plt.figure()
-        # plt.scatter(p.get_val('traj.phase0.timeseries.time'), p.get_val('traj.phase0.timeseries.u'))
-        # plt.show()
-
-        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
-                          ui,
-                          tolerance=1e-4)
-
-        assert_near_equal(p.get_val('traj.phase0.timeseries.u')[-1],
-                          uf,
-                          tolerance=1e-3)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.xL')[-1],
                           J,

@@ -2,7 +2,7 @@ import openmdao.api as om
 import numpy as np
 
 
-class DoubleIntegratorBreakwellODE(om.ExplicitComponent):
+class BreakwellODE(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
