@@ -343,7 +343,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             XV = np.vstack((X, V))[self._xv_idxs]
 
             state_defect = np.einsum('ij,jk...->ik...', self._A, XV) - \
-                           np.einsum('ij, j...->i...', self._C, x_ab.reshape((2 * num_segs,) + shape))
+                np.einsum('ij, j...->i...', self._C, x_ab.reshape((2 * num_segs,) + shape))
 
             outputs[var_names['state_defect']] = state_defect
             outputs[var_names['state_rate_defect']] = (V - np.einsum('i...,i...->i...', f, dt_dstau))
