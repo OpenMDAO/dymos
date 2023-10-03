@@ -127,4 +127,3 @@ class BirkhoffBoundaryGroup(om.Group):
                 self.set_input_defaults(name=state_name,
                                         val=options['val'],
                                         units=options['units'])
-

@@ -81,7 +81,7 @@ class Birkhoff(TranscriptionBase):
 
         # The tuples here are (name, user_specified_targets, dynamic)
         for name, targets in [('t', options['targets']),
-                                       ('t_phase', options['time_phase_targets'])]:
+                              ('t_phase', options['time_phase_targets'])]:
             if targets:
                 src_idxs = self.grid_data.subset_node_indices['all']
                 phase.connect(name, [f'ode_all.{t}' for t in targets], src_indices=src_idxs,
@@ -127,29 +127,6 @@ class Birkhoff(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         pass
-        # grid_data = self.grid_data
-        #
-        # self.any_solved_segs = False
-        # self.any_connected_opt_segs = False
-        # for options in phase.state_options.values():
-        #     if options['input_initial']:
-        #         self.any_connected_opt_segs = True
-        #
-        # if self.any_connected_opt_segs:
-        #     indep = StateIndependentsComp(grid_data=grid_data, state_options=phase.state_options)
-        # else:
-        #     indep = om.IndepVarComp()
-        #
-        # num_connected = len([s for (s, opts) in phase.state_options.items() if opts['input_initial']])
-        # prom_inputs = ['initial_states:*'] if num_connected > 0 else None
-        # phase.add_subsystem('indep_states', indep, promotes_inputs=prom_inputs,
-        #                     promotes_outputs=['*'])
-        #
-        # indep_state_rates = om.IndepVarComp()
-        #
-        # phase.add_subsystem('indep_state_rates', indep_state_rates,
-        #                     promotes_outputs=['*'])
-
 
     def configure_controls(self, phase):
         """
@@ -290,12 +267,6 @@ class Birkhoff(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         pass
-        # phase.add_subsystem('collocation_constraint',
-        #                     BirkhoffCollocationComp(grid_data=self.grid_data,
-        #                                             state_options=phase.state_options,
-        #                                             time_units=phase.time_options['units']),
-        #                     promotes_inputs=['states:*', 'state_rates:*', 'initial_states:*',
-        #                                      'final_states:*'])
 
     def configure_defects(self, phase):
         """
@@ -367,28 +338,6 @@ class Birkhoff(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        # for timeseries_name, timeseries_options in phase._timeseries.items():
-        #     timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
-        #
-        #     for ts_output_name, ts_output in timeseries_options['outputs'].items():
-        #         name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
-        #         units = ts_output['units']
-        #         shape = ts_output['shape']
-        #         src = ts_output['src']
-        #         is_rate = ts_output['is_rate']
-        #
-        #         added_src = timeseries_comp._add_output_configure(name,
-        #                                                           shape=shape,
-        #                                                           units=units,
-        #                                                           desc='',
-        #                                                           src=src,
-        #                                                           rate=is_rate)
-        #
-        #         if added_src:
-        #             phase.connect(src_name=src, tgt_name=f'{timeseries_name}.input_values:{name}',
-        #                           src_indices=ts_output['src_idxs'])
-        #
-        #
         for timeseries_name, timeseries_options in phase._timeseries.items():
             timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
             ts_inputs_to_promote = []
@@ -908,4 +857,3 @@ class Birkhoff(TranscriptionBase):
         any_rate_continuity = any_rate_continuity and num_seg > 1
 
         return any_state_continuity, any_control_continuity, any_rate_continuity
-

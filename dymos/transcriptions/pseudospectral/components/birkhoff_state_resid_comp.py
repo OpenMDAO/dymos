@@ -34,7 +34,6 @@ class BirkhoffStateResidComp(om.ImplicitComponent):
         self.add_output(name, **kwargs)
         self._io_pairs.append((name, resid_input))
 
-
         size = np.prod(shape, dtype=int)
         ar = np.arange(size, dtype=int)
 

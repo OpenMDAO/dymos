@@ -50,7 +50,7 @@ class TestHyperSensitive(unittest.TestCase):
         else:
             p.driver.declare_coloring()
 
-        if transcription=='gauss-lobatto':
+        if transcription == 'gauss-lobatto':
             t = dm.GaussLobatto(num_segments=numseg, order=3)
         elif transcription == 'radau-ps':
             t = dm.Radau(num_segments=numseg, order=3)

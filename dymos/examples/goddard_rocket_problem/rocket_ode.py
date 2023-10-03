@@ -55,7 +55,3 @@ class RocketODE(om.ExplicitComponent):
         partials['v_dot', 'v'] = -(2 * sigma * v * np.exp(-h/h0)) / m
         partials['v_dot', 'm'] = -(T - sigma * v**2 * np.exp(-h/h0)) / (m**2)
         partials['v_dot', 'T'] = 1 / m
-
-
-
-
