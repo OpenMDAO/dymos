@@ -178,6 +178,7 @@ class BirkhoffIterGroup(om.Group):
 
         gd = self.options['grid_data']
         nn = gd.subset_num_nodes['all']
+        ns = gd.num_segments
 
         state_options = self.options['state_options']
         time_options = self.options['time_options']
@@ -196,20 +197,37 @@ class BirkhoffIterGroup(om.Group):
             implicit_outputs = self._configure_desvars(name, options)
 
             if f'states:{name}' in implicit_outputs:
-                states_balance_comp.add_implicit_output(f'states:{name}', shape=(nn,) + shape, units=units,
-                                                        resid_input=f'state_defects:{name}')
+                states_balance_comp.add_output(f'states:{name}',
+                                               shape=(nn,) + shape,
+                                               units=units)
 
-            if f'initial_states:{name}' in implicit_outputs:
-                states_balance_comp.add_implicit_output(f'initial_states:{name}', shape=shape, units=units,
-                                                        resid_input=f'final_state_defects:{name}')
+                states_balance_comp.add_output(f'state_segment_ends:{name}',
+                                               shape=(ns, 2) + shape,
+                                               units=units)
 
-            if f'final_states:{name}' in implicit_outputs:
-                states_balance_comp.add_implicit_output(f'final_states:{name}', shape=shape, units=units,
-                                                        resid_input=f'final_state_defects:{name}')
+                states_balance_comp.add_residual_from_input(f'state_defects:{name}',
+                                                            shape=(nn+ns,) + shape,
+                                                            units=units)
+
+                states_balance_comp.add_residual_from_input(f'initial_state_defects:{name}',
+                                                            shape=(1,) + shape,
+                                                            units=units)
+
+                states_balance_comp.add_residual_from_input(f'final_state_defects:{name}',
+                                                            shape=(1,) + shape,
+                                                            units=units)
 
             if f'state_rates:{name}' in implicit_outputs:
-                states_balance_comp.add_implicit_output(f'state_rates:{name}', shape=(nn,) + shape, units=units,
-                                                        resid_input=f'state_rate_defects:{name}')
+                states_balance_comp.add_output(f'state_rates:{name}', shape=(nn,) + shape, units=units)
+                states_balance_comp.add_residual_from_input(f'state_rate_defects:{name}',
+                                                            shape=(nn,) + shape,
+                                                            units=units)
+
+            if f'initial_states:{name}' in implicit_outputs:
+                states_balance_comp.add_output(f'initial_states:{name}', shape=(1,) + shape, units=units)
+
+            if f'final_states:{name}' in implicit_outputs:
+                states_balance_comp.add_output(f'final_states:{name}', shape=(1,) + shape, units=units)
 
             try:
                 rate_source_var = options['rate_source']

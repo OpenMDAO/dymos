@@ -13,31 +13,31 @@ class BirkhoffStateResidComp(om.ImplicitComponent):
         self._no_check_partials = not dymos_options['include_check_partials']
         self._io_pairs = []
 
-    def add_implicit_output(self, name, resid_input, **kwargs):
+    def add_residual_from_input(self, name, **kwargs):
         """
-        Adds an implicit output with the given name whose resids are given by given input name.
+        Adds a residual whose value is given by resid_input.
 
         Parameters
         ----------
         name : str
-            The name of the implicit output.
-        resid_input : str
             The name of the input providing the residuals for the given output
         kwargs
-            Additional keyword arguments for super.add_input and super.add_output.
+            Additional keyword arguments for add_input and add_residual.
         """
         val = kwargs['val'] if 'val' in kwargs else 1.0
         shape = kwargs['shape'] if 'shape' in kwargs else None
         val, shape = ensure_compatible(name, value=val, shape=shape)
+        resid_name = 'resid_' + name
 
-        self.add_input(resid_input, **kwargs)
-        self.add_output(name, **kwargs)
-        self._io_pairs.append((name, resid_input))
+        self._io_pairs.append((resid_name, name))
 
         size = np.prod(shape, dtype=int)
         ar = np.arange(size, dtype=int)
 
-        self.declare_partials(of=name, wrt=resid_input, rows=ar, cols=ar, val=1.0)
+        self.add_input(name, **kwargs)
+        self.add_residual(resid_name, **kwargs)
+        # self.declare_partials(of=resid_name, wrt=name, rows=ar, cols=ar, val=1.0)
+        self.declare_partials(of='*', wrt='*', method='fd')
 
     def apply_nonlinear(self, inputs, outputs, residuals):
         """
@@ -54,5 +54,7 @@ class BirkhoffStateResidComp(om.ImplicitComponent):
         residuals : Vector
             Unscaled, dimensional residuals written to via residuals[key].
         """
-        for name, resid_input in self._io_pairs:
-            residuals[name] = inputs[resid_input]
+        residuals.set_val(inputs.asarray())
+        # print(residuals)
+        # for name, resid_input in self._io_pairs:
+        #     residuals[name] = inputs[resid_input]
