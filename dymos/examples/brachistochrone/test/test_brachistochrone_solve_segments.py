@@ -204,6 +204,27 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                                                            transcription_order=11)
         self.assert_results(p)
 
+    def test_ex_brachistochrone_vs_birkhoff_lgl(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = False
+        p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='birkhoff',
+                                                           force_alloc_complex=True,
+                                                           solve_segments=False,
+                                                           grid_type='lgl',
+                                                           num_segments=1,
+                                                           transcription_order=11)
+        self.assert_results(p)
+
+    def test_ex_brachistochrone_vs_birkhoff_cgl(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = False
+        p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='birkhoff',
+                                                           compressed=False,
+                                                           force_alloc_complex=True,
+                                                           solve_segments='forward',
+                                                           grid_type='cgl',
+                                                           num_segments=1,
+                                                           transcription_order=11)
+        self.assert_results(p)
+
 
 @require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs

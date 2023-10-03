@@ -68,6 +68,8 @@ class BirkhoffIterGroup(om.Group):
         solve_segs = options['solve_segments']
         opt = options['opt']
 
+        num_nodes = self.options['grid_data'].subset_num_nodes['col']
+
         ib = (None, None) if options['initial_bounds'] is None else options['initial_bounds']
         fb = (None, None) if options['final_bounds'] is None else options['final_bounds']
         lower = options['lower']
@@ -80,6 +82,28 @@ class BirkhoffIterGroup(om.Group):
         fix_final = options['fix_final']
         input_initial = options['input_initial']
         input_final = options['input_final']
+        shape = options['shape']
+
+        if not np.isscalar(ref0) and ref0 is not None:
+            ref0 = np.asarray(ref0)
+            if ref0.shape == shape:
+                ref0_state = np.tile(ref0.flatten(), num_nodes)
+                ref0_seg_ends = np.tile(ref0.flatten(), 2)
+            else:
+                raise ValueError('array-valued scaler/ref must length equal to state-size')
+        else:
+            ref0_state = ref0
+            ref0_seg_ends = ref0
+        if not np.isscalar(ref) and ref is not None:
+            ref = np.asarray(ref)
+            if ref.shape == shape:
+                ref_state = np.tile(ref.flatten(), num_nodes)
+                ref_seg_ends = np.tile(ref.flatten(), 2)
+            else:
+                raise ValueError('array-valued scaler/ref must length equal to state-size')
+        else:
+            ref_state = ref
+            ref_seg_ends = ref0
 
         free_vars = {state_name, state_rate_name, state_segment_ends_name, initial_state_name, final_state_name}
 
@@ -105,8 +129,8 @@ class BirkhoffIterGroup(om.Group):
                                     upper=upper,
                                     scaler=scaler,
                                     adder=adder,
-                                    ref0=ref0,
-                                    ref=ref)
+                                    ref0=ref0_state,
+                                    ref=ref_state)
 
             if state_segment_ends_name in free_vars:
                 self.add_design_var(name=state_segment_ends_name,
@@ -114,15 +138,15 @@ class BirkhoffIterGroup(om.Group):
                                     upper=upper,
                                     scaler=scaler,
                                     adder=adder,
-                                    ref0=ref0,
-                                    ref=ref)
+                                    ref0=ref0_seg_ends,
+                                    ref=ref_seg_ends)
 
             if state_rate_name in free_vars:
                 self.add_design_var(name=state_rate_name,
                                     scaler=scaler,
                                     adder=adder,
-                                    ref0=ref0,
-                                    ref=ref)
+                                    ref0=ref0_state,
+                                    ref=ref_state)
 
             if initial_state_name in free_vars:
                 self.add_design_var(name=initial_state_name,

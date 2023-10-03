@@ -154,18 +154,22 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             if not np.isscalar(defect_ref):
                 defect_ref = np.asarray(defect_ref)
                 if defect_ref.shape == shape:
-                    defect_ref = np.tile(defect_ref.flatten(), num_nodes)
+                    defect_ref_state = np.tile(defect_ref.flatten(), num_nodes+num_segs)
+                    defect_ref_v = np.tile(defect_ref.flatten(), num_nodes)
                 else:
                     raise ValueError('array-valued scaler/ref must length equal to state-size')
+            else:
+                defect_ref_state = defect_ref
+                defect_ref_v = defect_ref
 
             if not options['solve_segments']:
                 self.add_constraint(name=var_names['state_defect'],
                                     equals=0.0,
-                                    ref=defect_ref)
+                                    ref=defect_ref_state)
 
                 self.add_constraint(name=var_names['state_rate_defect'],
                                     equals=0.0,
-                                    ref=defect_ref)
+                                    ref=defect_ref_v)
 
                 self.add_constraint(name=var_names['initial_state_defect'],
                                     equals=0.0,

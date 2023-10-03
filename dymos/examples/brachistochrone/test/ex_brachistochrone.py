@@ -9,7 +9,7 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 
 
 SHOW_PLOTS = True
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 
 
 @require_pyoptsparse(optimizer='SLSQP')
@@ -20,8 +20,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    p.driver.opt_settings['iSumm'] = 6
-    p.driver.opt_settings['Major iterations limit'] = 50
     p.driver.declare_coloring(tol=1.0E-12)
 
     if transcription == 'gauss-lobatto':
@@ -112,5 +110,5 @@ if __name__ == '__main__':
 
     with dm.options.temporary(include_check_partials=True):
         p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
-                                     transcription_order=19, compressed=False, optimizer='SNOPT',
+                                     transcription_order=19, compressed=False, optimizer='SLSQP',
                                      solve_segments=False, force_alloc_complex=True)
