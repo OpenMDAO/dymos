@@ -8,7 +8,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from dymos.examples.moon_landing import MoonLandingProblemODE
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestMoonLandingProblem(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')

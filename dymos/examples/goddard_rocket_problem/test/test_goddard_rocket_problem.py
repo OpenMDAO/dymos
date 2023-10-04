@@ -11,10 +11,10 @@ from dymos.examples.goddard_rocket_problem import RocketODE
 SHOW_PLOTS = True
 
 
-@require_pyoptsparse(optimizer='SLSQP')
+@require_pyoptsparse(optimizer='IPOPT')
 def goddard_rocket_direct_collocation(grid_type='lgl'):
 
-    optimizer = 'SNOPT'
+    optimizer = 'IPOPT'
     p = om.Problem(model=om.Group())
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
@@ -66,7 +66,7 @@ def goddard_rocket_direct_collocation(grid_type='lgl'):
     return p
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestGoddardRocketProblem(unittest.TestCase):
 
     @classmethod

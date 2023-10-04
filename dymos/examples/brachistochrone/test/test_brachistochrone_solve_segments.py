@@ -91,7 +91,7 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
 
 
 @require_pyoptsparse(optimizer='SLSQP')
-# @use_tempdirs
+@use_tempdirs
 class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
 
     def assert_results(self, p):

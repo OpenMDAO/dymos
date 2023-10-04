@@ -127,7 +127,7 @@ class CannonballODE(om.ExplicitComponent):
         outputs['ke'] = 0.5 * m * v ** 2
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')

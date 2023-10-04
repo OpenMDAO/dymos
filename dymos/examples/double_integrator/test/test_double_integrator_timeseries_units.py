@@ -55,7 +55,7 @@ def double_integrator_direct_collocation(transcription=dm.GaussLobatto, compress
     return p
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestDoubleIntegratorExample(unittest.TestCase):
 
     @classmethod
