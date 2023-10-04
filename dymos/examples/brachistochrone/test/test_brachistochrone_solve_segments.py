@@ -91,7 +91,7 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
 
 
 @require_pyoptsparse(optimizer='SLSQP')
-@use_tempdirs
+# @use_tempdirs
 class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
 
     def assert_results(self, p):
@@ -211,7 +211,13 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                                                            solve_segments=False,
                                                            grid_type='lgl',
                                                            num_segments=1,
-                                                           transcription_order=11)
+                                                           transcription_order=15,
+                                                           optimizer='SLSQP')
+
+        cpd = p.check_partials(compact_print=True, method='cs')
+        from dymos.utils.testing_utils import assert_check_partials
+        assert_check_partials(cpd)
+
         self.assert_results(p)
 
     def test_ex_brachistochrone_vs_birkhoff_cgl(self):

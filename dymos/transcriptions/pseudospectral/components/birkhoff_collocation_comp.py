@@ -246,7 +246,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             # Take the Kronecker product of that and an identity matrix
             # of the state's size to get the pattern that includes each
             # individual element in the state.
-            c_sparse = sp.kron(self._C, sp.eye(size))
+            c_sparse = sp.kron(self._C, sp.eye(size), format='csr')
             c_rows, c_cols = c_sparse.nonzero()
             c_data = c_sparse.data.ravel()
 

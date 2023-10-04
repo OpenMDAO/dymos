@@ -80,11 +80,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
     p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
     p['traj0.phase0.parameters:g'] = 9.80665
-    if transcription == 'birkhoff':
-        p['traj0.phase0.initial_states:pos'] = phase.interp('pos', pos0)
-        p['traj0.phase0.initial_states:v'] = phase.interp('v', 0.0)
-        p['traj0.phase0.final_states:pos'] = phase.interp('pos', posf)
-        p['traj0.phase0.final_states:v'] = phase.interp('v', 9.9)
+    if isinstance(transcription, dm.Birkhoff):
+        p['traj0.phase0.initial_states:pos'] = pos0
+        p['traj0.phase0.initial_states:v'] = 0.0
+        p['traj0.phase0.final_states:pos'] = posf
+        p['traj0.phase0.final_states:v'] = 9.9
 
     p.run_model()
     if run_driver:

@@ -241,6 +241,18 @@ class BirkhoffIterGroup(om.Group):
             if var_type == 'ode':
                 self.connect(f'ode_all.{rate_source}', f'f_computed:{name}')
 
+            if implicit_outputs:
+                if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
+                    newton = phase.nonlinear_solver = om.NewtonSolver()
+                    newton.options['solve_subsystems'] = True
+                    newton.options['maxiter'] = 100
+                    newton.options['iprint'] = 2
+                    newton.options['stall_limit'] = 3
+                    newton.linesearch = om.BoundsEnforceLS()
+
+                if isinstance(phase.linear_solver, om.LinearRunOnce):
+                    phase.linear_solver = om.DirectSolver()
+
     def _get_rate_source_path(self, state_name, nodes, phase):
         """
         Return the rate source location and indices for a given state name.

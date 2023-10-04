@@ -6,6 +6,7 @@ from .birkhoff_state_resid_comp import BirkhoffStateResidComp
 
 from ...grid_data import GridData
 from ....phase.options import TimeOptionsDictionary
+from dymos._options import options as dymos_options
 
 
 class BirkhoffBoundaryMuxComp(om.ExplicitComponent):
@@ -23,6 +24,7 @@ class BirkhoffBoundaryMuxComp(om.ExplicitComponent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._io_names = {}
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def configure_io(self, num_segs, state_options):
         self._io_names = {}
@@ -73,6 +75,11 @@ class BirkhoffBoundaryGroup(om.Group):
     **kwargs : dict
         Dictionary of optional arguments.
     """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
+
     def initialize(self):
         """
         Declare group options.
@@ -115,7 +122,6 @@ class BirkhoffBoundaryGroup(om.Group):
 
     def configure_io(self, phase):
         grid_data = phase.options['transcription'].grid_data
-        nn = grid_data.subset_num_nodes['all']
 
         self._get_subsystem('boundary_mux').configure_io(num_segs=grid_data.num_segments,
                                                          state_options=phase.state_options)
