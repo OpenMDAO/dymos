@@ -18,6 +18,10 @@ class _PhaseStub():
     A stand-in for the Phase during config_io for testing.
     It just supports the classify_var method and returns "state", the only value needed for unittests.
     """
+    def __init__(self):
+        self.nonlinear_solver = None
+        self.linear_solver = None
+
     def classify_var(self, name):
         return 'ode'
 

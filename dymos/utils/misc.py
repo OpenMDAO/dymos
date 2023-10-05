@@ -188,6 +188,8 @@ def GroupWrapperConfig(comp_class, config_io_args=None):
     ----------
     comp_class : Group class
        Class that we would like to wrap.
+    config_io_args : list
+        Arguments to be passed to config_io.
 
     Returns
     -------

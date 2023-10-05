@@ -14,6 +14,19 @@ from dymos.utils.indexing import get_constraint_flat_idxs, get_src_indices_by_ro
 
 
 class Birkhoff(TranscriptionBase):
+    """
+        Birkhoff Pseudospectral Transcription.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Dictionary of optional arguments.
+
+        References
+        ----------
+        I. M. Ross, "A Universeal Birkhoff Theory for Fast Trajectory Optimization"
+        https://arxiv.org/abs/2308.01400v2
+        """
     def __init__(self, **kwargs):
         super(Birkhoff, self).__init__(**kwargs)
         self._rhs_source = 'ode_iter_group.ode_all'

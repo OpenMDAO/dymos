@@ -170,8 +170,12 @@ class BirkhoffIterGroup(om.Group):
 
     def configure_io(self, phase):
         """
-        This method is called during the owning phase's configure method since some aspects
-        of the states, such as targets, are not known until phase configure.
+        I/O creation is delayed until configure so that we can determine shape and units for the states.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
         """
         collocation_comp = self._get_subsystem('collocation_comp')
         collocation_comp.configure_io(phase)

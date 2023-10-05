@@ -3,6 +3,24 @@ import scipy.special as sp
 
 
 def birkhoff_matrix(tau, w, grid_type):
+    """
+    Returns the pseudospectral integration matrix for a Birkhoff polynomial at the given nodes.
+
+    Parameters
+    ----------
+    tau : ndarray[:]
+        Vector of given nodes in the polynomial.
+    w : ndarray[:]
+        Vector of nodes at which the polynomial is evaluated.
+    grid_type : str
+        The type of Gaussian grid used in the transcription.
+
+    Returns
+    -------
+    np.array
+        An num_disc_nodes-1 x num_disc_nodes matrix used for the interpolation of state values
+        at the interior LGL nodes.
+    """
     N = tau.size - 1
     end_node = N if tau[-1] == 1 else N + 1
 

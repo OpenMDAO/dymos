@@ -111,7 +111,7 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     return subsets, lgr(n, include_endpoint=True)[0]
 
 
-def birkhoff_subsets_and_nodes(n, grid, *args, **kwargs):
+def birkhoff_subsets_and_nodes(n, grid, seg_idx, compressed=False):
     """
     Provides node information and the location of the nodes for n Radau nodes on the range [-1, 1].
 
@@ -119,6 +119,8 @@ def birkhoff_subsets_and_nodes(n, grid, *args, **kwargs):
     ----------
     n : int
         The total number of nodes in the segment.
+    grid : str
+        The type of Gaussian grid used in the transcription.
     seg_idx : int
         The index of this segment within its phase.
     compressed : bool
@@ -672,6 +674,8 @@ class BirkhoffGrid(GridData):
         If the transcription is compressed, then states and controls at shared
         nodes of adjacent segments are only specified once, and then broadcast
         to the appropriate indices.
+    grid_type : str
+        The type of Gaussian grid used for the transcription. May be 'lgl' or 'cgl'.
     """
     def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False, grid_type='lgl'):
         self.grid_type = grid_type

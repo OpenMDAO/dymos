@@ -67,23 +67,21 @@ class TestMoonLandingProblem(unittest.TestCase):
         T = self.p.get_val('traj.phase.timeseries.T')
 
         assert_near_equal(T[0], 0.0, tolerance=1e-5)
-        # assert_near_equal(T[20], 0.0, tolerance=1e-5)
-        # assert_near_equal(T[30], 1.227, tolerance=1e-5)
         assert_near_equal(T[-1], 1.227, tolerance=1e-5)
         assert_near_equal(h[-1], 0.0, tolerance=1e-5)
         assert_near_equal(v[-1], 0.0, tolerance=1e-5)
-        # assert_near_equal(m[-1], 0.5, tolerance=1e-5)
+        assert_near_equal(m[-1], 0.3953, tolerance=1e-3)
 
     def test_problem_cgl(self):
         self.make_problem(grid_type='cgl')
         dm.run_problem(self.p, make_plots=True)
         h = self.p.get_val('traj.phase.timeseries.h')
         v = self.p.get_val('traj.phase.timeseries.v')
+        m = self.p.get_val('traj.phase.timeseries.m')
         T = self.p.get_val('traj.phase.timeseries.T')
 
         assert_near_equal(T[0], 0.0, tolerance=1e-5)
-        assert_near_equal(T[20], 0.0, tolerance=1e-5)
-        assert_near_equal(T[30], 1.227, tolerance=1e-5)
         assert_near_equal(T[-1], 1.227, tolerance=1e-5)
         assert_near_equal(h[-1], 0.0, tolerance=1e-5)
         assert_near_equal(v[-1], 0.0, tolerance=1e-5)
+        assert_near_equal(m[-1], 0.3953, tolerance=1e-4)

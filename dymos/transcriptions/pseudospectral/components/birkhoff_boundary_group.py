@@ -20,13 +20,26 @@ class BirkhoffBoundaryMuxComp(om.ExplicitComponent):
     the shape of `initial_states:{state_name}` and `final_states:{state_name}`
     are both `(num_seg,) + shape` and the shape of the resulting
     `states:{state_name}` is `(2,) + shape`.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional phase arguments.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._io_names = {}
         self._no_check_partials = not dymos_options['include_check_partials']
 
-    def configure_io(self, num_segs, state_options):
+    def configure_io(self, state_options):
+        """
+        I/O creation is delayed until configure so that we can determine shape and units for the states.
+
+        Parameters
+        ----------
+        state_options : StateOptionsDictionary
+            The phase object to which this transcription instance applies.
+        """
         self._io_names = {}
         for state_name, options in state_options.items():
             shape = options['shape']
@@ -50,6 +63,20 @@ class BirkhoffBoundaryMuxComp(om.ExplicitComponent):
             self.declare_partials(of=bname, wrt=fname, rows=ar + size, cols=ar, val=1.0)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+        """
+        Compute component outputs.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        outputs : Vector
+            Unscaled, dimensional output variables read via outputs[key].
+        discrete_inputs : dict or None
+            If not None, dict containing discrete input values.
+        discrete_outputs : dict or None
+            If not None, dict containing discrete output values.
+        """
         for state_name, io_names in self._io_names.items():
             outputs[io_names['boundary']][0] = inputs[io_names['initial']]
             outputs[io_names['boundary']][1] = inputs[io_names['final']]
@@ -101,8 +128,6 @@ class BirkhoffBoundaryGroup(om.Group):
         """
         Define the structure of the control group.
         """
-        gd = self.options['grid_data']
-        nn = gd.subset_num_nodes['all']
         ode_class = self.options['ode_class']
         ode_init_kwargs = self.options['ode_init_kwargs']
         ibcs = self.options['initial_boundary_constraints']
@@ -121,10 +146,15 @@ class BirkhoffBoundaryGroup(om.Group):
                                promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure_io(self, phase):
-        grid_data = phase.options['transcription'].grid_data
+        """
+        I/O creation is delayed until configure so that we can determine shape and units for the states.
 
-        self._get_subsystem('boundary_mux').configure_io(num_segs=grid_data.num_segments,
-                                                         state_options=phase.state_options)
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        self._get_subsystem('boundary_mux').configure_io(state_options=phase.state_options)
 
         for state_name, options in phase.state_options.items():
             for tgt in options['targets']:

@@ -13,6 +13,23 @@ from dymos.utils.birkhoff import birkhoff_matrix
 
 
 class BirkhoffCollocationComp(om.ExplicitComponent):
+    """
+    Class definition for the BirkhoffCollocationComp.
+
+    BirkhoffCollocationComp computes the generalized defects of a segment for implicit collocation.
+    There are four defects to be evaluated; state, state rate, initial state, and final state.
+    The state defect is the difference between the state value design variables and the state rate
+    design variables.
+    The state rate defect is the difference between the state rate design variables and the computed
+    state derivative at the collocation nodes.
+    The initial and final state defects are the differences between the initial and final state
+    design variables and the first and last index of the state design variable array.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+    """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -331,6 +348,20 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
                                       rows=rs, cols=cs, val=val)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+        """
+        Compute component outputs.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        outputs : Vector
+            Unscaled, dimensional output variables read via outputs[key].
+        discrete_inputs : dict or None
+            If not None, dict containing discrete input values.
+        discrete_outputs : dict or None
+            If not None, dict containing discrete output values.
+        """
         dt_dstau = np.atleast_2d(inputs['dt_dstau']).T
         num_segs = self.options['grid_data'].num_segments
 

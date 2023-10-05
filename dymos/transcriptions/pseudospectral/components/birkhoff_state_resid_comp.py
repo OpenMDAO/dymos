@@ -7,6 +7,16 @@ from ...._options import options as dymos_options
 
 
 class BirkhoffStateResidComp(om.ImplicitComponent):
+    """
+    Class definition for the BirkhoffStateResidComp.
+
+    Generates the residuals for any states that are solved for implicitly.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
+    """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -20,8 +30,8 @@ class BirkhoffStateResidComp(om.ImplicitComponent):
         Parameters
         ----------
         name : str
-            The name of the input providing the residuals for the given output
-        kwargs
+            The name of the input providing the residuals for the given output.
+        **kwargs : dict
             Additional keyword arguments for add_input and add_residual.
         """
         val = kwargs['val'] if 'val' in kwargs else 1.0
@@ -55,6 +65,3 @@ class BirkhoffStateResidComp(om.ImplicitComponent):
             Unscaled, dimensional residuals written to via residuals[key].
         """
         residuals.set_val(inputs.asarray())
-        # print(residuals)
-        # for name, resid_input in self._io_pairs:
-        #     residuals[name] = inputs[resid_input]
