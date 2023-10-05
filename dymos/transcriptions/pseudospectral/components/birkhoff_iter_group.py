@@ -103,7 +103,7 @@ class BirkhoffIterGroup(om.Group):
                 raise ValueError('array-valued scaler/ref must length equal to state-size')
         else:
             ref_state = ref
-            ref_seg_ends = ref0
+            ref_seg_ends = ref
 
         free_vars = {state_name, state_rate_name, state_segment_ends_name, initial_state_name, final_state_name}
 
