@@ -37,7 +37,7 @@ class SimulationPhase(Phase):
     **kwargs : dict
         Dictionary of optional phase arguments.
     """
-    def __init__(self, from_phase, times_per_seg=None, method=_unspecified, atol=_unspecified,
+    def __init__(self, from_phase, times_per_seg=_unspecified, method=_unspecified, atol=_unspecified,
                  rtol=_unspecified, first_step=_unspecified, max_step=_unspecified,
                  reports=False, **kwargs):
 
@@ -47,11 +47,14 @@ class SimulationPhase(Phase):
         seg_ends = phase_tx.grid_data.segment_ends
         compressed = phase_tx.grid_data.compressed
 
-        _method = method if method is not _unspecified else from_phase.simulate_options['method']
-        _atol = atol if atol is not _unspecified else from_phase.simulate_options['atol']
-        _rtol = rtol if rtol is not _unspecified else from_phase.simulate_options['rtol']
-        _first_step = first_step if first_step is not _unspecified else from_phase.simulate_options['first_step']
-        _max_step = max_step if max_step is not _unspecified else from_phase.simulate_options['max_step']
+        sim_options = from_phase.simulate_options
+
+        _method = method if method is not _unspecified else sim_options['method']
+        _atol = atol if atol is not _unspecified else sim_options['atol']
+        _rtol = rtol if rtol is not _unspecified else sim_options['rtol']
+        _first_step = first_step if first_step is not _unspecified else sim_options['first_step']
+        _max_step = max_step if max_step is not _unspecified else sim_options['max_step']
+        _times_per_seg = times_per_seg if times_per_seg is not _unspecified else sim_options['times_per_seg']
 
         if isinstance(phase_tx, GaussLobatto):
             grid = GaussLobattoGrid(num_segments=num_seg, nodes_per_seg=seg_order, segment_ends=seg_ends,
@@ -66,10 +69,10 @@ class SimulationPhase(Phase):
             raise RuntimeError(f'Unexpected grid class for {phase_tx.grid_data}. Only phases with GaussLobatto '
                                f'or Radau grids can be simulated.')
 
-        if times_per_seg is None:
+        if _times_per_seg is None:
             output_grid = None
         else:
-            output_grid = UniformGrid(num_segments=num_seg, nodes_per_seg=times_per_seg, segment_ends=seg_ends,
+            output_grid = UniformGrid(num_segments=num_seg, nodes_per_seg=_times_per_seg, segment_ends=seg_ends,
                                       compressed=compressed)
 
         tx = ExplicitShooting(propagate_derivs=False,

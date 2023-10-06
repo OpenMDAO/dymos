@@ -643,6 +643,11 @@ class SimulateOptionsDictionary(om.OptionsDictionary):
         self.declare(name='max_step', types=float, default=np.inf,
                      desc='Maximum allowable step size')
 
+        self.declare(name='times_per_seg', types=int, allow_none=True, default=10,
+                     desc='The default number of output times per segment for Phase.simulate.'
+                          'If None, and not provided as an argument to simulate, use the'
+                          'same grid as the Phase transcription.')
+
 
 class ConstraintOptionsDictionary(om.OptionsDictionary):
     """

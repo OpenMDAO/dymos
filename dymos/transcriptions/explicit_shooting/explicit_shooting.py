@@ -144,7 +144,6 @@ class ExplicitShooting(TranscriptionBase):
             if t_phase_name not in ts_options['outputs'] and phase.timeseries_options['include_t_phase']:
                 phase.add_timeseries_output(t_phase_name, timeseries=ts_name)
 
-        # if times_per_seg is None:
         # Case 1:  Compute times at 'all' node set.
         num_nodes = self._output_grid_data.num_nodes
         node_ptau = self._output_grid_data.node_ptau

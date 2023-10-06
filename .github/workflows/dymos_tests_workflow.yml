@@ -57,6 +57,15 @@ jobs:
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
 
+          # baseline versions except no MPI/PETSc
+          - NAME: no_mpi
+            PY: '3.10'
+            NUMPY: 1.22
+            SCIPY: 1.7
+            PYOPTSPARSE: 'v2.9.3'
+            OPENMDAO: 'latest'
+            OPTIONAL: '[test]'
+
           # try latest versions
           - NAME: latest
             PY: 3

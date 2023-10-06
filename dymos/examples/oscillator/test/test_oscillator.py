@@ -66,7 +66,7 @@ class TestDocOscillator(unittest.TestCase):
             sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.{state}'), '-')
             axes[i].set_ylabel(state)
         axes[-1].set_xlabel('time (s)')
-        fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
+        fig.legend((sol[0], sim[0]), ('solution', 'simulation'), loc='lower right', ncol=2)
         plt.tight_layout()
         plt.show()
 
@@ -130,7 +130,7 @@ class TestDocOscillator(unittest.TestCase):
             sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.{state}'), '-')
             axes[i].set_ylabel(state)
         axes[-1].set_xlabel('time (s)')
-        fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
+        fig.legend((sol[0], sim[0]), ('solution', 'simulation'), loc='lower right', ncol=2)
         plt.tight_layout()
         plt.show()
 
@@ -205,7 +205,7 @@ class TestDocOscillator(unittest.TestCase):
             sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.{state}'), '-')
             axes[i].set_ylabel(state)
         axes[-1].set_xlabel('time (s)')
-        fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
+        fig.legend((sol[0], sim[0]), ('solution', 'simulation'), loc='lower right', ncol=2)
         plt.tight_layout()
         plt.show()
 
@@ -280,7 +280,7 @@ class TestDocOscillator(unittest.TestCase):
             sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.{state}'), '-')
             axes[i].set_ylabel(state)
         axes[-1].set_xlabel('time (s)')
-        fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
+        fig.legend((sol[0], sim[0]), ('solution', 'simulation'), loc='lower right', ncol=2)
         plt.tight_layout()
         plt.show()
 
@@ -355,7 +355,7 @@ class TestDocOscillator(unittest.TestCase):
             sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.{state}'), '-')
             axes[i].set_ylabel(state)
         axes[-1].set_xlabel('time (s)')
-        fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
+        fig.legend((sol[0], sim[0]), ('solution', 'simulation'), loc='lower right', ncol=2)
         plt.tight_layout()
         plt.show()
 
@@ -430,7 +430,7 @@ class TestDocOscillator(unittest.TestCase):
             sim = axes[i].plot(t_sim, sim_out.get_val(f'traj.phase0.timeseries.{state}'), '-')
             axes[i].set_ylabel(state)
         axes[-1].set_xlabel('time (s)')
-        fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
+        fig.legend((sol[0], sim[0]), ('solution', 'simulation'), loc='lower right', ncol=2)
         plt.tight_layout()
         plt.show()
 

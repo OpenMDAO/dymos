@@ -2214,7 +2214,7 @@ class Phase(om.Group):
             res = res.T
         return res
 
-    def get_simulation_phase(self, times_per_seg=None, method=_unspecified, atol=_unspecified,
+    def get_simulation_phase(self, times_per_seg=_unspecified, method=_unspecified, atol=_unspecified,
                              rtol=_unspecified, first_step=_unspecified, max_step=_unspecified,
                              reports=False):
         """
@@ -2251,6 +2251,7 @@ class Phase(om.Group):
             times.  This instance has not yet been setup.
         """
         from .simulation_phase import SimulationPhase
+
         sim_phase = SimulationPhase(from_phase=self, times_per_seg=times_per_seg, method=method,
                                     atol=atol, rtol=rtol, first_step=first_step, max_step=max_step,
                                     reports=reports)
@@ -2331,7 +2332,7 @@ class Phase(om.Group):
                 prob_path = f'{self.name}.parameters:{name}'
             prob.set_val(prob_path, val)
 
-    def simulate(self, times_per_seg=10, method=_unspecified, atol=_unspecified, rtol=_unspecified,
+    def simulate(self, times_per_seg=None, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None):
         """
         Simulate the Phase using scipy.integrate.solve_ivp.
@@ -2364,7 +2365,7 @@ class Phase(om.Group):
         """
         sim_prob = om.Problem(model=om.Group())
 
-        sim_phase = self.get_simulation_phase(times_per_seg, method=method, atol=atol, rtol=rtol,
+        sim_phase = self.get_simulation_phase(times_per_seg=times_per_seg, method=method, atol=atol, rtol=rtol,
                                               first_step=first_step, max_step=max_step)
 
         sim_prob.model.add_subsystem(self.name, sim_phase)
@@ -2419,7 +2420,7 @@ class Phase(om.Group):
             self.refine_options['smoothness_factor'] = smoothness_factor
 
     def set_simulate_options(self, method=_unspecified, atol=_unspecified, rtol=_unspecified,
-                             first_step=_unspecified, max_step=_unspecified):
+                             first_step=_unspecified, max_step=_unspecified, times_per_seg=_unspecified):
         """
         Set the specified option(s) for grid refinement in the phase.
 
@@ -2435,6 +2436,8 @@ class Phase(om.Group):
             Initial step size for the integration.
         max_step : float
             Maximum step size for the integration.
+        times_per_seg : int
+            The number of time steps to output per segment.
         """
         if method is not _unspecified:
             self.simulate_options['method'] = method
@@ -2446,6 +2449,8 @@ class Phase(om.Group):
             self.simulate_options['first_step'] = first_step
         if max_step is not _unspecified:
             self.simulate_options['max_step'] = max_step
+        if times_per_seg is not _unspecified:
+            self.simulate_options['times_per_seg'] = times_per_seg
 
     def is_time_fixed(self, loc):
         """
