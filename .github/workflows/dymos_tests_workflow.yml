@@ -166,6 +166,15 @@ jobs:
             python -m pip install jaxlib==${{ matrix.JAX }} jax==${{ matrix.JAX }}
           fi
 
+      - name: Install greenlet
+        if: env.NAME == 'latest'
+        shell: bash -l {0}
+        run: |
+          echo "============================================================="
+          echo "Install greenlet from wheels"
+          echo "============================================================="
+          pip install --only-binary :all: greenlet
+
       - name: Install PETSc
         if: env.RUN_BUILD && matrix.PETSc
         shell: bash -l {0}
