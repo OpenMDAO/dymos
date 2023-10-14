@@ -1,3 +1,5 @@
+from packaging.version import Version
+from platform import python_version
 from setuptools import find_packages, setup
 
 # Setup optional dependencies
@@ -27,10 +29,12 @@ optional_dependencies = {
         'testflo>=1.3.6',
         'matplotlib',
         'numpydoc>=1.1',
-        'playwright>=1.20',
-        'aiounittest'
     ]
 }
+
+# playwright dependencies are currently incompatible with python 3.12
+if Version(python_version()) < Version('3.12.0'):
+    optional_dependencies['test'].extend(['playwright>=1.20', 'aiounittest'])
 
 # Add an optional dependency that concatenates all others
 optional_dependencies['all'] = sorted([
