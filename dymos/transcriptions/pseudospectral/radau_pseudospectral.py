@@ -253,7 +253,7 @@ class Radau(PseudospectralBase):
         try:
             var = phase.state_options[state_name]['rate_source']
         except RuntimeError:
-            raise ValueError(f"state '{state_name}' in phase '{ phase.name}' was not given a "
+            raise ValueError(f"state '{state_name}' in phase '{phase.name}' was not given a "
                              "rate_source")
 
         # Note the rate source must be shape-compatible with the state
