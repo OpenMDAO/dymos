@@ -9,9 +9,6 @@ from ...utils.lagrange import lagrange_matrices
 from ..common.timeseries_output_comp import TimeseriesOutputCompBase
 
 
-_USE_SPARSE = True
-
-
 class AnalyticTimeseriesOutputComp(TimeseriesOutputCompBase):
     """
     Class definition of the timeseries output comp for AnalyticPhase.
@@ -86,12 +83,8 @@ class AnalyticTimeseriesOutputComp(TimeseriesOutputCompBase):
             L_blocks.append(L)
             D_blocks.append(D)
 
-        if _USE_SPARSE:
-            self.interpolation_matrix = sp.block_diag(L_blocks, format='csr')
-            self.differentiation_matrix = sp.block_diag(D_blocks, format='csr')
-        else:
-            self.interpolation_matrix = block_diag(*L_blocks)
-            self.differentiation_matrix = block_diag(*D_blocks)
+        self.interpolation_matrix = sp.block_diag(L_blocks, format='csr')
+        self.differentiation_matrix = sp.block_diag(D_blocks, format='csr')
 
         self.add_input('dt_dstau', shape=(self.input_num_nodes,), units=self.options['time_units'])
 
