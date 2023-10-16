@@ -159,7 +159,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             # Extend the data and indices using the CSR attributes of mat
             jac_data.extend(mat.data)
             jac_indices.extend(mat.indices + s * input_num_nodes)
-            
+
             # For every non-zero row in mat, update jac's indptr
             new_indptr = mat.indptr[1:] + s * len(mat.data)
             jac_indptr.extend(new_indptr)
@@ -168,7 +168,8 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         jac_indptr[-1] = len(jac_data)
 
         # Construct the sparse jac matrix in CSR format
-        jac = sp.csr_matrix((jac_data, jac_indices, jac_indptr), shape=(output_num_nodes * size, input_num_nodes * size))
+        jac = sp.csr_matrix((jac_data, jac_indices, jac_indptr),
+                            shape=(output_num_nodes * size, input_num_nodes * size))
 
         # Now, if you want to get the row and column indices of the non-zero entries in the jac matrix:
         jac_rows, jac_cols = jac.nonzero()
