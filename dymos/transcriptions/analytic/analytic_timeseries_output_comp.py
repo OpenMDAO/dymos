@@ -9,9 +9,6 @@ from ...utils.lagrange import lagrange_matrices
 from ..common.timeseries_output_comp import TimeseriesOutputCompBase
 
 
-_USE_SPARSE = True
-
-
 class AnalyticTimeseriesOutputComp(TimeseriesOutputCompBase):
     """
     Class definition of the timeseries output comp for AnalyticPhase.
@@ -86,12 +83,8 @@ class AnalyticTimeseriesOutputComp(TimeseriesOutputCompBase):
             L_blocks.append(L)
             D_blocks.append(D)
 
-        if _USE_SPARSE:
-            self.interpolation_matrix = sp.block_diag(L_blocks, format='csr')
-            self.differentiation_matrix = sp.block_diag(D_blocks, format='csr')
-        else:
-            self.interpolation_matrix = block_diag(*L_blocks)
-            self.differentiation_matrix = block_diag(*D_blocks)
+        self.interpolation_matrix = sp.block_diag(L_blocks, format='csr')
+        self.differentiation_matrix = sp.block_diag(D_blocks, format='csr')
 
         self.add_input('dt_dstau', shape=(self.input_num_nodes,), units=self.options['time_units'])
 
@@ -150,35 +143,50 @@ class AnalyticTimeseriesOutputComp(TimeseriesOutputCompBase):
         self._vars[name] = (input_name, output_name, shape, rate)
 
         size = np.prod(shape)
-        jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
 
         if rate:
             mat = self.differentiation_matrix
         else:
             mat = self.interpolation_matrix
 
-        for i in range(size):
-            if _USE_SPARSE:
-                jac[:, i, :, i] = mat.toarray()
-            else:
-                jac[:, i, :, i] = mat
+        # Preallocate lists to hold data for jac
+        jac_data = []
+        jac_indices = []
+        jac_indptr = [0]
 
-        jac = jac.reshape((output_num_nodes * size, input_num_nodes * size), order='C')
+        # Iterate over the dense dimension 'size'
+        for s in range(size):
+            # Extend the data and indices using the CSR attributes of mat
+            jac_data.extend(mat.data)
+            jac_indices.extend(mat.indices + s * input_num_nodes)
 
-        jac_rows, jac_cols = np.nonzero(jac)
+            # For every non-zero row in mat, update jac's indptr
+            new_indptr = mat.indptr[1:] + s * len(mat.data)
+            jac_indptr.extend(new_indptr)
+
+        # Correct the last entry of jac_indptr
+        jac_indptr[-1] = len(jac_data)
+
+        # Construct the sparse jac matrix in CSR format
+        jac = sp.csr_matrix((jac_data, jac_indices, jac_indptr),
+                            shape=(output_num_nodes * size, input_num_nodes * size))
+
+        # Now, if you want to get the row and column indices of the non-zero entries in the jac matrix:
+        jac_rows, jac_cols = jac.nonzero()
 
         # There's a chance that the input for this output was pulled from another variable with
         # different units, so account for that with a conversion.
+        val = np.squeeze(np.array(jac[jac_rows, jac_cols]))
         if input_units is None or units is None:
             self.declare_partials(of=output_name, wrt=input_name,
-                                  rows=jac_rows, cols=jac_cols, val=jac[jac_rows, jac_cols])
+                                  rows=jac_rows, cols=jac_cols, val=val)
         else:
             scale, offset = unit_conversion(input_units, units)
             self._conversion_factors[output_name] = scale, offset
 
             self.declare_partials(of=output_name, wrt=input_name,
                                   rows=jac_rows, cols=jac_cols,
-                                  val=scale * jac[jac_rows, jac_cols])
+                                  val=scale * val)
 
         return added_source
 
