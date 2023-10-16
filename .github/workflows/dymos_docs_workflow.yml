@@ -46,7 +46,7 @@ jobs:
             SNOPT: 7.7
             OPENMDAO: 'dev'
             OPTIONAL: '[docs]'
-            JAX: '0.3.24'
+            JAX: 'latest'
             PUBLISH_DOCS: 0
 
     steps:
@@ -101,8 +101,11 @@ jobs:
           echo "============================================================="
           echo "Install jax"
           echo "============================================================="
-          python -m pip install jaxlib==${{ matrix.JAX }} jax==${{ matrix.JAX }}
-
+          if [[ "${{ matrix.JAX }}" == "latest" ]]; then
+            python -m pip install jaxlib jax
+          else
+            python -m pip install jaxlib==${{ matrix.JAX }} jax==${{ matrix.JAX }}
+          fi
       - name: Install PETSc
         if: matrix.PETSc
         shell: bash -l {0}

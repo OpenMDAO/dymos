@@ -73,8 +73,8 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with {start_of_expected_errmsg} but "
                         f"instead was {actual_errmsg}")
-        self.assertEquals(actual_errmsg.count('>REL_TOL'), 2)
-        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 0)
+        self.assertEqual(actual_errmsg.count('>REL_TOL'), 2)
+        self.assertEqual(actual_errmsg.count('>ABS_TOL'), 0)
 
     def test_unequal_time_series_abs_only(self):
         # slightly modify the "to be checked" time series and check that the assert is working
@@ -102,8 +102,8 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with {start_of_expected_errmsg} but "
                         f"instead was {actual_errmsg}")
-        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 2)
-        self.assertEquals(actual_errmsg.count('>REL_TOL'), 0)
+        self.assertEqual(actual_errmsg.count('>ABS_TOL'), 2)
+        self.assertEqual(actual_errmsg.count('>REL_TOL'), 0)
 
     def test_unequal_time_series_abs_and_rel(self):
         # slightly modify the "to be checked" time series and check that the assert is working
@@ -139,8 +139,8 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with '{start_of_expected_errmsg}' but "
                         f"instead was '{actual_errmsg}'")
-        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 2)
-        self.assertEquals(actual_errmsg.count('>REL_TOL'), 2)
+        self.assertEqual(actual_errmsg.count('>ABS_TOL'), 2)
+        self.assertEqual(actual_errmsg.count('>REL_TOL'), 2)
 
         # for > 100, uses the rel, x_check[15] is ~ 150
         x_check[5] = x_check_5_orig
@@ -166,8 +166,8 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with '{start_of_expected_errmsg}' but "
                         f"instead was '{actual_errmsg}'")
-        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 2)
-        self.assertEquals(actual_errmsg.count('>REL_TOL'), 2)
+        self.assertEqual(actual_errmsg.count('>ABS_TOL'), 2)
+        self.assertEqual(actual_errmsg.count('>REL_TOL'), 2)
 
         # Combine the two cases where one data paint fails because of abs error and one because
         #   of rel error
@@ -187,8 +187,8 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with '{start_of_expected_errmsg}' but "
                         f"instead was '{actual_errmsg}'")
-        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 3)
-        self.assertEquals(actual_errmsg.count('>REL_TOL'), 3)
+        self.assertEqual(actual_errmsg.count('>ABS_TOL'), 3)
+        self.assertEqual(actual_errmsg.count('>REL_TOL'), 3)
 
     def test_no_overlapping_time(self):
         t_ref, x_ref = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
@@ -253,8 +253,8 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with {start_of_expected_errmsg} but "
                         f"instead was {actual_errmsg}")
-        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 0)
-        self.assertEquals(actual_errmsg.count('>REL_TOL'), 199)
+        self.assertEqual(actual_errmsg.count('>ABS_TOL'), 0)
+        self.assertEqual(actual_errmsg.count('>REL_TOL'), 199)
 
     def test_multi_dimensional_unequal_abs_and_rel(self):
         t_ref, x_ref_1 = create_linear_time_series(10, 0.0, 500.0, 0.0, 1000.0)
@@ -279,8 +279,8 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with {start_of_expected_errmsg} but "
                         f"instead was {actual_errmsg}")
-        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 19)
-        self.assertEquals(actual_errmsg.count('>REL_TOL'), 19)
+        self.assertEqual(actual_errmsg.count('>ABS_TOL'), 19)
+        self.assertEqual(actual_errmsg.count('>REL_TOL'), 19)
 
     def test_multi_dimensional_with_overlapping_times(self):
         t_ref, x_ref_1 = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
@@ -314,8 +314,8 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with {start_of_expected_errmsg} but "
                         f"instead was {actual_errmsg}")
-        self.assertEquals(actual_errmsg.count('>ABS_TOL'), 0)
-        self.assertEquals(actual_errmsg.count('>REL_TOL'), 99)
+        self.assertEqual(actual_errmsg.count('>ABS_TOL'), 0)
+        self.assertEqual(actual_errmsg.count('>REL_TOL'), 99)
 
 
 @use_tempdirs
