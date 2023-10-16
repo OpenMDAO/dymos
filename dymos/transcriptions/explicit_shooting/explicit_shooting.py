@@ -5,7 +5,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.om_warnings import warn_deprecation
 
-from ..pseudospectral.components import PseudospectralTimeseriesOutputComp
+from ..common.timeseries_output_comp import TimeseriesOutputComp
 from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
@@ -96,17 +96,6 @@ class ExplicitShooting(TranscriptionBase):
         """
         Setup the GridData object for the Transcription.
         """
-        if self.options['grid'] in ('gauss-lobatto', None):
-            self.options['grid'] = GaussLobattoGrid(num_segments=self.options['num_segments'],
-                                                    nodes_per_seg=self.options['order'],
-                                                    segment_ends=self.options['segment_ends'],
-                                                    compressed=self.options['compressed'])
-        elif self.options['grid'] == 'radau-ps':
-            self.options['grid'] = RadauGrid(num_segments=self.options['num_segments'],
-                                             nodes_per_seg=self.options['order'] + 1,
-                                             segment_ends=self.options['segment_ends'],
-                                             compressed=self.options['compressed'])
-
         dep_methods = {'rk4', '3/8', 'euler', 'ralston', 'rkf', 'rkck', 'dopri'}
         if self.options['method'] in dep_methods:
             warn_deprecation(f'Integration method {self.options["method"]} is no longer a valid option. Please use one '
@@ -622,10 +611,10 @@ class ExplicitShooting(TranscriptionBase):
                     has_expr = True
                     break
 
-            timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=self._output_grid_data,
-                                                                 output_grid_data=self._output_grid_data,
-                                                                 output_subset=options['subset'],
-                                                                 time_units=phase.time_options['units'])
+            timeseries_comp = TimeseriesOutputComp(input_grid_data=self._output_grid_data,
+                                                   output_grid_data=self._output_grid_data,
+                                                   output_subset=options['subset'],
+                                                   time_units=phase.time_options['units'])
             timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
             phase.add_subsystem(name, subsys=timeseries_group)
 

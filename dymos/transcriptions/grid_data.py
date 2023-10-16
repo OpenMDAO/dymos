@@ -253,7 +253,6 @@ class GridData(object):
         Dict keyed by the map name that provides a mapping for src_indices to
         and from "compressed" form.
     """
-
     def __init__(self, num_segments, transcription, transcription_order=None,
                  segment_ends=None, compressed=False, num_steps_per_segment=1):
         if segment_ends is None:
@@ -400,6 +399,26 @@ class GridData(object):
 
         self.input_maps['dynamic_control_input_to_disc'] = make_subset_map(control_input_idxs,
                                                                            control_disc_idxs)
+
+    def __eq__(self, other):
+        """
+        Compare this GridData with an object with other and return True if they are equivalent.
+
+        Parameters
+        ----------
+        other : GridData
+
+        Returns
+        -------
+        bool
+            True if other is equivalent to self, otherwise False.
+        """
+        return self.transcription == other.transcription and \
+            self.num_segments == other.num_segments and \
+            np.all(self.segment_ends == other.segment_ends) and \
+            self.compressed == other.compressed and \
+            np.all(self.transcription_order == other.transcription_order) and \
+            np.all(self.num_steps_per_segment == other.num_steps_per_segment)
 
     def is_aligned_with(self, other, tol=1.0E-12):
         """

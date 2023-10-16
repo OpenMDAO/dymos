@@ -1,6 +1,6 @@
 import openmdao.api as om
 
-from .timeseries_output_comp import TimeseriesOutputCompBase
+from .timeseries_output_comp import TimeseriesOutputComp
 
 
 class TimeseriesOutputGroup(om.Group):
@@ -19,7 +19,7 @@ class TimeseriesOutputGroup(om.Group):
         """
         Declare component options.
         """
-        self.options.declare('timeseries_output_comp', types=TimeseriesOutputCompBase, recordable=False,
+        self.options.declare('timeseries_output_comp', types=TimeseriesOutputComp, recordable=False,
                              desc='Timeseries component specific to the transcription of the optimal control problem.')
 
         self.options.declare('has_expr', types=bool,
