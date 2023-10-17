@@ -4,7 +4,7 @@ import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
 from ..common import TimeComp, TimeseriesOutputGroup
-from .components import StateIndependentsComp, PseudospectralTimeseriesOutputComp, BirkhoffCollocationComp, \
+from .components import StateIndependentsComp, BirkhoffCollocationComp, \
     BirkhoffIterGroup, BirkhoffBoundaryGroup
 
 from ..grid_data import BirkhoffGrid
@@ -404,10 +404,10 @@ class Birkhoff(TranscriptionBase):
             else:
                 ogd = options['transcription'].grid_data
 
-            timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=gd,
-                                                                 output_grid_data=ogd,
-                                                                 output_subset=options['subset'],
-                                                                 time_units=phase.time_options['units'])
+            timeseries_comp = TimeseriesOutputComp(input_grid_data=gd,
+                                                   output_grid_data=ogd,
+                                                   output_subset=options['subset'],
+                                                   time_units=phase.time_options['units'])
             timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
             phase.add_subsystem(name, subsys=timeseries_group)
 
