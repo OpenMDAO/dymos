@@ -3,12 +3,12 @@ import openmdao.api as om
 import scipy.sparse as sp
 
 from openmdao.utils.units import unit_conversion
-from dymos.transcriptions.common.timeseries_output_comp import TimeseriesOutputCompBase
 
 from ....utils.lagrange import lagrange_matrices
+from ...common import TimeseriesOutputComp
 
 
-class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
+class SolveIVPTimeseriesOutputComp(TimeseriesOutputComp):
     """
     Class definition for SolveIVPTimeseriesOutputComp.
 
@@ -21,15 +21,12 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         """
         Declare component options.
         """
-        super(SolveIVPTimeseriesOutputComp, self).initialize()
+        super().initialize()
 
         self.options.declare('output_nodes_per_seg', default=None, types=(int,), allow_none=True,
                              desc='If None, results are provided at the all nodes within each'
                                   'segment.  If an int (n) then results are provided at n '
                                   'equally distributed points in time within each segment.')
-
-        self.options.declare('time_units', default=None, allow_none=True, types=str,
-                             desc='Units of time')
 
     def setup(self):
         """

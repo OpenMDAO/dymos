@@ -3,7 +3,6 @@ from .state_interp_comp import StateInterpComp
 from .state_independents import StateIndependentsComp
 from .control_endpoint_defect_comp import ControlEndpointDefectComp
 from .gauss_lobatto_interleave_comp import GaussLobattoInterleaveComp
-from .pseudospectral_timeseries_output_comp import PseudospectralTimeseriesOutputComp
 from .birkhoff_collocation_comp import BirkhoffCollocationComp
 from .birkhoff_iter_group import BirkhoffIterGroup
 from .birkhoff_boundary_group import BirkhoffBoundaryGroup

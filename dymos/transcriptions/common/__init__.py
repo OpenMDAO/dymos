@@ -4,3 +4,4 @@ from .parameter_comp import ParameterComp
 from .polynomial_control_group import PolynomialControlGroup
 from .time_comp import TimeComp
 from .timeseries_group import TimeseriesOutputGroup
+from .timeseries_output_comp import TimeseriesOutputComp
