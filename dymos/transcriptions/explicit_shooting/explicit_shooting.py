@@ -5,7 +5,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.om_warnings import warn_deprecation
 
-from ..pseudospectral.components import PseudospectralTimeseriesOutputComp
+from ..common.timeseries_output_comp import TimeseriesOutputComp
 from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
@@ -622,10 +622,10 @@ class ExplicitShooting(TranscriptionBase):
                     has_expr = True
                     break
 
-            timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=self._output_grid_data,
-                                                                 output_grid_data=self._output_grid_data,
-                                                                 output_subset=options['subset'],
-                                                                 time_units=phase.time_options['units'])
+            timeseries_comp = TimeseriesOutputComp(input_grid_data=self._output_grid_data,
+                                                   output_grid_data=self._output_grid_data,
+                                                   output_subset=options['subset'],
+                                                   time_units=phase.time_options['units'])
             timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
             phase.add_subsystem(name, subsys=timeseries_group)
 

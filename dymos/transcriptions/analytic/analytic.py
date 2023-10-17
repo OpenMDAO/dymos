@@ -6,8 +6,7 @@ from ...utils.introspection import configure_analytic_states_introspection, get_
     get_source_metadata, configure_analytic_states_discovery
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
-from .analytic_timeseries_output_comp import AnalyticTimeseriesOutputComp
-from ..common import TimeComp, TimeseriesOutputGroup
+from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
 from ..._options import options as dymos_options
 
 
@@ -315,10 +314,10 @@ class Analytic(TranscriptionBase):
             else:
                 ogd = options['transcription'].grid_data
 
-            timeseries_comp = AnalyticTimeseriesOutputComp(input_grid_data=gd,
-                                                           output_grid_data=ogd,
-                                                           output_subset=options['subset'],
-                                                           time_units=phase.time_options['units'])
+            timeseries_comp = TimeseriesOutputComp(input_grid_data=gd,
+                                                   output_grid_data=ogd,
+                                                   output_subset=options['subset'],
+                                                   time_units=phase.time_options['units'])
 
             timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
             phase.add_subsystem(name, subsys=timeseries_group)
