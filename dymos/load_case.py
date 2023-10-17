@@ -132,11 +132,15 @@ def load_case(problem, previous_solution, deprecation_warning=True):
             continue
 
         prev_time_val = prev_vars[prev_time_path]['val']
+        t_initial = prev_time_val[0]
+        t_duration = prev_time_val[-1] - prev_time_val[0]
         prev_time_val, unique_idxs = np.unique(prev_time_val, return_index=True)
         prev_time_units = prev_vars[prev_time_path]['units']
 
-        t_initial = prev_time_val[0]
-        t_duration = prev_time_val[-1] - prev_time_val[0]
+        if t_duration < 0:
+            # Unique sorts the data. In reverse-time phases, we need to undo it.
+            prev_time_val = np.flip(prev_time_val, axis=0)
+            unique_idxs = np.flip(unique_idxs, axis=0)
 
         ti_path = [s for s in phase_vars.keys() if s.endswith(f'{phase_name}.t_initial')]
         if ti_path:

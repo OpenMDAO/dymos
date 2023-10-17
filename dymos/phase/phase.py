@@ -2733,13 +2733,17 @@ class Phase(om.Group):
 
         prev_timeseries_prom_path, _, _ = prev_time_path.rpartition(f'.{integration_name}')
         prev_phase_prom_path, _, _ = prev_timeseries_prom_path.rpartition('.timeseries')
-
         prev_time_val = prev_vars[prev_time_path]['val']
-        prev_time_val, unique_idxs = np.unique(prev_time_val, return_index=True)
-        prev_time_units = prev_vars[prev_time_path]['units']
 
         t_initial = prev_time_val[0]
         t_duration = prev_time_val[-1] - prev_time_val[0]
+        prev_time_val, unique_idxs = np.unique(prev_time_val, return_index=True)
+        prev_time_units = prev_vars[prev_time_path]['units']
+
+        if t_duration < 0:
+            # Unique sorts the data. In reverse-time phases, we need to undo it.
+            prev_time_val = np.flip(prev_time_val, axis=0)
+            unique_idxs = np.flip(unique_idxs, axis=0)
 
         self.set_val('t_initial', t_initial, units=prev_time_units)
         self.set_val('t_duration', t_duration, units=prev_time_units)
