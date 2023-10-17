@@ -413,12 +413,15 @@ class GridData(object):
         bool
             True if other is equivalent to self, otherwise False.
         """
-        return self.transcription == other.transcription and \
-            self.num_segments == other.num_segments and \
-            np.all(self.segment_ends == other.segment_ends) and \
-            self.compressed == other.compressed and \
-            np.all(self.transcription_order == other.transcription_order) and \
-            np.all(self.num_steps_per_segment == other.num_steps_per_segment)
+        if isinstance(other, GridData):
+            return self.transcription == other.transcription and \
+                self.num_segments == other.num_segments and \
+                np.all(self.segment_ends == other.segment_ends) and \
+                self.compressed == other.compressed and \
+                np.all(self.transcription_order == other.transcription_order) and \
+                np.all(self.num_steps_per_segment == other.num_steps_per_segment)
+        else:
+            return False
 
     def is_aligned_with(self, other, tol=1.0E-12):
         """
