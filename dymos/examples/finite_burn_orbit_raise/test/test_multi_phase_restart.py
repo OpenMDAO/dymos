@@ -14,7 +14,6 @@ from dymos.utils.testing_utils import assert_cases_equal
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
 
-    @unittest.skip('Skipped due to a change in interpolation in scipy. Need to come up with better case loading.')
     def test_ex_two_burn_orbit_raise_connected(self):
         optimizer = 'IPOPT'
 
@@ -73,7 +72,6 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
-    @unittest.skip('Skipped due to a change in interpolation in scipy. Need to come up with better case loading.')
     def test_ex_two_burn_orbit_raise_connected(self):
         optimizer = 'IPOPT'
 
@@ -100,7 +98,6 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
         assert_cases_equal(case1, p, tol=1.0E-8)
         assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
 
-    @unittest.skip('Skipped due to a change in interpolation in scipy. Need to come up with better case loading.')
     def test_restart_from_solution_radau_to_connected(self):
         optimizer = 'IPOPT'
 
