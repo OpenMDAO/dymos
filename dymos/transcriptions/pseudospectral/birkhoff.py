@@ -3,9 +3,8 @@ import numpy as np
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
-from ..common import TimeComp, TimeseriesOutputGroup
-from .components import StateIndependentsComp, BirkhoffCollocationComp, \
-    BirkhoffIterGroup, BirkhoffBoundaryGroup
+from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
+from .components import BirkhoffIterGroup, BirkhoffBoundaryGroup
 
 from ..grid_data import BirkhoffGrid
 from dymos.utils.misc import get_rate_units, reshape_val
