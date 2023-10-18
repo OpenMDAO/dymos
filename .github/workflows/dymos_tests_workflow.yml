@@ -319,7 +319,7 @@ jobs:
           fi
 
       - name: Submit coverage
-        if: ((github.event_name != 'workflow_dispatch') && (env.NAME != 'latest'))
+        if: ((github.event_name != 'workflow_dispatch') && (matrix.NAME != 'latest'))
         shell: bash -l {0}
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
