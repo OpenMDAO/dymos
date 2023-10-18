@@ -10,17 +10,26 @@ import dymos as dm
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 
 
-@require_pyoptsparse(optimizer='SLSQP')
-def double_integrator_direct_collocation(transcription='gauss-lobatto', compressed=True):
+@require_pyoptsparse(optimizer='IPOPT')
+def double_integrator(transcription='gauss-lobatto', compressed=True, grid_type='lgl', optimizer='IPOPT'):
 
     p = om.Problem(model=om.Group())
-    p.driver = om.pyOptSparseDriver()
+    p.driver = om.pyOptSparseDriver(optimizer=optimizer)
     p.driver.declare_coloring()
+
+    if optimizer == 'IPOPT':
+        p.driver.opt_settings['max_iter'] = 500
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+        p.driver.opt_settings['print_level'] = 0
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+        p.driver.opt_settings['tol'] = 1.0E-7
 
     if transcription == 'gauss-lobatto':
         t = dm.GaussLobatto(num_segments=30, order=3, compressed=compressed)
     elif transcription == "radau-ps":
         t = dm.Radau(num_segments=30, order=3, compressed=compressed)
+    elif transcription == 'birkhoff':
+        t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=100, grid_type=grid_type))
     else:
         raise ValueError('invalid transcription')
 
@@ -33,7 +42,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
     phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s')
     phase.add_state('x', fix_initial=True, rate_source='v', units='m', shape=(1, ))
 
-    phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
+    phase.add_control('u', units='m/s**2', scaler=1.0, continuity=False, rate_continuity=False,
                       rate2_continuity=False, shape=(1, ), lower=-1.0, upper=1.0)
 
     # Maximize distance travelled in one second.
@@ -50,7 +59,13 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
     p['traj.phase0.states:v'] = phase.interp('v', [0, 0])
     p['traj.phase0.controls:u'] = phase.interp('u', [1, -1])
 
-    p.run_driver()
+    if transcription == 'birkhoff':
+        p['traj.phase0.initial_states:x'] = 0.0
+        p['traj.phase0.initial_states:v'] = 0.0
+        p['traj.phase0.final_states:v'] = 0.0
+
+    simulate_kwargs = {'times_per_seg': 100 if transcription == 'birkhoff' else 10}
+    dm.run_problem(p, simulate=False, make_plots=True, simulate_kwargs=simulate_kwargs)
 
     return p
 
@@ -79,56 +94,40 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         assert_near_equal(v[-1], 0.0, tolerance=tol)
 
     def test_ex_double_integrator_gl_compressed(self):
-        p = double_integrator_direct_collocation('gauss-lobatto',
-                                                 compressed=True)
+        p = double_integrator('gauss-lobatto',
+                              compressed=True)
 
-        x = p.get_val('traj.phase0.timeseries.x')
-        v = p.get_val('traj.phase0.timeseries.v')
-
-        assert_near_equal(x[0], 0.0, tolerance=1.0E-4)
-        assert_near_equal(x[-1], 0.25, tolerance=1.0E-4)
-
-        assert_near_equal(v[0], 0.0, tolerance=1.0E-4)
-        assert_near_equal(v[-1], 0.0, tolerance=1.0E-4)
+        self._assert_results(p)
 
     def test_ex_double_integrator_gl_uncompressed(self):
-        p = double_integrator_direct_collocation('gauss-lobatto',
-                                                 compressed=False)
+        p = double_integrator('gauss-lobatto',
+                              compressed=False)
 
-        x = p.get_val('traj.phase0.timeseries.x')
-        v = p.get_val('traj.phase0.timeseries.v')
-
-        assert_near_equal(x[0], 0.0, tolerance=1.0E-4)
-        assert_near_equal(x[-1], 0.25, tolerance=1.0E-4)
-
-        assert_near_equal(v[0], 0.0, tolerance=1.0E-4)
-        assert_near_equal(v[-1], 0.0, tolerance=1.0E-4)
+        self._assert_results(p)
 
     def test_ex_double_integrator_radau_compressed(self):
-        p = double_integrator_direct_collocation('radau-ps',
-                                                 compressed=True)
+        p = double_integrator('radau-ps',
+                              compressed=True)
 
-        x = p.get_val('traj.phase0.timeseries.x')
-        v = p.get_val('traj.phase0.timeseries.v')
-
-        assert_near_equal(x[0], 0.0, tolerance=1.0E-4)
-        assert_near_equal(x[-1], 0.25, tolerance=1.0E-4)
-
-        assert_near_equal(v[0], 0.0, tolerance=1.0E-4)
-        assert_near_equal(v[-1], 0.0, tolerance=1.0E-4)
+        self._assert_results(p)
 
     def test_ex_double_integrator_radau_uncompressed(self):
-        p = double_integrator_direct_collocation('radau-ps',
-                                                 compressed=False)
+        p = double_integrator('radau-ps',
+                              compressed=False)
 
-        x = p.get_val('traj.phase0.timeseries.x')
-        v = p.get_val('traj.phase0.timeseries.v')
+        self._assert_results(p)
 
-        assert_near_equal(x[0], 0.0, tolerance=1.0E-4)
-        assert_near_equal(x[-1], 0.25, tolerance=1.0E-4)
+    def test_ex_double_integrator_birkhoff_lgl(self):
+        p = double_integrator('birkhoff',
+                              grid_type='lgl')
 
-        assert_near_equal(v[0], 0.0, tolerance=1.0E-4)
-        assert_near_equal(v[-1], 0.0, tolerance=1.0E-4)
+        self._assert_results(p)
+
+    def test_ex_double_integrator_birkhoff_cgl(self):
+        p = double_integrator('birkhoff',
+                              grid_type='cgl')
+
+        self._assert_results(p)
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_ex_double_integrator_input_times_uncompressed(self):

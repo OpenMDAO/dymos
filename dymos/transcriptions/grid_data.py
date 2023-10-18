@@ -1,3 +1,4 @@
+import functools
 import numpy as np
 
 from scipy.linalg import block_diag
@@ -5,6 +6,7 @@ import scipy.sparse as sp
 
 from dymos.utils.lgl import lgl
 from dymos.utils.lgr import lgr
+from dymos.utils.cgl import cgl
 from dymos.utils.hermite import hermite_matrices
 from dymos.utils.lagrange import lagrange_matrices
 
@@ -107,6 +109,68 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     }
 
     return subsets, lgr(n, include_endpoint=True)[0]
+
+
+def birkhoff_subsets_and_nodes(n, grid, seg_idx, compressed=False):
+    """
+    Provides node information and the location of the nodes for n Radau nodes on the range [-1, 1].
+
+    Parameters
+    ----------
+    n : int
+        The total number of nodes in the segment.
+    grid : str
+        The type of Gaussian grid used in the transcription.
+    seg_idx : int
+        The index of this segment within its phase.
+    compressed : bool
+        True if the subset requested is for a phase with compressed transcription.
+
+    Returns
+    -------
+    dict
+        A dictionary with the following keys:
+        'state_disc' gives the indices of the state discretization nodes.
+        'state_input' gives the indices of the state input nodes.
+        'control_disc' gives the indices of the control discretization nodes.
+        'control_input' gives the indices of the control input nodes.
+        'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment.
+        'col' gives the indices of the collocation nodes.
+        'all' gives all node indices.
+    np.array
+        The location of all nodes on [-1, 1].
+
+    Notes
+    -----
+    Subset 'state_input' is the same as subset 'state_disc' if `compressed == False` or
+    `first_seg == True`.  For Radau-Pseudospectral transcription, subset 'control_input' is always
+    the same as subset 'control_disc'.
+    """
+    acceptable_grids = {'lgl', 'lgr', 'cgl'}
+
+    subsets = {
+        'state_disc': np.arange(n, dtype=int),
+        'state_input': np.arange(n, dtype=int),
+        'control_disc': np.arange(n, dtype=int),
+        'control_input': np.arange(n, dtype=int),
+        'segment_ends': np.array([0, n], dtype=int),
+        'col': np.arange(n, dtype=int),
+        'solution': np.arange(n, dtype=int),
+    }
+
+    if grid == 'lgl':
+        nodes = lgl(n)[0]
+        subsets['all'] = np.arange(n, dtype=int)
+    elif grid == 'lgr':
+        nodes = lgr(n, include_endpoint=False)[0]
+        subsets['all'] = np.arange(n, dtype=int)
+    elif grid == 'cgl':
+        nodes = cgl(n)[0]
+        subsets['all'] = np.arange(n, dtype=int)
+    else:
+        raise ValueError(f'Unrecognized grid. Acceptable values are one of {acceptable_grids}')
+
+    return subsets, nodes
 
 
 def uniform_subsets_and_nodes(n, *args, **kwargs):
@@ -304,6 +368,8 @@ class GridData(object):
             self.transcription = 'radau-ps'
         elif transcription.lower() in ['gausslobatto', 'gauss-lobatto', 'lgl']:
             self.transcription = 'gauss-lobatto'
+        elif transcription.lower() in ['birkhoff']:
+            self.transcription = 'birkhoff'
         elif transcription.lower() in ['uniform']:
             self.transcription = 'uniform'
         else:
@@ -316,6 +382,8 @@ class GridData(object):
             get_subsets_and_nodes = radau_pseudospectral_subsets_and_nodes
         elif self.transcription == 'uniform':
             get_subsets_and_nodes = uniform_subsets_and_nodes
+        elif self.transcription == 'birkhoff':
+            get_subsets_and_nodes = functools.partial(birkhoff_subsets_and_nodes, grid=self.grid_type)
 
         # Make sure transcription_order is a vector
         if isinstance(transcription_order, str):
@@ -606,6 +674,34 @@ class GaussLobattoGrid(GridData):
     """
     def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
         super().__init__(num_segments=num_segments, transcription='gauss-lobatto',
+                         transcription_order=np.asarray(nodes_per_seg, dtype=int),
+                         segment_ends=segment_ends, compressed=compressed)
+
+
+class BirkhoffGrid(GridData):
+    """
+    A GridData object that provides the node information for the Birkhoff transcription.
+
+    Parameters
+    ----------
+    num_segments : int
+        The number of segments in the phase.
+    nodes_per_seg : int or iterable
+        The number of nodes in each segment. As an integer, it applies to each segment. If a sequence, its length
+        must be equal to num_segments.
+    segment_ends : Iterable[num_segments + 1] or None
+        The segments nodes on some arbitrary interval.
+        This will be normalized to the interval [-1, 1].
+    compressed : bool
+        If the transcription is compressed, then states and controls at shared
+        nodes of adjacent segments are only specified once, and then broadcast
+        to the appropriate indices.
+    grid_type : str
+        The type of Gaussian grid used for the transcription. May be 'lgl' or 'cgl'.
+    """
+    def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False, grid_type='lgl'):
+        self.grid_type = grid_type
+        super().__init__(num_segments=num_segments, transcription='birkhoff',
                          transcription_order=np.asarray(nodes_per_seg, dtype=int),
                          segment_ends=segment_ends, compressed=compressed)
 

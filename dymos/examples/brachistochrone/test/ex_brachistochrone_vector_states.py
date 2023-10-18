@@ -5,7 +5,7 @@ from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
 
 
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
-                             compressed=True, optimizer='SLSQP',
+                             grid_type='lgl', compressed=True, optimizer='SLSQP',
                              dynamic_simul_derivs=True, force_alloc_complex=False,
                              solve_segments=False, run_driver=True):
     p = om.Problem(model=om.Group())
@@ -33,6 +33,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                                  order=transcription_order,
                                  compressed=compressed)
         fix_final = not solve_segments
+    elif transcription == 'birkhoff':
+        gd = dm.BirkhoffGrid(num_segments=num_segments, nodes_per_seg=transcription_order,
+                             grid_type=grid_type)
+        transcription = dm.Birkhoff(grid=gd)
+        fix_final = not solve_segments
 
     traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
@@ -45,7 +50,8 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     # can't fix final position if you're solving the segments
 
-    phase.add_state('pos', fix_initial=True, fix_final=fix_final, solve_segments=solve_segments, ref=[1, 1])
+    phase.add_state('pos', fix_initial=True, fix_final=fix_final,
+                    solve_segments=solve_segments, ref=[1, 1])
     #
     phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=solve_segments)
     #
@@ -74,6 +80,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
     p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
     p['traj0.phase0.parameters:g'] = 9.80665
+    if isinstance(transcription, dm.Birkhoff):
+        p['traj0.phase0.initial_states:pos'] = pos0
+        p['traj0.phase0.initial_states:v'] = 0.0
+        p['traj0.phase0.final_states:pos'] = posf
+        p['traj0.phase0.final_states:v'] = 9.9
 
     p.run_model()
     if run_driver:
@@ -85,4 +96,5 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 if __name__ == '__main__':
     p = brachistochrone_min_time(transcription='radau-ps', num_segments=5, run_driver=True,
                                  transcription_order=5, compressed=False, optimizer='SLSQP',
-                                 solve_segments=False, force_alloc_complex=True, dynamic_simul_derivs=True)
+                                 solve_segments=False, force_alloc_complex=True,
+                                 dynamic_simul_derivs=True)

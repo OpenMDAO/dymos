@@ -496,8 +496,10 @@ class StateOptionsDictionary(om.OptionsDictionary):
                      deprecation="State option 'connected_initial' is deprecated. Please use 'input_initial' instead.")
 
         self.declare(name='input_initial', default=False, types=bool,
-                     desc='Whether an input is created to pass in the initial state. This may be '
-                          'set by a trajectory that links phases.')
+                     desc='Whether the initial value of the state is expected to be connected to an exterior value.')
+
+        self.declare(name='input_final', default=False, types=bool,
+                     desc='Whether the final value of the state is expected to be connected to an exterior value.')
 
 
 class TimeOptionsDictionary(om.OptionsDictionary):

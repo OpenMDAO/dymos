@@ -1,4 +1,5 @@
 import matplotlib
+import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.testing_utils import require_pyoptsparse
@@ -39,13 +40,19 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                             nodes_per_seg=transcription_order + 1,
                             compressed=compressed)
         t = dm.ExplicitShooting(grid=grid)
+    elif transcription == 'birkhoff':
+        grid = dm.BirkhoffGrid(num_segments=num_segments,
+                               nodes_per_seg=transcription_order + 1,
+                               compressed=compressed, grid_type='cgl')
+        t = dm.Birkhoff(grid=grid)
+        # phase = dm.ImplicitPhase(ode_class=BrachistochroneODE, num_nodes=11)
 
     traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
     p.model.add_subsystem('traj0', traj)
     traj.add_phase('phase0', phase)
 
-    phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+    phase.set_time_options(fix_initial=True, duration_bounds=(0.5, 10))
 
     phase.add_state('x', fix_initial=True, fix_final=False, solve_segments=solve_segments)
     phase.add_state('y', fix_initial=True, fix_final=False, solve_segments=solve_segments)
@@ -68,8 +75,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     phase.add_boundary_constraint('x', loc='final', equals=10)
     phase.add_boundary_constraint('y', loc='final', equals=5)
+    phase.add_path_constraint('y', lower=0, upper=20)
     # Minimize time at the end of the phase
     phase.add_objective('time_phase', loc='final', scaler=10)
+
+    phase.add_timeseries_output('check')
 
     p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
 
@@ -78,7 +88,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.t_initial'] = 0.0
     p['traj0.phase0.t_duration'] = 2.0
 
-    if transcription.startswith('shooting'):
+    if transcription.startswith('shooting') or transcription == 'birkhoff':
         p['traj0.phase0.initial_states:x'] = 0
         p['traj0.phase0.initial_states:y'] = 10
         p['traj0.phase0.initial_states:v'] = 0
@@ -90,12 +100,15 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
     p['traj0.phase0.parameters:g'] = 9.80665
 
-    dm.run_problem(p, run_driver=run_driver, simulate=True, make_plots=True)
+    dm.run_problem(p, run_driver=run_driver, simulate=True, make_plots=True,
+                   simulate_kwargs={'times_per_seg': 100})
 
     return p
 
 
 if __name__ == '__main__':
-    p = brachistochrone_min_time(transcription='gauss-lobatto', num_segments=5, run_driver=True,
-                                 transcription_order=5, compressed=False, optimizer='IPOPT',
-                                 solve_segments=False, force_alloc_complex=True)
+
+    with dm.options.temporary(include_check_partials=True):
+        p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
+                                     transcription_order=19, compressed=False, optimizer='SLSQP',
+                                     solve_segments=False, force_alloc_complex=True)
