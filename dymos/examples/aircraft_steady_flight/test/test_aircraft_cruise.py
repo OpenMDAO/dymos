@@ -318,6 +318,5 @@ class TestAircraftCruise(unittest.TestCase):
         assert_near_equal(mass_fuel[-1, ...], 0.0, tolerance=1.0E-4)
 
 
-
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()
