@@ -39,6 +39,18 @@ class Birkhoff(TranscriptionBase):
                              desc='The grid distribution used to layout the control inputs and provide the default '
                                   'output nodes.')
 
+        self.options.declare(name='solve_segments', default=False,
+                             values=(False, 'forward', 'backward'),
+                             desc='Applies \'solve_segments\' behavior to _all_ states in the Phase. '
+                                  'If \'forward\', collocation defects within each '
+                                  'segment are solved with a Newton solver by fixing the initial value in the '
+                                  'phase (if using compressed transcription) or segment (if not using '
+                                  'compressed transcription). This provides a forward shooting (or multiple shooting) '
+                                  'method.  If \'backward\', the final value in the phase or segment is fixed '
+                                  'and a solver finds the other ones to mimic reverse propagation. Set '
+                                  'to False (the default) to explicitly disable the use of a solver to '
+                                  'converge the state time history.')
+
     def init_grid(self):
         """
         Setup the GridData object for the Transcription.

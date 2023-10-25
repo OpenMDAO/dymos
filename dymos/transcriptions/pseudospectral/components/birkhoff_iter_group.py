@@ -221,6 +221,11 @@ class BirkhoffIterGroup(om.Group):
                                                             shape=(1,) + shape,
                                                             units=units)
 
+                if ns > 1:
+                    states_balance_comp.add_residual_from_input(f'state_cnty_defects:{name}',
+                                                                shape=(ns - 1,) + shape,
+                                                                units=units)
+
             if f'state_rates:{name}' in implicit_outputs:
                 states_balance_comp.add_output(f'state_rates:{name}', shape=(nn,) + shape, units=units)
                 states_balance_comp.add_residual_from_input(f'state_rate_defects:{name}',
