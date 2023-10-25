@@ -150,7 +150,17 @@ class Birkhoff(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        self.any_solved_segs = False
+        self.any_connected_opt_segs = False
+        for options in phase.state_options.values():
+            # Transcription solve_segments overrides state solve_segments if its not set
+            if options['solve_segments'] is None:
+                options['solve_segments'] = self.options['solve_segments']
+
+            if options['solve_segments']:
+                self.any_solved_segs = True
+            elif options['input_initial']:
+                self.any_connected_opt_segs = True
 
     def configure_controls(self, phase):
         """
@@ -261,7 +271,8 @@ class Birkhoff(TranscriptionBase):
                                                          ode_init_kwargs=ode_init_kwargs,
                                                          initial_boundary_constraints=ibcs,
                                                          final_boundary_constraints=fbcs,
-                                                         objectives=phase._objectives))
+                                                         objectives=phase._objectives),
+                            promotes_inputs=['initial_states:*', 'final_states:*'])
 
     def configure_ode(self, phase):
         """
@@ -477,22 +488,14 @@ class Birkhoff(TranscriptionBase):
             if constraint_type == 'initial':
                 constraint_kwargs['indices'] = flat_idxs
             elif constraint_type == 'final':
-                constraint_kwargs['indices'] = flat_idxs
+                constraint_kwargs['indices'] = size + flat_idxs
             else:
-                # This is a path constraint.
-                # Remove any flat indices involved in an initial constraint from the path constraint
-                flat_idxs_set = set(flat_idxs)
-                idxs_not_in_initial = list(flat_idxs_set - idxs_in_initial)
+                # Path
+                path_idxs = []
+                for i in range(num_nodes):
+                    path_idxs.extend(size * i + flat_idxs)
 
-                # Remove any flat indices involved in the final constraint from the path constraint
-                idxs_not_in_final = list(flat_idxs_set - idxs_in_final)
-                idxs_not_in_final = (size * (num_nodes - 1) + np.asarray(idxs_not_in_final)).tolist()
-
-                intermediate_idxs = []
-                for i in range(1, num_nodes - 1):
-                    intermediate_idxs.extend(size * i + flat_idxs)
-
-                constraint_kwargs['indices'] = idxs_not_in_initial + intermediate_idxs + idxs_not_in_final
+                constraint_kwargs['indices'] = path_idxs
 
         alias_map = {'path': 'path_constraint',
                      'initial': 'initial_boundary_constraint',
@@ -554,9 +557,8 @@ class Birkhoff(TranscriptionBase):
         elif var_type == 'state':
             shape = phase.state_options[var]['shape']
             units = phase.state_options[var]['units']
-            solve_segments = phase.state_options[var]['solve_segments']
             linear = False
-            constraint_path = f'{loc}_states:{var}'
+            constraint_path = f'boundary_vals.{var}'
         elif var_type == 'indep_control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
@@ -607,7 +609,7 @@ class Birkhoff(TranscriptionBase):
             linear = False
         else:
             # Failed to find variable, assume it is in the ODE. This requires introspection.
-            constraint_path = f'boundary_val.{var}'
+            constraint_path = f'boundary_vals.{var}'
             meta = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
             shape = meta['shape']
             units = meta['units']

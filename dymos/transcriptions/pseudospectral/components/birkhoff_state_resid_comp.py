@@ -47,7 +47,7 @@ class BirkhoffStateResidComp(om.ImplicitComponent):
         self.add_input(name, **kwargs)
         self.add_residual(resid_name, **kwargs)
         # self.declare_partials(of=resid_name, wrt=name, rows=ar, cols=ar, val=1.0)
-        self.declare_partials(of='*', wrt='*', method='fd')
+        self.declare_partials(of='*', wrt='*', method='cs')
 
     def apply_nonlinear(self, inputs, outputs, residuals):
         """

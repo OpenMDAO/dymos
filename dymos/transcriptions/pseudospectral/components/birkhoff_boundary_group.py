@@ -141,7 +141,6 @@ class BirkhoffBoundaryGroup(om.Group):
                            promotes_inputs=['*'], promotes_outputs=['*'])
 
         if any([response['is_expr'] for response in ibcs + fbcs + objs]):
-            print([response['is_expr'] for response in ibcs + fbcs + objs])
             self.add_subsystem('boundary_constraint_exec_comp', subsys=om.ExecComp(),
                                promotes_inputs=['*'], promotes_outputs=['*'])
 

@@ -134,17 +134,6 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
         assert_near_equal(p.get_val('phase0.timeseries.range', units='NM')[-1],
                           726.85, tolerance=1.0E-2)
 
-    def test_ex_aircraft_steady_flight_solve_birkhoff(self):
-        num_seg = 15
-        seg_ends, _ = lgl(num_seg + 1)
-
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=5, nodes_per_seg=5, grid_type='lgl'),
-                         solve_segments='forward')
-        p = ex_aircraft_steady_flight(transcription=tx, optimizer='SLSQP',
-                                      use_boundary_constraints=True)
-        assert_near_equal(p.get_val('phase0.timeseries.range', units='NM')[-1],
-                          726.85, tolerance=1.0E-2)
-
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

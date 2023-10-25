@@ -11,7 +11,7 @@ from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestAircraftCruise(unittest.TestCase):
 
     def test_cruise_results_gl(self):
@@ -141,10 +141,6 @@ class TestAircraftCruise(unittest.TestCase):
                                duration_bounds=(3600, 3600),
                                duration_ref=3600)
 
-        phase.set_time_options(fix_initial=True,
-                               duration_bounds=(3600, 3600),
-                               duration_ref=3600)
-
         phase.add_state('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
                         rate_source='range_rate_comp.dXdt:range',
                         defect_scaler=0.01)
@@ -197,6 +193,7 @@ class TestAircraftCruise(unittest.TestCase):
         time = p.get_val('phase0.timeseries.time')
         tas = p.get_val('phase0.timeseries.TAS', units='km/s')
         range = p.get_val('phase0.timeseries.range')
+        mass_fuel = p.get_val('phase0.timeseries.mass_fuel', units='kg')
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
 
@@ -210,6 +207,7 @@ class TestAircraftCruise(unittest.TestCase):
 
     def test_cruise_results_birkhoff(self):
         p = om.Problem(model=om.Group())
+        optimizer = 'SLSQP'
         if optimizer == 'SNOPT':
             p.driver = om.pyOptSparseDriver()
             p.driver.options['optimizer'] = optimizer
@@ -231,15 +229,13 @@ class TestAircraftCruise(unittest.TestCase):
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
 
-        grid = dm.BirkhoffGrid(num_segments=1, nodes_per_seg=10, grid_type='lgl')
+        grid = dm.BirkhoffGrid(num_segments=5, nodes_per_seg=10, grid_type='lgl')
 
-        transcription = dm.Birkhoff(grid=grid)
+        transcription = dm.Birkhoff(grid=grid, solve_segments='forward')
         phase = dm.Phase(ode_class=AircraftODE, transcription=transcription)
-        p.model.add_subsystem('phase0', phase)
-
-        phase.set_time_options(fix_initial=True,
-                               duration_bounds=(3600, 3600),
-                               duration_ref=3600)
+        traj = dm.Trajectory()
+        traj.add_phase('phase0', phase)
+        p.model.add_subsystem('traj', traj)
 
         phase.set_time_options(fix_initial=True,
                                duration_bounds=(3600, 3600),
@@ -248,7 +244,7 @@ class TestAircraftCruise(unittest.TestCase):
         phase.add_state('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
                         rate_source='range_rate_comp.dXdt:range',
                         defect_scaler=0.01)
-        phase.add_state('mass_fuel', units='kg', fix_final=True, upper=20000.0, lower=0.0,
+        phase.add_state('mass_fuel', units='kg', fix_final=False, upper=20000.0, lower=0.0,
                         rate_source='propulsion.dXdt:mass_fuel',
                         scaler=1.0E-4, defect_scaler=1.0E-2)
         phase.add_state('alt',
@@ -267,12 +263,15 @@ class TestAircraftCruise(unittest.TestCase):
         phase.add_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
+        phase.add_boundary_constraint('mass_fuel', loc='final', equals=0.)
+        phase.add_boundary_constraint('range_rate_comp.dXdt:range', loc='final', lower=0.)
+        phase.add_boundary_constraint('range_rate_comp.dXdt:range', loc='initial', lower=0.)
 
         phase.add_timeseries_output('tas_comp.TAS')
 
-        p.model.connect('assumptions.S', 'phase0.parameters:S')
-        p.model.connect('assumptions.mass_empty', 'phase0.parameters:mass_empty')
-        p.model.connect('assumptions.mass_payload', 'phase0.parameters:mass_payload')
+        p.model.connect('assumptions.S', 'traj.phase0.parameters:S')
+        p.model.connect('assumptions.mass_empty', 'traj.phase0.parameters:mass_empty')
+        p.model.connect('assumptions.mass_payload', 'traj.phase0.parameters:mass_payload')
 
         phase.add_objective('time', loc='final', ref=3600)
 
@@ -280,33 +279,44 @@ class TestAircraftCruise(unittest.TestCase):
 
         p.setup()
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 1.0 * 3600.0
-        p['phase0.initial_states:range'] = 0.0
-        p['phase0.final_states:mass_fuel'] = 0.0
-        p['phase0.initial_states:alt'] = 5.0
-        p['phase0.controls:mach'] = 0.8
-        p['phase0.controls:climb_rate'] = 0.0
+        p['traj.phase0.t_initial'] = 0.0
+        p['traj.phase0.t_duration'] = 1.0 * 3600.0
+
+        p['traj.phase0.initial_states:range'] = 0.0
+        p['traj.phase0.initial_states:mass_fuel'] = 10_000.
+        p['traj.phase0.initial_states:alt'] = 10.0
+
+        p['traj.phase0.final_states:mass_fuel'] = 1.0
+        p['traj.phase0.final_states:range'] = 500.0
+        p['traj.phase0.final_states:alt'] = 10.0
+
+        p['traj.phase0.controls:mach'] = 0.8
+        p['traj.phase0.controls:climb_rate'] = 0.0
 
         p['assumptions.S'] = 427.8
         p['assumptions.mass_empty'] = 0.15E6
         p['assumptions.mass_payload'] = 84.02869 * 400
 
-        dm.run_problem(p)
+        dm.run_problem(p, simulate=True, make_plots=True)
 
-        time = p.get_val('phase0.timeseries.time')
-        tas = p.get_val('phase0.timeseries.TAS', units='km/s')
-        range = p.get_val('phase0.timeseries.range')
-
-        assert_near_equal(range, tas*time, tolerance=1.0E-4)
-
-        exp_out = phase.simulate()
-
-        time = exp_out.get_val('phase0.timeseries.time')
-        tas = exp_out.get_val('phase0.timeseries.TAS', units='km/s')
-        range = exp_out.get_val('phase0.timeseries.range')
+        time = p.get_val('traj.phase0.timeseries.time')
+        tas = p.get_val('traj.phase0.timeseries.TAS', units='km/s')
+        range = p.get_val('traj.phase0.timeseries.range')
+        mass_fuel = p.get_val('traj.phase0.timeseries.mass_fuel')
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
+        assert_near_equal(mass_fuel[-1, ...], 0.0, tolerance=1.0E-4)
+
+        case = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        time = case.get_val('traj.phase0.timeseries.time')
+        tas = case.get_val('traj.phase0.timeseries.TAS', units='km/s')
+        range = case.get_val('traj.phase0.timeseries.range')
+        mass_fuel = case.get_val('traj.phase0.timeseries.mass_fuel')
+
+        assert_near_equal(range, tas*time, tolerance=1.0E-4)
+        assert_near_equal(mass_fuel[-1, ...], 0.0, tolerance=1.0E-4)
+
 
 
 if __name__ == '__main__':  # pragma: no cover

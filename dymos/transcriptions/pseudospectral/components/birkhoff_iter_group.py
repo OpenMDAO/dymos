@@ -84,6 +84,17 @@ class BirkhoffIterGroup(om.Group):
         input_final = options['input_final']
         shape = options['shape']
 
+        if solve_segs == 'forward' and fix_final:
+            raise ValueError(f"Option fix_final on state {name} may not "
+                             f"be used with `solve_segments='forward'`.\n Use "
+                             f"a boundary constraint to constrain the final "
+                             f"state value instead.")
+        elif solve_segs == 'backward' and fix_initial:
+            raise ValueError(f"Option fix_final on state {name} may not "
+                             f"be used with `solve_segments='forward'`.\n Use "
+                             f"a boundary constraint to constrain the initial "
+                             f"state value instead.")
+
         if not np.isscalar(ref0) and ref0 is not None:
             ref0 = np.asarray(ref0)
             if ref0.shape == shape:
