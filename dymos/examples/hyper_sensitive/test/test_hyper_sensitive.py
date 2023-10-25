@@ -18,7 +18,7 @@ from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 tf = 10
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestHyperSensitive(unittest.TestCase):
 
     def tearDown(self):

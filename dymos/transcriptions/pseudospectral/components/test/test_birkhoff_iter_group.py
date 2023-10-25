@@ -6,6 +6,7 @@ import openmdao.api as om
 
 import dymos
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.utils.misc import GroupWrapperConfig
 from dymos.transcriptions.pseudospectral.components import BirkhoffIterGroup
@@ -60,10 +61,10 @@ class SimpleODE(om.ExplicitComponent):
         partials['x_dot', 't'] = -2*t
 
 
+@use_tempdirs
 class TestBirkhoffIterGroup(unittest.TestCase):
 
     def test_solve_segments_gl_fwd(self):
-
         for grid_type in ['lgl', 'cgl']:
             with self.subTest(msg=grid_type):
                 with dymos.options.temporary(include_check_partials=True):

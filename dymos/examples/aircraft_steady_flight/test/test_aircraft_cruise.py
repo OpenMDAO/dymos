@@ -11,7 +11,7 @@ from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestAircraftCruise(unittest.TestCase):
 
     def test_cruise_results_gl(self):
