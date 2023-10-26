@@ -10,8 +10,7 @@ from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 
 @require_pyoptsparse(optimizer='SLSQP')
-def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
-                              use_boundary_constraints=False, compressed=False):
+def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_constraints=False):
     p = om.Problem(model=om.Group())
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
@@ -25,13 +24,8 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
     if optimizer == 'SLSQP':
         p.driver.opt_settings['MAXIT'] = 50
 
-    num_seg = 15
-    seg_ends, _ = lgl(num_seg + 1)
-
     phase = dm.Phase(ode_class=AircraftODE,
-                     transcription=dm.Radau(num_segments=num_seg, segment_ends=seg_ends,
-                                            order=3, compressed=compressed,
-                                            solve_segments=solve_segments))
+                     transcription=transcription)
 
     # Pass Reference Area from an external source
     assumptions = p.model.add_subsystem('assumptions', om.IndepVarComp())
@@ -110,13 +104,32 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
 @use_tempdirs
 class TestExSteadyAircraftFlight(unittest.TestCase):
 
-    def test_ex_aircraft_steady_flight_opt(self):
-        p = ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False)
+    def test_ex_aircraft_steady_flight_opt_radau(self):
+        num_seg = 15
+        seg_ends, _ = lgl(num_seg + 1)
+
+        tx = dm.Radau(num_segments=num_seg, segment_ends=seg_ends, order=3, compressed=False)
+        p = ex_aircraft_steady_flight(transcription=tx, optimizer='SLSQP')
         assert_near_equal(p.get_val('phase0.timeseries.range', units='NM')[-1],
                           726.85, tolerance=1.0E-2)
 
-    def test_ex_aircraft_steady_flight_solve(self):
-        p = ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments='forward',
+    def test_ex_aircraft_steady_flight_opt_birkhoff(self):
+        num_seg = 15
+        seg_ends, _ = lgl(num_seg + 1)
+
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=5, nodes_per_seg=5, grid_type='lgl'),
+                         solve_segments=False)
+        p = ex_aircraft_steady_flight(transcription=tx, optimizer='SLSQP')
+        assert_near_equal(p.get_val('phase0.timeseries.range', units='NM')[-1],
+                          726.85, tolerance=1.0E-2)
+
+    def test_ex_aircraft_steady_flight_solve_radau(self):
+        num_seg = 15
+        seg_ends, _ = lgl(num_seg + 1)
+
+        tx = dm.Radau(num_segments=num_seg, segment_ends=seg_ends, order=3, compressed=False,
+                      solve_segments='forward')
+        p = ex_aircraft_steady_flight(transcription=tx, optimizer='SLSQP',
                                       use_boundary_constraints=True)
         assert_near_equal(p.get_val('phase0.timeseries.range', units='NM')[-1],
                           726.85, tolerance=1.0E-2)

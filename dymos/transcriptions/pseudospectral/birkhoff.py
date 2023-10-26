@@ -7,7 +7,7 @@ from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
 from .components import BirkhoffIterGroup, BirkhoffBoundaryGroup
 
 from ..grid_data import BirkhoffGrid
-from dymos.utils.misc import get_rate_units, reshape_val
+from dymos.utils.misc import get_rate_units
 from dymos.utils.introspection import get_promoted_vars, get_source_metadata, get_targets
 from dymos.utils.indexing import get_constraint_flat_idxs, get_src_indices_by_row
 
@@ -38,6 +38,18 @@ class Birkhoff(TranscriptionBase):
                              allow_none=True, default=None,
                              desc='The grid distribution used to layout the control inputs and provide the default '
                                   'output nodes.')
+
+        self.options.declare(name='solve_segments', default=False,
+                             values=(False, 'forward', 'backward'),
+                             desc='Applies \'solve_segments\' behavior to _all_ states in the Phase. '
+                                  'If \'forward\', collocation defects within each '
+                                  'segment are solved with a Newton solver by fixing the initial value in the '
+                                  'phase (if using compressed transcription) or segment (if not using '
+                                  'compressed transcription). This provides a forward shooting (or multiple shooting) '
+                                  'method.  If \'backward\', the final value in the phase or segment is fixed '
+                                  'and a solver finds the other ones to mimic reverse propagation. Set '
+                                  'to False (the default) to explicitly disable the use of a solver to '
+                                  'converge the state time history.')
 
     def init_grid(self):
         """
@@ -138,7 +150,17 @@ class Birkhoff(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        self.any_solved_segs = False
+        self.any_connected_opt_segs = False
+        for options in phase.state_options.values():
+            # Transcription solve_segments overrides state solve_segments if its not set
+            if options['solve_segments'] is None:
+                options['solve_segments'] = self.options['solve_segments']
+
+            if options['solve_segments']:
+                self.any_solved_segs = True
+            elif options['input_initial']:
+                self.any_connected_opt_segs = True
 
     def configure_controls(self, phase):
         """
@@ -249,7 +271,8 @@ class Birkhoff(TranscriptionBase):
                                                          ode_init_kwargs=ode_init_kwargs,
                                                          initial_boundary_constraints=ibcs,
                                                          final_boundary_constraints=fbcs,
-                                                         objectives=phase._objectives))
+                                                         objectives=phase._objectives),
+                            promotes_inputs=['initial_states:*', 'final_states:*'])
 
     def configure_ode(self, phase):
         """
@@ -339,7 +362,34 @@ class Birkhoff(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        ode_iter_group = phase._get_subsystem('ode_iter_group')
+
+        if ode_iter_group._implicit_outputs or self._implicit_duration:
+            # Only override the solvers if the user hasn't set them to something else.
+            if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
+                msg = f'{phase.msginfo}: Phase requires non-default nonlinear solver due to the use of\n' \
+                      f'solve_segments or the use of set_duration_balance.\n' \
+                      f'Setting nonlinear solver to ' \
+                      f'om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=2, stall_limit=3)\n' \
+                      f'by default.' \
+                      f'To avoid this warning explicitly assign a nonlinear solver to this phase.'
+
+                om.issue_warning(msg)
+                newton = phase.nonlinear_solver = om.NewtonSolver()
+                newton.options['solve_subsystems'] = True
+                newton.options['maxiter'] = 100
+                newton.options['iprint'] = 2
+                newton.options['stall_limit'] = 3
+                newton.linesearch = om.BoundsEnforceLS()
+
+            if isinstance(phase.linear_solver, om.LinearRunOnce):
+                msg = f'{phase.msginfo}: Phase requires non-default linear solver due to the use of\n' \
+                      f'solve_segments or the use of set_duration_balance.\n' \
+                      f'Setting linear solver to om.DirectSolver() by default.' \
+                      f'To avoid this warning explicitly assign a linear solver to this phase.'
+
+                om.issue_warning(msg)
+                phase.linear_solver = om.DirectSolver()
 
     def configure_timeseries_outputs(self, phase):
         """
@@ -465,22 +515,14 @@ class Birkhoff(TranscriptionBase):
             if constraint_type == 'initial':
                 constraint_kwargs['indices'] = flat_idxs
             elif constraint_type == 'final':
-                constraint_kwargs['indices'] = flat_idxs
+                constraint_kwargs['indices'] = size + flat_idxs
             else:
-                # This is a path constraint.
-                # Remove any flat indices involved in an initial constraint from the path constraint
-                flat_idxs_set = set(flat_idxs)
-                idxs_not_in_initial = list(flat_idxs_set - idxs_in_initial)
+                # Path
+                path_idxs = []
+                for i in range(num_nodes):
+                    path_idxs.extend(size * i + flat_idxs)
 
-                # Remove any flat indices involved in the final constraint from the path constraint
-                idxs_not_in_final = list(flat_idxs_set - idxs_in_final)
-                idxs_not_in_final = (size * (num_nodes - 1) + np.asarray(idxs_not_in_final)).tolist()
-
-                intermediate_idxs = []
-                for i in range(1, num_nodes - 1):
-                    intermediate_idxs.extend(size * i + flat_idxs)
-
-                constraint_kwargs['indices'] = idxs_not_in_initial + intermediate_idxs + idxs_not_in_final
+                constraint_kwargs['indices'] = path_idxs
 
         alias_map = {'path': 'path_constraint',
                      'initial': 'initial_boundary_constraint',
@@ -542,9 +584,8 @@ class Birkhoff(TranscriptionBase):
         elif var_type == 'state':
             shape = phase.state_options[var]['shape']
             units = phase.state_options[var]['units']
-            solve_segments = phase.state_options[var]['solve_segments']
             linear = False
-            constraint_path = f'{loc}_states:{var}'
+            constraint_path = f'boundary_vals.{var}'
         elif var_type == 'indep_control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
@@ -595,7 +636,7 @@ class Birkhoff(TranscriptionBase):
             linear = False
         else:
             # Failed to find variable, assume it is in the ODE. This requires introspection.
-            constraint_path = f'boundary_val.{var}'
+            constraint_path = f'boundary_vals.{var}'
             meta = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
             shape = meta['shape']
             units = meta['units']

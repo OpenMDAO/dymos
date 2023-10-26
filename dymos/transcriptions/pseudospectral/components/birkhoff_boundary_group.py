@@ -141,7 +141,6 @@ class BirkhoffBoundaryGroup(om.Group):
                            promotes_inputs=['*'], promotes_outputs=['*'])
 
         if any([response['is_expr'] for response in ibcs + fbcs + objs]):
-            print([response['is_expr'] for response in ibcs + fbcs + objs])
             self.add_subsystem('boundary_constraint_exec_comp', subsys=om.ExecComp(),
                                promotes_inputs=['*'], promotes_outputs=['*'])
 
@@ -159,7 +158,3 @@ class BirkhoffBoundaryGroup(om.Group):
         for state_name, options in phase.state_options.items():
             for tgt in options['targets']:
                 self.promotes('boundary_ode', inputs=[(tgt, state_name)])
-            if options['targets']:
-                self.set_input_defaults(name=state_name,
-                                        val=options['val'],
-                                        units=options['units'])
