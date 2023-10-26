@@ -20,6 +20,10 @@ class BirkhoffIterGroup(om.Group):
     **kwargs : dict
         Dictionary of optional arguments.
     """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._implicit_outputs = set()
+
     def initialize(self):
         """
         Declare group options.
@@ -197,7 +201,6 @@ class BirkhoffIterGroup(om.Group):
 
         state_options = self.options['state_options']
         time_options = self.options['time_options']
-        time_units = time_options['units']
         states_balance_comp = self._get_subsystem('states_balance_comp')
 
         for name, options in state_options.items():
@@ -209,9 +212,9 @@ class BirkhoffIterGroup(om.Group):
                 self.promotes('ode_all', [(tgt, f'states:{name}')])
                 self.set_input_defaults(f'states:{name}', val=1.0, units=units, src_shape=(nn,) + shape)
 
-            implicit_outputs = self._configure_desvars(name, options)
+            self._implicit_outputs = self._configure_desvars(name, options)
 
-            if f'states:{name}' in implicit_outputs:
+            if f'states:{name}' in self._implicit_outputs:
                 states_balance_comp.add_output(f'states:{name}',
                                                shape=(nn,) + shape,
                                                units=units)
@@ -237,16 +240,16 @@ class BirkhoffIterGroup(om.Group):
                                                                 shape=(ns - 1,) + shape,
                                                                 units=units)
 
-            if f'state_rates:{name}' in implicit_outputs:
+            if f'state_rates:{name}' in self._implicit_outputs:
                 states_balance_comp.add_output(f'state_rates:{name}', shape=(nn,) + shape, units=units)
                 states_balance_comp.add_residual_from_input(f'state_rate_defects:{name}',
                                                             shape=(nn,) + shape,
                                                             units=units)
 
-            if f'initial_states:{name}' in implicit_outputs:
+            if f'initial_states:{name}' in self._implicit_outputs:
                 states_balance_comp.add_output(f'initial_states:{name}', shape=(1,) + shape, units=units)
 
-            if f'final_states:{name}' in implicit_outputs:
+            if f'final_states:{name}' in self._implicit_outputs:
                 states_balance_comp.add_output(f'final_states:{name}', shape=(1,) + shape, units=units)
 
             try:
@@ -260,18 +263,6 @@ class BirkhoffIterGroup(om.Group):
 
             if var_type == 'ode':
                 self.connect(f'ode_all.{rate_source}', f'f_computed:{name}')
-
-            if implicit_outputs:
-                if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
-                    newton = phase.nonlinear_solver = om.NewtonSolver()
-                    newton.options['solve_subsystems'] = True
-                    newton.options['maxiter'] = 100
-                    newton.options['iprint'] = 2
-                    newton.options['stall_limit'] = 3
-                    newton.linesearch = om.BoundsEnforceLS()
-
-                if isinstance(phase.linear_solver, om.LinearRunOnce):
-                    phase.linear_solver = om.DirectSolver()
 
     def _get_rate_source_path(self, state_name, nodes, phase):
         """

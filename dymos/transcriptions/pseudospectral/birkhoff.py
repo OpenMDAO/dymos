@@ -7,7 +7,7 @@ from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
 from .components import BirkhoffIterGroup, BirkhoffBoundaryGroup
 
 from ..grid_data import BirkhoffGrid
-from dymos.utils.misc import get_rate_units, reshape_val
+from dymos.utils.misc import get_rate_units
 from dymos.utils.introspection import get_promoted_vars, get_source_metadata, get_targets
 from dymos.utils.indexing import get_constraint_flat_idxs, get_src_indices_by_row
 
@@ -362,7 +362,34 @@ class Birkhoff(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        ode_iter_group = phase._get_subsystem('ode_iter_group')
+
+        if ode_iter_group._implicit_outputs or self._implicit_duration:
+            # Only override the solvers if the user hasn't set them to something else.
+            if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
+                msg = f'{phase.msginfo}: Phase requires non-default nonlinear solver due to the use of\n' \
+                      f'solve_segments or the use of set_duration_balance.\n' \
+                      f'Setting nonlinear solver to ' \
+                      f'om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=2, stall_limit=3)\n' \
+                      f'by default.' \
+                      f'To avoid this warning explicitly assign a nonlinear solver to this phase.'
+
+                om.issue_warning(msg)
+                newton = phase.nonlinear_solver = om.NewtonSolver()
+                newton.options['solve_subsystems'] = True
+                newton.options['maxiter'] = 100
+                newton.options['iprint'] = 2
+                newton.options['stall_limit'] = 3
+                newton.linesearch = om.BoundsEnforceLS()
+
+            if isinstance(phase.linear_solver, om.LinearRunOnce):
+                msg = f'{phase.msginfo}: Phase requires non-default linear solver due to the use of\n' \
+                      f'solve_segments or the use of set_duration_balance.\n' \
+                      f'Setting linear solver to om.DirectSolver() by default.' \
+                      f'To avoid this warning explicitly assign a linear solver to this phase.'
+
+                om.issue_warning(msg)
+                phase.linear_solver = om.DirectSolver()
 
     def configure_timeseries_outputs(self, phase):
         """
