@@ -158,4 +158,3 @@ class BirkhoffBoundaryGroup(om.Group):
         for state_name, options in phase.state_options.items():
             for tgt in options['targets']:
                 self.promotes('boundary_ode', inputs=[(tgt, state_name)])
-
