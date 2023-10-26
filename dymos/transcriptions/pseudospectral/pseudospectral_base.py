@@ -95,7 +95,6 @@ class PseudospectralBase(TranscriptionBase):
         if self.any_solved_segs or self.any_connected_opt_segs:
             indep = StateIndependentsComp(grid_data=grid_data,
                                           state_options=phase.state_options)
-            indep.linear_solver = om.DirectSolver()
         else:
             indep = om.IndepVarComp()
 
@@ -504,9 +503,17 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        if self.any_solved_segs or self._implicit_duration:
+        if self.any_solved_segs or self._implicit_duration or self.any_connected_opt_segs:
             # Only override the solvers if the user hasn't set them to something else.
             if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
+                msg = f'{phase.msginfo}: Phase requires non-default nonlinear solver due to the use of\n' \
+                      f'solve_segments or input_initial on one or more states, or the use of set_duration_balance.\n' \
+                      f'Setting nonlinear solver to ' \
+                      f'om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=2, stall_limit=3)\n' \
+                      f'by default.' \
+                      f'To avoid this warning explicitly assign a nonlinear solver to this phase.'
+
+                om.issue_warning(msg)
                 newton = phase.nonlinear_solver = om.NewtonSolver()
                 newton.options['solve_subsystems'] = True
                 newton.options['maxiter'] = 100
@@ -515,6 +522,12 @@ class PseudospectralBase(TranscriptionBase):
                 newton.linesearch = om.BoundsEnforceLS()
 
             if isinstance(phase.linear_solver, om.LinearRunOnce):
+                msg = f'{phase.msginfo}: Phase requires non-default linear solver due to the use of\n' \
+                      f'solve_segments or input_initial on one or more states, or the use of set_duration_balance.\n' \
+                      f'Setting linear solver to om.DirectSolver() by default.' \
+                      f'To avoid this warning explicitly assign a linear solver to this phase.'
+
+                om.issue_warning(msg)
                 phase.linear_solver = om.DirectSolver()
 
     def setup_timeseries_outputs(self, phase):

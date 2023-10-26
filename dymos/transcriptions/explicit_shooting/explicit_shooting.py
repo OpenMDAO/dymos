@@ -20,7 +20,7 @@ from ..common import TimeComp, TimeseriesOutputGroup, ControlGroup, PolynomialCo
 
 
 class ExplicitShooting(TranscriptionBase):
-    """
+    r"""
     The Transcription class for single explicit shooting.
 
     This transcription uses an external explicit integrator to propagate the states, and optionally their

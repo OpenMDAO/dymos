@@ -461,3 +461,93 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
 
             warnings.simplefilter('always')
             self.assertIn(expected_warning, [str(w.message) for w in ctx])
+
+    def test_brachistochrone_solve_segments_petsc_krylov(self):
+        import openmdao.api as om
+        import dymos as dm
+        from dymos.examples.brachistochrone import BrachistochroneODE
+
+        #
+        # Initialize the Problem and the optimization driver
+        #
+        p = om.Problem(model=om.Group())
+
+        #
+        # Create a trajectory and add a phase to it
+        #
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+
+        # -------------------------------
+        # forward solver-based shooting
+        # -------------------------------
+        phase0 = dm.Phase(ode_class=BrachistochroneODE,
+                          transcription=dm.GaussLobatto(num_segments=5, order=3,
+                                                        compressed=True, solve_segments='forward'))
+        phase = traj.add_phase('phase0', phase0)
+
+        #
+        # Set the variables
+        #
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.add_state('x', fix_initial=True, fix_final=False)
+
+        phase.add_state('y', fix_initial=True, fix_final=False)
+
+        phase.add_state('v', fix_initial=True, fix_final=False)
+
+        phase.add_control('theta', continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_parameter('g', units='m/s**2', val=9.80665)
+
+        #
+        # Minimize time at the end of the phase
+        #
+        phase.add_objective('time', loc='final', scaler=10)
+
+        # ---------------------------------------------
+        # change linear solver for shooting
+        # ---------------------------------------------
+        # linear solver
+        phase0.linear_solver = om.PETScKrylov(assemble_jac=True, iprint=2)
+        phase0.linear_solver.precon = om.LinearRunOnce(iprint=-1)
+
+        #
+        # Setup the Problem
+        #
+        p.setup()
+
+        # ---------------------------------------------
+        # Remove DirectSolver that causes an error
+        # ---------------------------------------------
+        # traj.phases.phase0.indep_states.linear_solver = None
+
+        #
+        # Set the initial values
+        #
+        p['traj.phase0.t_initial'] = 0.0
+        p['traj.phase0.t_duration'] = 2.0
+
+        p.set_val('traj.phase0.states:x', phase.interp('x', ys=[0, 10]))
+        p.set_val('traj.phase0.states:y', phase.interp('y', ys=[10, 5]))
+        p.set_val('traj.phase0.states:v', phase.interp('v', ys=[0, 9.9]))
+        p.set_val('traj.phase0.controls:theta', phase.interp('theta', ys=[5, 100.5]))
+
+        #
+        # Solve for the optimal trajectory
+        #
+        dm.run_problem(p, run_driver=False, simulate=True)
+
+        # plot results
+        sol = om.CaseReader('dymos_solution.db').get_case('final')
+        sim = om.CaseReader('dymos_simulation.db').get_case('final')
+
+        x_sol = sol.get_val('traj.phase0.timeseries.x')
+        x_sim = sim.get_val('traj.phase0.timeseries.x')
+
+        y_sol = sol.get_val('traj.phase0.timeseries.y')
+        y_sim = sim.get_val('traj.phase0.timeseries.y')
+
+        assert_near_equal(x_sol[-1, ...], x_sim[-1, ...], tolerance=1.0E-4)
+        assert_near_equal(y_sol[-1, ...], y_sim[-1, ...], tolerance=1.0E-4)
