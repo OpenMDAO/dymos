@@ -7,7 +7,7 @@ import warnings
 import numpy as np
 import openmdao.api as om
 
-from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 from openmdao.utils.general_utils import printoptions
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
@@ -55,38 +55,37 @@ class TestHyperSensitive(unittest.TestCase):
         elif transcription == 'radau-ps':
             t = dm.Radau(num_segments=numseg, order=3)
         elif transcription == 'birkhoff':
-            t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=5, nodes_per_seg=51, grid_type='lgl'))
+            t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=numseg, nodes_per_seg=5, grid_type='lgl'),
+                            solve_segments='forward')
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE, transcription=t))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
-        phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot')
+        phase0.add_state('x', fix_initial=False, fix_final=False, rate_source='x_dot')
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L')
         phase0.add_control('u', opt=True, targets=['u'])
 
+        # phase0.add_boundary_constraint('x', loc='final', equals=1)
+        phase0.add_boundary_constraint('x', loc='initial', equals=1.5)
         phase0.add_boundary_constraint('x', loc='final', equals=1)
 
         phase0.add_objective('xL', loc='final')
 
         phase0.set_refine_options(refine=True, tol=1e-7, max_order=14)
 
-        p.setup(check=True)
+        p.set_solver_print(0)
+        p.setup(check=True, force_alloc_complex=True)
 
         if transcription == 'birkhoff':
             p.set_val('traj.phase0.initial_states:x', 1.5)
             p.set_val('traj.phase0.initial_states:xL', 0.0)
-        else:
-            p.set_val('traj.phase0.states:x', phase0.interp('x', [1.5, 1]))
-            p.set_val('traj.phase0.states:xL', phase0.interp('xL', [0, 1]))
+
+        p.set_val('traj.phase0.states:x', phase0.interp('x', [1.5, 1]))
+        p.set_val('traj.phase0.states:xL', phase0.interp('xL', [0, 1]))
+
         p.set_val('traj.phase0.t_initial', 0)
         p.set_val('traj.phase0.t_duration', tf)
         p.set_val('traj.phase0.controls:u', phase0.interp('u', [-0.6, 2.4]))
-
-        if transcription == dm.Birkhoff:
-            p.set_val('traj.phase0.initial_states:x', 1.5)
-            p.set_val('traj.phase0.final_states:x', 1.0)
-            p.set_val('traj.phase0.initial_states:xL', 0.0)
-            p.set_val('traj.phase0.final_states:xL', 1.0)
 
         return p
 
@@ -107,7 +106,8 @@ class TestHyperSensitive(unittest.TestCase):
         p = self.make_problem(transcription='radau-ps', optimizer='SLSQP')
         p.run_model()
         with printoptions(linewidth=1024, edgeitems=100):
-            cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
+            cpd = p.check_partials(method='cs', compact_print=True, out_stream=None)
+            assert_check_partials(cpd)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_hyper_sensitive_radau(self):
@@ -130,6 +130,7 @@ class TestHyperSensitive(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_hyper_sensitive_birkhoff(self):
         p = self.make_problem(transcription='birkhoff', optimizer='IPOPT')
+        p.run_model()
         dm.run_problem(p, make_plots=True)
         ui, uf, J = self.solution()
 

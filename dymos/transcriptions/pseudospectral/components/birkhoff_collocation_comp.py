@@ -252,6 +252,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
         # Setup partials
         for state_name, options in state_options.items():
             shape = options['shape']
+            units = options['units']
             size = np.prod(shape)
 
             ar1 = np.arange(num_nodes * size)
