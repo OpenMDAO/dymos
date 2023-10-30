@@ -530,7 +530,6 @@ class PseudospectralBase(TranscriptionBase):
                 om.issue_warning(msg)
                 phase.linear_solver = om.DirectSolver()
 
-
     def setup_timeseries_outputs(self, phase):
         """
         Setup the timeseries for this transcription.
