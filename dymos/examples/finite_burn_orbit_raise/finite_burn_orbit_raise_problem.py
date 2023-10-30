@@ -233,9 +233,6 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
                      compressed=compressed, connected=connected)
     p.model.add_subsystem('traj', subsys=traj)
 
-    # Needed to move the direct solver down into the phases for use with MPI.
-    #  - After moving down, used fewer iterations (about 30 less)
-
     p.setup(check=True)
 
     # Set Initial Guesses

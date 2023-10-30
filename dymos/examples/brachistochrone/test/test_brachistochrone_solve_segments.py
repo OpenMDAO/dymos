@@ -466,6 +466,10 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
         import openmdao.api as om
         import dymos as dm
         from dymos.examples.brachistochrone import BrachistochroneODE
+        try:
+            from petsc4py import PETSc
+        except ImportError as e:
+            self.skipTest('PETSc unavailable.')
 
         #
         # Initialize the Problem and the optimization driver

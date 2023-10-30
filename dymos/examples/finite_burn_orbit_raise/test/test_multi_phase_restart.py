@@ -72,7 +72,7 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
-    def test_ex_two_burn_orbit_raise_connected(self):
+    def test_ex_two_burn_orbit_raise_connected_to_connected(self):
         optimizer = 'IPOPT'
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,

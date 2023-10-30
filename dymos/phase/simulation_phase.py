@@ -91,6 +91,7 @@ class SimulationPhase(Phase):
         # Remove invalid options
         for state_name, options in self.state_options.items():
             options['fix_final'] = False  # ExplicitShooting will raise if `fix_final` is True for any states.
+            options['input_initial'] = False  # Simulate initial value, don't copy from previous phase.
 
         # Remove all but the default timeseries object
         self._timeseries = {ts_name: ts_options for ts_name, ts_options in self._timeseries.items()

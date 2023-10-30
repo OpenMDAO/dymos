@@ -1,4 +1,5 @@
 from collections.abc import Iterable, Callable, Sequence
+from copy import deepcopy
 import inspect
 import warnings
 
@@ -84,19 +85,19 @@ class Phase(om.Group):
             self._objectives = {}
         else:
             self.time_options.update(from_phase.time_options)
-            self.state_options = from_phase.state_options.copy()
-            self.control_options = from_phase.control_options.copy()
-            self.polynomial_control_options = from_phase.polynomial_control_options.copy()
-            self.parameter_options = from_phase.parameter_options.copy()
+            self.state_options = deepcopy(from_phase.state_options)
+            self.control_options = deepcopy(from_phase.control_options)
+            self.polynomial_control_options = deepcopy(from_phase.polynomial_control_options)
+            self.parameter_options = deepcopy(from_phase.parameter_options)
 
             self.refine_options.update(from_phase.refine_options)
             self.simulate_options.update(from_phase.simulate_options)
 
-            self._initial_boundary_constraints = from_phase._initial_boundary_constraints.copy()
-            self._final_boundary_constraints = from_phase._final_boundary_constraints.copy()
-            self._path_constraints = from_phase._path_constraints.copy()
-            self._timeseries = from_phase._timeseries.copy()
-            self._objectives = from_phase._objectives.copy()
+            self._initial_boundary_constraints = deepcopy(from_phase._initial_boundary_constraints)
+            self._final_boundary_constraints = deepcopy(from_phase._final_boundary_constraints)
+            self._path_constraints = deepcopy(from_phase._path_constraints)
+            self._timeseries = deepcopy(from_phase._timeseries)
+            self._objectives = deepcopy(from_phase._objectives)
 
             _kwargs['ode_class'] = from_phase.options['ode_class']
             _kwargs['ode_init_kwargs'] = from_phase.options['ode_init_kwargs']

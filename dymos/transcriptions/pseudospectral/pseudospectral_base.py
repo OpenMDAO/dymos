@@ -510,7 +510,7 @@ class PseudospectralBase(TranscriptionBase):
                       f'solve_segments or input_initial on one or more states, or the use of set_duration_balance.\n' \
                       f'Setting nonlinear solver to ' \
                       f'om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=2, stall_limit=3)\n' \
-                      f'by default.' \
+                      f'by default.\n' \
                       f'To avoid this warning explicitly assign a nonlinear solver to this phase.'
 
                 om.issue_warning(msg)
@@ -524,11 +524,12 @@ class PseudospectralBase(TranscriptionBase):
             if isinstance(phase.linear_solver, om.LinearRunOnce):
                 msg = f'{phase.msginfo}: Phase requires non-default linear solver due to the use of\n' \
                       f'solve_segments or input_initial on one or more states, or the use of set_duration_balance.\n' \
-                      f'Setting linear solver to om.DirectSolver() by default.' \
+                      f'Setting linear solver to om.DirectSolver() by default.\n' \
                       f'To avoid this warning explicitly assign a linear solver to this phase.'
 
                 om.issue_warning(msg)
                 phase.linear_solver = om.DirectSolver()
+
 
     def setup_timeseries_outputs(self, phase):
         """
