@@ -330,10 +330,6 @@ class Trajectory(om.Group):
 
     def _setup_linkages(self):
 
-        if self.options['sim_mode']:
-            # Under simulation, theres no need to enforce any linkages
-            return
-
         has_linkage_constraints = False
 
         err_template = '{traj}: Phase `{phase1}` links variable `{var1}` to phase ' \
@@ -390,7 +386,7 @@ class Trajectory(om.Group):
         # This will override the existing phases attribute with the same thing.
         self.add_subsystem('phases', subsys=self.phases)
 
-        if self._linkages:
+        if self._linkages and not self.options['sim_mode']:
             self._setup_linkages()
 
     def _configure_parameters(self):

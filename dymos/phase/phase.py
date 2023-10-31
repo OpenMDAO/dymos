@@ -2705,6 +2705,8 @@ class Phase(om.Group):
         else:
             previous_solution = case
 
+        print(f'{self.msginfo}: loading case')
+
         prev_vars_abs2prom = {}
         prev_vars_abs2prom.update({k: v['prom_name'] for k, v in previous_solution['inputs'].items()})
         prev_vars_abs2prom.update({k: v['prom_name'] for k, v in previous_solution['outputs'].items()})
@@ -2776,10 +2778,11 @@ class Phase(om.Group):
                 self.set_val(f'states:{state_name}',
                              interp_vals,
                              units=prev_state_units)
-                try:
+
+                if f'initial_states:{state_name}' in {meta['prom_name'] for meta in
+                                                      self.get_io_metadata(iotypes=('input', 'output'),
+                                                                           get_remote=False).values()}:
                     self.set_val(f'initial_states:{state_name}', prev_state_val[0, ...], units=prev_state_units)
-                except KeyError:
-                    pass
 
                 if options['fix_final']:
                     warning_message = f"{phase_name}.states:{state_name} specifies 'fix_final=True'. " \
