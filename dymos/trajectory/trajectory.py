@@ -1410,9 +1410,8 @@ class Trajectory(om.Group):
         if record_file is not None:
             rec = om.SqliteRecorder(record_file)
             sim_prob.add_recorder(rec)
-            # record_inputs is needed to capture potential input parameters that aren't connected
-            sim_prob.recording_options['record_inputs'] = True
-            # record_outputs is need to capture the timeseries outputs
+            sim_prob.recording_options['record_inputs'] = False
+            # record_outputs is needed to capture the timeseries outputs
             sim_prob.recording_options['record_outputs'] = True
 
         with warnings.catch_warnings():
