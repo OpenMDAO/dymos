@@ -95,7 +95,6 @@ class PseudospectralBase(TranscriptionBase):
         if self.any_solved_segs or self.any_connected_opt_segs:
             indep = StateIndependentsComp(grid_data=grid_data,
                                           state_options=phase.state_options)
-            indep.linear_solver = om.DirectSolver()
         else:
             indep = om.IndepVarComp()
 
@@ -504,7 +503,7 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        if self.any_solved_segs or self._implicit_duration:
+        if self.any_solved_segs or self._implicit_duration or self.any_connected_opt_segs:
             # Only override the solvers if the user hasn't set them to something else.
             if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
                 newton = phase.nonlinear_solver = om.NewtonSolver()

@@ -26,7 +26,7 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
 
                 # Run again without an actual optimizer
                 p2 = two_burn_orbit_raise_problem(transcription=tx, transcription_order=3,
-                                                  compressed=False, optimizer='IPOPT', simulate=True,
+                                                  compressed=False, optimizer='SLSQP', simulate=True,
                                                   show_output=False, connected=True, run_driver=False,
                                                   restart='dymos_solution.db', solution_record_file='dymos_solution2.db',
                                                   simulation_record_file='dymos_simulation2.db')
@@ -44,86 +44,33 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
 
                     assert_cases_equal(case1, case2, tol=1.0E-9)
                     assert_cases_equal(sim_case1, sim_case2, tol=1.0E-9)
-#
-#     def test_restart_from_solution_radau(self):
-#         optimizer = 'IPOPT'
-#
-#         p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
-#                                          compressed=False, optimizer=optimizer, show_output=False)
-#
-#         case1 = om.CaseReader('dymos_solution.db').get_case('final')
-#         sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
-#
-#         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-#             assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
-#                               tolerance=2.0E-3)
-#
-#         # Run again without an actual optimzier
-#         two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
-#                                      compressed=False, optimizer=optimizer, run_driver=False,
-#                                      show_output=False, restart='dymos_solution.db')
-#
-#         sim_case2 = om.CaseReader('dymos_simulation.db').get_case('final')
-#
-#         # Verify that the second case has the same inputs and outputs
-#         assert_cases_equal(case1, p, tol=1.0E-9)
-#         assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
-#
-#
-# # This test is separate because connected phases aren't directly parallelizable.
-# @require_pyoptsparse(optimizer='IPOPT')
-# @use_tempdirs
-# class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
-#
-#     def test_ex_two_burn_orbit_raise_connected(self):
-#         optimizer = 'IPOPT'
-#
-#         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-#                                          compressed=False, optimizer=optimizer,
-#                                          show_output=False, connected=True)
-#
-#         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-#             assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
-#                               tolerance=4.0E-3)
-#
-#         case1 = om.CaseReader('dymos_solution.db').get_case('final')
-#         sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
-#
-#         # Run again without an actual optimizer
-#         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-#                                          compressed=False, optimizer=optimizer, run_driver=False,
-#                                          show_output=False, restart='dymos_solution.db',
-#                                          connected=True)
-#
-#         sim_case2 = om.CaseReader('dymos_simulation.db').get_case('final')
-#
-#         # Verify that the second case has the same inputs and outputs
-#         assert_cases_equal(case1, p, tol=1.0E-8)
-#         assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
-#
-#     def test_restart_from_solution_radau_to_connected(self):
-#         optimizer = 'IPOPT'
-#
-#         p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
-#                                          compressed=False, optimizer=optimizer, show_output=False)
-#
-#         case1 = om.CaseReader('dymos_solution.db').get_case('final')
-#         sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
-#
-#         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-#             assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
-#                               tolerance=2.0E-3)
-#
-#         # Run again without an actual optimzier
-#         two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
-#                                      compressed=False, optimizer=optimizer, run_driver=False,
-#                                      show_output=False, restart='dymos_solution.db', connected=True)
-#
-#         sim_case2 = om.CaseReader('dymos_simulation.db').get_case('final')
-#
-#         # Verify that the second case has the same inputs and outputs
-#         assert_cases_equal(case1, p, tol=1.0E-9, require_same_vars=False)
-#         assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
+
+    def test_ex_two_burn_orbit_raise_connected_restart_from_sim(self):
+        N_PROCS = 3
+
+        for tx in ['gauss-lobatto', 'radau']:
+            with self.subTest(tx):
+                p = two_burn_orbit_raise_problem(transcription=tx, transcription_order=3,
+                                                 compressed=False, optimizer='IPOPT', simulate=True,
+                                                 show_output=True, run_driver=True, connected=True)
+
+                # Run again without an actual optimizer
+                p2 = two_burn_orbit_raise_problem(transcription=tx, transcription_order=3,
+                                                  compressed=False, optimizer='SLSQP', simulate=True,
+                                                  show_output=False, connected=True, run_driver=False,
+                                                  restart='dymos_simulation.db', solution_record_file='dymos_solution2.db',
+                                                  simulation_record_file='dymos_simulation2.db', make_plots=True)
+
+                if MPI.COMM_WORLD.rank == 0:
+                    case1 = om.CaseReader('dymos_solution.db').get_case('final')
+                    case2 = om.CaseReader('dymos_solution2.db').get_case('final')
+                    sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
+                    sim_case2 = om.CaseReader('dymos_simulation2.db').get_case('final')
+
+                    assert_near_equal(case1.get_val('traj.burn2.timeseries.deltav')[0], 0.3995, tolerance=4.0E-3)
+                    assert_near_equal(case2.get_val('traj.burn2.timeseries.deltav')[0], 0.3995, tolerance=4.0E-3)
+                    assert_near_equal(sim_case1.get_val('traj.burn2.timeseries.deltav')[0], 0.3995, tolerance=4.0E-3)
+                    assert_near_equal(sim_case2.get_val('traj.burn2.timeseries.deltav')[0], 0.3995, tolerance=4.0E-3)
 
 
 if __name__ == '__main__':  # pragma: no cover
