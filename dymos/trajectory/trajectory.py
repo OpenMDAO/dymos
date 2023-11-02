@@ -58,6 +58,7 @@ class Trajectory(om.Group):
         self._linkages = {}
         self._phases = {}
         self._phase_graph = nx.DiGraph()
+        self._has_connected_phases = False
 
         self.parameter_options = {}
         self.phases = om.ParallelGroup()
@@ -68,6 +69,17 @@ class Trajectory(om.Group):
         """
         self.options.declare('sim_mode', types=bool, default=False,
                              desc='Used internally by Dymos when invoking simulate on a trajectory')
+        self.options.declare('default_nonlinear_solver',
+                             types=(om.NonlinearBlockJac, om.NewtonSolver, om.BroydenSolver),
+                             default=None, allow_none=True,
+                             desc='A nonlinear solver to be used when Phases are connected but being '
+                                  'run in parallel. If not specified, Dymos will automatically use '
+                                  'NonlinearBlockJac in this situation.')
+        self.options.declare('default_linear_solver', default=None, allow_none=True,
+                             types=(om.PETScKrylov, om.LinearBlockJac, om.NonlinearBlockGS),
+                             desc='A linear solver to be used when Phases are connected but being '
+                                  'run in parallel. If not specified, Dymos will automatically use '
+                                  'PETScKrylov in this situation.')
 
     def add_phase(self, name, phase, **kwargs):
         """
@@ -755,10 +767,6 @@ class Trajectory(om.Group):
 
     def _configure_linkages(self):
 
-        if self.options['sim_mode']:
-            # If this is a simulation trajectory, there's no need to link the phases.
-            return
-
         connected_linkage_inputs = []
 
         def _print_on_rank(rank=0, *args, **kwargs):
@@ -861,6 +869,7 @@ class Trajectory(om.Group):
                         raise om.OpenMDAOWarning(msg)
                     _print_on_rank(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ->  '
                                    f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
+                    self._has_connected_phases = True
                 else:
 
                     if fixed_a and fixed_b:
@@ -998,6 +1007,45 @@ class Trajectory(om.Group):
             err_lines = '\n'.join(errs) if len(errs) > 1 else errs[0]
             raise RuntimeError(f"{self.msginfo}: {err_lines}")
 
+    def _configure_solvers(self):
+        """
+        Automatically configure solvers for the Trajectory.
+
+        If operating under MPI and phases are connected, then
+        the default nonlinear solver will be a NonlinearBlockJac,
+        while the default linear solver will be PETScKrylov.
+
+        These solvers can be changed through the
+        'default_nonlinear_solver' and 'default_linear_solver' options.
+        """
+        if self._has_connected_phases and MPI:
+
+            if (isinstance(self.phases.nonlinear_solver, om.NonlinearRunOnce) and
+                    self.options['default_nonlinear_solver'] is None):
+
+                msg = f'{self.msginfo}: Trajectory requires non-default nonlinear solver due to phases being\n' \
+                      f'executed in parallel with direct connections between them.\n' \
+                      f'Setting nonlinear solver to ' \
+                      f'`om.NonlinearBlockJac(iprint=0)`\n' \
+                      f'by default.\n' \
+                      f'To avoid this warning, explicitly provide default nonlinear and linear solvers\n' \
+                      f'for the trajectory via `{self.pathname}.options["default_linear_solver"]`.'
+                om.issue_warning(msg)
+                self.phases.nonlinear_solver = om.NonlinearBlockJac(iprint=0)
+
+            if (isinstance(self.phases.linear_solver, om.LinearRunOnce) and
+                    self.options['default_linear_solver'] is None):
+
+                msg = f'{self.msginfo}: Trajectory requires non-default linear solver due to phases being\n' \
+                      f'executed in parallel with direct connections between them.\n' \
+                      f'Setting linear solver to ' \
+                      f'`om.PETScKrylov()`\n' \
+                      f'by default.\n' \
+                      f'To avoid this warning, explicitly provide default nonlinear and linear solvers\n' \
+                      f'for the trajectory via `{self.pathname}.options["default_linear_solver"]`\n.'
+                om.issue_warning(msg)
+                self.phases.linear_solver = om.PETScKrylov()
+
     def configure(self):
         """
         Configure the Trajectory Group.
@@ -1012,8 +1060,10 @@ class Trajectory(om.Group):
         if self.parameter_options:
             self._configure_parameters()
 
-        if self._linkages:
+        if self._linkages and not self.options['sim_mode']:
             self._configure_linkages()
+
+        self._configure_solvers()
 
         self._constraint_report(outstream=sys.stdout)
 

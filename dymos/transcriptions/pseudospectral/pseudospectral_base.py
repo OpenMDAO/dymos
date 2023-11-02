@@ -509,7 +509,7 @@ class PseudospectralBase(TranscriptionBase):
                 msg = f'{phase.msginfo}: Phase requires non-default nonlinear solver due to the use of\n' \
                       f'solve_segments or input_initial on one or more states, or the use of set_duration_balance.\n' \
                       f'Setting nonlinear solver to ' \
-                      f'om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=2, stall_limit=3)\n' \
+                      f'om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=0, stall_limit=3)\n' \
                       f'by default.\n' \
                       f'To avoid this warning explicitly assign a nonlinear solver to this phase.'
 
@@ -517,7 +517,7 @@ class PseudospectralBase(TranscriptionBase):
                 newton = phase.nonlinear_solver = om.NewtonSolver()
                 newton.options['solve_subsystems'] = True
                 newton.options['maxiter'] = 100
-                newton.options['iprint'] = 2
+                newton.options['iprint'] = 0
                 newton.options['stall_limit'] = 3
                 newton.linesearch = om.BoundsEnforceLS()
 

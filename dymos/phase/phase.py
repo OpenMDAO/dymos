@@ -22,8 +22,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     TimeseriesOutputOptionsDictionary, PhaseTimeseriesOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
-from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
-from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
+from ..transcriptions import ExplicitShooting
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
@@ -2704,8 +2703,6 @@ class Phase(om.Group):
             }
         else:
             previous_solution = case
-
-        print(f'{self.msginfo}: loading case')
 
         prev_vars_abs2prom = {}
         prev_vars_abs2prom.update({k: v['prom_name'] for k, v in previous_solution['inputs'].items()})

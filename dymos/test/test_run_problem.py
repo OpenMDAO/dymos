@@ -832,8 +832,8 @@ class TestSimulateArrayParam(unittest.TestCase):
         assert_near_equal(sol - sim, np.zeros_like(sol))
 
         # Test that the parameter is available in the solution and simulation files
-        sol = sol_results.get_val('traj.phase0.parameters:array')
-        sim = sim_results.get_val('traj.phase0.parameters:array')
+        sol = sol_results.get_val('traj.phase0.parameter_vals:array')
+        sim = sim_results.get_val('traj.phase0.parameter_vals:array')
 
         assert_near_equal(sol - sim, np.zeros_like(sol))
 

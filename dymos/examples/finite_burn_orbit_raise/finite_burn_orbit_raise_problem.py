@@ -156,12 +156,12 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
 
         traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
 
-    if connected and MPI:
-        # If running connected and under MPI the phases subsystem requires a Nonlinear Block Jacobi solver.
-        # This is not the most efficient way to actually solve this problem but it demonstrates access
-        # to the traj.phases subsystem before setup.
-        traj.phases.nonlinear_solver = om.NonlinearBlockJac(iprint=0)
-        traj.phases.linear_solver = om.PETScKrylov()
+    # if connected and MPI:
+    #     # If running connected and under MPI the phases subsystem requires a Nonlinear Block Jacobi solver.
+    #     # This is not the most efficient way to actually solve this problem but it demonstrates access
+    #     # to the traj.phases subsystem before setup.
+    #     traj.phases.nonlinear_solver = om.NonlinearBlockJac(iprint=0)
+    #     traj.phases.linear_solver = om.PETScKrylov()
 
     return traj
 

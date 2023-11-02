@@ -76,22 +76,23 @@ class TestLoadCase(unittest.TestCase):
 
         # Load the solution
         case = om.CaseReader('dymos_solution.db').get_case('final')
+        theta_1 = case.get_val('phase0.controls:theta')
 
         # Initialize the system with values from the case.
         # We unnecessarily call setup again just to make sure we obliterate the previous solution
         p.setup()
 
+        p.set_val('phase0.controls:theta', 0.0)
+
         # Load the values from the previous solution
-        dm.load_case(p, case)
+        p.load_case(case)
 
         # Run the model to ensure we find the same output values as those that we recorded
-        p.run_driver()
+        p.run_model()
 
         inputs = dict([(o[0], o[1]) for o in case.list_inputs(units=True, shape=True, out_stream=None)])
 
-        assert_near_equal(p['phase0.controls:theta'],
-                          inputs['phase0.control_group.control_interp_comp.controls:theta']
-                          ['val'])
+        assert_near_equal(p['phase0.controls:theta'], theta_1)
 
     def test_load_case_unchanged_grid_polynomial_control(self):
         import openmdao.api as om
@@ -105,22 +106,21 @@ class TestLoadCase(unittest.TestCase):
 
         # Load the solution
         case = om.CaseReader('dymos_solution.db').get_case('final')
+        theta_1 = case.get_val('phase0.polynomial_controls:theta')
 
         # Initialize the system with values from the case.
         # We unnecessarily call setup again just to make sure we obliterate the previous solution
         p.setup()
 
+        p.set_val('phase0.polynomial_controls:theta', 0.0)
+
         # Load the values from the previous solution
-        dm.load_case(p, case)
+        p.load_case(case)
 
         # Run the model to ensure we find the same output values as those that we recorded
         p.run_driver()
 
-        inputs = dict([(o[0], o[1]) for o in case.list_inputs(units=True, shape=True, out_stream=None)])
-
-        assert_near_equal(p['phase0.polynomial_controls:theta'],
-                          inputs['phase0.polynomial_control_group.interp_comp.polynomial_controls:theta']
-                          ['val'])
+        assert_near_equal(p['phase0.polynomial_controls:theta'], theta_1)
 
     def test_load_case_lgl_to_radau(self):
         import openmdao.api as om
@@ -255,7 +255,7 @@ class TestLoadCase(unittest.TestCase):
               f" different final value this will overwrite the user-specified value"
 
         with assert_warning(UserWarning, msg):
-            dm.load_case(q, case)
+            q.load_case(case)
 
 
 if __name__ == '__main__':  # pragma: no cover
