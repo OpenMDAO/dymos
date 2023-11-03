@@ -156,19 +156,13 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
 
         traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
 
-    if connected and MPI:
-        # If running connected and under MPI the phases subsystem requires a Nonlinear Block Jacobi solver.
-        # This is not the most efficient way to actually solve this problem but it demonstrates access
-        # to the traj.phases subsystem before setup.
-        traj.phases.nonlinear_solver = om.NonlinearBlockJac(iprint=0)
-        traj.phases.linear_solver = om.PETScKrylov()
-
     return traj
 
 
 def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP', r_target=3.0,
                                  transcription_order=3, compressed=False, run_driver=True,
-                                 max_iter=300, simulate=True, show_output=True, connected=False, restart=None):
+                                 max_iter=300, simulate=True, show_output=True, connected=False, restart=None,
+                                 solution_record_file='dymos_solution.db', simulation_record_file='dymos_simulation.db'):
     """
     Build and run the finite burn orbit raise problem.
 
@@ -293,6 +287,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
             p.set_val('traj.burn2.controls:u1', val=burn2.interp('u1', [0, 0]))
 
     if run_driver or simulate:
-        dm.run_problem(p, run_driver=run_driver, simulate=simulate, restart=restart, make_plots=True)
+        dm.run_problem(p, run_driver=run_driver, simulate=simulate, restart=restart, make_plots=False,
+                       solution_record_file=solution_record_file, simulation_record_file=simulation_record_file)
 
     return p
