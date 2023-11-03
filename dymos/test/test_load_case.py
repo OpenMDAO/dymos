@@ -172,16 +172,16 @@ class TestLoadCase(unittest.TestCase):
         q.load_case(case)
 
         # Run the model to ensure we find the same output values as those that we recorded
-        q.run_driver()
+        q.run_model()
 
-        outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
-                                                                out_stream=None)])
+        time_p = case.get_val('phase0.timeseries.time')
+        theta_p = case.get_val('phase0.timeseries.theta')
 
-        time_val = outputs['phase0.timeseries.timeseries_comp.time']['val']
-        theta_val = outputs['phase0.timeseries.timeseries_comp.theta']['val']
+        time_q = q.get_val('phase0.timeseries.time')
+        theta_q = q.get_val('phase0.timeseries.theta')
 
-        assert_near_equal(q['phase0.timeseries.timeseries_comp.theta'],
-                          q.model.phase0.interp(xs=time_val, ys=theta_val, nodes='all'),
+        assert_near_equal(q.model.phase0.interp(xs=time_p, ys=theta_p, nodes='all'),
+                          q.model.phase0.interp(xs=time_q, ys=theta_q, nodes='all'),
                           tolerance=1.0E-2)
 
     def test_load_case_warn_fix_final_states(self):
