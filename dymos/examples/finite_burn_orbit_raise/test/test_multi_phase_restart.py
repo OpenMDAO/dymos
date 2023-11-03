@@ -1,7 +1,8 @@
 import unittest
+import warnings
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal, assert_warnings
+from openmdao.utils.assert_utils import assert_near_equal, assert_warnings, assert_no_warning
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.mpi import MPI
 import scipy
@@ -76,9 +77,27 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
     def test_ex_two_burn_orbit_raise_connected(self):
         optimizer = 'IPOPT'
 
-        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer=optimizer,
-                                         show_output=False, connected=True)
+        unexpected_warnings = \
+            [(om.OpenMDAOWarning,
+              "'traj' <class Trajectory>: Setting phases.nonlinear_solver to `om.NonlinearBlockJac(iprint=0)`.\n"
+              "Connected phases in parallel require a non-default nonlinear solver.\n"
+              "Use traj.options[\'default_nonlinear_solver\'] to explicitly set the solver."),
+             (om.OpenMDAOWarning,
+              "'traj' <class Trajectory>: Setting phases.linear_solver to `om.PETScKrylov()`.\n"
+              "Connected phases in parallel require a non-default linear solver.\n"
+              "Use traj.options[\'default_linear_solver\'] to explicitly set the solver.")]
+
+        with warnings.catch_warnings(record=True) as w:
+            p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                             compressed=False, optimizer=optimizer,
+                                             show_output=False, connected=True,
+                                             default_nonlinear_solver=om.NonlinearBlockJac(iprint=0),
+                                             default_linear_solver=om.PETScKrylov())
+
+        for category, msg in unexpected_warnings:
+            for warn in w:
+                if (issubclass(warn.category, category) and str(warn.message) == msg):
+                    raise AssertionError(f"Saw unexpected warning {category.__name__}: {msg}")
 
         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
             assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,

@@ -8,7 +8,7 @@ from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
 
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=False,
-              connected=False):
+              connected=False, default_nonlinear_solver=None, default_linear_solver=None):
     """
     Build a traejctory for the finite burn orbit raise problem.
 
@@ -31,7 +31,8 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     t = {'gauss-lobatto': dm.GaussLobatto(num_segments=5, order=transcription_order, compressed=compressed),
          'radau': dm.Radau(num_segments=5, order=transcription_order, compressed=compressed)}
 
-    traj = dm.Trajectory()
+    traj = dm.Trajectory(default_nonlinear_solver=default_nonlinear_solver,
+                         default_linear_solver=default_linear_solver)
 
     traj.add_parameter('c', opt=False, val=1.5, units='DU/TU',
                        targets={'burn1': ['c'], 'burn2': ['c']})
@@ -162,7 +163,8 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
 def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP', r_target=3.0,
                                  transcription_order=3, compressed=False, run_driver=True,
                                  max_iter=300, simulate=True, show_output=True, connected=False, restart=None,
-                                 solution_record_file='dymos_solution.db', simulation_record_file='dymos_simulation.db'):
+                                 solution_record_file='dymos_solution.db', simulation_record_file='dymos_simulation.db',
+                                 default_nonlinear_solver=None, default_linear_solver=None):
     """
     Build and run the finite burn orbit raise problem.
 
@@ -224,7 +226,9 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
             p.driver.opt_settings['print_level'] = 5
 
     traj = make_traj(transcription=transcription, transcription_order=transcription_order,
-                     compressed=compressed, connected=connected)
+                     compressed=compressed, connected=connected,
+                     default_nonlinear_solver=default_nonlinear_solver,
+                     default_linear_solver=default_linear_solver)
     p.model.add_subsystem('traj', subsys=traj)
 
     # Needed to move the direct solver down into the phases for use with MPI.

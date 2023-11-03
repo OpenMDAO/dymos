@@ -71,11 +71,11 @@ class Trajectory(om.Group):
                              desc='Used internally by Dymos when invoking simulate on a trajectory')
         self.options.declare('default_nonlinear_solver',
                              types=(om.NonlinearBlockJac, om.NewtonSolver, om.BroydenSolver),
-                             default=None, allow_none=True,
+                             default=None, allow_none=True, recordable=False,
                              desc='A nonlinear solver to be used when Phases are connected but being '
                                   'run in parallel. If not specified, Dymos will automatically use '
                                   'NonlinearBlockJac in this situation.')
-        self.options.declare('default_linear_solver', default=None, allow_none=True,
+        self.options.declare('default_linear_solver', default=None, allow_none=True, recordable=False,
                              types=(om.PETScKrylov, om.LinearBlockJac, om.NonlinearBlockGS),
                              desc='A linear solver to be used when Phases are connected but being '
                                   'run in parallel. If not specified, Dymos will automatically use '
@@ -1020,23 +1020,25 @@ class Trajectory(om.Group):
         """
         if self._has_connected_phases and MPI:
 
-            if (isinstance(self.phases.nonlinear_solver, om.NonlinearRunOnce) and
-                    self.options['default_nonlinear_solver'] is None):
+            if isinstance(self.phases.nonlinear_solver, om.NonlinearRunOnce):
+                if self.options['default_nonlinear_solver'] is None:
+                    msg = f'{self.msginfo}: Setting phases.nonlinear_solver to `om.NonlinearBlockJac(iprint=0)`.\n' \
+                          f'Connected phases in parallel require a non-default nonlinear solver.\n' \
+                          f'Use {self.pathname}.options[\'default_nonlinear_solver\'] to explicitly set the solver.'
+                    om.issue_warning(msg)
+                    self.phases.nonlinear_solver = om.NonlinearBlockJac(iprint=0)
+                else:
+                    self.phases.nonlinear_solver = self.options['default_nonlinear_solver']
 
-                msg = f'{self.msginfo}: Setting phases.nonlinear_solver to `om.NonlinearBlockJac(iprint=0)`.\n' \
-                      f'Connected phases in parallel require a non-default nonlinear solver.\n' \
-                      f'Use {self.pathname}.options[\'default_nonlinear_solver\'] to explicitly set the solver.'
-                om.issue_warning(msg)
-                self.phases.nonlinear_solver = om.NonlinearBlockJac(iprint=0)
-
-            if (isinstance(self.phases.linear_solver, om.LinearRunOnce) and
-                    self.options['default_linear_solver'] is None):
-
-                msg = f'{self.msginfo}: Setting phases.linear_solver to `om.PETScKrylov()`.\n' \
-                      f'Connected phases in parallel require a non-default linear solver.\n' \
-                      f'Use {self.pathname}.options[\'default_linear_solver\'] to explicitly set the solver.'
-                om.issue_warning(msg)
-                self.phases.linear_solver = om.PETScKrylov()
+            if isinstance(self.phases.linear_solver, om.LinearRunOnce):
+                if self.options['default_linear_solver'] is None:
+                    msg = f'{self.msginfo}: Setting phases.linear_solver to `om.PETScKrylov()`.\n' \
+                          f'Connected phases in parallel require a non-default linear solver.\n' \
+                          f'Use {self.pathname}.options[\'default_linear_solver\'] to explicitly set the solver.'
+                    om.issue_warning(msg)
+                    self.phases.linear_solver = om.PETScKrylov()
+                else:
+                    self.phases.linear_solver = self.options['default_linear_solver']
 
     def configure(self):
         """
