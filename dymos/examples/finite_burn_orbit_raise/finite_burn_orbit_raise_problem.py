@@ -223,7 +223,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         p.driver.opt_settings['mu_strategy'] = 'monotone'
         p.driver.opt_settings['derivative_test'] = 'first-order'
         if show_output:
-            p.driver.opt_settings['print_level'] = 5
+            p.driver.opt_settings['print_level'] = 0
 
     traj = make_traj(transcription=transcription, transcription_order=transcription_order,
                      compressed=compressed, connected=connected,

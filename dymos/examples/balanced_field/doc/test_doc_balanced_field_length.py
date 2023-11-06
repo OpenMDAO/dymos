@@ -29,7 +29,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.driver.declare_coloring()
         p.driver.options['print_results'] = False
         if optimizer == 'IPOPT':
-            p.driver.opt_settings['print_level'] = 5
+            p.driver.opt_settings['print_level'] = 0
             p.driver.opt_settings['derivative_test'] = 'first-order'
 
         # First Phase: Brake release to V1 - both engines operable
