@@ -123,6 +123,7 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
         assert_cases_equal(case1, case2, tol=1.0E-8)
         assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
 
+    @unittest.skipUnless(MPI, "MPI is required.")
     def test_restart_from_solution_radau_to_connected(self):
         optimizer = 'IPOPT'
 
