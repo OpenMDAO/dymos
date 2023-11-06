@@ -146,22 +146,22 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
                     assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
                                       tolerance=4.0E-3)
 
-        case1 = om.CaseReader('dymos_solution.db').get_case('final')
-        sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
+                case1 = om.CaseReader('dymos_solution.db').get_case('final')
+                sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
 
-        # Run again without an actual optimizer
-        p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
-                                         compressed=False, optimizer=optimizer, run_driver=False,
-                                         show_output=False, restart='dymos_solution.db',
-                                         connected=True, solution_record_file='dymos_solution2.db',
-                                         simulation_record_file='dymos_simulation2.db')
+                # Run again without an actual optimizer
+                p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
+                                                 compressed=False, optimizer=optimizer, run_driver=False,
+                                                 show_output=False, restart='dymos_solution.db',
+                                                 connected=True, solution_record_file='dymos_solution2.db',
+                                                 simulation_record_file='dymos_simulation2.db')
 
-        case2 = om.CaseReader('dymos_solution2.db').get_case('final')
-        sim_case2 = om.CaseReader('dymos_simulation2.db').get_case('final')
+                case2 = om.CaseReader('dymos_solution2.db').get_case('final')
+                sim_case2 = om.CaseReader('dymos_simulation2.db').get_case('final')
 
-        # Verify that the second case has the same inputs and outputs
-        assert_cases_equal(case1, case2, tol=1.0E-8)
-        assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
+                # Verify that the second case has the same inputs and outputs
+                assert_cases_equal(case1, case2, tol=1.0E-8)
+                assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
 
 
 if __name__ == '__main__':  # pragma: no cover
