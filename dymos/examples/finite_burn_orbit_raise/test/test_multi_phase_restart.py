@@ -17,6 +17,7 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
 
     N_PROCS = 3
 
+    @unittest.skipUnless(MPI, "MPI is required.")
     def test_ex_two_burn_orbit_raise_connected(self):
         optimizer = 'IPOPT'
 
@@ -72,8 +73,9 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
-    N_PROCS = 2
+    N_PROCS = 3
 
+    @unittest.skipUnless(MPI, "MPI is required.")
     def test_ex_two_burn_orbit_raise_connected(self):
         optimizer = 'IPOPT'
 
@@ -140,9 +142,9 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
                                                  compressed=False, optimizer=optimizer,
                                                  show_output=False, connected=True)
 
-        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-            assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
-                              tolerance=4.0E-3)
+                if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
+                    assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
+                                      tolerance=4.0E-3)
 
         case1 = om.CaseReader('dymos_solution.db').get_case('final')
         sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
@@ -153,11 +155,10 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
                                          show_output=False, restart='dymos_solution.db',
                                          connected=True, solution_record_file='dymos_solution2.db',
                                          simulation_record_file='dymos_simulation2.db')
-        #
 
         case2 = om.CaseReader('dymos_solution2.db').get_case('final')
         sim_case2 = om.CaseReader('dymos_simulation2.db').get_case('final')
-        #
+
         # Verify that the second case has the same inputs and outputs
         assert_cases_equal(case1, case2, tol=1.0E-8)
         assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
