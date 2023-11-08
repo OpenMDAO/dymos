@@ -20,7 +20,7 @@ def vanderpol(transcription='gauss-lobatto', num_segments=40, transcription_orde
         if optimizer == 'SNOPT':
             p.driver.opt_settings['iSumm'] = 6  # show detailed SNOPT output
         elif optimizer == 'IPOPT':
-            p.driver.opt_settings['print_level'] = 0
+            p.driver.opt_settings['print_level'] = 1
     p.driver.declare_coloring()
 
     # define a Trajectory object and add to model
@@ -76,7 +76,7 @@ def vanderpol(transcription='gauss-lobatto', num_segments=40, transcription_orde
     phase.add_objective('J', loc='final')
 
     # setup the problem
-    p.setup(check=True)
+    p.setup(check=True, force_alloc_complex=True)
 
     p['traj.phase0.t_initial'] = 0.0
     p['traj.phase0.t_duration'] = t_final
