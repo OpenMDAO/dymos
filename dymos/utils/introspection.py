@@ -227,7 +227,11 @@ def _configure_constraint_introspection(phase):
 
                 con['shape'] = control_shape
                 con['units'] = control_units if con['units'] is None else con['units']
-                con['constraint_path'] = f'timeseries.{prefix}{var}'
+                if birkhoff and constraint_type in ('initial', 'final'):
+                    con['constraint_path'] = f'boundary_vals.{var}'
+                    con['constraint_path'] = f'timeseries.{prefix}{var}'
+                else:
+                    con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
                 prefix = 'polynomial_controls:' if phase.timeseries_options['use_prefix'] else ''
@@ -235,7 +239,10 @@ def _configure_constraint_introspection(phase):
                 control_units = phase.polynomial_control_options[var]['units']
                 con['shape'] = control_shape
                 con['units'] = control_units if con['units'] is None else con['units']
-                con['constraint_path'] = f'timeseries.{prefix}{var}'
+                if birkhoff and constraint_type in ('initial', 'final'):
+                    con['constraint_path'] = f'boundary_vals.{var}'
+                else:
+                    con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type == 'control_rate':
                 prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
@@ -245,7 +252,10 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = control_shape
                 con['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con['units'] is None else con['units']
-                con['constraint_path'] = f'timeseries.{prefix}{var}'
+                if birkhoff and constraint_type in ('initial', 'final'):
+                    con['constraint_path'] = f'boundary_vals.{var}'
+                else:
+                    con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type == 'control_rate2':
                 prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
@@ -255,7 +265,10 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = control_shape
                 con['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con['units'] is None else con['units']
-                con['constraint_path'] = f'timeseries.{prefix}{var}'
+                if birkhoff and constraint_type in ('initial', 'final'):
+                    con['constraint_path'] = f'boundary_vals.{var}'
+                else:
+                    con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type == 'polynomial_control_rate':
                 prefix = 'polynomial_control_rates:' if phase.timeseries_options['use_prefix'] else ''
@@ -265,7 +278,10 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = control_shape
                 con['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con['units'] is None else con['units']
-                con['constraint_path'] = f'timeseries.{prefix}{var}'
+                if birkhoff and constraint_type in ('initial', 'final'):
+                    con['constraint_path'] = f'boundary_vals.{var}'
+                else:
+                    con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type == 'polynomial_control_rate2':
                 prefix = 'polynomial_control_rates:' if phase.timeseries_options['use_prefix'] else ''
@@ -275,7 +291,10 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = control_shape
                 con['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con['units'] is None else con['units']
-                con['constraint_path'] = f'timeseries.{prefix}{var}'
+                if birkhoff and constraint_type in ('initial', 'final'):
+                    con['constraint_path'] = f'boundary_vals.{var}'
+                else:
+                    con['constraint_path'] = f'timeseries.{prefix}{var}'
 
             elif var_type == 'timeseries_exec_comp_output':
                 con['shape'] = (1,)
@@ -290,7 +309,11 @@ def _configure_constraint_introspection(phase):
 
                 con['shape'] = meta['shape']
                 con['units'] = meta['units']
-                con['constraint_path'] = f'timeseries.{con["constraint_name"]}'
+
+                if birkhoff and constraint_type in ('initial', 'final'):
+                    con['constraint_path'] = f'boundary_vals.{var}'
+                else:
+                    con['constraint_path'] = f'timeseries.{var}'
 
 
 def configure_controls_introspection(control_options, ode, time_units='s'):
