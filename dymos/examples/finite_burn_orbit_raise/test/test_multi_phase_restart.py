@@ -127,42 +127,41 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
     def test_restart_from_solution_radau_to_connected(self):
         optimizer = 'IPOPT'
 
-        if MPI:
-            expected_warnings = \
-                [(om.OpenMDAOWarning,
-                  "'traj' <class Trajectory>: Setting phases.nonlinear_solver to `om.NonlinearBlockJac(iprint=0)`.\n"
-                  "Connected phases in parallel require a non-default nonlinear solver.\n"
-                  "Use traj.options[\'default_nonlinear_solver\'] to explicitly set the solver."),
-                 (om.OpenMDAOWarning,
-                  "'traj' <class Trajectory>: Setting phases.linear_solver to `om.PETScKrylov()`.\n"
-                  "Connected phases in parallel require a non-default linear solver.\n"
-                  "Use traj.options[\'default_linear_solver\'] to explicitly set the solver.")]
+        expected_warnings = \
+            [(om.OpenMDAOWarning,
+              "'traj' <class Trajectory>: Setting phases.nonlinear_solver to `om.NonlinearBlockJac(iprint=0)`.\n"
+              "Connected phases in parallel require a non-default nonlinear solver.\n"
+              "Use traj.options[\'default_nonlinear_solver\'] to explicitly set the solver."),
+             (om.OpenMDAOWarning,
+              "'traj' <class Trajectory>: Setting phases.linear_solver to `om.PETScKrylov()`.\n"
+              "Connected phases in parallel require a non-default linear solver.\n"
+              "Use traj.options[\'default_linear_solver\'] to explicitly set the solver.")]
 
-            with assert_warnings(expected_warnings):
-                p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
-                                                 compressed=False, optimizer=optimizer,
-                                                 show_output=False, connected=True)
+        with assert_warnings(expected_warnings):
+            p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
+                                             compressed=False, optimizer=optimizer,
+                                             show_output=False, connected=True)
 
-                if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-                    assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
-                                      tolerance=4.0E-3)
+            if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
+                assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
+                                  tolerance=4.0E-3)
 
-                case1 = om.CaseReader('dymos_solution.db').get_case('final')
-                sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
+            case1 = om.CaseReader('dymos_solution.db').get_case('final')
+            sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
 
-                # Run again without an actual optimizer
-                p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
-                                                 compressed=False, optimizer=optimizer, run_driver=False,
-                                                 show_output=False, restart='dymos_solution.db',
-                                                 connected=True, solution_record_file='dymos_solution2.db',
-                                                 simulation_record_file='dymos_simulation2.db')
+            # Run again without an actual optimizer
+            p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
+                                             compressed=False, optimizer=optimizer, run_driver=False,
+                                             show_output=False, restart='dymos_solution.db',
+                                             connected=True, solution_record_file='dymos_solution2.db',
+                                             simulation_record_file='dymos_simulation2.db')
 
-                case2 = om.CaseReader('dymos_solution2.db').get_case('final')
-                sim_case2 = om.CaseReader('dymos_simulation2.db').get_case('final')
+            case2 = om.CaseReader('dymos_solution2.db').get_case('final')
+            sim_case2 = om.CaseReader('dymos_simulation2.db').get_case('final')
 
-                # Verify that the second case has the same inputs and outputs
-                assert_cases_equal(case1, case2, tol=1.0E-8)
-                assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
+            # Verify that the second case has the same inputs and outputs
+            assert_cases_equal(case1, case2, tol=1.0E-8)
+            assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
 
 
 if __name__ == '__main__':  # pragma: no cover
