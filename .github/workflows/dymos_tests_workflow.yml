@@ -36,7 +36,7 @@ jobs:
             SNOPT: 7.7
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
-            JAX: '0.3.24'
+            JAX: '0.4.14'
 
           # baseline versions except no pyoptsparse or SNOPT
           - NAME: no_pyoptsparse
@@ -88,7 +88,7 @@ jobs:
             PETSc: 3.13
             PYOPTSPARSE: 'v2.6.1'
             SNOPT: 7.2
-            OPENMDAO: 3.27.0
+            OPENMDAO: 3.28.0
             OPTIONAL: '[test]'
 
     steps:

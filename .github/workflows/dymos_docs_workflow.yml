@@ -33,7 +33,7 @@ jobs:
             PYOPTSPARSE: 'v2.9.3'
             OPENMDAO: 'latest'
             OPTIONAL: '[docs]'
-            JAX: '0.3.24'
+            JAX: '0.4.14'
             PUBLISH_DOCS: 1
 
           # make sure the latest versions of things don't break the docs
