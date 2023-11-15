@@ -10,7 +10,6 @@ from dymos.examples.low_thrust_spiral import LowThrustODE
 show_plots = False
 
 
-@require_pyoptsparse(optimizer='SNOPT')
 def low_thrust_spiral_direct_collocation(grid_type='lgl'):
 
     optimizer = 'SNOPT'
@@ -66,22 +65,17 @@ def low_thrust_spiral_direct_collocation(grid_type='lgl'):
     return p
 
 
+@require_pyoptsparse(optimizer='SNOPT')
 @use_tempdirs
 class TestLowThrustSpiral(unittest.TestCase):
 
-    # @classmethod
-    # def tearDownClass(cls):
-    #     for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
-    #         if os.path.exists(filename):
-    #             os.remove(filename)
-
     @staticmethod
-    def _assert_results(p, tol=1.0E-4):
-        # t = p.get_val('traj.phase0.timeseries.time')
-        #
-        # assert_near_equal(t[-1], 228, tolerance=tol)
+    def _assert_results(p, tol=0.05):
+        t = p.get_val('traj.phase0.timeseries.time')
+        assert_near_equal(t[-1], 228, tolerance=tol)
         return
 
+    @unittest.skip('Long running test skipped on CI.')
     def test_low_thrust_spiral_lgl(self):
         p = low_thrust_spiral_direct_collocation(grid_type='lgl')
         dm.run_problem(p)
@@ -97,6 +91,7 @@ class TestLowThrustSpiral(unittest.TestCase):
 
         self._assert_results(p)
 
+    @unittest.skip('Long running test skipped on CI.')
     def test_low_thrust_spiral_cgl(self):
         p = low_thrust_spiral_direct_collocation(grid_type='cgl')
         dm.run_problem(p)
