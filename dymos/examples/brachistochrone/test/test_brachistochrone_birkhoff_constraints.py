@@ -15,8 +15,8 @@ class TestBrachistochroneBirkhoffConstraints(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring(tol=1.0E-12)
 
         grid = dm.BirkhoffGrid(num_segments=1, nodes_per_seg=25, grid_type='lgl')
@@ -75,8 +75,8 @@ class TestBrachistochroneBirkhoffConstraints(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring(tol=1.0E-12)
 
         grid = dm.BirkhoffGrid(num_segments=1, nodes_per_seg=25, grid_type='lgl')
@@ -135,8 +135,8 @@ class TestBrachistochroneBirkhoffConstraints(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring(tol=1.0E-12)
 
         grid = dm.BirkhoffGrid(num_segments=1, nodes_per_seg=25, grid_type='lgl')
@@ -159,12 +159,9 @@ class TestBrachistochroneBirkhoffConstraints(unittest.TestCase):
 
         phase.add_control('theta',
                           continuity=True, rate_continuity=True,
-                          units='deg')
+                          units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', targets=['g'], units='m/s**2')
-
-        phase.add_path_constraint('theta', lower=0.01, upper=179.9)
-        phase.add_boundary_constraint('theta', loc='final', lower=0.01, upper=179.9)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -197,8 +194,8 @@ class TestBrachistochroneBirkhoffConstraints(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring(tol=1.0E-12)
 
         grid = dm.BirkhoffGrid(num_segments=1, nodes_per_seg=25, grid_type='lgl')
