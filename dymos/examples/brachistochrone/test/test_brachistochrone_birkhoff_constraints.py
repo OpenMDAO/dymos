@@ -249,4 +249,3 @@ class TestBrachistochroneBirkhoffConstraints(unittest.TestCase):
 
         p.run_driver()
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-4)
-
