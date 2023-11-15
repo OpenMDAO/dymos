@@ -312,7 +312,7 @@ def _configure_constraint_introspection(phase):
                 if birkhoff and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'boundary_vals.{var}'
                 else:
-                    con['constraint_path'] = f'timeseries.{var}'
+                    con['constraint_path'] = f'timeseries.{con["constraint_name"]}'
 
 
 def configure_controls_introspection(control_options, ode, time_units='s'):
