@@ -1516,9 +1516,6 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_boundary_constraint('theta', loc='initial', lower=0, upper=1.0)
-        phase.add_boundary_constraint('theta', loc='final', lower=100, upper=105.)
-
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
