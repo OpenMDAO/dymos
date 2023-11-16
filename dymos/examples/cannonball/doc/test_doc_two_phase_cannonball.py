@@ -2,6 +2,7 @@ import unittest
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
+
 @use_tempdirs
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
