@@ -70,13 +70,11 @@ class Trajectory(om.Group):
         self.options.declare('sim_mode', types=bool, default=False,
                              desc='Used internally by Dymos when invoking simulate on a trajectory')
         self.options.declare('default_nonlinear_solver',
-                             types=(om.NonlinearBlockJac, om.NewtonSolver, om.BroydenSolver),
                              default=None, allow_none=True, recordable=False,
                              desc='A nonlinear solver to be used when Phases are connected but being '
                                   'run in parallel. If not specified, Dymos will automatically use '
                                   'NonlinearBlockJac in this situation.')
         self.options.declare('default_linear_solver', default=None, allow_none=True, recordable=False,
-                             types=(om.PETScKrylov, om.LinearBlockJac, om.NonlinearBlockGS),
                              desc='A linear solver to be used when Phases are connected but being '
                                   'run in parallel. If not specified, Dymos will automatically use '
                                   'PETScKrylov in this situation.')
