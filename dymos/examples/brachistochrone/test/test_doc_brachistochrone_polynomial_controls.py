@@ -1496,8 +1496,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = om.Problem(model=om.Group())
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneODE,
