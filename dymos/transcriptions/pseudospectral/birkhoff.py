@@ -211,34 +211,24 @@ class Birkhoff(TranscriptionBase):
         """
         super(Birkhoff, self).configure_polynomial_controls(phase)
 
-        ode_inputs = get_promoted_vars(self._get_ode(phase), 'input')
-
         for name, options in phase.polynomial_control_options.items():
-            targets = get_targets(ode=ode_inputs, name=name, user_targets=options['targets'])
-            if targets:
-                phase.connect(f'polynomial_control_values:{name}',
-                              [f'ode_all.{t}' for t in targets])
-                phase.connect(f'polynomial_control_values:{name}',
-                              [f'boundary_vals.{t}' for t in targets],
+            if options['targets']:
+                phase.connect(f'polynomial_control_values:{name}', [f'ode_all.{t}' for t in options['targets']])
+                phase.connect(f'polynomial_control_values:{name}', [f'boundary_vals.{t}' for t in options['targets']],
                               src_indices=om.slicer[[0, -1], ...])
 
-            targets = get_targets(ode=phase.ode_all, name=f'{name}_rate',
-                                  user_targets=options['rate_targets'])
-            if targets:
+            if options['rate_targets']:
                 phase.connect(f'polynomial_control_rates:{name}_rate',
-                              [f'ode_all.{t}' for t in targets])
+                              [f'ode_all.{t}' for t in options['rate_targets']])
                 phase.connect(f'polynomial_control_rates:{name}_rate',
-                              [f'boundary_vals.{t}' for t in targets],
+                              [f'boundary_vals.{t}' for t in options['rate_targets']],
                               src_indices=om.slicer[[0, -1], ...])
 
-            targets = get_targets(ode=phase.ode_all, name=f'{name}_rate2',
-                                  user_targets=options['rate2_targets'],
-                                  src_indices=om.slicer[[0, -1], ...])
-            if targets:
+            if options['rate2_targets']:
                 phase.connect(f'polynomial_control_rates:{name}_rate2',
-                              [f'ode_all.{t}' for t in targets])
+                              [f'ode_all.{t}' for t in options['rate2_targets']])
                 phase.connect(f'polynomial_control_rates:{name}_rate2',
-                              [f'boundary_vals.{t}' for t in targets],
+                              [f'boundary_vals.{t}' for t in options['rate2_targets']],
                               src_indices=om.slicer[[0, -1], ...])
 
     def setup_ode(self, phase):
