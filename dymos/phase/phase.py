@@ -114,6 +114,15 @@ class Phase(om.Group):
                              desc='Keyword arguments provided when initializing the ODE System')
         self.options.declare('transcription', types=TranscriptionBase,
                              desc='Transcription technique of the optimal control problem.')
+        self.options.declare('default_nonlinear_solver',
+                             default=None, allow_none=True, recordable=False,
+                             desc='A nonlinear solver to be used when the phase has implicit behavior due'
+                                  'to the use of `solve_segments` or `input_initial` in one or more states,'
+                                  'or the use of `set_duration_balance`.')
+        self.options.declare('default_linear_solver', default=None, allow_none=True, recordable=False,
+                             desc='A linear solver to be used when the phase has implicit behavior due'
+                                  'to the use of `solve_segments` or `input_initial` in one or more states,'
+                                  'or the use of `set_duration_balance`.')
 
     def add_state(self, name, units=_unspecified, shape=_unspecified,
                   rate_source=_unspecified, targets=_unspecified,

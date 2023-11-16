@@ -363,8 +363,9 @@ class Birkhoff(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         ode_iter_group = phase._get_subsystem('ode_iter_group')
+        super().configure_solvers(phase)
 
-        if ode_iter_group._implicit_outputs or self._implicit_duration:
+        if ode_iter_group._implicit_outputs:
             # Only override the solvers if the user hasn't set them to something else.
             if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
                 msg = f'{phase.msginfo}: Phase requires non-default nonlinear solver due to the use of\n' \

@@ -95,7 +95,6 @@ class PseudospectralBase(TranscriptionBase):
         if self.any_solved_segs or self.any_connected_opt_segs:
             indep = StateIndependentsComp(grid_data=grid_data,
                                           state_options=phase.state_options)
-            indep.linear_solver = om.DirectSolver()
         else:
             indep = om.IndepVarComp()
 
@@ -504,18 +503,36 @@ class PseudospectralBase(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        if self.any_solved_segs or self._implicit_duration:
-            # Only override the solvers if the user hasn't set them to something else.
+        super().configure_solvers(phase)
+        if self.any_solved_segs or self.any_connected_opt_segs:
             if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
-                newton = phase.nonlinear_solver = om.NewtonSolver()
-                newton.options['solve_subsystems'] = True
-                newton.options['maxiter'] = 100
-                newton.options['iprint'] = 2
-                newton.options['stall_limit'] = 3
-                newton.linesearch = om.BoundsEnforceLS()
+                if phase.options['default_nonlinear_solver'] is None:
+                    msg = f'{phase.msginfo}: Setting {phase.pathname}.nonlinear_solver to ' \
+                          f'`om.NewtonSolver()`.\n' \
+                          f'A phase requires a non-default nonlinear solver when a state utilizes solve_segments or ' \
+                          f'input_initial, or when implicit duration is used.\n' \
+                          f'Use `phase.options[\'default_nonlinear_solver\']` to explicitly set the solver.'
+                    om.issue_warning(msg)
+                    phase.nonlinear_solver = om.NewtonSolver(iprint=0)
+                    phase.nonlinear_solver.options['solve_subsystems'] = True
+                    phase.nonlinear_solver.options['maxiter'] = 1000
+                    phase.nonlinear_solver.options['iprint'] = 2
+                    phase.nonlinear_solver.options['stall_limit'] = 5
+                    phase.nonlinear_solver.linesearch = om.ArmijoGoldsteinLS()
+                else:
+                    phase.nonlinear_solver = phase.options['default_nonlinear_solver']
 
             if isinstance(phase.linear_solver, om.LinearRunOnce):
-                phase.linear_solver = om.DirectSolver()
+                if phase.options['default_linear_solver'] is None:
+                    msg = f'{phase.msginfo}: Setting {phase.pathname}.linear_solver to ' \
+                          f'`om.DirectSolver()`.\n' \
+                          f'A phase requires a non-default linear solver when a state utilizes solve_segments or ' \
+                          f'input_initial, or when implicit duration is used.\n' \
+                          f'Use `phase.options[\'default_linear_solver\']` to explicitly set the solver.'
+                    om.issue_warning(msg)
+                    phase.linear_solver = om.DirectSolver()
+                else:
+                    phase.linear_solver = self.options['default_linear_solver']
 
     def setup_timeseries_outputs(self, phase):
         """
