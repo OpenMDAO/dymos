@@ -1,12 +1,8 @@
 import unittest
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-
-
-plt.switch_backend('Agg')
 
 
 def initial_guess(t_dur, gam0=np.pi/3):
@@ -206,6 +202,12 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         # converge to the initial point.
         phase.set_duration_balance('h', val=0.0)
 
+        # In this problem, the default ArmijoGoldsteinLS has issues with extrapolating
+        # the states and causes the optimization to fail.
+        # Using the default linesearch or BoundsEnforceLS work better here.
+        phase.nonlinear_solver = om.NewtonSolver(solve_subsystems=True, iprint=2)
+        phase.nonlinear_solver.linesearch = None
+
         phase.add_objective('r', loc='final', scaler=-1.0)
 
         p.model.connect('size_comp.mass', 'traj.phase.parameters:m')
@@ -235,59 +237,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         #####################################################
         # Run the optimization and final explicit simulation
         #####################################################
-        dm.run_problem(p)
+        dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.phase.states:r')[-1],
                           3183.25, tolerance=1.0)
-
-        exp_out = traj.simulate()
-
-        #############################################
-        # Plot the results
-        #############################################
-        rad = p.get_val('radius', units='m')[0]
-        print(f'optimal radius: {rad} m ')
-        mass = p.get_val('size_comp.mass', units='kg')[0]
-        print(f'cannonball mass: {mass} kg ')
-        angle = p.get_val('traj.phase.timeseries.gam', units='deg')[0, 0]
-        print(f'launch angle: {angle} deg')
-        max_range = p.get_val('traj.phase.timeseries.r')[-1, 0]
-        print(f'maximum range: {max_range} m')
-
-        fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
-
-        time_imp = p.get_val('traj.phase.timeseries.time')
-
-        time_exp = exp_out.get_val('traj.phase.timeseries.time')
-
-        r_imp = p.get_val('traj.phase.timeseries.r')
-
-        r_exp = exp_out.get_val('traj.phase.timeseries.r')
-
-        h_imp = p.get_val('traj.phase.timeseries.h')
-
-        h_exp = exp_out.get_val('traj.phase.timeseries.h')
-
-        axes.plot(r_imp, h_imp, 'bo')
-
-        axes.plot(r_exp, h_exp, 'b--')
-
-        axes.set_xlabel('range (m)')
-        axes.set_ylabel('altitude (m)')
-
-        fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10, 6))
-        states = ['r', 'h', 'v', 'gam']
-        for i, state in enumerate(states):
-            x_imp = p.get_val(f'traj.phase.timeseries.{state}')
-
-            x_exp = exp_out.get_val(f'traj.phase.timeseries.{state}')
-
-            axes[i].set_ylabel(state)
-
-            axes[i].plot(time_imp, x_imp, 'bo')
-            axes[i].plot(time_exp, x_exp, 'b--')
-
-        plt.show()
 
 
 if __name__ == '__main__':  # pragma: no cover

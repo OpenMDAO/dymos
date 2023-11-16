@@ -1,12 +1,6 @@
 import unittest
 
-import matplotlib.pyplot as plt
-
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-
-
-plt.switch_backend('Agg')
-
 
 @use_tempdirs
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
@@ -257,74 +251,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         #####################################################
         # Run the optimization and final explicit simulation
         #####################################################
-        dm.run_problem(p)
+        dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.descent.states:r')[-1],
                           3183.25, tolerance=1.0E-2)
-
-        # use the explicit simulation to check the final collocation solution accuracy
-        exp_out = traj.simulate()
-
-        #############################################
-        # Plot the results
-        #############################################
-        rad = p.get_val('radius', units='m')[0]
-        print(f'optimal radius: {rad} m ')
-        mass = p.get_val('size_comp.mass', units='kg')[0]
-        print(f'cannonball mass: {mass} kg ')
-        angle = p.get_val('traj.ascent.timeseries.gam', units='deg')[0, 0]
-        print(f'launch angle: {angle} deg')
-        max_range = p.get_val('traj.descent.timeseries.r')[-1, 0]
-        print(f'maximum range: {max_range} m')
-
-        fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
-
-        time_imp = {'ascent': p.get_val('traj.ascent.timeseries.time'),
-                    'descent': p.get_val('traj.descent.timeseries.time')}
-
-        time_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.time'),
-                    'descent': exp_out.get_val('traj.descent.timeseries.time')}
-
-        r_imp = {'ascent': p.get_val('traj.ascent.timeseries.r'),
-                 'descent': p.get_val('traj.descent.timeseries.r')}
-
-        r_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.r'),
-                 'descent': exp_out.get_val('traj.descent.timeseries.r')}
-
-        h_imp = {'ascent': p.get_val('traj.ascent.timeseries.h'),
-                 'descent': p.get_val('traj.descent.timeseries.h')}
-
-        h_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.h'),
-                 'descent': exp_out.get_val('traj.descent.timeseries.h')}
-
-        axes.plot(r_imp['ascent'], h_imp['ascent'], 'bo')
-
-        axes.plot(r_imp['descent'], h_imp['descent'], 'ro')
-
-        axes.plot(r_exp['ascent'], h_exp['ascent'], 'b--')
-
-        axes.plot(r_exp['descent'], h_exp['descent'], 'r--')
-
-        axes.set_xlabel('range (m)')
-        axes.set_ylabel('altitude (m)')
-
-        fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10, 6))
-        states = ['r', 'h', 'v', 'gam']
-        for i, state in enumerate(states):
-            x_imp = {'ascent': p.get_val(f'traj.ascent.timeseries.{state}'),
-                     'descent': p.get_val(f'traj.descent.timeseries.{state}')}
-
-            x_exp = {'ascent': exp_out.get_val(f'traj.ascent.timeseries.{state}'),
-                     'descent': exp_out.get_val(f'traj.descent.timeseries.{state}')}
-
-            axes[i].set_ylabel(state)
-
-            axes[i].plot(time_imp['ascent'], x_imp['ascent'], 'bo')
-            axes[i].plot(time_imp['descent'], x_imp['descent'], 'ro')
-            axes[i].plot(time_exp['ascent'], x_exp['ascent'], 'b--')
-            axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
-
-        plt.show()
 
 
 if __name__ == '__main__':  # pragma: no cover
