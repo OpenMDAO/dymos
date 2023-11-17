@@ -1016,7 +1016,7 @@ class Trajectory(om.Group):
         These solvers can be changed through the
         'default_nonlinear_solver' and 'default_linear_solver' options.
         """
-        if self._has_connected_phases and MPI and self.comm.size > 1:
+        if self._has_connected_phases and MPI:
 
             if isinstance(self.phases.nonlinear_solver, om.NonlinearRunOnce):
                 if self.options['default_nonlinear_solver'] is None:
