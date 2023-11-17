@@ -1016,7 +1016,7 @@ class Trajectory(om.Group):
         These solvers can be changed through the
         'default_nonlinear_solver' and 'default_linear_solver' options.
         """
-        if self._has_connected_phases:
+        if self._has_connected_phases and isinstance(self.phases, om.ParallelGroup):
             if isinstance(self.phases.nonlinear_solver, om.NonlinearRunOnce):
                 if self.options['default_nonlinear_solver'] is None:
                     msg = f'{self.msginfo}: Setting phases.nonlinear_solver to `om.NonlinearBlockJac(iprint=0)`.\n' \
