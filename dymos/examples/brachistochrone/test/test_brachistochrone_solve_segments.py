@@ -9,6 +9,11 @@ import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as e
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
+try:
+    from petsc4py import PETSc
+except ImportError:
+    PETSc = None
+
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 
 OPT, OPTIMIZER = set_pyoptsparse_opt('SLSQP')
@@ -469,6 +474,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
             warnings.simplefilter('always')
             self.assertIn(expected_warning, [str(w.message) for w in ctx])
 
+    @unittest.skipIf(PETSc is None, 'PETSc is not available.')
     def test_brachistochrone_solve_segments_radau_krylov_solver(self, optimizer='SLSQP'):
         #
         # Initialize the Problem and the optimization driver
