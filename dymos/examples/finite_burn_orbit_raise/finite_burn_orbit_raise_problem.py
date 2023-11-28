@@ -10,7 +10,7 @@ from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=False,
               connected=False, default_nonlinear_solver=None, default_linear_solver=None):
     """
-    Build a traejctory for the finite burn orbit raise problem.
+    Build a trajectory for the finite burn orbit raise problem.
 
     Parameters
     ----------
@@ -31,8 +31,13 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     t = {'gauss-lobatto': dm.GaussLobatto(num_segments=5, order=transcription_order, compressed=compressed),
          'radau': dm.Radau(num_segments=5, order=transcription_order, compressed=compressed)}
 
-    traj = dm.Trajectory(default_nonlinear_solver=default_nonlinear_solver,
-                         default_linear_solver=default_linear_solver)
+    traj = dm.Trajectory()
+
+    if default_nonlinear_solver is not None:
+        traj.phases.nonlinear_solver = default_nonlinear_solver
+
+    if default_linear_solver is not None:
+        traj.phases.linear_solver = default_linear_solver
 
     traj.add_parameter('c', opt=False, val=1.5, units='DU/TU',
                        targets={'burn1': ['c'], 'burn2': ['c']})

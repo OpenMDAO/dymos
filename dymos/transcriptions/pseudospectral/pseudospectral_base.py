@@ -20,6 +20,12 @@ class PseudospectralBase(TranscriptionBase):
     **kwargs : dict
         Dictionary of optional arguments.
     """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.any_solved_segs = False
+        self.any_connected_opt_segs = False
+
     def initialize(self):
         """
         Declare transcription options.
@@ -80,8 +86,6 @@ class PseudospectralBase(TranscriptionBase):
         """
         grid_data = self.grid_data
 
-        self.any_solved_segs = False
-        self.any_connected_opt_segs = False
         for options in phase.state_options.values():
             # Transcription solve_segments overrides state solve_segments if its not set
             if options['solve_segments'] is None:
@@ -494,7 +498,7 @@ class PseudospectralBase(TranscriptionBase):
         """
         pass
 
-    def configure_solvers(self, phase):
+    def configure_solvers(self, phase, requires_solvers=None):
         """
         Configure the solvers.
 
@@ -502,37 +506,15 @@ class PseudospectralBase(TranscriptionBase):
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
+        requires_solvers : dict[str: bool]
+            A dictionary mapping a string descriptor of a reason why a solver is required,
+            and whether a solver is required.
         """
-        super().configure_solvers(phase)
-        if self.any_solved_segs or self.any_connected_opt_segs:
-            if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
-                if phase.options['default_nonlinear_solver'] is None:
-                    msg = f'{phase.msginfo}: Setting {phase.pathname}.nonlinear_solver to ' \
-                          f'`om.NewtonSolver()`.\n' \
-                          f'A phase requires a non-default nonlinear solver when a state utilizes solve_segments or ' \
-                          f'input_initial, or when implicit duration is used.\n' \
-                          f'Use `phase.options[\'default_nonlinear_solver\']` to explicitly set the solver.'
-                    om.issue_warning(msg)
-                    phase.nonlinear_solver = om.NewtonSolver(iprint=0)
-                    phase.nonlinear_solver.options['solve_subsystems'] = True
-                    phase.nonlinear_solver.options['maxiter'] = 1000
-                    phase.nonlinear_solver.options['iprint'] = 2
-                    phase.nonlinear_solver.options['stall_limit'] = 5
-                    phase.nonlinear_solver.linesearch = om.ArmijoGoldsteinLS()
-                else:
-                    phase.nonlinear_solver = phase.options['default_nonlinear_solver']
-
-            if isinstance(phase.linear_solver, om.LinearRunOnce):
-                if phase.options['default_linear_solver'] is None:
-                    msg = f'{phase.msginfo}: Setting {phase.pathname}.linear_solver to ' \
-                          f'`om.DirectSolver()`.\n' \
-                          f'A phase requires a non-default linear solver when a state utilizes solve_segments or ' \
-                          f'input_initial, or when implicit duration is used.\n' \
-                          f'Use `phase.options[\'default_linear_solver\']` to explicitly set the solver.'
-                    om.issue_warning(msg)
-                    phase.linear_solver = om.DirectSolver()
-                else:
-                    phase.linear_solver = self.options['default_linear_solver']
+        req_solvers = {'solved segments': self.any_solved_segs,
+                       'input initial': self.any_connected_opt_segs}
+        if requires_solvers is not None:
+            req_solvers.update(requires_solvers)
+        super().configure_solvers(phase, requires_solvers=req_solvers)
 
     def setup_timeseries_outputs(self, phase):
         """
