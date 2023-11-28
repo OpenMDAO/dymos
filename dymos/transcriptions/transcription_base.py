@@ -415,7 +415,9 @@ class TranscriptionBase(object):
             return
 
         req_solvers = {'implicit duration': self._implicit_duration}
-        req_solvers.update(requires_solvers)
+
+        if requires_solvers is not None:
+            req_solvers.update(requires_solvers)
 
         reasons_txt = '\n'.join(f'    {key}: {val}' for key, val in req_solvers.items())
         warn = False

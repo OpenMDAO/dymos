@@ -684,7 +684,7 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        super().configure_solvers(phase, requires_solvers=None)
 
     def get_parameter_connections(self, name, phase):
         """
