@@ -1017,7 +1017,7 @@ class Trajectory(om.Group):
             return
 
         warn = False
-        if self._has_connected_phases and isinstance(self.phases, om.ParallelGroup) and MPI and self.comm.size > 1:
+        if self._has_connected_phases and isinstance(self.phases, om.ParallelGroup) and self.comm.size > 1:
             msg = (f'{self.msginfo}\n'
                    f'  Non-default solvers are required\n'
                    f'    connected phases in parallel: True\n')
