@@ -399,17 +399,53 @@ class TranscriptionBase(object):
         """
         raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_solvers.')
 
-    def configure_solvers(self, phase):
+    def configure_solvers(self, phase, requires_solvers=None):
         """
-        Configure the solvers for this transcription.
+        Configure the solvers.
 
         Parameters
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
+        requires_solvers : dict[str: bool]
+            A dictionary mapping a string descriptor of a reason why a solver is required,
+            and whether a solver is required.
         """
-        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
-                                  f'configure_solvers.')
+        if not phase.options['auto_solvers']:
+            return
+
+        req_solvers = {'implicit duration': self._implicit_duration}
+
+        if requires_solvers is not None:
+            req_solvers.update(requires_solvers)
+
+        reasons_txt = '\n'.join(f'    {key}: {val}' for key, val in req_solvers.items())
+        warn = False
+
+        if any(req_solvers.values()):
+            msg = (f'{phase.msginfo}\n'
+                   f'  Non-default solvers are required\n'
+                   f'{reasons_txt}\n')
+            if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
+                msg += (f'  Setting `{phase.pathname}.nonlinear_solver = om.NewtonSolver(iprint=0, '
+                        f'solve_subsystems=True, maxiter=1000, stall_limit=3)`\n'
+                        f'  Explicitly set {phase.pathname}.nonlinear_solver to override.\n')
+                warn = True
+                phase.nonlinear_solver = om.NewtonSolver(iprint=0)
+                phase.nonlinear_solver.options['solve_subsystems'] = True
+                phase.nonlinear_solver.options['maxiter'] = 1000
+                phase.nonlinear_solver.options['stall_limit'] = 3
+                phase.nonlinear_solver.linesearch = om.ArmijoGoldsteinLS()
+
+            if isinstance(phase.linear_solver, om.LinearRunOnce):
+                warn = True
+                msg += (f'  Setting `{phase.pathname}.linear_solver = om.DirectSolver(iprint=2)`\n'
+                        f'  Explicitly set {phase.pathname}.linear_solver to override.\n')
+                phase.linear_solver = om.DirectSolver(iprint=0)
+
+            if warn:
+                msg += f'  Set `{phase.pathname}.options["auto_solvers"] = False` to disable this behavior.'
+                om.issue_warning(msg)
 
     def setup_timeseries_outputs(self, phase):
         """

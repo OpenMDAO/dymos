@@ -61,7 +61,7 @@ class Trajectory(om.Group):
         self._has_connected_phases = False
 
         self.parameter_options = {}
-        self.phases = om.ParallelGroup()
+        self.phases = om.ParallelGroup() if self.options['parallel_phases'] else om.Group()
 
     def initialize(self):
         """
@@ -69,17 +69,12 @@ class Trajectory(om.Group):
         """
         self.options.declare('sim_mode', types=bool, default=False,
                              desc='Used internally by Dymos when invoking simulate on a trajectory')
-        self.options.declare('default_nonlinear_solver',
-                             types=(om.NonlinearBlockJac, om.NewtonSolver, om.BroydenSolver),
-                             default=None, allow_none=True, recordable=False,
-                             desc='A nonlinear solver to be used when Phases are connected but being '
-                                  'run in parallel. If not specified, Dymos will automatically use '
-                                  'NonlinearBlockJac in this situation.')
-        self.options.declare('default_linear_solver', default=None, allow_none=True, recordable=False,
-                             types=(om.PETScKrylov, om.LinearBlockJac, om.NonlinearBlockGS),
-                             desc='A linear solver to be used when Phases are connected but being '
-                                  'run in parallel. If not specified, Dymos will automatically use '
-                                  'PETScKrylov in this situation.')
+        self.options.declare('parallel_phases',
+                             default=True, types=bool,
+                             desc='If True, the top-level container of all phases will be a ParallelGroup,'
+                                  'otherwise it will be a standard OpenMDAO Group.')
+        self.options.declare('auto_solvers', types=bool, default=True,
+                             desc='If True, attempt to automatically assign solvers if necessary.')
 
     def add_phase(self, name, phase, **kwargs):
         """
@@ -1018,27 +1013,30 @@ class Trajectory(om.Group):
         These solvers can be changed through the
         'default_nonlinear_solver' and 'default_linear_solver' options.
         """
-        if self._has_connected_phases and MPI and self.comm.size > 1:
+        if not self.options['auto_solvers']:
+            return
 
+        warn = False
+        if self._has_connected_phases and isinstance(self.phases, om.ParallelGroup) and self.comm.size > 1:
+            msg = (f'{self.msginfo}\n'
+                   f'  Non-default solvers are required\n'
+                   f'    connected phases in parallel: True\n')
             if isinstance(self.phases.nonlinear_solver, om.NonlinearRunOnce):
-                if self.options['default_nonlinear_solver'] is None:
-                    msg = f'{self.msginfo}: Setting phases.nonlinear_solver to `om.NonlinearBlockJac(iprint=0)`.\n' \
-                          f'Connected phases in parallel require a non-default nonlinear solver.\n' \
-                          f'Use {self.pathname}.options[\'default_nonlinear_solver\'] to explicitly set the solver.'
-                    om.issue_warning(msg)
-                    self.phases.nonlinear_solver = om.NonlinearBlockJac(iprint=0)
-                else:
-                    self.phases.nonlinear_solver = self.options['default_nonlinear_solver']
+                warn = True
+                msg += (f'  Setting \n'
+                        f'    {self.pathname}.phases.nonlinear_solver = om.NonlinearBlockJac(iprint=0)\n'
+                        f'  Explicitly set {self.pathname}.phases.nonlinear_solver to override.\n')
+                self.phases.nonlinear_solver = om.NonlinearBlockJac(iprint=0)
 
             if isinstance(self.phases.linear_solver, om.LinearRunOnce):
-                if self.options['default_linear_solver'] is None:
-                    msg = f'{self.msginfo}: Setting phases.linear_solver to `om.PETScKrylov()`.\n' \
-                          f'Connected phases in parallel require a non-default linear solver.\n' \
-                          f'Use {self.pathname}.options[\'default_linear_solver\'] to explicitly set the solver.'
-                    om.issue_warning(msg)
-                    self.phases.linear_solver = om.PETScKrylov()
-                else:
-                    self.phases.linear_solver = self.options['default_linear_solver']
+                warn = True
+                msg += (f'  Setting\n'
+                        f'    {self.pathname}.phases.linear_solver = om.PETScKrylov(iprint=0)\n'
+                        f'  Explicitly set {self.pathname}.phases.linear_solver to override.\n')
+                self.phases.linear_solver = om.PETScKrylov(iprint=0)
+
+            if warn:
+                om.issue_warning(msg)
 
     def configure(self):
         """

@@ -20,6 +20,12 @@ class PseudospectralBase(TranscriptionBase):
     **kwargs : dict
         Dictionary of optional arguments.
     """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.any_solved_segs = False
+        self.any_connected_opt_segs = False
+
     def initialize(self):
         """
         Declare transcription options.
@@ -80,8 +86,6 @@ class PseudospectralBase(TranscriptionBase):
         """
         grid_data = self.grid_data
 
-        self.any_solved_segs = False
-        self.any_connected_opt_segs = False
         for options in phase.state_options.values():
             # Transcription solve_segments overrides state solve_segments if its not set
             if options['solve_segments'] is None:
@@ -95,7 +99,6 @@ class PseudospectralBase(TranscriptionBase):
         if self.any_solved_segs or self.any_connected_opt_segs:
             indep = StateIndependentsComp(grid_data=grid_data,
                                           state_options=phase.state_options)
-            indep.linear_solver = om.DirectSolver()
         else:
             indep = om.IndepVarComp()
 
@@ -495,7 +498,7 @@ class PseudospectralBase(TranscriptionBase):
         """
         pass
 
-    def configure_solvers(self, phase):
+    def configure_solvers(self, phase, requires_solvers=None):
         """
         Configure the solvers.
 
@@ -503,19 +506,15 @@ class PseudospectralBase(TranscriptionBase):
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
+        requires_solvers : dict[str: bool]
+            A dictionary mapping a string descriptor of a reason why a solver is required,
+            and whether a solver is required.
         """
-        if self.any_solved_segs or self._implicit_duration:
-            # Only override the solvers if the user hasn't set them to something else.
-            if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
-                newton = phase.nonlinear_solver = om.NewtonSolver()
-                newton.options['solve_subsystems'] = True
-                newton.options['maxiter'] = 100
-                newton.options['iprint'] = 2
-                newton.options['stall_limit'] = 3
-                newton.linesearch = om.BoundsEnforceLS()
-
-            if isinstance(phase.linear_solver, om.LinearRunOnce):
-                phase.linear_solver = om.DirectSolver()
+        req_solvers = {'solved segments': self.any_solved_segs,
+                       'input initial': self.any_connected_opt_segs}
+        if requires_solvers is not None:
+            req_solvers.update(requires_solvers)
+        super().configure_solvers(phase, requires_solvers=req_solvers)
 
     def setup_timeseries_outputs(self, phase):
         """
