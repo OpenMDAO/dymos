@@ -1,4 +1,41 @@
 *******************************
+# Release Notes for Dymos 1.10.0
+
+December 08, 2023
+
+Dymos 1.10.0 includes a few performance improvements, more user-configurability of automatic solver placement, and a still-experimental implementation of the Birkhoff transcription.
+
+Thanks to Shugo Kaneko for pointing out some issues with using dymos under MPI.
+Timeseries jacobians were inefficient used excessive memory when operating on a single system under MPI.
+Also, the user now has more control over how solvers are added when necessary. Previously, the presence of a DirectSolver over a distributed system was causing an error.
+
+Trajectory now has a `parallel_phases` option. When True (the default), the top level `Trajectory.phases` container will be an OpenMDAO ParallelGroup. Setting it to `False` makes `Trajectory.phases` a standard serial `OpenMDAO.api.Group` object.
+
+Trajectory and Phase now both have an `auto_solvers` option. It is enabled by default and will result in appropriate nonlinear and linear solvers being placed when it is `True`.
+Trajectory.phases needs a nonlinear solver when running phases in parallel under MPI AND the phases are directly connected.
+Phases need a solver when there is implicit behavior due to a duration balance or the use of `solve_segments` is pseudospectral phases.
+
+
+## Backwards Incompatible API Changes & Deprecations
+- None
+
+## Enhancements
+- Reduce memory usage for timeseries jac computation [#1001](https://github.com/OpenMDAO/dymos/pull/1001)
+- Added Birkhoff Transcription (this feature is still somewhat experimental) [#1008](https://github.com/OpenMDAO/dymos/pull/1008) [#1010](https://github.com/OpenMDAO/dymos/pull/1010) [#1021](https://github.com/OpenMDAO/dymos/pull/1021)
+
+## Bug Fixes
+- Fixed python 3.12 compatibility issues. [#1004](https://github.com/OpenMDAO/dymos/pull/1004)
+- Fixed load_case logic to correctly handle negative-duration phases [#1007](https://github.com/OpenMDAO/dymos/pull/1007)
+- Boundary constraints in Birkhoff transcription changed to pull from boundary ODE [#1018](https://github.com/OpenMDAO/dymos/pull/1018)
+- Fixed an issue where applying DirectSolver to StateIndependentsComp was breaking when used with other linear solvers under MPI. [#1020](https://github.com/OpenMDAO/dymos/pull/1020)
+
+## Miscellaneous
+- Added a job without MPI to the test workflow [#998](https://github.com/OpenMDAO/dymos/pull/998)
+- Removed redundant implementations of timeseries output components. [#1005](https://github.com/OpenMDAO/dymos/pull/1005)
+- Remove IVCs from control groups [#1013](https://github.com/OpenMDAO/dymos/pull/1013)
+
+
+*******************************
 # Release Notes for Dymos 1.9.1
 
 September 14, 2023
