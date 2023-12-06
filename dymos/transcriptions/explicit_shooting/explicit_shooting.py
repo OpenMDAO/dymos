@@ -10,7 +10,6 @@ from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import BirkhoffGrid, GaussLobattoGrid, RadauGrid, UniformGrid
 from .ode_integration_comp import ODEIntegrationComp
-from ..._options import options as dymos_options
 from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.indexing import get_src_indices_by_row
 from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets, _get_targets_metadata
@@ -675,7 +674,7 @@ class ExplicitShooting(TranscriptionBase):
         """
         pass
 
-    def configure_solvers(self, phase):
+    def configure_solvers(self, phase, requires_solvers=None):
         """
         Setup the solvers for this transcription.
 
@@ -683,8 +682,10 @@ class ExplicitShooting(TranscriptionBase):
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
+        requires_solvers : None
+            Required to extend TranscriptionBase.configure_solvers but not used.
         """
-        pass
+        super().configure_solvers(phase, requires_solvers=None)
 
     def get_parameter_connections(self, name, phase):
         """

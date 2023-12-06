@@ -211,34 +211,24 @@ class Birkhoff(TranscriptionBase):
         """
         super(Birkhoff, self).configure_polynomial_controls(phase)
 
-        ode_inputs = get_promoted_vars(self._get_ode(phase), 'input')
-
         for name, options in phase.polynomial_control_options.items():
-            targets = get_targets(ode=ode_inputs, name=name, user_targets=options['targets'])
-            if targets:
-                phase.connect(f'polynomial_control_values:{name}',
-                              [f'ode_all.{t}' for t in targets])
-                phase.connect(f'polynomial_control_values:{name}',
-                              [f'boundary_vals.{t}' for t in targets],
+            if options['targets']:
+                phase.connect(f'polynomial_control_values:{name}', [f'ode_all.{t}' for t in options['targets']])
+                phase.connect(f'polynomial_control_values:{name}', [f'boundary_vals.{t}' for t in options['targets']],
                               src_indices=om.slicer[[0, -1], ...])
 
-            targets = get_targets(ode=phase.ode_all, name=f'{name}_rate',
-                                  user_targets=options['rate_targets'])
-            if targets:
+            if options['rate_targets']:
                 phase.connect(f'polynomial_control_rates:{name}_rate',
-                              [f'ode_all.{t}' for t in targets])
+                              [f'ode_all.{t}' for t in options['rate_targets']])
                 phase.connect(f'polynomial_control_rates:{name}_rate',
-                              [f'boundary_vals.{t}' for t in targets],
+                              [f'boundary_vals.{t}' for t in options['rate_targets']],
                               src_indices=om.slicer[[0, -1], ...])
 
-            targets = get_targets(ode=phase.ode_all, name=f'{name}_rate2',
-                                  user_targets=options['rate2_targets'],
-                                  src_indices=om.slicer[[0, -1], ...])
-            if targets:
+            if options['rate2_targets']:
                 phase.connect(f'polynomial_control_rates:{name}_rate2',
-                              [f'ode_all.{t}' for t in targets])
+                              [f'ode_all.{t}' for t in options['rate2_targets']])
                 phase.connect(f'polynomial_control_rates:{name}_rate2',
-                              [f'boundary_vals.{t}' for t in targets],
+                              [f'boundary_vals.{t}' for t in options['rate2_targets']],
                               src_indices=om.slicer[[0, -1], ...])
 
     def setup_ode(self, phase):
@@ -353,7 +343,7 @@ class Birkhoff(TranscriptionBase):
         """
         pass
 
-    def configure_solvers(self, phase):
+    def configure_solvers(self, phase, requires_solvers=None):
         """
         Configure the solvers.
 
@@ -361,35 +351,17 @@ class Birkhoff(TranscriptionBase):
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
+        requires_solvers : dict[str: bool]
+            A dictionary mapping a string descriptor of a reason why a solver is required,
+            and whether a solver is required.
         """
         ode_iter_group = phase._get_subsystem('ode_iter_group')
+        req_solvers = {'implicit outputs': ode_iter_group._implicit_outputs}
 
-        if ode_iter_group._implicit_outputs or self._implicit_duration:
-            # Only override the solvers if the user hasn't set them to something else.
-            if isinstance(phase.nonlinear_solver, om.NonlinearRunOnce):
-                msg = f'{phase.msginfo}: Phase requires non-default nonlinear solver due to the use of\n' \
-                      f'solve_segments or the use of set_duration_balance.\n' \
-                      f'Setting nonlinear solver to ' \
-                      f'om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=2, stall_limit=3)\n' \
-                      f'by default.' \
-                      f'To avoid this warning explicitly assign a nonlinear solver to this phase.'
+        if requires_solvers is not None:
+            req_solvers.update(requires_solvers)
 
-                om.issue_warning(msg)
-                newton = phase.nonlinear_solver = om.NewtonSolver()
-                newton.options['solve_subsystems'] = True
-                newton.options['maxiter'] = 100
-                newton.options['iprint'] = 2
-                newton.options['stall_limit'] = 3
-                newton.linesearch = om.BoundsEnforceLS()
-
-            if isinstance(phase.linear_solver, om.LinearRunOnce):
-                msg = f'{phase.msginfo}: Phase requires non-default linear solver due to the use of\n' \
-                      f'solve_segments or the use of set_duration_balance.\n' \
-                      f'Setting linear solver to om.DirectSolver() by default.' \
-                      f'To avoid this warning explicitly assign a linear solver to this phase.'
-
-                om.issue_warning(msg)
-                phase.linear_solver = om.DirectSolver()
+        super().configure_solvers(phase, requires_solvers=req_solvers)
 
     def configure_timeseries_outputs(self, phase):
         """

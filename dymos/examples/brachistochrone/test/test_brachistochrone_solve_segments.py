@@ -9,6 +9,11 @@ import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as e
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
+try:
+    from petsc4py import PETSc
+except ImportError:
+    PETSc = None
+
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 
 OPT, OPTIMIZER = set_pyoptsparse_opt('SLSQP')
@@ -16,7 +21,8 @@ OPT, OPTIMIZER = set_pyoptsparse_opt('SLSQP')
 
 def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
                   compressed=True, optimizer='SLSQP', force_alloc_complex=False,
-                  solve_segments=False, y_bounds=None):
+                  solve_segments=False, y_bounds=None, phase_nonlinear_solver=None,
+                  phase_linear_solver=None):
     p = om.Problem(model=om.Group())
 
     p.driver = om.pyOptSparseDriver()
@@ -44,6 +50,12 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
 
     traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
+
+    if phase_nonlinear_solver is not None:
+        phase.nonlinear_solver = phase_nonlinear_solver
+    if phase_linear_solver is not None:
+        phase.linear_solver = phase_linear_solver
+
     p.model.add_subsystem('traj0', traj)
     traj.add_phase('phase0', phase)
 
@@ -461,3 +473,90 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
 
             warnings.simplefilter('always')
             self.assertIn(expected_warning, [str(w.message) for w in ctx])
+
+    @unittest.skipIf(PETSc is None, 'PETSc is not available.')
+    def test_brachistochrone_solve_segments_radau_krylov_solver(self, optimizer='SLSQP'):
+        #
+        # Initialize the Problem and the optimization driver
+        #
+        p = om.Problem(model=om.Group())
+
+        p.driver = om.pyOptSparseDriver()
+        p.driver.options['optimizer'] = optimizer
+        if optimizer == 'SNOPT':
+            p.driver.opt_settings['iSumm'] = 6
+            p.driver.opt_settings['Verify level'] = 3
+        elif optimizer == 'IPOPT':
+            p.driver.opt_settings['mu_init'] = 1e-3
+            p.driver.opt_settings['max_iter'] = 500
+            p.driver.opt_settings['print_level'] = 0
+            p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
+            p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+            p.driver.opt_settings['mu_strategy'] = 'monotone'
+        p.driver.declare_coloring(tol=1.0E-12)
+
+        #
+        # Create a trajectory and add a phase to it
+        #
+        traj = p.model.add_subsystem('traj0', dm.Trajectory())
+
+        # -------------------------------
+        # forward solver-based shooting
+        # -------------------------------
+        phase0 = dm.Phase(ode_class=BrachistochroneODE,
+                          transcription=dm.GaussLobatto(num_segments=10, compressed=True,
+                                                        solve_segments='forward'))
+        phase = traj.add_phase('phase0', phase0)
+
+        #
+        # Set the variables
+        #
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.add_state('x', fix_initial=True, fix_final=False)
+
+        phase.add_state('y', fix_initial=True, fix_final=False)
+
+        phase.add_state('v', fix_initial=True, fix_final=False)
+
+        phase.add_control('theta', continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_parameter('g', units='m/s**2', val=9.80665)
+
+        #
+        # Minimize time at the end of the phase
+        #
+        phase.add_objective('time', loc='final', scaler=10)
+        phase.add_boundary_constraint('x', loc='final', equals=10)
+        phase.add_boundary_constraint('y', loc='final', equals=5)
+
+        # ---------------------------------------------
+        # change linear solver for shooting
+        # ---------------------------------------------
+        # linear solver
+        phase0.linear_solver = om.PETScKrylov(assemble_jac=False, iprint=-1)
+        phase0.linear_solver.precon = om.LinearRunOnce(iprint=-1)
+
+        #
+        # Setup the Problem
+        #
+        p.setup()
+
+        #
+        # Set the initial values
+        #
+        p['traj0.phase0.t_initial'] = 0.0
+        p['traj0.phase0.t_duration'] = 2.0
+
+        p.set_val('traj0.phase0.states:x', phase.interp('x', ys=[0, 10]))
+        p.set_val('traj0.phase0.states:y', phase.interp('y', ys=[10, 5]))
+        p.set_val('traj0.phase0.states:v', phase.interp('v', ys=[0, 9.9]))
+        p.set_val('traj0.phase0.controls:theta', phase.interp('theta', ys=[5, 100.5]))
+
+        #
+        # Solve for the optimal trajectory
+        #
+        dm.run_problem(p, run_driver=True)
+
+        self.assert_results(p)

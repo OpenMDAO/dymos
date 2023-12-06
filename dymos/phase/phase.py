@@ -114,6 +114,8 @@ class Phase(om.Group):
                              desc='Keyword arguments provided when initializing the ODE System')
         self.options.declare('transcription', types=TranscriptionBase,
                              desc='Transcription technique of the optimal control problem.')
+        self.options.declare('auto_solvers', types=bool, default=True,
+                             desc='If True, attempt to automatically assign solvers if necessary.')
 
     def add_state(self, name, units=_unspecified, shape=_unspecified,
                   rate_source=_unspecified, targets=_unspecified,

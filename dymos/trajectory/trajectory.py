@@ -58,9 +58,10 @@ class Trajectory(om.Group):
         self._linkages = {}
         self._phases = {}
         self._phase_graph = nx.DiGraph()
+        self._has_connected_phases = False
 
         self.parameter_options = {}
-        self.phases = om.ParallelGroup()
+        self.phases = om.ParallelGroup() if self.options['parallel_phases'] else om.Group()
 
     def initialize(self):
         """
@@ -68,6 +69,12 @@ class Trajectory(om.Group):
         """
         self.options.declare('sim_mode', types=bool, default=False,
                              desc='Used internally by Dymos when invoking simulate on a trajectory')
+        self.options.declare('parallel_phases',
+                             default=True, types=bool,
+                             desc='If True, the top-level container of all phases will be a ParallelGroup,'
+                                  'otherwise it will be a standard OpenMDAO Group.')
+        self.options.declare('auto_solvers', types=bool, default=True,
+                             desc='If True, attempt to automatically assign solvers if necessary.')
 
     def add_phase(self, name, phase, **kwargs):
         """
@@ -330,10 +337,6 @@ class Trajectory(om.Group):
 
     def _setup_linkages(self):
 
-        if self.options['sim_mode']:
-            # Under simulation, theres no need to enforce any linkages
-            return
-
         has_linkage_constraints = False
 
         err_template = '{traj}: Phase `{phase1}` links variable `{var1}` to phase ' \
@@ -390,7 +393,7 @@ class Trajectory(om.Group):
         # This will override the existing phases attribute with the same thing.
         self.add_subsystem('phases', subsys=self.phases)
 
-        if self._linkages:
+        if self._linkages and not self.options['sim_mode']:
             self._setup_linkages()
 
     def _configure_parameters(self):
@@ -759,10 +762,6 @@ class Trajectory(om.Group):
 
     def _configure_linkages(self):
 
-        if self.options['sim_mode']:
-            # If this is a simulation trajectory, there's no need to link the phases.
-            return
-
         connected_linkage_inputs = []
 
         def _print_on_rank(rank=0, *args, **kwargs):
@@ -865,6 +864,7 @@ class Trajectory(om.Group):
                         raise om.OpenMDAOWarning(msg)
                     _print_on_rank(f'{indent * 2}{prefixed_a:<{padding_a}s} [{loc_a}{str_fixed_a}] ->  '
                                    f'{prefixed_b:<{padding_b}s} [{loc_b}{str_fixed_b}]')
+                    self._has_connected_phases = True
                 else:
 
                     if fixed_a and fixed_b:
@@ -1002,6 +1002,42 @@ class Trajectory(om.Group):
             err_lines = '\n'.join(errs) if len(errs) > 1 else errs[0]
             raise RuntimeError(f"{self.msginfo}: {err_lines}")
 
+    def _configure_solvers(self):
+        """
+        Automatically configure solvers for the Trajectory.
+
+        If operating under MPI and phases are connected, then
+        the default nonlinear solver will be a NonlinearBlockJac,
+        while the default linear solver will be PETScKrylov.
+
+        These solvers can be changed through the
+        'default_nonlinear_solver' and 'default_linear_solver' options.
+        """
+        if not self.options['auto_solvers']:
+            return
+
+        warn = False
+        if self._has_connected_phases and isinstance(self.phases, om.ParallelGroup) and self.comm.size > 1:
+            msg = (f'{self.msginfo}\n'
+                   f'  Non-default solvers are required\n'
+                   f'    connected phases in parallel: True\n')
+            if isinstance(self.phases.nonlinear_solver, om.NonlinearRunOnce):
+                warn = True
+                msg += (f'  Setting \n'
+                        f'    {self.pathname}.phases.nonlinear_solver = om.NonlinearBlockJac(iprint=0)\n'
+                        f'  Explicitly set {self.pathname}.phases.nonlinear_solver to override.\n')
+                self.phases.nonlinear_solver = om.NonlinearBlockJac(iprint=0)
+
+            if isinstance(self.phases.linear_solver, om.LinearRunOnce):
+                warn = True
+                msg += (f'  Setting\n'
+                        f'    {self.pathname}.phases.linear_solver = om.PETScKrylov(iprint=0)\n'
+                        f'  Explicitly set {self.pathname}.phases.linear_solver to override.\n')
+                self.phases.linear_solver = om.PETScKrylov(iprint=0)
+
+            if warn:
+                om.issue_warning(msg)
+
     def configure(self):
         """
         Configure the Trajectory Group.
@@ -1016,8 +1052,10 @@ class Trajectory(om.Group):
         if self.parameter_options:
             self._configure_parameters()
 
-        if self._linkages:
+        if self._linkages and not self.options['sim_mode']:
             self._configure_linkages()
+
+        self._configure_solvers()
 
         self._constraint_report(outstream=sys.stdout)
 
@@ -1414,9 +1452,7 @@ class Trajectory(om.Group):
         if record_file is not None:
             rec = om.SqliteRecorder(record_file)
             sim_prob.add_recorder(rec)
-            # record_inputs is needed to capture potential input parameters that aren't connected
-            sim_prob.recording_options['record_inputs'] = True
-            # record_outputs is need to capture the timeseries outputs
+            # record_outputs is needed to capture the timeseries outputs
             sim_prob.recording_options['record_outputs'] = True
 
         with warnings.catch_warnings():

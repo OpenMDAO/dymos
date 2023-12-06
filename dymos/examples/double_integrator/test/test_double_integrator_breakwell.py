@@ -22,7 +22,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
     if optimizer == 'IPOPT':
         p.driver.opt_settings['max_iter'] = 5000
         p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 0
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.opt_settings['tol'] = 1.0E-3
         p.driver.opt_settings['constr_viol_tol'] = 1.0E-6

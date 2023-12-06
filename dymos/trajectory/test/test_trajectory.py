@@ -1779,7 +1779,7 @@ class TestInvalidLinkages(unittest.TestCase):
         p.model.add_design_var('radius', lower=0.01, upper=0.10,
                                ref0=0.01, ref=0.10, units='m')
 
-        traj = p.model.add_subsystem('traj', dm.Trajectory())
+        traj = p.model.add_subsystem('traj', dm.Trajectory(parallel_phases=True))
 
         transcription = dm.Radau(num_segments=5, order=3, compressed=True)
 
@@ -1855,9 +1855,6 @@ class TestInvalidLinkages(unittest.TestCase):
         # Issue Connections
         p.model.connect('size_comp.mass', 'traj.parameters:m')
         p.model.connect('size_comp.S', 'traj.parameters:S')
-
-        # A linear solver at the top level can improve performance.
-        p.model.linear_solver = om.DirectSolver()
 
         # Finish Problem Setup
         p.setup()
