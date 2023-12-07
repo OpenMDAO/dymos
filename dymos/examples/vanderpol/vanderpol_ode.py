@@ -2,6 +2,7 @@ import numpy as np
 import openmdao.api as om
 import time
 from openmdao.utils.array_utils import evenly_distrib_idxs
+from openmdao.utils.mpi import MPI
 
 
 class VanderpolODE(om.ExplicitComponent):
@@ -72,16 +73,66 @@ class VanderpolODE(om.ExplicitComponent):
         outputs['x1dot'] = x0
         outputs['Jdot'] = x0**2 + x1**2 + u**2
 
-    def compute_partials(self, inputs, jacobian):
-        time.sleep(self.options['delay'] * self.io_size)
+    def compute_jacvec_product(self, inputs, d_inputs, d_outputs, mode):
 
-        x0 = inputs['x0'][self.start_idx:self.end_idx]
-        x1 = inputs['x1'][self.start_idx:self.end_idx]
-        u = inputs['u'][self.start_idx:self.end_idx]
+        # it's necessary to make this component matrix free because the inputs are non-distributed
+        # and the outputs are distributed, and the framework doesn't know how to populate the full
+        # nondistributed inputs on each rank in reverse mode.
 
-        jacobian['x0dot', 'x0'] = 1.0 - x1 * x1
-        jacobian['x0dot', 'x1'] = -2.0 * x1 * x0 - 1.0
+        # FIXME: this delay will be applied on every call to compute_jacvec_product, which may be
+        #        more often than was originally intended before this component was converted to
+        #        matrix free (it was originally done in compute_partials).
+        time.sleep(self.options['delay'])
 
-        jacobian['Jdot', 'x0'] = 2.0 * x0
-        jacobian['Jdot', 'x1'] = 2.0 * x1
-        jacobian['Jdot', 'u'] = 2.0 * u
+        myslice = slice(self.start_idx, self.end_idx)
+
+        locx0 = inputs['x0'][myslice]
+        locx1 = inputs['x1'][myslice]
+        locu = inputs['u'][myslice]
+
+        locdx0 = d_inputs['x0'][myslice]
+        locdx1 = d_inputs['x1'][myslice]
+        locdu = d_inputs['u'][myslice]
+
+        if mode == 'fwd':
+            if 'x0dot' in d_outputs:
+                if 'x0' in d_inputs:
+                    d_outputs['x0dot'] += (1.0 - locx1**2) * locdx0
+                if 'x1' in d_inputs:
+                    d_outputs['x0dot'] += (-2.0 * locx1 * locx0 - 1.) * locdx1
+                if 'u' in d_inputs:
+                    d_outputs['x0dot'] += locdu
+            if 'x1dot' in d_outputs:
+                if 'x0' in d_inputs:
+                    d_outputs['x1dot'] += locdx0
+            if 'Jdot' in d_outputs:
+                if 'x0' in d_inputs:
+                    d_outputs['Jdot'] += 2.0 * locx0 * locdx0
+                if 'x1' in d_inputs:
+                    d_outputs['Jdot'] += 2.0 * locx1 * locdx1
+                if 'u' in d_inputs:
+                    d_outputs['Jdot'] += 2.0 * locu * locdu
+
+        elif mode == 'rev':
+            if 'x0dot' in d_outputs:
+                if 'x0' in d_inputs:
+                    d_inputs['x0'][myslice] += (1.0 - locx1**2) * d_outputs['x0dot']
+                if 'x1' in d_inputs:
+                    d_inputs['x1'][myslice] += (-2.0 * locx1 * locx0 - 1.) * d_outputs['x0dot']
+                if 'u' in d_inputs:
+                    d_inputs['u'][myslice] += d_outputs['x0dot']
+            if 'x1dot' in d_outputs:
+                if 'x0' in d_inputs:
+                    d_inputs['x0'][myslice] += d_outputs['x1dot']
+            if 'Jdot' in d_outputs:
+                if 'x0' in d_inputs:
+                    d_inputs['x0'][myslice] += 2.0 * locx0 * d_outputs['Jdot']
+                if 'x1' in d_inputs:
+                    d_inputs['x1'][myslice] += 2.0 * locx1 * d_outputs['Jdot']
+                if 'u' in d_inputs:
+                    d_inputs['u'][myslice] += 2.0 * locu * d_outputs['Jdot']
+
+            if self.comm.size > 1 and self.options['distrib']:
+                d_inputs['x0'] = self.comm.allreduce(d_inputs['x0'], op=MPI.SUM)
+                d_inputs['x1'] = self.comm.allreduce(d_inputs['x1'], op=MPI.SUM)
+                d_inputs['u'] = self.comm.allreduce(d_inputs['u'], op=MPI.SUM)
