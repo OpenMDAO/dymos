@@ -55,6 +55,7 @@ as a timeseries output.
 ## Bug Fixes
 - Added linear solver for cases where states solved via optimizer have input_initial=True. [#991](https://github.com/OpenMDAO/dymos/pull/991)
 - Fixed an issue where control rate values are showing up in timeseries outputs by default. [#987](https://github.com/OpenMDAO/dymos/pull/987)
+- Fixed Vanderpol example under updated OpenMDAO MPI operation. [#1023](https://github.com/OpenMDAO/dymos/pull/1023)
 
 ## Miscellaneous
 - Minor tweaks to the github issue templates. [#985](https://github.com/OpenMDAO/dymos/pull/985) [#993](https://github.com/OpenMDAO/dymos/pull/993)
