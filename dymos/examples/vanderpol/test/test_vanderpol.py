@@ -2,11 +2,15 @@ import unittest
 from numpy.testing import assert_almost_equal
 import numpy as np
 
+import openmdao
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.mpi import MPI
 
 import dymos as dm
 from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
+
+
+om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 @use_tempdirs
@@ -16,14 +20,15 @@ class TestVanderpolExample(unittest.TestCase):
         p = vanderpol(transcription='gauss-lobatto', num_segments=75)
         p.run_model()
 
+    @unittest.skipIf(om_version < (3, 29, 0), 'Test requires OpenMDAO 3.29.0 or later')
     @require_pyoptsparse(optimizer='IPOPT')
     def test_vanderpol_simulate_true(self):
-        # simulate true
         p = vanderpol(transcription='radau-ps', num_segments=30, transcription_order=3,
                       compressed=True, optimizer='IPOPT', delay=0.005, distrib=True, use_pyoptsparse=True)
 
         dm.run_problem(p, run_driver=True, simulate=True)
 
+    @unittest.skipIf(om_version < (3, 29, 0), 'Test requires OpenMDAO 3.29.0 or later')
     def test_vanderpol_optimal(self):
         p = vanderpol(transcription='gauss-lobatto', num_segments=75)
         dm.run_problem(p)  # find optimal control solution to stop oscillation
@@ -34,6 +39,7 @@ class TestVanderpolExample(unittest.TestCase):
         assert_almost_equal(p.get_val('traj.phase0.states:x1')[-1, ...], np.zeros(1))
         assert_almost_equal(p.get_val('traj.phase0.controls:u')[-1, ...], np.zeros(1), decimal=3)
 
+    @unittest.skipIf(om_version < (3, 29, 0), 'Test requires OpenMDAO 3.29.0 or later')
     def test_vanderpol_optimal_grid_refinement(self):
         # enabling grid refinement gives a faster and better solution with fewer segments
         p = vanderpol(transcription='gauss-lobatto', num_segments=15)
@@ -53,6 +59,7 @@ class TestVanderpolExampleMPI(unittest.TestCase):
 
     N_PROCS = 4
 
+    @unittest.skipIf(om_version < (3, 29, 0), 'Test requires OpenMDAO 3.29.0 or later')
     @require_pyoptsparse(optimizer='IPOPT')
     @unittest.skipUnless(MPI, 'this test requires MPI')
     def test_vanderpol_optimal_mpi(self):
