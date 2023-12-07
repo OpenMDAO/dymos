@@ -15,7 +15,6 @@ Trajectory and Phase now both have an `auto_solvers` option. It is enabled by de
 Trajectory.phases needs a nonlinear solver when running phases in parallel under MPI AND the phases are directly connected.
 Phases need a solver when there is implicit behavior due to a duration balance or the use of `solve_segments` is pseudospectral phases.
 
-
 ## Backwards Incompatible API Changes & Deprecations
 - None
 
