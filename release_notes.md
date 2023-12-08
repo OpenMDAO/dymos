@@ -27,6 +27,7 @@ Phases need a solver when there is implicit behavior due to a duration balance o
 - Fixed load_case logic to correctly handle negative-duration phases [#1007](https://github.com/OpenMDAO/dymos/pull/1007)
 - Boundary constraints in Birkhoff transcription changed to pull from boundary ODE [#1018](https://github.com/OpenMDAO/dymos/pull/1018)
 - Fixed an issue where applying DirectSolver to StateIndependentsComp was breaking when used with other linear solvers under MPI. [#1020](https://github.com/OpenMDAO/dymos/pull/1020)
+- Fixed Vanderpol example under updated OpenMDAO MPI operation. [#1023](https://github.com/OpenMDAO/dymos/pull/1023)
 
 ## Miscellaneous
 - Added a job without MPI to the test workflow [#998](https://github.com/OpenMDAO/dymos/pull/998)
@@ -55,7 +56,6 @@ as a timeseries output.
 ## Bug Fixes
 - Added linear solver for cases where states solved via optimizer have input_initial=True. [#991](https://github.com/OpenMDAO/dymos/pull/991)
 - Fixed an issue where control rate values are showing up in timeseries outputs by default. [#987](https://github.com/OpenMDAO/dymos/pull/987)
-- Fixed Vanderpol example under updated OpenMDAO MPI operation. [#1023](https://github.com/OpenMDAO/dymos/pull/1023)
 
 ## Miscellaneous
 - Minor tweaks to the github issue templates. [#985](https://github.com/OpenMDAO/dymos/pull/985) [#993](https://github.com/OpenMDAO/dymos/pull/993)
