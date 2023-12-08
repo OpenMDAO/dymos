@@ -6,7 +6,7 @@ December 08, 2023
 Dymos 1.10.0 includes a few performance improvements, more user-configurability of automatic solver placement, and a still-experimental implementation of the Birkhoff transcription.
 
 Thanks to Shugo Kaneko for pointing out some issues with using dymos under MPI.
-Timeseries jacobians were inefficient used excessive memory when operating on a single system under MPI.
+Timeseries jacobians were inefficient and used excessive memory when operating on a single system under MPI.
 Also, the user now has more control over how solvers are added when necessary. Previously, the presence of a DirectSolver over a distributed system was causing an error.
 
 Trajectory now has a `parallel_phases` option. When True (the default), the top level `Trajectory.phases` container will be an OpenMDAO ParallelGroup. Setting it to `False` makes `Trajectory.phases` a standard serial `OpenMDAO.api.Group` object.
