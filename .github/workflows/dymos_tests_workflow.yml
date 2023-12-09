@@ -166,15 +166,6 @@ jobs:
             python -m pip install jaxlib==${{ matrix.JAX }} jax==${{ matrix.JAX }}
           fi
 
-      - name: Install greenlet
-        if: env.NAME == 'latest'
-        shell: bash -l {0}
-        run: |
-          echo "============================================================="
-          echo "Install greenlet from wheels"
-          echo "============================================================="
-          pip install --only-binary :all: greenlet
-
       - name: Install PETSc
         if: env.RUN_BUILD && matrix.PETSc
         shell: bash -l {0}
@@ -256,7 +247,7 @@ jobs:
           if [[ "${{ matrix.OPENMDAO }}" == "dev" ]]; then
             pip install git+https://github.com/OpenMDAO/OpenMDAO
           elif [[ "${{ matrix.OPENMDAO }}" == "latest" ]]; then
-            pip install openmdao
+            echo "The latest version OpenMDAO will be installed from pypi per the Dymos dependency"
           else
             pip install openmdao==${{ matrix.OPENMDAO }}
           fi
