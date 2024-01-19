@@ -1,4 +1,3 @@
-import matplotlib
 import numpy as np
 
 import openmdao.api as om
@@ -6,10 +5,6 @@ from openmdao.utils.testing_utils import require_pyoptsparse
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-
-
-SHOW_PLOTS = True
-matplotlib.use('Agg')
 
 
 @require_pyoptsparse(optimizer='SLSQP')
