@@ -4,11 +4,6 @@ import pathlib
 
 import numpy as np
 
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.lines as mlines
-import matplotlib.patches as mpatches
-
 import openmdao.api as om
 from .._options import options as dymos_options
 
@@ -55,6 +50,11 @@ def _get_phases_node_in_problem_metadata(node, path=""):
 def _mpl_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
                           last_solution_case, last_simulation_case, plot_dir_path,
                           dpi, include_parameters):
+    import matplotlib
+    import matplotlib.pyplot as plt
+    import matplotlib.lines as mlines
+    import matplotlib.patches as mpatches
+
     # get ready to plot
     backend_save = plt.get_backend()
     plt.switch_backend('Agg')

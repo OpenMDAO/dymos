@@ -1,6 +1,3 @@
-import matplotlib.pyplot as plt
-
-
 def plot_results(axes, title, figsize=(10, 8), p_sol=None, p_sim=None):
     """
     Plot the timeseries results of a Dymos problem using matplotlib.
@@ -22,6 +19,8 @@ def plot_results(axes, title, figsize=(10, 8), p_sol=None, p_sim=None):
         The Figure object and sequence of axes associated with the plot.
 
     """
+    import matplotlib.pyplot as plt
+
     nrows = len(axes)
 
     fig, axs = plt.subplots(nrows=nrows, ncols=1, figsize=figsize)

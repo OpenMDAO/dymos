@@ -1,10 +1,11 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from matplotlib import animation
 
 
 def animate_cartpole(x, theta, force, interval=20, force_scaler=0.1, save_gif=False, gif_fps=20):
+
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as patches
+    from matplotlib import animation
     # x: time history of cart location, 1d vector
     # theta: time history of pole angle, 1d vector
     # force: control input force
