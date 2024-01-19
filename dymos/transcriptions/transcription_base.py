@@ -433,7 +433,7 @@ class TranscriptionBase(object):
                 warn = True
                 phase.nonlinear_solver = om.NewtonSolver(iprint=0)
                 phase.nonlinear_solver.options['solve_subsystems'] = True
-                phase.nonlinear_solver.options['maxiter'] = 150
+                phase.nonlinear_solver.options['maxiter'] = 100
                 phase.nonlinear_solver.options['stall_limit'] = 3
                 phase.nonlinear_solver.linesearch = om.ArmijoGoldsteinLS()
 
