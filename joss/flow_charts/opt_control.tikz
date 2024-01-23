@@ -1,0 +1,41 @@
+
+%%% Preamble Requirements %%%
+% \usepackage{geometry}
+% \usepackage{amsfonts}
+% \usepackage{amsmath}
+% \usepackage{amssymb}
+% \usepackage{tikz}
+
+% Optional packages such as sfmath set through python interface
+% \usepackage{}
+
+% \usetikzlibrary{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}
+
+%%% End Preamble Requirements %%%
+
+\input{"/Users/rfalck/anaconda3/envs/py37/lib/python3.7/site-packages/pyxdsm/diagram_styles"}
+\begin{tikzpicture}
+
+\matrix[MatrixSetup]{
+%Row 0
+\node [Optimization] (OPT) {$\text{Optimizer}$};&
+\node [DataInter] (OPT-ODE) {$\begin{array}{c}t, \bar{x}, \bar{u}, \bar{d}\end{array}$};\\
+%Row 1
+\node [DataInter] (ODE-OPT) {$\begin{array}{c}J, \bar{g}_0, \bar{g}_f, \bar{p}\end{array}$};&
+\node [Group] (ODE) {$\text{ODE or DAE}$};\\
+};
+
+% XDSM process chains
+
+
+\begin{pgfonlayer}{data}
+\path
+% Horizontal edges
+(ODE) edge [DataLine] (ODE-OPT)
+(OPT) edge [DataLine] (OPT-ODE)
+% Vertical edges
+(ODE-OPT) edge [DataLine] (OPT)
+(OPT-ODE) edge [DataLine] (ODE);
+\end{pgfonlayer}
+
+\end{tikzpicture}
