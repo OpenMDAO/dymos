@@ -1,5 +1,7 @@
 from collections.abc import Iterable, Callable, Sequence
+from copy import deepcopy
 import inspect
+from os import path
 import warnings
 
 import numpy as np
@@ -91,6 +93,7 @@ class Phase(om.Group):
 
             self.refine_options.update(from_phase.refine_options)
             self.simulate_options.update(from_phase.simulate_options)
+            self.timeseries_options.update(from_phase.timeseries_options)
 
             self._initial_boundary_constraints = from_phase._initial_boundary_constraints.copy()
             self._final_boundary_constraints = from_phase._final_boundary_constraints.copy()
@@ -102,6 +105,81 @@ class Phase(om.Group):
             _kwargs['ode_init_kwargs'] = from_phase.options['ode_init_kwargs']
 
         super(Phase, self).__init__(**_kwargs)
+
+    def duplicate(self, transcription=None, boundary_constraints=False, path_constraints=False, objectives=False,
+                  fix_initial_time=False, fix_initial_states=None, fix_final_states=None):
+        """
+        Create a copy of this phase where most options and attributes are deep copies of those in the original.
+
+        By default, a deepcopy of the transcription in the original phase is used.
+        Boundary constraints, path constraints, and objectives are _NOT_ copied by default, but the user may opt to do so.
+        By default, initial time is not fixed, nor are the initial or final state values.
+        These also can be overridden with the appropriate arguments.
+
+        Parameters
+        ----------
+        transcription : TranscriptionBase or None
+            If given, use the specified transcription for the new phase.
+            If None, use a copy of the transcription of the phase to be copied.
+        boundary_constraints : bool
+            If True, retain all boundary constraints from the phase to be copied.
+        path_constraints : bool
+            If True, retain all path constraints from the phase to be copied.
+        objectives : bool
+            If True, retain all objectives from the phase to be copied.
+        fix_initial_time : bool
+            If True, fix the initial time of the returned phase.
+        fix_initial_states : Sequence of str or None
+            If given, set fix_initial=True for the given state names. Otherwise, all states will have fix_initial=False.
+        fix_final_states : Sequence of str or None
+            If given, set fix_final=True for the given state names. Otherwise, all states will have fix_final=False.
+        """
+        t = deepcopy(self.options['transcription']) if transcription is None else transcription
+        ode_class = self.options['ode_class']
+        ode_init_kwargs = self.options['ode_init_kwargs']
+        auto_solvers = self.options['auto_solvers']
+
+        p = Phase(transcription=t, ode_class=ode_class, ode_init_kwargs=ode_init_kwargs)
+
+        p.time_options = deepcopy(self.time_options)
+        p.state_options = deepcopy(self.state_options)
+
+        p.time_options['fix_initial'] = fix_initial_time
+
+        if fix_initial_states or fix_final_states:
+            for state_name, state_options in p.state_options.items():
+                if state_name in fix_initial_states:
+                    state_options['fix_initial'] = True
+                else:
+                    state_options['fix_initial'] = False
+
+                if state_name in fix_final_states:
+                    state_options['fix_final'] = True
+                else:
+                    state_options['fix_final'] = False
+
+        print(p.state_options)
+
+        p.control_options = deepcopy(self.control_options)
+        p.polynomial_control_options = deepcopy(self.polynomial_control_options)
+        p.parameter_options = deepcopy(self.parameter_options)
+        p._timeseries = deepcopy(self._timeseries)
+
+        p.refine_options = deepcopy(self.refine_options)
+        p.simulate_options = deepcopy(self.simulate_options)
+        p.timeseries_options = deepcopy(self.timeseries_options)
+
+        if boundary_constraints:
+            p._initial_boundary_constraints = deepcopy(self._initial_boundary_constraints)
+            p._final_boundary_constraints = deepcopy(self._final_boundary_constraints)
+
+        if path_constraints:
+            p._path_constraints = deepcopy(self._path_constraints)
+
+        if objectives:
+            p._objectives = deepcopy(self._objectives)
+
+        return p
 
     def initialize(self):
         """
