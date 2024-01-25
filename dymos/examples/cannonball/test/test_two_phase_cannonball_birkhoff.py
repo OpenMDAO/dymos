@@ -179,23 +179,11 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         # Second Phase (descent)
         transcription = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=10))
-        descent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
+        descent = ascent.duplicate()
 
         traj.add_phase('descent', descent)
 
-        # All initial states and time are free, since
-        #    they will be linked to the final states of ascent.
-        # Final altitude is fixed, because we will set
-        #    it to zero so that the phase ends at ground impact)
-        descent.set_time_options(duration_bounds=(.5, 100),
-                                 duration_ref=100, units='s')
-        descent.add_state('r')
-        descent.add_state('h', fix_initial=False, fix_final=True)
-        descent.add_state('gam', fix_initial=False, fix_final=False)
-        descent.add_state('v', fix_initial=False, fix_final=False)
-
-        descent.add_parameter('S', units='m**2', static_target=True)
-        descent.add_parameter('m', units='kg', static_target=True)
+        descent.set_state_options('h', fix_final=True)
 
         descent.add_objective('r', loc='final', scaler=-1.0)
 

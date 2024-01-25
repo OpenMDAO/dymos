@@ -133,32 +133,38 @@ class Phase(om.Group):
             If given, set fix_initial=True for the given state names. Otherwise, all states will have fix_initial=False.
         fix_final_states : Sequence of str or None
             If given, set fix_final=True for the given state names. Otherwise, all states will have fix_final=False.
+
+        Returns
+        -------
+        Phase
+            The new phase created by duplicating this one.
         """
         t = deepcopy(self.options['transcription']) if transcription is None else transcription
         ode_class = self.options['ode_class']
         ode_init_kwargs = self.options['ode_init_kwargs']
         auto_solvers = self.options['auto_solvers']
 
-        p = Phase(transcription=t, ode_class=ode_class, ode_init_kwargs=ode_init_kwargs)
+        p = Phase(transcription=t, ode_class=ode_class, ode_init_kwargs=ode_init_kwargs,
+                  auto_solvers=auto_solvers)
 
         p.time_options = deepcopy(self.time_options)
         p.state_options = deepcopy(self.state_options)
 
         p.time_options['fix_initial'] = fix_initial_time
 
-        if fix_initial_states or fix_final_states:
-            for state_name, state_options in p.state_options.items():
-                if state_name in fix_initial_states:
-                    state_options['fix_initial'] = True
-                else:
-                    state_options['fix_initial'] = False
+        _fis = [] if fix_initial_states is None else fix_initial_states
+        _ffs = [] if fix_final_states is None else fix_final_states
 
-                if state_name in fix_final_states:
-                    state_options['fix_final'] = True
-                else:
-                    state_options['fix_final'] = False
+        for state_name, state_options in p.state_options.items():
+            if state_name in _fis:
+                state_options['fix_initial'] = True
+            else:
+                state_options['fix_initial'] = False
 
-        print(p.state_options)
+            if state_name in _ffs:
+                state_options['fix_final'] = True
+            else:
+                state_options['fix_final'] = False
 
         p.control_options = deepcopy(self.control_options)
         p.polynomial_control_options = deepcopy(self.polynomial_control_options)

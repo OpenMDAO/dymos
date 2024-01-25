@@ -97,6 +97,22 @@ class SimulationPhase(Phase):
         self._timeseries = {ts_name: ts_options for ts_name, ts_options in self._timeseries.items()
                             if ts_name == 'timeseries'}
 
+    def duplicate(self, *args, **kwargs)):
+        """
+        Create a copy of this phase where most options and attributes are deep copies of those in the original.
+
+        By default, a deepcopy of the transcription in the original phase is used.
+        Boundary constraints, path constraints, and objectives are _NOT_ copied by default, but the user may opt to do so.
+        By default, initial time is not fixed, nor are the initial or final state values.
+        These also can be overridden with the appropriate arguments.
+
+        Raises
+        ------
+        NotImplmentedError
+            This method is not yet supported for SimulationPhase
+        """
+        raise NotImplementedError('SimulationPhase does not support the duplicate method.')
+
     def set_vals_from_phase(self, from_phase):
         """
         Set the necessary values to simulate the phase based on variables in the given phase.
