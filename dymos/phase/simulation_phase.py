@@ -97,7 +97,7 @@ class SimulationPhase(Phase):
         self._timeseries = {ts_name: ts_options for ts_name, ts_options in self._timeseries.items()
                             if ts_name == 'timeseries'}
 
-    def duplicate(self, *args, **kwargs)):
+    def duplicate(self, *args, **kwargs):
         """
         Create a copy of this phase where most options and attributes are deep copies of those in the original.
 
