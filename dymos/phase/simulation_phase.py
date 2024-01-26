@@ -106,6 +106,13 @@ class SimulationPhase(Phase):
         By default, initial time is not fixed, nor are the initial or final state values.
         These also can be overridden with the appropriate arguments.
 
+        Parameters
+        ----------
+        *args
+            Additional arguments.
+        **kwargs
+            Keyword arguments.
+
         Raises
         ------
         NotImplmentedError
