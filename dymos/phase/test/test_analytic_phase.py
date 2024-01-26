@@ -165,8 +165,6 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         phase2 = phase.duplicate()
         traj.add_phase('phase2', phase2)
 
-        del(phase)
-
         p.setup()
 
         p.run_model()
