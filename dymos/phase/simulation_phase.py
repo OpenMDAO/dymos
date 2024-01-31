@@ -17,85 +17,18 @@ class SimulationPhase(Phase):
 
     Parameters
     ----------
-    from_phase : <Phase> or None
-        A phase instance from which the initialized phase should copy its data.
-    times_per_seg : int
-        The number of output points per segment, uniformly distributed.
-    method : str or _unspecified
-        A valid scipy.solve_ivp method for integration.
-    atol : float or _unspecified
-        Absolute error tolerance of the integration.
-    rtol : float or _unspecified
-        Relative error tolerance of the integration.
-    first_step : float or _unspecified
-        Initial step size of the integration.
-    max_step : float or _unspecified
-        Maximum step size of the integration.
-    reports : float or _unspecified
-        If True, generate reports for the subproblem used in integration.
+    transcription : ExplicitShooting
+        The transcription used for the SimulationPhase. It must be an instance of ExplicitShooting.
 
     **kwargs : dict
         Dictionary of optional phase arguments.
     """
-    def __init__(self, from_phase, times_per_seg=_unspecified, method=_unspecified, atol=_unspecified,
-                 rtol=_unspecified, first_step=_unspecified, max_step=_unspecified,
-                 reports=False, **kwargs):
-
-        phase_tx = from_phase.options['transcription']
-        num_seg = phase_tx.grid_data.num_segments
-        seg_order = phase_tx.grid_data.transcription_order
-        seg_ends = phase_tx.grid_data.segment_ends
-        compressed = phase_tx.grid_data.compressed
-
-        sim_options = from_phase.simulate_options
-
-        _method = method if method is not _unspecified else sim_options['method']
-        _atol = atol if atol is not _unspecified else sim_options['atol']
-        _rtol = rtol if rtol is not _unspecified else sim_options['rtol']
-        _first_step = first_step if first_step is not _unspecified else sim_options['first_step']
-        _max_step = max_step if max_step is not _unspecified else sim_options['max_step']
-        _times_per_seg = times_per_seg if times_per_seg is not _unspecified else sim_options['times_per_seg']
-
-        if isinstance(phase_tx, GaussLobatto):
-            grid = GaussLobattoGrid(num_segments=num_seg, nodes_per_seg=seg_order, segment_ends=seg_ends,
-                                    compressed=compressed)
-        elif isinstance(phase_tx, Radau):
-            grid = RadauGrid(num_segments=num_seg, nodes_per_seg=seg_order + 1, segment_ends=seg_ends,
-                             compressed=compressed)
-        elif isinstance(phase_tx.grid_data, GaussLobattoGrid) or \
-                isinstance(phase_tx.grid_data, RadauGrid) or isinstance(phase_tx.grid_data, BirkhoffGrid):
-            grid = phase_tx.grid_data
-        else:
-            raise RuntimeError(f'Unexpected grid class for {phase_tx.grid_data}. Only phases with GaussLobatto '
-                               f'or Radau grids can be simulated.')
-
-        if _times_per_seg is None:
-            output_grid = None
-        else:
-            output_grid = UniformGrid(num_segments=num_seg, nodes_per_seg=_times_per_seg, segment_ends=seg_ends,
-                                      compressed=compressed)
-
-        tx = ExplicitShooting(propagate_derivs=False,
-                              subprob_reports=reports,
-                              grid=grid,
-                              output_grid=output_grid,
-                              method=_method,
-                              atol=_atol,
-                              rtol=_rtol,
-                              first_step=_first_step,
-                              max_step=_max_step)
-
-        super().__init__(from_phase=from_phase, transcription=tx, ode_class=from_phase.options['ode_class'],
-                         ode_init_kwargs=from_phase.options['ode_init_kwargs'])
-
-        # Remove invalid options
-        for state_name, options in self.state_options.items():
-            options['fix_final'] = False  # ExplicitShooting will raise if `fix_final` is True for any states.
-            options['input_initial'] = False  # Only simulate from the initial value, do not connect.
-
-        # Remove all but the default timeseries object
-        self._timeseries = {ts_name: ts_options for ts_name, ts_options in self._timeseries.items()
-                            if ts_name == 'timeseries'}
+    def __init__(self, transcription=None, **kwargs):
+        if not isinstance(transcription, ExplicitShooting):
+            raise ValueError('The transcription for a SimulationPhase must be '
+                             'ExplicitShooting. Use Phase.get_simulation_phase()'
+                             'to create a simulation Phase.')
+        super().__init__(transcription=transcription, **kwargs)
 
     def duplicate(self, *args, **kwargs):
         """

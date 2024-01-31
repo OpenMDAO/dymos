@@ -60,13 +60,14 @@ class Trajectory(om.Group):
         self._phase_graph = nx.DiGraph()
         self._has_connected_phases = False
 
-        self.parameter_options = {}
         self.phases = om.ParallelGroup() if self.options['parallel_phases'] else om.Group()
 
     def initialize(self):
         """
         Declare any options for Trajectory.
         """
+        self.options.declare('system_class', types=str,
+                             default=f'{self.__class__.__module__}.{self.__class__.__name__}')
         self.options.declare('sim_mode', types=bool, default=False,
                              desc='Used internally by Dymos when invoking simulate on a trajectory')
         self.options.declare('parallel_phases',
@@ -75,6 +76,12 @@ class Trajectory(om.Group):
                                   'otherwise it will be a standard OpenMDAO Group.')
         self.options.declare('auto_solvers', types=bool, default=True,
                              desc='If True, attempt to automatically assign solvers if necessary.')
+        self.options.declare('parameter_options', types=dict, default={},
+                             desc='Options for each parameter in this Trajectory')
+
+    @property
+    def parameter_options(self):
+        return self.options['parameter_options']
 
     def add_phase(self, name, phase, **kwargs):
         """
