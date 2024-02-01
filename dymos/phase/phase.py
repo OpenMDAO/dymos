@@ -132,8 +132,21 @@ class Phase(om.Group):
         p = Phase(transcription=t, ode_class=ode_class, ode_init_kwargs=ode_init_kwargs,
                   auto_solvers=auto_solvers)
 
-        p.time_options = deepcopy(self.time_options)
-        p.state_options = deepcopy(self.state_options)
+        # First copy over the variable information as is
+        p.time_options.update(deepcopy(self.time_options))
+
+        for state_name, state_options in self.state_options.items():
+            p.state_options[state_name] = deepcopy(state_options)
+
+        for param_name, param_options in self.parameter_options.items():
+            p.parameter_options[param_name] = deepcopy(param_options)
+
+        for control_name, control_options in self.control_options.items():
+            p.control_options[control_name] = deepcopy(control_options)
+
+        for pc_name, pc_options in self.polynomial_control_options.items():
+            p.polynomial_control_options[pc_name] = deepcopy(pc_options)
+
 
         p.time_options['fix_initial'] = fix_initial_time
 
@@ -151,11 +164,7 @@ class Phase(om.Group):
             else:
                 state_options['fix_final'] = False
 
-        p.control_options = deepcopy(self.control_options)
-        p.polynomial_control_options = deepcopy(self.polynomial_control_options)
-        p.parameter_options = deepcopy(self.parameter_options)
         p._timeseries = deepcopy(self._timeseries)
-
         p.refine_options = deepcopy(self.refine_options)
         p.simulate_options = deepcopy(self.simulate_options)
         p.timeseries_options = deepcopy(self.timeseries_options)
