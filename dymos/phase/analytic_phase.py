@@ -512,14 +512,15 @@ class AnalyticPhase(Phase):
         p = AnalyticPhase(num_nodes=nn, ode_class=ode_class, ode_init_kwargs=ode_init_kwargs,
                           auto_solvers=auto_solvers)
 
-        p.time_options = deepcopy(self.time_options)
-        p.state_options = deepcopy(self.state_options)
-
+        p.time_options.update(deepcopy(self.time_options))
         p.time_options['fix_initial'] = fix_initial_time
 
-        p.control_options = deepcopy(self.control_options)
-        p.polynomial_control_options = deepcopy(self.polynomial_control_options)
-        p.parameter_options = deepcopy(self.parameter_options)
+        for state_name, state_options in self.state_options.items():
+            p.state_options[state_name] = deepcopy(state_options)
+
+        for param_name, param_options in self.parameter_options.items():
+            p.parameter_options[param_name] = deepcopy(param_options)
+
         p._timeseries = deepcopy(self._timeseries)
 
         p.refine_options = deepcopy(self.refine_options)

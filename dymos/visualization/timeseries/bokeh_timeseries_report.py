@@ -17,6 +17,7 @@ except ImportError:
 
 import openmdao.api as om
 from openmdao.utils.units import conversion_to_base_units
+from openmdao.recorders.sqlite_recorder import format_version, META_KEY_SEP
 import dymos as dm
 
 
@@ -124,6 +125,52 @@ def _meta_tree_subsys_iter(tree, recurse=True, cls=None, path=None):
                 yield child
 
 
+def _get_model_options(cr, system, run_number=None):
+    """
+    The the options for system stored in the given case reader.
+    If there is more than one set of model options, this function returns the last recorded ones.
+
+    Parameters
+    ----------
+    cr : CaseReader
+        The CaseReader instance holding the data.
+    system : str or None
+        Pathname of system (None for all systems).
+    run_number : int or None
+        Run_driver or run_model iteration to inspect, if given. If None, return the last available.
+
+    Returns
+    -------
+    dict
+        {system: {key: val}}.
+    """
+    if not cr._system_options:
+        raise RuntimeError('System options were not recorded.')
+
+    comp_options = None
+
+    # need to handle edge case for v11 recording
+    if cr._format_version < 12:
+        SEP = '_'
+    else:
+        SEP = META_KEY_SEP
+
+    for key in cr._system_options:
+        if key.find(SEP) > 0:
+            name, num = key.rsplit(SEP, 1)
+        else:
+            name = key
+            num = 0
+
+        # Get the component associated with the highest run number
+        if name == system and (run_number is None or run_number == int(num)):
+            comp_options = cr._system_options[key]['component_options']
+
+    if comp_options is None:
+        raise ValueError(f'No options found for system {system}')
+
+    return comp_options
+
 def _get_trajs_and_phases(cr):
     trajs = {}
     traj_cls = 'dymos.trajectory.trajectory:Trajectory'
@@ -138,12 +185,12 @@ def _get_trajs_and_phases(cr):
         phase_nodes = [n for n in _meta_tree_subsys_iter(tn, cls=phase_cls, path=tn['path'])]
         traj_path = tn['path']
         trajs[traj_path] = {'phases': {}, 'parameter_options': {}, 'name': tn['name']}
-        traj_options = cr._system_options[traj_path]['component_options']
+        traj_options = _get_model_options(cr=cr, system=traj_path)
         for param_name, param_options in traj_options['parameter_options'].items():
             trajs[traj_path]['parameter_options'][param_name] = param_options
         for pn in phase_nodes:
             phase_path = pn['path']
-            phase_options = cr._system_options[phase_path]['component_options']
+            phase_options = _get_model_options(cr=cr, system=phase_path)
             phase_meta = trajs[traj_path]['phases'][phase_path] = {'time_options': None,
                                                                    'parameter_options': None,
                                                                    'state_options': None,
@@ -222,9 +269,9 @@ def _load_data_sources(solution_record_file=None, simulation_record_file=None):
             phase_sim_data = data_dict[traj_data['name']]['sim_data_by_phase'][phase_name] = {}
 
             param_outputs = {op: meta for op, meta in outputs.items()
-                             if op.startswith(f'{phase_path}.param_comp.parameter_vals')}
+                             if op.startswith(f'{phase_path}.param_comp.parameter_vals:')}
             ts_outputs = {op: meta for op, meta in outputs.items()
-                          if op.startswith(f'{phase_path}.timeseries')}
+                          if op.startswith(f'{phase_path}.timeseries.')}
 
             # Populate the phase parameter data
             phase_params = traj_and_phase_meta[traj_path]['phases'][phase_path]['parameter_options']

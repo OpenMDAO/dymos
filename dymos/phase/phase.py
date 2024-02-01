@@ -62,6 +62,11 @@ class Phase(om.Group):
     def __init__(self, from_phase=None, **kwargs):
         _kwargs = kwargs.copy()
 
+        if from_phase is not None:
+            raise RuntimeError('Instantiating a phase from another using the `from_phase`'
+                               ' argument is no longer avaiable.'
+                               ' Use the <phase>.duplicate() or <phase>.get_simulation_phase() methods.')
+
         # These are the options which will be set at setup time.
         # Prior to setup, the options are placed into the user_*_options dictionaries.
         # self.time_options = TimeOptionsDictionary()
@@ -76,14 +81,13 @@ class Phase(om.Group):
 
         # Dictionaries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE
-        if from_phase is None:
-            self._initial_boundary_constraints = []
-            self._final_boundary_constraints = []
-            self._path_constraints = []
-            self._timeseries = {'timeseries': {'transcription': None,
-                                               'subset': 'all',
-                                               'outputs': {}}}
-            self._objectives = {}
+        self._initial_boundary_constraints = []
+        self._final_boundary_constraints = []
+        self._path_constraints = []
+        self._timeseries = {'timeseries': {'transcription': None,
+                                            'subset': 'all',
+                                            'outputs': {}}}
+        self._objectives = {}
 
         super(Phase, self).__init__(**_kwargs)
 
@@ -2406,8 +2410,11 @@ class Phase(om.Group):
                                     ode_class=ode_class,
                                     ode_init_kwargs=ode_init_kwargs)
 
+        sim_phase.time_options.update(self.time_options)
         sim_phase.time_options['fix_initial'] = True
         sim_phase.time_options['fix_duration'] = True
+        sim_phase.time_options['initial_bounds'] = (None, None)
+        sim_phase.time_options['duration_bounds'] = (None, None)
 
         for state_name, state_options in self.state_options.items():
             sim_phase.state_options[state_name] = deepcopy(state_options)
