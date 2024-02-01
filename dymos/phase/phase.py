@@ -147,7 +147,6 @@ class Phase(om.Group):
         for pc_name, pc_options in self.polynomial_control_options.items():
             p.polynomial_control_options[pc_name] = deepcopy(pc_options)
 
-
         p.time_options['fix_initial'] = fix_initial_time
 
         _fis = [] if fix_initial_states is None else fix_initial_states
