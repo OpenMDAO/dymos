@@ -333,6 +333,10 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
     theme : str
         A valid bokeh theme name to style the report.
     """
+    report_dir = Path(prob.get_reports_dir()) if prob is not None else Path(os.getcwd())
+    if not report_dir.exists():
+        report_dir = Path(os.getcwd())
+
     # For the primary timeseries in each phase in each trajectory, build a set of the pathnames
     # to be plotted.
     source_data = _load_data_sources(solution_record_file, simulation_record_file)
@@ -345,7 +349,6 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
     for traj_path, traj_data in source_data.items():
         traj_name = traj_path.split('.')[-1]
         report_filename = f'{traj_path}_results_report.html'
-        report_dir = Path(prob.get_reports_dir()) if prob is not None else Path(os.getcwd())
         report_path = report_dir / report_filename
         if _NO_BOKEH:
             with open(report_path, 'wb') as f:
