@@ -66,8 +66,6 @@ class Trajectory(om.Group):
         """
         Declare any options for Trajectory.
         """
-        self.options.declare('system_class', types=str,
-                             default=f'{self.__class__.__module__}.{self.__class__.__name__}')
         self.options.declare('sim_mode', types=bool, default=False,
                              desc='Used internally by Dymos when invoking simulate on a trajectory')
         self.options.declare('parallel_phases',
