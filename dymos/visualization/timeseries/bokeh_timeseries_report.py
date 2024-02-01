@@ -171,6 +171,7 @@ def _get_model_options(cr, system, run_number=None):
 
     return comp_options
 
+
 def _get_trajs_and_phases(cr):
     trajs = {}
     traj_cls = 'dymos.trajectory.trajectory:Trajectory'

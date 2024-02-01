@@ -316,6 +316,7 @@ class SimulationPhase(Phase):
     def check_time_options(self):
         """
         Check that time options are valid and issue warnings if invalid options are provided.
+
         This check is not performed by SimulationPhase.
 
         Warns
@@ -328,6 +329,7 @@ class SimulationPhase(Phase):
     def _check_control_options(self):
         """
         Check that control options are valid and issue warnings if invalid options are provided.
+
         This check is not performed by SimulationPhase.
 
         Warns
@@ -340,6 +342,7 @@ class SimulationPhase(Phase):
     def _check_polynomial_control_options(self):
         """
         Check that polynomial control options are valid and issue warnings if invalid options are provided.
+
         This check is not performed by SimulationPhase.
 
         Warns
@@ -351,8 +354,8 @@ class SimulationPhase(Phase):
 
     def _check_parameter_options(self):
         """
-        Check that parameter options are valid and issue warnings if invalid
-        options are provided.
+        Check that parameter options are valid and issue warnings if invalid options are provided.
+
         This check is not performed by SimulationPhase.
 
         Warns

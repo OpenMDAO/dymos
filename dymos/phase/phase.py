@@ -85,8 +85,8 @@ class Phase(om.Group):
         self._final_boundary_constraints = []
         self._path_constraints = []
         self._timeseries = {'timeseries': {'transcription': None,
-                                            'subset': 'all',
-                                            'outputs': {}}}
+                                           'subset': 'all',
+                                           'outputs': {}}}
         self._objectives = {}
 
         super(Phase, self).__init__(**_kwargs)
@@ -201,7 +201,7 @@ class Phase(om.Group):
         return self.options['time_options']
 
     @time_options.setter
-    def time_options(self, tod : TimeOptionsDictionary):
+    def time_options(self, tod: TimeOptionsDictionary):
         self.options['time_options'] = tod
 
     @property
@@ -2434,7 +2434,7 @@ class Phase(om.Group):
             sim_phase.polynomial_control_options[pc_name]['opt'] = False
 
         sim_phase._timeseries = {ts_name: ts_options for ts_name, ts_options in self._timeseries.items()
-                    if ts_name == 'timeseries'}
+                                 if ts_name == 'timeseries'}
 
         for state_name, state_options in sim_phase.state_options.items():
             state_options['fix_final'] = False
