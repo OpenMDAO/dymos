@@ -3,7 +3,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestCannonballForJOSS(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')
@@ -11,6 +11,7 @@ class TestCannonballForJOSS(unittest.TestCase):
         # begin code for paper
         import numpy as np
         from scipy.interpolate import interp1d
+        import matplotlib
         import matplotlib.pyplot as plt
 
         import openmdao.api as om
@@ -222,7 +223,7 @@ class TestCannonballForJOSS(unittest.TestCase):
         y0 = p.get_val('traj.ascent.timeseries.h', units='m')
         x1 = p.get_val('traj.descent.timeseries.r', units='m')
         y1 = p.get_val('traj.descent.timeseries.h', units='m')
-        tab20 = plt.cm.get_cmap('tab20').colors
+        tab20 = matplotlib.colormaps['tab20'].colors
         ax.plot(x0, y0, marker='o', label='ascent', color=tab20[0])
         ax.plot(x1, y1, marker='o', label='descent', color=tab20[1])
         ax.legend(loc='best')
@@ -232,3 +233,7 @@ class TestCannonballForJOSS(unittest.TestCase):
         # End code for paper
 
         assert_near_equal(x1[-1], 3064, tolerance=1.0E-4)
+
+
+if __name__ == '__main__':
+    unittest.main()

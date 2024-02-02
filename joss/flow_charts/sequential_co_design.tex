@@ -1,0 +1,27 @@
+
+% XDSM diagram created with pyXDSM 2.1.3.
+\documentclass{article}
+\usepackage{geometry}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+
+% Optional packages such as sfmath set through python interface
+\usepackage{}
+
+% Define the set of TikZ packages to be included in the architecture diagram document
+\usetikzlibrary{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}
+
+
+% Set the border around all of the architecture diagrams to be tight to the diagrams themselves
+% (i.e. no longer need to tinker with page size parameters)
+\usepackage[active,tightpage]{preview}
+\PreviewEnvironment{tikzpicture}
+\setlength{\PreviewBorder}{5pt}
+
+\begin{document}
+
+\input{"sequential_co_design.tikz"}
+
+\end{document}

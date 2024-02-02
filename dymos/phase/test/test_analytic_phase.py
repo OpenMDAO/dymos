@@ -150,6 +150,32 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
 
         assert_near_equal(y, expected)
 
+    def test_duplicate(self):
+
+        p = om.Problem()
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+
+        phase = dm.AnalyticPhase(ode_class=SimpleBVPSolution, num_nodes=11)
+
+        phase.set_time_options(units='s', targets=['x'], fix_initial=True, fix_duration=True,
+                               initial_val=0.0, duration_val=1.0)
+        phase.add_parameter('y0', opt=False, val=0.0)
+        phase.add_parameter('y1', opt=False, val=0.0)
+
+        phase2 = phase.duplicate()
+        traj.add_phase('phase2', phase2)
+
+        p.setup()
+
+        p.run_model()
+
+        t = p.get_val('traj.phase2.timeseries.time', units='s')
+        y = p.get_val('traj.phase2.timeseries.y', units='unitless')
+
+        expected = t * (1 - t) * (1 + t - t**2) / 12
+
+        assert_near_equal(y, expected)
+
     def test_renamed_state(self):
 
         class SolutionWithRenamedState(om.ExplicitComponent):

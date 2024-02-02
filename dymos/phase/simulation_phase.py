@@ -17,85 +17,41 @@ class SimulationPhase(Phase):
 
     Parameters
     ----------
-    from_phase : <Phase> or None
-        A phase instance from which the initialized phase should copy its data.
-    times_per_seg : int
-        The number of output points per segment, uniformly distributed.
-    method : str or _unspecified
-        A valid scipy.solve_ivp method for integration.
-    atol : float or _unspecified
-        Absolute error tolerance of the integration.
-    rtol : float or _unspecified
-        Relative error tolerance of the integration.
-    first_step : float or _unspecified
-        Initial step size of the integration.
-    max_step : float or _unspecified
-        Maximum step size of the integration.
-    reports : float or _unspecified
-        If True, generate reports for the subproblem used in integration.
+    transcription : ExplicitShooting
+        The transcription used for the SimulationPhase. It must be an instance of ExplicitShooting.
 
     **kwargs : dict
         Dictionary of optional phase arguments.
     """
-    def __init__(self, from_phase, times_per_seg=_unspecified, method=_unspecified, atol=_unspecified,
-                 rtol=_unspecified, first_step=_unspecified, max_step=_unspecified,
-                 reports=False, **kwargs):
+    def __init__(self, transcription=None, **kwargs):
+        if not isinstance(transcription, ExplicitShooting):
+            raise ValueError('The transcription for a SimulationPhase must be '
+                             'ExplicitShooting. Use Phase.get_simulation_phase()'
+                             'to create a simulation Phase.')
+        super().__init__(transcription=transcription, **kwargs)
 
-        phase_tx = from_phase.options['transcription']
-        num_seg = phase_tx.grid_data.num_segments
-        seg_order = phase_tx.grid_data.transcription_order
-        seg_ends = phase_tx.grid_data.segment_ends
-        compressed = phase_tx.grid_data.compressed
+    def duplicate(self, *args, **kwargs):
+        """
+        Create a copy of this phase where most options and attributes are deep copies of those in the original.
 
-        sim_options = from_phase.simulate_options
+        By default, a deepcopy of the transcription in the original phase is used.
+        Boundary constraints, path constraints, and objectives are _NOT_ copied by default, but the user may opt to do so.
+        By default, initial time is not fixed, nor are the initial or final state values.
+        These also can be overridden with the appropriate arguments.
 
-        _method = method if method is not _unspecified else sim_options['method']
-        _atol = atol if atol is not _unspecified else sim_options['atol']
-        _rtol = rtol if rtol is not _unspecified else sim_options['rtol']
-        _first_step = first_step if first_step is not _unspecified else sim_options['first_step']
-        _max_step = max_step if max_step is not _unspecified else sim_options['max_step']
-        _times_per_seg = times_per_seg if times_per_seg is not _unspecified else sim_options['times_per_seg']
+        Parameters
+        ----------
+        *args
+            Additional arguments.
+        **kwargs
+            Keyword arguments.
 
-        if isinstance(phase_tx, GaussLobatto):
-            grid = GaussLobattoGrid(num_segments=num_seg, nodes_per_seg=seg_order, segment_ends=seg_ends,
-                                    compressed=compressed)
-        elif isinstance(phase_tx, Radau):
-            grid = RadauGrid(num_segments=num_seg, nodes_per_seg=seg_order + 1, segment_ends=seg_ends,
-                             compressed=compressed)
-        elif isinstance(phase_tx.grid_data, GaussLobattoGrid) or \
-                isinstance(phase_tx.grid_data, RadauGrid) or isinstance(phase_tx.grid_data, BirkhoffGrid):
-            grid = phase_tx.grid_data
-        else:
-            raise RuntimeError(f'Unexpected grid class for {phase_tx.grid_data}. Only phases with GaussLobatto '
-                               f'or Radau grids can be simulated.')
-
-        if _times_per_seg is None:
-            output_grid = None
-        else:
-            output_grid = UniformGrid(num_segments=num_seg, nodes_per_seg=_times_per_seg, segment_ends=seg_ends,
-                                      compressed=compressed)
-
-        tx = ExplicitShooting(propagate_derivs=False,
-                              subprob_reports=reports,
-                              grid=grid,
-                              output_grid=output_grid,
-                              method=_method,
-                              atol=_atol,
-                              rtol=_rtol,
-                              first_step=_first_step,
-                              max_step=_max_step)
-
-        super().__init__(from_phase=from_phase, transcription=tx, ode_class=from_phase.options['ode_class'],
-                         ode_init_kwargs=from_phase.options['ode_init_kwargs'])
-
-        # Remove invalid options
-        for state_name, options in self.state_options.items():
-            options['fix_final'] = False  # ExplicitShooting will raise if `fix_final` is True for any states.
-            options['input_initial'] = False  # Only simulate from the initial value, do not connect.
-
-        # Remove all but the default timeseries object
-        self._timeseries = {ts_name: ts_options for ts_name, ts_options in self._timeseries.items()
-                            if ts_name == 'timeseries'}
+        Raises
+        ------
+        NotImplmentedError
+            This method is not yet supported for SimulationPhase
+        """
+        raise NotImplementedError('SimulationPhase does not support the duplicate method.')
 
     def set_vals_from_phase(self, from_phase):
         """
@@ -139,72 +95,6 @@ class SimulationPhase(Phase):
         for name, options in self.polynomial_control_options.items():
             val = from_phase.get_val(f'polynomial_controls:{name}', units=options['units'], from_src=False)
             self.set_val(f'polynomial_controls:{name}', val, units=options['units'])
-
-    def initialize_values_from_phase(self, prob, from_phase, phase_path=''):
-        """
-        Initializes values in the Phase using the phase from which it was created.
-
-        Parameters
-        ----------
-        prob : Problem
-            The problem instance to set values taken from the from_phase instance.
-        from_phase : Phase
-            The Phase instance from which the values in this phase are being initialized.
-        phase_path : str
-            The pathname of the system in prob that contains the phases.
-        """
-        phs = from_phase
-
-        op_dict = dict([(name, options) for (name, options) in phs.list_outputs(units=True,
-                                                                                list_autoivcs=True,
-                                                                                out_stream=None)])
-        ip_dict = dict([(name, options) for (name, options) in phs.list_inputs(units=True,
-                                                                               out_stream=None)])
-
-        if self.pathname.partition('.')[0] == self.name:
-            self_path = self.name + '.'
-        else:
-            self_path = self.pathname.partition('.')[0] + '.' + self.name + '.'
-
-        if MPI:
-            op_dict = MPI.COMM_WORLD.bcast(op_dict, root=0)
-
-        # Set the integration times
-        time_name = phs.time_options['name']
-        op = op_dict[f'timeseries.timeseries_comp.{time_name}']
-        prob.set_val(f'{self_path}t_initial', op['val'][0, ...])
-        prob.set_val(f'{self_path}t_duration', op['val'][-1, ...] - op['val'][0, ...])
-
-        # Assign initial state values
-        for name in phs.state_options:
-            prefix = 'states:' if from_phase.timeseries_options['use_prefix'] else ''
-            op = op_dict[f'timeseries.timeseries_comp.{prefix}{name}']
-            prob[f'{self_path}initial_states:{name}'][...] = op['val'][0, ...]
-
-        # Assign control values
-        for name, options in phs.control_options.items():
-            ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
-            prob[f'{self_path}controls:{name}'][...] = ip['val']
-
-        # Assign polynomial control values
-        for name, options in phs.polynomial_control_options.items():
-            ip = ip_dict[f'polynomial_control_group.interp_comp.'
-                         f'polynomial_controls:{name}']
-            prob[f'{self_path}polynomial_controls:{name}'][...] = ip['val']
-
-        # Assign parameter values
-        for name in phs.parameter_options:
-            units = phs.parameter_options[name]['units']
-
-            # We use this private function to grab the correctly sized variable from the
-            # auto_ivc source.
-            val = phs.get_val(f'parameters:{name}', units=units)
-
-            if phase_path:
-                prob_path = f'{phase_path}.{self.name}.parameters:{name}'
-            else:
-                prob_path = f'{self.name}.parameters:{name}'
-            prob.set_val(prob_path, val)
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
@@ -356,3 +246,55 @@ class SimulationPhase(Phase):
             calculations with other variables sharing the same parallel_deriv_color.
         """
         raise NotImplementedError('SimulationPhase does not support optimization objectives.')
+
+    def check_time_options(self):
+        """
+        Check that time options are valid and issue warnings if invalid options are provided.
+
+        This check is not performed by SimulationPhase.
+
+        Warns
+        -----
+        RuntimeWarning
+            RuntimeWarning is issued in the case of one or more invalid time options.
+        """
+        pass
+
+    def _check_control_options(self):
+        """
+        Check that control options are valid and issue warnings if invalid options are provided.
+
+        This check is not performed by SimulationPhase.
+
+        Warns
+        -----
+        RuntimeWarning
+            RuntimeWarning is issued in the case of one or more invalid time options.
+        """
+        pass
+
+    def _check_polynomial_control_options(self):
+        """
+        Check that polynomial control options are valid and issue warnings if invalid options are provided.
+
+        This check is not performed by SimulationPhase.
+
+        Warns
+        -----
+        RuntimeWarning
+            RuntimeWarning is issued in the case of one or more invalid time options.
+        """
+        pass
+
+    def _check_parameter_options(self):
+        """
+        Check that parameter options are valid and issue warnings if invalid options are provided.
+
+        This check is not performed by SimulationPhase.
+
+        Warns
+        -----
+        RuntimeWarning
+            RuntimeWarning is issued in the case of one or more invalid time options.
+        """
+        pass

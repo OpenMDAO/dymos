@@ -1,0 +1,55 @@
+
+%%% Preamble Requirements %%%
+% \usepackage{geometry}
+% \usepackage{amsfonts}
+% \usepackage{amsmath}
+% \usepackage{amssymb}
+% \usepackage{tikz}
+
+% Optional packages such as sfmath set through python interface
+% \usepackage{}
+
+% \usetikzlibrary{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}
+
+%%% End Preamble Requirements %%%
+
+\input{"/Users/rfalck/anaconda3/envs/py37/lib/python3.7/site-packages/pyxdsm/diagram_styles"}
+\begin{tikzpicture}
+
+\matrix[MatrixSetup]{
+%Row 0
+\node [Optimization] (OPT) {$\text{Optimizer}$};&
+\node [DataInter] (OPT-static) {$\begin{array}{c}\bar{d}\end{array}$};&
+\node [DataInter] (OPT-dynamic) {$\begin{array}{c}t, \bar{x}, \bar{u}\end{array}$};\\
+%Row 1
+\node [DataInter] (static-OPT) {$\begin{array}{c}g_\text{static}\end{array}$};&
+\node [Group] (static) {$\text{Static System Model}$};&
+\node [DataInter] (static-dynamic) {$\begin{array}{c}\text{static} \\ \text{outputs}\end{array}$};\\
+%Row 2
+\node [DataInter] (dynamic-OPT) {$\begin{array}{c}J, \bar{g}_0, \bar{g}_f, \bar{p}\end{array}$};&
+\node [DataInter] (dynamic-static) {$\begin{array}{c}\text{dynamic} \\ \text{outputs}\end{array}$};&
+\node [Group] (dynamic) {$\text{ODE or DAE}$};\\
+};
+
+% XDSM process chains
+
+
+\begin{pgfonlayer}{data}
+\path
+% Horizontal edges
+(dynamic) edge [DataLine] (dynamic-OPT)
+(OPT) edge [DataLine] (OPT-dynamic)
+(static) edge [DataLine] (static-OPT)
+(OPT) edge [DataLine] (OPT-static)
+(static) edge [DataLine] (static-dynamic)
+(dynamic) edge [DataLine] (dynamic-static)
+% Vertical edges
+(dynamic-OPT) edge [DataLine] (OPT)
+(OPT-dynamic) edge [DataLine] (dynamic)
+(static-OPT) edge [DataLine] (OPT)
+(OPT-static) edge [DataLine] (static)
+(static-dynamic) edge [DataLine] (dynamic)
+(dynamic-static) edge [DataLine] (static);
+\end{pgfonlayer}
+
+\end{tikzpicture}

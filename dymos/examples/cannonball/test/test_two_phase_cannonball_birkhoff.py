@@ -96,7 +96,7 @@ class CannonballODE(om.ExplicitComponent):
         rho_data = USatm1976Data.rho * om.unit_conversion('slug/ft**3', 'kg/m**3')[0]
         self.rho_interp = interp1d(np.array(alt_data, dtype=complex),
                                    np.array(rho_data, dtype=complex),
-                                   kind='linear')
+                                   kind='linear', bounds_error=False, fill_value='extrapolate')
 
     def compute(self, inputs, outputs):
 

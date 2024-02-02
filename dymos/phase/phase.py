@@ -1,5 +1,7 @@
 from collections.abc import Iterable, Callable, Sequence
+from copy import deepcopy
 import inspect
+from os import path
 import warnings
 
 import numpy as np
@@ -21,7 +23,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     TimeseriesOutputOptionsDictionary, PhaseTimeseriesOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
-from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid
+from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid, BirkhoffGrid
 from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
@@ -60,13 +62,18 @@ class Phase(om.Group):
     def __init__(self, from_phase=None, **kwargs):
         _kwargs = kwargs.copy()
 
+        if from_phase is not None:
+            raise RuntimeError('Instantiating a phase from another using the `from_phase`'
+                               ' argument is no longer avaiable.'
+                               ' Use the <phase>.duplicate() or <phase>.get_simulation_phase() methods.')
+
         # These are the options which will be set at setup time.
         # Prior to setup, the options are placed into the user_*_options dictionaries.
-        self.time_options = TimeOptionsDictionary()
-        self.state_options = {}
-        self.control_options = {}
-        self.polynomial_control_options = {}
-        self.parameter_options = {}
+        # self.time_options = TimeOptionsDictionary()
+        # self.state_options = {}
+        # self.control_options = {}
+        # self.polynomial_control_options = {}
+        # self.parameter_options = {}
         self.refine_options = GridRefinementOptionsDictionary()
         self.simulate_options = SimulateOptionsDictionary()
         self.timeseries_ec_vars = {}
@@ -74,34 +81,104 @@ class Phase(om.Group):
 
         # Dictionaries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE
-        if from_phase is None:
-            self._initial_boundary_constraints = []
-            self._final_boundary_constraints = []
-            self._path_constraints = []
-            self._timeseries = {'timeseries': {'transcription': None,
-                                               'subset': 'all',
-                                               'outputs': {}}}
-            self._objectives = {}
-        else:
-            self.time_options.update(from_phase.time_options)
-            self.state_options = from_phase.state_options.copy()
-            self.control_options = from_phase.control_options.copy()
-            self.polynomial_control_options = from_phase.polynomial_control_options.copy()
-            self.parameter_options = from_phase.parameter_options.copy()
-
-            self.refine_options.update(from_phase.refine_options)
-            self.simulate_options.update(from_phase.simulate_options)
-
-            self._initial_boundary_constraints = from_phase._initial_boundary_constraints.copy()
-            self._final_boundary_constraints = from_phase._final_boundary_constraints.copy()
-            self._path_constraints = from_phase._path_constraints.copy()
-            self._timeseries = from_phase._timeseries.copy()
-            self._objectives = from_phase._objectives.copy()
-
-            _kwargs['ode_class'] = from_phase.options['ode_class']
-            _kwargs['ode_init_kwargs'] = from_phase.options['ode_init_kwargs']
+        self._initial_boundary_constraints = []
+        self._final_boundary_constraints = []
+        self._path_constraints = []
+        self._timeseries = {'timeseries': {'transcription': None,
+                                           'subset': 'all',
+                                           'outputs': {}}}
+        self._objectives = {}
 
         super(Phase, self).__init__(**_kwargs)
+
+    def duplicate(self, transcription=None, boundary_constraints=False, path_constraints=False, objectives=False,
+                  fix_initial_time=False, fix_initial_states=None, fix_final_states=None):
+        """
+        Create a copy of this phase where most options and attributes are deep copies of those in the original.
+
+        By default, a deepcopy of the transcription in the original phase is used.
+        Boundary constraints, path constraints, and objectives are _NOT_ copied by default, but the user may opt to do so.
+        By default, initial time is not fixed, nor are the initial or final state values.
+        These also can be overridden with the appropriate arguments.
+
+        Parameters
+        ----------
+        transcription : TranscriptionBase or None
+            If given, use the specified transcription for the new phase.
+            If None, use a copy of the transcription of the phase to be copied.
+        boundary_constraints : bool
+            If True, retain all boundary constraints from the phase to be copied.
+        path_constraints : bool
+            If True, retain all path constraints from the phase to be copied.
+        objectives : bool
+            If True, retain all objectives from the phase to be copied.
+        fix_initial_time : bool
+            If True, fix the initial time of the returned phase.
+        fix_initial_states : Sequence of str or None
+            If given, set fix_initial=True for the given state names. Otherwise, all states will have fix_initial=False.
+        fix_final_states : Sequence of str or None
+            If given, set fix_final=True for the given state names. Otherwise, all states will have fix_final=False.
+
+        Returns
+        -------
+        Phase
+            The new phase created by duplicating this one.
+        """
+        t = deepcopy(self.options['transcription']) if transcription is None else transcription
+        ode_class = self.options['ode_class']
+        ode_init_kwargs = self.options['ode_init_kwargs']
+        auto_solvers = self.options['auto_solvers']
+
+        p = Phase(transcription=t, ode_class=ode_class, ode_init_kwargs=ode_init_kwargs,
+                  auto_solvers=auto_solvers)
+
+        # First copy over the variable information as is
+        p.time_options.update(deepcopy(self.time_options))
+
+        for state_name, state_options in self.state_options.items():
+            p.state_options[state_name] = deepcopy(state_options)
+
+        for param_name, param_options in self.parameter_options.items():
+            p.parameter_options[param_name] = deepcopy(param_options)
+
+        for control_name, control_options in self.control_options.items():
+            p.control_options[control_name] = deepcopy(control_options)
+
+        for pc_name, pc_options in self.polynomial_control_options.items():
+            p.polynomial_control_options[pc_name] = deepcopy(pc_options)
+
+        p.time_options['fix_initial'] = fix_initial_time
+
+        _fis = [] if fix_initial_states is None else fix_initial_states
+        _ffs = [] if fix_final_states is None else fix_final_states
+
+        for state_name, state_options in p.state_options.items():
+            if state_name in _fis:
+                state_options['fix_initial'] = True
+            else:
+                state_options['fix_initial'] = False
+
+            if state_name in _ffs:
+                state_options['fix_final'] = True
+            else:
+                state_options['fix_final'] = False
+
+        p._timeseries = deepcopy(self._timeseries)
+        p.refine_options = deepcopy(self.refine_options)
+        p.simulate_options = deepcopy(self.simulate_options)
+        p.timeseries_options = deepcopy(self.timeseries_options)
+
+        if boundary_constraints:
+            p._initial_boundary_constraints = deepcopy(self._initial_boundary_constraints)
+            p._final_boundary_constraints = deepcopy(self._final_boundary_constraints)
+
+        if path_constraints:
+            p._path_constraints = deepcopy(self._path_constraints)
+
+        if objectives:
+            p._objectives = deepcopy(self._objectives)
+
+        return p
 
     def initialize(self):
         """
@@ -116,6 +193,40 @@ class Phase(om.Group):
                              desc='Transcription technique of the optimal control problem.')
         self.options.declare('auto_solvers', types=bool, default=True,
                              desc='If True, attempt to automatically assign solvers if necessary.')
+        self.options.declare('time_options', types=TimeOptionsDictionary, default=TimeOptionsDictionary(),
+                             desc='Options for time in this phase.')
+        self.options.declare('state_options', types=dict, default={},
+                             desc='Options for each state in this phase.')
+        self.options.declare('parameter_options', types=dict, default={},
+                             desc='Options for each parameter in this phase.')
+        self.options.declare('control_options', types=dict, default={},
+                             desc='Options for each control in this phase.')
+        self.options.declare('polynomial_control_options', types=dict, default={},
+                             desc='Options for each polynomial control in this phase.')
+
+    @property
+    def time_options(self):
+        return self.options['time_options']
+
+    @time_options.setter
+    def time_options(self, tod: TimeOptionsDictionary):
+        self.options['time_options'] = tod
+
+    @property
+    def state_options(self):
+        return self.options['state_options']
+
+    @property
+    def parameter_options(self):
+        return self.options['parameter_options']
+
+    @property
+    def control_options(self):
+        return self.options['control_options']
+
+    @property
+    def polynomial_control_options(self):
+        return self.options['polynomial_control_options']
 
     def add_state(self, name, units=_unspecified, shape=_unspecified,
                   rate_source=_unspecified, targets=_unspecified,
@@ -2254,9 +2365,92 @@ class Phase(om.Group):
         """
         from .simulation_phase import SimulationPhase
 
-        sim_phase = SimulationPhase(from_phase=self, times_per_seg=times_per_seg, method=method,
-                                    atol=atol, rtol=rtol, first_step=first_step, max_step=max_step,
-                                    reports=reports)
+        # t = deepcopy(self.options['transcription']) if transcription is None else transcription
+        ode_class = self.options['ode_class']
+        ode_init_kwargs = self.options['ode_init_kwargs']
+        auto_solvers = self.options['auto_solvers']
+
+        self_tx = self.options['transcription']
+        num_seg = self_tx.grid_data.num_segments
+        seg_order = self_tx.grid_data.transcription_order
+        seg_ends = self_tx.grid_data.segment_ends
+        compressed = self_tx.grid_data.compressed
+
+        sim_options = self.simulate_options
+
+        _method = method if method is not _unspecified else sim_options['method']
+        _atol = atol if atol is not _unspecified else sim_options['atol']
+        _rtol = rtol if rtol is not _unspecified else sim_options['rtol']
+        _first_step = first_step if first_step is not _unspecified else sim_options['first_step']
+        _max_step = max_step if max_step is not _unspecified else sim_options['max_step']
+        _times_per_seg = times_per_seg if times_per_seg is not _unspecified else sim_options['times_per_seg']
+
+        if isinstance(self_tx, GaussLobatto):
+            grid = GaussLobattoGrid(num_segments=num_seg, nodes_per_seg=seg_order, segment_ends=seg_ends,
+                                    compressed=compressed)
+        elif isinstance(self_tx, Radau):
+            grid = RadauGrid(num_segments=num_seg, nodes_per_seg=seg_order + 1, segment_ends=seg_ends,
+                             compressed=compressed)
+        elif isinstance(self_tx.grid_data, GaussLobattoGrid) or \
+                isinstance(self_tx.grid_data, RadauGrid) or isinstance(self_tx.grid_data, BirkhoffGrid):
+            grid = self_tx.grid_data
+        else:
+            raise RuntimeError(f'Unexpected grid class for {phase_tx.grid_data}. Only phases with GaussLobatto '
+                               f'or Radau grids can be simulated.')
+
+        if _times_per_seg is None:
+            output_grid = None
+        else:
+            output_grid = UniformGrid(num_segments=num_seg, nodes_per_seg=_times_per_seg, segment_ends=seg_ends,
+                                      compressed=compressed)
+
+        tx = ExplicitShooting(propagate_derivs=False,
+                              subprob_reports=reports,
+                              grid=grid,
+                              output_grid=output_grid,
+                              method=_method,
+                              atol=_atol,
+                              rtol=_rtol,
+                              first_step=_first_step,
+                              max_step=_max_step)
+
+        sim_phase = SimulationPhase(transcription=tx,
+                                    ode_class=ode_class,
+                                    ode_init_kwargs=ode_init_kwargs)
+
+        sim_phase.time_options.update(self.time_options)
+        sim_phase.time_options['fix_initial'] = True
+        sim_phase.time_options['fix_duration'] = True
+        sim_phase.time_options['initial_bounds'] = (None, None)
+        sim_phase.time_options['duration_bounds'] = (None, None)
+
+        for state_name, state_options in self.state_options.items():
+            sim_phase.state_options[state_name] = deepcopy(state_options)
+            sim_phase.state_options[state_name]['fix_final'] = False
+            sim_phase.state_options[state_name]['input_initial'] = False
+
+        for param_name, param_options in self.parameter_options.items():
+            sim_phase.parameter_options[param_name] = deepcopy(param_options)
+            sim_phase.parameter_options[param_name]['opt'] = False
+
+        for control_name, control_options in self.control_options.items():
+            sim_phase.control_options[control_name] = deepcopy(control_options)
+            sim_phase.control_options[control_name]['opt'] = False
+
+        for pc_name, pc_options in self.polynomial_control_options.items():
+            sim_phase.polynomial_control_options[pc_name] = deepcopy(pc_options)
+            sim_phase.polynomial_control_options[pc_name]['opt'] = False
+
+        sim_phase._timeseries = {ts_name: ts_options for ts_name, ts_options in self._timeseries.items()
+                                 if ts_name == 'timeseries'}
+
+        for state_name, state_options in sim_phase.state_options.items():
+            state_options['fix_final'] = False
+            state_options['input_initial'] = False
+
+        sim_phase.refine_options = deepcopy(self.refine_options)
+        sim_phase.simulate_options = deepcopy(self.simulate_options)
+        sim_phase.timeseries_options = deepcopy(self.timeseries_options)
 
         return sim_phase
 

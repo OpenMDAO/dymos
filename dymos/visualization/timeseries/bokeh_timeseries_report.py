@@ -1,6 +1,7 @@
 import datetime
 from pathlib import Path
 import os.path
+from numpy import isin
 
 try:
     from bokeh.io import output_notebook, output_file, save, show
@@ -16,6 +17,7 @@ except ImportError:
 
 import openmdao.api as om
 from openmdao.utils.units import conversion_to_base_units
+from openmdao.recorders.sqlite_recorder import format_version, META_KEY_SEP
 import dymos as dm
 
 
@@ -92,7 +94,7 @@ for (var i = 0; i < figures.length; i++) {
 """
 
 
-def _meta_tree_subsys_iter(tree, recurse=True, cls=None):
+def _meta_tree_subsys_iter(tree, recurse=True, cls=None, path=None):
     """
     Yield a generator of local subsystems of this system.
 
@@ -102,6 +104,7 @@ def _meta_tree_subsys_iter(tree, recurse=True, cls=None):
         If True, iterate over the whole tree under this system.
     cls : None, str, or Sequence
         The class of the nodes to be iterated
+    path : The absolute path of the given tree.
 
     Yields
     ------
@@ -112,72 +115,179 @@ def _meta_tree_subsys_iter(tree, recurse=True, cls=None):
     for s in tree['children']:
         if s['type'] != 'subsystem':
             continue
+        else:
+            s['path'] = f'{path}.{s["name"]}' if path else s['name']
+
         if cls is None or s['class'] in _cls:
             yield s
         if recurse:
-            for child in _meta_tree_subsys_iter(s, recurse=True, cls=_cls):
+            for child in _meta_tree_subsys_iter(s, recurse=True, cls=_cls, path=s['path']):
                 yield child
 
 
-def _load_data_sources(prob, solution_record_file=None, simulation_record_file=None):
+def _get_model_options(cr, system, run_number=None):
+    """
+    The the options for system stored in the given case reader.
+    If there is more than one set of model options, this function returns the last recorded ones.
 
+    Parameters
+    ----------
+    cr : CaseReader
+        The CaseReader instance holding the data.
+    system : str or None
+        Pathname of system (None for all systems).
+    run_number : int or None
+        Run_driver or run_model iteration to inspect, if given. If None, return the last available.
+
+    Returns
+    -------
+    dict
+        {system: {key: val}}.
+    """
+    if not cr._system_options:
+        raise RuntimeError('System options were not recorded.')
+
+    comp_options = None
+
+    # need to handle edge case for v11 recording
+    if cr._format_version < 12:
+        SEP = '_'
+    else:
+        SEP = META_KEY_SEP
+
+    for key in cr._system_options:
+        if key.find(SEP) > 0:
+            name, num = key.rsplit(SEP, 1)
+        else:
+            name = key
+            num = 0
+
+        # Get the component associated with the highest run number
+        if name == system and (run_number is None or run_number == int(num)):
+            comp_options = cr._system_options[key]['component_options']
+
+    if comp_options is None:
+        raise ValueError(f'No options found for system {system}')
+
+    return comp_options
+
+
+def _get_trajs_and_phases(cr):
+    trajs = {}
+    traj_cls = 'dymos.trajectory.trajectory:Trajectory'
+    phase_cls = ['dymos.phase.phase:Phase',
+                 'dymos.phase.phase:AnalyticPhase',
+                 'dymos.phase.phase:SimualationPhase']
+
+    traj_nodes = [n for n in _meta_tree_subsys_iter(cr.problem_metadata['tree'], cls=traj_cls)]
+    phase_nodes = [n for n in _meta_tree_subsys_iter(cr.problem_metadata['tree'], cls=phase_cls)]
+
+    for tn in traj_nodes:
+        phase_nodes = [n for n in _meta_tree_subsys_iter(tn, cls=phase_cls, path=tn['path'])]
+        traj_path = tn['path']
+        trajs[traj_path] = {'phases': {}, 'parameter_options': {}, 'name': tn['name']}
+        traj_options = _get_model_options(cr=cr, system=traj_path)
+        for param_name, param_options in traj_options['parameter_options'].items():
+            trajs[traj_path]['parameter_options'][param_name] = param_options
+        for pn in phase_nodes:
+            phase_path = pn['path']
+            phase_options = _get_model_options(cr=cr, system=phase_path)
+            phase_meta = trajs[traj_path]['phases'][phase_path] = {'time_options': None,
+                                                                   'parameter_options': None,
+                                                                   'state_options': None,
+                                                                   'control_options': None,
+                                                                   'polynomial_control_options': None,
+                                                                   'name': pn['name']}
+            phase_meta['time_options'] = phase_options['time_options']
+            phase_meta['parameter_options'] = phase_options['parameter_options']
+            phase_meta['state_options'] = phase_options['state_options']
+            phase_meta['control_options'] = phase_options['control_options']
+            phase_meta['polynomial_control_options'] = phase_options['polynomial_control_options']
+
+    return trajs
+
+
+def _load_data_sources(solution_record_file=None, simulation_record_file=None):
+    """
+    Load the data for the timeseries plots from the given solution and record files.
+
+    Parameters
+    ----------
+    solution_record_file : str
+        The path to the solution record file.
+    sim_record_file : str
+        The path to the corresponding simulation record file.
+
+    Returns
+    -------
+    dict
+        A dictionary containing parameter data, solution timeseries data, simulation timeseries data, and
+        units for each timeseries output.
+    """
+
+    traj_and_phase_meta = None
     data_dict = {}
 
     if Path(solution_record_file).is_file():
         sol_cr = om.CaseReader(solution_record_file)
         sol_case = sol_cr.get_case('final')
-        outputs = {name: meta for name, meta in sol_case.list_outputs(units=True, out_stream=None)}
         abs2prom_map = sol_cr.problem_metadata['abs2prom']
+        traj_and_phase_meta = _get_trajs_and_phases(sol_cr)
     else:
         sol_case = None
 
     if Path(simulation_record_file).is_file():
         sim_cr = om.CaseReader(simulation_record_file)
         sim_case = sim_cr.get_case('final')
-        outputs = {name: meta for name, meta in sim_case.list_outputs(units=True, out_stream=None)}
         abs2prom_map = sim_cr.problem_metadata['abs2prom']
+        if traj_and_phase_meta is None:
+            traj_and_phase_meta = _get_trajs_and_phases(sim_cr)
     else:
         sim_case = None
+
+    source_case = sol_case if sol_case else sim_case
+    outputs = {abs_path: meta for abs_path, meta in source_case.list_outputs(out_stream=None, units=True)}
 
     if sol_cr is None and sim_cr is None:
         om.issue_warning('No recorded data provided. Trajectory results report will not be created.')
         return
 
-    for traj in prob.model.system_iter(include_self=True, recurse=True, typ=dm.Trajectory):
-        traj_name = traj.pathname.split('.')[-1]
-        data_dict[traj_name] = {'param_data_by_phase': {},
-                                'sol_data_by_phase': {},
-                                'sim_data_by_phase': {},
-                                'timeseries_units': {}}
+    for traj_path, traj_data in traj_and_phase_meta.items():
+        traj_params = traj_data['parameter_options']
+        traj_name = traj_data['name']
+        data_dict[traj_data['name']] = {'param_data_by_phase': {},
+                                        'sol_data_by_phase': {},
+                                        'sim_data_by_phase': {},
+                                        'timeseries_units': {}}
 
-        for phase_name, phase in traj._phases.items():
+        for phase_path, phase_data in traj_data['phases'].items():
+            phase_name = phase_data['name']
+            phase_param_data = \
+                data_dict[traj_name]['param_data_by_phase'][phase_name] = \
+                {'param': [], 'val': [], 'units': []}
 
-            data_dict[traj_name]['param_data_by_phase'][phase_name] = {'param': [], 'val': [], 'units': []}
-            phase_sol_data = data_dict[traj_name]['sol_data_by_phase'][phase_name] = {}
-            phase_sim_data = data_dict[traj_name]['sim_data_by_phase'][phase_name] = {}
-            ts_units_dict = data_dict[traj_name]['timeseries_units']
+            phase_sol_data = data_dict[traj_data['name']]['sol_data_by_phase'][phase_name] = {}
+            phase_sim_data = data_dict[traj_data['name']]['sim_data_by_phase'][phase_name] = {}
 
             param_outputs = {op: meta for op, meta in outputs.items()
-                             if op.startswith(f'{phase.pathname}.param_comp.parameter_vals')}
-            param_case = sol_case if sol_case else sim_case
+                             if op.startswith(f'{phase_path}.param_comp.parameter_vals:')}
+            ts_outputs = {op: meta for op, meta in outputs.items()
+                          if op.startswith(f'{phase_path}.timeseries.')}
 
-            for output_name in sorted(param_outputs.keys(), key=str.casefold):
-                meta = param_outputs[output_name]
-                param_dict = data_dict[traj_name]['param_data_by_phase'][phase_name]
-
-                prom_name = abs2prom_map['output'][output_name]
-                param_name = output_name.replace(f'{phase.pathname}.param_comp.parameter_vals:', '', 1)
-
-                param_dict['param'].append(param_name)
-                param_dict['units'].append(meta['units'])
-                param_dict['val'].append(param_case.get_val(prom_name, units=meta['units']))
-
-            ts_outputs = {op: meta for op, meta in outputs.items() if op.startswith(f'{phase.pathname}.timeseries')}
+            # Populate the phase parameter data
+            phase_params = traj_and_phase_meta[traj_path]['phases'][phase_path]['parameter_options']
+            for param_name in sorted(phase_params, key=str.casefold):
+                units = phase_params[param_name]['units']
+                param_path = f'{traj_path}.{phase_name}.parameter_vals:{param_name}'
+                phase_param_data['param'].append(param_name)
+                phase_param_data['units'].append(units)
+                phase_param_data['val'].append(source_case.get_val(param_path, units=units))
 
             # Find the "largest" unit used for any timeseries output across all phases
-            for output_name in sorted(ts_outputs.keys(), key=str.casefold):
-                meta = ts_outputs[output_name]
-                prom_name = abs2prom_map['output'][output_name]
+            ts_units_dict = data_dict[traj_data['name']]['timeseries_units']
+            for abs_name in sorted(ts_outputs.keys(), key=str.casefold):
+                meta = ts_outputs[abs_name]
+                prom_name = meta['prom_name']
                 var_name = prom_name.split('.')[-1]
 
                 if var_name not in ts_units_dict:
@@ -188,16 +298,7 @@ def _load_data_sources(prob, solution_record_file=None, simulation_record_file=N
                     if new_conv_factor < old_conv_factor:
                         ts_units_dict[var_name] = meta['units']
 
-        # Now a second pass through the phases since we know the units in which to plot
-        # each timeseries variable output.
-        for phase_name, phase in traj._phases.items():
-
-            phase_sol_data = data_dict[traj_name]['sol_data_by_phase'][phase_name] = {}
-            phase_sim_data = data_dict[traj_name]['sim_data_by_phase'][phase_name] = {}
-            ts_units_dict = data_dict[traj_name]['timeseries_units']
-
-            ts_outputs = {op: meta for op, meta in outputs.items() if op.startswith(f'{phase.pathname}.timeseries')}
-
+            # Populate the phase timeseries data
             for output_name in sorted(ts_outputs.keys(), key=str.casefold):
                 meta = ts_outputs[output_name]
                 prom_name = abs2prom_map['output'][output_name]
@@ -233,23 +334,23 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
     theme : str
         A valid bokeh theme name to style the report.
     """
+    report_dir = Path(prob.get_reports_dir()) if prob is not None else Path(os.getcwd())
+    if not report_dir.exists():
+        report_dir = Path(os.getcwd())
+
     # For the primary timeseries in each phase in each trajectory, build a set of the pathnames
     # to be plotted.
-    source_data = _load_data_sources(prob, solution_record_file, simulation_record_file)
+    source_data = _load_data_sources(solution_record_file, simulation_record_file)
 
     # Colors of each phase in the plot. Start with the bright colors followed by the faded ones.
     if not _NO_BOKEH:
         colors = bp.d3['Category20'][20][0::2] + bp.d3['Category20'][20][1::2]
         curdoc().theme = theme
 
-    for traj in prob.model.system_iter(include_self=True, recurse=True, typ=dm.Trajectory):
-        traj_name = traj.pathname.split('.')[-1]
-        report_filename = f'{traj.pathname}_results_report.html'
-        report_dir = Path(prob.get_reports_dir())
+    for traj_path, traj_data in source_data.items():
+        traj_name = traj_path.split('.')[-1]
+        report_filename = f'{traj_path}_results_report.html'
         report_path = report_dir / report_filename
-        if not os.path.isdir(report_dir):
-            om.issue_warning(f'Reports directory not available. {report_path} will not be created.')
-            continue
         if _NO_BOKEH:
             with open(report_path, 'wb') as f:
                 f.write("<html>\n<head>\n<title> \nError: bokeh not available</title>\n</head> <body>\n"
@@ -258,21 +359,19 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
             continue
 
         param_tables = []
-        phase_names = []
-
-        for phase_name, phase in traj._phases.items():
-
-            phase_names.append(phase_name)
-
+        phase_names = [k.split('.')[-1] for k in traj_data['param_data_by_phase']]
+        for phase_name, param_data in traj_data['param_data_by_phase'].items():
             # Make the parameter table
-            source = ColumnDataSource(source_data[traj_name]['param_data_by_phase'][phase_name])
             columns = [
                 TableColumn(field='param', title='Parameter'),
                 TableColumn(field='val', title='Value'),
                 TableColumn(field='units', title='Units'),
             ]
-            param_tables.append(DataTable(source=source, columns=columns, index_position=None,
-                                          height=30*len(source.data['param']), sizing_mode='stretch_both'))
+            param_tables.append(DataTable(source=ColumnDataSource(param_data),
+                                          columns=columns,
+                                          index_position=None,
+                                          height=30*len(param_data['param']),
+                                          sizing_mode='stretch_both'))
 
         # Plot the timeseries
         ts_units_dict = source_data[traj_name]['timeseries_units']

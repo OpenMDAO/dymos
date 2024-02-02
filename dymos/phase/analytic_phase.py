@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import openmdao.api as om
 
 from .phase import Phase
@@ -472,3 +474,67 @@ class AnalyticPhase(Phase):
             Simulation cannot be performed on AnalyticPhase.
         """
         raise NotImplementedError('Method set_simulate_options is not available for AnalyticPhase.')
+
+    def duplicate(self, num_nodes=None, boundary_constraints=False, path_constraints=False, objectives=False,
+                  fix_initial_time=False):
+        """
+        Create a copy of this phase where most options and attributes are deep copies of those in the original.
+
+        By default, a deepcopy of the transcription in the original phase is used.
+        Boundary constraints, path constraints, and objectives are _NOT_ copied by default, but the user may opt to do so.
+        By default, initial time is not fixed, nor are the initial or final state values.
+        These also can be overridden with the appropriate arguments.
+
+        Parameters
+        ----------
+        num_nodes : int or None
+            The number of nodes to use in the new phase, or None if it should use the same
+            number as the phase being duplicated.
+        boundary_constraints : bool
+            If True, retain all boundary constraints from the phase to be copied.
+        path_constraints : bool
+            If True, retain all path constraints from the phase to be copied.
+        objectives : bool
+            If True, retain all objectives from the phase to be copied.
+        fix_initial_time : bool
+            If True, fix the initial time of the returned phase.
+
+        Returns
+        -------
+        AnalyticPhase
+            The new phase created by duplicating this one.
+        """
+        nn = num_nodes if num_nodes is not None else self.options['num_nodes']
+        ode_class = self.options['ode_class']
+        ode_init_kwargs = self.options['ode_init_kwargs']
+        auto_solvers = self.options['auto_solvers']
+
+        p = AnalyticPhase(num_nodes=nn, ode_class=ode_class, ode_init_kwargs=ode_init_kwargs,
+                          auto_solvers=auto_solvers)
+
+        p.time_options.update(deepcopy(self.time_options))
+        p.time_options['fix_initial'] = fix_initial_time
+
+        for state_name, state_options in self.state_options.items():
+            p.state_options[state_name] = deepcopy(state_options)
+
+        for param_name, param_options in self.parameter_options.items():
+            p.parameter_options[param_name] = deepcopy(param_options)
+
+        p._timeseries = deepcopy(self._timeseries)
+
+        p.refine_options = deepcopy(self.refine_options)
+        p.simulate_options = deepcopy(self.simulate_options)
+        p.timeseries_options = deepcopy(self.timeseries_options)
+
+        if boundary_constraints:
+            p._initial_boundary_constraints = deepcopy(self._initial_boundary_constraints)
+            p._final_boundary_constraints = deepcopy(self._final_boundary_constraints)
+
+        if path_constraints:
+            p._path_constraints = deepcopy(self._path_constraints)
+
+        if objectives:
+            p._objectives = deepcopy(self._objectives)
+
+        return p
