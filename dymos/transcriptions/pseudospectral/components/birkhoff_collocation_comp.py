@@ -186,7 +186,8 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             if not options['solve_segments']:
                 self.add_constraint(name=var_names['state_defect'],
                                     equals=0.0,
-                                    ref=defect_ref_state)
+                                    ref=defect_ref_state,
+                                    linear=True)
 
                 self.add_constraint(name=var_names['state_rate_defect'],
                                     equals=0.0,
@@ -194,7 +195,8 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
                 self.add_constraint(name=var_names['initial_state_defect'],
                                     equals=0.0,
-                                    ref=defect_ref)
+                                    ref=defect_ref,
+                                    linear=not options['input_initial'])
 
                 self.add_constraint(name=var_names['final_state_defect'],
                                     equals=0.0,
@@ -203,7 +205,8 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
                 if gd.num_segments > 1:
                     self.add_constraint(name=var_names['state_continuity_defect'],
                                         equals=0.0,
-                                        ref=defect_ref)
+                                        ref=defect_ref,
+                                        linear=not options['input_final'])
 
         A_blocks = []
         B_blocks = []
