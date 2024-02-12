@@ -248,12 +248,14 @@ def _load_data_sources(solution_record_file=None, simulation_record_file=None):
         return
 
     if sol_case:
-        sol_outputs = {abs_path: meta for abs_path, meta in sol_case.list_outputs(out_stream=None, units=True) if 'timeseries' in abs_path}
+        sol_outputs = {abs_path: meta for abs_path, meta in
+                       sol_case.list_outputs(out_stream=None, units=True) if 'timeseries' in abs_path}
     else:
         sol_outputs = None
 
     if sim_case:
-        sim_outputs = {abs_path: meta for abs_path, meta in sim_case.list_outputs(out_stream=None, units=True) if 'timeseries' in abs_path}
+        sim_outputs = {abs_path: meta for abs_path, meta in
+                       sim_case.list_outputs(out_stream=None, units=True) if 'timeseries' in abs_path}
     else:
         sim_outputs = None
 

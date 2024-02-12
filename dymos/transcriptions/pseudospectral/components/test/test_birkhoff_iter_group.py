@@ -80,7 +80,7 @@ class TestBirkhoffIterGroup(unittest.TestCase):
                     state_options['x']['rate_source'] = 'x_dot'
 
                     time_options = TimeOptionsDictionary()
-                    grid_data = BirkhoffGrid(num_segments=1, nodes_per_seg=31, grid_type=grid_type)
+                    grid_data = BirkhoffGrid(num_nodes=31, grid_type=grid_type)
                     nn = grid_data.subset_num_nodes['all']
                     ode_class = SimpleODE
 
@@ -140,7 +140,7 @@ class TestBirkhoffIterGroup(unittest.TestCase):
                     state_options['x']['rate_source'] = 'x_dot'
 
                     time_options = TimeOptionsDictionary()
-                    grid_data = BirkhoffGrid(num_segments=1, nodes_per_seg=31, grid_type=grid_type)
+                    grid_data = BirkhoffGrid(num_nodes=31, grid_type=grid_type)
                     nn = grid_data.subset_num_nodes['all']
                     ode_class = SimpleODE
 
@@ -182,3 +182,7 @@ class TestBirkhoffIterGroup(unittest.TestCase):
 
                     cpd = p.check_partials(method='cs', compact_print=True, out_stream=None)
                     assert_check_partials(cpd)
+
+
+if __name__ == '__main__':
+    unittest.main()

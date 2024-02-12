@@ -115,3 +115,6 @@ class TestBrachistochroneExample(unittest.TestCase):
         self.run_asserts(p)
         self.tearDown()
 
+
+if __name__ == '__main__':
+    unittest.main()

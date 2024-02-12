@@ -34,8 +34,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                                  compressed=compressed)
         fix_final = not solve_segments
     elif transcription == 'birkhoff':
-        gd = dm.BirkhoffGrid(num_segments=num_segments, nodes_per_seg=transcription_order,
-                             grid_type=grid_type)
+        gd = dm.BirkhoffGrid(num_nodes=25, grid_type=grid_type)
         transcription = dm.Birkhoff(grid=gd)
         fix_final = not solve_segments
 

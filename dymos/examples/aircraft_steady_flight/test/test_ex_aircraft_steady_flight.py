@@ -117,7 +117,7 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)
 
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=5, nodes_per_seg=5, grid_type='lgl'),
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=25, grid_type='lgl'),
                          solve_segments=False)
         p = ex_aircraft_steady_flight(transcription=tx, optimizer='SLSQP')
         assert_near_equal(p.get_val('phase0.timeseries.range', units='NM')[-1],
