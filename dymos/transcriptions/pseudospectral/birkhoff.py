@@ -37,7 +37,7 @@ class Birkhoff(TranscriptionBase):
         self.options.declare('grid', types=(BirkhoffGrid, str),
                              allow_none=True, default=None,
                              desc='The grid distribution used to layout the control inputs and provide the default '
-                                  'output nodes.')
+                                  'output nodes. Use either "cgl" or "lgl".')
 
         self.options.declare(name='solve_segments', default=False,
                              values=(False, 'forward', 'backward'),
@@ -55,11 +55,9 @@ class Birkhoff(TranscriptionBase):
         """
         Setup the GridData object for the Transcription.
         """
-        if self.options['grid'] in ('gauss-lobatto', None):
-            self.grid_data = BirkhoffGrid(num_segments=self.options['num_segments'],
-                                          nodes_per_seg=self.options['order'],
-                                          segment_ends=self.options['segment_ends'],
-                                          compressed=self.options['compressed'])
+        if self.options['grid'] in ('cgl', None):
+            self.grid_data = BirkhoffGrid(num_nodes=self.options['order'],
+                                          grid_type='cgl')
         else:
             self.grid_data = self.options['grid']
 

@@ -301,7 +301,7 @@ def _load_data_sources(solution_record_file=None, simulation_record_file=None):
             # Populate the phase timeseries data
             for output_name in sorted(ts_outputs.keys(), key=str.casefold):
                 meta = ts_outputs[output_name]
-                prom_name = abs2prom_map['output'][output_name]
+                prom_name = meta['prom_name']
                 var_name = prom_name.split('.')[-1]
 
                 if sol_case:

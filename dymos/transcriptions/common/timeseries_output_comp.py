@@ -179,49 +179,62 @@ class TimeseriesOutputComp(om.ExplicitComponent):
 
         size = np.prod(shape)
 
-        if rate:
-            mat = self.differentiation_matrix
-        else:
-            mat = self.interpolation_matrix
-
-        # Preallocate lists to hold data for jac
-        jac_data = []
-        jac_indices = []
-        jac_indptr = [0]
-
-        # Iterate over the dense dimension 'size'
-        for s in range(size):
-            # Extend the data and indices using the CSR attributes of mat
-            jac_data.extend(mat.data)
-            jac_indices.extend(mat.indices + s * input_num_nodes)
-
-            # For every non-zero row in mat, update jac's indptr
-            new_indptr = mat.indptr[1:] + s * len(mat.data)
-            jac_indptr.extend(new_indptr)
-
-        # Correct the last entry of jac_indptr
-        jac_indptr[-1] = len(jac_data)
-
-        # Construct the sparse jac matrix in CSR format
-        jac = sp.csr_matrix((jac_data, jac_indices, jac_indptr),
-                            shape=(output_num_nodes * size, input_num_nodes * size))
-
-        # Now, if you want to get the row and column indices of the non-zero entries in the jac matrix:
-        jac_rows, jac_cols = jac.nonzero()
-
-        # There's a chance that the input for this output was pulled from another variable with
-        # different units, so account for that with a conversion.
-        val = np.squeeze(np.array(jac[jac_rows, jac_cols]))
+        # Get any scaling that needs to be performed for the derivative
         if input_units is None or units is None:
-            self.declare_partials(of=output_name, wrt=input_name,
-                                  rows=jac_rows, cols=jac_cols, val=val)
+            scale = 1.0
         else:
             scale, offset = unit_conversion(input_units, units)
             self._conversion_factors[output_name] = scale, offset
 
-            self.declare_partials(of=output_name, wrt=input_name,
-                                  rows=jac_rows, cols=jac_cols,
-                                  val=scale * val)
+        if not rate and self._no_interp:
+            # Case 1: No outputs just echo inputs.
+            # Jacobian values are just the scale factor
+            jac_rows = jac_cols = np.arange(input_num_nodes * size, dtype=int)
+            jac_val = scale
+        else:
+            if rate:
+                # Case 2: The output is a rate
+                # Jacobian values depend on the differentiation matrix
+                # This is not well conditioned for large numbers of nodes.
+                mat = self.differentiation_matrix
+            else:
+                # Case 3: the output is an interpolation
+                # Jacobian values depend on the interpolation matrix.
+                # This is subject to noise with large numbers of nodes.
+                mat = self.interpolation_matrix
+
+            # Preallocate lists to hold data for jac
+            jac_data = []
+            jac_indices = []
+            jac_indptr = [0]
+
+            # Iterate over the dense dimension 'size'
+            for s in range(size):
+                # Extend the data and indices using the CSR attributes of mat
+                jac_data.extend(mat.data)
+                jac_indices.extend(mat.indices + s * input_num_nodes)
+
+                # For every non-zero row in mat, update jac's indptr
+                new_indptr = mat.indptr[1:] + s * len(mat.data)
+                jac_indptr.extend(new_indptr)
+
+            # Correct the last entry of jac_indptr
+            jac_indptr[-1] = len(jac_data)
+
+            # Construct the sparse jac matrix in CSR format
+            jac = sp.csr_matrix((jac_data, jac_indices, jac_indptr),
+                                shape=(output_num_nodes * size, input_num_nodes * size))
+
+            # Now, if you want to get the row and column indices of the non-zero entries in the jac matrix:
+            jac_rows, jac_cols = jac.nonzero()
+
+            # There's a chance that the input for this output was pulled from another variable with
+            # different units, so account for that with a conversion.
+            jac_val = np.squeeze(np.array(jac[jac_rows, jac_cols])) * scale
+
+        self.declare_partials(of=output_name, wrt=input_name,
+                              rows=jac_rows, cols=jac_cols,
+                              val=jac_val)
 
         return added_source
 
