@@ -231,7 +231,6 @@ def _load_data_sources(solution_record_file=None, simulation_record_file=None):
     if Path(solution_record_file).is_file():
         sol_cr = om.CaseReader(solution_record_file)
         sol_case = sol_cr.get_case('final')
-        abs2prom_map = sol_cr.problem_metadata['abs2prom']
         traj_and_phase_meta = _get_trajs_and_phases(sol_cr)
     else:
         sol_case = None
@@ -239,18 +238,33 @@ def _load_data_sources(solution_record_file=None, simulation_record_file=None):
     if Path(simulation_record_file).is_file():
         sim_cr = om.CaseReader(simulation_record_file)
         sim_case = sim_cr.get_case('final')
-        abs2prom_map = sim_cr.problem_metadata['abs2prom']
         if traj_and_phase_meta is None:
             traj_and_phase_meta = _get_trajs_and_phases(sim_cr)
     else:
         sim_case = None
 
-    source_case = sol_case if sol_case else sim_case
-    outputs = {abs_path: meta for abs_path, meta in source_case.list_outputs(out_stream=None, units=True)}
-
     if sol_cr is None and sim_cr is None:
         om.issue_warning('No recorded data provided. Trajectory results report will not be created.')
         return
+
+    if sol_case:
+        sol_outputs = {abs_path: meta for abs_path, meta in sol_case.list_outputs(out_stream=None, units=True) if 'timeseries' in abs_path}
+    else:
+        sol_outputs = None
+
+    if sim_case:
+        sim_outputs = {abs_path: meta for abs_path, meta in sim_case.list_outputs(out_stream=None, units=True) if 'timeseries' in abs_path}
+    else:
+        sim_outputs = None
+
+    source_case = sol_case or sim_case
+    outputs = sol_outputs or sim_outputs
+
+    if sim_outputs is not None and sol_outputs is not None:
+        if not set(sim_outputs.keys()).issubset(sol_outputs.keys()):
+            om.issue_warning('Simulation file does not contain the same outputs as the solution '
+                             'file. Skipping plotting of simulation timeseries data.')
+            sim_case = None
 
     for traj_path, traj_data in traj_and_phase_meta.items():
         traj_params = traj_data['parameter_options']
