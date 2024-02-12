@@ -31,8 +31,7 @@ class TestCollocationComp(unittest.TestCase):
     def make_problem(self, grid_type='lgl'):
         dm.options['include_check_partials'] = True
 
-        gd = BirkhoffGrid(num_segments=1, segment_ends=np.array([0., 10.]),
-                          nodes_per_seg=21, grid_type=grid_type)
+        gd = BirkhoffGrid(num_nodes=21, grid_type=grid_type)
         n = gd.subset_num_nodes['col']
         tau = gd.node_stau
         t = 5 * tau + 5
