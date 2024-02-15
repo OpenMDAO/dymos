@@ -2444,10 +2444,6 @@ class Phase(om.Group):
         sim_phase._timeseries = {ts_name: ts_options for ts_name, ts_options in self._timeseries.items()
                                  if ts_name == 'timeseries'}
 
-        for state_name, state_options in sim_phase.state_options.items():
-            state_options['fix_final'] = False
-            state_options['input_initial'] = False
-
         sim_phase.refine_options = deepcopy(self.refine_options)
         sim_phase.simulate_options = deepcopy(self.simulate_options)
         sim_phase.timeseries_options = deepcopy(self.timeseries_options)
