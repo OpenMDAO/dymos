@@ -484,9 +484,7 @@ class TestPolynomialVandermondeControlInterpolation(unittest.TestCase):
 class TestBarycentricControlInterpolationComp(unittest.TestCase):
 
     def test_single_segment(self):
-        grid_data = dm.transcriptions.grid_data.BirkhoffGrid(num_nodes=5, grid_type='lgl')
-        # dm.transcriptions.grid_data.GridData(num_segments=1, transcription='gauss-lobatto',
-        #                                                  transcription_order=[11], compressed=True)
+        grid_data = dm.transcriptions.grid_data.BirkhoffGrid(num_nodes=21, grid_type='cgl')
 
         time_options = dm.phase.options.TimeOptionsDictionary()
 
@@ -510,7 +508,7 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
                                                                          time_units='s'))
         p.setup(force_alloc_complex=True)
 
-        interp_comp.options['segment_index'] = 0
+        interp_comp.set_segment_index(0)
 
         x_sample = (grid_data.node_stau + 1) * np.pi
         p.set_val('interp.controls:u1', np.sin(x_sample))
@@ -531,6 +529,8 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
             rate_results.append(p.get_val('interp.control_rates:u1_rate').ravel()[0])
             rate2_results.append(p.get_val('interp.control_rates:u1_rate2').ravel()[0])
 
+        assert_near_equal(results, truth, tolerance=1.0E-6)
+
         import matplotlib.pyplot as plt
         import matplotlib
         matplotlib.use('MacOSX')
@@ -543,6 +543,9 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
         # Now the second derivatives
         plt.plot(np.linspace(0, 2*np.pi, 101), rate2_results, '.')
         plt.plot(x_truth, truth_rate2, '-')
+        plt.show()
+
+        return
 
         assert_near_equal(p.get_val('interp.control_values:u1'), np.zeros((1, 1)), tolerance=_TOL)
 
