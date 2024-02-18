@@ -312,8 +312,8 @@ if __name__ == '__main__':  # pragma: no cover
     CONNECTED = False
 
     p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                        compressed=False, optimizer=optimizer, simulate=True,
-                                        connected=CONNECTED, show_output=False)
+                                     compressed=False, optimizer=optimizer, simulate=True,
+                                     connected=CONNECTED, show_output=False)
 
     sol_case = om.CaseReader('dymos_solution.db').get_case('final')
     sim_case = om.CaseReader('dymos_simulation.db').get_case('final')

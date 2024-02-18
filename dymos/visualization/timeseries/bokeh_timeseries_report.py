@@ -213,7 +213,7 @@ def _get_model_options_from_problem(problem: Problem, syspath: str, rank=0):
     return system_options
 
 
-def _get_traj_and_phases_from_problem(problem, rank: int=0):
+def _get_traj_and_phases_from_problem(problem, rank: int = 0):
     """Retrieve a dictionary tree structure of all trajectories and phases in the problem.
 
     Parameters
@@ -245,11 +245,13 @@ def _get_traj_and_phases_from_problem(problem, rank: int=0):
                     trajs[traj_path]['phases'][phase_path] = {'name': phase_path.split('.')[-1]}
                     for opt in ('time_options', 'parameter_options', 'state_options',
                                 'control_options', 'polynomial_control_options'):
-                         trajs[traj_path]['phases'][phase_path][opt] = poptions[opt]
+                        trajs[traj_path]['phases'][phase_path][opt] = poptions[opt]
 
     return trajs
 
-def _get_trajs_and_phases_from_cr(cr, problem=None):
+
+# TODO: Enable this function when system methods are correctly stored under MPI
+def _get_trajs_and_phases_from_cr(cr, problem=None):  # pragma: no cover
     """Retrieve dictionaries of the trajectories and phases from the given case reader and problem.
 
     Due to a bug in OpenMDAO, model options may not be available from the case reader. In this case,
@@ -290,11 +292,11 @@ def _get_trajs_and_phases_from_cr(cr, problem=None):
                 phase_path = pn['path']
                 phase_options = _get_model_options_from_cr(cr=cr, syspath=phase_path)
                 phase_meta = trajs[traj_path]['phases'][phase_path] = {'time_options': None,
-                                                                    'parameter_options': None,
-                                                                    'state_options': None,
-                                                                    'control_options': None,
-                                                                    'polynomial_control_options': None,
-                                                                    'name': pn['name']}
+                                                                       'parameter_options': None,
+                                                                       'state_options': None,
+                                                                       'control_options': None,
+                                                                       'polynomial_control_options': None,
+                                                                       'name': pn['name']}
                 phase_meta['time_options'] = phase_options['time_options']
                 phase_meta['parameter_options'] = phase_options['parameter_options']
                 phase_meta['state_options'] = phase_options['state_options']
@@ -501,10 +503,10 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                     TableColumn(field='units', title='Units'),
                 ]
                 param_tables.append(DataTable(source=ColumnDataSource(param_data),
-                                            columns=columns,
-                                            index_position=None,
-                                            height=30*len(param_data['param']),
-                                            sizing_mode='stretch_both'))
+                                              columns=columns,
+                                              index_position=None,
+                                              height=30*len(param_data['param']),
+                                              sizing_mode='stretch_both'))
 
             # Plot the timeseries
             ts_units_dict = source_data[traj_name]['timeseries_units']
@@ -518,14 +520,14 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                 tool_tips = [(f'{x_name}', '$x'), (f'{var_name}', '$y')]
 
                 fig = figure(tools='pan,box_zoom,xwheel_zoom,hover,undo,reset,save',
-                            tooltips=tool_tips,
-                            x_axis_label=f'{x_name} ({ts_units_dict[x_name]})',
-                            y_axis_label=f'{var_name} ({ts_units_dict[var_name]})',
-                            toolbar_location='above',
-                            sizing_mode='stretch_both',
-                            min_height=250, max_height=300,
-                            margin=margin,
-                            **fig_kwargs)
+                             tooltips=tool_tips,
+                             x_axis_label=f'{x_name} ({ts_units_dict[x_name]})',
+                             y_axis_label=f'{var_name} ({ts_units_dict[var_name]})',
+                             toolbar_location='above',
+                             sizing_mode='stretch_both',
+                             min_height=250, max_height=300,
+                             margin=margin,
+                             **fig_kwargs)
                 fig.xaxis.axis_label_text_font_size = '10pt'
                 fig.yaxis.axis_label_text_font_size = '10pt'
                 fig.toolbar.autohide = True
@@ -565,27 +567,25 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
 
             sol_sim_row = row(children=[Div(text='Display data:', sizing_mode='stretch_height'),
                                         sol_sim_toggle],
-                            sizing_mode='stretch_both',
-                            max_height=50)
+                              sizing_mode='stretch_both',
+                              max_height=50)
 
             phase_select = MultiChoice(options=[phase_name for phase_name in phase_names],
-                                    value=[phase_name for phase_name in phase_names],
-                                    sizing_mode='stretch_both',
-                                    min_width=400, min_height=50)
+                                       value=[phase_name for phase_name in phase_names],
+                                       sizing_mode='stretch_both',
+                                       min_width=400, min_height=50)
 
             phase_select_row = row(children=[Div(text='Plot phases:'), phase_select],
-                                sizing_mode='stretch_width')
+                                   sizing_mode='stretch_width')
 
             figures_grid = grid(children=figures, ncols=ncols, sizing_mode='stretch_both')
 
-            ts_layout = column(children=[sol_sim_row,
-                                        phase_select_row,
-                                        figures_grid],
-                            sizing_mode='stretch_both')
+            ts_layout = column(children=[sol_sim_row, phase_select_row, figures_grid],
+                               sizing_mode='stretch_both')
 
             tab_panes = Tabs(tabs=[TabPanel(child=ts_layout, title='Timeseries')] + param_panels,
-                            sizing_mode='stretch_both',
-                            active=0)
+                             sizing_mode='stretch_both',
+                             active=0)
 
             summary = rf'Results of {prob._name}<br>Creation Date: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'
 
@@ -595,17 +595,17 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
 
             sol_sim_toggle.js_on_change("active",
                                         CustomJS(code=_js_show_figures,
-                                                args=dict(figures=figures,
-                                                        sol_sim_toggle=sol_sim_toggle,
-                                                        phase_select=phase_select)))
+                                                 args=dict(figures=figures,
+                                                           sol_sim_toggle=sol_sim_toggle,
+                                                           phase_select=phase_select)))
 
             phase_select.js_on_change("value",
-                                    CustomJS(code=_js_show_figures,
-                                            args=dict(figures=figures,
-                                                        sol_sim_toggle=sol_sim_toggle,
-                                                        phase_select=phase_select)))
+                                      CustomJS(code=_js_show_figures,
+                                               args=dict(figures=figures,
+                                                         sol_sim_toggle=sol_sim_toggle,
+                                                         phase_select=phase_select)))
 
             # Save
 
             save(report_layout, filename=report_path, title=f'trajectory results for {traj_name}',
-                resources=bokeh_resources.INLINE)
+                 resources=bokeh_resources.INLINE)
