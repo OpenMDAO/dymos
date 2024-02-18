@@ -2,14 +2,12 @@ from collections import ChainMap
 import datetime
 from pathlib import Path
 import os.path
-from threading import local
-from numpy import isin
 
 from dymos.trajectory.trajectory import Trajectory
 from dymos.phase.phase import Phase
 
 try:
-    from bokeh.io import output_notebook, output_file, save, show
+    from bokeh.io import save
     from bokeh.layouts import column, grid, row
     from bokeh.models import Legend, DataTable, Div, ColumnDataSource, TableColumn, \
         TabPanel, Tabs, CheckboxButtonGroup, CustomJS, MultiChoice
