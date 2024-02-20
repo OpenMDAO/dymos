@@ -148,7 +148,7 @@ def _get_traj_and_phases_from_problem(problem, rank: int = 0):
         A dictionary for each trajectory containing its parameter options dictionary and
         a subdictionary of phases and their associated options. Under MPI, this dictionary
     """
-    comm_rank = MPI.COMM_WORLD.rank
+    comm_rank = 0 if MPI is None else MPI.COMM_WORLD.rank
     traj_options = _gather_system_options(problem.model, sys_cls=Trajectory, rank=rank)
     phase_options = _gather_system_options(problem.model, sys_cls=Phase, rank=rank)
 
@@ -342,8 +342,8 @@ def _gather_system_options(model, sys_cls=None, rank=0):
         The rank onto which the system options shoud be gathered. The retured
         dictionary of system options will only be valid on this rank.
     """
-    comm_size = MPI.COMM_WORLD.size
-    comm_rank = MPI.COMM_WORLD.rank
+    comm_size = 1 if MPI is None else MPI.COMM_WORLD.size
+    comm_rank = 0 if MPI is None else MPI.COMM_WORLD.rank
 
     system_options = {}
     for subsys in model.system_iter(include_self=True, recurse=True, typ=sys_cls):
@@ -380,7 +380,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
     theme : str
         A valid bokeh theme name to style the report.
     """
-    comm_rank = MPI.COMM_WORLD.rank
+    comm_rank = 0 if MPI is None else MPI.COMM_WORLD.rank
     report_dir = Path(prob.get_reports_dir()) if prob is not None else Path(os.getcwd())
     if not report_dir.exists():
         report_dir = Path(os.getcwd())
