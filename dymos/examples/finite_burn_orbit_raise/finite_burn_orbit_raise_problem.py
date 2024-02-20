@@ -296,7 +296,31 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
             p.set_val('traj.burn2.controls:u1', val=burn2.interp('u1', [0, 0]))
 
     if run_driver or simulate:
-        dm.run_problem(p, run_driver=run_driver, simulate=simulate, restart=restart, make_plots=False,
+        dm.run_problem(p, run_driver=run_driver, simulate=simulate, restart=restart, make_plots=True,
                        solution_record_file=solution_record_file, simulation_record_file=simulation_record_file)
 
     return p
+
+
+if __name__ == '__main__':  # pragma: no cover
+
+    import openmdao.api as om
+    from openmdao.utils.assert_utils import assert_near_equal
+
+    optimizer = 'IPOPT'
+
+    CONNECTED = False
+
+    p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                     compressed=False, optimizer=optimizer, simulate=True,
+                                     connected=CONNECTED, show_output=False)
+
+    sol_case = om.CaseReader('dymos_solution.db').get_case('final')
+    sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
+
+    # The last phase in this case is run in reverse time if CONNECTED=True,
+    # so grab the correct index to test the resulting delta-V.
+    end_idx = 0 if CONNECTED else -1
+
+    assert_near_equal(sol_case.get_val('traj.burn2.timeseries.deltav')[end_idx], 0.3995, tolerance=2.0E-3)
+    assert_near_equal(sim_case.get_val('traj.burn2.timeseries.deltav')[end_idx], 0.3995, tolerance=2.0E-3)
