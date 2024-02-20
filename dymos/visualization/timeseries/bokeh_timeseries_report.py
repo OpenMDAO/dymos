@@ -204,7 +204,7 @@ def _get_trajs_and_phases_from_cr(cr, problem=None):  # pragma: no cover
 
         traj_options = _get_model_options_from_cr(cr=cr, syspath=traj_path)
 
-        if MPI.COMM_WORLD.rank == 0:
+        if MPI and MPI.COMM_WORLD.rank == 0:
             for param_name, param_options in traj_options['parameter_options'].items():
                 trajs[traj_path]['parameter_options'][param_name] = param_options
             for pn in phase_nodes:
