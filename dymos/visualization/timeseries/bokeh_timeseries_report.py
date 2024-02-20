@@ -19,52 +19,10 @@ except ImportError:
     _NO_BOKEH = True
 
 import openmdao.api as om
-from openmdao.core.problem import Problem
-from openmdao.core.system import System
 from openmdao.utils.units import conversion_to_base_units
 from openmdao.utils.mpi import MPI
 from openmdao.recorders.sqlite_recorder import META_KEY_SEP
-import dymos as dm
 
-
-_js_show_renderer = """
-function show_renderer(renderer, phases_to_show, kinds_to_show) {
-    var tags = renderer.tags;
-    for(var k=0; k < tags.length; k++) {
-        if (tags[k].substring(0, 6) == 'phase:') {
-            renderer_phase = tags[k].substring(6);
-            break;
-        }
-    }
-    return ((tags.includes('sol') && kinds_to_show.includes(0)) ||
-            (tags.includes('sim') && kinds_to_show.includes(1))) &&
-           phases_to_show.includes(renderer_phase);
-}
-
-"""
-
-# Javascript Callback when the solution/simulation checkbox buttons are toggled
-# args: (figures)
-_SOL_SIM_TOGGLE_JS = """
-// Loop through figures and toggle the visibility of the renderers
-const active = cb_obj.active;
-var figures = figures;
-var renderer;
-
-for (var i = 0; i < figures.length; i++) {
-    if (figures[i]) {
-        for (var j =0; j < figures[i].renderers.length; j++) {
-            renderer = figures[i].renderers[j]
-            if (renderer.tags.includes('sol')) {
-                renderer.visible = active.includes(0);
-            }
-            else if (renderer.tags.includes('sim')) {
-                renderer.visible = active.includes(1);
-            }
-        }
-    }
-}
-"""
 
 # Javascript Callback when the solution/simulation checkbox buttons are toggled
 # args: (figures)
@@ -174,43 +132,6 @@ def _get_model_options_from_cr(cr, syspath, run_number=None):
         raise KeyError(f'No options found for system {syspath}')
 
 
-def _get_model_options_from_problem(problem: Problem, syspath: str, rank=0):
-    """Retrieve model options for the given system from the given problem instance.
-
-    Retrieve the options for the system with the given pathname
-    If there is more than one set of model options, this function returns the last recorded ones.
-
-    Parameters
-    ----------
-    problem : Problem
-        The problem instance
-    syspath : str
-        Pathname of system whose options are requested.
-    rank : int
-        The MPI rank to which the system options are gathered.
-
-    Returns
-    -------
-    dict{system: {key: val}}
-        The model options dictionary for the given system.
-    """
-    if MPI.COMM_WORLD.size == 1:
-        for subsys in problem.model.system_iter(recurse=True, include_self=True):
-            if subsys.pathname == syspath:
-                system_options = subsys.options
-        else:
-            raise KeyError(f'No options found for system {syspath}')
-    else:
-        # If operating in parallel under MPI, gether data from every rank and send it back to zero.
-        for subsys in problem.model.system_iter(recurse=True, include_self=True):
-            if subsys.pathname == syspath:
-                local_system_options = subsys.options
-                break
-
-        system_options = MPI.COMM_WORLD.gather(local_system_options, rank)
-    return system_options
-
-
 def _get_traj_and_phases_from_problem(problem, rank: int = 0):
     """Retrieve a dictionary tree structure of all trajectories and phases in the problem.
 
@@ -248,7 +169,7 @@ def _get_traj_and_phases_from_problem(problem, rank: int = 0):
     return trajs
 
 
-# TODO: Enable this function when system methods are correctly stored under MPI
+# TODO: Enable this function when system options are correctly stored under MPI
 def _get_trajs_and_phases_from_cr(cr, problem=None):  # pragma: no cover
     """Retrieve dictionaries of the trajectories and phases from the given case reader and problem.
 
