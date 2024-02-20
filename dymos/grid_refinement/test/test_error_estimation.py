@@ -94,7 +94,7 @@ class TestBrachistochroneExample(unittest.TestCase):
 
                         phase = p.model.traj0.phases.phase0
 
-                        x, u, p, f = eval_ode_on_grid(phase, phase.options['transcription'])
+                        x, u, pp, f = eval_ode_on_grid(phase, phase.options['transcription'])
 
                         t_duration = phase.get_val('t_duration')
 
@@ -113,7 +113,7 @@ class TestBrachistochroneExample(unittest.TestCase):
                         for name, options in phase.polynomial_control_options.items():
                             p_solution = phase.get_val(f'timeseries.polynomial_controls:{name}')
                             print(f'{name} interpolation error',
-                                  max(np.abs(p[name].ravel() - p_solution.ravel())))
+                                  max(np.abs(pp[name].ravel() - p_solution.ravel())))
 
                         for name, options in phase.state_options.items():
                             x_solution = phase.get_val(f'timeseries.states:{name}')
