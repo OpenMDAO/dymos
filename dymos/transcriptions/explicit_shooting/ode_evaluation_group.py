@@ -3,6 +3,7 @@ import numpy as np
 import openmdao.api as om
 
 from .vandermonde_control_interp_comp import VandermondeControlInterpComp
+from .barycentric_control_interp_comp import BarycentricControlInterpComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from .tau_comp import TauComp
 
@@ -35,6 +36,9 @@ class ODEEvaluationGroup(om.Group):
         For each polynomial variable, a dictionary of its options, keyed by name.
     ode_init_kwargs : dict
         A dictionary of keyword arguments to be passed to the instantiation of the ODE.
+    compute_derives : bool
+        If True, the derivatives need to be computed for propagation. In some cases,
+        signficant setup time can be saved by skipping derivatives if not needed.
     vec_size : int
         The number of points at which the ODE is simultaneously evaluated.
     **kwargs : dict
@@ -42,7 +46,7 @@ class ODEEvaluationGroup(om.Group):
     """
 
     def __init__(self, ode_class, input_grid_data, time_options, state_options, parameter_options, control_options,
-                 polynomial_control_options, ode_init_kwargs=None, vec_size=1, **kwargs):
+                 polynomial_control_options, ode_init_kwargs=None, compute_derivs=True, vec_size=1, **kwargs):
         super().__init__(**kwargs)
 
         # This component creates copies of the variable options from the phase.
@@ -59,6 +63,7 @@ class ODEEvaluationGroup(om.Group):
         self._polynomial_control_interpolants = {}
         self._ode_class = ode_class
         self._input_grid_data = input_grid_data
+        self._compute_derivs = compute_derivs
         self._vec_size = vec_size
         self._ode_init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
 
@@ -75,7 +80,7 @@ class ODEEvaluationGroup(om.Group):
 
         control_interp_comp = self._get_subsystem('control_interp')
         if control_interp_comp:
-            control_interp_comp.options['segment_index'] = seg_idx
+            control_interp_comp.set_segment_index(seg_idx)
 
     def setup(self):
         """
@@ -102,11 +107,12 @@ class ODEEvaluationGroup(om.Group):
 
             # Add control interpolant
             self._control_comp = self.add_subsystem('control_interp',
-                                                    VandermondeControlInterpComp(grid_data=igd,
+                                                    BarycentricControlInterpComp(grid_data=igd,
                                                                                  vec_size=self._vec_size,
                                                                                  control_options=c_options,
                                                                                  polynomial_control_options=pc_options,
-                                                                                 time_units=t_units),
+                                                                                 time_units=t_units,
+                                                                                 compute_derivs=compute_derivs),
                                                     promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
 
         self.add_subsystem('ode', self._ode_class(num_nodes=self._vec_size, **self._ode_init_kwargs))

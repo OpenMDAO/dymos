@@ -189,6 +189,12 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         if self._standalone_mode:
             self.configure_io()
 
+    def set_segment_index(self, idx):
+        """
+        Set the active segment index for control interpolation.
+        """
+        self.options['segment_index'] = idx
+
     def configure_io(self):
         """
         I/O creation is delayed until configure so we can determine shape and units for the controls.

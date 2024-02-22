@@ -65,12 +65,12 @@ def _compute_dl_dg(tau: float,
                             d2l_dg2[i, j, k] = d2l_dg2[j, i, k] = val
                             if d3l_dg3 is not None:
                                 # We only need this if derivs of second deriv wrt tau are needed.
-                                for ii in range(k+1, n):
+                                for ii in range(k + 1, n):
                                     if ii not in {i, j, k}:
                                         val = np.prod(np.delete(g, [i, j, k, ii]))
                                         d3l_dg3[i, j, k, ii] = d3l_dg3[j, i, k, ii] = \
-                                            d3l_dg3[i, j, k, ii] = d3l_dg3[j, i, ii, k] = val
-
+                                            d3l_dg3[i, j, k, ii] = d3l_dg3[j, i, k, ii] = \
+                                                d3l_dg3[i, j, ii, k] = d3l_dg3[j, i, ii, k] = val
 
 class BarycentricControlInterpComp(om.ExplicitComponent):
     """A component which interpolates control values in 1D using Vandermonde interpolation.
@@ -104,12 +104,16 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         Keyword arguments passed to ExplicitComponent.
     """
     def __init__(self, grid_data, control_options=None, polynomial_control_options=None,
-                 time_units=None, standalone_mode=False, **kwargs):
+                 time_units=None, standalone_mode=False, compute_derivs=True, **kwargs):
         self._grid_data = grid_data
         self._control_options = {} if control_options is None else control_options
         self._polynomial_control_options = {} if polynomial_control_options is None else polynomial_control_options
         self._time_units = time_units
         self._standalone_mode = standalone_mode
+        self._compute_derivs = compute_derivs
+        self._under_complex_step_prev = False
+
+        self._inputs_hash_cache = None
 
         # Storage for the Vandermonde matrix and its inverse for each control
         self._V_hat = {}
@@ -140,39 +144,42 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
                              desc='number of points at which the control will be evaluated. This is not'
                                   'necessarily the same as the number of nodes in the GridData.')
 
-    def set_segment_index(self, idx):
+    def set_segment_index(self, idx, alloc_complex=False):
         """Set the index of the segment being interpolated.
 
         Parameters
         ----------
         idx : int
             The index of the segment being interpolated.
+        alloc_complex : bool
+            If True, allocate storage for complex step.
         """
-        if idx == self.options['segment_index']:
-            return
+        # if idx == self.options['segment_index']:
+        #     return
 
         self.options['segment_index'] = idx
         disc_node_idxs = self._disc_node_idxs_by_segment[idx]
         taus_seg = self._grid_data.node_stau[disc_node_idxs]
         n = len(taus_seg)
         self._compute_barycentric_weights(taus_seg)
+        dtype = complex if alloc_complex else float
 
-        self._l = {'controls': np.ones(n, dtype=float)}
-        self._dl_dg = {'controls': np.zeros((n, n), dtype=float)}
-        self._d2l_dg2 = {'controls': np.zeros((n, n, n), dtype=float)}
-        self._d3l_dg3 = {'controls': np.zeros((n, n, n, n), dtype=float)}
-        self._dl_dtau = {'controls': np.ones((n, 1), dtype=float)}
-        self._d2l_dtau2 = {'controls': np.ones((n, 1), dtype=float)}
-        self._d3l_dtau3 = {'controls': np.ones((n, 1), dtype=float)}
+        self._l = {'controls': np.ones(n, dtype=dtype)}
+        self._dl_dg = {'controls': np.zeros((n, n), dtype=dtype)}
+        self._d2l_dg2 = {'controls': np.zeros((n, n, n), dtype=dtype)}
+        self._d3l_dg3 = {'controls': np.zeros((n, n, n, n), dtype=dtype)}
+        self._dl_dtau = {'controls': np.ones((n, 1), dtype=dtype)}
+        self._d2l_dtau2 = {'controls': np.ones((n, 1), dtype=dtype)}
+        self._d3l_dtau3 = {'controls': np.ones((n, 1), dtype=dtype) if self._compute_derivs else None}
 
         for pc_name, pc_options in self._polynomial_control_options.items():
-            self._l[pc_name] = np.ones(n, dtype=float)
-            self._dl_dg[pc_name] = np.zeros((n, n), dtype=float)
-            self._d2l_dg2[pc_name] = np.zeros((n, n, n), dtype=float)
-            self._d3l_dg3[pc_name] = np.zeros((n, n, n, n), dtype=float)
-            self._dl_dstau[pc_name] = np.ones((n, 1), dtype=float)
-            self._d2l_dstau2[pc_name] = np.ones((n, 1), dtype=float)
-            self._d3l_dstau3[pc_name] = np.ones((n, 1), dtype=float)
+            self._l[pc_name] = np.ones(n, dtype=dtype)
+            self._dl_dg[pc_name] = np.zeros((n, n), dtype=dtype)
+            self._d2l_dg2[pc_name] = np.zeros((n, n, n), dtype=dtype)
+            self._d3l_dg3[pc_name] = np.zeros((n, n, n, n), dtype=dtype)
+            self._dl_dstau[pc_name] = np.ones((n, 1), dtype=dtype)
+            self._d2l_dstau2[pc_name] = np.ones((n, 1), dtype=dtype)
+            self._d3l_dstau3[pc_name] = np.ones((n, 1), dtype=dtype)
 
     def _configure_controls(self):
         vec_size = self.options['vec_size']
@@ -321,6 +328,89 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         for j in range(n):
             self._w_b['controls'][j, 0] = 1 / np.prod(taus[j] - np.delete(taus, j))
 
+    def _compute_controls(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+        """
+        Compute interpolated control values and rates for the collocated controls.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        discrete_inputs : `Vector`
+            `Vector` containing discrete_inputs.
+        discrete_outputs : `Vector`
+            `Vector` containing discrete_outputs.
+        """
+        if self._control_options:
+            gd = self._grid_data
+            seg_idx = self.options['segment_index']
+            stau = inputs['stau']
+            dstau_dt = inputs['dstau_dt']
+
+            disc_node_idxs = self._disc_node_idxs_by_segment[seg_idx]
+            input_node_idxs = self._input_node_idxs_by_segment[seg_idx]
+            # V_stau = np.vander(stau, N=n, increasing=True)
+            # dV_stau, dV2_stau, _ = self._dvander(V_stau)
+            taus_seg = gd.node_stau[disc_node_idxs]
+
+            # Retrieve the storage vectors that pertain to the collocated controls
+            l = self._l['controls']
+            dl_dg = self._dl_dg['controls']
+            d2l_dg2 = self._d2l_dg2['controls']
+            d3l_dg3 = self._d3l_dg3['controls']
+
+            dl_dstau = self._dl_dtau['controls']
+            d2l_dstau2 = self._d2l_dtau2['controls']
+            d3l_dstau3 = self._d3l_dtau3['controls']
+            w_b = self._w_b['controls']
+            n = len(w_b)
+
+            _compute_dl_dg(stau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3=d3l_dg3)  # TODO: change d3l_dg back to None
+
+            # Equivalent of multiplying dl_dg @ dg_dtau, where dg_dtau is a column vector of n ones.
+            dl_dstau[...] = np.sum(dl_dg, axis=-1, keepdims=True)
+
+            # d2l_dg @ dg_dtau + dl_dg @ d2g_dtau2 but d2g_dtau2 is zero.
+            d2l_dstau2[...] = np.sum(np.sum(d2l_dg2, axis=-1), axis=-1, keepdims=True)
+
+            # d3l_dg @ dg_dtau
+            #d3l_dstau3[...] = np.sum(np.sum(np.sum(d3l_dg3, axis=-1), axis=-1), axis=-1, keepdims=True)
+
+            L_seg = self._L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
+                                input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
+
+            for control_name, options in self._control_options.items():
+                input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
+
+
+                # Translate the input nodes to the discretization nodes.
+                u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
+
+                # Perform a row_wise multiplication of w_b and u_hat
+                wbuhat = np.einsum("ij,i...->i...", w_b, u_hat)
+
+                outputs[output_name] = np.einsum('i...,i...->...', l, wbuhat)
+                outputs[rate_name] = wbuhat.T @ dl_dstau * dstau_dt
+                outputs[rate2_name] = wbuhat.T @ d2l_dstau2 * dstau_dt ** 2
+                # outputs[rate2_name] = wbuhat.T @ d3l_dstau3 * dstau_dt ** 3
+
+                # if self.under_complex_step:
+                #     print()
+                #     print(np.imag(stau))
+                #     print()
+                #     print(w_b.T)
+                #     print()
+                #     print(np.imag(d2l_dstau2)/1.E-40)
+                #     print()
+                #     print(np.real(d3l_dstau3))
+
+
+                #     print(np.imag(outputs[rate2_name]) / np.imag(stau))
+                #     print(np.real(outputs[rate2_name]))
+                #     exit(0)
+
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """
         Compute interpolated control values and rates.
@@ -336,16 +426,53 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         discrete_outputs : `Vector`
             `Vector` containing discrete_outputs.
         """
-        gd = self._grid_data
-        seg_idx = self.options['segment_index']
-        n = gd.transcription_order[seg_idx]
-        stau = inputs['stau']
-        dstau_dt = inputs['dstau_dt']
-        ptau = inputs['ptau']
-        dptau_dt = 2 / inputs['t_duration']
+        if self.under_complex_step != self._under_complex_step_prev:
+            self.set_segment_index(self.options['segment_index'], alloc_complex=self.under_complex_step)
+            self._under_complex_step_prev = self.under_complex_step
 
+        inputs_hash = inputs.get_hash()
+        if inputs_hash != self._inputs_hash_cache:
+            # Do the compute if our inputs have changed
+            self._compute_controls(inputs, outputs, discrete_inputs, discrete_outputs)
+            # self._compute_polynomial_controls(inputs, outputs, discrete_inputs, discrete_outputs)
+
+            self._inputs_hash_cache = inputs_hash
+
+
+
+        # for pc_name, options in self._polynomial_control_options.items():
+        #     input_name, output_name, rate_name, rate2_name = self._control_io_names[pc_name]
+        #     order = options['order']
+        #     V_ptau = np.vander(ptau, N=order+1, increasing=True)
+        #     dV_ptau, dV2_ptau, _ = self._dvander(V_ptau)
+        #     a = np.atleast_2d(self._V_hat_inv[order] @ inputs[input_name])
+        #     u_hat = np.dot(L_seg, inputs[input_name])
+        #     outputs[output_name] = V_ptau @ a
+        #     outputs[rate_name] = dptau_dt * (dV_ptau @ a)
+        #     outputs[rate2_name] = dptau_dt**2 * (dV2_ptau @ a)
+
+    def _compute_partials_controls(self, inputs, partials, discrete_inputs=None):
+        """
+        Compute partials of interpolated control values and rates for the collocated controls.
+
+        Parameters
+        ----------
+        inputs : `Vector`
+            `Vector` containing inputs.
+        outputs : `Vector`
+            `Vector` containing outputs.
+        discrete_inputs : `Vector`
+            `Vector` containing discrete_inputs.
+        discrete_outputs : `Vector`
+            `Vector` containing discrete_outputs.
+        """
         if self._control_options:
-            seg_order = n - 1
+            gd = self._grid_data
+            seg_idx = self.options['segment_index']
+            n = gd.transcription_order[seg_idx]
+            stau = inputs['stau']
+            dstau_dt = inputs['dstau_dt']
+
             disc_node_idxs = self._disc_node_idxs_by_segment[seg_idx]
             input_node_idxs = self._input_node_idxs_by_segment[seg_idx]
             # V_stau = np.vander(stau, N=n, increasing=True)
@@ -356,21 +483,23 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             l = self._l['controls']
             dl_dg = self._dl_dg['controls']
             d2l_dg2 = self._d2l_dg2['controls']
+            d3l_dg3 = self._d3l_dg3['controls']
             dl_dstau = self._dl_dtau['controls']
             d2l_dstau2 = self._d2l_dtau2['controls']
+            d3l_dstau3 = self._d3l_dtau3['controls']
             w_b = self._w_b['controls']
 
-            _compute_dl_dg(stau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3=None)
+            _compute_dl_dg(stau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3)
 
             # Equivalent of multiplying dl_dg @ dg_dtau, where dg_dtau is a column vector of n ones.
             dl_dstau[...] = np.sum(dl_dg, axis=-1, keepdims=True)
 
             # d2l_dg @ dg_dtau + dl_dg @ d2g_dtau2 but d2g_dtau2 is zero.
             d2l_dstau2[...] = np.sum(np.sum(d2l_dg2, axis=-1), axis=-1, keepdims=True)
-            # self._d3l_dstau3[...] = np.sum(np.sum(np.sum(self._d3l_dg3, axis=-1), axis=-1), axis=-1, keepdims=True)
+            d3l_dstau3[...] = np.sum(np.sum(np.sum(d3l_dg3, axis=-1), axis=-1), axis=-1, keepdims=True)
 
             L_seg = self._L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
-                               input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
+                                input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
 
             for control_name, options in self._control_options.items():
                 input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
@@ -381,20 +510,50 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
                 # Perform a row_wise multiplication of w_b and u_hat
                 wbuhat = np.einsum("ij,i...->i...", w_b, u_hat)
 
-                outputs[output_name] = np.einsum('i...,i...->...', l, wbuhat)
-                outputs[rate_name] = wbuhat.T @ dl_dstau * dstau_dt
-                outputs[rate2_name] = wbuhat.T @ d2l_dstau2 * dstau_dt ** 2
+                # outputs[output_name] = np.einsum('i...,i...->...', l, wbuhat)
 
-        for pc_name, options in self._polynomial_control_options.items():
-            input_name, output_name, rate_name, rate2_name = self._control_io_names[pc_name]
-            order = options['order']
-            V_ptau = np.vander(ptau, N=order+1, increasing=True)
-            dV_ptau, dV2_ptau, _ = self._dvander(V_ptau)
-            a = np.atleast_2d(self._V_hat_inv[order] @ inputs[input_name])
-            u_hat = np.dot(L_seg, inputs[input_name])
-            outputs[output_name] = V_ptau @ a
-            outputs[rate_name] = dptau_dt * (dV_ptau @ a)
-            outputs[rate2_name] = dptau_dt**2 * (dV2_ptau @ a)
+                partials[output_name, 'stau'] = 0.0
+                partials[output_name, 'stau'] = dl_dstau.T @ wbuhat
+
+                partials[rate_name, 'stau'] = d2l_dstau2.T @ wbuhat * dstau_dt
+                partials[rate_name, 'dstau_dt'] = partials[output_name, 'stau']
+
+                partials[rate2_name, 'stau'] = d3l_dstau3.T @ wbuhat * dstau_dt ** 2
+                partials[rate2_name, 'dstau_dt'] = 2 * wbuhat.T @ d2l_dstau2 * dstau_dt
+
+                # Assign only thos jacobian columns due to the current segment, since
+                # other segments cannot impact interpolation in this one.
+                partials[output_name, input_name] = 0.0
+                partials[output_name, input_name][..., input_node_idxs] = \
+                    (L_seg @ (l * w_b.T).T).T
+
+                partials[rate_name, input_name] = 0.0
+                partials[rate_name, input_name][..., input_node_idxs] = \
+                    (dl_dstau * w_b * dstau_dt).T
+
+                partials[rate2_name, input_name] = 0.0
+                partials[rate2_name, input_name][..., input_node_idxs] = \
+                    (d2l_dstau2 * w_b * dstau_dt ** 2).T
+
+                # partials[output_name, input_name] = L_seg @ l @ w_b.T
+                # d_dwbuhat = np.einsum('j...,i...->ji...', l, np.eye(n))
+                # # partials[output_name, input_name] = L_seg @ d_dwbuhat
+                # print()
+                # print(d_dwbuhat.shape)
+                # print(L_seg.shape)
+                # do_di = L_seg @ d_dwbuhat
+                # with np.printoptions(linewidth=1024, edgeitems=1024):
+                #     import matplotlib.pyplot as plt
+                #     print(d_dwbuhat)
+                #     plt.imshow(d_dwbuhat)
+                # # print(L_seg @ d_dwbuhat)
+                # exit(0)
+
+                # partials[rate_name, input_name] = 0.0
+                # partials[rate_name, input_name] = wbuhat.T @ dl_dstau * dstau_dt
+
+                # partials[rate2_name, input_name] = 0.0
+                # partials[rate2_name, input_name] = wbuhat.T @ d2l_dstau2 * dstau_dt ** 2
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
         """
@@ -418,73 +577,62 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         dptau_dt = 2.0 / t_duration
         ddptau_dt_dtduration = -2.0 / t_duration**2
 
-        if self._control_options:
-            u_idxs = self._input_node_idxs_by_segment[seg_idx]
-            seg_order = self._grid_data.transcription_order[seg_idx] - 1
+        self._compute_partials_controls(inputs, partials, discrete_inputs)
 
-            V_stau = np.vander(stau, N=n, increasing=True)
-            dV_stau, dV2_stau, dV3_stau = self._dvander(V_stau)
+            # for control_name, options in self._control_options.items():
+            #     input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
 
-            disc_node_idxs = self._disc_node_idxs_by_segment[seg_idx]
-            input_node_idxs = self._input_node_idxs_by_segment[seg_idx]
+            #     u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs].real)
+            #     a = self._V_hat_inv[seg_order] @ u_hat
 
-            L_seg = self._L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
-                               input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
+            #     da_duhat = self._V_hat_inv[seg_order] @ L_seg
+            #     dV_a = dV_stau @ a
+            #     dV2_a = dV2_stau @ a
+            #     dV3_a = dV3_stau @ a
 
-            for control_name, options in self._control_options.items():
-                input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
+            #     partials[output_name, input_name][...] = 0.0
+            #     partials[output_name, input_name][..., u_idxs] = V_stau @ da_duhat
+            #     partials[output_name, 'stau'] = dV_a.ravel()
 
-                u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs].real)
-                a = self._V_hat_inv[seg_order] @ u_hat
+            #     pudot_pa = dstau_dt * dV_stau
+            #     pa_puhat = self._V_hat_inv[seg_order]
+            #     partials[rate_name, input_name][...] = 0.0
+            #     partials[rate_name, input_name][..., u_idxs] = pudot_pa @ pa_puhat
+            #     partials[rate_name, 'dstau_dt'][...] = dV_a
+            #     partials[rate_name, 'stau'][...] = dV2_a.ravel()
 
-                da_duhat = self._V_hat_inv[seg_order] @ L_seg
-                dV_a = dV_stau @ a
-                dV2_a = dV2_stau @ a
-                dV3_a = dV3_stau @ a
+            #     pu2dot_pa = dstau_dt**2 * dV2_stau
+            #     partials[rate2_name, input_name][...] = 0.0
+            #     partials[rate2_name, input_name][..., u_idxs] = pu2dot_pa @ pa_puhat
+            #     partials[rate2_name, 'dstau_dt'][...] = 2 * dstau_dt * dV2_a
+            #     partials[rate2_name, 'stau'][...] = dV3_a.ravel()
 
-                partials[output_name, input_name][...] = 0.0
-                partials[output_name, input_name][..., u_idxs] = V_stau @ da_duhat
-                partials[output_name, 'stau'] = dV_a.ravel()
+        # for pc_name, options in self._polynomial_control_options.items():
+        #     input_name, output_name, rate_name, rate2_name = self._control_io_names[pc_name]
+        #     order = options['order']
 
-                pudot_pa = dstau_dt * dV_stau
-                pa_puhat = self._V_hat_inv[seg_order]
-                partials[rate_name, input_name][...] = 0.0
-                partials[rate_name, input_name][..., u_idxs] = pudot_pa @ pa_puhat
-                partials[rate_name, 'dstau_dt'][...] = dV_a
-                partials[rate_name, 'stau'][...] = dV2_a.ravel()
+        #     V_ptau = np.vander(ptau, N=order+1, increasing=True)
+        #     dV_ptau, dV2_ptau, dV3_ptau = self._dvander(V_ptau)
 
-                pu2dot_pa = dstau_dt**2 * dV2_stau
-                partials[rate2_name, input_name][...] = 0.0
-                partials[rate2_name, input_name][..., u_idxs] = pu2dot_pa @ pa_puhat
-                partials[rate2_name, 'dstau_dt'][...] = 2 * dstau_dt * dV2_a
-                partials[rate2_name, 'stau'][...] = dV3_a.ravel()
+        #     u_hat = inputs[input_name].real
+        #     a = self._V_hat_inv[order] @ u_hat
 
-        for pc_name, options in self._polynomial_control_options.items():
-            input_name, output_name, rate_name, rate2_name = self._control_io_names[pc_name]
-            order = options['order']
+        #     dV_a = dV_ptau @ a
+        #     dV2_a = dV2_ptau @ a
+        #     dV3_a = dV3_ptau @ a
 
-            V_ptau = np.vander(ptau, N=order+1, increasing=True)
-            dV_ptau, dV2_ptau, dV3_ptau = self._dvander(V_ptau)
+        #     da_duhat = self._V_hat_inv[order]
 
-            u_hat = inputs[input_name].real
-            a = self._V_hat_inv[order] @ u_hat
+        #     partials[output_name, input_name][...] = V_ptau @ da_duhat
+        #     partials[output_name, 'ptau'][...] = dV_a.ravel()
 
-            dV_a = dV_ptau @ a
-            dV2_a = dV2_ptau @ a
-            dV3_a = dV3_ptau @ a
+        #     pudot_pa = dptau_dt * dV_ptau
+        #     pa_puhat = self._V_hat_inv[order]
+        #     partials[rate_name, input_name][...] = pudot_pa @ pa_puhat
+        #     partials[rate_name, 't_duration'][...] = ddptau_dt_dtduration * dV_a
+        #     partials[rate_name, 'ptau'][...] = dptau_dt * dV2_a.ravel()
 
-            da_duhat = self._V_hat_inv[order]
-
-            partials[output_name, input_name][...] = V_ptau @ da_duhat
-            partials[output_name, 'ptau'][...] = dV_a.ravel()
-
-            pudot_pa = dptau_dt * dV_ptau
-            pa_puhat = self._V_hat_inv[order]
-            partials[rate_name, input_name][...] = pudot_pa @ pa_puhat
-            partials[rate_name, 't_duration'][...] = ddptau_dt_dtduration * dV_a
-            partials[rate_name, 'ptau'][...] = dptau_dt * dV2_a.ravel()
-
-            pu2dot_pa = dptau_dt ** 2 * dV2_ptau
-            partials[rate2_name, input_name][...] = pu2dot_pa @ pa_puhat
-            partials[rate2_name, 't_duration'][...] = 2 * dptau_dt * ddptau_dt_dtduration * dV2_a
-            partials[rate2_name, 'ptau'][...] = dptau_dt**2 * dV3_a.ravel()
+        #     pu2dot_pa = dptau_dt ** 2 * dV2_ptau
+        #     partials[rate2_name, input_name][...] = pu2dot_pa @ pa_puhat
+        #     partials[rate2_name, 't_duration'][...] = 2 * dptau_dt * ddptau_dt_dtduration * dV2_a
+        #     partials[rate2_name, 'ptau'][...] = dptau_dt**2 * dV3_a.ravel()
