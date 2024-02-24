@@ -4,10 +4,15 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
+from sympy import Poly, poly
 import dymos as dm
 
+from dymos.utils.lgl import lgl
 from dymos.transcriptions.explicit_shooting.vandermonde_control_interp_comp import VandermondeControlInterpComp
 from dymos.transcriptions.explicit_shooting.barycentric_control_interp_comp import BarycentricControlInterpComp
+
+from dymos.phase.options import TimeOptionsDictionary, ControlOptionsDictionary, \
+    PolynomialControlOptionsDictionary
 
 _TOL = 1.0E-8
 
@@ -429,7 +434,7 @@ class TestPolynomialVandermondeControlInterpolation(unittest.TestCase):
 
         time_options['units'] = 's'
 
-        pc_options = {'u1': dm.phase.options.PolynomialControlOptionsDictionary()}
+        pc_options = {'u1': dm.phase.options.PolyomialControlOptionsDictionary()}
 
         pc_options['u1']['shape'] = (1,)
         pc_options['u1']['units'] = 'rad'
@@ -486,24 +491,27 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
     def test_single_segment(self):
         grid_data = dm.transcriptions.grid_data.BirkhoffGrid(num_nodes=21, grid_type='cgl')
 
-        time_options = dm.phase.options.TimeOptionsDictionary()
+        time_options = TimeOptionsDictionary()
 
         time_options['units'] = 's'
 
-        control_options = {'u1': dm.phase.options.ControlOptionsDictionary()}
+        control_options = {'u1': ControlOptionsDictionary()}
 
         control_options['u1']['shape'] = (1,)
         control_options['u1']['units'] = 'rad'
 
+        polynomial_control_options = {'p1': PolynomialControlOptionsDictionary()}
+
+        polynomial_control_options['p1']['shape'] = (1,)
+        polynomial_control_options['p1']['order'] = 5
+        polynomial_control_options['p1']['units'] = 'kW'
+
         p = om.Problem()
-        # interp_comp = p.model.add_subsystem('interp',
-        #                                     VandermondeControlInterpComp(grid_data=grid_data,
-        #                                                                  control_options=control_options,
-        #                                                                  standalone_mode=True,
-        #                                                                  time_units='s'))
+
         interp_comp = p.model.add_subsystem('interp',
                                             BarycentricControlInterpComp(grid_data=grid_data,
                                                                          control_options=control_options,
+                                                                         polynomial_control_options=polynomial_control_options,
                                                                          standalone_mode=True,
                                                                          compute_derivs=True,
                                                                          time_units='s'))
@@ -513,6 +521,8 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
 
         x_sample = (grid_data.node_stau + 1) * np.pi
         p.set_val('interp.controls:u1', np.sin(x_sample))
+        p_sample = lgl(6)[0]
+        p.set_val('interp.polynomial_controls:p1', p_sample ** 2)
         p.set_val('interp.t_duration', 2 * np.pi)
         p.set_val('interp.dstau_dt', 1 / np.pi)
         x_truth = np.linspace(0, 2 * np.pi, 101)
@@ -523,21 +533,33 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
         results = []
         rate_results = []
         rate2_results = []
+
+        p_results = []
+        prate_results = []
+        prate2_results = []
         for stau in np.linspace(-1, 1, 101):
             p.set_val('interp.stau', stau)
+            p.set_val('interp.ptau', stau)
+
             p.run_model()
+
             results.append(p.get_val('interp.control_values:u1').ravel()[0])
             rate_results.append(p.get_val('interp.control_rates:u1_rate').ravel()[0])
             rate2_results.append(p.get_val('interp.control_rates:u1_rate2').ravel()[0])
 
+            p_results.append(p.get_val('interp.polynomial_control_values:p1').ravel()[0])
+            prate_results.append(p.get_val('interp.polynomial_control_rates:p1_rate').ravel()[0])
+            prate2_results.append(p.get_val('interp.polynomial_control_rates:p1_rate2').ravel()[0])
+
         # assert_near_equal(results, truth, tolerance=1.0E-6)
 
         p.set_val('interp.stau', 0.66666666666667)
+        p.set_val('interp.ptau', 0.66666666666667)
         p.run_model()
 
         with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=False, method='cs')
-            # assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
+            cpd = p.check_partials(compact_print=True, method='cs')#, out_stream=None)
+            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
 
         import matplotlib.pyplot as plt
         import matplotlib
@@ -551,58 +573,15 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
         # Now the second derivatives
         plt.plot(np.linspace(0, 2*np.pi, 101), rate2_results, '.')
         plt.plot(x_truth, truth_rate2, '-')
+
+        plt.figure()
+        plt.plot(p_sample, p_sample**2, 'o')
+        plt.plot(np.linspace(-1, 1, 101), p_results, '.')
+        # plt.plot(x_truth, truth, '-')
+
         plt.show()
 
-        return
-
-        assert_near_equal(p.get_val('interp.control_values:u1'), np.zeros((1, 1)), tolerance=_TOL)
-
-        with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=False, method='cs')
-            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
-
-        p.set_val('interp.stau', 0.0)
-        p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), [[3.0]], tolerance=_TOL)
-        with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=True, method='cs')
-            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
-
-        p.set_val('interp.stau', 1.0)
-        p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), [[3.0]], tolerance=_TOL)
-        with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=True, method='cs')
-            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
-
-        interp_comp.options['segment_index'] = 0
-
-        p.set_val('interp.stau', -1.0)
-        p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), [[0.0]], tolerance=_TOL)
-        with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=True, method='cs')
-            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
-
-        p.set_val('interp.stau', 0.0)
-        p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), [[3.0]], tolerance=_TOL)
-        with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=True, method='cs')
-            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
-
-        p.set_val('interp.stau', 1.0)
-        p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), [[0.0]], tolerance=_TOL)
-        with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=False, method='cs')
-            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
-
-        p.set_val('interp.stau', 0.54262)
-        p.run_model()
-        with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=False, method='cs')
-            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
+        # return
 
     def test_eval_control_gl_compressed(self):
         grid_data = dm.transcriptions.grid_data.GridData(num_segments=2, transcription='gauss-lobatto',
@@ -911,6 +890,8 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
 
 
 class TestPolynomialBarycentricControlInterpolation(unittest.TestCase):
+
+
 
     def test_eval_polycontrol_gl_compressed(self):
         grid_data = dm.transcriptions.grid_data.GridData(num_segments=2, transcription='gauss-lobatto',
