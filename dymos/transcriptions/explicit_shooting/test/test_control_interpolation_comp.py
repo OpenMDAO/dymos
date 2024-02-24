@@ -561,25 +561,25 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
             cpd = p.check_partials(compact_print=True, method='cs')#, out_stream=None)
             assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
 
-        import matplotlib.pyplot as plt
-        import matplotlib
-        matplotlib.use('MacOSX')
-        plt.plot(x_sample, np.sin(x_sample), 'o')
-        plt.plot(np.linspace(0, 2*np.pi, 101), results, '.')
-        plt.plot(x_truth, truth, '-')
-        # Now the rates
-        plt.plot(np.linspace(0, 2*np.pi, 101), rate_results, '.')
-        plt.plot(x_truth, truth_rate, '-')
-        # Now the second derivatives
-        plt.plot(np.linspace(0, 2*np.pi, 101), rate2_results, '.')
-        plt.plot(x_truth, truth_rate2, '-')
-
-        plt.figure()
-        plt.plot(p_sample, p_sample**2, 'o')
-        plt.plot(np.linspace(-1, 1, 101), p_results, '.')
+        # import matplotlib.pyplot as plt
+        # import matplotlib
+        # matplotlib.use('MacOSX')
+        # plt.plot(x_sample, np.sin(x_sample), 'o')
+        # plt.plot(np.linspace(0, 2*np.pi, 101), results, '.')
         # plt.plot(x_truth, truth, '-')
+        # # Now the rates
+        # plt.plot(np.linspace(0, 2*np.pi, 101), rate_results, '.')
+        # plt.plot(x_truth, truth_rate, '-')
+        # # Now the second derivatives
+        # plt.plot(np.linspace(0, 2*np.pi, 101), rate2_results, '.')
+        # plt.plot(x_truth, truth_rate2, '-')
 
-        plt.show()
+        # plt.figure()
+        # plt.plot(p_sample, p_sample**2, 'o')
+        # plt.plot(np.linspace(-1, 1, 101), p_results, '.')
+        # # plt.plot(x_truth, truth, '-')
+
+        # plt.show()
 
         # return
 
