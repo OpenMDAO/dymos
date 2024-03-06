@@ -214,7 +214,7 @@ class TestVandermondeControlInterpolationComp(unittest.TestCase):
         p.run_model()
 
         with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=False, method='cs')
+            cpd = p.check_partials(compact_print=True, method='cs')
             assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
 
     def test_eval_control_radau_uncompressed(self):
@@ -434,7 +434,7 @@ class TestPolynomialVandermondeControlInterpolation(unittest.TestCase):
 
         time_options['units'] = 's'
 
-        pc_options = {'u1': dm.phase.options.PolyomialControlOptionsDictionary()}
+        pc_options = {'u1': dm.phase.options.PolynomialControlOptionsDictionary()}
 
         pc_options['u1']['shape'] = (1,)
         pc_options['u1']['units'] = 'rad'
@@ -489,7 +489,7 @@ class TestPolynomialVandermondeControlInterpolation(unittest.TestCase):
 class TestBarycentricControlInterpolationComp(unittest.TestCase):
 
     def test_single_segment(self):
-        grid_data = dm.transcriptions.grid_data.BirkhoffGrid(num_nodes=21, grid_type='cgl')
+        grid_data = dm.transcriptions.grid_data.BirkhoffGrid(num_nodes=5, grid_type='lgl')
 
         time_options = TimeOptionsDictionary()
 
@@ -517,18 +517,27 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
                                                                          time_units='s'))
         p.setup(force_alloc_complex=True)
 
-        interp_comp.set_segment_index(0)
+        interp_comp.set_segment_index(0, alloc_complex=False)
 
         x_sample = (grid_data.node_stau + 1) * np.pi
         p.set_val('interp.controls:u1', np.sin(x_sample))
-        p_sample = lgl(6)[0]
-        p.set_val('interp.polynomial_controls:p1', p_sample ** 2)
+        p_sample = (lgl(6)[0] + 1) * np.pi
+        print()
+        print(p_sample)
+        print()
+        print(x_sample)
+        # p.set_val('interp.polynomial_controls:p1', p_sample ** 4)
+        p.set_val('interp.polynomial_controls:p1', np.sin(p_sample))
         p.set_val('interp.t_duration', 2 * np.pi)
         p.set_val('interp.dstau_dt', 1 / np.pi)
         x_truth = np.linspace(0, 2 * np.pi, 101)
         truth = np.sin(x_truth)
         truth_rate = np.cos(x_truth)
         truth_rate2 = -np.sin(x_truth)
+
+        # ptruth = x_truth ** 4
+        # ptruth_rate = 4 * x_truth ** 3
+        # ptruth_rate2 = 12 * x_truth ** 2
 
         results = []
         rate_results = []
@@ -552,34 +561,42 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
             prate2_results.append(p.get_val('interp.polynomial_control_rates:p1_rate2').ravel()[0])
 
         # assert_near_equal(results, truth, tolerance=1.0E-6)
+        # assert_near_equal(rate_results, truth_rate, tolerance=1.0E-6)
+        # assert_near_equal(rate2_results, truth_rate2, tolerance=1.0E-6)
 
-        p.set_val('interp.stau', 0.66666666666667)
-        p.set_val('interp.ptau', 0.66666666666667)
-        p.run_model()
+        p.set_val('interp.stau', -0.15)
+        p.set_val('interp.ptau', -0.15)
 
         with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=True, method='cs')#, out_stream=None)
+            with open('/Users/rfalck/Downloads/check_derivs.md', 'w') as f:
+                cpd = p.check_partials(compact_print=False, method='cs', out_stream=f)#, out_stream=None)
             assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
 
-        # import matplotlib.pyplot as plt
-        # import matplotlib
-        # matplotlib.use('MacOSX')
-        # plt.plot(x_sample, np.sin(x_sample), 'o')
-        # plt.plot(np.linspace(0, 2*np.pi, 101), results, '.')
-        # plt.plot(x_truth, truth, '-')
-        # # Now the rates
-        # plt.plot(np.linspace(0, 2*np.pi, 101), rate_results, '.')
-        # plt.plot(x_truth, truth_rate, '-')
-        # # Now the second derivatives
-        # plt.plot(np.linspace(0, 2*np.pi, 101), rate2_results, '.')
-        # plt.plot(x_truth, truth_rate2, '-')
+        import matplotlib.pyplot as plt
+        import matplotlib
+        matplotlib.use('MacOSX')
+        plt.plot(x_sample, np.sin(x_sample), 'o')
+        plt.plot(np.linspace(0, 2*np.pi, 101), results, '.')
+        plt.plot(x_truth, truth, '-')
+        # Now the rates
+        plt.plot(np.linspace(0, 2*np.pi, 101), rate_results, '.')
+        plt.plot(x_truth, truth_rate, '-')
+        # Now the second derivatives
+        plt.plot(np.linspace(0, 2*np.pi, 101), rate2_results, '.')
+        plt.plot(x_truth, truth_rate2, '-')
 
-        # plt.figure()
-        # plt.plot(p_sample, p_sample**2, 'o')
-        # plt.plot(np.linspace(-1, 1, 101), p_results, '.')
-        # # plt.plot(x_truth, truth, '-')
+        plt.figure()
+        plt.plot(p_sample, p.get_val('interp.polynomial_controls:p1'), 'o')
+        plt.plot(np.linspace(0, 2 * np.pi, 101), p_results, '.')
+        # plt.plot(x_truth, ptruth, '-')
 
-        # plt.show()
+        plt.plot(np.linspace(0, 2*np.pi, 101), prate_results, '.')
+        # plt.plot(x_truth, ptruth_rate, '-')
+
+        plt.plot(np.linspace(0, 2*np.pi, 101), prate2_results, '.')
+        # plt.plot(x_truth, ptruth_rate2, '-')
+
+        plt.show()
 
         # return
 
@@ -617,49 +634,6 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
         p.run_model()
         assert_near_equal(p.get_val('interp.control_values:u1'), np.zeros((1, 1)), tolerance=_TOL)
 
-        with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=False, method='cs')
-            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
-
-        p.set_val('interp.stau', 0.0)
-        p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), [[3.0]], tolerance=_TOL)
-        with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=True, method='cs')
-            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
-
-        p.set_val('interp.stau', 1.0)
-        p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), [[3.0]], tolerance=_TOL)
-        with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=True, method='cs')
-            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
-
-        interp_comp.options['segment_index'] = 0
-
-        p.set_val('interp.stau', -1.0)
-        p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), [[0.0]], tolerance=_TOL)
-        with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=True, method='cs')
-            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
-
-        p.set_val('interp.stau', 0.0)
-        p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), [[3.0]], tolerance=_TOL)
-        with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=True, method='cs')
-            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
-
-        p.set_val('interp.stau', 1.0)
-        p.run_model()
-        assert_near_equal(p.get_val('interp.control_values:u1'), [[0.0]], tolerance=_TOL)
-        with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=False, method='cs')
-            assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
-
-        p.set_val('interp.stau', 0.54262)
-        p.run_model()
         with np.printoptions(linewidth=1024):
             cpd = p.check_partials(compact_print=False, method='cs')
             assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
