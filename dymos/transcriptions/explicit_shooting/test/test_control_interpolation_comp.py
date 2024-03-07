@@ -489,7 +489,7 @@ class TestPolynomialVandermondeControlInterpolation(unittest.TestCase):
 class TestBarycentricControlInterpolationComp(unittest.TestCase):
 
     def test_single_segment(self):
-        grid_data = dm.transcriptions.grid_data.BirkhoffGrid(num_nodes=5, grid_type='lgl')
+        grid_data = dm.transcriptions.grid_data.BirkhoffGrid(num_nodes=21, grid_type='lgl')
 
         time_options = TimeOptionsDictionary()
 
