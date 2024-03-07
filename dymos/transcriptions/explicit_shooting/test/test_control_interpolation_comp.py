@@ -522,12 +522,7 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
         x_sample = (grid_data.node_stau + 1) * np.pi
         p.set_val('interp.controls:u1', np.sin(x_sample))
         p_sample = (lgl(6)[0] + 1) * np.pi
-        print()
-        print(p_sample)
-        print()
-        print(x_sample)
-        # p.set_val('interp.polynomial_controls:p1', p_sample ** 4)
-        p.set_val('interp.polynomial_controls:p1', np.sin(p_sample))
+        p.set_val('interp.polynomial_controls:p1', p_sample ** 4)
         p.set_val('interp.t_duration', 2 * np.pi)
         p.set_val('interp.dstau_dt', 1 / np.pi)
         x_truth = np.linspace(0, 2 * np.pi, 101)
@@ -535,9 +530,9 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
         truth_rate = np.cos(x_truth)
         truth_rate2 = -np.sin(x_truth)
 
-        # ptruth = x_truth ** 4
-        # ptruth_rate = 4 * x_truth ** 3
-        # ptruth_rate2 = 12 * x_truth ** 2
+        ptruth = x_truth ** 4
+        ptruth_rate = 4 * x_truth ** 3
+        ptruth_rate2 = 12 * x_truth ** 2
 
         results = []
         rate_results = []
@@ -560,45 +555,20 @@ class TestBarycentricControlInterpolationComp(unittest.TestCase):
             prate_results.append(p.get_val('interp.polynomial_control_rates:p1_rate').ravel()[0])
             prate2_results.append(p.get_val('interp.polynomial_control_rates:p1_rate2').ravel()[0])
 
-        # assert_near_equal(results, truth, tolerance=1.0E-6)
-        # assert_near_equal(rate_results, truth_rate, tolerance=1.0E-6)
-        # assert_near_equal(rate2_results, truth_rate2, tolerance=1.0E-6)
+        assert_near_equal(results, truth, tolerance=1.0E-6)
+        assert_near_equal(rate_results, truth_rate, tolerance=1.0E-6)
+        assert_near_equal(rate2_results, truth_rate2, tolerance=1.0E-6)
 
-        p.set_val('interp.stau', -0.15)
-        p.set_val('interp.ptau', -0.15)
+        assert_near_equal(p_results, ptruth, tolerance=1.0E-6)
+        assert_near_equal(prate_results, ptruth_rate, tolerance=1.0E-6)
+        assert_near_equal(prate2_results, ptruth_rate2, tolerance=1.0E-6)
+
+        p.set_val('interp.stau', 0.85)
+        p.set_val('interp.ptau', 0.85)
 
         with np.printoptions(linewidth=1024):
-            with open('/Users/rfalck/Downloads/check_derivs.md', 'w') as f:
-                cpd = p.check_partials(compact_print=False, method='cs', out_stream=f)#, out_stream=None)
+            cpd = p.check_partials(compact_print=False, method='cs', out_stream=None)
             assert_check_partials(cpd, atol=_TOL, rtol=_TOL)
-
-        import matplotlib.pyplot as plt
-        import matplotlib
-        matplotlib.use('MacOSX')
-        plt.plot(x_sample, np.sin(x_sample), 'o')
-        plt.plot(np.linspace(0, 2*np.pi, 101), results, '.')
-        plt.plot(x_truth, truth, '-')
-        # Now the rates
-        plt.plot(np.linspace(0, 2*np.pi, 101), rate_results, '.')
-        plt.plot(x_truth, truth_rate, '-')
-        # Now the second derivatives
-        plt.plot(np.linspace(0, 2*np.pi, 101), rate2_results, '.')
-        plt.plot(x_truth, truth_rate2, '-')
-
-        plt.figure()
-        plt.plot(p_sample, p.get_val('interp.polynomial_controls:p1'), 'o')
-        plt.plot(np.linspace(0, 2 * np.pi, 101), p_results, '.')
-        # plt.plot(x_truth, ptruth, '-')
-
-        plt.plot(np.linspace(0, 2*np.pi, 101), prate_results, '.')
-        # plt.plot(x_truth, ptruth_rate, '-')
-
-        plt.plot(np.linspace(0, 2*np.pi, 101), prate2_results, '.')
-        # plt.plot(x_truth, ptruth_rate2, '-')
-
-        plt.show()
-
-        # return
 
     def test_eval_control_gl_compressed(self):
         grid_data = dm.transcriptions.grid_data.GridData(num_segments=2, transcription='gauss-lobatto',

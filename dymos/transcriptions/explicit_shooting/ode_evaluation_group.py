@@ -112,7 +112,7 @@ class ODEEvaluationGroup(om.Group):
                                                                                  control_options=c_options,
                                                                                  polynomial_control_options=pc_options,
                                                                                  time_units=t_units,
-                                                                                 compute_derivs=compute_derivs),
+                                                                                 compute_derivs=self._compute_derivs),
                                                     promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
 
         self.add_subsystem('ode', self._ode_class(num_nodes=self._vec_size, **self._ode_init_kwargs))
