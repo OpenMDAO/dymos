@@ -166,8 +166,8 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             self._d3l_dg3 = {'controls': np.zeros((n, n, n, n), dtype=dtype)}
             self._d3l_dtau3 = {'controls': np.ones((n, 1), dtype=dtype)}
         else:
-            self._d3l_dg3 = None
-            self._d3l_dtau3 = None
+            self._d3l_dg3 = {'controls': None}
+            self._d3l_dtau3 = {'controls': None}
 
         self._taus_seg = {'controls': self._grid_data.node_stau[disc_node_idxs]}
 
@@ -179,13 +179,20 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         self._dl_dg_prod_idx_map = {'controls': (tuple(reversed(tuple(combinations(ar_n, n-2)))),
                                                  tuple(zip(*tuple(combinations(ar_n, 2)))))}
 
-        combos = tuple(combinations(ar_n, n-3))
-        self._d2l_dg2_prod_idx_map = {'controls': {c: tuple(permutations(set(range(n)) - set(c)))
-                                      for c in combos}}
+        if n - 3 > 0:
+            combos = tuple(combinations(ar_n, n-3))
+            self._d2l_dg2_prod_idx_map = {'controls': {c: tuple(permutations(set(range(n)) - set(c)))
+                                        for c in combos}}
+        else:
+            self._d2l_dg2_prod_idx_map = {'controls': None}
 
-        combos = tuple(combinations(ar_n, n-4))
-        self._d3l_dg3_prod_idx_map = {'controls': {c: tuple(permutations(set(range(n)) - set(c)))
-                                       for c in combos}}
+
+        if self._compute_derivs and n - 4 > 0:
+            combos = tuple(combinations(ar_n, n-4))
+            self._d3l_dg3_prod_idx_map = {'controls': {c: tuple(permutations(set(range(n)) - set(c)))
+                                        for c in combos}}
+        else:
+            self._d3l_dg3_prod_idx_map = {'controls': None}
 
         # Arrays pertaining to polynomial controls are stored with their name as a key
         for pc_name, pc_options in self._polynomial_control_options.items():
@@ -195,26 +202,33 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             self._l[pc_name] = np.ones(n, dtype=dtype)
             self._dl_dg[pc_name] = np.zeros((n, n), dtype=dtype)
             self._d2l_dg2[pc_name] = np.zeros((n, n, n), dtype=dtype)
-            self._d3l_dg3[pc_name] = np.zeros((n, n, n, n), dtype=dtype)
             self._dl_dtau[pc_name] = np.ones((n, 1), dtype=dtype)
             self._d2l_dtau2[pc_name] = np.ones((n, 1), dtype=dtype)
-            self._d3l_dtau3[pc_name] = np.ones((n, 1), dtype=dtype)
 
-            # self._dl_dg_g_combo_idxs[pc_name] = tuple(reversed(tuple(combinations(ar_n, n-2))))
-            # self._dl_dg_ij[pc_name] = tuple(zip(*tuple(combinations(ar_n, 2))))
+            if self._compute_derivs:
+                self._d3l_dg3[pc_name] = np.zeros((n, n, n, n), dtype=dtype)
+                self._d3l_dtau3[pc_name] = np.ones((n, 1), dtype=dtype)
+            else:
+                self._d3l_dg3[pc_name] = None
+                self._d3l_dtau3[pc_name] = None
 
             self._dl_dg_prod_idx_map[pc_name] = (tuple(reversed(tuple(combinations(ar_n, n-2)))),
                                                  tuple(zip(*tuple(combinations(ar_n, 2)))))
 
             # # Second deriv and higher matrices get more sparse, so handle them a bit differently
-            combos = tuple(combinations(ar_n, n-3))
-            self._d2l_dg2_prod_idx_map[pc_name] = {c: tuple(permutations(set(range(n)) - set(c)))
-                                                   for c in combos}
+            if n - 3 > 0:
+                combos = tuple(combinations(ar_n, n-3))
+                self._d2l_dg2_prod_idx_map[pc_name] = {c: tuple(permutations(set(range(n)) - set(c)))
+                                                    for c in combos}
+            else:
+                self._d2l_dg2_prod_idx_map[pc_name] = None
 
-            if self._compute_derivs:
+            if self._compute_derivs and n - 4 > 0:
                 combos = tuple(combinations(ar_n, n-4))
                 self._d3l_dg3_prod_idx_map[pc_name] = {c: tuple(permutations(set(range(n)) - set(c)))
-                                                       for c in combos}
+                                                        for c in combos}
+            else:
+                self._d3l_dg3_prod_idx_map[pc_name] = None
 
     def _configure_controls(self):
         vec_size = self.options['vec_size']
@@ -376,12 +390,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
 
         # Now populate dl_dg.  The diagonals are one and the lower and upper triangular parts are equal.
         prod_g_idxs, put_idxs = dl_dg_prod_idx_map
-
-        # dl_dg_vals = np.prod(g.take(self._dl_dg_g_combo_idxs[name]), axis=1)
-        # dl_dg[...] = 0.0
-        # dl_dg_i, dl_dg_j = self._dl_dg_ij[name]
-        # dl_dg[dl_dg_i, dl_dg_j] = dl_dg_vals
-
         dl_dg_vals = np.prod(g.take(prod_g_idxs), axis=1)
         dl_dg[...] = 0.0
         dl_dg_i, dl_dg_j = put_idxs
@@ -392,8 +400,9 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
 
         # For the higher derivative matrices use a mapping of
         # coordinates to the product of g values at those indices.
-        for prod_g_idxs, put_idxs in d2l_dg2_prod_idx_map.items():
-            d2l_dg2[tuple(zip(*put_idxs))] = np.prod(g.take(prod_g_idxs))
+        if d2l_dg2_prod_idx_map is not None:
+            for prod_g_idxs, put_idxs in d2l_dg2_prod_idx_map.items():
+                d2l_dg2[tuple(zip(*put_idxs))] = np.prod(g.take(prod_g_idxs))
 
         if d3l_dg3 is not None:
             # We only need d3l_dg3 for the derivatives of rate2.
@@ -625,7 +634,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
                 wbuhat = np.einsum("ij,i...->i...", w_b, u_hat)
 
                 # outputs[output_name] = np.einsum('i...,i...->...', l, wbuhat)
-
                 partials[output_name, 'stau'] = dl_dstau.T @ wbuhat
 
                 # print(partials[output_name, 'stau'])
