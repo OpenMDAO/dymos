@@ -1,11 +1,11 @@
 import functools
-from itertools import combinations, permutations
+# from itertools import combinations, permutations
 import numpy as np
 from numpy.typing import ArrayLike
 import openmdao.api as om
 
 try:
-    from numba import njit
+    from numba import njit, prange
 except ImportError:
     # If numba is not available, just write a dummy njit wrapper.
     # Code will still run at a significant performance hit.
@@ -18,16 +18,19 @@ except ImportError:
             return wrapper
         return decorator
 
+    prange = range
+
 from ...utils.lgl import lgl
 from ...utils.misc import get_rate_units
 
 @njit()
 def _compute_dl_dg(tau: float,
                    taus: ArrayLike,
+                   mask: ArrayLike,
                    l: ArrayLike,
                    dl_dg: ArrayLike,
                    d2l_dg2: ArrayLike,
-                   d3l_dg3: ArrayLike | None = None):
+                   d3l_dg3: ArrayLike | None = None,):
     """Compute the Lagrange polynomials and the first three derivatives wrt g at the nodes.
 
     This function achieves good performance with numba.njit (and uses a do-nothing njit decorator
@@ -39,6 +42,8 @@ def _compute_dl_dg(tau: float,
         The value of the independent variable at which the interpolation is being requested.
     taus : ArrayLike
         An n-vector giving location of the polynomial nodes in the independent variable dimension.
+    mask : ArrayLike
+        A boolean array used to mask off portions of g for faster products.
     l : ArrayLike
         An n-vector giving the value of the Lagrange polynomial at each node.
     dl_dg : ArrayLike
@@ -51,24 +56,36 @@ def _compute_dl_dg(tau: float,
     n = len(taus)
     g = tau - taus
 
+    mask[...] = True
+
     for i in range(n):
-        l[i] = np.prod(np.delete(g, i))
+        mask[i] = False
+        # l[i] = np.prod(np.delete(g, [i]))
+        l[i] = np.prod(g[mask])
         # dl_dg is symmetric, so fill two elements at once
         if dl_dg is not None:
             for j in range(i+1, n):
-                dl_dg[i, j] = dl_dg[j, i] = np.prod(np.delete(g, [i, j]))
+                mask[j] = False
+                dl_dg[i, j] = dl_dg[j, i] = np.prod(g[mask])
                 if d2l_dg2 is not None:
                     for k in range(n):
                         if k != i and k != j:
-                            val = np.prod(np.delete(g, [i, j, k]))
+                            mask[k] = False
+                            val = np.prod(g[mask])
                             d2l_dg2[i, j, k] = d2l_dg2[j, i, k] = val
                             if d3l_dg3 is not None:
                                 # We only need this if derivs of second deriv wrt tau are needed.
                                 for ii in range(k + 1, n):
                                     if ii not in {i, j, k}:
-                                        val = np.prod(np.delete(g, [i, j, k, ii]))
+                                        mask[ii] = False
+                                        val = np.prod(g[mask])
                                         d3l_dg3[i, j, k, ii] = d3l_dg3[j, i, k, ii] = \
                                             d3l_dg3[i, j, ii, k] = d3l_dg3[j, i, ii, k] = val
+                                        mask[ii] = True
+                            mask[k] = True
+                mask[j] = True
+        mask[i] = True
+
 
 class BarycentricControlInterpComp(om.ExplicitComponent):
     """A component which interpolates control values in 1D using Vandermonde interpolation.
@@ -147,7 +164,12 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         """
         self.options['segment_index'] = idx
         disc_node_idxs = self._disc_node_idxs_by_segment[idx]
-        taus_seg = self._grid_data.node_stau[disc_node_idxs]
+        # taus_seg = self._grid_data.node_stau[disc_node_idxs]
+
+        i1, i2 = self._grid_data.subset_segment_indices['control_disc'][idx, :]
+        indices = self._grid_data.subset_node_indices['control_disc'][i1:i2]
+        taus_seg = self._grid_data.node_stau[indices]
+
         n = len(taus_seg)
         ar_n = np.arange(n, dtype=int)
         ptaus = {pc_name: lgl(pc_options['order'] + 1)[0]
@@ -169,30 +191,7 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             self._d3l_dg3 = {'controls': None}
             self._d3l_dtau3 = {'controls': None}
 
-        self._taus_seg = {'controls': self._grid_data.node_stau[disc_node_idxs]}
-
-        # itertools combinations will return the indices of the upper triangular matrix
-        # in reverse 'c' (row-major) order.
-        # self._dl_dg_g_combo_idxs ={'controls': tuple(reversed(tuple(combinations(ar_n, n-2))))}
-        # self._dl_dg_ij = {'controls': tuple(zip(*tuple(combinations(ar_n, 2))))}
-
-        self._dl_dg_prod_idx_map = {'controls': (tuple(reversed(tuple(combinations(ar_n, n-2)))),
-                                                 tuple(zip(*tuple(combinations(ar_n, 2)))))}
-
-        if n - 3 > 0:
-            combos = tuple(combinations(ar_n, n-3))
-            self._d2l_dg2_prod_idx_map = {'controls': {c: tuple(permutations(set(range(n)) - set(c)))
-                                        for c in combos}}
-        else:
-            self._d2l_dg2_prod_idx_map = {'controls': None}
-
-
-        if self._compute_derivs and n - 4 > 0:
-            combos = tuple(combinations(ar_n, n-4))
-            self._d3l_dg3_prod_idx_map = {'controls': {c: tuple(permutations(set(range(n)) - set(c)))
-                                        for c in combos}}
-        else:
-            self._d3l_dg3_prod_idx_map = {'controls': None}
+        self._taus_seg = {'controls': taus_seg}
 
         # Arrays pertaining to polynomial controls are stored with their name as a key
         for pc_name, pc_options in self._polynomial_control_options.items():
@@ -212,24 +211,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
                 self._d3l_dg3[pc_name] = None
                 self._d3l_dtau3[pc_name] = None
 
-            self._dl_dg_prod_idx_map[pc_name] = (tuple(reversed(tuple(combinations(ar_n, n-2)))),
-                                                 tuple(zip(*tuple(combinations(ar_n, 2)))))
-
-            # # Second deriv and higher matrices get more sparse, so handle them a bit differently
-            if n - 3 > 0:
-                combos = tuple(combinations(ar_n, n-3))
-                self._d2l_dg2_prod_idx_map[pc_name] = {c: tuple(permutations(set(range(n)) - set(c)))
-                                                    for c in combos}
-            else:
-                self._d2l_dg2_prod_idx_map[pc_name] = None
-
-            if self._compute_derivs and n - 4 > 0:
-                combos = tuple(combinations(ar_n, n-4))
-                self._d3l_dg3_prod_idx_map[pc_name] = {c: tuple(permutations(set(range(n)) - set(c)))
-                                                        for c in combos}
-            else:
-                self._d3l_dg3_prod_idx_map[pc_name] = None
-
     def _configure_controls(self):
         vec_size = self.options['vec_size']
         gd = self._grid_data
@@ -237,23 +218,28 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         self._disc_node_idxs_by_segment = []
         self._input_node_idxs_by_segment = []
 
-        if not self._control_options:
-            return
-
-        first_disc_node_in_seg = 0
+        first_disc_node_in_seg = first_input_node_in_seg = 0
 
         for seg_idx in range(gd.num_segments):
             # Number of control discretization nodes per segment
             ncdnps = gd.subset_num_nodes_per_segment['control_disc'][seg_idx]
+            ncinps = gd.subset_num_nodes_per_segment['control_input'][seg_idx]
+
             ar_control_disc_nodes = np.arange(ncdnps, dtype=int)
-            disc_idxs_in_seg = first_disc_node_in_seg + ar_control_disc_nodes
+            disc_idxs_in_seg = first_disc_node_in_seg + np.arange(ncdnps, dtype=int)
+            input_idxs_in_seg = first_input_node_in_seg + np.arange(ncinps, dtype=int)
+
             first_disc_node_in_seg += ncdnps
+            first_input_node_in_seg += ncinps
 
             # The indices of the discretization node u vector pertaining to the given segment
             self._disc_node_idxs_by_segment.append(disc_idxs_in_seg)
 
             # The indices of the input u vector pertaining to the given segment
-            self._input_node_idxs_by_segment.append(gd.input_maps['dynamic_control_input_to_disc'][disc_idxs_in_seg])
+            self._input_node_idxs_by_segment.append(input_idxs_in_seg)
+
+        if not self._control_options:
+            return
 
         num_uhat_nodes = gd.subset_num_nodes['control_input']
         ar = np.arange(vec_size, dtype=int)
@@ -444,14 +430,17 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         d2l_dstau2 = self._d2l_dtau2['controls']
         w_b = self._w_b['controls']
 
-        dl_dg_prod_idx_map = self._dl_dg_prod_idx_map['controls']
-        d2l_dg2_prod_idx_map = self._d2l_dg2_prod_idx_map['controls']
+        mask = np.ones_like(taus_seg, dtype=bool)
 
-        self._compute_dl_dg(stau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3=None,
-                            dl_dg_prod_idx_map=dl_dg_prod_idx_map,
-                            d2l_dg2_prod_idx_map=d2l_dg2_prod_idx_map,
-                            d3l_dg3_prod_idx_map=None)
-        # _compute_dl_dg(stau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3=None)
+        # dl_dg_prod_idx_map = self._dl_dg_prod_idx_map['controls']
+        # d2l_dg2_prod_idx_map = self._d2l_dg2_prod_idx_map['controls']
+
+        # self._compute_dl_dg(stau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3=None,
+        #                     dl_dg_prod_idx_map=dl_dg_prod_idx_map,
+        #                     d2l_dg2_prod_idx_map=d2l_dg2_prod_idx_map,
+        #                     d3l_dg3_prod_idx_map=None)
+        _compute_dl_dg(stau, taus_seg, mask, l, dl_dg, d2l_dg2, d3l_dg3=None)
+
 
         # Equivalent of multiplying dl_dg @ dg_dtau, where dg_dtau is a column vector of n ones.
         dl_dstau[...] = np.sum(dl_dg, axis=-1, keepdims=True)
@@ -511,14 +500,16 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             d2l_dptau2 = self._d2l_dtau2[pc_name]
             w_b = self._w_b[pc_name]
 
-            dl_dg_prod_idx_map = self._dl_dg_prod_idx_map[pc_name]
-            d2l_dg2_prod_idx_map = self._d2l_dg2_prod_idx_map[pc_name]
+            mask = np.ones_like(taus_seg, dtype=bool)
 
-            self._compute_dl_dg(ptau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3=None,
-                                dl_dg_prod_idx_map=dl_dg_prod_idx_map,
-                                d2l_dg2_prod_idx_map=d2l_dg2_prod_idx_map,
-                                d3l_dg3_prod_idx_map=None)
-            # _compute_dl_dg(ptau, taus_seg, l, dl_dg, d2l_dg2)
+            # dl_dg_prod_idx_map = self._dl_dg_prod_idx_map[pc_name]
+            # d2l_dg2_prod_idx_map = self._d2l_dg2_prod_idx_map[pc_name]
+
+            # self._compute_dl_dg(ptau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3=None,
+            #                     dl_dg_prod_idx_map=dl_dg_prod_idx_map,
+            #                     d2l_dg2_prod_idx_map=d2l_dg2_prod_idx_map,
+            #                     d3l_dg3_prod_idx_map=None)
+            _compute_dl_dg(ptau, taus_seg, mask, l, dl_dg, d2l_dg2)
 
             # Equivalent of multiplying dl_dg @ dg_dtau, where dg_dtau is a column vector of n ones.
             dl_dptau[...] = np.sum(dl_dg, axis=-1, keepdims=True)
@@ -605,21 +596,17 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             d3l_dstau3 = self._d3l_dtau3['controls']
             w_b = self._w_b['controls']
 
-            dl_dg_prod_idx_map = self._dl_dg_prod_idx_map['controls']
-            d2l_dg2_prod_idx_map = self._d2l_dg2_prod_idx_map['controls']
-            d3l_dg3_prod_idx_map = self._d3l_dg3_prod_idx_map['controls']
+            mask = np.ones_like(taus_seg, dtype=bool)
 
             # Update self._l, self._dl_dg, self._d2l_dg2, and self._d3l_dg3 in place.
-            self._compute_dl_dg(stau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3,
-                                dl_dg_prod_idx_map=dl_dg_prod_idx_map,
-                                d2l_dg2_prod_idx_map=d2l_dg2_prod_idx_map,
-                                d3l_dg3_prod_idx_map=d3l_dg3_prod_idx_map)
-            # _compute_dl_dg(stau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3)
+            _compute_dl_dg(stau, taus_seg, mask, l, dl_dg, d2l_dg2, d3l_dg3)
 
             # Equivalent of multiplying dl_dg @ dg_dtau, where dg_dtau is a column vector of n ones.
             dl_dstau[...] = np.sum(dl_dg, axis=-1, keepdims=True)
             d2l_dstau2[...] = np.sum(np.sum(d2l_dg2, axis=-1), axis=-1, keepdims=True)
-            d3l_dstau3[...] = np.sum(np.sum(np.sum(d3l_dg3, axis=-1), axis=-1), axis=-1, keepdims=True)
+
+            if self._compute_derivs:
+                d3l_dstau3[...] = np.sum(np.sum(np.sum(d3l_dg3, axis=-1), axis=-1), axis=-1, keepdims=True)
 
             L_seg = self._L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
                                 input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
@@ -636,8 +623,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
                 # outputs[output_name] = np.einsum('i...,i...->...', l, wbuhat)
                 partials[output_name, 'stau'] = dl_dstau.T @ wbuhat
 
-                # print(partials[output_name, 'stau'])
-
                 partials[rate_name, 'stau'] = d2l_dstau2.T @ wbuhat * dstau_dt
                 partials[rate_name, 'dstau_dt'] = partials[output_name, 'stau']
 
@@ -648,7 +633,7 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
                 # other segments cannot impact interpolation in this one.
                 partials[output_name, input_name] = 0.0
                 partials[output_name, input_name][..., input_node_idxs] = \
-                    (L_seg @ (l * w_b.T).T).T
+                    ((l * w_b.T) @ L_seg)
 
                 partials[rate_name, input_name] = 0.0
                 partials[rate_name, input_name][..., input_node_idxs] = \
@@ -693,15 +678,17 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             d3l_dstau3 = self._d3l_dtau3[pc_name]
             w_b = self._w_b[pc_name]
 
-            dl_dg_prod_idx_map = self._dl_dg_prod_idx_map[pc_name]
-            d2l_dg2_prod_idx_map = self._d2l_dg2_prod_idx_map[pc_name]
-            d3l_dg3_prod_idx_map = self._d3l_dg3_prod_idx_map[pc_name]
+            mask = np.ones_like(taus_seg, dtype=bool)
 
-            self._compute_dl_dg(ptau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3,
-                                dl_dg_prod_idx_map=dl_dg_prod_idx_map,
-                                d2l_dg2_prod_idx_map=d2l_dg2_prod_idx_map,
-                                d3l_dg3_prod_idx_map=d3l_dg3_prod_idx_map)
-            # _compute_dl_dg(ptau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3)
+            # dl_dg_prod_idx_map = self._dl_dg_prod_idx_map[pc_name]
+            # d2l_dg2_prod_idx_map = self._d2l_dg2_prod_idx_map[pc_name]
+            # d3l_dg3_prod_idx_map = self._d3l_dg3_prod_idx_map[pc_name]
+
+            # self._compute_dl_dg(ptau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3,
+            #                     dl_dg_prod_idx_map=dl_dg_prod_idx_map,
+            #                     d2l_dg2_prod_idx_map=d2l_dg2_prod_idx_map,
+            #                     d3l_dg3_prod_idx_map=d3l_dg3_prod_idx_map)
+            _compute_dl_dg(ptau, taus_seg, mask, l, dl_dg, d2l_dg2, d3l_dg3)
 
             # Equivalent of multiplying dl_dg @ dg_dtau, where dg_dtau is a column vector of n ones.
             dl_dstau[...] = np.sum(dl_dg, axis=-1, keepdims=True)
