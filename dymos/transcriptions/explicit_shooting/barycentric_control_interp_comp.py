@@ -18,10 +18,10 @@ except ImportError:
             return wrapper
         return decorator
 
-    prange = range
 
 from ...utils.lgl import lgl
 from ...utils.misc import get_rate_units
+
 
 @njit()
 def _compute_dl_dg(tau: float,
@@ -127,6 +127,7 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         self._standalone_mode = standalone_mode
         self._compute_derivs = compute_derivs
         self._under_complex_step_prev = False
+        self._taus_seg = {}
 
         self._inputs_hash_cache = None
 
@@ -137,9 +138,10 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         # to values at the discretization nodes.
         num_disc_nodes = grid_data.subset_num_nodes['control_disc']
         num_input_nodes = grid_data.subset_num_nodes['control_input']
-        self._L_id = np.zeros((num_disc_nodes, num_input_nodes), dtype=float)
-        self._L_id[np.arange(num_disc_nodes, dtype=int),
-                   self._grid_data.input_maps['dynamic_control_input_to_disc']] = 1.0
+        self._L_id = {}
+        self._L_id['controls'] = np.zeros((num_disc_nodes, num_input_nodes), dtype=float)
+        self._L_id['controls'][np.arange(num_disc_nodes, dtype=int),
+                               self._grid_data.input_maps['dynamic_control_input_to_disc']] = 1.0
 
         super().__init__(**kwargs)
 
@@ -164,7 +166,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         """
         self.options['segment_index'] = idx
         disc_node_idxs = self._disc_node_idxs_by_segment[idx]
-        # taus_seg = self._grid_data.node_stau[disc_node_idxs]
 
         i1, i2 = self._grid_data.subset_segment_indices['control_disc'][idx, :]
         indices = self._grid_data.subset_node_indices['control_disc'][i1:i2]
@@ -191,7 +192,7 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             self._d3l_dg3 = {'controls': None}
             self._d3l_dtau3 = {'controls': None}
 
-        self._taus_seg = {'controls': taus_seg}
+        self._taus_seg['controls'] = taus_seg
 
         # Arrays pertaining to polynomial controls are stored with their name as a key
         for pc_name, pc_options in self._polynomial_control_options.items():
@@ -274,6 +275,7 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
 
         for pc_name, options in self._polynomial_control_options.items():
             order = options['order']
+
             shape = options['shape']
             units = options['units']
             input_name = f'polynomial_controls:{pc_name}'
@@ -448,8 +450,9 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         # d2l_dg @ dg_dtau + dl_dg @ d2g_dtau2 but d2g_dtau2 is zero.
         d2l_dstau2[...] = np.sum(np.sum(d2l_dg2, axis=-1), axis=-1, keepdims=True)
 
-        L_seg = self._L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
-                            input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
+        L_id = self._L_id['controls']
+        L_seg = L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
+                     input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
 
         for control_name in self._control_options:
             input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
@@ -463,6 +466,8 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             outputs[output_name] = np.einsum('i...,i...->...', l, wbuhat)
             outputs[rate_name] = wbuhat.T @ dl_dstau * dstau_dt
             outputs[rate2_name] = wbuhat.T @ d2l_dstau2 * dstau_dt ** 2
+
+            print(self.options['segment_index'], outputs[output_name])
 
     def _compute_polynomial_controls(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """
@@ -608,8 +613,9 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             if self._compute_derivs:
                 d3l_dstau3[...] = np.sum(np.sum(np.sum(d3l_dg3, axis=-1), axis=-1), axis=-1, keepdims=True)
 
-            L_seg = self._L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
-                                input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
+            L_id = self._L_id['controls']
+            L_seg = L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
+                         input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
 
             for control_name in self._control_options:
                 input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
@@ -637,11 +643,11 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
 
                 partials[rate_name, input_name] = 0.0
                 partials[rate_name, input_name][..., input_node_idxs] = \
-                    (dl_dstau * w_b * dstau_dt).T
+                    (dl_dstau * w_b * dstau_dt).T @ L_seg
 
                 partials[rate2_name, input_name] = 0.0
                 partials[rate2_name, input_name][..., input_node_idxs] = \
-                    (d2l_dstau2 * w_b * dstau_dt ** 2).T
+                    (d2l_dstau2 * w_b * dstau_dt ** 2).T @ L_seg
 
     def _compute_partials_polynomial_controls(self, inputs, partials, discrete_inputs=None):
         """

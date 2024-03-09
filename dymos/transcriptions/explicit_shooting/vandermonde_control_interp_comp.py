@@ -280,6 +280,8 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             L_seg = self._L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
                                input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
 
+            print(L_seg)
+
             for control_name, options in self._control_options.items():
                 input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
                 u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])

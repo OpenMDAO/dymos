@@ -107,13 +107,21 @@ class ODEEvaluationGroup(om.Group):
 
             # Add control interpolant
             self._control_comp = self.add_subsystem('control_interp',
-                                                    BarycentricControlInterpComp(grid_data=igd,
+                                                    VandermondeControlInterpComp(grid_data=igd,
                                                                                  vec_size=self._vec_size,
                                                                                  control_options=c_options,
                                                                                  polynomial_control_options=pc_options,
-                                                                                 time_units=t_units,
-                                                                                 compute_derivs=self._compute_derivs),
+                                                                                 time_units=t_units),
                                                     promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
+
+            # self._control_comp = self.add_subsystem('control_interp',
+            #                                         BarycentricControlInterpComp(grid_data=igd,
+            #                                                                      vec_size=self._vec_size,
+            #                                                                      control_options=c_options,
+            #                                                                      polynomial_control_options=pc_options,
+            #                                                                      time_units=t_units,
+            #                                                                      compute_derivs=self._compute_derivs),
+            #                                         promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
 
         self.add_subsystem('ode', self._ode_class(num_nodes=self._vec_size, **self._ode_init_kwargs))
 
