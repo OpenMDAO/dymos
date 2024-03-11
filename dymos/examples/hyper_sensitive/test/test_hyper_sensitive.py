@@ -150,7 +150,7 @@ class TestHyperSensitive(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_hyper_sensitive_gauss_lobatto(self):
-        tf=10
+        tf = 10
         p = self.make_problem(transcription='gauss-lobatto', optimizer='IPOPT', tf=tf)
         dm.run_problem(p, refine_iteration_limit=5,)
 

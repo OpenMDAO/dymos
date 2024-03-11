@@ -237,27 +237,19 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             # The derivative of x_ab wrt x_a is [I(size), 0(size)]^T
             # The derivative of x_ab wrt x_b is [0(size), I(size)]^T
             c_sparse = sp.kron(self._C, sp.eye(size), format='csr')
-            c_rows, c_cols = c_sparse.nonzero()
-            c_data = c_sparse.data.ravel()
 
-            dxa = np.vstack([np.eye(size), np.zeros((size, size))])
-
-            d_state_defect_dxa = sp.kron(np.dot(self._C, dxa), sp.eye(size), format='csr')
+            d_state_defect_dxa = sp.kron(np.ones((self._C.shape[0], 1)), -sp.eye(size))
+            d_state_defect_dxa.data[-size:] = 1.0
             d_dxa_r, d_dxa_c = d_state_defect_dxa.nonzero()
             d_dxa_data = d_state_defect_dxa.data.ravel()
 
-            dxb = dxa[::-1, ...]
-            d_state_defect_dxb = sp.kron(np.dot(self._C, dxb), sp.eye(size), format='csr')
-            d_dxb_r, d_dxb_c = d_state_defect_dxb.nonzero()
-            d_dxb_data = d_state_defect_dxb.data.ravel()
-
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['state_initial_value'],
-                                  rows=d_dxa_r, cols=d_dxa_c, val=-d_dxa_data)
+                                  rows=d_dxa_r, cols=d_dxa_c, val=d_dxa_data)
 
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['state_final_value'],
-                                  rows=d_dxb_r, cols=d_dxb_c, val=-d_dxb_data)
+                                  rows=d_dxa_r[-size:], cols=d_dxa_c[-size:], val=-1.0)
 
             d_state_defect_dXV = self._A
             dXV_dX = np.vstack((np.eye(num_nodes), np.zeros((num_nodes, num_nodes))))[self._xv_idxs]

@@ -192,6 +192,11 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
     def set_segment_index(self, idx):
         """
         Set the active segment index for control interpolation.
+
+        Parameters
+        ----------
+        idx : int
+            The index of the segment in the phase being interpolated.
         """
         self.options['segment_index'] = idx
 

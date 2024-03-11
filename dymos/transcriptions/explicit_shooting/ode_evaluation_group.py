@@ -35,9 +35,10 @@ class ODEEvaluationGroup(om.Group):
         For each polynomial variable, a dictionary of its options, keyed by name.
     ode_init_kwargs : dict
         A dictionary of keyword arguments to be passed to the instantiation of the ODE.
-    compute_derives : bool
+    compute_derivs : bool
         If True, the derivatives need to be computed for propagation. In some cases,
-        signficant setup time can be saved by skipping derivatives if not needed.
+        signficant setup time can be saved by skipping derivatives if not needed, such as during
+        explicit simulation for verification.
     vec_size : int
         The number of points at which the ODE is simultaneously evaluated.
     **kwargs : dict
