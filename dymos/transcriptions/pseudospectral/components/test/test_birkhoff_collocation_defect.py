@@ -100,14 +100,8 @@ class TestCollocationComp(unittest.TestCase):
 
         self.p.set_val('defect_comp.initial_states:x', 10.0)
         self.p.set_val('defect_comp.final_states:x', 10 * np.exp(-10))
-        # self.p.set_val('defect_comp.state_segment_ends:x', [[10.0, 10 * np.exp(-10)]])
-
         self.p.set_val('defect_comp.initial_states:y', np.array([[10.0, 0.0], [0.0, 10.0]]))
         self.p.set_val('defect_comp.final_states:y', np.array([[10 * np.exp(-10), 0.0], [0.0, 10 * np.exp(-10)]]))
-        # self.p.set_val('defect_comp.state_segment_ends:y', np.array([[[10.0, 0.0],
-        #                                                               [0.0, 10.0]],
-        #                                                              [[10 * np.exp(-10), 0.0],
-        #                                                               [0.0, 10 * np.exp(-10)]]]))
 
         self.p.run_model()
 
