@@ -236,9 +236,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
             # The derivative of x_ab wrt x_a is [I(size), 0(size)]^T
             # The derivative of x_ab wrt x_b is [0(size), I(size)]^T
-            c_sparse = sp.kron(self._C, sp.eye(size), format='csr')
-
-            d_state_defect_dxa = sp.kron(np.ones((self._C.shape[0], 1)), -sp.eye(size))
+            d_state_defect_dxa = sp.kron(np.ones((self._C.shape[0], 1)), -sp.eye(size), format='coo')
             d_state_defect_dxa.data[-size:] = 1.0
             d_dxa_r, d_dxa_c = d_state_defect_dxa.nonzero()
             d_dxa_data = d_state_defect_dxa.data.ravel()
