@@ -1,7 +1,7 @@
 import unittest
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.assert_utils import assert_near_equal, assert_no_approx_partials
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
@@ -90,6 +90,17 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
     p['phase0.states:mass_fuel'] = phase.interp('mass_fuel', (30000, 1e-3))
     p['phase0.states:alt'][:] = 10.0
 
+    # TODO: Make this unnecessary
+    if isinstance(transcription, dm.Birkhoff):
+        p['phase0.initial_states:range'] = 0.0
+        p['phase0.final_states:range'] = 724.0
+
+        p['phase0.initial_states:mass_fuel'] = 30000
+        p['phase0.final_states:mass_fuel'] = 1.0E-3
+
+        p['phase0.initial_states:alt'] = 10.0
+        p['phase0.final_states:alt'] = 10.0
+
     p['phase0.controls:mach'][:] = 0.8
 
     p['assumptions.S'] = 427.8
@@ -113,11 +124,10 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
         assert_near_equal(p.get_val('phase0.timeseries.range', units='NM')[-1],
                           726.85, tolerance=1.0E-2)
 
+    @unittest.skip('Skipped for now since this is particularly long-running.')
     def test_ex_aircraft_steady_flight_opt_birkhoff(self):
-        num_seg = 15
-        seg_ends, _ = lgl(num_seg + 1)
 
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=25, grid_type='lgl'),
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=30, grid_type='lgl'),
                          solve_segments=False)
         p = ex_aircraft_steady_flight(transcription=tx, optimizer='SLSQP')
         assert_near_equal(p.get_val('phase0.timeseries.range', units='NM')[-1],

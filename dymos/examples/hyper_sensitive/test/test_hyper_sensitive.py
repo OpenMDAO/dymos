@@ -26,7 +26,7 @@ class TestHyperSensitive(unittest.TestCase):
     @require_pyoptsparse(optimizer='SLSQP')
     def make_problem(self, transcription=dm.GaussLobatto, optimizer='SLSQP', numseg=30, order=3,
                      solve_segments=False, tf=10):
-        p = om.Problem(name='hypersensitive_test', model=om.Group())
+        p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
         p.driver.options['optimizer'] = optimizer

@@ -147,7 +147,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         with np.printoptions(linewidth=1024, edgeitems=1024):
             p.check_partials(compact_print=False, method='cs', show_only_incorrect=True, out_stream=f)
 
-    dm.run_problem(p, simulate=simulate, make_plots=True)
+    dm.run_problem(p, simulate=simulate, make_plots=False)
 
     return p
 
@@ -315,7 +315,7 @@ class TestMinTimeClimb(unittest.TestCase):
         NUM_SEG = 15
         ORDER = 3
         p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
-                           transcription='radau-ps', add_rate=True, time_name='t')
+                           transcription='radau-ps', add_rate=True, time_name='t', force_alloc_complex=True)
 
         self._test_results(p, time_name='t')
 
