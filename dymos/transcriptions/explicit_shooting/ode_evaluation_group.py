@@ -35,6 +35,10 @@ class ODEEvaluationGroup(om.Group):
         For each polynomial variable, a dictionary of its options, keyed by name.
     ode_init_kwargs : dict
         A dictionary of keyword arguments to be passed to the instantiation of the ODE.
+    compute_derivs : bool
+        If True, the derivatives need to be computed for propagation. In some cases,
+        signficant setup time can be saved by skipping derivatives if not needed, such as during
+        explicit simulation for verification.
     vec_size : int
         The number of points at which the ODE is simultaneously evaluated.
     **kwargs : dict
@@ -42,7 +46,7 @@ class ODEEvaluationGroup(om.Group):
     """
 
     def __init__(self, ode_class, input_grid_data, time_options, state_options, parameter_options, control_options,
-                 polynomial_control_options, ode_init_kwargs=None, vec_size=1, **kwargs):
+                 polynomial_control_options, ode_init_kwargs=None, compute_derivs=True, vec_size=1, **kwargs):
         super().__init__(**kwargs)
 
         # This component creates copies of the variable options from the phase.
@@ -59,6 +63,7 @@ class ODEEvaluationGroup(om.Group):
         self._polynomial_control_interpolants = {}
         self._ode_class = ode_class
         self._input_grid_data = input_grid_data
+        self._compute_derivs = compute_derivs
         self._vec_size = vec_size
         self._ode_init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
 
@@ -75,7 +80,7 @@ class ODEEvaluationGroup(om.Group):
 
         control_interp_comp = self._get_subsystem('control_interp')
         if control_interp_comp:
-            control_interp_comp.options['segment_index'] = seg_idx
+            control_interp_comp.set_segment_index(seg_idx)
 
     def setup(self):
         """

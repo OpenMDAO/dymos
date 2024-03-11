@@ -112,7 +112,7 @@ class TestRobotArm(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_robot_arm_birkhoff_lgl(self):
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=30, grid_type='lgl'))
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=30, grid_type='lgl'))
         p = self.make_problem(tx=tx, optimizer='IPOPT')
         dm.run_problem(p)
 
@@ -121,7 +121,7 @@ class TestRobotArm(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_robot_arm_birkhoff_cgl(self):
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=30, grid_type='cgl'))
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=30, grid_type='cgl'))
         p = self.make_problem(tx=tx, optimizer='IPOPT')
         dm.run_problem(p)
 

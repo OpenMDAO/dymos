@@ -268,6 +268,27 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
         om.issue_warning('No recorded data provided. Trajectory results report will not be created.')
         return
 
+    if sol_case:
+        sol_outputs = {abs_path: meta for abs_path, meta in
+                       sol_case.list_outputs(out_stream=None, units=True) if 'timeseries' in abs_path}
+    else:
+        sol_outputs = None
+
+    if sim_case:
+        sim_outputs = {abs_path: meta for abs_path, meta in
+                       sim_case.list_outputs(out_stream=None, units=True) if 'timeseries' in abs_path}
+    else:
+        sim_outputs = None
+
+    source_case = sol_case or sim_case
+    outputs = sol_outputs or sim_outputs
+
+    if sim_outputs is not None and sol_outputs is not None:
+        if not set(sim_outputs.keys()).issubset(sol_outputs.keys()):
+            om.issue_warning('Simulation file does not contain the same outputs as the solution '
+                             'file. Skipping plotting of simulation timeseries data.')
+            sim_case = None
+
     for traj_path, traj_data in traj_and_phase_meta.items():
         traj_params = traj_data['parameter_options']
         traj_name = traj_data['name']
@@ -317,7 +338,7 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
             # Populate the phase timeseries data
             for output_name in sorted(ts_outputs.keys(), key=str.casefold):
                 meta = ts_outputs[output_name]
-                prom_name = abs2prom_map['output'][output_name]
+                prom_name = meta['prom_name']
                 var_name = prom_name.split('.')[-1]
 
                 if sol_case:

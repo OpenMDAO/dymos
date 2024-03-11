@@ -684,26 +684,15 @@ class BirkhoffGrid(GridData):
 
     Parameters
     ----------
-    num_segments : int
-        The number of segments in the phase.
-    nodes_per_seg : int or iterable
-        The number of nodes in each segment. As an integer, it applies to each segment. If a sequence, its length
-        must be equal to num_segments.
-    segment_ends : Iterable[num_segments + 1] or None
-        The segments nodes on some arbitrary interval.
-        This will be normalized to the interval [-1, 1].
-    compressed : bool
-        If the transcription is compressed, then states and controls at shared
-        nodes of adjacent segments are only specified once, and then broadcast
-        to the appropriate indices.
+    num_nodes : int
+        The number of nodes in the grid.
     grid_type : str
         The type of Gaussian grid used for the transcription. May be 'lgl' or 'cgl'.
     """
-    def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False, grid_type='lgl'):
+    def __init__(self, num_nodes, grid_type='cgl'):
         self.grid_type = grid_type
-        super().__init__(num_segments=num_segments, transcription='birkhoff',
-                         transcription_order=np.asarray(nodes_per_seg, dtype=int),
-                         segment_ends=segment_ends, compressed=compressed)
+        super().__init__(num_segments=1, transcription='birkhoff',
+                         transcription_order=num_nodes)
 
 
 class RadauGrid(GridData):

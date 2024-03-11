@@ -15,9 +15,6 @@ import dymos as dm
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 
 
-tf = 10
-
-
 @use_tempdirs
 class TestHyperSensitive(unittest.TestCase):
 
@@ -27,7 +24,8 @@ class TestHyperSensitive(unittest.TestCase):
                 os.remove(filename)
 
     @require_pyoptsparse(optimizer='SLSQP')
-    def make_problem(self, transcription=dm.GaussLobatto, optimizer='SLSQP', numseg=30, order=3):
+    def make_problem(self, transcription=dm.GaussLobatto, optimizer='SLSQP', numseg=30, order=3,
+                     solve_segments=False, tf=10):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
@@ -46,6 +44,7 @@ class TestHyperSensitive(unittest.TestCase):
             p.driver.opt_settings['mu_init'] = 0.01
             p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
             p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+            p.driver.opt_settings['tol'] = 1.0E-6
             p.driver.declare_coloring()
         else:
             p.driver.declare_coloring()
@@ -55,14 +54,14 @@ class TestHyperSensitive(unittest.TestCase):
         elif transcription == 'radau-ps':
             t = dm.Radau(num_segments=numseg, order=3)
         elif transcription == 'birkhoff':
-            t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=numseg, nodes_per_seg=5, grid_type='lgl'),
-                            solve_segments='forward')
+            t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=order + 1, grid_type='lgl'),
+                            solve_segments=solve_segments)
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE, transcription=t))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
-        phase0.add_state('x', fix_initial=False, fix_final=False, rate_source='x_dot')
-        phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L')
+        phase0.add_state('x', fix_initial=False, fix_final=False, rate_source='x_dot', ref=100)
+        phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', ref=100)
         phase0.add_control('u', opt=True, targets=['u'])
 
         # phase0.add_boundary_constraint('x', loc='final', equals=1)
@@ -72,6 +71,7 @@ class TestHyperSensitive(unittest.TestCase):
         phase0.add_objective('xL', loc='final')
 
         phase0.set_refine_options(refine=True, tol=1e-7, max_order=14)
+        phase0.set_simulate_options(times_per_seg=100)
 
         p.set_solver_print(0)
         p.setup(check=True, force_alloc_complex=True)
@@ -90,7 +90,7 @@ class TestHyperSensitive(unittest.TestCase):
         return p
 
     @staticmethod
-    def solution():
+    def solution(tf):
         sqrt_two = np.sqrt(2)
         val = sqrt_two * tf
         c1 = (1.5 * np.exp(-val) - 1) / (np.exp(-val) - np.exp(val))
@@ -111,9 +111,10 @@ class TestHyperSensitive(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_hyper_sensitive_radau(self):
-        p = self.make_problem(transcription='radau-ps', optimizer='IPOPT')
+        tf = 10
+        p = self.make_problem(transcription='radau-ps', optimizer='IPOPT', tf=tf)
         dm.run_problem(p, refine_iteration_limit=5)
-        ui, uf, J = self.solution()
+        ui, uf, J = self.solution(tf)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
                           ui,
@@ -129,10 +130,11 @@ class TestHyperSensitive(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_hyper_sensitive_birkhoff(self):
-        p = self.make_problem(transcription='birkhoff', optimizer='IPOPT')
+        tf = 10
+        p = self.make_problem(transcription='birkhoff', optimizer='IPOPT', order=21, tf=tf)
         p.run_model()
-        dm.run_problem(p, make_plots=True)
-        ui, uf, J = self.solution()
+        dm.run_problem(p, simulate=True, make_plots=True)
+        ui, uf, J = self.solution(tf=tf)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
                           ui,
@@ -148,10 +150,11 @@ class TestHyperSensitive(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_hyper_sensitive_gauss_lobatto(self):
-        p = self.make_problem(transcription='gauss-lobatto', optimizer='IPOPT')
-        dm.run_problem(p, refine_iteration_limit=5)
+        tf = 10
+        p = self.make_problem(transcription='gauss-lobatto', optimizer='IPOPT', tf=tf)
+        dm.run_problem(p, refine_iteration_limit=5,)
 
-        ui, uf, J = self.solution()
+        ui, uf, J = self.solution(tf=tf)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
                           ui,

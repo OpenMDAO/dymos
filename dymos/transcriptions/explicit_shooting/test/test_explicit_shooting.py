@@ -167,7 +167,7 @@ class TestExplicitShooting(unittest.TestCase):
 
         dymos_options['include_check_partials'] = True
 
-        input_grid = dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=3, compressed=True)
+        input_grid = dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=3, compressed=False)
 
         output_grids = {'same': input_grid,
                         'more_dense': dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=7, compressed=True),
@@ -210,9 +210,11 @@ class TestExplicitShooting(unittest.TestCase):
                 prob.set_val('traj0.phase0.t_duration', 2)
                 prob.set_val('traj0.phase0.initial_states:x', 0.0)
                 prob.set_val('traj0.phase0.initial_states:y', 10.0)
-                prob.set_val('traj0.phase0.initial_states:v', 1.0E-6)
+                prob.set_val('traj0.phase0.initial_states:v', 0.1)
                 prob.set_val('traj0.phase0.parameters:g', 9.80665, units='m/s**2')
-                prob.set_val('traj0.phase0.controls:theta', phase.interp('theta', ys=[0.01, 50]), units='deg')
+                prob.set_val('traj0.phase0.controls:theta', phase.interp('theta', ys=[10, 50]), units='deg')
+
+                # prob.run_model()
 
                 dm.run_problem(prob)
 

@@ -151,7 +151,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
-        transcription = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=10))
+        transcription = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=10))
         ascent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         ascent = traj.add_phase('ascent', ascent)
@@ -178,7 +178,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                                        upper=400000, lower=0, ref=100000)
 
         # Second Phase (descent)
-        transcription = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=10))
+        transcription = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=10))
         descent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         traj.add_phase('descent', descent)

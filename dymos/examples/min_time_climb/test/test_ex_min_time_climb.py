@@ -16,7 +16,8 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
-                   transcription_order=3, force_alloc_complex=False, add_rate=False, time_name='time'):
+                   transcription_order=3, force_alloc_complex=False, add_rate=False, time_name='time',
+                   simulate=True, path_constraints=True):
 
     p = om.Problem(model=om.Group())
 
@@ -39,12 +40,16 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
         p.driver.opt_settings['mu_init'] = 0.01
 
-    t = {'gauss-lobatto': dm.GaussLobatto(num_segments=num_seg, order=transcription_order),
-         'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order)}
+    if transcription == 'gauss-lobatto':
+        tx = dm.GaussLobatto(num_segments=num_seg, order=transcription_order)
+    elif transcription == 'radau-ps':
+        tx = dm.Radau(num_segments=num_seg, order=transcription_order)
+    elif transcription == 'birkhoff':
+        tx = dm.Birkhoff(order=transcription_order)
 
     traj = dm.Trajectory()
 
-    phase = dm.Phase(ode_class=MinTimeClimbODE, transcription=t[transcription])
+    phase = dm.Phase(ode_class=MinTimeClimbODE, transcription=tx)
     traj.add_phase('phase0', phase)
 
     p.model.add_subsystem('traj', traj)
@@ -84,13 +89,15 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase.add_boundary_constraint('aero.mach', loc='final', equals=1.0)
     phase.add_boundary_constraint('gam', loc='final', equals=0.0)
 
-    phase.add_path_constraint(name='h', lower=100.0, upper=20000, ref=20000)
-    phase.add_path_constraint(name='aero.mach', lower=0.1, upper=1.8)
+    if path_constraints:
+        phase.add_path_constraint(name='h', lower=100.0, upper=20000, ref=20000)
+        phase.add_path_constraint(name='aero.mach', lower=0.1, upper=1.8)
 
     # Unnecessary but included to test capability
-    phase.add_path_constraint(name='alpha', lower=-8, upper=8)
-    phase.add_path_constraint(name=f'{time_name}', lower=0, upper=400)
-    phase.add_path_constraint(name=f'{time_name}_phase', lower=0, upper=400)
+    if path_constraints:
+        phase.add_path_constraint(name='alpha', lower=-8, upper=8)
+        phase.add_path_constraint(name=f'{time_name}', lower=0, upper=400)
+        phase.add_path_constraint(name=f'{time_name}_phase', lower=0, upper=400)
 
     # Minimize time at the end of the phase
     phase.add_objective(time_name, loc='final', ref=1.0)
@@ -117,7 +124,30 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p['traj.phase0.states:m'] = phase.interp('m', [19030.468, 16841.431])
     p['traj.phase0.controls:alpha'] = phase.interp('alpha', [0.0, 0.0])
 
-    dm.run_problem(p, simulate=True)
+    if transcription == 'birkhoff':
+        p['traj.phase0.initial_states:r'] = 0.0
+        p['traj.phase0.final_states:r'] = 111319.54
+
+        p['traj.phase0.initial_states:h'] = 100.0
+        p['traj.phase0.final_states:h'] = 20000.0
+
+        p['traj.phase0.initial_states:v'] = 135.964
+        p['traj.phase0.final_states:v'] = 283.159
+
+        p['traj.phase0.initial_states:gam'] = 0.0
+        p['traj.phase0.final_states:gam'] = 0.0
+
+        p['traj.phase0.initial_states:m'] = 19030.468
+        p['traj.phase0.final_states:m'] = 16841.431
+
+        phase.set_simulate_options(times_per_seg=200, atol=1.0E-6, rtol=1.0E-6)
+
+    p.run_model()
+    with open('check_partials.txt', 'w') as f:
+        with np.printoptions(linewidth=1024, edgeitems=1024):
+            p.check_partials(compact_print=False, method='cs', show_only_incorrect=True, out_stream=f)
+
+    dm.run_problem(p, simulate=simulate, make_plots=False)
 
     return p
 
@@ -252,6 +282,20 @@ class TestMinTimeClimb(unittest.TestCase):
         self._test_mach_rate(p, plot=False)
 
     @require_pyoptsparse(optimizer='IPOPT')
+    def test_results_birkhoff(self):
+        NUM_SEG = 1
+        ORDER = 30
+        p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
+                           transcription='birkhoff', add_rate=False, simulate=True, path_constraints=True,
+                           force_alloc_complex=True)
+
+        self._test_results(p)
+
+        self._test_wilcard_outputs(p)
+
+        self._test_timeseries_units(p)
+
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_results_gauss_lobatto_renamed_time(self):
         NUM_SEG = 12
         ORDER = 3
@@ -271,7 +315,7 @@ class TestMinTimeClimb(unittest.TestCase):
         NUM_SEG = 15
         ORDER = 3
         p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
-                           transcription='radau-ps', add_rate=True, time_name='t')
+                           transcription='radau-ps', add_rate=True, time_name='t', force_alloc_complex=True)
 
         self._test_results(p, time_name='t')
 

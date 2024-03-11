@@ -31,8 +31,7 @@ class TestCollocationComp(unittest.TestCase):
     def make_problem(self, grid_type='lgl'):
         dm.options['include_check_partials'] = True
 
-        gd = BirkhoffGrid(num_segments=1, segment_ends=np.array([0., 10.]),
-                          nodes_per_seg=21, grid_type=grid_type)
+        gd = BirkhoffGrid(num_nodes=21, grid_type=grid_type)
         n = gd.subset_num_nodes['col']
         tau = gd.node_stau
         t = 5 * tau + 5
@@ -101,14 +100,8 @@ class TestCollocationComp(unittest.TestCase):
 
         self.p.set_val('defect_comp.initial_states:x', 10.0)
         self.p.set_val('defect_comp.final_states:x', 10 * np.exp(-10))
-        self.p.set_val('defect_comp.state_segment_ends:x', [[10.0, 10 * np.exp(-10)]])
-
         self.p.set_val('defect_comp.initial_states:y', np.array([[10.0, 0.0], [0.0, 10.0]]))
         self.p.set_val('defect_comp.final_states:y', np.array([[10 * np.exp(-10), 0.0], [0.0, 10 * np.exp(-10)]]))
-        self.p.set_val('defect_comp.state_segment_ends:y', np.array([[[10.0, 0.0],
-                                                                      [0.0, 10.0]],
-                                                                     [[10 * np.exp(-10), 0.0],
-                                                                      [0.0, 10 * np.exp(-10)]]]))
 
         self.p.run_model()
 
@@ -121,16 +114,15 @@ class TestCollocationComp(unittest.TestCase):
                 self.make_problem(grid_type=grid_type)
                 assert_almost_equal(self.p['defect_comp.state_defects:x'], 0.0)
                 assert_almost_equal(self.p['defect_comp.state_rate_defects:x'], 0.0)
-                assert_almost_equal(self.p['defect_comp.final_state_defects:x'], 0.0)
                 assert_almost_equal(self.p['defect_comp.state_defects:y'], 0.0)
                 assert_almost_equal(self.p['defect_comp.state_rate_defects:y'], 0.0)
-                assert_almost_equal(self.p['defect_comp.final_state_defects:y'], 0.0)
 
     def test_partials(self):
         for grid_type in ('lgl', 'cgl'):
             with self.subTest(msg=grid_type):
                 self.make_problem(grid_type=grid_type)
-                cpd = self.p.check_partials(compact_print=True, method='fd', out_stream=None)
+                with np.printoptions(linewidth=1024):
+                    cpd = self.p.check_partials(compact_print=True, method='cs', out_stream=None)
                 assert_check_partials(cpd)
 
 

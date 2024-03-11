@@ -87,6 +87,13 @@ class TestBrachistochroneExample(unittest.TestCase):
         self.run_asserts(p)
         self.tearDown()
 
+    def test_ex_brachistochrone_birkhoff(self):
+        ex_brachistochrone.SHOW_PLOTS = True
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='birkhoff',
+                                                        num_segments=1, transcription_order=11)
+        self.run_asserts(p)
+        self.tearDown()
+
     def test_ex_brachistochrone_shooting_gl_uncompressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='shooting-gauss-lobatto',
@@ -107,3 +114,7 @@ class TestBrachistochroneExample(unittest.TestCase):
                                                         compressed=False)
         self.run_asserts(p)
         self.tearDown()
+
+
+if __name__ == '__main__':
+    unittest.main()

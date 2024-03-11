@@ -105,7 +105,7 @@ class TestCannonballMatrixState(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_cannonball_matrix_state_birkhoff_lgl(self):
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=20, grid_type='lgl'))
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=20, grid_type='lgl'))
 
         p = self._make_problem(tx)
 
@@ -123,7 +123,7 @@ class TestCannonballMatrixState(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_cannonball_matrix_state_birkhoff_cgl(self):
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_segments=1, nodes_per_seg=20, grid_type='cgl'))
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=20, grid_type='cgl'))
 
         p = self._make_problem(tx)
 
