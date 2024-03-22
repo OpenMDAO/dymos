@@ -6,7 +6,7 @@ optional_dependencies = {
         'matplotlib',
         'bokeh',
         'jupyter',
-        'jupyter-book==0.14',
+        'jupyter-book',
         'nbconvert',
         'notebook',
         'ipython',
