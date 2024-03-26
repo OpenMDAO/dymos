@@ -35,6 +35,7 @@ jobs:
             PYOPTSPARSE: 'v2.9.3'
             SNOPT: 7.7
             OPENMDAO: 'latest'
+            PEP517: true
             OPTIONAL: '[all]'
             JAX: '0.4.14'
 
@@ -129,11 +130,6 @@ jobs:
       - name: Checkout code
         if: env.RUN_BUILD
         uses: actions/checkout@v3
-
-      - name: Fetch tags
-        if: env.RUN_BUILD
-        run: |
-          git fetch --prune --unshallow --tags
 
       - name: Setup conda
         if: env.RUN_BUILD
@@ -258,7 +254,16 @@ jobs:
           echo "============================================================="
           echo "Install Dymos"
           echo "============================================================="
-          pip install .${{ matrix.OPTIONAL }}
+          if [[ "${{ matrix.PEP517 }}" == "true" ]]; then
+            pip wheel --no-deps --use-pep517 .
+            WHEEL=`find dymos-*.whl`
+            echo "-----------------------------------------------------------"
+            echo "Installing from wheel: $WHEEL"
+            echo "-----------------------------------------------------------"
+            python -m pip install $WHEEL${{ matrix.OPTIONAL }}
+          else
+            python -m pip install .${{ matrix.OPTIONAL }}
+          fi
 
       - name: Display environment info
         if: env.RUN_BUILD
