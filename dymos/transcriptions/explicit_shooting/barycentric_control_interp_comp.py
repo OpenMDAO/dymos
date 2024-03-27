@@ -467,8 +467,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             outputs[rate_name] = wbuhat.T @ dl_dstau * dstau_dt
             outputs[rate2_name] = wbuhat.T @ d2l_dstau2 * dstau_dt ** 2
 
-            print(self.options['segment_index'], outputs[output_name])
-
     def _compute_polynomial_controls(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """
         Compute interpolated control values and rates for the polynomial controls.
