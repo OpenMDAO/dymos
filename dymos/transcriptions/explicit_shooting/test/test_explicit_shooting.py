@@ -174,7 +174,7 @@ class TestExplicitShooting(unittest.TestCase):
                         'radau': dm.RadauGrid(num_segments=3, nodes_per_seg=4, compressed=True),
                         'uniform': dm.UniformGrid(num_segments=3, nodes_per_seg=11)}
 
-        for output_grid_type in ('same',):#, 'more_dense', 'radau', 'uniform'):
+        for output_grid_type in ('same', 'more_dense', 'radau', 'uniform'):
 
             with self.subTest(f'output_grid = {output_grid_type}'):
                 prob = om.Problem()

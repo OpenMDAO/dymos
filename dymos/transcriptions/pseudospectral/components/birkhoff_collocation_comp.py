@@ -33,7 +33,7 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # self._no_check_partials = not dymos_options['include_check_partials']
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
         """
@@ -240,15 +240,6 @@ class BirkhoffCollocationComp(om.ExplicitComponent):
             d_state_defect_dxa.data[-size:] = 1.0
             d_dxa_r, d_dxa_c = d_state_defect_dxa.nonzero()
             d_dxa_data = d_state_defect_dxa.data.ravel()
-
-            dxa = np.vstack([np.eye(size), np.zeros((size, size))])
-
-            d_state_defect_dxa = sp.kron(np.dot(self._C, dxa), sp.eye(size), format='csr')
-            d_dxa_r, d_dxa_c = d_state_defect_dxa.nonzero()
-            d_dxa_data = d_state_defect_dxa.data.ravel()
-
-            dxb = dxa[::-1, ...]
-            d_state_defect_dxb = sp.kron(np.dot(self._C, dxb), sp.eye(size), format='csr')
 
             self.declare_partials(of=var_names['state_defect'],
                                   wrt=var_names['state_initial_value'],

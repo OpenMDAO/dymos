@@ -610,7 +610,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             dl_dstau[...] = np.sum(dl_dg, axis=-1, keepdims=True)
             d2l_dstau2[...] = np.sum(np.sum(d2l_dg2, axis=-1), axis=-1, keepdims=True)
 
-
             input_name, output_name, rate_name, rate2_name = self._control_io_names[pc_name]
 
             # Translate the input nodes to the discretization nodes.
@@ -638,11 +637,10 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
 
             # partials[rate2_name, input_name] = 0.0
         if self._compute_derivs:
-                d3l_dstau3[...] = np.sum(np.sum(np.sum(d3l_dg3, axis=-1), axis=-1), axis=-1, keepdims=True)
-                partials[rate2_name, 'ptau'] = d3l_dstau3.T @ wbuhat * dptau_dt ** 2
-                partials[rate2_name, 't_duration'] = 2 * wbuhat.T @ d2l_dstau2 * dptau_dt * d_dptau_dt_d_t_duration
-                partials[rate2_name, input_name][...] = (d2l_dstau2 * w_b * dptau_dt ** 2).T
-
+            d3l_dstau3[...] = np.sum(np.sum(np.sum(d3l_dg3, axis=-1), axis=-1), axis=-1, keepdims=True)
+            partials[rate2_name, 'ptau'] = d3l_dstau3.T @ wbuhat * dptau_dt ** 2
+            partials[rate2_name, 't_duration'] = 2 * wbuhat.T @ d2l_dstau2 * dptau_dt * d_dptau_dt_d_t_duration
+            partials[rate2_name, input_name][...] = (d2l_dstau2 * w_b * dptau_dt ** 2).T
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
         """
