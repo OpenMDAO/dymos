@@ -189,7 +189,7 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         if self._standalone_mode:
             self.configure_io()
 
-    def set_segment_index(self, idx):
+    def set_segment_index(self, idx, **kwargs):
         """
         Set the active segment index for control interpolation.
         """
@@ -280,11 +280,11 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             L_seg = self._L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
                                input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
 
-            print(L_seg)
-
             for control_name, options in self._control_options.items():
                 input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
                 u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
+                print(u_hat)
+                exit(0)
                 a = np.atleast_2d(self._V_hat_inv[seg_order] @ u_hat)
                 outputs[output_name] = V_stau @ a
                 outputs[rate_name] = dstau_dt * (dV_stau @ a)

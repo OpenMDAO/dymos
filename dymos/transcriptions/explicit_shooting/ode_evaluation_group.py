@@ -2,7 +2,6 @@ from copy import deepcopy
 import numpy as np
 import openmdao.api as om
 
-from .vandermonde_control_interp_comp import VandermondeControlInterpComp
 from .barycentric_control_interp_comp import BarycentricControlInterpComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from .tau_comp import TauComp
@@ -107,21 +106,12 @@ class ODEEvaluationGroup(om.Group):
 
             # Add control interpolant
             self._control_comp = self.add_subsystem('control_interp',
-                                                    VandermondeControlInterpComp(grid_data=igd,
-                                                                                 vec_size=self._vec_size,
+                                                    BarycentricControlInterpComp(grid_data=igd,
                                                                                  control_options=c_options,
                                                                                  polynomial_control_options=pc_options,
-                                                                                 time_units=t_units),
+                                                                                 time_units=t_units,
+                                                                                 compute_derivs=self._compute_derivs),
                                                     promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
-
-            # self._control_comp = self.add_subsystem('control_interp',
-            #                                         BarycentricControlInterpComp(grid_data=igd,
-            #                                                                      vec_size=self._vec_size,
-            #                                                                      control_options=c_options,
-            #                                                                      polynomial_control_options=pc_options,
-            #                                                                      time_units=t_units,
-            #                                                                      compute_derivs=self._compute_derivs),
-            #                                         promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
 
         self.add_subsystem('ode', self._ode_class(num_nodes=self._vec_size, **self._ode_init_kwargs))
 
