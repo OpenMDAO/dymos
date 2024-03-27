@@ -1,7 +1,7 @@
 import unittest
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.assert_utils import assert_near_equal, assert_no_approx_partials
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
@@ -108,6 +108,7 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
 
     # TODO: Make this unnecessary
     if isinstance(transcription, dm.Birkhoff):
+
         p['traj.phase0.initial_states:range'] = 0.0
         p['traj.phase0.final_states:range'] = 724.0
 

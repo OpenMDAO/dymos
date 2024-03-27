@@ -1453,7 +1453,7 @@ class Phase(om.Group):
         output_name : str or None or list or dict
             The name of the variable as listed in the phase timeseries outputs. By
             default this is the last element in `name` when split by dots.  The user may
-            override the constraint name if splitting the path causes name collisions.
+            override the timeseries name if splitting the path causes name collisions.
         units : str or None or _unspecified
             The units to express the timeseries output.  If None, use the
             units associated with the target.  If provided, must be compatible with
@@ -1513,7 +1513,7 @@ class Phase(om.Group):
         output_name : str or None or list or dict
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
-            override the constraint name if splitting the path causes name collisions.
+            override the timeseries name if splitting the path causes name collisions.
         units : str or None or _unspecified
             The units to express the timeseries output.  If None, use the
             units associated with the target.  If provided, must be compatible with
@@ -1570,7 +1570,7 @@ class Phase(om.Group):
         output_name : str or None
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
-            override the constraint name if splitting the path causes name collisions.  If rate
+            override the timeseries name if splitting the path causes name collisions.  If rate
             is True, the rate name will be this name + _rate.
         units : str or None
             The units to express the timeseries output.  If None, use the
@@ -1649,7 +1649,7 @@ class Phase(om.Group):
         Add an objective in the phase.
 
         If name is not a state, control, control rate, or 'time', then this is assumed to be the
-        path of the variable to be constrained in the RHS.
+        path of the variable to be optimized.
 
         Parameters
         ----------
