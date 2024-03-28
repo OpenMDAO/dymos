@@ -310,9 +310,9 @@ jobs:
           testflo -b benchmark --pre_announce
           cd $HOME
           if [[ "${{ matrix.NAME }}" != "latest" ]]; then
-            testflo dymos -n 2 --show_skipped --durations 20 --coverage --coverpkg dymos
+            testflo dymos -n 2 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos
           else
-            testflo dymos -n 2 --show_skipped --durations 20
+            testflo dymos -n 2 --pre_announce --show_skipped --durations 20
           fi
 
       - name: Submit coverage

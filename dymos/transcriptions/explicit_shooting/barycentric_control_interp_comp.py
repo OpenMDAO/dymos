@@ -1,5 +1,5 @@
 import functools
-# from itertools import combinations, permutations
+from typing import Union
 import numpy as np
 from numpy.typing import ArrayLike
 import openmdao.api as om
@@ -29,7 +29,7 @@ def _compute_dl_dg(tau: float,
                    l: ArrayLike,
                    dl_dg: ArrayLike,
                    d2l_dg2: ArrayLike,
-                   d3l_dg3: ArrayLike | None = None,):
+                   d3l_dg3: Union[ArrayLike, None] = None,):
     """Compute the Lagrange polynomials and the first three derivatives wrt g at the nodes.
 
     This function achieves good performance with numba.njit (and uses a do-nothing njit decorator
