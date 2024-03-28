@@ -212,25 +212,20 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         self._disc_node_idxs_by_segment = []
         self._input_node_idxs_by_segment = []
 
-        first_disc_node_in_seg = first_input_node_in_seg = 0
+        first_disc_node_in_seg = 0
 
         for seg_idx in range(gd.num_segments):
             # Number of control discretization nodes per segment
             ncdnps = gd.subset_num_nodes_per_segment['control_disc'][seg_idx]
-            ncinps = gd.subset_num_nodes_per_segment['control_input'][seg_idx]
-
             ar_control_disc_nodes = np.arange(ncdnps, dtype=int)
-            disc_idxs_in_seg = first_disc_node_in_seg + np.arange(ncdnps, dtype=int)
-            input_idxs_in_seg = first_input_node_in_seg + np.arange(ncinps, dtype=int)
-
+            disc_idxs_in_seg = first_disc_node_in_seg + ar_control_disc_nodes
             first_disc_node_in_seg += ncdnps
-            first_input_node_in_seg += ncinps
 
             # The indices of the discretization node u vector pertaining to the given segment
             self._disc_node_idxs_by_segment.append(disc_idxs_in_seg)
 
             # The indices of the input u vector pertaining to the given segment
-            self._input_node_idxs_by_segment.append(input_idxs_in_seg)
+            self._input_node_idxs_by_segment.append(gd.input_maps['dynamic_control_input_to_disc'][disc_idxs_in_seg])
 
         if not self._control_options:
             return
@@ -390,8 +385,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
 
             # Translate the input nodes to the discretization nodes.
             u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
-            # print(u_hat)
-            # exit(0)
 
             # Perform a row_wise multiplication of w_b and u_hat
             wbuhat = np.einsum("ij,i...->i...", w_b, u_hat)
