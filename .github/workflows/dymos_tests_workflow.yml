@@ -163,52 +163,29 @@ jobs:
 
       - name: Install PETSc
         if: env.RUN_BUILD && matrix.PETSc
+        shell: bash -l {0}
         run: |
-          echo "============================================================="
-          echo "Install compilers for PETSc"
-          echo "============================================================="
-          if [[ "${{ matrix.OPENMPI }}" ]]; then
-            COMPILERS="cython compilers openmpi-mpicc=${{ matrix.OPENMPI }}"
-          else
-            COMPILERS="cython compilers openmpi-mpicc"
-          fi
-          conda install $COMPILERS -q -y
-
           echo "============================================================="
           echo "Install PETSc"
           echo "============================================================="
-          if [[ "${{ matrix.PETSc }}" == "3" ]]; then
-            python -m pip install git+https://github.com/mpi4py/mpi4py
-            python -m pip install petsc petsc4py
+          if [[ "${{ matrix.OPENMPI }}" && "${{ matrix.MPI4PY }}" ]]; then
+            conda install openmpi=${{ matrix.OPENMPI }} mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
+          elif [[ "${{ matrix.MPI4PY }}" ]]; then
+            conda install mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
           else
-            if [[ "${{ matrix.MPI4PY }}" ]]; then
-              conda install mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
-            else
-              conda install mpi4py petsc4py=${{ matrix.PETSc }} -q -y
-            fi
+            conda install mpi4py petsc4py=${{ matrix.PETSc }} -q -y
           fi
-
-          echo "============================================================="
-          echo "Check MPI and PETSc installation"
-          echo "============================================================="
           export OMPI_MCA_rmaps_base_oversubscribe=1
           export OMPI_MCA_btl=^openib
-          echo "-----------------------"
-          echo "Quick test of mpi4py:"
-          mpirun -n 3 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
-          echo "-----------------------"
-          echo "Quick test of petsc4py:"
-          mpirun -n 3 python -c "import numpy; from mpi4py import MPI; comm = MPI.COMM_WORLD; \
-                                 import petsc4py; petsc4py.init(); \
-                                 x = petsc4py.PETSc.Vec().createWithArray(numpy.ones(5)*comm.rank, comm=comm);  \
-                                 print(x.getArray())"
-          echo "-----------------------"
-
           echo "OMPI_MCA_rmaps_base_oversubscribe=1" >> $GITHUB_ENV
           echo "OMPI_MCA_btl=^openib" >> $GITHUB_ENV
-
-          echo "Workaround for intermittent failures with OMPI https://github.com/open-mpi/ompi/issues/7393"
-          echo "TMPDIR=/tmp" >> $GITHUB_ENV
+          echo "-----------------------"
+          echo "Quick test of mpi4py:"
+          mpirun -n 2 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
+          echo "-----------------------"
+          echo "Quick test of petsc4py:"
+          mpirun -n 2 python -c "import numpy; from mpi4py import MPI; comm = MPI.COMM_WORLD; import petsc4py; petsc4py.init(); x = petsc4py.PETSc.Vec().createWithArray(numpy.ones(5)*comm.rank, comm=comm);  print(x.getArray())"
+          echo "-----------------------"
 
       - name: Install pyOptSparse
         id: build_pyoptsparse
