@@ -192,6 +192,13 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
     def set_segment_index(self, idx, **kwargs):
         """
         Set the active segment index for control interpolation.
+
+        Parameters
+        ----------
+        idx : int
+            The index of the segment in which the controls are to be interpolated.
+        **kwargs : dict, optional
+            Keyword arguments that make this interpolant call-compatible with the BarycentricLagrangeInterpolant.
         """
         self.options['segment_index'] = idx
 

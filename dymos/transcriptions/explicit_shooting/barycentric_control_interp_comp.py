@@ -85,7 +85,8 @@ def _compute_dl_dg(tau: float,
 
 
 class BarycentricControlInterpComp(om.ExplicitComponent):
-    """A component which interpolates control values in 1D using Vandermonde interpolation.
+    """
+    A component which interpolates control values in 1D using Vandermonde interpolation.
 
     Takes training values for control variables at given _input_ nodes,
     broadcasts them to _discretization_ nodes, and then interpolates the discretization values
@@ -112,7 +113,9 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
     standalone_mode : bool
         If True, this component runs its configuration steps during setup. This is useful for
         unittests in which the component does not exist in a larger group.
-    **kwargs
+    compute_derivs : bool
+        Set to True if derivatives of rate2 need to be computed, otherwise False.
+    **kwargs : dict, optional
         Keyword arguments passed to ExplicitComponent.
     """
     def __init__(self, grid_data, control_options=None, polynomial_control_options=None,
@@ -149,7 +152,8 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         self.options.declare('segment_index', default=None, types=int, desc='index of the current segment')
 
     def set_segment_index(self, idx, alloc_complex=False):
-        """Set the index of the segment being interpolated.
+        """
+        Set the index of the segment being interpolated.
 
         Parameters
         ----------
