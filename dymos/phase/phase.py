@@ -2412,7 +2412,8 @@ class Phase(om.Group):
                               atol=_atol,
                               rtol=_rtol,
                               first_step=_first_step,
-                              max_step=_max_step)
+                              max_step=_max_step,
+                              control_interp='barycentric')
 
         sim_phase = SimulationPhase(transcription=tx,
                                     ode_class=ode_class,

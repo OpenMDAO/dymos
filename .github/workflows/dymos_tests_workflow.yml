@@ -176,7 +176,9 @@ jobs:
             conda install mpi4py petsc4py=${{ matrix.PETSc }} -q -y
           fi
           export OMPI_MCA_rmaps_base_oversubscribe=1
+          export OMPI_MCA_btl=^openib
           echo "OMPI_MCA_rmaps_base_oversubscribe=1" >> $GITHUB_ENV
+          echo "OMPI_MCA_btl=^openib" >> $GITHUB_ENV
           echo "-----------------------"
           echo "Quick test of mpi4py:"
           mpirun -n 2 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
@@ -308,9 +310,9 @@ jobs:
           testflo -b benchmark --pre_announce
           cd $HOME
           if [[ "${{ matrix.NAME }}" != "latest" ]]; then
-            testflo dymos -n 2 --show_skipped --durations 20 --coverage --coverpkg dymos
+            testflo dymos -n 2 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos
           else
-            testflo dymos -n 2 --show_skipped --durations 20
+            testflo dymos -n 2 --pre_announce --show_skipped --durations 20
           fi
 
       - name: Submit coverage
