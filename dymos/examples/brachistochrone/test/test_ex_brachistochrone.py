@@ -104,16 +104,21 @@ class TestBrachistochroneExample(unittest.TestCase):
     def test_ex_brachistochrone_shooting_radau_compressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='shooting-radau',
+                                                        optimizer='IPOPT',
+                                                        force_alloc_complex=True,
                                                         compressed=True)
         self.run_asserts(p)
         self.tearDown()
 
     def test_ex_brachistochrone_shooting_radau_uncompressed(self):
-        ex_brachistochrone.SHOW_PLOTS = True
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='shooting-radau',
-                                                        compressed=False)
-        self.run_asserts(p)
-        self.tearDown()
+        import dymos
+        with dymos.options.temporary(include_check_partials=True):
+            ex_brachistochrone.SHOW_PLOTS = True
+            p = ex_brachistochrone.brachistochrone_min_time(transcription='shooting-radau',
+                                                            optimizer='IPOPT',
+                                                            compressed=False)
+            self.run_asserts(p)
+            self.tearDown()
 
 
 if __name__ == '__main__':
