@@ -2,6 +2,8 @@ from copy import deepcopy
 import numpy as np
 import openmdao.api as om
 
+from dymos.transcriptions.explicit_shooting.vandermonde_control_interp_comp import VandermondeControlInterpComp
+
 from .barycentric_control_interp_comp import BarycentricControlInterpComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from .tau_comp import TauComp
@@ -41,12 +43,15 @@ class ODEEvaluationGroup(om.Group):
         explicit simulation for verification.
     vec_size : int
         The number of points at which the ODE is simultaneously evaluated.
+    control_interp : str
+        The control interpolation technique to be used. Must be either 'vandermonde' or 'barycentric'.
     **kwargs : dict
         Additional keyword arguments passed to Group.
     """
 
     def __init__(self, ode_class, input_grid_data, time_options, state_options, parameter_options, control_options,
-                 polynomial_control_options, ode_init_kwargs=None, compute_derivs=True, vec_size=1, **kwargs):
+                 polynomial_control_options, ode_init_kwargs=None, compute_derivs=True, vec_size=1,
+                 control_interp='vandermonde', **kwargs):
         super().__init__(**kwargs)
 
         # This component creates copies of the variable options from the phase.
@@ -66,6 +71,7 @@ class ODEEvaluationGroup(om.Group):
         self._compute_derivs = compute_derivs
         self._vec_size = vec_size
         self._ode_init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
+        self._control_interp = control_interp
 
     def set_segment_index(self, seg_idx):
         """
@@ -106,13 +112,22 @@ class ODEEvaluationGroup(om.Group):
             pc_options = self._polynomial_control_options
 
             # Add control interpolant
-            self._control_comp = self.add_subsystem('control_interp',
-                                                    BarycentricControlInterpComp(grid_data=igd,
-                                                                                 control_options=c_options,
-                                                                                 polynomial_control_options=pc_options,
-                                                                                 time_units=t_units,
-                                                                                 compute_derivs=self._compute_derivs),
-                                                    promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
+            if self._control_interp == 'barycentric':
+                self._control_comp = self.add_subsystem('control_interp',
+                                                        BarycentricControlInterpComp(grid_data=igd,
+                                                                                     control_options=c_options,
+                                                                                     polynomial_control_options=pc_options,
+                                                                                     time_units=t_units,
+                                                                                     compute_derivs=self._compute_derivs),
+                                                        promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
+            else:
+                self._control_comp = self.add_subsystem('control_interp',
+                                                        VandermondeControlInterpComp(grid_data=igd,
+                                                                                     control_options=c_options,
+                                                                                     polynomial_control_options=pc_options,
+                                                                                     time_units=t_units,
+                                                                                     compute_derivs=self._compute_derivs),
+                                                        promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
 
         self.add_subsystem('ode', self._ode_class(num_nodes=self._vec_size, **self._ode_init_kwargs))
 

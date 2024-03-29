@@ -76,6 +76,10 @@ class ExplicitShooting(TranscriptionBase):
                              default=None, desc='Number of integration steps in each segment',
                              deprecation='Option `num_steps_per_segment is deprecated. ExplicitShooting now uses '
                                          'adaptive-step methods.')
+        self.options.declare('control_interp', values=['vandermonde', 'barycentric'], default='vandermonde',
+                             desc='Control interpolation algorithm, one of either "vandermonde" or "barycentric". In '
+                             'general, Vandermonde is faster but Barycentric is necessary for the Birkhoff '
+                             'transcription where the number of nodes per segment can exceed 20 to 30.')
 
         # Deprecated options previously inherited from transcription base.
         self.options.declare('num_segments', types=int, desc='Number of segments')
@@ -310,7 +314,8 @@ class ExplicitShooting(TranscriptionBase):
                                    output_grid_data=self._output_grid_data,
                                    ode_init_kwargs=phase.options['ode_init_kwargs'],
                                    standalone_mode=False,
-                                   reports=self.options['subprob_reports'])
+                                   reports=self.options['subprob_reports'],
+                                   control_interp=self.options['control_interp'])
         phase.add_subsystem('integrator', integ)
         phase.add_subsystem('ode', phase.options['ode_class'](num_nodes=self._output_grid_data.num_nodes,
                                                               **phase.options['ode_init_kwargs']))

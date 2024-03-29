@@ -35,7 +35,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['Major step limit'] = 0.5
     elif optimizer == 'IPOPT':
         p.driver.opt_settings['tol'] = 1.0E-5
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 0
         p.driver.opt_settings['mu_strategy'] = 'monotone'
         p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
         p.driver.opt_settings['mu_init'] = 0.01

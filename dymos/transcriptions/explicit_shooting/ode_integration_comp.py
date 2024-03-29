@@ -90,6 +90,10 @@ class ODEIntegrationComp(om.ExplicitComponent):
                              desc='If True, propagate the state and derivatives of the state and time with respect to '
                                   'the integration parameters. If False, only propagate the primal states.')
         self.options.declare('ode_init_kwargs', types=dict, allow_none=True, default=None)
+        self.options.declare('control_interp', values=['vandermonde', 'barycentric'], default='vandermonde',
+                             desc='Control interpolation algorithm, one of either "vandermonde" or "barycentric". In '
+                             'general, Vandermonde is faster but Barycentric is necessary for the Birkhoff '
+                             'transcription where the number of nodes per segment can exceed 20 to 30.')
 
     def _setup_subprob(self):
         self._eval_subprob = p = om.Problem(comm=self.comm, reports=self._reports)
@@ -101,7 +105,9 @@ class ODEIntegrationComp(om.ExplicitComponent):
                                                  control_options=self.control_options,
                                                  polynomial_control_options=self.polynomial_control_options,
                                                  ode_init_kwargs=self.options['ode_init_kwargs'],
-                                                 input_grid_data=self._input_grid_data),
+                                                 input_grid_data=self._input_grid_data,
+                                                 compute_derivs=self.options['propagate_derivs'],
+                                                 control_interp=self.options['control_interp']),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 

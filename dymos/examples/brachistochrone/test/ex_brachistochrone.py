@@ -15,6 +15,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
+    if optimizer == 'SNOPT':
+        # p.driver.opt_settings['iSumm'] = 6
+        p.driver.opt_settings['Verify level'] = 3
+    elif optimizer == 'IPOPT':
+        p.driver.opt_settings['print_level'] = 0
     p.driver.declare_coloring(tol=1.0E-12)
 
     if transcription == 'gauss-lobatto':

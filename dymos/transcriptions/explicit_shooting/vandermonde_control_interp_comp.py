@@ -73,6 +73,10 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         self.options.declare('vec_size', types=int, default=1,
                              desc='number of points at which the control will be evaluated. This is not'
                                   'necessarily the same as the number of nodes in the GridData.')
+        self.options.declare('compute_derivs', types=bool, default=True,
+                             desc='Set to True if the interpolant needs to also compute the derivatives '
+                             'of the outputs, otherwise False. This should be set to False for simulation mode '
+                             'and true when using ExplicitShooting for optimization')
 
     def _configure_controls(self):
         vec_size = self.options['vec_size']
@@ -241,10 +245,15 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         p, n = v.shape
         dv = np.zeros_like(v)
         dv2 = dv.copy()
-        dv3 = dv.copy()
+        if self.options['compute_derivs']:
+            dv3 = dv.copy()
+        else:
+            dv3 = None
         dv[:, 1:] = v[:, :-1]
         dv2[:, 2:] = v[:, :-2]
-        dv3[:, 3:] = v[:, :-3]
+
+        if self.options['compute_derivs']:
+            dv3[:, 3:] = v[:, :-3]
 
         fac = self._fac[n]
         fac2 = fac[:-1]
@@ -252,7 +261,8 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
 
         dv[:, :] = dv * fac[np.newaxis, :]
         dv2[:, 1:] = dv2[:, 1:] * fac2[np.newaxis, :] * fac[np.newaxis, 1:]
-        dv3[:, 2:] = dv3[:, 2:] * fac3[np.newaxis, :] * fac2[np.newaxis, 1:] * fac[np.newaxis, 2:]
+        if self.options['compute_derivs']:
+            dv3[:, 2:] = dv3[:, 2:] * fac3[np.newaxis, :] * fac2[np.newaxis, 1:] * fac[np.newaxis, 2:]
         return dv, dv2, dv3
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
@@ -290,8 +300,6 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             for control_name, options in self._control_options.items():
                 input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
                 u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
-                print(u_hat)
-                exit(0)
                 a = np.atleast_2d(self._V_hat_inv[seg_order] @ u_hat)
                 outputs[output_name] = V_stau @ a
                 outputs[rate_name] = dstau_dt * (dV_stau @ a)

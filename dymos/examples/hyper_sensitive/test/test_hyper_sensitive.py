@@ -133,8 +133,8 @@ class TestHyperSensitive(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_hyper_sensitive_birkhoff(self):
         tf = 10
-        p = self.make_problem(transcription='birkhoff', optimizer='IPOPT', order=21, tf=tf)
-        p.run_model()
+        p = self.make_problem(transcription='birkhoff', optimizer='IPOPT', order=51, tf=tf)
+
         dm.run_problem(p, simulate=True, make_plots=True)
         ui, uf, J = self.solution(tf=tf)
 
