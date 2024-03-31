@@ -103,46 +103,19 @@ class BirkhoffBoundaryGroup(om.Group):
         Dictionary of optional arguments.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, ode_sys, **kwargs):
         super().__init__(**kwargs)
-        self._no_check_partials = not dymos_options['include_check_partials']
-
-    def initialize(self):
-        """
-        Declare group options.
-        """
-        self.options.declare('grid_data', types=GridData, desc='Container object for grid info.')
-        self.options.declare('ode_class', default=None,
-                             desc='Callable that instantiates the ODE system.',
-                             recordable=False)
-        self.options.declare('ode_init_kwargs', types=dict, default={}, recordable=False,
-                             desc='Keyword arguments provided when initializing the ODE System')
-        self.options.declare('initial_boundary_constraints', types=list, recordable=False,
-                             desc='Initial boundary constraints from the containing phase.')
-        self.options.declare('final_boundary_constraints', types=list, recordable=False,
-                             desc='Final boundary constraints from the containing phase.')
-        self.options.declare('objectives', types=dict, recordable=False,
-                             desc='Objectives from the containing phase.')
+        self._ode_sys = ode_sys
 
     def setup(self):
         """
-        Define the structure of the control group.
+        Define the structure of the BirkhoffBoundaryGroup.
         """
-        ode_class = self.options['ode_class']
-        ode_init_kwargs = self.options['ode_init_kwargs']
-        ibcs = self.options['initial_boundary_constraints']
-        fbcs = self.options['final_boundary_constraints']
-        objs = [meta for meta in self.options['objectives'].values()]
-
         self.add_subsystem('boundary_mux', subsys=BirkhoffBoundaryMuxComp(),
                            promotes_inputs=['*'], promotes_outputs=['*'])
 
-        self.add_subsystem('boundary_ode', subsys=ode_class(num_nodes=2, **ode_init_kwargs),
+        self.add_subsystem('boundary_ode', subsys=self._ode_sys,
                            promotes_inputs=['*'], promotes_outputs=['*'])
-
-        if any([response['is_expr'] for response in ibcs + fbcs + objs]):
-            self.add_subsystem('boundary_constraint_exec_comp', subsys=om.ExecComp(),
-                               promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure_io(self, phase):
         """

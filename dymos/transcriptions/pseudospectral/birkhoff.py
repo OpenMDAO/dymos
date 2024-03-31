@@ -239,27 +239,38 @@ class Birkhoff(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
 
-        ODEClass = phase.options['ode_class']
+        ode_class = phase.options['ode_class']
         grid_data = self.grid_data
+        nn = grid_data.subset_num_nodes['all']
 
         ode_init_kwargs = phase.options['ode_init_kwargs']
         ibcs = phase._initial_boundary_constraints
         fbcs = phase._final_boundary_constraints
 
+        if phase._expressions:
+            ode_sys_all = om.Group()
+            ode_sys_all.add_subsystem('user_ode', ode_class(num_nodes=nn, **ode_init_kwargs),
+                                      promotes_inputs=['*'],
+                                      promotes_outputs=['*'])
+            self._add_exec_comp_to_ode_group(ode_sys_all, phase._expressions, num_nodes=nn)
+
+            ode_sys_ends = om.Group()
+            ode_sys_ends.add_subsystem('user_ode', ode_class(num_nodes=2, **ode_init_kwargs),
+                                       promotes_inputs=['*'],
+                                       promotes_outputs=['*'])
+            self._add_exec_comp_to_ode_group(ode_sys_ends, phase._expressions, num_nodes=2)
+        else:
+            ode_sys_all = ode_class(num_nodes=nn, **ode_init_kwargs)
+            ode_sys_ends = ode_class(num_nodes=2, **ode_init_kwargs)
+
         phase.add_subsystem('ode_iter_group',
                             subsys=BirkhoffIterGroup(grid_data=grid_data, state_options=phase.state_options,
                                                      time_options=phase.time_options,
-                                                     ode_class=ODEClass,
-                                                     ode_init_kwargs=ode_init_kwargs),
+                                                     ode_sys=ode_sys_all),
                             promotes=['*'])
 
         phase.add_subsystem('boundary_vals',
-                            subsys=BirkhoffBoundaryGroup(grid_data=grid_data,
-                                                         ode_class=ODEClass,
-                                                         ode_init_kwargs=ode_init_kwargs,
-                                                         initial_boundary_constraints=ibcs,
-                                                         final_boundary_constraints=fbcs,
-                                                         objectives=phase._objectives),
+                            subsys=BirkhoffBoundaryGroup(ode_sys=ode_sys_ends),
                             promotes_inputs=['initial_states:*', 'final_states:*'])
 
     def configure_ode(self, phase):

@@ -20,9 +20,10 @@ class BirkhoffIterGroup(om.Group):
     **kwargs : dict
         Dictionary of optional arguments.
     """
-    def __init__(self, **kwargs):
+    def __init__(self, ode_sys, **kwargs):
         super().__init__(**kwargs)
         self._implicit_outputs = set()
+        self._ode_sys = ode_sys
 
     def initialize(self):
         """
@@ -33,24 +34,25 @@ class BirkhoffIterGroup(om.Group):
         self.options.declare('time_options', types=TimeOptionsDictionary,
                              desc='Options for time in the phase.')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info.')
-        self.options.declare('ode_class', default=None,
-                             desc='Callable that instantiates the ODE system.',
-                             recordable=False)
-        self.options.declare('ode_init_kwargs', types=dict, default={},
-                             desc='Keyword arguments provided when initializing the ODE System')
+        # self.options.declare('ode_class', default=None,
+        #                      desc='Callable that instantiates the ODE system.',
+        #                      recordable=False)
+        # self.options.declare('ode_init_kwargs', types=dict, default={},
+        #                      desc='Keyword arguments provided when initializing the ODE System')
 
     def setup(self):
         """
         Define the structure of the control group.
         """
         gd = self.options['grid_data']
-        nn = gd.subset_num_nodes['all']
+        # nn = gd.subset_num_nodes['all']
         state_options = self.options['state_options']
         time_options = self.options['time_options']
-        ode_class = self.options['ode_class']
-        ode_init_kwargs = self.options['ode_init_kwargs']
+        # ode_class = self.options['ode_class']
+        # ode_init_kwargs = self.options['ode_init_kwargs']
 
-        self.add_subsystem('ode_all', subsys=ode_class(num_nodes=nn, **ode_init_kwargs))
+        # self.add_subsystem('ode_all', subsys=ode_class(num_nodes=nn, **ode_init_kwargs))
+        self.add_subsystem('ode_all', subsys=self._ode_sys)
 
         self.add_subsystem('collocation_comp',
                            subsys=BirkhoffCollocationComp(grid_data=gd,
@@ -112,12 +114,10 @@ class BirkhoffIterGroup(om.Group):
             ref = np.asarray(ref)
             if ref.shape == shape:
                 ref_state = np.tile(ref.flatten(), num_nodes)
-                ref_seg_ends = np.tile(ref.flatten(), 2)
             else:
                 raise ValueError('array-valued scaler/ref must length equal to state-size')
         else:
             ref_state = ref
-            ref_seg_ends = ref
 
         free_vars = {state_name, state_rate_name, initial_state_name, final_state_name}
 

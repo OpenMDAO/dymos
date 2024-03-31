@@ -31,6 +31,7 @@ from ..utils.introspection import configure_time_introspection, _configure_const
     configure_timeseries_output_introspection, classify_var, configure_timeseries_expr_introspection
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
+from ..utils.expressions import parse_expression
 
 
 om_dev_version = openmdao.__version__.endswith('dev')
@@ -69,15 +70,11 @@ class Phase(om.Group):
 
         # These are the options which will be set at setup time.
         # Prior to setup, the options are placed into the user_*_options dictionaries.
-        # self.time_options = TimeOptionsDictionary()
-        # self.state_options = {}
-        # self.control_options = {}
-        # self.polynomial_control_options = {}
-        # self.parameter_options = {}
         self.refine_options = GridRefinementOptionsDictionary()
         self.simulate_options = SimulateOptionsDictionary()
         self.timeseries_ec_vars = {}
         self.timeseries_options = PhaseTimeseriesOptionsDictionary()
+        self._expressions = []
 
         # Dictionaries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE
@@ -1434,6 +1431,22 @@ class Phase(om.Group):
                     pc['constraint_name'] = f'polynomial_control_rates:{constraint_name}'
             if constraint_name not in self._timeseries['timeseries']['outputs']:
                 self.add_timeseries_output(name, output_name=pc['constraint_name'], units=units, shape=shape)
+
+    def add_expr(self, expr, **kwargs):
+        r"""
+        Adds an expression to be evaluated as part of the ODE.
+        Expressions are computed after the user-provided ODE is computed.
+
+        Parameters
+        ----------
+        expr : str
+            The expression to be evaluated. The expression must be a legal ExecComp expression.
+        **kwargs
+            Additional arguments passed to the exec comp.
+        """
+        if '=' not in expr:
+            raise ValueError('Expressions must be provided in the form of an equation.')
+        self._expressions.append((expr, kwargs))
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                               timeseries='timeseries', **kwargs):

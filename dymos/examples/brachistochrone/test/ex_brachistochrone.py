@@ -78,6 +78,8 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     # Minimize time at the end of the phase
     phase.add_objective('time_phase', loc='final', scaler=10)
 
+    phase.add_expr('check2 = v / sin(theta)', theta={'units': 'rad'})
+
     phase.add_timeseries_output('check')
 
     p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
@@ -99,8 +101,10 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
     p['traj0.phase0.parameters:g'] = 9.80665
 
-    dm.run_problem(p, run_driver=run_driver, simulate=True, make_plots=True,
+    dm.run_problem(p, run_driver=run_driver, simulate=False, make_plots=True,
                    simulate_kwargs={'times_per_seg': 100})
+
+    p.model.list_outputs(print_arrays=True)
 
     return p
 

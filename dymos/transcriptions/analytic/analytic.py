@@ -220,11 +220,25 @@ class Analytic(TranscriptionBase):
         """
         ODEClass = phase.options['ode_class']
         grid_data = self.grid_data
+        nn = grid_data.subset_num_nodes['all']
 
         kwargs = phase.options['ode_init_kwargs']
-        phase.add_subsystem('rhs',
-                            subsys=ODEClass(num_nodes=grid_data.subset_num_nodes['all'],
-                                            **kwargs))
+
+        if phase._expressions:
+            rhs_group = om.Group()
+
+            rhs_group.add_subsystem('ode',
+                                    subsys=ODEClass(num_nodes=nn, **kwargs),
+                                    promotes_inputs=['*'], promotes_outputs=['*'])
+
+            self._add_exec_comp_to_ode_group(rhs_group, phase._expressions, nn)
+
+            phase.add_subsystem('rhs', subsys=rhs_group)
+
+        else:
+            phase.add_subsystem('rhs',
+                                subsys=ODEClass(num_nodes=grid_data.subset_num_nodes['all'],
+                                                **kwargs))
 
     def configure_ode(self, phase):
         """
