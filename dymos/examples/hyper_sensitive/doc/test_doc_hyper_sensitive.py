@@ -109,11 +109,11 @@ class TestHyperSensitive(unittest.TestCase):
 
         if matplotlib is not None:
             plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.x',
-                        'time (s)', 'x $(m)$'),
-                        ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.u',
-                        'time (s)', 'u $(m/s^2)$')],
-                        title='Hyper Sensitive Problem Solution\nRadau Pseudospectral Method',
-                        p_sol=p, p_sim=exp_out)
+                           'time (s)', 'x $(m)$'),
+                          ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.u',
+                           'time (s)', 'u $(m/s^2)$')],
+                         title='Hyper Sensitive Problem Solution\nRadau Pseudospectral Method',
+                         p_sol=p, p_sim=exp_out)
 
             plt.show()
 
