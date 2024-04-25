@@ -2,7 +2,7 @@ import os
 import unittest
 
 try:
-    import matplotlib.pylot as plt
+    import matplotlib.pyplot as plt
     plt.switch_backend('Agg')
     plt.style.use('ggplot')
 except ImportError:
