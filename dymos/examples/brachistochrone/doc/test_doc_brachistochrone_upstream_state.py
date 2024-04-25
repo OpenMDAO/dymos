@@ -1,11 +1,17 @@
 import unittest
 
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
+
 from openmdao.utils.testing_utils import use_tempdirs
 
 
 @use_tempdirs
 class TestBrachistochroneUpstreamState(unittest.TestCase):
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_upstream_state(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal

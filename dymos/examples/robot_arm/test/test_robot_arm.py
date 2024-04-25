@@ -2,7 +2,14 @@ import os
 import unittest
 
 import numpy as np
-import matplotlib.pyplot as plt
+
+try:
+    import matplotlib as plt
+    plt.switch_backend('Agg')
+    show_plots = True
+except ImportError:
+    show_plots = False
+
 import openmdao.api as om
 import dymos as dm
 
@@ -11,9 +18,6 @@ from openmdao.utils.general_utils import printoptions
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 from dymos.examples.robot_arm.robot_arm_ode import RobotArmODE
-
-plt.switch_backend('Agg')
-show_plots = True
 
 
 @use_tempdirs

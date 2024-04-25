@@ -1,14 +1,16 @@
 import os
 import unittest
-import matplotlib.pyplot as plt
+
+try:
+    import matplotlib as plt
+    plt.switch_backend('Agg')
+    plt.style.use('ggplot')
+except ImportError:
+    plt = None
 
 import numpy as np
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-
-
-plt.switch_backend('Agg')
-plt.style.use('ggplot')
 
 
 @use_tempdirs
@@ -20,6 +22,7 @@ class TestReentryForDocs(unittest.TestCase):
                 os.remove(filename)
 
     @require_pyoptsparse(optimizer='SLSQP')
+    @unittest.skipIf(plt is None, "This test requires matplotlib")
     def test_reentry(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal

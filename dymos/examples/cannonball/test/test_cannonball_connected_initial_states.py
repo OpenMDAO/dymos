@@ -1,5 +1,10 @@
 import unittest
-import matplotlib.pyplot as plt
+
+try:
+    import matplotlib as plt
+    plt.switch_backend('Agg')
+except ImportError:
+    plt = None
 
 from openmdao.utils.testing_utils import use_tempdirs
 import openmdao.api as om
@@ -8,9 +13,6 @@ from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
 from dymos.examples.cannonball.size_comp import CannonballSizeComp
 from dymos.examples.cannonball.cannonball_ode import CannonballODE
-
-
-plt.switch_backend('Agg')
 
 
 @use_tempdirs

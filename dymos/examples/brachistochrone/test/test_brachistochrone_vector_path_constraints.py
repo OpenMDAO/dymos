@@ -2,8 +2,6 @@ import unittest
 
 import numpy as np
 
-import matplotlib.pyplot as plt
-
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs

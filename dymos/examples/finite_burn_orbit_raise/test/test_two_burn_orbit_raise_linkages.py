@@ -4,9 +4,11 @@ import warnings
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from dymos.utils.introspection import get_promoted_vars
 
-import matplotlib.pyplot as plt
-plt.switch_backend('Agg')
-
+try:
+    import matplotlib as plt
+    plt.switch_backend('Agg')
+except ImportError:
+    plt = None
 
 @require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
@@ -235,6 +237,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         p.setup(check=True, force_alloc_complex=True)
 
+    @unittest.skipIf(plt is None, "This test requires matplotlib")
     def test_two_burn_orbit_raise_gl_radau_gl_constrained(self):
         import numpy as np
 
@@ -453,6 +456,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         plt.show()
 
+    @unittest.skipIf(plt is None, "This test requires matplotlib")
     def test_two_burn_orbit_raise_link_control_to_param(self):
         import numpy as np
 
@@ -633,6 +637,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         assert_near_equal(coast_u1_final - burn2_u1_initial, 0.0, 1e-12)
 
     @use_tempdirs
+    @unittest.skipIf(plt is None, "This test requires matplotlib")
     def test_two_burn_orbit_raise_gl_list_add_timeseries_output(self):
         import numpy as np
 
