@@ -2,9 +2,6 @@ import unittest
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
-# import matplotlib.pyplot as plt
-# plt.switch_backend('Agg')
-
 import numpy as np
 from scipy.interpolate import interp1d
 

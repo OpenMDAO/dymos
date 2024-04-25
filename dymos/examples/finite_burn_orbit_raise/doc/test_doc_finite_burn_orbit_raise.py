@@ -1,13 +1,12 @@
 import unittest
 
 try:
-    import matplotlib
     import matplotlib.pyplot as plt
 
     plt.switch_backend('Agg')
     plt.style.use('ggplot')
 except ImportError:
-    matplotlib = None
+    plt = None
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
@@ -16,7 +15,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 class TestFiniteBurnOrbitRaise(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
-    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
+    @unittest.skipIf(plt is None, "This test requires matplotlib")
     def test_finite_burn_orbit_raise(self):
         import numpy as np
         import matplotlib.pyplot as plt

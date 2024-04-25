@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 try:
-    import matplotlib as plt
+    import matplotlib.pyplot as plt
     plt.switch_backend('Agg')
     show_plots = True
 except ImportError:

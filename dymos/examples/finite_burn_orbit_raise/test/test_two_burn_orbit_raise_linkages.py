@@ -5,7 +5,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from dymos.utils.introspection import get_promoted_vars
 
 try:
-    import matplotlib as plt
+    import matplotlib.pyplot as plt
     plt.switch_backend('Agg')
 except ImportError:
     plt = None
