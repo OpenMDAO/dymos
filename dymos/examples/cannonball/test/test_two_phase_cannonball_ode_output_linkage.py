@@ -1,7 +1,7 @@
 import unittest
 
 try:
-    import matplotlib as plt
+    import matplotlib.pyplot as plt
     plt.switch_backend('Agg')
 except ImportError:
     plt = None

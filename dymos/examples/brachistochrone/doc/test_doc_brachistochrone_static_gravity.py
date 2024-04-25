@@ -10,8 +10,8 @@ try:
 except ImportError:
     matplotlib = None
 
-from openmdao.utils.testing_utils import use_tempdirs
 
+from openmdao.utils.testing_utils import use_tempdirs
 
 
 @use_tempdirs

@@ -10,6 +10,7 @@ try:
 except ImportError:
     plt = None
 
+
 @require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
 class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
