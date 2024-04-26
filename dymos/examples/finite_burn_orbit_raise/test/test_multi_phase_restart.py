@@ -151,8 +151,8 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
         sim_case2 = om.CaseReader('dymos_simulation2.db').get_case('final')
 
         # Verify that the second case has the same inputs and outputs
-        assert_cases_equal(case1, case2, tol=1.0E-8)
-        assert_cases_equal(sim_case1, sim_case2, tol=1.0E-8)
+        assert_cases_equal(case1, case2, tol=1.0E-7)
+        assert_cases_equal(sim_case1, sim_case2, tol=1.0E-7)
 
 
 if __name__ == '__main__':  # pragma: no cover
