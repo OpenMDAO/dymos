@@ -4,14 +4,18 @@ import os
 import unittest
 import numpy as np
 
-import matplotlib
-import matplotlib.pyplot as plt
+try:
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use('Agg')
+    plt.style.use('ggplot')
+except ImportError:
+    matplotlib = None
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
-matplotlib.use('Agg')
-plt.style.use('ggplot')
 tf = 10.0
 
 
@@ -103,14 +107,15 @@ class TestHyperSensitive(unittest.TestCase):
         #
         exp_out = traj.simulate()
 
-        plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.x',
-                       'time (s)', 'x $(m)$'),
-                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.u',
-                       'time (s)', 'u $(m/s^2)$')],
-                     title='Hyper Sensitive Problem Solution\nRadau Pseudospectral Method',
-                     p_sol=p, p_sim=exp_out)
+        if matplotlib is not None:
+            plot_results([('traj.phase0.timeseries.time', 'traj.phase0.timeseries.x',
+                           'time (s)', 'x $(m)$'),
+                          ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.u',
+                           'time (s)', 'u $(m/s^2)$')],
+                         title='Hyper Sensitive Problem Solution\nRadau Pseudospectral Method',
+                         p_sol=p, p_sim=exp_out)
 
-        plt.show()
+            plt.show()
 
 
 if __name__ == "__main__":

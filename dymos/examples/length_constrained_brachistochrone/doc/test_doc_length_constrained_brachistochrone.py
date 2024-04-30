@@ -4,11 +4,12 @@ import unittest
 
 from openmdao.utils.testing_utils import use_tempdirs
 
-import matplotlib
-matplotlib.use('Agg')
-
-
-SHOW_PLOTS = True
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    SHOW_PLOTS = True
+except ImportError:
+    SHOW_PLOTS = False
 
 
 @use_tempdirs
@@ -17,7 +18,6 @@ class TestLengthConstrainedBrachistochrone(unittest.TestCase):
     def test_length_constrained_brachistochrone(self):
         import openmdao.api as om
         import dymos as dm
-        import matplotlib.pyplot as plt
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
         from dymos.examples.length_constrained_brachistochrone.arc_length_comp import ArcLengthComp
 
@@ -92,6 +92,8 @@ class TestLengthConstrainedBrachistochrone(unittest.TestCase):
 
         # Plot results
         if SHOW_PLOTS:
+            import matplotlib.pyplot as plt
+
             # Generate the explicitly simulated trajectory
             exp_out = traj.simulate()
 

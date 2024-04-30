@@ -2,6 +2,11 @@ import unittest
 
 import numpy as np
 
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
+
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 
@@ -110,6 +115,7 @@ class BrachistochroneRateTargetODE(om.ExplicitComponent):
 @use_tempdirs
 class TestBrachistochroneControlRateTargets(unittest.TestCase):
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_control_rate_targets_gauss_lobatto(self):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
@@ -206,6 +212,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_control_rate_targets_radau(self):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
@@ -303,6 +310,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
 @use_tempdirs
 class TestBrachistochroneExplicitControlRateTargets(unittest.TestCase):
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_control_rate_targets_gauss_lobatto(self):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
@@ -396,6 +404,7 @@ class TestBrachistochroneExplicitControlRateTargets(unittest.TestCase):
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_control_rate_targets_radau(self):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
@@ -494,6 +503,7 @@ class TestBrachistochroneExplicitControlRateTargets(unittest.TestCase):
 @use_tempdirs
 class TestBrachistochronePolynomialControlRateTargets(unittest.TestCase):
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_rate_targets_gauss_lobatto(self):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
@@ -587,6 +597,7 @@ class TestBrachistochronePolynomialControlRateTargets(unittest.TestCase):
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_rate_targets_radau(self):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
@@ -685,6 +696,7 @@ class TestBrachistochronePolynomialControlRateTargets(unittest.TestCase):
 @use_tempdirs
 class TestBrachistochronePolynomialControlExplicitRateTargets(unittest.TestCase):
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_rate_targets_gauss_lobatto(self):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
@@ -778,6 +790,7 @@ class TestBrachistochronePolynomialControlExplicitRateTargets(unittest.TestCase)
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_rate_targets_radau(self):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
@@ -876,6 +889,7 @@ class TestBrachistochronePolynomialControlExplicitRateTargets(unittest.TestCase)
 @use_tempdirs
 class TestBrachistochronePolynomialControlExplicitRate2Targets(unittest.TestCase):
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_rate_targets_gauss_lobatto(self):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')

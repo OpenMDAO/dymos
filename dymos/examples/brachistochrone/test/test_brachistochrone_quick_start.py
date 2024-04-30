@@ -2,6 +2,11 @@ import unittest
 
 import numpy as np
 
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
+
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 
@@ -65,6 +70,7 @@ class BrachistochroneODE(om.ExplicitComponent):
 @use_tempdirs
 class TestBrachistochroneQuickStart(unittest.TestCase):
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_quick_start(self):
         import numpy as np
         import openmdao.api as om

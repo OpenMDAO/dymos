@@ -1,8 +1,12 @@
-import os
 import unittest
 import pathlib
 
 import numpy as np
+
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
 
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
@@ -80,6 +84,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
 
         self.p = p
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_timeseries_plots(self):
         with dm.options.temporary(plots='matplotlib'):
             dm.run_problem(self.p, make_plots=False)
@@ -94,6 +99,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
             self.assertTrue(plot_dir.joinpath('theta_rate.png').exists())
             self.assertTrue(plot_dir.joinpath('theta_rate2.png').exists())
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_timeseries_plots_solution_only_set_solution_record_file(self):
         temp = dm.options['plots']
         dm.options['plots'] = 'matplotlib'
@@ -113,6 +119,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
 
         dm.options['plots'] = temp
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_timeseries_plots_solution_and_simulation(self):
         temp = dm.options['plots']
         dm.options['plots'] = 'matplotlib'
@@ -132,6 +139,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
 
         dm.options['plots'] = temp
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_timeseries_plots_set_plot_dir(self):
 
         temp = dm.options['plots']
@@ -156,6 +164,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
 class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_trajectory_linked_phases_make_plot(self):
         temp = dm.options['plots']
 
@@ -312,6 +321,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
 
         dm.options['plots'] = temp
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_overlapping_phases_make_plot(self):
 
         _temp = dm.options['plots']
@@ -409,6 +419,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         dm.options['plots'] = _temp
 
     @require_pyoptsparse(optimizer='IPOPT')
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_trajectory_linked_phases_make_plot_missing_data(self):
         """
         Test that plots are still generated even if the phases don't share the exact same
