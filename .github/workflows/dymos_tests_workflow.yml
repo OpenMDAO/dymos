@@ -72,7 +72,7 @@ jobs:
             PY: 3
             NUMPY: 1
             SCIPY: 1
-            PETSc: 3
+            PETSc: 3.21.0
             PYOPTSPARSE: 'latest'
             SNOPT: 7.7
             OPENMDAO: 'dev'
