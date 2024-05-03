@@ -36,11 +36,6 @@ class BirkhoffIterGroup(om.Group):
         self.options.declare('time_options', types=TimeOptionsDictionary,
                              desc='Options for time in the phase.')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info.')
-        # self.options.declare('ode_class', default=None,
-        #                      desc='Callable that instantiates the ODE system.',
-        #                      recordable=False)
-        # self.options.declare('ode_init_kwargs', types=dict, default={},
-        #                      desc='Keyword arguments provided when initializing the ODE System')
 
     def setup(self):
         """
@@ -50,10 +45,7 @@ class BirkhoffIterGroup(om.Group):
         # nn = gd.subset_num_nodes['all']
         state_options = self.options['state_options']
         time_options = self.options['time_options']
-        # ode_class = self.options['ode_class']
-        # ode_init_kwargs = self.options['ode_init_kwargs']
 
-        # self.add_subsystem('ode_all', subsys=ode_class(num_nodes=nn, **ode_init_kwargs))
         self.add_subsystem('ode_all', subsys=self._ode_sys)
 
         self.add_subsystem('collocation_comp',
