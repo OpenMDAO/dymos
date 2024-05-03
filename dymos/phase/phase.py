@@ -28,7 +28,7 @@ from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
-    configure_timeseries_output_introspection, classify_var, configure_timeseries_expr_introspection
+    configure_timeseries_output_introspection, classify_var
 from ..utils.misc import _unspecified
 from ..utils.lgl import lgl
 from ..utils.expressions import parse_expression
@@ -1271,6 +1271,7 @@ class Phase(om.Group):
 
         if is_expr:
             constraint_name = name.split('=')[0].strip()
+            self.add_expr(name, **{constraint_name: {'units': units}})
         elif constraint_name is None:
             constraint_name = name.rpartition('.')[-1]
 
@@ -1384,6 +1385,7 @@ class Phase(om.Group):
 
         if is_expr:
             constraint_name = name.split('=')[0].strip()
+            self.add_expr(name, **{constraint_name: {'units': units, 'shape': shape}})
         elif constraint_name is None:
             constraint_name = name.rpartition('.')[-1]
 
@@ -1446,7 +1448,18 @@ class Phase(om.Group):
         """
         if '=' not in expr:
             raise ValueError('Expressions must be provided in the form of an equation.')
-        self._expressions.append((expr, kwargs))
+        existing_exprs = {ex.split('=')[0].strip(): ex for ex, _ in self._expressions}
+        name = expr.split('=')[0].strip()
+        if expr in existing_exprs.values():
+            # Exact match for this expression already found, just skip it.
+            return
+        elif name in existing_exprs:
+            # Output name was previously used but with a different expression.
+            # This is an error.
+            raise ValueError(f'Attempted to add expression with output named {name}.\n'
+                             f'This name is already used in a different expression `{existing_exprs[name]}`.')
+        else:
+            self._expressions.append((expr, kwargs))
 
     def add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                               timeseries='timeseries', **kwargs):
@@ -1490,12 +1503,15 @@ class Phase(om.Group):
                 else:
                     unit = units
 
+                if expr:
+                    output = name.split('=')[0].strip()
+                    self.add_expr(name_i, **{output: {'units': unit}})
+
                 oname = self._add_timeseries_output(name_i, output_name=output_name,
                                                     units=unit,
                                                     shape=shape,
                                                     timeseries=timeseries,
-                                                    rate=False,
-                                                    expr=expr)
+                                                    rate=False)
 
                 # Handle specific units for wildcard names.
                 if oname is not None and '*' in name_i:
@@ -1503,13 +1519,14 @@ class Phase(om.Group):
 
         else:
             expr = True if '=' in name else False
-            self._add_timeseries_output(name, output_name=output_name,
+            output = name.split('=')[0].strip() if expr else name
+            if expr:
+                self.add_expr(name, **kwargs)
+            self._add_timeseries_output(output, output_name=output_name,
                                         units=units,
                                         shape=shape,
                                         timeseries=timeseries,
-                                        rate=False,
-                                        expr=expr,
-                                        expr_kwargs=kwargs)
+                                        rate=False)
 
     def add_timeseries_rate_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                                    timeseries='timeseries'):
@@ -1567,7 +1584,7 @@ class Phase(om.Group):
                                         rate=True)
 
     def _add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
-                               timeseries='timeseries', rate=False, expr=False, expr_kwargs=None):
+                               timeseries='timeseries', rate=False):
         r"""
         Add a single variable or rate to the timeseries outputs of the phase.
 
@@ -1597,11 +1614,6 @@ class Phase(om.Group):
         rate : bool
             If True, add the rate of change of the named variable to the timeseries outputs of the
             phase.  The rate variable will be named f'{name}_rate'.  Defaults to False.
-        expr : bool
-            True if the given name is an expression for an ExecComp.
-        expr_kwargs : dict
-            Keyword arguments for the expression.
-
 
         Returns
         -------
@@ -1612,9 +1624,7 @@ class Phase(om.Group):
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
         if output_name is None:
-            if expr:
-                output_name = name.split('=')[0].strip()
-            elif '*' in name:
+            if '*' in name:
                 output_name = name
             elif output_name is None:
                 output_name = name.rpartition('.')[-1]
@@ -1630,8 +1640,6 @@ class Phase(om.Group):
             ts_output['units'] = units
             ts_output['shape'] = shape
             ts_output['is_rate'] = rate
-            ts_output['is_expr'] = expr
-            ts_output['expr_kwargs'] = expr_kwargs
 
             self._timeseries[timeseries]['outputs'][output_name] = ts_output
 
@@ -2052,8 +2060,6 @@ class Phase(om.Group):
         transcription.configure_defects(self)
 
         _configure_constraint_introspection(self)
-
-        configure_timeseries_expr_introspection(self)
 
         transcription.configure_boundary_constraints(self)
 

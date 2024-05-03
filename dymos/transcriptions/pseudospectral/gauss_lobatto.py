@@ -245,15 +245,33 @@ class GaussLobatto(PseudospectralBase):
         grid_data = self.grid_data
         ode_class = phase.options['ode_class']
 
-        kwargs = phase.options['ode_init_kwargs']
-        rhs_disc = ode_class(num_nodes=grid_data.subset_num_nodes['state_disc'], **kwargs)
-        rhs_col = ode_class(num_nodes=grid_data.subset_num_nodes['col'], **kwargs)
+        ode_init_kwargs = phase.options['ode_init_kwargs']
+        nsdn = grid_data.subset_num_nodes['state_disc']
+        ncn = grid_data.subset_num_nodes['col']
 
-        phase.add_subsystem('rhs_disc', rhs_disc)
+        if phase._expressions:
+            ode_sys_disc = om.Group()
+            ode_sys_col = om.Group()
+
+            ode_sys_disc.add_subsystem('user_ode', ode_class(num_nodes=nsdn, **ode_init_kwargs),
+                                    promotes_inputs=['*'],
+                                    promotes_outputs=['*'])
+
+            ode_sys_col.add_subsystem('user_ode', ode_class(num_nodes=ncn, **ode_init_kwargs),
+                                    promotes_inputs=['*'],
+                                    promotes_outputs=['*'])
+
+            self._add_exec_comp_to_ode_group(ode_sys_disc, phase._expressions, num_nodes=nn)
+            self._add_exec_comp_to_ode_group(ode_disc_col, phase._expressions, num_nodes=nn)
+        else:
+            ode_sys_disc = ode_class(num_nodes=nsdn, **ode_init_kwargs)
+            ode_sys_col = ode_class(num_nodes=ncn, **ode_init_kwargs)
+
+        phase.add_subsystem('rhs_disc', ode_sys_disc)
 
         super(GaussLobatto, self).setup_ode(phase)
 
-        phase.add_subsystem('rhs_col', rhs_col)
+        phase.add_subsystem('rhs_col', ode_sys_col)
 
         # Setup the interleave comp to interleave all states, any path constraints from the ODE,
         # and any timeseries outputs from the ODE.

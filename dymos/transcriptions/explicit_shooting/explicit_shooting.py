@@ -317,7 +317,21 @@ class ExplicitShooting(TranscriptionBase):
                                    reports=self.options['subprob_reports'],
                                    control_interp=self.options['control_interp'])
         phase.add_subsystem('integrator', integ)
-        phase.add_subsystem('ode', phase.options['ode_class'](num_nodes=self._output_grid_data.num_nodes,
+
+        if phase._expressions:
+            rhs_group = om.Group()
+
+            rhs_group.add_subsystem('user_ode',
+                                    subsys=ODEClass(num_nodes=nn, **kwargs),
+                                    promotes_inputs=['*'], promotes_outputs=['*'])
+
+            self._add_exec_comp_to_ode_group(rhs_group, phase._expressions, nn)
+
+            phase.add_subsystem('ode', subsys=rhs_group)
+
+        else:
+            phase.add_subsystem('ode',
+                                subsys=phase.options['ode_class'](num_nodes=self._output_grid_data.num_nodes,
                                                               **phase.options['ode_init_kwargs']))
 
     def configure_ode(self, phase):

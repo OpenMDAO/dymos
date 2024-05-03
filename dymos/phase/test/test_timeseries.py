@@ -439,8 +439,16 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         phase.add_parameter('g', opt=False, units='m/s**2', val=9.80665, include_timeseries=True)
 
         phase.add_objective('time_phase', loc='final', scaler=10)
-        phase.add_timeseries_output('z=x*y + x**2', units='m**2')
-        phase.add_timeseries_output('f=3*g*cos(theta)**2', units='deg**2')
+        phase.add_timeseries_output('z=x*y + x**2',
+                                    units='m**2',
+                                    z={'units': 'm**2'},
+                                    x={'units': 'm'},
+                                    y={'units': 'm'})
+        phase.add_timeseries_output('f=3*g*cos(theta)**2',
+                                    units='deg**2',
+                                    f={'units': 'deg**2'},
+                                    theta={'units': 'rad'},
+                                    g={'units': 'm/s**2'})
 
         p.model.options['assembled_jac_type'] = 'csc'
         p.model.linear_solver = om.DirectSolver()
@@ -453,6 +461,14 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
             p['phase0.initial_states:x'] = 0
             p['phase0.initial_states:y'] = 10
             p['phase0.initial_states:v'] = 0
+        elif isinstance(transcription, dm.Birkhoff):
+            p['phase0.states:x'] = phase.interp('x', [0, 10])
+            p['phase0.states:y'] = phase.interp('y', [10, 5])
+            p['phase0.states:v'] = phase.interp('v', [0, 9.9])
+
+            p['phase0.initial_states:x'] = 0.0
+            p['phase0.initial_states:y'] = 10.0
+            p['phase0.initial_states:v'] = 0.0
         else:
             p['phase0.states:x'] = phase.interp('x', [0, 10])
             p['phase0.states:y'] = phase.interp('y', [10, 5])
@@ -752,6 +768,23 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         f_sim = sim.get_val('phase0.timeseries.f')
         assert_near_equal(z_ts[-1], z_sim[-1], tolerance=1e-3)
         assert_near_equal(f_ts[-1], f_sim[-1], tolerance=1e-3)
+
+    def test_timeseries_expr_birkhoff(self):
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=15))
+        p = self.make_problem_brachistochrone(transcription=tx)
+        p.run_driver()
+
+        x = p.get_val('phase0.timeseries.x')
+        y = p.get_val('phase0.timeseries.y')
+        theta = p.get_val('phase0.timeseries.theta', units='rad')
+        g = p.get_val('phase0.timeseries.g')
+
+        z_computed = x * y + x**2
+        f_computed = 3 * g * np.cos(theta)**2
+        z_ts = p.get_val('phase0.timeseries.z')
+        f_ts = p.get_val('phase0.timeseries.f')
+        assert_near_equal(z_computed, z_ts, tolerance=1e-12)
+        assert_near_equal(f_computed, f_ts, tolerance=1e-12)
 
 
 class TestTimeseriesMinTimeClimb(unittest.TestCase):

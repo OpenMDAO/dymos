@@ -157,11 +157,18 @@ class Radau(PseudospectralBase):
 
         ODEClass = phase.options['ode_class']
         grid_data = self.grid_data
+        nn = grid_data.subset_num_nodes['all']
 
-        kwargs = phase.options['ode_init_kwargs']
-        phase.add_subsystem('rhs_all',
-                            subsys=ODEClass(num_nodes=grid_data.subset_num_nodes['all'],
-                                            **kwargs))
+        ode_init_kwargs = phase.options['ode_init_kwargs']
+
+        ode_sys_all = om.Group()
+        ode_sys_all.add_subsystem('user_ode', ODEClass(num_nodes=nn, **ode_init_kwargs),
+                                    promotes_inputs=['*'],
+                                    promotes_outputs=['*'])
+        if phase._expressions:
+            self._add_exec_comp_to_ode_group(ode_sys_all, phase._expressions, num_nodes=nn)
+
+        phase.add_subsystem('rhs_all', subsys=ode_sys_all)
 
     def configure_ode(self, phase):
         """

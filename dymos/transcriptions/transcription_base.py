@@ -374,10 +374,7 @@ class TranscriptionBase(object):
 
         for expr, kwargs in deepcopy(exprs):
             onames, vnames = parse_expression(expr)
-            print(expr)
-            print(kwargs)
             for varname in onames.union(vnames):
-                print(varname)
                 if varname not in kwargs:
                     # No kwargs given for variable. Default shape to num_nodes.
                     kwargs[varname] = {'shape': (num_nodes,)}
