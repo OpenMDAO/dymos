@@ -634,17 +634,11 @@ class ExplicitShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         for name, options in phase._timeseries.items():
-            has_expr = False
-            for _, output_options in options['outputs'].items():
-                if output_options['is_expr']:
-                    has_expr = True
-                    break
-
             timeseries_comp = TimeseriesOutputComp(input_grid_data=self._output_grid_data,
                                                    output_grid_data=self._output_grid_data,
                                                    output_subset=options['subset'],
                                                    time_units=phase.time_options['units'])
-            timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
+            timeseries_group = TimeseriesOutputGroup(timeseries_output_comp=timeseries_comp)
             phase.add_subsystem(name, subsys=timeseries_group)
 
             phase.connect('dt_dstau', f'{name}.dt_dstau', flat_src_indices=True)

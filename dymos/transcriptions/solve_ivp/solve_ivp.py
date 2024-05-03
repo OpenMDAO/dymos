@@ -508,20 +508,13 @@ class SolveIVP(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         gd = self.grid_data
-        # Check if timeseries contains an expression that needs to be evaluated
-        for _, output_options in phase._timeseries['timeseries']['outputs'].items():
-            if output_options['is_expr']:
-                has_expr = True
-                break
-            else:
-                has_expr = False
 
         timeseries_comp = \
             SolveIVPTimeseriesOutputComp(input_grid_data=gd,
                                          output_nodes_per_seg=self.options['output_nodes_per_seg'],
                                          time_units=phase.time_options['units'])
 
-        timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
+        timeseries_group = TimeseriesOutputGroup(timeseries_output_comp=timeseries_comp)
         phase.add_subsystem('timeseries', subsys=timeseries_group)
 
         # Remove all subsequent timeseries
