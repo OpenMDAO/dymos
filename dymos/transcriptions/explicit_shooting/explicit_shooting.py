@@ -332,7 +332,7 @@ class ExplicitShooting(TranscriptionBase):
         else:
             phase.add_subsystem('ode',
                                 subsys=phase.options['ode_class'](num_nodes=self._output_grid_data.num_nodes,
-                                                              **phase.options['ode_init_kwargs']))
+                                                                  **phase.options['ode_init_kwargs']))
 
     def configure_ode(self, phase):
         """

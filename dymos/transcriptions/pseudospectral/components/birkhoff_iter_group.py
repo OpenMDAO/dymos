@@ -17,6 +17,8 @@ class BirkhoffIterGroup(om.Group):
 
     Parameters
     ----------
+    ode_sys : System
+        The OpenMDAO system serving as the ODE.
     **kwargs : dict
         Dictionary of optional arguments.
     """

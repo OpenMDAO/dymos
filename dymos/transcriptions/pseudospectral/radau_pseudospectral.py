@@ -163,8 +163,8 @@ class Radau(PseudospectralBase):
 
         ode_sys_all = om.Group()
         ode_sys_all.add_subsystem('user_ode', ODEClass(num_nodes=nn, **ode_init_kwargs),
-                                    promotes_inputs=['*'],
-                                    promotes_outputs=['*'])
+                                  promotes_inputs=['*'],
+                                  promotes_outputs=['*'])
         if phase._expressions:
             self._add_exec_comp_to_ode_group(ode_sys_all, phase._expressions, num_nodes=nn)
 

@@ -846,8 +846,8 @@ def configure_timeseries_output_introspection(phase):
             name = output_options['name']
             try:
                 output_meta = transcription._get_timeseries_var_source(output_options['name'],
-                                                                        output_options['output_name'],
-                                                                        phase=phase)
+                                                                       output_options['output_name'],
+                                                                       phase=phase)
             except ValueError as e:
                 not_found.add(output_name)
                 continue

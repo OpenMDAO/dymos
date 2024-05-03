@@ -1437,6 +1437,7 @@ class Phase(om.Group):
     def add_expr(self, expr, **kwargs):
         r"""
         Adds an expression to be evaluated as part of the ODE.
+
         Expressions are computed after the user-provided ODE is computed.
 
         Parameters

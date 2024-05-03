@@ -254,12 +254,12 @@ class GaussLobatto(PseudospectralBase):
             ode_sys_col = om.Group()
 
             ode_sys_disc.add_subsystem('user_ode', ode_class(num_nodes=nsdn, **ode_init_kwargs),
-                                    promotes_inputs=['*'],
-                                    promotes_outputs=['*'])
+                                       promotes_inputs=['*'],
+                                       promotes_outputs=['*'])
 
             ode_sys_col.add_subsystem('user_ode', ode_class(num_nodes=ncn, **ode_init_kwargs),
-                                    promotes_inputs=['*'],
-                                    promotes_outputs=['*'])
+                                      promotes_inputs=['*'],
+                                      promotes_outputs=['*'])
 
             self._add_exec_comp_to_ode_group(ode_sys_disc, phase._expressions, num_nodes=nn)
             self._add_exec_comp_to_ode_group(ode_disc_col, phase._expressions, num_nodes=nn)
