@@ -1,5 +1,10 @@
 import unittest
 
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
+
 import numpy as np
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
@@ -47,6 +52,7 @@ class BrachistochroneArclengthODE(om.ExplicitComponent):
 class TestBrachistochroneTandemPhases(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_tandem_phases(self):
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 

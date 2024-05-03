@@ -1,8 +1,11 @@
 import unittest
 import numpy as np
 from numpy.polynomial import Polynomial as P
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
+try:
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as cm
+except ImportError:
+    matpoltlib = None
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal

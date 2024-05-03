@@ -6,6 +6,11 @@ import pathlib
 
 import numpy as np
 
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
+
 import openmdao.api as om
 from openmdao.utils.testing_utils import require_pyoptsparse
 from openmdao.utils.general_utils import set_pyoptsparse_opt
@@ -217,6 +222,7 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
         html_file = pathlib.Path(_get_reports_dir(p)) / 'traj_results_report.html'
         self.assertTrue(html_file.exists(), msg=f'{html_file} does not exist!')
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_mpl_plots(self):
         dm.options['plots'] = 'matplotlib'
 

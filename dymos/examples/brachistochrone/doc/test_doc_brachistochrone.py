@@ -1,14 +1,16 @@
 import os
 import unittest
 
-import matplotlib
-import matplotlib.pyplot as plt
+try:
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use('Agg')
+    plt.style.use('ggplot')
+except ImportError:
+    matplotlib = None
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-
-
-matplotlib.use('Agg')
-plt.style.use('ggplot')
 
 
 @use_tempdirs
@@ -47,6 +49,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         cpd = p.check_partials(method='cs', compact_print=True)
         assert_check_partials(cpd)
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_for_docs_gauss_lobatto(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
@@ -129,6 +132,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_for_docs_radau(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal

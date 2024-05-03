@@ -1,10 +1,12 @@
 import unittest
 
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+    plt.switch_backend('Agg')
+except ImportError:
+    plt = None
+
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-
-
-plt.switch_backend('Agg')
 
 
 @use_tempdirs

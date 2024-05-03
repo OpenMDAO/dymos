@@ -9,8 +9,11 @@ import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
-import matplotlib.pyplot as plt
-plt.switch_backend('Agg')
+try:
+    import matplotlib.pyplot as plt
+    plt.switch_backend('Agg')
+except ImportError:
+    plt = None
 
 
 OPTIMIZER = 'SLSQP'

@@ -1,13 +1,15 @@
 import unittest
 
-import matplotlib
-import matplotlib.pyplot as plt
+try:
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use('Agg')
+    plt.style.use('ggplot')
+except ImportError:
+    matplotlib = None
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-
-
-matplotlib.use('Agg')
-plt.style.use('ggplot')
 
 
 @use_tempdirs

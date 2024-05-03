@@ -1,5 +1,9 @@
 import unittest
 
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
 
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
@@ -9,6 +13,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 class TestDocSSTOEarth(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_doc_ssto_earth(self):
         import matplotlib.pyplot as plt
         import openmdao.api as om

@@ -1,4 +1,10 @@
 import unittest
+
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
+
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.assert_utils import assert_near_equal
 
@@ -6,6 +12,7 @@ from openmdao.utils.assert_utils import assert_near_equal
 @use_tempdirs
 class TestBrachistochroneForJOSS(unittest.TestCase):
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_results(self):
 
         # Begin code for paper

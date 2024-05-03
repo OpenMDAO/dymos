@@ -1,18 +1,22 @@
 import unittest
 
-import matplotlib
-import matplotlib.pyplot as plt
+try:
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use('Agg')
+    plt.style.use('ggplot')
+except ImportError:
+    matplotlib = None
+
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-
-
-matplotlib.use('Agg')
-plt.style.use('ggplot')
 
 
 @use_tempdirs
 class TestSSTOSimulateRootTrajectory(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_ssto_simulate_root_trajectory(self):
         """
         Tests that we can properly simulate a trajectory even if the trajectory is the root
