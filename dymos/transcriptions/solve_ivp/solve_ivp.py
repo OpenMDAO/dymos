@@ -309,8 +309,8 @@ class SolveIVP(TranscriptionBase):
 
             phase.add_subsystem('control_group',
                                 subsys=control_group,
-                                promotes=['controls:*', 'control_values:*', 'control_values_all:*',
-                                          'control_rates:*'])
+                                promotes=['*controls:*', '*control_values:*', '*control_values_all:*',
+                                          '*control_rates:*'])
 
     def configure_controls(self, phase):
         """

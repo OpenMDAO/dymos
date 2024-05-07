@@ -121,7 +121,7 @@ class PseudospectralBase(TranscriptionBase):
         if phase.control_options:
             phase.control_group.configure_io()
             phase.promotes('control_group',
-                           any=['controls:*', 'control_values:*', 'control_rates:*'])
+                           any=['*controls:*', '*control_values:*', '*control_rates:*'])
 
             phase.connect('dt_dstau', 'control_group.dt_dstau')
 
@@ -416,8 +416,6 @@ class PseudospectralBase(TranscriptionBase):
             phase.connect('t_duration_val', 'continuity_comp.t_duration')
 
         for name, options in phase.control_options.items():
-            control_src_name = f'control_values:{name}'
-
             # The sub-indices of control_disc indices that are segment ends
             segment_end_idxs = grid_data.subset_node_indices['segment_ends']
             src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
@@ -425,18 +423,23 @@ class PseudospectralBase(TranscriptionBase):
             # enclose indices in tuple to ensure shaping of indices works
             src_idxs = (src_idxs,)
 
+            if options['control_type'] == 'polynomial':
+                control_str = 'polynomial_control'
+            else:
+                control_str = 'control'
+
             if options['continuity']:
-                phase.connect(control_src_name,
+                phase.connect(f'{control_str}_values:{name}',
                               f'continuity_comp.controls:{name}',
                               src_indices=src_idxs, flat_src_indices=True)
 
             if options['rate_continuity']:
-                phase.connect(f'control_rates:{name}_rate',
+                phase.connect(f'{control_str}_rates:{name}_rate',
                               f'continuity_comp.control_rates:{name}_rate',
                               src_indices=src_idxs, flat_src_indices=True)
 
             if options['rate2_continuity']:
-                phase.connect(f'control_rates:{name}_rate2',
+                phase.connect(f'{control_str}_rates:{name}_rate2',
                               f'continuity_comp.control_rates:{name}_rate2',
                               src_indices=src_idxs, flat_src_indices=True)
 

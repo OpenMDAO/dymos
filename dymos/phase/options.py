@@ -20,6 +20,14 @@ class ControlOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='name', types=str,
                      desc='The name of ODE system parameter to be controlled.')
+        
+        self.declare(name='control_type', types=str, default='full',
+                     desc='The type of control variable.  Options are `full` or `polynomial`.')
+        
+        self.declare(name='order', types=(int,), default=None, allow_none=True,
+                     desc='A integer that provides the interpolation order when the control is '
+                          'to assume a single polynomial basis across the entire phase, or None '
+                          'to use the default control behavior.')
 
         self.declare(name='units', default=_unspecified,
                      allow_none=True, desc='The units in which the control variable is defined.')

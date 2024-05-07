@@ -158,6 +158,8 @@ class TranscriptionBase(object):
 
             phase.add_subsystem('control_group',
                                 subsys=control_group)
+            
+            phase.connect('t_duration_val', 'control_group.t_duration')
 
     def configure_controls(self, phase):
         """

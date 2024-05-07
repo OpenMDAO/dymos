@@ -1141,7 +1141,8 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        # phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', control_type='polynomial', order=1, units='deg', lower=0.01, upper=179.9, continuity=False, rate_continuity=False, rate2_continuity=False)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -1161,6 +1162,11 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         p.set_val('phase0.states:y', phase.interp('y', [10, 5]))
         p.set_val('phase0.states:v', phase.interp('v', [0, 9.9]))
         p.set_val('phase0.polynomial_controls:theta', phase.interp('theta', [5, 100]))
+
+        # p.final_setup()
+
+        # p.model.list_inputs(print_arrays=True)
+        # p.model.list_outputs(print_arrays=True)
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -1576,4 +1582,5 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
 
 if __name__ == '__main__':  # pragma: no cover
-    unittest.main()
+    z = TestBrachistochronePolynomialControlRate2PathConstrained()
+    z.test_brachistochrone_polynomial_control_gauss_lobatto()

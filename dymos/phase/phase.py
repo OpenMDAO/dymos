@@ -527,7 +527,7 @@ class Phase(om.Group):
         elif name in self.polynomial_control_options:
             raise ValueError(f'{name} has already been added as a polynomial control.')
 
-    def add_control(self, name, units=_unspecified, desc=_unspecified, opt=_unspecified,
+    def add_control(self, name, control_type=_unspecified, order=_unspecified, units=_unspecified, desc=_unspecified, opt=_unspecified,
                     fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
                     rate_targets=_unspecified, rate2_targets=_unspecified, val=_unspecified,
                     shape=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
@@ -544,6 +544,10 @@ class Phase(om.Group):
         name : str
             The name assigned to the control variable.  If the ODE has been decorated with
             parameters, this should be the name of a control in the system.
+        control_type : str
+            The type of control variable.  Valid options include 'full' and 'polynomial'.
+        order : int
+            The order of the polynomial control variable.  This option is invalid if control_type is 'full'.
         units : str or None
             The units with which the control parameter in this phase will be defined.  It must be
             compatible with the units of the targets to which the control is connected.
@@ -627,7 +631,7 @@ class Phase(om.Group):
             self.control_options[name] = ControlOptionsDictionary()
             self.control_options[name]['name'] = name
 
-        self.set_control_options(name, units=units, desc=desc, opt=opt, fix_initial=fix_initial,
+        self.set_control_options(name, control_type=control_type, order=order, units=units, desc=desc, opt=opt, fix_initial=fix_initial,
                                  fix_final=fix_final, targets=targets, rate_targets=rate_targets,
                                  rate2_targets=rate2_targets, val=val, shape=shape, lower=lower,
                                  upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref,
@@ -639,7 +643,7 @@ class Phase(om.Group):
                                  rate2_continuity_scaler=rate2_continuity_scaler,
                                  rate2_continuity_ref=rate2_continuity_ref)
 
-    def set_control_options(self, name, units=_unspecified, desc=_unspecified, opt=_unspecified,
+    def set_control_options(self, name, control_type=_unspecified, order=_unspecified, units=_unspecified, desc=_unspecified, opt=_unspecified,
                             fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
                             rate_targets=_unspecified, rate2_targets=_unspecified, val=_unspecified,
                             shape=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
@@ -656,6 +660,10 @@ class Phase(om.Group):
         name : str
             The name assigned to the control variable.  If the ODE has been decorated with
             parameters, this should be the name of a control in the system.
+        control_type : str
+            The type of control variable.  Valid options include 'full' and 'polynomial'.
+        order : int
+            The order of the polynomial control variable.  This option is invalid if control_type is 'full'.
         units : str or None
             The units with which the control parameter in this phase will be defined.  It must be
             compatible with the units of the targets to which the control is connected.
@@ -734,6 +742,12 @@ class Phase(om.Group):
         -----
         rate and rate2 continuity are not enforced for input controls.
         """
+        if control_type is not _unspecified:
+            self.control_options[name]['control_type'] = control_type
+
+        if order is not _unspecified:
+            self.control_options[name]['order'] = order
+
         if units is not _unspecified:
             self.control_options[name]['units'] = units
 
@@ -881,6 +895,11 @@ class Phase(om.Group):
         shape : Sequence of int
             The shape of the control variable at each point in time.
         """
+        om.issue_warning(f'{self.pathname}: The method `add_polynomial_control` is '
+                    'deprecated and will be removed in Dymos 2.1. Please use '
+                    '`add_control` with the appropriate options to define a polynomial control.',
+                    category=om.OMDeprecationWarning)
+
         self.check_parameter(name)
 
         if name not in self.polynomial_control_options:
@@ -2305,7 +2324,10 @@ class Phase(om.Group):
                 else:
                     node_locations = gd.node_ptau[gd.subset_node_indices['state_input']]
             elif name in self.control_options:
-                node_locations = gd.node_ptau[gd.subset_node_indices['control_input']]
+                if self.control_options[name]['control_type'] == 'polynomial':
+                    node_locations, _ = lgl(self.control_options[name]['order'] + 1)
+                else:
+                    node_locations = gd.node_ptau[gd.subset_node_indices['control_input']]
             elif name in self.polynomial_control_options:
                 node_locations, _ = lgl(self.polynomial_control_options[name]['order'] + 1)
             else:

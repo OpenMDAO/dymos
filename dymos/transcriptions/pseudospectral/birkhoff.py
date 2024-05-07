@@ -174,7 +174,7 @@ class Birkhoff(TranscriptionBase):
         if phase.control_options:
             phase.control_group.configure_io()
             phase.promotes('control_group',
-                           any=['controls:*', 'control_values:*', 'control_rates:*'])
+                           any=['*controls:*', '*control_values:*', '*control_rates:*'])
 
             phase.connect('dt_dstau', 'control_group.dt_dstau')
 
