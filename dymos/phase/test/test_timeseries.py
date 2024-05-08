@@ -440,12 +440,10 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         phase.add_objective('time_phase', loc='final', scaler=10)
         phase.add_timeseries_output('z=x*y + x**2',
-                                    units='m**2',
                                     z={'units': 'm**2'},
                                     x={'units': 'm'},
                                     y={'units': 'm'})
         phase.add_timeseries_output('f=3*g*cos(theta)**2',
-                                    units='deg**2',
                                     f={'units': 'deg**2'},
                                     theta={'units': 'rad'},
                                     g={'units': 'm/s**2'})
@@ -498,13 +496,13 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         phase.add_parameter('g', opt=False, units='m/s**2', val=9.80665, include_timeseries=True)
 
-        phase.add_timeseries_output('k=units', units='m**2')
+        phase.add_timeseries_output('k=units')
 
-        with self.assertRaises(RuntimeError) as e:
+        with self.assertRaises(NameError) as e:
             p.setup(check=True)
 
-        expected = "phase0: Timeseries expression `k=units` uses the following disallowed variable " \
-                   "name in its definition: 'units'."
+        expected = ("'phase0.rhs_all.expr_ode' <class ExecComp>: cannot "
+                    "use variable name 'units' because it's a reserved keyword.")
         self.assertEqual(str(e.exception), expected)
 
     def test_input_units(self):
@@ -527,7 +525,9 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         phase.add_parameter('g', opt=False, units='m/s**2', val=9.80665, include_timeseries=True)
 
-        phase.add_timeseries_output('sin_theta=sin(theta)', units='unitless', theta={'units': 'rad'})
+        phase.add_timeseries_output('sin_theta=sin(theta)',
+                                    sin_theta=dict(units='unitless'),
+                                    theta=dict(units='rad'))
 
         p.setup(check=True)
 
@@ -547,7 +547,6 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         assert_near_equal(np.sin(theta), sin_theta)
 
-    def test_output_units(self):
         p = om.Problem(model=om.Group())
 
         tx = dm.Radau(num_segments=5, order=3, compressed=True)
@@ -567,9 +566,11 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         phase.add_parameter('g', opt=False, units='m/s**2', val=9.80665, include_timeseries=True)
 
-        phase.add_timeseries_output('sin_theta=sin(theta)', units='unitless', theta={'units': 'rad'})
+        phase.add_timeseries_output('sin_theta=sin(theta)',
+                                    theta={'units': 'rad'},
+                                    sin_theta={'units': 'unitless'})
         phase.add_timeseries_output('sin_theta2=sin(theta)', sin_theta2={'units': 'unitless'})
-        phase.add_timeseries_output('sin_theta3=sin(theta)', shape=(1,), sin_theta3={'shape': (1,)})
+        phase.add_timeseries_output('sin_theta3=sin(theta)', sin_theta3={'units': 'unitless'})
 
         expected = 'phase0: User-provided shape for timeseries expression output `sin_theta3` using ' \
                    'both the\n`shape` keyword argument and the `sin_theta3` keyword argument dictionary.\n' \
@@ -579,7 +580,43 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
             warnings.simplefilter('always')
             p.setup(check=True)
 
-        self.assertIn(expected, [str(warning.message) for warning in ctx])
+        p.run_model()
+
+        from dymos.utils.introspection import get_promoted_vars
+
+        sin_theta_meta = get_promoted_vars(phase, iotypes='output', metadata_keys=('units',))['timeseries.sin_theta']
+        sin_theta2_meta = get_promoted_vars(phase, iotypes='output', metadata_keys=('units',))['timeseries.sin_theta2']
+        sin_theta3_meta = get_promoted_vars(phase, iotypes='output', metadata_keys=('units',))['timeseries.sin_theta2']
+
+        self.assertEqual('unitless', sin_theta_meta['units'])
+        self.assertEqual('unitless', sin_theta2_meta['units'])
+        self.assertEqual('unitless', sin_theta3_meta['units'])
+
+    def test_input_units_arg_with_expression(self):
+        p = om.Problem(model=om.Group())
+
+        tx = dm.Radau(num_segments=5, order=3, compressed=True)
+
+        phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
+
+        p.model.add_subsystem('phase0', phase)
+
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.set_state_options('x', fix_initial=True)
+        phase.set_state_options('y', fix_initial=True)
+        phase.set_state_options('v', fix_initial=True)
+
+        phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
+                          units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
+
+        phase.add_parameter('g', opt=False, units='m/s**2', val=9.80665, include_timeseries=True)
+
+        phase.add_timeseries_output('sin_theta=sin(theta)',
+                                    sin_theta=dict(units='unitless'),
+                                    theta=dict(units='rad'))
+
+        p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
@@ -592,44 +629,57 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         p.run_model()
 
-        from dymos.utils.introspection import get_promoted_vars
+        sin_theta = p.get_val('phase0.timeseries.sin_theta')
+        theta = p.get_val('phase0.timeseries.theta', units='rad')
 
-        sin_theta_meta = get_promoted_vars(phase, iotypes='output', metadata_keys=('units',))['timeseries.sin_theta']
-        sin_theta2_meta = get_promoted_vars(phase, iotypes='output', metadata_keys=('units',))['timeseries.sin_theta2']
+        assert_near_equal(np.sin(theta), sin_theta)
 
-        self.assertEqual('unitless', sin_theta_meta['units'])
-        self.assertEqual('unitless', sin_theta2_meta['units'])
-
-    def test_ignore_shape(self):
         p = om.Problem(model=om.Group())
 
         tx = dm.Radau(num_segments=5, order=3, compressed=True)
 
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
 
-        p.model.add_subsystem('phase0', phase)
+        with np.testing.assert_raises(AttributeError) as e:
+            phase.add_timeseries_output('sin_theta=sin(theta)',
+                                        units='unitless',
+                                        theta={'units': 'rad'},
+                                        sin_theta={'units': 'unitless'})
 
-        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+        expected = ('When specifying a timeseries output as an expression, '
+                    'shape and units should be specified as a keyword argument '
+                    'for the output variable name:\n'
+                    "add_timeseries_output('sin_theta=sin(theta)', sin_theta=dict(units='unitless'))")
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        self.assertEqual(expected, str(e.exception))
 
-        phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
-                          units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
+        with np.testing.assert_raises(AttributeError) as e:
+            phase.add_timeseries_output('sin_theta2=sin(theta)',
+                                        units='unitless',
+                                        shape=(1,),
+                                        theta={'units': 'rad'},
+                                        sin_theta={'units': 'unitless'})
 
-        phase.add_parameter('g', opt=False, units='m/s**2', val=9.80665, include_timeseries=True)
+        expected = ('When specifying a timeseries output as an expression, '
+                    'shape and units should be specified as a keyword argument '
+                    'for the output variable name:\n'
+                    "add_timeseries_output('sin_theta2=sin(theta)', "
+                    "sin_theta2=dict(shape=(1,), units='unitless'))")
 
-        phase.add_timeseries_output('sin_theta=sin(theta)', units='unitless', theta={'units': 'rad', 'shape': (1,)})
+        self.assertEqual(expected, str(e.exception))
 
-        expected = 'phase0: User-provided shape for timeseries expression input `theta` ignored.\n' \
-                   'Using automatically determined shape (20, 1).'
+        with self.assertRaises(AttributeError) as e:
+            phase.add_timeseries_output('sin_theta3=sin(theta)',
+                                        shape=(1,),
+                                        theta={'units': 'rad'},
+                                        sin_theta={'units': 'unitless'})
 
-        with warnings.catch_warnings(record=True) as ctx:
-            warnings.simplefilter('always')
-            p.setup(check=True)
+        expected = ('When specifying a timeseries output as an expression, '
+                    'shape and units should be specified as a keyword argument '
+                    'for the output variable name:\n'
+                    "add_timeseries_output('sin_theta3=sin(theta)', sin_theta3=dict(shape=(1,)))")
 
-        self.assertIn(expected, [str(warning.message) for warning in ctx])
+        self.assertEqual(expected, str(e.exception))
 
     def test_timeseries_expr_radau(self):
         tx = dm.Radau(num_segments=5, order=3, compressed=True)
@@ -638,7 +688,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         x = p.get_val('phase0.timeseries.x')
         y = p.get_val('phase0.timeseries.y')
-        theta = p.get_val('phase0.timeseries.theta')
+        theta = p.get_val('phase0.timeseries.theta', units='rad')
         g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
@@ -655,7 +705,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         x = p.get_val('phase0.timeseries.x')
         y = p.get_val('phase0.timeseries.y')
-        theta = p.get_val('phase0.timeseries.theta')
+        theta = p.get_val('phase0.timeseries.theta', units='rad')
         g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
@@ -671,7 +721,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p.run_driver()
         x = p.get_val('phase0.timeseries.x')
         y = p.get_val('phase0.timeseries.y')
-        theta = p.get_val('phase0.timeseries.theta')
+        theta = p.get_val('phase0.timeseries.theta', units='rad')
         g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
@@ -689,7 +739,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         x = p.get_val('phase0.timeseries.x')
         y = p.get_val('phase0.timeseries.y')
-        theta = p.get_val('phase0.timeseries.theta')
+        theta = p.get_val('phase0.timeseries.theta', units='rad')
         g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
@@ -706,7 +756,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p.run_driver()
         x = p.get_val('phase0.timeseries.x')
         y = p.get_val('phase0.timeseries.y')
-        theta = p.get_val('phase0.timeseries.theta')
+        theta = p.get_val('phase0.timeseries.theta', units='rad')
         g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2
@@ -724,7 +774,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p.run_driver()
         x = p.get_val('phase0.timeseries.x')
         y = p.get_val('phase0.timeseries.y')
-        theta = p.get_val('phase0.timeseries.theta')
+        theta = p.get_val('phase0.timeseries.theta', units='rad')
         g = p.get_val('phase0.timeseries.g')
 
         z_computed = x * y + x**2

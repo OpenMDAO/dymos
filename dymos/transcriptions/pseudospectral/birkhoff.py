@@ -7,6 +7,7 @@ from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
 from .components import BirkhoffIterGroup, BirkhoffBoundaryGroup
 
 from ..grid_data import BirkhoffGrid
+from dymos.utils.expressions import add_exec_comp_to_ode_group
 from dymos.utils.misc import get_rate_units
 from dymos.utils.introspection import get_promoted_vars, get_source_metadata, get_targets
 from dymos.utils.indexing import get_constraint_flat_idxs, get_src_indices_by_row
@@ -252,13 +253,13 @@ class Birkhoff(TranscriptionBase):
             ode_sys_all.add_subsystem('user_ode', ode_class(num_nodes=nn, **ode_init_kwargs),
                                       promotes_inputs=['*'],
                                       promotes_outputs=['*'])
-            self._add_exec_comp_to_ode_group(ode_sys_all, phase._expressions, num_nodes=nn)
+            add_exec_comp_to_ode_group(ode_sys_all, phase._expressions, num_nodes=nn)
 
             ode_sys_ends = om.Group()
             ode_sys_ends.add_subsystem('user_ode', ode_class(num_nodes=2, **ode_init_kwargs),
                                        promotes_inputs=['*'],
                                        promotes_outputs=['*'])
-            self._add_exec_comp_to_ode_group(ode_sys_ends, phase._expressions, num_nodes=2)
+            add_exec_comp_to_ode_group(ode_sys_ends, phase._expressions, num_nodes=2)
         else:
             ode_sys_all = ode_class(num_nodes=nn, **ode_init_kwargs)
             ode_sys_ends = ode_class(num_nodes=2, **ode_init_kwargs)

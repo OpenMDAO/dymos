@@ -94,6 +94,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
                              desc='Control interpolation algorithm, one of either "vandermonde" or "barycentric". In '
                              'general, Vandermonde is faster but Barycentric is necessary for the Birkhoff '
                              'transcription where the number of nodes per segment can exceed 20 to 30.')
+        self.options.declare('exprs', types=(list, tuple), allow_none=True, default=None,
+                             desc='Expressions to be avaluated alongside the users ODE')
 
     def _setup_subprob(self):
         self._eval_subprob = p = om.Problem(comm=self.comm, reports=self._reports)
@@ -107,7 +109,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
                                                  ode_init_kwargs=self.options['ode_init_kwargs'],
                                                  input_grid_data=self._input_grid_data,
                                                  compute_derivs=self.options['propagate_derivs'],
-                                                 control_interp=self.options['control_interp']),
+                                                 control_interp=self.options['control_interp'],
+                                                 exprs=self.options['exprs']),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 

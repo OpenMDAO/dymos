@@ -1522,6 +1522,16 @@ class Phase(om.Group):
             expr = True if '=' in name else False
             output = name.split('=')[0].strip() if expr else name
             if expr:
+                err_str = ''
+                if shape is not _unspecified:
+                    err_str = f'shape={shape}'
+                if units is not _unspecified:
+                    err_str = err_str + f", units='{units}'" if err_str else f"units='{units}'"
+                if err_str:
+                    raise AttributeError('When specifying a timeseries output as an expression, '
+                                         'shape and units should be specified as a keyword argument '
+                                         'for the output variable name:\n'
+                                         f"add_timeseries_output('{name}', {output}=dict({err_str}))")
                 self.add_expr(name, **kwargs)
             self._add_timeseries_output(output, output_name=output_name,
                                         units=units,
@@ -2468,6 +2478,8 @@ class Phase(om.Group):
         sim_phase.refine_options = deepcopy(self.refine_options)
         sim_phase.simulate_options = deepcopy(self.simulate_options)
         sim_phase.timeseries_options = deepcopy(self.timeseries_options)
+
+        sim_phase._expressions = deepcopy(self._expressions)
 
         return sim_phase
 

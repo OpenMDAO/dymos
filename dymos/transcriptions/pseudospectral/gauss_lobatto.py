@@ -8,6 +8,7 @@ from openmdao.utils.om_warnings import issue_warning
 from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
 from ..common import GaussLobattoContinuityComp
+from ...utils.expressions import add_exec_comp_to_ode_group
 from ...utils.misc import get_rate_units, _unspecified
 from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
@@ -261,8 +262,8 @@ class GaussLobatto(PseudospectralBase):
                                       promotes_inputs=['*'],
                                       promotes_outputs=['*'])
 
-            self._add_exec_comp_to_ode_group(ode_sys_disc, phase._expressions, num_nodes=nn)
-            self._add_exec_comp_to_ode_group(ode_disc_col, phase._expressions, num_nodes=nn)
+            add_exec_comp_to_ode_group(ode_sys_disc, phase._expressions, num_nodes=nsdn)
+            add_exec_comp_to_ode_group(ode_sys_col, phase._expressions, num_nodes=ncn)
         else:
             ode_sys_disc = ode_class(num_nodes=nsdn, **ode_init_kwargs)
             ode_sys_col = ode_class(num_nodes=ncn, **ode_init_kwargs)

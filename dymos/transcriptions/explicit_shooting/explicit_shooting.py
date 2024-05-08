@@ -10,6 +10,7 @@ from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import BirkhoffGrid, GaussLobattoGrid, RadauGrid, UniformGrid
 from .ode_integration_comp import ODEIntegrationComp
+from ...utils.expressions import add_exec_comp_to_ode_group
 from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.indexing import get_src_indices_by_row
 from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets, _get_targets_metadata
@@ -298,7 +299,11 @@ class ExplicitShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        integ = ODEIntegrationComp(ode_class=phase.options['ode_class'],
+        ode_class = phase.options['ode_class']
+        ode_init_kwargs = phase.options['ode_init_kwargs']
+        nn = num_nodes = self._output_grid_data.num_nodes
+
+        integ = ODEIntegrationComp(ode_class=ode_class,
                                    time_options=phase.time_options,
                                    state_options=phase.state_options,
                                    parameter_options=phase.parameter_options,
@@ -312,27 +317,27 @@ class ExplicitShooting(TranscriptionBase):
                                    propagate_derivs=self.options['propagate_derivs'],
                                    input_grid_data=self.grid_data,
                                    output_grid_data=self._output_grid_data,
-                                   ode_init_kwargs=phase.options['ode_init_kwargs'],
+                                   ode_init_kwargs=ode_init_kwargs,
                                    standalone_mode=False,
                                    reports=self.options['subprob_reports'],
-                                   control_interp=self.options['control_interp'])
+                                   control_interp=self.options['control_interp'],
+                                   exprs=phase._expressions)
         phase.add_subsystem('integrator', integ)
 
         if phase._expressions:
             rhs_group = om.Group()
 
             rhs_group.add_subsystem('user_ode',
-                                    subsys=ODEClass(num_nodes=nn, **kwargs),
+                                    subsys=ode_class(num_nodes=nn, **ode_init_kwargs),
                                     promotes_inputs=['*'], promotes_outputs=['*'])
 
-            self._add_exec_comp_to_ode_group(rhs_group, phase._expressions, nn)
+            add_exec_comp_to_ode_group(rhs_group, phase._expressions, num_nodes=nn)
 
             phase.add_subsystem('ode', subsys=rhs_group)
 
         else:
             phase.add_subsystem('ode',
-                                subsys=phase.options['ode_class'](num_nodes=self._output_grid_data.num_nodes,
-                                                                  **phase.options['ode_init_kwargs']))
+                                subsys=ode_class(num_nodes=nn, **ode_init_kwargs))
 
     def configure_ode(self, phase):
         """

@@ -4,6 +4,7 @@ import openmdao.api as om
 from ..transcription_base import TranscriptionBase
 from ...utils.introspection import configure_analytic_states_introspection, get_promoted_vars, get_targets, \
     get_source_metadata, configure_analytic_states_discovery
+from ...utils.expressions import add_exec_comp_to_ode_group
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
@@ -231,7 +232,7 @@ class Analytic(TranscriptionBase):
                                     subsys=ODEClass(num_nodes=nn, **kwargs),
                                     promotes_inputs=['*'], promotes_outputs=['*'])
 
-            self._add_exec_comp_to_ode_group(rhs_group, phase._expressions, nn)
+            add_exec_comp_to_ode_group(rhs_group, phase._expressions, nn)
 
             phase.add_subsystem('rhs', subsys=rhs_group)
 

@@ -354,38 +354,6 @@ class TranscriptionBase(object):
                                                     output_name=output_name,
                                                     timeseries=ts_name, tags='state_rate')
 
-    def _add_exec_comp_to_ode_group(self, ode_group, exprs, num_nodes):
-        """
-        Add an ExecComp to the given ODE group to handle user-defined calculations.
-
-        Parameters
-        ----------
-        ode_group : System
-            The Group which contains the user ODE and the ExecComp.
-        exprs : list
-            A list of expression, kwarg pairs to be added to the ExecComp.
-        num_nodes : _type_
-            The number of nodes at which the ODE is being evaluated.
-        """
-        exec_comp = ode_group.add_subsystem('expr_ode',
-                                            subsys=om.ExecComp(),
-                                            promotes_inputs=['*'],
-                                            promotes_outputs=['*'])
-
-        for expr, kwargs in deepcopy(exprs):
-            onames, vnames = parse_expression(expr)
-            for varname in onames.union(vnames):
-                if varname not in kwargs:
-                    # No kwargs given for variable. Default shape to num_nodes.
-                    kwargs[varname] = {'shape': (num_nodes,)}
-                elif 'shape' not in kwargs[varname]:
-                    # kwargs given, but not shape. Default shape to num_nodes.
-                    kwargs[varname]['shape'] = (num_nodes,)
-                else:
-                    # shape give. Prepend num_nodes
-                    kwargs[varname]['shape'] = (num_nodes,) + kwargs[varname]['shape']
-            exec_comp.add_expr(expr, **kwargs)
-
     def setup_ode(self, phase):
         """
         Setup the ode for this transcription.

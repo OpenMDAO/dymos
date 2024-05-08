@@ -13,6 +13,7 @@ from ...utils.introspection import configure_controls_introspection, \
     configure_states_discovery, configure_states_introspection, _get_targets_metadata, \
     _get_common_metadata, get_promoted_vars
 from ...utils.misc import get_rate_units, _unspecified, _none_or_unspecified
+from ...utils.expressions import add_exec_comp_to_ode_group
 
 
 class ODEEvaluationGroup(om.Group):
@@ -45,13 +46,15 @@ class ODEEvaluationGroup(om.Group):
         The number of points at which the ODE is simultaneously evaluated.
     control_interp : str
         The control interpolation technique to be used. Must be either 'vandermonde' or 'barycentric'.
+    exprs : list or None
+        List of expressions to be evaluated along with the ODE.
     **kwargs : dict
         Additional keyword arguments passed to Group.
     """
 
     def __init__(self, ode_class, input_grid_data, time_options, state_options, parameter_options, control_options,
                  polynomial_control_options, ode_init_kwargs=None, compute_derivs=True, vec_size=1,
-                 control_interp='vandermonde', **kwargs):
+                 control_interp='vandermonde', exprs=None, **kwargs):
         super().__init__(**kwargs)
 
         # This component creates copies of the variable options from the phase.
@@ -72,6 +75,7 @@ class ODEEvaluationGroup(om.Group):
         self._vec_size = vec_size
         self._ode_init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
         self._control_interp = control_interp
+        self._exprs = exprs
 
     def set_segment_index(self, seg_idx):
         """
@@ -129,7 +133,19 @@ class ODEEvaluationGroup(om.Group):
                                                                                      compute_derivs=self._compute_derivs),
                                                         promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
 
-        self.add_subsystem('ode', self._ode_class(num_nodes=self._vec_size, **self._ode_init_kwargs))
+        if self._exprs:
+            ode_sys = om.Group()
+            ode_sys.add_subsystem('user_ode',
+                                  self._ode_class(num_nodes=self._vec_size,
+                                                  **self._ode_init_kwargs),
+                                  promotes_inputs=['*'], promotes_outputs=['*'])
+
+            add_exec_comp_to_ode_group(ode_sys, self._exprs, self._vec_size)
+
+        else:
+            ode_sys = self._ode_class(num_nodes=self._vec_size, **self._ode_init_kwargs)
+
+        self.add_subsystem('ode', ode_sys)
 
         self.add_subsystem('state_rate_collector',
                            StateRateCollectorComp(state_options=self._state_options,

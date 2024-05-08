@@ -82,13 +82,13 @@ class TestBirkhoffIterGroup(unittest.TestCase):
                     time_options = TimeOptionsDictionary()
                     grid_data = BirkhoffGrid(num_nodes=31, grid_type=grid_type)
                     nn = grid_data.subset_num_nodes['all']
-                    ode_class = SimpleODE
+                    ode_sys = SimpleODE(num_nodes=nn)
 
                     p = om.Problem()
                     p.model.add_subsystem('birkhoff', BirkhoffIterGroup(state_options=state_options,
                                                                         time_options=time_options,
                                                                         grid_data=grid_data,
-                                                                        ode_class=ode_class))
+                                                                        ode_sys=ode_sys))
 
                     birkhoff = p.model._get_subsystem('birkhoff')
 
@@ -142,13 +142,13 @@ class TestBirkhoffIterGroup(unittest.TestCase):
                     time_options = TimeOptionsDictionary()
                     grid_data = BirkhoffGrid(num_nodes=31, grid_type=grid_type)
                     nn = grid_data.subset_num_nodes['all']
-                    ode_class = SimpleODE
+                    ode_sys = SimpleODE(num_nodes=nn)
 
                     p = om.Problem()
                     p.model.add_subsystem('birkhoff', BirkhoffIterGroup(state_options=state_options,
                                                                         time_options=time_options,
                                                                         grid_data=grid_data,
-                                                                        ode_class=ode_class))
+                                                                        ode_sys=ode_sys))
 
                     birkhoff = p.model._get_subsystem('birkhoff')
 
