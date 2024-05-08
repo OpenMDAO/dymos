@@ -216,7 +216,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
 
             for control_name_wrt in self.polynomial_control_options:
                 self.declare_partials(of=self._state_output_names[state_name],
-                                      wrt=f'polynomial_controls:{control_name_wrt}')
+                                      wrt=f'controls:{control_name_wrt}')
 
     def _setup_parameters(self):
         if self._standalone_mode:
@@ -298,7 +298,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
             control_param_shape = (num_input_nodes,) + options['shape']
             control_param_size = np.prod(control_param_shape, dtype=int)
 
-            self._polynomial_control_input_names[name] = f'polynomial_controls:{name}'
+            self._polynomial_control_input_names[name] = f'controls:{name}'
 
             self._totals_wrt_names.append(self._polynomial_control_input_names[name])
 

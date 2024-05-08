@@ -249,7 +249,6 @@ class SolveIVP(TranscriptionBase):
                 time_options=phase.time_options,
                 state_options=phase.state_options,
                 control_options=phase.control_options,
-                polynomial_control_options=phase.polynomial_control_options,
                 parameter_options=phase.parameter_options,
                 output_nodes_per_seg=self.options['output_nodes_per_seg'],
                 reports=self.options['reports'])
@@ -591,22 +590,6 @@ class SolveIVP(TranscriptionBase):
             path = f'control_rates:{control_name}_rate2'
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=2)
             src_shape = phase.control_options[control_name]['shape']
-        elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-            path = f'polynomial_control_values:{var}'
-            src_units = phase.polynomial_control_options[var]['units']
-            src_shape = phase.polynomial_control_options[var]['shape']
-        elif var_type == 'polynomial_control_rate':
-            control_name = var[:-5]
-            path = f'polynomial_control_rates:{control_name}_rate'
-            control = phase.polynomial_control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=1)
-            src_shape = control['shape']
-        elif var_type == 'polynomial_control_rate2':
-            control_name = var[:-6]
-            path = f'polynomial_control_rates:{control_name}_rate2'
-            control = phase.polynomial_control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=1)
-            src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'
             num_seg = self.grid_data.num_segments

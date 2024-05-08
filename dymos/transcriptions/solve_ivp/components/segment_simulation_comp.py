@@ -155,7 +155,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
         if self.options['polynomial_control_options']:
             for name, options in self.options['polynomial_control_options'].items():
                 poly_control_disc_ptau, _ = lgl(options['order'] + 1)
-                self.add_input(name='polynomial_controls:{0}'.format(name),
+                self.add_input(name='controls:{0}'.format(name),
                                val=np.ones(((options['order'] + 1,) + options['shape'])),
                                units=options['units'],
                                desc='Values of polynomial control {0} at control discretization '
@@ -206,7 +206,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
             t0_phase = inputs['t_initial']
             tf_phase = inputs['t_initial'] + inputs['t_duration']
             for name, options in self.options['polynomial_control_options'].items():
-                ctrl_vals = inputs[f'polynomial_controls:{name}']
+                ctrl_vals = inputs[f'controls:{name}']
                 self.options['ode_integration_interface'].setup_interpolant(name,
                                                                             x0=t0_phase,
                                                                             xf=tf_phase,

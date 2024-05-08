@@ -106,8 +106,6 @@ def eval_ode_on_grid(phase, transcription):
     dict of (str: ndarray)
         A dictionary of the control values from the phase interpolated to the new transcription.
     dict of (str: ndarray)
-        A dictionary of the polynomial control values from the phase interpolated to the new transcription.
-    dict of (str: ndarray)
         A dictionary of the state rates computed in the phase's ODE at the new transcription points.
     """
     x = {}
@@ -234,19 +232,6 @@ def eval_ode_on_grid(phase, transcription):
             u_units = phase.control_options[u_name]['units']
             src_units = get_rate_units(u_units, phase.time_options['units'], deriv=2)
             f[name] = om.convert_units(u_rate2[rate_source], src_units, rate_units)
-        elif rate_source_class in {'input_polynomial_control', 'indep_polynomial_control'}:
-            src_units = phase.control_options[rate_source]['units']
-            f[name] = om.convert_units(p[rate_source], src_units, rate_units)
-        elif rate_source_class in {'polynomial_control_rate'}:
-            pc_name = rate_source[:-5]
-            pc_units = phase.control_options[pc_name]['units']
-            src_units = get_rate_units(pc_units, phase.time_options['units'], deriv=1)
-            f[name] = om.convert_units(p_rate[rate_source], src_units, rate_units)
-        elif rate_source_class in {'polynomial_control_rate2'}:
-            pc_name = rate_source[:-6]
-            pc_units = phase.control_options[pc_name]['units']
-            src_units = get_rate_units(pc_units, phase.time_options['units'], deriv=2)
-            f[name] = om.convert_units(p_rate2[rate_source], src_units, rate_units)
         elif rate_source_class in {'parameter'}:
             src_units = phase.parameter_options[rate_source]['units']
             shape = phase.parameter_options[rate_source]['shape']

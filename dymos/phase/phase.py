@@ -1212,7 +1212,7 @@ class Phase(om.Group):
                 if var_type.startswith('control_rate'):
                     bc['constraint_name'] = f'control_rates:{constraint_name}'
                 elif var_type.startswith('polynomial_control_rate'):
-                    bc['constraint_name'] = f'polynomial_control_rates:{constraint_name}'
+                    bc['constraint_name'] = f'control_rates:{constraint_name}'
             if constraint_name not in self._timeseries['timeseries']['outputs']:
                 self.add_timeseries_output(name, output_name=bc['constraint_name'], units=units, shape=shape)
 
@@ -1323,8 +1323,6 @@ class Phase(om.Group):
             if self.timeseries_options['use_prefix']:
                 if var_type.startswith('control_rate'):
                     pc['constraint_name'] = f'control_rates:{constraint_name}'
-                elif var_type.startswith('polynomial_control_rate'):
-                    pc['constraint_name'] = f'polynomial_control_rates:{constraint_name}'
             if constraint_name not in self._timeseries['timeseries']['outputs']:
                 self.add_timeseries_output(name, output_name=pc['constraint_name'], units=units, shape=shape)
 
@@ -1827,9 +1825,7 @@ class Phase(om.Group):
         str
             The classification of the given variable, which is one of
             't', 't_phase', 'state', 'control', 'control_rate',
-            'control_rate2', 'polynomial_control',
-            'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
-            or 'ode'.
+            'control_rate2', 'parameter', or 'ode'.
         """
         return classify_var(var, time_options=self.time_options, state_options=self.state_options,
                             parameter_options=self.parameter_options,
@@ -2670,8 +2666,6 @@ class Phase(om.Group):
             return self.is_state_fixed(var_name, loc)
         elif var_type in {'input_control', 'indep_control'}:
             return self.is_control_fixed(var_name, loc)
-        elif var_type in {'input_polynomial_control', 'indep_polynomial_control'}:
-            return self.is_polynomial_control_fixed(var_name, loc)
         elif var_type in {'control_rate', 'control_rate2'}:
             return self.is_control_rate_fixed(var_name, loc)
         elif var_type == 'parameter':

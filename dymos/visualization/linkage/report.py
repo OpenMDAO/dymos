@@ -216,7 +216,7 @@ def _trajectory_to_dict(traj):
         # Polynomial Controls
         for pc_name in phase.polynomial_control_options:
             for loc, child in condition_children.items():
-                child[pc_name] = _tree_var(pc_name, phase, loc, 'polynomial_controls:')
+                child[pc_name] = _tree_var(pc_name, phase, loc, 'controls:')
 
         # Parameters
         for param_name, param in phase.parameter_options.items():

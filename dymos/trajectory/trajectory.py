@@ -615,12 +615,12 @@ class Trajectory(om.Group):
                 units[i] = get_rate_units(units[i], phases[i].time_options['units'], deriv=deriv)
                 shapes[i] = phases[i].control_options[control_name]['shape']
             elif classes[i] in {'indep_polynomial_control', 'input_polynomial_control'}:
-                prefix = 'polynomial_controls:' if use_prefix[i] else ''
+                prefix = 'controls:' if use_prefix[i] else ''
                 sources[i] = f'timeseries.{prefix}{vars[i]}'
                 units[i] = phases[i].control_options[vars[i]]['units']
                 shapes[i] = phases[i].control_options[vars[i]]['shape']
             elif classes[i] in {'polynomial_control_rate', 'polynomial_control_rate2'}:
-                prefix = 'polynomial_control_rates:' if use_prefix[i] else ''
+                prefix = 'control_rates:' if use_prefix[i] else ''
                 sources[i] = f'timeseries.{prefix}{vars[i]}'
                 control_name = vars[i][:-5] if classes[i] == 'polynomial_control_rate' else vars[i][:-6]
                 control_units = phases[i].control_options[control_name]['units']
@@ -779,10 +779,10 @@ class Trajectory(om.Group):
                     'indep_control': 'controls:',
                     'control_rate': 'control_rates:',
                     'control_rate2': 'control_rates:',
-                    'input_polynomial_control': 'polynomial_controls:',
-                    'indep_polynomial_control': 'polynomial_controls:',
-                    'polynomial_control_rate': 'polynomial_control_rates:',
-                    'polynomial_control_rate2': 'polynomial_control_rates:',
+                    'input_polynomial_control': 'controls:',
+                    'indep_polynomial_control': 'controls:',
+                    'polynomial_control_rate': 'control_rates:',
+                    'polynomial_control_rate2': 'control_rates:',
                     'ode': ''
                     }
 

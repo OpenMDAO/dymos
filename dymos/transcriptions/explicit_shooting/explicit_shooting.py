@@ -32,7 +32,7 @@ class ExplicitShooting(TranscriptionBase):
 
     then the inputs are the initial states ($\bar{x}$), the initial time and duration ($t_0$ and $t_d$), and some set
     of parameters that impact the ODE ($\theta$). For Dymos, $\theta$ may include the phase parameters, or the node values
-    that govern the shape of the controls and polynomial controls.
+    that govern the shape of the controls.
 
     Parameters
     ----------
@@ -421,27 +421,22 @@ class ExplicitShooting(TranscriptionBase):
             # Control targets are detected automatically
             targets = get_targets(ode_inputs, control_name, options['targets'])
 
-            if options['control_type'] == 'polynomial':
-                control_str = 'polynomial_control'
-            else:
-                control_str = 'control'
-
             if targets:
-                phase.connect(f'{control_str}_values:{control_name}',
+                phase.connect(f'control_values:{control_name}',
                               [f'ode.{t}' for t in targets])
 
             # Rate targets
             rate_targets = get_targets(ode_inputs, control_name, options['rate_targets'])
 
             if rate_targets:
-                phase.connect(f'{control_str}_rates:{control_name}_rate',
+                phase.connect(f'control_rates:{control_name}_rate',
                               [f'ode.{t}' for t in rate_targets])
 
             # Second time derivative targets must be specified explicitly
             rate2_targets = get_targets(ode_inputs, control_name, options['rate2_targets'])
 
             if rate2_targets:
-                phase.connect(f'{control_str}_rates:{control_name}_rate2',
+                phase.connect(f'control_rates:{control_name}_rate2',
                               [f'ode.{t}' for t in targets])
 
     def configure_parameters(self, phase):
@@ -692,16 +687,6 @@ class ExplicitShooting(TranscriptionBase):
             units = phase.control_options[var]['units']
             linear = False
             obj_path = f'control_values:{var}'
-        elif var_type == 'indep_polynomial_control':
-            shape = phase.control_options[var]['shape']
-            units = phase.control_options[var]['units']
-            linear = True
-            obj_path = f'polynomial_control_values:{var}'
-        elif var_type == 'input_polynomial_control':
-            shape = phase.control_options[var]['shape']
-            units = phase.control_options[var]['units']
-            linear = False
-            obj_path = f'polynomial_control_values:{var}'
         elif var_type == 'parameter':
             shape = phase.parameter_options[var]['shape']
             units = phase.parameter_options[var]['units']
@@ -716,15 +701,6 @@ class ExplicitShooting(TranscriptionBase):
             units = control_rate_units
             linear = False
             obj_path = f'control_rates:{var}'
-        elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
-            control_var = var[:-5]
-            shape = phase.control_options[control_var]['shape']
-            control_units = phase.control_options[control_var]['units']
-            d = 2 if var_type == 'polynomial_control_rate2' else 1
-            control_rate_units = get_rate_units(control_units, time_units, deriv=d)
-            units = control_rate_units
-            linear = False
-            obj_path = f'polynomial_control_rates:{var}'
         elif var_type == 'timeseries_exec_comp_output':
             shape = (1,)
             units = None
@@ -846,22 +822,6 @@ class ExplicitShooting(TranscriptionBase):
             path = f'control_rates:{control_name}_rate2'
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=2)
             src_shape = phase.control_options[control_name]['shape']
-        elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-            path = f'polynomial_control_values:{var}'
-            src_units = phase.control_options[var]['units']
-            src_shape = phase.control_options[var]['shape']
-        elif var_type == 'polynomial_control_rate':
-            control_name = var[:-5]
-            path = f'polynomial_control_rates:{control_name}_rate'
-            control = phase.control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=1)
-            src_shape = control['shape']
-        elif var_type == 'polynomial_control_rate2':
-            control_name = var[:-6]
-            path = f'polynomial_control_rates:{control_name}_rate2'
-            control = phase.control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=2)
-            src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'
             node_idxs = np.zeros(self._output_grid_data.subset_num_nodes['all'], dtype=int)

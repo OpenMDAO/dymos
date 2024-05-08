@@ -539,12 +539,12 @@ class Birkhoff(TranscriptionBase):
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
             linear = True
-            constraint_path = f'polynomial_control_values:{var}'
+            constraint_path = f'control_values:{var}'
         elif var_type == 'input_polynomial_control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
             linear = False
-            constraint_path = f'polynomial_control_values:{var}'
+            constraint_path = f'control_values:{var}'
         elif var_type == 'parameter':
             shape = phase.parameter_options[var]['shape']
             units = phase.parameter_options[var]['units']
@@ -567,7 +567,7 @@ class Birkhoff(TranscriptionBase):
             control_rate_units = get_rate_units(control_units, time_units, deriv=d)
             units = control_rate_units
             linear = False
-            constraint_path = f'polynomial_control_rates:{var}'
+            constraint_path = f'control_rates:{var}'
         elif var_type == 'timeseries_exec_comp_output':
             shape = (1,)
             units = None
@@ -640,15 +640,15 @@ class Birkhoff(TranscriptionBase):
             control_name = var[:-6]
             rate_path = f'control_rates:{control_name}_rate2'
         elif var_type == 'indep_polynomial_control':
-            rate_path = f'polynomial_control_values:{var}'
+            rate_path = f'control_values:{var}'
         elif var_type == 'input_polynomial_control':
-            rate_path = f'polynomial_control_values:{var}'
+            rate_path = f'control_values:{var}'
         elif var_type == 'polynomial_control_rate':
             control_name = var[:-5]
-            rate_path = f'polynomial_control_rates:{control_name}_rate'
+            rate_path = f'control_rates:{control_name}_rate'
         elif var_type == 'polynomial_control_rate2':
             control_name = var[:-6]
-            rate_path = f'polynomial_control_rates:{control_name}_rate2'
+            rate_path = f'control_rates:{control_name}_rate2'
         elif var_type == 'parameter':
             rate_path = f'parameter_vals:{var}'
             dynamic = not phase.parameter_options[var]['static_target']
@@ -743,18 +743,18 @@ class Birkhoff(TranscriptionBase):
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=2)
             src_shape = phase.control_options[control_name]['shape']
         elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-            path = f'polynomial_control_values:{var}'
+            path = f'control_values:{var}'
             src_units = phase.control_options[var]['units']
             src_shape = phase.control_options[var]['shape']
         elif var_type == 'polynomial_control_rate':
             control_name = var[:-5]
-            path = f'polynomial_control_rates:{control_name}_rate'
+            path = f'control_rates:{control_name}_rate'
             control = phase.control_options[control_name]
             src_units = get_rate_units(control['units'], time_units, deriv=1)
             src_shape = control['shape']
         elif var_type == 'polynomial_control_rate2':
             control_name = var[:-6]
-            path = f'polynomial_control_rates:{control_name}_rate2'
+            path = f'control_rates:{control_name}_rate2'
             control = phase.control_options[control_name]
             src_units = get_rate_units(control['units'], time_units, deriv=2)
             src_shape = control['shape']

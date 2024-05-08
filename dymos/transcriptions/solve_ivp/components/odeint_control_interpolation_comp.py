@@ -60,13 +60,13 @@ class ODEIntControlInterpolationComp(om.ExplicitComponent):
             rate_units = get_rate_units(units, time_units, deriv=1)
             rate2_units = get_rate_units(units, time_units, deriv=2)
 
-            self.add_output('polynomial_controls:{0}'.format(control_name), shape=shape,
+            self.add_output('controls:{0}'.format(control_name), shape=shape,
                             units=units)
 
-            self.add_output('polynomial_control_rates:{0}_rate'.format(control_name), shape=shape,
+            self.add_output('control_rates:{0}_rate'.format(control_name), shape=shape,
                             units=rate_units)
 
-            self.add_output('polynomial_control_rates:{0}_rate2'.format(control_name), shape=shape,
+            self.add_output('control_rates:{0}_rate2'.format(control_name), shape=shape,
                             units=rate2_units)
 
     def compute(self, inputs, outputs):
@@ -100,8 +100,8 @@ class ODEIntControlInterpolationComp(om.ExplicitComponent):
 
             interp = self.options['polynomial_control_interpolants'][name]
 
-            outputs['polynomial_controls:{0}'.format(name)] = interp.eval(time)
+            outputs['controls:{0}'.format(name)] = interp.eval(time)
 
-            outputs['polynomial_control_rates:{0}_rate'.format(name)] = interp.eval_deriv(time)
+            outputs['control_rates:{0}_rate'.format(name)] = interp.eval_deriv(time)
 
-            outputs['polynomial_control_rates:{0}_rate2'.format(name)] = interp.eval_deriv(time, der=2)
+            outputs['control_rates:{0}_rate2'.format(name)] = interp.eval_deriv(time, der=2)

@@ -112,10 +112,10 @@ class ControlInterpComp(om.ExplicitComponent):
 
                 self._matrices[name] = L_de, D_de, D2_de
 
-                self._input_names[name] = f'polynomial_controls:{name}'
-                self._output_val_names[name] = f'polynomial_control_values:{name}'
-                self._output_rate_names[name] = f'polynomial_control_rates:{name}_rate'
-                self._output_rate2_names[name] = f'polynomial_control_rates:{name}_rate2'
+                self._input_names[name] = f'controls:{name}'
+                self._output_val_names[name] = f'control_values:{name}'
+                self._output_rate_names[name] = f'control_rates:{name}_rate'
+                self._output_rate2_names[name] = f'control_rates:{name}_rate2'
 
                 self.add_input(self._input_names[name], val=np.ones(input_shape), units=units)
                 self.add_output(self._output_val_names[name], shape=output_shape, units=units)
@@ -501,7 +501,7 @@ class ControlGroup(om.Group):
                     lb = -INF_BOUND if options['lower'] is None else options['lower']
                     ub = INF_BOUND if options['upper'] is None else options['upper']
 
-                    self.add_design_var(f'polynomial_controls:{name}',
+                    self.add_design_var(f'controls:{name}',
                                         lower=lb,
                                         upper=ub,
                                         ref=options['ref'],
@@ -511,7 +511,7 @@ class ControlGroup(om.Group):
                                         indices=desvar_indices,
                                         flat_indices=True)
 
-                self.set_input_defaults(name=f'polynomial_controls:{name}', val=default_val, units=options['units'])
+                self.set_input_defaults(name=f'controls:{name}', val=default_val, units=options['units'])
             else:
                 dvname = f'controls:{name}'
                 shape = options['shape']

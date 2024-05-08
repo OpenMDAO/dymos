@@ -423,23 +423,18 @@ class PseudospectralBase(TranscriptionBase):
             # enclose indices in tuple to ensure shaping of indices works
             src_idxs = (src_idxs,)
 
-            if options['control_type'] == 'polynomial':
-                control_str = 'polynomial_control'
-            else:
-                control_str = 'control'
-
             if options['continuity']:
-                phase.connect(f'{control_str}_values:{name}',
+                phase.connect(f'control_values:{name}',
                               f'continuity_comp.controls:{name}',
                               src_indices=src_idxs, flat_src_indices=True)
 
             if options['rate_continuity']:
-                phase.connect(f'{control_str}_rates:{name}_rate',
+                phase.connect(f'control_rates:{name}_rate',
                               f'continuity_comp.control_rates:{name}_rate',
                               src_indices=src_idxs, flat_src_indices=True)
 
             if options['rate2_continuity']:
-                phase.connect(f'{control_str}_rates:{name}_rate2',
+                phase.connect(f'control_rates:{name}_rate2',
                               f'continuity_comp.control_rates:{name}_rate2',
                               src_indices=src_idxs, flat_src_indices=True)
 
@@ -617,16 +612,6 @@ class PseudospectralBase(TranscriptionBase):
             units = phase.control_options[var]['units']
             linear = False
             constraint_path = f'control_values:{var}'
-        elif var_type == 'indep_polynomial_control':
-            shape = phase.polynomial_control_options[var]['shape']
-            units = phase.polynomial_control_options[var]['units']
-            linear = True
-            constraint_path = f'polynomial_control_values:{var}'
-        elif var_type == 'input_polynomial_control':
-            shape = phase.polynomial_control_options[var]['shape']
-            units = phase.polynomial_control_options[var]['units']
-            linear = False
-            constraint_path = f'polynomial_control_values:{var}'
         elif var_type == 'parameter':
             shape = phase.parameter_options[var]['shape']
             units = phase.parameter_options[var]['units']
@@ -641,15 +626,6 @@ class PseudospectralBase(TranscriptionBase):
             units = control_rate_units
             linear = False
             constraint_path = f'control_rates:{var}'
-        elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
-            control_var = var[:-5]
-            shape = phase.polynomial_control_options[control_var]['shape']
-            control_units = phase.polynomial_control_options[control_var]['units']
-            d = 2 if var_type == 'polynomial_control_rate2' else 1
-            control_rate_units = get_rate_units(control_units, time_units, deriv=d)
-            units = control_rate_units
-            linear = False
-            constraint_path = f'polynomial_control_rates:{var}'
         elif var_type == 'timeseries_exec_comp_output':
             shape = (1,)
             units = None

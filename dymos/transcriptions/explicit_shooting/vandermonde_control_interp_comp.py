@@ -157,10 +157,10 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
             order = options['order']
             shape = options['shape']
             units = options['units']
-            input_name = f'polynomial_controls:{pc_name}'
-            output_name = f'polynomial_control_values:{pc_name}'
-            rate_name = f'polynomial_control_rates:{pc_name}_rate'
-            rate2_name = f'polynomial_control_rates:{pc_name}_rate2'
+            input_name = f'controls:{pc_name}'
+            output_name = f'control_values:{pc_name}'
+            rate_name = f'control_rates:{pc_name}_rate'
+            rate2_name = f'control_rates:{pc_name}_rate2'
             rate_units = get_rate_units(units, self._time_units)
             rate2_units = get_rate_units(units, self._time_units, deriv=2)
             input_shape = (order + 1,) + shape

@@ -129,13 +129,13 @@ class ODEIntegrationInterfaceSystem(om.Group):
         if self.options['polynomial_control_options']:
             for name, options in self.options['polynomial_control_options'].items():
                 if options['targets']:
-                    self.connect(f'polynomial_controls:{name}',
+                    self.connect(f'controls:{name}',
                                  [f'ode.{tgt}' for tgt in options['targets']])
                 if options['rate_targets']:
-                    self.connect(f'polynomial_control_rates:{name}_rate',
+                    self.connect(f'control_rates:{name}_rate',
                                  [f'ode.{tgt}' for tgt in options['rate_targets']])
                 if options['rate2_targets']:
-                    self.connect(f'polynomial_control_rates:{name}_rate2',
+                    self.connect(f'control_rates:{name}_rate2',
                                  [f'ode.{tgt}' for tgt in options['rate2_targets']])
 
         # Parameters
@@ -160,8 +160,6 @@ class ODEIntegrationInterfaceSystem(om.Group):
             rate_path = f'states:{var}'
         elif self.options['control_options'] is not None and var in self.options['control_options']:
             rate_path = f'controls:{var}'
-        elif self.options['polynomial_control_options'] is not None and var in self.options['polynomial_control_options']:
-            rate_path = f'polynomial_controls:{var}'
         elif self.options['parameter_options'] is not None and var in self.options['parameter_options']:
             rate_path = f'parameters:{var}'
         elif var.endswith('_rate') and self.options['control_options'] is not None and \
@@ -170,12 +168,6 @@ class ODEIntegrationInterfaceSystem(om.Group):
         elif var.endswith('_rate2') and self.options['control_options'] is not None and \
                 var[:-6] in self.options['control_options']:
             rate_path = f'control_rates:{var}'
-        elif var.endswith('_rate') and self.options['polynomial_control_options'] is not None and \
-                var[:-5] in self.options['polynomial_control_options']:
-            rate_path = f'polynomial_control_rates:{var}'
-        elif var.endswith('_rate2') and self.options['polynomial_control_options'] is not None and \
-                var[:-6] in self.options['polynomial_control_options']:
-            rate_path = f'polynomial_control_rates:{var}'
 
         return rate_path
 
@@ -192,8 +184,6 @@ class ODEIntegrationInterfaceSystem(om.Group):
         """
         if name in self.options['control_options']:
             self._interp_comp.options['control_interpolants'][name] = interp
-        elif name in self.options['polynomial_control_options']:
-            self._interp_comp.options['polynomial_control_interpolants'][name] = interp
         else:
             raise KeyError(f'Unable to set control interpolant of unknown control: {name}')
 
@@ -206,15 +196,13 @@ class ODEIntegrationInterfaceSystem(om.Group):
         name : str
             The name of the control or polynomial control.
         x0 : float
-            The initial time (or independent variable) of the segment (for controls) or phase (for polynomial controls).
+            The initial time (or independent variable) of the segment (for controls).
         xf : float
-            The final time (or independent variable) of the segment (for controls) or phase (for polynomial controls).
+            The final time (or independent variable) of the segment (for controls).
         f_j : float
             The value of the control at the nodes in the segment or phase.
         """
         if name in self.options['control_options']:
             self._interp_comp.options['control_interpolants'][name].setup(x0, xf, f_j)
-        elif name in self.options['polynomial_control_options']:
-            self._interp_comp.options['polynomial_control_interpolants'][name].setup(x0, xf, f_j)
         else:
             raise KeyError(f'Unable to setup control interpolant of unknown control: {name}')
