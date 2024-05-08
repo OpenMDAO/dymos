@@ -9,7 +9,7 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 
 
 @use_tempdirs
-class TestBrachistochroneExprPathConstraint(unittest.TestCase):
+class TestBrachistochroneExprConstraints(unittest.TestCase):
 
     def _make_problem(self, tx):
         p = om.Problem(model=om.Group())
@@ -31,7 +31,7 @@ class TestBrachistochroneExprPathConstraint(unittest.TestCase):
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
 
-        phase.add_boundary_constraint('x', loc='final', equals=10.0)
+        phase.add_boundary_constraint('x_f = x * 1.0', loc='final', equals=10.0)
         phase.add_path_constraint('pc = y-x/2-1', lower=0.0)
 
         phase.add_parameter('g', opt=False, units='m/s**2', val=9.80665, shape=None, include_timeseries=True)
@@ -52,7 +52,7 @@ class TestBrachistochroneExprPathConstraint(unittest.TestCase):
         p['phase0.parameters:g'] = 9.80665
         return p
 
-    def test_brachistochrone_expr_path_constraint(self):
+    def test_brachistochrone_expr_constraints(self):
         prob = self._make_problem(tx=dm.Radau(num_segments=5, order=3, compressed=True))
         prob.run_driver()
         yf = prob.get_val('phase0.timeseries.y')[-1]

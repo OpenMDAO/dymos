@@ -2,6 +2,7 @@ from copy import deepcopy
 import re
 
 import openmdao.api as om
+from openmdao.core.system import System
 from openmdao.components.exec_comp import VAR_RGX
 
 # regex to check for variable names.
@@ -47,7 +48,9 @@ def _parse_for_names(s: str) -> set[str]:
     return vnames
 
 
-def add_exec_comp_to_ode_group(ode_group, exprs, num_nodes):
+def add_exec_comp_to_ode_group(ode_group: System,
+                               exprs: list[tuple[str, dict[str, object]]],
+                               num_nodes: int):
     """
     Add an ExecComp to the given ODE group to handle user-defined calculations.
 
@@ -78,14 +81,15 @@ def add_exec_comp_to_ode_group(ode_group, exprs, num_nodes):
                 # kwargs given, but not shape. Default shape to num_nodes.
                 kwargs[varname]['shape'] = (num_nodes,)
             else:
-                # shape give. Prepend num_nodes
+                # shape given. Prepend num_nodes
                 kwargs[varname]['shape'] = (num_nodes,) + kwargs[varname]['shape']
         new_kwargs = {k: v for k, v in kwargs.items() if k not in used_kwargs}
         new_expr = expr
         for var, dotted_var in inputs.items():
-            new_expr = new_expr.replace(dotted_var, var)
-            new_kwargs[var] = new_kwargs[dotted_var]
-            new_kwargs.pop(dotted_var)
+            if dotted_var != var:
+                new_expr = new_expr.replace(dotted_var, var)
+                new_kwargs[var] = new_kwargs[dotted_var]
+                new_kwargs.pop(dotted_var)
         exec_comp.add_expr(new_expr, **new_kwargs)
         used_kwargs |= kwargs.keys()
     # For every dotted-input in an expression, explicitly connect it to its source.

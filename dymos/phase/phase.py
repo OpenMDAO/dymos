@@ -1203,7 +1203,8 @@ class Phase(om.Group):
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
-                                scaler=None, adder=None, ref=None, ref0=None, linear=False, flat_indices=False):
+                                scaler=None, adder=None, ref=None, ref0=None, linear=False,
+                                flat_indices=False, **kwargs):
         r"""
         Add a boundary constraint to a variable in the phase.
 
@@ -1254,6 +1255,8 @@ class Phase(om.Group):
         flat_indices : bool
             If True, treat indices as flattened C-ordered indices of elements to constrain. Otherwise,
             indices should be a tuple or list giving the elements to constrain at each point in time.
+        **kwargs
+            Keyword arguments to be passed to the ExecComp if the constraint is an expression.
         """
         if loc not in ['initial', 'final']:
             raise ValueError(f'Invalid boundary constraint location "{loc}". Must be '
@@ -1271,7 +1274,7 @@ class Phase(om.Group):
 
         if is_expr:
             constraint_name = name.split('=')[0].strip()
-            self.add_expr(name, **{constraint_name: {'units': units}})
+            self.add_expr(name, **kwargs)
         elif constraint_name is None:
             constraint_name = name.rpartition('.')[-1]
 
@@ -1311,19 +1314,25 @@ class Phase(om.Group):
         bc['is_expr'] = is_expr
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
-        var_type = self.classify_var(name)
-        if var_type == 'ode' or 'control_rate' in var_type:
-            if self.timeseries_options['use_prefix']:
-                if var_type.startswith('control_rate'):
-                    bc['constraint_name'] = f'control_rates:{constraint_name}'
-                elif var_type.startswith('polynomial_control_rate'):
-                    bc['constraint_name'] = f'polynomial_control_rates:{constraint_name}'
-            if constraint_name not in self._timeseries['timeseries']['outputs']:
-                self.add_timeseries_output(name, output_name=bc['constraint_name'], units=units, shape=shape)
+        if is_expr:
+            self.add_timeseries_output(constraint_name)
+        else:
+            var_type = self.classify_var(name)
+            if var_type == 'ode' or 'control_rate' in var_type:
+                if self.timeseries_options['use_prefix']:
+                    if var_type.startswith('control_rate'):
+                        bc['constraint_name'] = f'control_rates:{constraint_name}'
+                    elif var_type.startswith('polynomial_control_rate'):
+                        bc['constraint_name'] = f'polynomial_control_rates:{constraint_name}'
+                if constraint_name not in self._timeseries['timeseries']['outputs']:
+                    self.add_timeseries_output(name,
+                                               output_name=bc['constraint_name'],
+                                               units=units,
+                                               shape=shape)
 
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
-                            ref0=None, linear=False, flat_indices=False):
+                            ref0=None, linear=False, flat_indices=False, **kwargs):
         r"""
         Add a path constraint to a variable in the phase.
 
@@ -1372,6 +1381,8 @@ class Phase(om.Group):
         flat_indices : bool
             If True, treat indices as flattened C-ordered indices of elements to constrain at each given point in time.
             Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.
+        **kwargs
+            Keyword arguments passed to the ExecComp if the constraint is an expressions.
         """
         expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
         if '=' in name:
@@ -1385,7 +1396,7 @@ class Phase(om.Group):
 
         if is_expr:
             constraint_name = name.split('=')[0].strip()
-            self.add_expr(name, **{constraint_name: {'units': units, 'shape': shape}})
+            self.add_expr(name, **kwargs)
         elif constraint_name is None:
             constraint_name = name.rpartition('.')[-1]
 
@@ -1424,15 +1435,18 @@ class Phase(om.Group):
         pc['is_expr'] = is_expr
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
-        var_type = self.classify_var(name)
-        if var_type == 'ode' or 'control_rate' in var_type:
-            if self.timeseries_options['use_prefix']:
-                if var_type.startswith('control_rate'):
-                    pc['constraint_name'] = f'control_rates:{constraint_name}'
-                elif var_type.startswith('polynomial_control_rate'):
-                    pc['constraint_name'] = f'polynomial_control_rates:{constraint_name}'
-            if constraint_name not in self._timeseries['timeseries']['outputs']:
-                self.add_timeseries_output(name, output_name=pc['constraint_name'], units=units, shape=shape)
+        if is_expr:
+            self.add_timeseries_output(constraint_name)
+        else:
+            var_type = self.classify_var(name)
+            if var_type == 'ode' or 'control_rate' in var_type:
+                if self.timeseries_options['use_prefix']:
+                    if var_type.startswith('control_rate'):
+                        pc['constraint_name'] = f'control_rates:{constraint_name}'
+                    elif var_type.startswith('polynomial_control_rate'):
+                        pc['constraint_name'] = f'polynomial_control_rates:{constraint_name}'
+                if constraint_name not in self._timeseries['timeseries']['outputs']:
+                    self.add_timeseries_output(name, output_name=pc['constraint_name'], units=units, shape=shape)
 
     def add_expr(self, expr, **kwargs):
         r"""
