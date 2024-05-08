@@ -14,7 +14,7 @@ from .misc import get_rate_units
 
 
 def classify_var(var, time_options, state_options, parameter_options, control_options,
-                 polynomial_control_options, timeseries_options=None):
+                 timeseries_options=None):
     """
     Classifies a variable of the given name or path.
 
@@ -71,11 +71,6 @@ def classify_var(var, time_options, state_options, parameter_options, control_op
                 return 'input_polynomial_control'
             else:
                 return 'input_control'
-    elif var in polynomial_control_options:
-        if polynomial_control_options[var]['opt']:
-            return 'indep_polynomial_control'
-        else:
-            return 'input_polynomial_control'
     elif var in parameter_options:
         return 'parameter'
     elif var.endswith('_rate'):
@@ -84,16 +79,12 @@ def classify_var(var, time_options, state_options, parameter_options, control_op
                 return 'polynomial_control_rate'
             else:
                 return 'control_rate'
-        elif var[:-5] in polynomial_control_options:
-            return 'polynomial_control_rate'
     elif var.endswith('_rate2'):
         if var[:-6] in control_options:
             if control_options[var[:-6]]['control_type'] == 'polynomial':
                 return 'polynomial_control_rate2'
             else:
                 return 'control_rate2'
-        elif var[:-6] in polynomial_control_options:
-            return 'polynomial_control_rate2'
     elif timeseries_options is not None:
         for timeseries in timeseries_options:
             if var in timeseries_options[timeseries]['outputs']:
@@ -284,12 +275,8 @@ def _configure_constraint_introspection(phase):
             elif var_type == 'polynomial_control_rate':
                 prefix = 'polynomial_control_rates:' if phase.timeseries_options['use_prefix'] else ''
                 control_name = var[:-5]
-                if control_name in phase.polynomial_control_options:
-                    control_shape = phase.polynomial_control_options[control_name]['shape']
-                    control_units = phase.polynomial_control_options[control_name]['units']
-                else:
-                    control_shape = phase.control_options[control_name]['shape']
-                    control_units = phase.control_options[control_name]['units']
+                control_shape = phase.control_options[control_name]['shape']
+                control_units = phase.control_options[control_name]['units']
                 con['shape'] = control_shape
                 con['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con['units'] is None else con['units']
@@ -301,12 +288,8 @@ def _configure_constraint_introspection(phase):
             elif var_type == 'polynomial_control_rate2':
                 prefix = 'polynomial_control_rates:' if phase.timeseries_options['use_prefix'] else ''
                 control_name = var[:-6]
-                if control_name in phase.polynomial_control_options:
-                    control_shape = phase.polynomial_control_options[control_name]['shape']
-                    control_units = phase.polynomial_control_options[control_name]['units']
-                else:
-                    control_shape = phase.control_options[control_name]['shape']
-                    control_units = phase.control_options[control_name]['units']
+                control_shape = phase.control_options[control_name]['shape']
+                control_units = phase.control_options[control_name]['units']
                 con['shape'] = control_shape
                 con['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con['units'] is None else con['units']
@@ -540,7 +523,7 @@ def configure_time_introspection(time_options, ode):
 
 
 def configure_states_introspection(state_options, time_options, control_options, parameter_options,
-                                   polynomial_control_options, ode):
+                                   ode):
     """
     Modifies state options in-place, automatically determining 'targets', 'units', and 'shape' if necessary.
 
@@ -594,8 +577,7 @@ def configure_states_introspection(state_options, time_options, control_options,
 
         # 3. Attempt rate-source introspection
         rate_src = options['rate_source']
-        rate_src_type = classify_var(rate_src, time_options, state_options, parameter_options, control_options,
-                                     polynomial_control_options)
+        rate_src_type = classify_var(rate_src, time_options, state_options, parameter_options, control_options)
 
         if rate_src_type in {'t', 't_phase'}:
             rate_src_units = time_options['units']
@@ -603,12 +585,9 @@ def configure_states_introspection(state_options, time_options, control_options,
         elif rate_src_type == 'state':
             rate_src_units = state_options[rate_src]['units']
             rate_src_shape = state_options[rate_src]['shape']
-        elif rate_src_type in ['input_control', 'indep_control']:
+        elif rate_src_type in ['input_control', 'indep_control', 'input_polynomial_control', 'indep_polynomial_control']:
             rate_src_units = control_options[rate_src]['units']
             rate_src_shape = control_options[rate_src]['shape']
-        elif rate_src_type in ['input_polynomial_control', 'indep_polynomial_control']:
-            rate_src_units = polynomial_control_options[rate_src]['units']
-            rate_src_shape = polynomial_control_options[rate_src]['shape']
         elif rate_src_type == 'parameter':
             rate_src_units = parameter_options[rate_src]['units']
             rate_src_shape = parameter_options[rate_src]['shape']
@@ -624,12 +603,12 @@ def configure_states_introspection(state_options, time_options, control_options,
             rate_src_shape = control['shape']
         elif rate_src_type == 'polynomial_control_rate':
             control_name = rate_src[:-5]
-            control = polynomial_control_options[control_name]
+            control = control_options[control_name]
             rate_src_units = get_rate_units(control['units'], time_units, deriv=1)
             rate_src_shape = control['shape']
         elif rate_src_type == 'polynomial_control_rate2':
             control_name = rate_src[:-6]
-            control = polynomial_control_options[control_name]
+            control = control_options[control_name]
             rate_src_units = get_rate_units(control['units'], time_units, deriv=2)
             rate_src_shape = control['shape']
         elif rate_src_type == 'ode':
@@ -1087,19 +1066,11 @@ def configure_duration_balance_introspection(phase):
         options['units'] = param_units if options['units'] is None else options['units']
         options['var_path'] = f'parameter_vals:{var}'
 
-    elif var_type in ['indep_control', 'input_control']:
+    elif var_type in ['indep_control', 'input_control', 'indep_polynomial_control', 'input_polynomial_control']:
         prefix = 'controls:' if dymos_options['use_timeseries_prefix'] else ''
         control_shape = phase.control_options[var]['shape']
         control_units = phase.control_options[var]['units']
 
-        options['shape'] = control_shape
-        options['units'] = control_units if options['units'] is None else options['units']
-        options['var_path'] = f'timeseries.{prefix}{var}'
-
-    elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-        prefix = 'polynomial_controls:' if dymos_options['use_timeseries_prefix'] else ''
-        control_shape = phase.polynomial_control_options[var]['shape']
-        control_units = phase.polynomial_control_options[var]['units']
         options['shape'] = control_shape
         options['units'] = control_units if options['units'] is None else options['units']
         options['var_path'] = f'timeseries.{prefix}{var}'
@@ -1127,8 +1098,8 @@ def configure_duration_balance_introspection(phase):
     elif var_type == 'polynomial_control_rate':
         prefix = 'polynomial_control_rates:' if dymos_options['use_timeseries_prefix'] else ''
         control_name = var[:-5]
-        control_shape = phase.polynomial_control_options[control_name]['shape']
-        control_units = phase.polynomial_control_options[control_name]['units']
+        control_shape = phase.control_options[control_name]['shape']
+        control_units = phase.control_options[control_name]['units']
         options['shape'] = control_shape
         options['units'] = get_rate_units(control_units, time_units, deriv=1) \
             if options['units'] is None else options['units']
@@ -1137,8 +1108,8 @@ def configure_duration_balance_introspection(phase):
     elif var_type == 'polynomial_control_rate2':
         prefix = 'polynomial_control_rates:' if dymos_options['use_timeseries_prefix'] else ''
         control_name = var[:-6]
-        control_shape = phase.polynomial_control_options[control_name]['shape']
-        control_units = phase.polynomial_control_options[control_name]['units']
+        control_shape = phase.control_options[control_name]['shape']
+        control_units = phase.control_options[control_name]['units']
         options['shape'] = control_shape
         options['units'] = get_rate_units(control_units, time_units, deriv=2) \
             if options['units'] is None else options['units']

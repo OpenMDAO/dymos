@@ -19,7 +19,7 @@ import dymos as dm
 
 from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     StateOptionsDictionary, TimeOptionsDictionary, ConstraintOptionsDictionary, \
-    PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary, SimulateOptionsDictionary, \
+    GridRefinementOptionsDictionary, SimulateOptionsDictionary, \
     TimeseriesOutputOptionsDictionary, PhaseTimeseriesOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
@@ -72,7 +72,6 @@ class Phase(om.Group):
         # self.time_options = TimeOptionsDictionary()
         # self.state_options = {}
         # self.control_options = {}
-        # self.polynomial_control_options = {}
         # self.parameter_options = {}
         self.refine_options = GridRefinementOptionsDictionary()
         self.simulate_options = SimulateOptionsDictionary()
@@ -144,9 +143,6 @@ class Phase(om.Group):
         for control_name, control_options in self.control_options.items():
             p.control_options[control_name] = deepcopy(control_options)
 
-        for pc_name, pc_options in self.polynomial_control_options.items():
-            p.polynomial_control_options[pc_name] = deepcopy(pc_options)
-
         p.time_options['fix_initial'] = fix_initial_time
 
         _fis = [] if fix_initial_states is None else fix_initial_states
@@ -201,8 +197,6 @@ class Phase(om.Group):
                              desc='Options for each parameter in this phase.')
         self.options.declare('control_options', types=dict, default={},
                              desc='Options for each control in this phase.')
-        self.options.declare('polynomial_control_options', types=dict, default={},
-                             desc='Options for each polynomial control in this phase.')
 
     @property
     def time_options(self):
@@ -223,10 +217,6 @@ class Phase(om.Group):
     @property
     def control_options(self):
         return self.options['control_options']
-
-    @property
-    def polynomial_control_options(self):
-        return self.options['polynomial_control_options']
 
     def add_state(self, name, units=_unspecified, shape=_unspecified,
                   rate_source=_unspecified, targets=_unspecified,
@@ -524,8 +514,6 @@ class Phase(om.Group):
             raise ValueError(f'{name} has already been added as a control.')
         elif name in self.parameter_options:
             raise ValueError(f'{name} has already been added as a parameter.')
-        elif name in self.polynomial_control_options:
-            raise ValueError(f'{name} has already been added as a polynomial control.')
 
     def add_control(self, name, control_type=_unspecified, order=_unspecified, units=_unspecified, desc=_unspecified, opt=_unspecified,
                     fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
@@ -902,132 +890,18 @@ class Phase(om.Group):
 
         self.check_parameter(name)
 
-        if name not in self.polynomial_control_options:
-            self.polynomial_control_options[name] = PolynomialControlOptionsDictionary()
-            self.polynomial_control_options[name]['name'] = name
-            self.polynomial_control_options[name]['order'] = order
+        if name not in self.control_options:
+            self.control_options[name] = ControlOptionsDictionary()
+            self.control_options[name]['name'] = name
+            self.control_options[name]['order'] = order
 
-        self.set_polynomial_control_options(name, order, desc, val, units, opt,
-                                            fix_initial, fix_final, lower, upper,
-                                            scaler, adder, ref0, ref,
-                                            targets, rate_targets, rate2_targets, shape)
+        control_type = 'polynomial'
 
-    def set_polynomial_control_options(self, name, order=_unspecified, desc=_unspecified, val=_unspecified,
-                                       units=_unspecified, opt=_unspecified, fix_initial=_unspecified,
-                                       fix_final=_unspecified, lower=_unspecified, upper=_unspecified,
-                                       scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
-                                       ref=_unspecified, targets=_unspecified, rate_targets=_unspecified,
-                                       rate2_targets=_unspecified, shape=_unspecified):
-        """
-        Set options on an existing polynomial control variable in the phase.
-
-        Parameters
-        ----------
-        name : str
-            Name of the controllable parameter in the ODE.
-        order : int
-            The order of the interpolating polynomial used to represent the control value in
-            phase tau space.
-        desc : str
-            A description of the polynomial control.
-        val : float or ndarray
-            Default value of the control at all nodes.  If val scalar and the control
-            is dynamic it will be broadcast.
-        units : str or None or 0
-            Units in which the control variable is defined.  If 0, use the units declared
-            for the parameter in the ODE.
-        opt : bool
-            If True (default) the value(s) of this control will be design variables in
-            the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the values of this control will exist as input controls:{name}.
-        fix_initial : bool
-            If True, the given initial value of the polynomial control is not a design variable and
-            will not be changed during the optimization.
-        fix_final : bool
-            If True, the given final value of the polynomial control is not a design variable and
-            will not be changed during the optimization.
-        lower : float or ndarray
-            The lower bound of the control at the nodes of the phase.
-        upper : float or ndarray
-            The upper bound of the control at the nodes of the phase.
-        scaler : float or ndarray
-            The scaler of the control value at the nodes of the phase.
-        adder : float or ndarray
-            The adder of the control value at the nodes of the phase.
-        ref0 : float or ndarray
-            The zero-reference value of the control at the nodes of the phase.
-        ref : float or ndarray
-            The unit-reference value of the control at the nodes of the phase.
-        targets : Sequence of str or None
-            Targets in the ODE to which this polynomial control is connected.
-        rate_targets : None or str
-            The name of the parameter in the ODE to which the first time-derivative
-            of the control value is connected.
-        rate2_targets : None or str
-            The name of the parameter in the ODE to which the second time-derivative
-            of the control value is connected.
-        shape : Sequence of int
-            The shape of the control variable at each point in time.
-        """
-        if order is not _unspecified:
-            self.polynomial_control_options[name]['order'] = order
-
-        if units is not _unspecified:
-            self.polynomial_control_options[name]['units'] = units
-
-        if opt is not _unspecified:
-            self.polynomial_control_options[name]['opt'] = opt
-
-        if desc is not _unspecified:
-            self.polynomial_control_options[name]['desc'] = desc
-
-        if targets is not _unspecified:
-            if isinstance(targets, str):
-                self.polynomial_control_options[name]['targets'] = (targets,)
-            else:
-                self.polynomial_control_options[name]['targets'] = targets
-
-        if rate_targets is not _unspecified:
-            if isinstance(rate_targets, str):
-                self.polynomial_control_options[name]['rate_targets'] = (rate_targets,)
-            else:
-                self.polynomial_control_options[name]['rate_targets'] = rate_targets
-
-        if rate2_targets is not _unspecified:
-            if isinstance(rate2_targets, str):
-                self.polynomial_control_options[name]['rate2_targets'] = (rate2_targets,)
-            else:
-                self.polynomial_control_options[name]['rate2_targets'] = rate2_targets
-
-        if val is not _unspecified:
-            self.polynomial_control_options[name]['val'] = val
-
-        if shape is not _unspecified:
-            self.polynomial_control_options[name]['shape'] = shape
-
-        if fix_initial is not _unspecified:
-            self.polynomial_control_options[name]['fix_initial'] = fix_initial
-
-        if fix_final is not _unspecified:
-            self.polynomial_control_options[name]['fix_final'] = fix_final
-
-        if lower is not _unspecified:
-            self.polynomial_control_options[name]['lower'] = lower
-
-        if upper is not _unspecified:
-            self.polynomial_control_options[name]['upper'] = upper
-
-        if scaler is not _unspecified:
-            self.polynomial_control_options[name]['scaler'] = scaler
-
-        if adder is not _unspecified:
-            self.polynomial_control_options[name]['adder'] = adder
-
-        if ref0 is not _unspecified:
-            self.polynomial_control_options[name]['ref0'] = ref0
-
-        if ref is not _unspecified:
-            self.polynomial_control_options[name]['ref'] = ref
+        self.set_control_options(name, control_type=control_type, order=order, units=units, desc=desc, opt=opt, fix_initial=fix_initial,
+                                 fix_final=fix_final, targets=targets, rate_targets=rate_targets,
+                                 rate2_targets=rate2_targets, val=val, shape=shape, lower=lower,
+                                 upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref,
+                                 continuity=False, rate_continuity=False, rate2_continuity=False)
 
     def add_parameter(self, name, val=_unspecified, units=_unspecified, opt=False,
                       desc=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
@@ -1960,7 +1834,6 @@ class Phase(om.Group):
         return classify_var(var, time_options=self.time_options, state_options=self.state_options,
                             parameter_options=self.parameter_options,
                             control_options=self.control_options,
-                            polynomial_control_options=self.polynomial_control_options,
                             timeseries_options=self._timeseries)
 
     def _check_ode(self):
@@ -2002,9 +1875,6 @@ class Phase(om.Group):
         if self.control_options:
             transcription.setup_controls(self)
 
-        if self.polynomial_control_options:
-            transcription.setup_polynomial_controls(self)
-
         if self.parameter_options:
             transcription.setup_parameters(self)
 
@@ -2035,10 +1905,6 @@ class Phase(om.Group):
             configure_controls_introspection(self.control_options, ode,
                                              time_units=self.time_options['units'])
 
-        if self.polynomial_control_options:
-            configure_controls_introspection(self.polynomial_control_options, ode,
-                                             time_units=self.time_options['units'])
-
         if self.parameter_options:
             try:
                 configure_parameters_introspection(self.parameter_options, ode)
@@ -2049,7 +1915,6 @@ class Phase(om.Group):
         transcription.configure_states_introspection(self)
         transcription.configure_time(self)
         transcription.configure_controls(self)
-        transcription.configure_polynomial_controls(self)
         transcription.configure_parameters(self)
         transcription.configure_states(self)
 
@@ -2148,26 +2013,6 @@ class Phase(om.Group):
                 self.control_options[name]['continuity'] = False
                 self.control_options[name]['rate_continuity'] = False
                 self.control_options[name]['rate2_continuity'] = False
-
-    def _check_polynomial_control_options(self):
-        """
-        Check that polynomial control options are valid and issue warnings if invalid options are provided.
-
-        Warns
-        -----
-        RuntimeWarning
-            RuntimeWarning is issued in the case of one or more invalid time options.
-        """
-        for name, options in self.control_options.items():
-            if not options['opt']:
-                invalid_options = []
-                for opt in 'lower', 'upper', 'scaler', 'adder', 'ref', 'ref0':
-                    if options[opt] is not None:
-                        invalid_options.append(opt)
-                if invalid_options:
-                    warnings.warn(f"Invalid options for non-optimal polynoimal control '{name}' in "
-                                  f"phase '{self.name}': {', '.join(invalid_options)}",
-                                  RuntimeWarning)
 
     def _check_parameter_options(self):
         """
@@ -2328,8 +2173,6 @@ class Phase(om.Group):
                     node_locations, _ = lgl(self.control_options[name]['order'] + 1)
                 else:
                     node_locations = gd.node_ptau[gd.subset_node_indices['control_input']]
-            elif name in self.polynomial_control_options:
-                node_locations, _ = lgl(self.polynomial_control_options[name]['order'] + 1)
             else:
                 raise ValueError('Could not find a state, control, or polynomial control named '
                                  f'{name} to be interpolated.\nPlease explicitly specified the '
@@ -2460,10 +2303,6 @@ class Phase(om.Group):
             sim_phase.control_options[control_name] = deepcopy(control_options)
             sim_phase.control_options[control_name]['opt'] = False
 
-        for pc_name, pc_options in self.polynomial_control_options.items():
-            sim_phase.polynomial_control_options[pc_name] = deepcopy(pc_options)
-            sim_phase.polynomial_control_options[pc_name]['opt'] = False
-
         sim_phase._timeseries = {ts_name: ts_options for ts_name, ts_options in self._timeseries.items()
                                  if ts_name == 'timeseries'}
 
@@ -2526,12 +2365,6 @@ class Phase(om.Group):
         for name, options in phs.control_options.items():
             ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
             prob[f'{self_path}controls:{name}'][...] = ip['val']
-
-        # Assign polynomial control values
-        for name, options in phs.polynomial_control_options.items():
-            ip = ip_dict[f'polynomial_control_group.interp_comp.'
-                         f'polynomial_controls:{name}']
-            prob[f'{self_path}polynomial_controls:{name}'][...] = ip['val']
 
         # Assign parameter values
         for name in phs.parameter_options:
@@ -2775,55 +2608,6 @@ class Phase(om.Group):
             control_name = name[:-6]
         return self.is_control_fixed(control_name, loc)
 
-    def is_polynomial_control_fixed(self, name, loc):
-        """
-        Test if the polynomial control of the given name is guaranteed to be fixed at the initial or final time.
-
-        Parameters
-        ----------
-        name : str
-            The name of the polynomial control to be tested.
-        loc : str
-            The location of time to be tested: either 'initial' or 'final'.
-
-        Returns
-        -------
-        bool
-            True if the state of the given name is guaranteed to be fixed at the given location.
-        """
-        if loc == 'initial':
-            res = self.polynomial_control_options[name]['fix_initial']
-        elif loc == 'final':
-            res = self.polynomial_control_options[name]['fix_final']
-        else:
-            raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '
-                             f'"final" but got {loc}')
-        return res
-
-    def is_polynomial_control_rate_fixed(self, name, loc):
-        """
-        Test if the polynomial control rate of the given name is guaranteed to be fixed at the initial or final time.
-
-        Parameters
-        ----------
-        name : str
-            The name of the control to be tested.
-        loc : str
-            The location of time to be tested: either 'initial' or 'final'.
-
-        Returns
-        -------
-        bool
-            True if the state of the given name is guaranteed to be fixed at the given location.
-        """
-        if name.endswith('_rate') and self.polynomial_control_options is not None and \
-                name[:-5] in self.polynomial_control_options:
-            control_name = name[:-5]
-        elif name.endswith('_rate2') and self.polynomial_control_options is not None and \
-                name[:-6] in self.options['polynomial_control_options']:
-            control_name = name[:-6]
-        return self.is_polynomial_control_fixed(control_name, loc)
-
     def _indices_in_constraints(self, name, loc):
         """
         Returns a set of the C-order flattened indices involving constraint of the given name at the given loc.
@@ -3023,34 +2807,6 @@ class Phase(om.Group):
                 self.set_val(f'controls:{control_name}', interp_vals, units=prev_control_units)
                 if options['fix_final']:
                     warning_message = f"{phase_name}.controls:{control_name} specifies 'fix_final=True'. " \
-                                      f"If the given restart file has a" \
-                                      f" different final value this will overwrite the user-specified value"
-                    issue_warning(warning_message)
-
-            # Set the output polynomial control outputs from the previous solution as the value
-            for pc_name, options in self.polynomial_control_options.items():
-                if f'{prev_timeseries_prom_path}.polynomial_controls:{pc_name}' in prev_vars_prom2abs:
-                    prev_pc_path = f'{prev_timeseries_prom_path}.polynomial_controls:{pc_name}'
-                elif f'{prev_timeseries_prom_path}.{pc_name}' in prev_vars_prom2abs:
-                    prev_pc_path = f'{prev_timeseries_prom_path}.{pc_name}'
-                else:
-                    issue_warning(f'Unable to find polynomial control {pc_name} in timeseries data from case being '
-                                  f'loaded.', om.OpenMDAOWarning)
-                    continue
-
-                prev_pc_val = prev_vars[prev_pc_path]['val']
-                prev_pc_units = prev_vars[prev_pc_path]['units']
-                interp_vals = self.interp(name=pc_name,
-                                          xs=prev_time_val,
-                                          ys=prev_pc_val[unique_idxs],
-                                          kind='slinear')
-                if options['lower'] is not None or options['upper'] is not None:
-                    interp_vals = interp_vals.clip(options['lower'], options['upper'])
-                self.set_val(f'polynomial_controls:{pc_name}',
-                             interp_vals,
-                             units=prev_pc_units)
-                if options['fix_final']:
-                    warning_message = f"{phase_name}.polynomial_controls:{pc_name} specifies 'fix_final=True'. " \
                                       f"If the given restart file has a" \
                                       f" different final value this will overwrite the user-specified value"
                     issue_warning(warning_message)

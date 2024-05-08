@@ -1141,8 +1141,8 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        # phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
-        phase.add_control('theta', control_type='polynomial', order=1, units='deg', lower=0.01, upper=179.9, continuity=False, rate_continuity=False, rate2_continuity=False)
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        # phase.add_control('theta', control_type='polynomial', order=1, units='deg', lower=0.01, upper=179.9, continuity=False, rate_continuity=False, rate2_continuity=False)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 

@@ -164,8 +164,7 @@ class ODEEvaluationGroup(om.Group):
 
         configure_states_discovery(self._state_options, ode)
         configure_states_introspection(self._state_options, self._time_options, self._control_options,
-                                       self._parameter_options,
-                                       self._polynomial_control_options, ode)
+                                       self._parameter_options, ode)
         self._configure_states()
 
         self.state_rate_collector.configure_io()
