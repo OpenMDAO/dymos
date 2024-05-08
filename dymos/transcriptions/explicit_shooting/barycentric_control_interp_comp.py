@@ -106,8 +106,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         nodes are layed out.
     control_options : dict of {str: ControlOptionsDictionary}
         A mapping that maps the name of each control to a ControlOptionsDictionary of its options.
-    polynomial_control_options : dict of {str: PolynomialControlOptionsDictionary}
-        A mapping that maps the name of each polynomial control to an OptionsDictionary of its options.
     time_units : str
         The time units pertaining to the control rates.
     standalone_mode : bool
@@ -118,11 +116,10 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
     **kwargs : dict, optional
         Keyword arguments passed to ExplicitComponent.
     """
-    def __init__(self, grid_data, control_options=None, polynomial_control_options=None,
+    def __init__(self, grid_data, control_options=None,
                  time_units=None, standalone_mode=False, compute_derivs=True, **kwargs):
         self._grid_data = grid_data
         self._control_options = {} if control_options is None else control_options
-        self._polynomial_control_options = {} if polynomial_control_options is None else polynomial_control_options
         self._time_units = time_units
         self._standalone_mode = standalone_mode
         self._compute_derivs = compute_derivs

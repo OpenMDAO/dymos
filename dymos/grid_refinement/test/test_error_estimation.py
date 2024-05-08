@@ -110,11 +110,6 @@ class TestBrachistochroneExample(unittest.TestCase):
                             print(f'{name} interpolation error',
                                   max(np.abs(u[name].ravel() - u_solution.ravel())))
 
-                        for name, options in phase.polynomial_control_options.items():
-                            p_solution = phase.get_val(f'timeseries.polynomial_controls:{name}')
-                            print(f'{name} interpolation error',
-                                  max(np.abs(pp[name].ravel() - p_solution.ravel())))
-
                         for name, options in phase.state_options.items():
                             x_solution = phase.get_val(f'timeseries.states:{name}')
                             f_solution = phase.get_val(f'timeseries.state_rates:{name}')

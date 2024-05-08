@@ -139,17 +139,6 @@ class Analytic(TranscriptionBase):
         """
         pass
 
-    def configure_polynomial_controls(self, phase):
-        """
-        Configure the inputs/outputs for the polynomial controls.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        pass
-
     def setup_states(self, phase):
         """
         Setup the states for this transcription.

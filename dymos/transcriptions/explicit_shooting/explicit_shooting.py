@@ -14,8 +14,7 @@ from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.indexing import get_src_indices_by_row
 from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets, _get_targets_metadata
 from ...utils.constants import INF_BOUND
-from ..common import TimeComp, TimeseriesOutputGroup, ControlGroup, PolynomialControlGroup, \
-    ParameterComp
+from ..common import TimeComp, TimeseriesOutputGroup, ControlGroup, ParameterComp
 
 
 class ExplicitShooting(TranscriptionBase):

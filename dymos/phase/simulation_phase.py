@@ -273,19 +273,6 @@ class SimulationPhase(Phase):
         """
         pass
 
-    def _check_polynomial_control_options(self):
-        """
-        Check that polynomial control options are valid and issue warnings if invalid options are provided.
-
-        This check is not performed by SimulationPhase.
-
-        Warns
-        -----
-        RuntimeWarning
-            RuntimeWarning is issued in the case of one or more invalid time options.
-        """
-        pass
-
     def _check_parameter_options(self):
         """
         Check that parameter options are valid and issue warnings if invalid options are provided.

@@ -33,8 +33,6 @@ class ODEEvaluationGroup(om.Group):
         For each parameter, a dictionary of its options, keyed by name.
     control_options : dict of {str: OptionsDictionary}
         For each control variable, a dictionary of its options, keyed by name.
-    polynomial_control_options : dict of {str: OptionsDictionary}
-        For each polynomial variable, a dictionary of its options, keyed by name.
     ode_init_kwargs : dict
         A dictionary of keyword arguments to be passed to the instantiation of the ODE.
     compute_derivs : bool
@@ -50,7 +48,7 @@ class ODEEvaluationGroup(om.Group):
     """
 
     def __init__(self, ode_class, input_grid_data, time_options, state_options, parameter_options, control_options,
-                 polynomial_control_options, ode_init_kwargs=None, compute_derivs=True, vec_size=1,
+                 ode_init_kwargs=None, compute_derivs=True, vec_size=1,
                  control_interp='vandermonde', **kwargs):
         super().__init__(**kwargs)
 
@@ -62,7 +60,6 @@ class ODEEvaluationGroup(om.Group):
         self._parameter_options = deepcopy(parameter_options)
         self._time_options = deepcopy(time_options)
         self._control_options = deepcopy(control_options)
-        self._polynomial_control_options = deepcopy(polynomial_control_options)
 
         self._control_interpolants = {}
         self._polynomial_control_interpolants = {}
@@ -107,16 +104,14 @@ class ODEEvaluationGroup(om.Group):
                            promotes_inputs=[('t', t_name), 't_initial', 't_duration'],
                            promotes_outputs=['stau', 'ptau', 'dstau_dt', ('t_phase', f'{t_name}_phase')])
 
-        if self._control_options or self._polynomial_control_options:
+        if self._control_options:
             c_options = self._control_options
-            pc_options = self._polynomial_control_options
 
             # Add control interpolant
             if self._control_interp == 'barycentric':
                 self._control_comp = self.add_subsystem('control_interp',
                                                         BarycentricControlInterpComp(grid_data=igd,
                                                                                      control_options=c_options,
-                                                                                     polynomial_control_options=pc_options,
                                                                                      time_units=t_units,
                                                                                      compute_derivs=self._compute_derivs),
                                                         promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
@@ -124,7 +119,6 @@ class ODEEvaluationGroup(om.Group):
                 self._control_comp = self.add_subsystem('control_interp',
                                                         VandermondeControlInterpComp(grid_data=igd,
                                                                                      control_options=c_options,
-                                                                                     polynomial_control_options=pc_options,
                                                                                      time_units=t_units,
                                                                                      compute_derivs=self._compute_derivs),
                                                         promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
@@ -155,11 +149,7 @@ class ODEEvaluationGroup(om.Group):
                                          time_units=self._time_options['units'])
         self._configure_controls()
 
-        configure_controls_introspection(self._polynomial_control_options, ode,
-                                         time_units=self._time_options['units'])
-        self._configure_polynomial_controls()
-
-        if self._control_options or self._polynomial_control_options:
+        if self._control_options:
             self._get_subsystem('control_interp').configure_io()
 
         configure_states_discovery(self._state_options, ode)
@@ -303,63 +293,6 @@ class ODEEvaluationGroup(om.Group):
                                             val=np.ones(shape),
                                             units=options['units'])
 
-                # Promote rate targets from the ODE
-                for tgt in rate_targets:
-                    self.promotes('ode', inputs=[(tgt, u_rate_name)])
-                if rate_targets:
-                    self.set_input_defaults(name=u_rate_name,
-                                            val=np.ones(shape),
-                                            units=rate_units)
-
-                # Promote rate2 targets from the ODE
-                for tgt in rate2_targets:
-                    self.promotes('ode', inputs=[(tgt, u_rate2_name)])
-                if rate2_targets:
-                    self.set_input_defaults(name=u_rate2_name,
-                                            val=np.ones(shape),
-                                            units=rate2_units)
-
-    def _configure_polynomial_controls(self):
-        configure_controls_introspection(self._polynomial_control_options, self.ode)
-
-        if self._polynomial_control_options:
-            time_units = self._time_options['units']
-            gd = self._input_grid_data
-
-            if gd is None:
-                raise ValueError('ODEEvaluationGroup was provided with control options but '
-                                 'a GridData object was not provided.')
-
-            for name, options in self._polynomial_control_options.items():
-                shape = options['shape']
-                units = options['units']
-                rate_units = get_rate_units(units, time_units, deriv=1)
-                rate2_units = get_rate_units(units, time_units, deriv=2)
-                targets = options['targets']
-                rate_targets = options['rate_targets']
-                rate2_targets = options['rate2_targets']
-                num_control_input_nodes = options['order'] + 1
-                uhat_name = f'polynomial_controls:{name}'
-                u_name = f'polynomial_control_values:{name}'
-                u_rate_name = f'polynomial_control_rates:{name}_rate'
-                u_rate2_name = f'polynomial_control_rates:{name}_rate2'
-
-                self._ivc.add_output(uhat_name, shape=(num_control_input_nodes,) + shape, units=units)
-                self.add_design_var(uhat_name)
-                self.add_constraint(u_name)
-                self.add_constraint(u_rate_name)
-                self.add_constraint(u_rate2_name)
-
-                self.promotes('control_interp', inputs=[uhat_name],
-                              outputs=[u_name, u_rate_name, u_rate2_name])
-
-                # Promote targets from the ODE
-                for tgt in targets:
-                    self.promotes('ode', inputs=[(tgt, u_name)])
-                if targets:
-                    self.set_input_defaults(name=u_name,
-                                            val=np.ones(shape),
-                                            units=options['units'])
                 # Promote rate targets from the ODE
                 for tgt in rate_targets:
                     self.promotes('ode', inputs=[(tgt, u_rate_name)])

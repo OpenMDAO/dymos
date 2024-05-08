@@ -532,7 +532,6 @@ class Trajectory(om.Group):
             phase_options_dicts[phs.name]['time_options'] = phs.time_options
             phase_options_dicts[phs.name]['state_options'] = phs.state_options
             phase_options_dicts[phs.name]['control_options'] = phs.control_options
-            phase_options_dicts[phs.name]['polynomial_control_options'] = phs.polynomial_control_options
             phase_options_dicts[phs.name]['parameter_options'] = phs.parameter_options
 
         all_ranks = self.comm.allgather(phase_options_dicts)
@@ -543,7 +542,6 @@ class Trajectory(om.Group):
                     phs.time_options.update(data[phase_name]['time_options'])
                     phs.state_options.update(data[phase_name]['state_options'])
                     phs.control_options.update(data[phase_name]['control_options'])
-                    phs.polynomial_control_options.update(data[phase_name]['polynomial_control_options'])
                     phs.parameter_options.update(data[phase_name]['parameter_options'])
 
     def _update_linkage_options_configure(self, linkage_options):
@@ -619,17 +617,17 @@ class Trajectory(om.Group):
             elif classes[i] in {'indep_polynomial_control', 'input_polynomial_control'}:
                 prefix = 'polynomial_controls:' if use_prefix[i] else ''
                 sources[i] = f'timeseries.{prefix}{vars[i]}'
-                units[i] = phases[i].polynomial_control_options[vars[i]]['units']
-                shapes[i] = phases[i].polynomial_control_options[vars[i]]['shape']
+                units[i] = phases[i].control_options[vars[i]]['units']
+                shapes[i] = phases[i].control_options[vars[i]]['shape']
             elif classes[i] in {'polynomial_control_rate', 'polynomial_control_rate2'}:
                 prefix = 'polynomial_control_rates:' if use_prefix[i] else ''
                 sources[i] = f'timeseries.{prefix}{vars[i]}'
                 control_name = vars[i][:-5] if classes[i] == 'polynomial_control_rate' else vars[i][:-6]
-                control_units = phases[i].polynomial_control_options[control_name]['units']
+                control_units = phases[i].control_options[control_name]['units']
                 time_units = phases[i].time_options['units']
                 deriv = 1 if classes[i].endswith('rate') else 2
                 units[i] = get_rate_units(control_units, time_units, deriv=deriv)
-                shapes[i] = phases[i].polynomial_control_options[control_name]['shape']
+                shapes[i] = phases[i].control_options[control_name]['shape']
             elif classes[i] == 'parameter':
                 sources[i] = f'parameter_vals:{vars[i]}'
                 units[i] = phases[i].parameter_options[vars[i]]['units']

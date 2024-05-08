@@ -184,60 +184,6 @@ class GaussLobatto(PseudospectralBase):
                               [f'rhs_col.{t}' for t in options['rate2_targets']],
                               src_indices=col_src_idxs, flat_src_indices=True)
 
-    def configure_polynomial_controls(self, phase):
-        """
-        Configure the inputs/outputs for the polynomial controls.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        super(GaussLobatto, self).configure_polynomial_controls(phase)
-        ode_inputs = get_promoted_vars(self._get_ode(phase), 'input')
-        grid_data = self.grid_data
-
-        for name, options in phase.polynomial_control_options.items():
-            disc_idxs = grid_data.subset_node_indices['state_disc']
-            col_idxs = grid_data.subset_node_indices['col']
-
-            disc_src_idxs = get_src_indices_by_row(disc_idxs, options['shape'])
-            col_src_idxs = get_src_indices_by_row(col_idxs, options['shape'])
-
-            if options['shape'] == (1,):
-                disc_src_idxs = disc_src_idxs.ravel()
-                col_src_idxs = col_src_idxs.ravel()
-
-            # enclose indices in tuple to ensure shaping of indices works
-            disc_src_idxs = (disc_src_idxs,)
-            col_src_idxs = (col_src_idxs,)
-
-            if options['targets']:
-                phase.connect(f'polynomial_control_values:{name}',
-                              [f'rhs_disc.{t}' for t in options['targets']],
-                              src_indices=disc_src_idxs, flat_src_indices=True)
-                phase.connect(f'polynomial_control_values:{name}',
-                              [f'rhs_col.{t}' for t in options['targets']],
-                              src_indices=col_src_idxs, flat_src_indices=True)
-
-            if options['rate_targets']:
-                phase.connect(f'polynomial_control_rates:{name}_rate',
-                              [f'rhs_disc.{t}' for t in options['rate_targets']],
-                              src_indices=disc_src_idxs, flat_src_indices=True)
-
-                phase.connect(f'polynomial_control_rates:{name}_rate',
-                              [f'rhs_col.{t}' for t in options['rate_targets']],
-                              src_indices=col_src_idxs, flat_src_indices=True)
-
-            if options['rate2_targets']:
-                phase.connect(f'polynomial_control_rates:{name}_rate2',
-                              [f'rhs_disc.{t}' for t in options['rate2_targets']],
-                              src_indices=disc_src_idxs, flat_src_indices=True)
-
-                phase.connect(f'polynomial_control_rates:{name}_rate2',
-                              [f'rhs_col.{t}' for t in options['rate2_targets']],
-                              src_indices=col_src_idxs, flat_src_indices=True)
-
     def setup_ode(self, phase):
         """
         Setup the ode for this transcription.
@@ -576,28 +522,18 @@ class GaussLobatto(PseudospectralBase):
             src_shape = phase.control_options[control_name]['shape']
         elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
             path = f'polynomial_control_values:{var}'
-            if var in phase.control_options:
-                src_units = phase.control_options[var]['units']
-                src_shape = phase.control_options[var]['shape']
-            else:
-                src_units = phase.polynomial_control_options[var]['units']
-                src_shape = phase.polynomial_control_options[var]['shape']
+            src_units = phase.control_options[var]['units']
+            src_shape = phase.control_options[var]['shape']
         elif var_type == 'polynomial_control_rate':
             control_name = var[:-5]
             path = f'polynomial_control_rates:{control_name}_rate'
-            if control_name in phase.control_options:
-                control = phase.control_options[control_name]
-            else:
-                control = phase.polynomial_control_options[control_name]
+            control = phase.control_options[control_name]
             src_units = get_rate_units(control['units'], time_units, deriv=1)
             src_shape = control['shape']
         elif var_type == 'polynomial_control_rate2':
             control_name = var[:-6]
             path = f'polynomial_control_rates:{control_name}_rate2'
-            if control_name in phase.control_options:
-                control = phase.control_options[control_name]
-            else:
-                control = phase.polynomial_control_options[control_name]
+            control = phase.control_options[control_name]
             src_units = get_rate_units(control['units'], time_units, deriv=2)
             src_shape = control['shape']
         elif var_type == 'parameter':
