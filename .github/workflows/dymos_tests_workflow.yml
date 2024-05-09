@@ -81,7 +81,7 @@ jobs:
 
           # oldest supported versions
           - NAME: oldest
-            PY: 3.8
+            PY: 3.9
             NUMPY: 1.22
             SCIPY: 1.7
             OPENMPI: '4.0'
