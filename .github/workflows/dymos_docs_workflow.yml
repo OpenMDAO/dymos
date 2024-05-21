@@ -26,14 +26,14 @@ jobs:
           # baseline versions except with pyoptsparse but no SNOPT
           # build docs to verify those that use pyoptsparse do not use SNOPT
           - NAME: baseline_no_snopt
-            PY: '3.10'
-            NUMPY: 1.22
-            SCIPY: 1.7
-            PETSc: 3.17
-            PYOPTSPARSE: 'v2.9.3'
+            PY: '3.11'
+            NUMPY: '1.26'
+            SCIPY: '1.13'
+            PETSc: '3.19'
+            PYOPTSPARSE: 'v2.11.0'
             OPENMDAO: 'latest'
             OPTIONAL: '[docs]'
-            JAX: '0.4.14'
+            JAX: '0.4.28'
             PUBLISH_DOCS: 1
 
           # make sure the latest versions of things don't break the docs
@@ -206,6 +206,7 @@ jobs:
           pip install .${{ matrix.OPTIONAL }}
 
       - name: Display environment info
+        id: env_info
         shell: bash -l {0}
         run: |
           conda info
@@ -222,6 +223,12 @@ jobs:
 
           python -c "import scipy; assert str(scipy.__version__).startswith(str(${{ matrix.SCIPY }})), \
                     f'Scipy version {scipy.__version__} is not the requested version (${{ matrix.SCIPY }})'"
+
+      - name: Display dependency tree
+        if: failure() && steps.env_info.outcome == 'failure'
+        run: |
+          pip install pipdeptree
+          pipdeptree
 
       - name: Build docs
         id: build_docs

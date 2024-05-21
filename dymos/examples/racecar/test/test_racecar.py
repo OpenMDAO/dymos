@@ -228,7 +228,7 @@ class TestRaceCarForDocs(unittest.TestCase):
             s_new = np.linspace(0, s_final, npoints)
 
             # Colormap and norm of the track plot
-            cmap = mpl.cm.get_cmap('viridis')
+            cmap = matplotlib.colormaps['viridis']
             norm = mpl.colors.Normalize(vmin=np.amin(state), vmax=np.amax(state))
 
             fig, ax = plt.subplots(figsize=(15, 6))
