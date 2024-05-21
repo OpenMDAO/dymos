@@ -28,7 +28,7 @@ jobs:
         include:
           # baseline versions
           - NAME: baseline
-            PY: '3.10'
+            PY: '3.12'
             NUMPY: 1.26
             SCIPY: 1.13
             PETSc: 3.21.0
@@ -41,7 +41,7 @@ jobs:
 
           # baseline versions except no pyoptsparse or SNOPT
           - NAME: no_pyoptsparse
-            PY: '3.10'
+            PY: '3.12'
             NUMPY: 1.26
             SCIPY: 1.13
             PETSc: 3.21.0
@@ -50,7 +50,7 @@ jobs:
 
           # baseline versions except with pyoptsparse but no SNOPT
           - NAME: no_snopt
-            PY: '3.10'
+            PY: '3.12'
             NUMPY: 1.26
             SCIPY: 1.13
             PETSc: 3.21.0
@@ -60,7 +60,7 @@ jobs:
 
           # baseline versions except no MPI/PETSc
           - NAME: no_mpi
-            PY: '3.10'
+            PY: '3.12'
             NUMPY: 1.26
             SCIPY: 1.13
             PYOPTSPARSE: 'v2.11.0'
@@ -314,7 +314,7 @@ jobs:
       - name: Check NumPy 2.0 Compatibility
         run: |
           echo "============================================================="
-          echo "Check OpenMDAO code for NumPy 2.0 compatibility"
+          echo "Check Dymos code for NumPy 2.0 compatibility"
           echo "See: https://numpy.org/devdocs/numpy_2_0_migration_guide.html"
           echo "============================================================="
           python -m pip install ruff
