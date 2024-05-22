@@ -28,42 +28,42 @@ jobs:
         include:
           # baseline versions
           - NAME: baseline
-            PY: '3.10'
-            NUMPY: 1.22.4
-            SCIPY: 1.7
-            PETSc: 3.17
-            PYOPTSPARSE: 'v2.9.3'
+            PY: '3.12'
+            NUMPY: 1.26
+            SCIPY: 1.13
+            PETSc: 3.21.0
+            PYOPTSPARSE: 'v2.11.0'
             SNOPT: 7.7
             OPENMDAO: 'latest'
             PEP517: true
             OPTIONAL: '[all]'
-            JAX: '0.4.14'
+            JAX: '0.4.28'
 
           # baseline versions except no pyoptsparse or SNOPT
           - NAME: no_pyoptsparse
-            PY: '3.10'
-            NUMPY: 1.22
-            SCIPY: 1.7
-            PETSc: 3.17
+            PY: '3.12'
+            NUMPY: 1.26
+            SCIPY: 1.13
+            PETSc: 3.21.0
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
 
           # baseline versions except with pyoptsparse but no SNOPT
           - NAME: no_snopt
-            PY: '3.10'
-            NUMPY: 1.22
-            SCIPY: 1.7
-            PETSc: 3.17
-            PYOPTSPARSE: 'v2.9.3'
+            PY: '3.12'
+            NUMPY: 1.26
+            SCIPY: 1.13
+            PETSc: 3.21.0
+            PYOPTSPARSE: 'v2.11.0'
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
 
           # baseline versions except no MPI/PETSc
           - NAME: no_mpi
-            PY: '3.10'
-            NUMPY: 1.22
-            SCIPY: 1.7
-            PYOPTSPARSE: 'v2.9.3'
+            PY: '3.12'
+            NUMPY: 1.26
+            SCIPY: 1.13
+            PYOPTSPARSE: 'v2.11.0'
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
 
@@ -90,6 +90,7 @@ jobs:
             PYOPTSPARSE: 'v2.6.1'
             SNOPT: 7.2
             OPENMDAO: 3.28.0
+            MATPLOTLIB: 3.5
             OPTIONAL: '[test]'
 
     steps:
@@ -249,6 +250,15 @@ jobs:
             pip install openmdao==${{ matrix.OPENMDAO }}
           fi
 
+      - name: Install Matplotlib
+        if: env.RUN_BUILD && matrix.MATPLOTLIB
+        shell: bash -l {0}
+        run: |
+          echo "============================================================="
+          echo "Install requested version of Matpltlib"
+          echo "============================================================="
+          python -m pip install matplotlib==${{ matrix.MATPLOTLIB }}
+
       - name: Install Dymos
         if: env.RUN_BUILD
         shell: bash -l {0}
@@ -268,6 +278,7 @@ jobs:
           fi
 
       - name: Display environment info
+        id: env_info
         if: env.RUN_BUILD
         shell: bash -l {0}
         run: |
@@ -287,12 +298,27 @@ jobs:
           python -c "ver='${{ matrix.SCIPY }}'; import scipy; assert str(scipy.__version__).startswith(ver), \
                     f'Scipy version {scipy.__version__} is not the requested version ({ver})'"
 
+      - name: Display dependency tree
+        if: failure() && steps.env_info.outcome == 'failure'
+        run: |
+          pip install pipdeptree
+          pipdeptree
+
       - name: 'Upload environment artifact'
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.NAME }}_environment
           path: ${{ matrix.NAME }}_environment.yml
           retention-days: 5
+
+      - name: Check NumPy 2.0 Compatibility
+        run: |
+          echo "============================================================="
+          echo "Check Dymos code for NumPy 2.0 compatibility"
+          echo "See: https://numpy.org/devdocs/numpy_2_0_migration_guide.html"
+          echo "============================================================="
+          python -m pip install ruff
+          ruff check . --select NPY201
 
       - name: Run tests
         if: env.RUN_BUILD
