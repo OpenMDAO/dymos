@@ -24,7 +24,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid, BirkhoffGrid
-from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
+from ..transcriptions import ExplicitShooting, GaussLobatto, Radau, Birkhoff
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
@@ -1854,6 +1854,146 @@ class Phase(om.Group):
         if name is not _unspecified:
             self.time_options['name'] = name
 
+    def set_time_val(self, initial=None, duration=None, units=None):
+        """
+        Set the values for initial time and the duration of the phase.
+
+        Parameters
+        ----------
+        initial : float or None
+            Value for the initial time.
+        duration : float or None
+            Value for the phase duration.
+        units : str or None
+            Units of the time. If none are specified, the default units are used.
+        """
+        if units is None:
+            units = self.time_options['units']
+        if initial is not None:
+            self.set_val('t_initial', initial, units=units)
+        if duration is not None:
+            self.set_val('t_duration', duration, units=units)
+
+    def set_state_val(self, name, vals=None, time_vals=None,
+                      units=None, interpolation_kind='linear'):
+        """
+        Set the state values including the initial and final values as appropriate
+        for the specified transcription.
+
+        Parameters
+        ----------
+        name : str
+            Name of the variable. This should be a state variable.
+        vals : ndarray or Sequence or float or None
+            Array of state values.
+        time_vals :  ndarray or Sequence or None
+            Array of integration variable values.
+        units : str, optional
+            The units of the state values specified.
+            If None, use the units associated with the target.
+            If provided, must be compatible with the target units.
+        interpolation_kind : str
+            Specifies the kind of interpolation, as per the scipy.interpolate package.
+            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
+            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
+            interpolation of zeroth, first, second or third order) or as an
+            integer specifying the order of the spline interpolator to use.
+            Default is 'linear'.
+        """
+        transcription = self.options['transcription']
+        input_data_to_set = transcription._phase_set_state_val(self, name,
+                                                               vals, time_vals,
+                                                               interpolation_kind)
+        if units is None:
+            units = self.state_options[name]['units']
+        for var, value in input_data_to_set.items():
+            self.set_val(var, value, units=units)
+
+    def set_control_val(self, name, vals=None, time_vals=None,
+                        units=None, interpolation_kind='linear'):
+        """
+        Set the control values as appropriate.
+
+        Parameters
+        ----------
+        name : str
+            Name of the variable. This should be a control variable.
+        vals : ndarray or Sequence or None
+            Array of state values.
+        time_vals :  ndarray or Sequence or None
+            Array of integration variable values.
+        units : str, optional
+            The units of the state values specified.
+            If None, use the units associated with the target.
+            If provided, must be compatible with the target units.
+        interpolation_kind : str
+            Specifies the kind of interpolation, as per the scipy.interpolate package.
+            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
+            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
+            interpolation of zeroth, first, second or third order) or as an
+            integer specifying the order of the spline interpolator to use.
+            Default is 'linear'.
+        """
+        if np.isscalar(vals):
+            val = vals
+        else:
+            val = self.interp(name, ys=vals, xs=time_vals, nodes='control_input', kind=interpolation_kind)
+        if units is None:
+            units = self.control_options[name]['units']
+        self.set_val(f'controls:{name}', val=val, units=units)
+
+    def set_polynomial_control_val(self, name, vals=None, time_vals=None,
+                                   units=None, interpolation_kind='linear'):
+        """
+        Set the polynomial control values as appropriate.
+
+        Parameters
+        ----------
+        name : str
+            Name of the variable. This should be a polynomial control variable.
+        vals : ndarray or Sequence or None
+            Array of state values.
+        time_vals :  ndarray or Sequence or None
+            Array of integration variable values.
+        units : str, optional
+            The units of the state values specified.
+            If None, use the units associated with the target.
+            If provided, must be compatible with the target units.
+        interpolation_kind : str
+            Specifies the kind of interpolation, as per the scipy.interpolate package.
+            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
+            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
+            interpolation of zeroth, first, second or third order) or as an
+            integer specifying the order of the spline interpolator to use.
+            Default is 'linear'.
+        """
+        if np.isscalar(vals):
+            val = vals
+        else:
+            val = self.interp(name, ys=vals, xs=time_vals, kind=interpolation_kind)
+        if units is None:
+            units = self.polynomial_control_options[name]['units']
+        self.set_val(f'polynomial_controls:{name}', val=val, units=units)
+
+    def set_parameter_val(self, name, val=None, units=None):
+        """
+        Set the parameter values.
+
+        Parameters
+        ----------
+        name : str
+            Name of the variable. This should be a parameter variable.
+        val : ndarray or Sequence or None
+            Array of state values.
+        units : str, optional
+            The units of the state values specified.
+            If None, use the units associated with the target.
+            If provided, must be compatible with the target units.
+        """
+        if units is None:
+            units = self.parameter_options[name]['units']
+        self.set_val(f'parameters:{name}', val=val, units=units)
+
     def set_duration_balance(self, name, val=0.0, index=None, units=None, mult_val=None, normalize=False):
         """
         Adds a condition for the duration of the phase. This is satisfied using a nonlinear solver.
@@ -2395,7 +2535,7 @@ class Phase(om.Group):
                 isinstance(self_tx.grid_data, RadauGrid) or isinstance(self_tx.grid_data, BirkhoffGrid):
             grid = self_tx.grid_data
         else:
-            raise RuntimeError(f'Unexpected grid class for {phase_tx.grid_data}. Only phases with GaussLobatto '
+            raise RuntimeError(f'Unexpected grid class for {self_tx.grid_data}. Only phases with GaussLobatto '
                                f'or Radau grids can be simulated.')
 
         if _times_per_seg is None:

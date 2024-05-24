@@ -880,3 +880,47 @@ class Birkhoff(TranscriptionBase):
         any_rate_continuity = any_rate_continuity and num_seg > 1
 
         return any_state_continuity, any_control_continuity, any_rate_continuity
+
+    def _phase_set_state_val(self, phase, name, vals, time_vals, interpolation_kind):
+        """
+        Method to interpolate the provided input and return the variables that need to be set
+        along with their appropriate value.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase to which this transcription applies.
+        name : str
+            The name of the phase variable to be set.
+        vals : ndarray or Sequence or float
+            Array of control/state/parameter values.
+        time_vals : ndarray or Sequence or None
+            Array of integration variable values.
+        interpolation_kind : str
+            Specifies the kind of interpolation, as per the scipy.interpolate package.
+            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
+            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
+            interpolation of zeroth, first, second or third order) or as an
+            integer specifying the order of the spline interpolator to use.
+            Default is 'linear'.
+
+        Returns
+        -------
+        input_data : dict
+            Dict containing the values that need to be set in the phase
+
+        """
+        input_data = {}
+        if np.isscalar(vals):
+            input_data[f'states:{name}'] = vals
+            input_data[f'initial_states:{name}'] = vals
+            input_data[f'final_states:{name}'] = vals
+        else:
+            interp_vals = phase.interp(name, vals, time_vals,
+                                       nodes='state_input',
+                                       kind=interpolation_kind)
+            input_data[f'states:{name}'] = interp_vals
+            input_data[f'initial_states:{name}'] = vals[0]
+            input_data[f'final_states:{name}'] = vals[-1]
+
+        return input_data

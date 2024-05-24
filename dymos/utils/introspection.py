@@ -569,7 +569,7 @@ def configure_states_introspection(state_options, time_options, control_options,
                     options['shape'] = shape[1:]
 
             if any(['dymos.static_target' in meta['tags'] for meta in targets.values()]):
-                raise ValueError(f"State '{name}' cannot be connected to its targets because one "
+                raise ValueError(f"State '{state_name}' cannot be connected to its targets because one "
                                  f"or more targets are tagged with 'dymos.static_target'.")
 
         # 3. Attempt rate-source introspection
