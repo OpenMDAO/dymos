@@ -52,17 +52,10 @@ def double_integrator(transcription='gauss-lobatto', compressed=True, grid_type=
 
     p.setup(check=True)
 
-    p['traj.phase0.t_initial'] = 0.0
-    p['traj.phase0.t_duration'] = 1.0
-
-    p['traj.phase0.states:x'] = phase.interp('x', [0, 0.25])
-    p['traj.phase0.states:v'] = phase.interp('v', [0, 0])
-    p['traj.phase0.controls:u'] = phase.interp('u', [1, -1])
-
-    if transcription == 'birkhoff':
-        p['traj.phase0.initial_states:x'] = 0.0
-        p['traj.phase0.initial_states:v'] = 0.0
-        p['traj.phase0.final_states:v'] = 0.0
+    phase.set_time_val(initial=0.0, duration=1.0)
+    phase.set_state_val('x', [0, 0.25])
+    phase.set_state_val('v', [0, 0])
+    phase.set_control_val('u', [1, -1])
 
     simulate_kwargs = {'times_per_seg': 100 if transcription == 'birkhoff' else 10}
     dm.run_problem(p, simulate=False, make_plots=True, simulate_kwargs=simulate_kwargs)
@@ -219,9 +212,9 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         p['t0'] = 0.0
         p['tp'] = 1.0
 
-        p['phase0.states:x'] = phase.interp('x', [0, 0.25])
-        p['phase0.states:v'] = phase.interp('v', [0, 0])
-        p['phase0.controls:u'] = phase.interp('u', [1, -1])
+        phase.set_state_val('x', [0, 0.25])
+        phase.set_state_val('v', [0, 0])
+        phase.set_control_val('u', [1, -1])
 
         p.run_driver()
 

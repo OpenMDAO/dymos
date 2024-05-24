@@ -34,7 +34,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
 
         p.setup()
-        set_sane_initial_guesses(p, phases)
+        set_sane_initial_guesses(phases)
 
         dm.run_problem(p, run_driver=True, simulate=True)
 
@@ -73,7 +73,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
 
         p.setup()
-        set_sane_initial_guesses(p, phases)
+        set_sane_initial_guesses(phases)
 
         p.run_driver()
 

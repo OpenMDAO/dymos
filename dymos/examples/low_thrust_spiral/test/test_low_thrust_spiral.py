@@ -46,21 +46,12 @@ def low_thrust_spiral_direct_collocation(grid_type='lgl'):
 
     p.setup(check=True, force_alloc_complex=True)
 
-    p['traj.phase0.t_initial'] = 0.0
-    p['traj.phase0.t_duration'] = 300.0
-
-    p['traj.phase0.initial_states:r'] = 1.0
-    p['traj.phase0.initial_states:theta'] = 0.0
-    p['traj.phase0.initial_states:vr'] = 0.0
-    p['traj.phase0.initial_states:vt'] = 1.0
-    p['traj.phase0.final_states:r'] = 6.0
-    p['traj.phase0.final_states:vr'] = 0.0
-    p['traj.phase0.final_states:vt'] = 1/np.sqrt(6)
-
-    p['traj.phase0.states:r'] = phase.interp('r', [1.0, 3.0])
-    p['traj.phase0.states:vr'] = phase.interp('vr', [0.0, 0.0])
-    p['traj.phase0.states:vt'] = phase.interp('vt', [1.0, 1.0])
-    p['traj.phase0.controls:alpha'] = phase.interp('alpha', [0.0, 0.0])
+    phase.set_time_val(initial=0.0, duration=300.0)
+    phase.set_state_val('r', [1.0, 6.0])
+    phase.set_state_val('theta', [0.0, 0.0])
+    phase.set_state_val('vr', [0.0, 0.0])
+    phase.set_state_val('vt', [1.0, 1/np.sqrt(6)])
+    phase.set_control_val('alpha', [0.0, 0.0])
 
     return p
 

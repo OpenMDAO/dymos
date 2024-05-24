@@ -130,42 +130,36 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         p.setup(check=True, mode='fwd')
 
         # Set Initial Guesses
-        p.set_val('traj.parameters:c', val=1.5, units='DU/TU')
+        traj.set_parameter_val('c', val=1.5, units='DU/TU')
 
         burn1 = p.model.traj.phases.burn1
         burn2 = p.model.traj.phases.burn2
         coast = p.model.traj.phases.coast
 
-        p.set_val('traj.burn1.t_initial', val=0.0)
-        p.set_val('traj.burn1.t_duration', val=2.25)
-        p.set_val('traj.burn1.states:r', val=burn1.interp('r', [1, 1.5]))
-        p.set_val('traj.burn1.states:theta', val=burn1.interp('theta', [0, 1.7]))
-        p.set_val('traj.burn1.states:vr', val=burn1.interp('vr', [0, 0]))
-        p.set_val('traj.burn1.states:vt', val=burn1.interp('vt', [1, 1]))
-        p.set_val('traj.burn1.states:accel', val=burn1.interp('accel', [0.1, 0]))
-        p.set_val('traj.burn1.states:deltav', val=burn1.interp('deltav', [0, 0.1]))
-        p.set_val('traj.burn1.controls:u1', val=burn1.interp('u1', [-3.5, 13.0]))
+        burn1.set_time_val(initial=0.0, duration=2.25)
+        burn1.set_state_val('r', [1, 1.5])
+        burn1.set_state_val('theta', [0, 1.7])
+        burn1.set_state_val('vr', [0, 0])
+        burn1.set_state_val('vt', [1, 1])
+        burn1.set_state_val('accel', [0.1, 0.0])
+        burn1.set_state_val('deltav', [0, 0.1])
+        burn1.set_control_val('u1', [-3.5, 13.0])
 
-        p.set_val('traj.coast.t_initial', val=2.25)
-        p.set_val('traj.coast.t_duration', val=3.0)
+        coast.set_time_val(initial=2.25, duration=3.0)
+        coast.set_state_val('r', [1.3, 1.5])
+        coast.set_state_val('theta', [2.1767, 1.7])
+        coast.set_state_val('vr', [0.3285, 0])
+        coast.set_state_val('vt', [0.97, 1])
+        coast.set_state_val('accel', [0, 0])
 
-        p.set_val('traj.coast.states:r', val=coast.interp('r', [1.3, 1.5]))
-        p.set_val('traj.coast.states:theta', val=coast.interp('theta', [2.1767, 1.7]))
-        p.set_val('traj.coast.states:vr', val=coast.interp('vr', [0.3285, 0]))
-        p.set_val('traj.coast.states:vt', val=coast.interp('vt', [0.97, 1]))
-        p.set_val('traj.coast.states:accel', val=coast.interp('accel', [0, 0]))
-
-        p.set_val('traj.burn2.t_initial', val=5.25)
-        p.set_val('traj.burn2.t_duration', val=1.75)
-
-        p.set_val('traj.burn2.states:r', val=burn2.interp('r', [1, 3.]))
-        p.set_val('traj.burn2.states:theta', val=burn2.interp('theta', [0, 4.0]))
-        p.set_val('traj.burn2.states:vr', val=burn2.interp('vr', [0, 0]))
-        p.set_val('traj.burn2.states:vt', val=burn2.interp('vt', [1, np.sqrt(1 / 3.)]))
-        p.set_val('traj.burn2.states:deltav', val=burn2.interp('deltav', [0.1, 0.2]))
-        p.set_val('traj.burn2.states:accel', val=burn2.interp('accel', [0.1, 0]))
-
-        p.set_val('traj.burn2.controls:u1', val=burn2.interp('u1', [0, 0]))
+        burn2.set_time_val(initial=5.25, duration=1.75)
+        burn2.set_state_val('r', [1, 3])
+        burn2.set_state_val('theta', [0, 4])
+        burn2.set_state_val('vr', [0, 0])
+        burn2.set_state_val('vt', [1, np.sqrt(1 / 3)])
+        burn2.set_state_val('accel', [0.1, 0.0])
+        burn2.set_state_val('deltav', [0.1, 0.2])
+        burn2.set_control_val('u1', [0, 0])
 
         dm.run_problem(p)
 

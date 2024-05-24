@@ -82,13 +82,12 @@ class TestAircraftCruise(unittest.TestCase):
 
         p.setup()
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 3600.0
-        p['phase0.states:range'] = phase.interp('range', (0, 1296.4))
-        p['phase0.states:mass_fuel'] = phase.interp('mass_fuel', (12236.594555, 1))
-        p['phase0.states:alt'] = 5.0
-        p['phase0.controls:mach'] = 0.8
-        p['phase0.controls:climb_rate'] = 0.0
+        phase.set_time_val(initial=0.0, duration=3600)
+        phase.set_state_val('range', (0, 1296.4))
+        phase.set_state_val('mass_fuel', (12236.594555, 1))
+        phase.set_state_val('alt', 5.0)
+        phase.set_control_val('mach', 0.8)
+        phase.set_control_val('climb_rate', 0.0)
 
         p['assumptions.S'] = 427.8
         p['assumptions.mass_empty'] = 0.15E6

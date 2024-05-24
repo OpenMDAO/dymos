@@ -46,13 +46,13 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
 
         p.setup()
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
+        phase.set_time_val(initial=0.0, duration=2.0)
 
-        p.set_val('phase0.states:x', phase.interp('x', [0, 10]), units='m')
-        p.set_val('phase0.states:y', phase.interp('y', [10, 5]), units='m')
-        p.set_val('phase0.states:v', phase.interp('v', [0, 9.9]), units='m/s')
-        p.set_val('phase0.controls:theta', phase.interp('theta', [5, 100.5]), units='deg')
+        phase.set_state_val('x', [0, 10], units='m')
+        phase.set_state_val('y', [10, 5], units='m')
+        phase.set_state_val('v', [0, 9.9], units='m/s')
+
+        phase.set_control_val('theta', [5, 100.5], units='deg')
 
         # Solve for the optimal trajectory
         dm.run_problem(p)

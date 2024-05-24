@@ -43,12 +43,10 @@ def double_integrator_direct_collocation(transcription=dm.GaussLobatto, compress
 
     p.setup(check=True)
 
-    p.set_val('traj.phase0.t_initial', 0.0)
-    p.set_val('traj.phase0.t_duration', 1.0)
-
-    p.set_val('traj.phase0.states:x', phase.interp('x', [0, 0.25]), units='m')
-    p.set_val('traj.phase0.states:v', phase.interp('v', [0, 0]), units='m/s')
-    p.set_val('traj.phase0.controls:u', phase.interp('u', [1, -1]), units='m/s**2')
+    phase.set_time_val(initial=0.0, duration=1.0, units='s')
+    phase.set_state_val('x', [0, 0.25], units='m')
+    phase.set_state_val('v', [0, 0], units='m/s')
+    phase.set_control_val('u', [1, -1], units='m/s**2')
 
     dm.run_problem(p, simulate=True, make_plots=True, simulate_kwargs={'times_per_seg': 10})
 

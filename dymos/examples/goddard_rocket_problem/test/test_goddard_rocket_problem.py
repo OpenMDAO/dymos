@@ -8,7 +8,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 from dymos.examples.goddard_rocket_problem import RocketODE
 
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 
 
 @require_pyoptsparse(optimizer='IPOPT')
@@ -48,20 +48,11 @@ def goddard_rocket_direct_collocation(grid_type='lgl'):
 
     p.setup(check=True, force_alloc_complex=True)
 
-    p['traj.phase0.t_initial'] = 0.0
-    p['traj.phase0.t_duration'] = 40.0
-
-    p['traj.phase0.initial_states:h'] = 0.0
-    p['traj.phase0.initial_states:v'] = 0.0
-    p['traj.phase0.initial_states:m'] = 3.0
-    p['traj.phase0.final_states:h'] = 10000.0
-    p['traj.phase0.final_states:v'] = 0.0
-    p['traj.phase0.final_states:m'] = 1.0
-
-    p['traj.phase0.states:h'] = phase.interp('h', [0.0, 10000.0])
-    p['traj.phase0.states:v'] = phase.interp('v', [0.0, 0.0])
-    p['traj.phase0.states:m'] = phase.interp('m', [3.0, 3.0])
-    p['traj.phase0.controls:T'] = phase.interp('T', [0.0, 0.0])
+    phase.set_time_val(initial=0.0, duration=40.0)
+    phase.set_state_val('h', [0.0, 10000.0])
+    phase.set_state_val('v', [0.0, 0.0])
+    phase.set_state_val('m', [3.0, 1.0])
+    phase.set_control_val('T', [0.0, 0.0])
 
     return p
 

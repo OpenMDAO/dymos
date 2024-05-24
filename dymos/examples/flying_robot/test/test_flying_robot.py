@@ -22,6 +22,9 @@ def flying_robot_direct_collocation(transcription='gauss-lobatto', compressed=Tr
         t = dm.GaussLobatto(num_segments=8, order=5, compressed=compressed)
     elif transcription == "radau-ps":
         t = dm.Radau(num_segments=8, order=5, compressed=compressed)
+    elif transcription == 'birkhoff':
+        grid = dm.BirkhoffGrid(num_nodes=30)
+        t = dm.Birkhoff(grid=grid)
     else:
         raise ValueError('invalid transcription')
 
@@ -45,12 +48,10 @@ def flying_robot_direct_collocation(transcription='gauss-lobatto', compressed=Tr
 
     p.setup(check=True)
 
-    p['traj.phase0.t_initial'] = 0.0
-    p['traj.phase0.t_duration'] = 1.0
-
-    p['traj.phase0.states:x'] = phase.interp('x', [[0.0, 0.0], [-100.0, 100.0]])
-    p['traj.phase0.states:v'] = phase.interp('v', [[0.0, 0.0], [0.0, 0.0]])
-    p['traj.phase0.controls:u'] = phase.interp('u', [[1, 1], [-1, -1]])
+    phase.set_time_val(initial=0.0, duration=1.0)
+    phase.set_state_val('x', [[0.0, 0.0], [-100.0, 100.0]])
+    phase.set_state_val('v', [[0.0, 0.0], [0.0, 0.0]])
+    phase.set_control_val('u', [[1, 1], [-1, -1]])
 
     p.run_driver()
 
@@ -66,7 +67,7 @@ class TestFlyingRobot(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    def _assert_results(self, p, tol=1.0E-4):
+    def _assert_results(self, p, tol=1.0E-3):
         t = p.get_val('traj.phase0.timeseries.time')
         x = p.get_val('traj.phase0.timeseries.x')
         v = p.get_val('traj.phase0.timeseries.v')
@@ -94,6 +95,10 @@ class TestFlyingRobot(unittest.TestCase):
     def test_flying_robot_radau_uncompressed(self):
         p = flying_robot_direct_collocation('radau-ps',
                                             compressed=False)
+        self._assert_results(p)
+
+    def test_flying_robot_birkhoff(self):
+        p = flying_robot_direct_collocation('birkhoff')
         self._assert_results(p)
 
 

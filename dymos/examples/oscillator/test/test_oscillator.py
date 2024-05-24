@@ -39,15 +39,12 @@ class TestDocOscillator(unittest.TestCase):
         prob.setup()
 
         # Assign values to the times and states
-        prob.set_val('traj.phase0.t_initial', 0.0)
-        prob.set_val('traj.phase0.t_duration', 15.0)
-
-        prob.set_val('traj.phase0.states:x', 10.0)
-        prob.set_val('traj.phase0.states:v', 0.0)
-
-        prob.set_val('traj.phase0.parameters:k', 1.0)
-        prob.set_val('traj.phase0.parameters:c', 0.5)
-        prob.set_val('traj.phase0.parameters:m', 1.0)
+        phase.set_time_val(initial=0.0, duration=15.0)
+        phase.set_state_val('x', 10.0)
+        phase.set_state_val('v', 0.0)
+        phase.set_parameter_val('k', 1.0)
+        phase.set_parameter_val('c', 0.5)
+        phase.set_parameter_val('m', 1.0)
 
         # Perform a single execution of the model (executing the model is required before simulation).
         prob.run_model()
@@ -103,15 +100,12 @@ class TestDocOscillator(unittest.TestCase):
         prob.setup()
 
         # Assign values to the times and states
-        prob.set_val('traj.phase0.t_initial', 0.0)
-        prob.set_val('traj.phase0.t_duration', 15.0)
-
-        prob.set_val('traj.phase0.states:x', 10.0)
-        prob.set_val('traj.phase0.states:v', 0.0)
-
-        prob.set_val('traj.phase0.parameters:k', 1.0)
-        prob.set_val('traj.phase0.parameters:c', 0.5)
-        prob.set_val('traj.phase0.parameters:m', 1.0)
+        phase.set_time_val(initial=0.0, duration=15.0)
+        phase.set_state_val('x', 10.0)
+        phase.set_state_val('v', 0.0)
+        phase.set_parameter_val('k', 1.0)
+        phase.set_parameter_val('c', 0.5)
+        phase.set_parameter_val('m', 1.0)
 
         # Now converge the dynamics using a nonlinear solver to find the trajectory without optimization.
         prob.run_model()
@@ -177,15 +171,12 @@ class TestDocOscillator(unittest.TestCase):
         prob.setup()
 
         # Assign values to the times and states
-        prob.set_val('traj.phase0.t_initial', 0.0)
-        prob.set_val('traj.phase0.t_duration', 15.0)
-
-        prob.set_val('traj.phase0.states:x', 10.0)
-        prob.set_val('traj.phase0.states:v', 0.0)
-
-        prob.set_val('traj.phase0.parameters:k', 1.0)
-        prob.set_val('traj.phase0.parameters:c', 0.5)
-        prob.set_val('traj.phase0.parameters:m', 1.0)
+        phase.set_time_val(initial=0.0, duration=15.0)
+        phase.set_state_val('x', 10.0)
+        phase.set_state_val('v', 0.0)
+        phase.set_parameter_val('k', 1.0)
+        phase.set_parameter_val('c', 0.5)
+        phase.set_parameter_val('m', 1.0)
 
         # Now we're using the optimization driver to iteratively run the model and vary the
         # phase duration until the final y value is 0.
@@ -252,15 +243,12 @@ class TestDocOscillator(unittest.TestCase):
         prob.setup()
 
         # Assign values to the times and states
-        prob.set_val('traj.phase0.t_initial', 0.0)
-        prob.set_val('traj.phase0.t_duration', 15.0)
-
-        prob.set_val('traj.phase0.states:x', 10.0)
-        prob.set_val('traj.phase0.states:v', 0.0)
-
-        prob.set_val('traj.phase0.parameters:k', 1.0)
-        prob.set_val('traj.phase0.parameters:c', 0.5)
-        prob.set_val('traj.phase0.parameters:m', 1.0)
+        phase.set_time_val(initial=0.0, duration=15.0)
+        phase.set_state_val('x', 10.0)
+        phase.set_state_val('v', 0.0)
+        phase.set_parameter_val('k', 1.0)
+        phase.set_parameter_val('c', 0.5)
+        phase.set_parameter_val('m', 1.0)
 
         # Now we're using the optimization driver to iteratively run the model and vary the
         # phase duration until the final y value is 0.
@@ -327,15 +315,12 @@ class TestDocOscillator(unittest.TestCase):
         prob.setup()
 
         # Assign values to the times and states
-        prob.set_val('traj.phase0.t_initial', 0.0)
-        prob.set_val('traj.phase0.t_duration', 15.0)
-
-        prob.set_val('traj.phase0.states:x', 10.0)
-        prob.set_val('traj.phase0.states:v', 0.0)
-
-        prob.set_val('traj.phase0.parameters:k', 1.0)
-        prob.set_val('traj.phase0.parameters:c', 0.5)
-        prob.set_val('traj.phase0.parameters:m', 1.0)
+        phase.set_time_val(initial=0.0, duration=15.0)
+        phase.set_state_val('x', 10.0)
+        phase.set_state_val('v', 0.0)
+        phase.set_parameter_val('k', 1.0)
+        phase.set_parameter_val('c', 0.5)
+        phase.set_parameter_val('m', 1.0)
 
         # Now we're using the optimization driver to iteratively run the model and vary the
         # phase duration until the final y value is 0.
@@ -402,15 +387,12 @@ class TestDocOscillator(unittest.TestCase):
         prob.setup()
 
         # Assign values to the times and states
-        prob.set_val('traj.phase0.t_initial', 0.0)
-        prob.set_val('traj.phase0.t_duration', 15.0)
-
-        prob.set_val('traj.phase0.states:x', 10.0)
-        prob.set_val('traj.phase0.states:v', 0.0)
-
-        prob.set_val('traj.phase0.parameters:k', 1.0)
-        prob.set_val('traj.phase0.parameters:c', 0.5)
-        prob.set_val('traj.phase0.parameters:m', 1.0)
+        phase.set_time_val(initial=0.0, duration=15.0)
+        phase.set_state_val('x', 10.0)
+        phase.set_state_val('v', 0.0)
+        phase.set_parameter_val('k', 1.0)
+        phase.set_parameter_val('c', 0.5)
+        phase.set_parameter_val('m', 1.0)
 
         # Now we're using the optimization driver to iteratively run the model and vary the
         # phase duration until the final y value is 0.

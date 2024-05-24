@@ -123,14 +123,13 @@ class TestVanderpolDelayMPI(unittest.TestCase):
         # setup the problem
         p.setup(check=True)
 
-        p['traj.phase0.t_initial'] = 0.0
-        p['traj.phase0.t_duration'] = t_final
+        phase.set_time_val(0.0, t_final)
 
         # add a linearly interpolated initial guess for the state and control curves
-        p['traj.phase0.states:x0'] = phase.interp('x0', [1, 0])
-        p['traj.phase0.states:x1'] = phase.interp('x1', [1, 0])
-        p['traj.phase0.states:J'] = phase.interp('J', [0, 1])
-        p['traj.phase0.controls:u'] = phase.interp('u', [-0.75, -0.75])
+        phase.set_state_val('x0', [1, 0])
+        phase.set_state_val('x0', [1, 0])
+        phase.set_state_val('x0', [0, 1])
+        phase.set_control_val('u', -0.75)
 
         dm.run_problem(p, run_driver=True, simulate=False)
 

@@ -48,7 +48,6 @@ class RobotArmODE(om.ExplicitComponent):
         self.declare_partials(of='x4_dot', wrt='x2', rows=r, cols=c)
         self.declare_partials(of='x4_dot', wrt='x4', rows=r, cols=c, val=1.0)
         self.declare_partials(of='x4_dot', wrt='u1', rows=r, cols=c)
-        self.declare_partials(of='x4_dot', wrt='u2', rows=r, cols=c, val=0.0)
 
         self.declare_partials(of='x5_dot', wrt='x0', rows=r, cols=c)
         self.declare_partials(of='x5_dot', wrt='x5', rows=r, cols=c, val=1.0)

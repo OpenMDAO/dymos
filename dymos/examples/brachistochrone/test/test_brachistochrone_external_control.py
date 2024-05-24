@@ -90,10 +90,10 @@ class TestBrachistochroneExternalControl(unittest.TestCase):
         p.setup(check=True)
 
         # Now that the OpenMDAO problem is setup, we can set the values of the states.
-        p.set_val('traj.phase0.states:x', phase.interp('x', ys=[0, 10]), units='m')
-        p.set_val('traj.phase0.states:y', phase.interp('y', ys=[10, 5]), units='m')
-        p.set_val('traj.phase0.states:v', phase.interp('v', ys=[0, 9.9]), units='m/s')
-        p.set_val('traj.phase0.controls:theta', phase.interp('theta', ys=[5, 100]), units='deg')
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
+        phase.set_control_val('theta', [5, 100], units='deg')
 
         # Run the driver to solve the problem
         p.run_driver()

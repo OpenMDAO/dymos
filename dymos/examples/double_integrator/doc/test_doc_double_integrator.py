@@ -65,12 +65,10 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         #
         p.setup(check=True)
 
-        p['traj.phase0.t_initial'] = 0.0
-        p['traj.phase0.t_duration'] = 1.0
-
-        p.set_val('traj.phase0.states:x', phase.interp('x', ys=[0, 0.25]))
-        p.set_val('traj.phase0.states:v', phase.interp('v', ys=[0, 0]))
-        p.set_val('traj.phase0.controls:u', phase.interp('u', ys=[1, -1]))
+        phase.set_time_val(initial=0.0, duration=1.0)
+        phase.set_state_val('x', [0, 0.25])
+        phase.set_state_val('v', [0, 0])
+        phase.set_control_val('u', [1, -1])
 
         #
         # Solve the problem.

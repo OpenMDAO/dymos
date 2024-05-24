@@ -39,16 +39,10 @@ class TestHull(unittest.TestCase):
 
         p.setup(check=True)
 
-        if transcription is ExplicitShooting:
-            p.set_val('traj.phase.initial_states:x', 1.5)
-            p.set_val('traj.phase.initial_states:xL', 0.0)
-        else:
-            p.set_val('traj.phase.states:x', phase0.interp('x', [1.5, 1]))
-            p.set_val('traj.phase.states:xL', phase0.interp('xL', [0, 1]))
-        p.set_val('traj.phase.t_initial', 0)
-        p.set_val('traj.phase.t_duration', 10)
-        p.set_val('traj.phase.controls:u', phase0.interp('u', [-7, -0.14]))
-
+        phase0.set_state_val('x', [1.5, 1])
+        phase0.set_state_val('xL', [0, 1])
+        phase0.set_time_val(initial=0.0, duration=10.0)
+        phase0.set_control_val('u', [-7, -0.14])
         return p
 
     @staticmethod

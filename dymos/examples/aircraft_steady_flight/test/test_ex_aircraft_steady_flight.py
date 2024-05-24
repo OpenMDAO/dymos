@@ -84,24 +84,30 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
 
     p.setup()
 
-    p['phase0.t_initial'] = 0.0
-    p['phase0.t_duration'] = 3600.0
-    p['phase0.states:range'] = phase.interp('range', (0, 724.0))
-    p['phase0.states:mass_fuel'] = phase.interp('mass_fuel', (30000, 1e-3))
-    p['phase0.states:alt'][:] = 10.0
+    # p['phase0.t_initial'] = 0.0
+    # p['phase0.t_duration'] = 3600.0
+    # p['phase0.states:range'] = phase.interp('range', (0, 724.0))
+    # p['phase0.states:mass_fuel'] = phase.interp('mass_fuel', (30000, 1e-3))
+    # p['phase0.states:alt'][:] = 10.0
+    #
+    # # TODO: Make this unnecessary
+    # if isinstance(transcription, dm.Birkhoff):
+    #     p['phase0.initial_states:range'] = 0.0
+    #     p['phase0.final_states:range'] = 724.0
+    #
+    #     p['phase0.initial_states:mass_fuel'] = 30000
+    #     p['phase0.final_states:mass_fuel'] = 1.0E-3
+    #
+    #     p['phase0.initial_states:alt'] = 10.0
+    #     p['phase0.final_states:alt'] = 10.0
+    #
+    # p['phase0.controls:mach'][:] = 0.8
 
-    # TODO: Make this unnecessary
-    if isinstance(transcription, dm.Birkhoff):
-        p['phase0.initial_states:range'] = 0.0
-        p['phase0.final_states:range'] = 724.0
-
-        p['phase0.initial_states:mass_fuel'] = 30000
-        p['phase0.final_states:mass_fuel'] = 1.0E-3
-
-        p['phase0.initial_states:alt'] = 10.0
-        p['phase0.final_states:alt'] = 10.0
-
-    p['phase0.controls:mach'][:] = 0.8
+    phase.set_time_val(initial=0.0, duration=3600)
+    phase.set_state_val('range', (0, 724.0))
+    phase.set_state_val('range', (30000, 1e-3))
+    phase.set_state_val('alt', 10.0)
+    phase.set_control_val('mach', 0.8)
 
     p['assumptions.S'] = 427.8
     p['assumptions.mass_empty'] = 0.15E6

@@ -30,7 +30,8 @@ class TestCannonballConnectedInitialStates(unittest.TestCase):
         p.model.add_design_var('radius', lower=0.01, upper=0.10,
                                ref0=0.01, ref=0.10, units='m')
 
-        traj = p.model.add_subsystem('traj', dm.Trajectory())
+        traj = dm.Trajectory()
+        p.model.add_subsystem('traj', traj)
 
         transcription = dm.Radau(num_segments=5, order=3, compressed=True)
         ascent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
@@ -96,23 +97,21 @@ class TestCannonballConnectedInitialStates(unittest.TestCase):
         p.set_val('radius', 0.05, units='m')
         p.set_val('dens', 7.87, units='g/cm**3')
 
-        p.set_val('traj.parameters:CD', 0.5)
+        traj.set_parameter_val('CD', 0.5)
 
-        p.set_val('traj.ascent.t_initial', 0.0)
-        p.set_val('traj.ascent.t_duration', 10.0)
+        ascent.set_time_val(initial=0.0, duration=10.0)
 
-        p.set_val('traj.ascent.states:r', ascent.interp(ys=[0, 100], nodes='state_input'))
-        p.set_val('traj.ascent.states:h', ascent.interp(ys=[0, 100], nodes='state_input'))
-        p.set_val('traj.ascent.states:v', ascent.interp(ys=[200, 150], nodes='state_input'))
-        p.set_val('traj.ascent.states:gam', ascent.interp(ys=[25, 0], nodes='state_input'), units='deg')
+        ascent.set_state_val('r', [0, 100])
+        ascent.set_state_val('h', [0, 100])
+        ascent.set_state_val('v', [200, 150])
+        ascent.set_state_val('gam', [25, 0], units='deg')
 
-        p.set_val('traj.descent.t_initial', 10.0)
-        p.set_val('traj.descent.t_duration', 10.0)
+        descent.set_time_val(initial=10.0, duration=10.0)
 
-        p.set_val('traj.descent.states:r', descent.interp(ys=[100, 200], nodes='state_input'))
-        p.set_val('traj.descent.states:h', descent.interp(ys=[100, 0], nodes='state_input'))
-        p.set_val('traj.descent.states:v', descent.interp(ys=[150, 200], nodes='state_input'))
-        p.set_val('traj.descent.states:gam', descent.interp(ys=[0, -45], nodes='state_input'), units='deg')
+        descent.set_state_val('r', [100, 200])
+        descent.set_state_val('h', [100, 0])
+        descent.set_state_val('v', [150, 200])
+        descent.set_state_val('gam', [0, -45], units='deg')
 
         # Run the optimization and final explicit simulation
         dm.run_problem(p)

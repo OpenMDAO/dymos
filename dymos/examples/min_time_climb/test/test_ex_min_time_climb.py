@@ -117,29 +117,18 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p['traj.phase0.t_initial'] = 0.0
     p['traj.phase0.t_duration'] = 350.0
 
-    p['traj.phase0.states:r'] = phase.interp('r', [0.0, 111319.54])
-    p['traj.phase0.states:h'] = phase.interp('h', [100.0, 20000.0])
-    p['traj.phase0.states:v'] = phase.interp('v', [135.964, 283.159])
-    p['traj.phase0.states:gam'] = phase.interp('gam', [0.0, 0.0])
-    p['traj.phase0.states:m'] = phase.interp('m', [19030.468, 16841.431])
-    p['traj.phase0.controls:alpha'] = phase.interp('alpha', [0.0, 0.0])
+    phase.set_time_val(initial=0.0, duration=350.0)
+    phase.set_state_val('r', [0.0, 111319.54])
+    phase.set_state_val('h', [100.0, 20000.0])
+    phase.set_state_val('v', [135.964, 283.159])
+    phase.set_state_val('gam', [0.0, 0.0])
+    phase.set_state_val('m', [19030.468, 16841.431])
+    phase.set_control_val('alpha', [0.0, 0.0])
 
     if transcription == 'birkhoff':
-        p['traj.phase0.initial_states:r'] = 0.0
-        p['traj.phase0.final_states:r'] = 111319.54
+        phase.set_simulate_options(times_per_seg=200, atol=1.0E-6, rtol=1.0E-6)
 
-        p['traj.phase0.initial_states:h'] = 100.0
-        p['traj.phase0.final_states:h'] = 20000.0
-
-        p['traj.phase0.initial_states:v'] = 135.964
-        p['traj.phase0.final_states:v'] = 283.159
-
-        p['traj.phase0.initial_states:gam'] = 0.0
-        p['traj.phase0.final_states:gam'] = 0.0
-
-        p['traj.phase0.initial_states:m'] = 19030.468
-        p['traj.phase0.final_states:m'] = 16841.431
-
+    if transcription == 'birkhoff':
         phase.set_simulate_options(times_per_seg=200, atol=1.0E-6, rtol=1.0E-6)
 
     p.run_model()
