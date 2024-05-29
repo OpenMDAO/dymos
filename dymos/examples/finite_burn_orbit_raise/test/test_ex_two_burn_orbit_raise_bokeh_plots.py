@@ -9,6 +9,7 @@ try:
 except ImportError:
     matplotlib = None
 
+from openmdao.utils.testing_utils import require_pyoptsparse
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.testing_utils import use_tempdirs
 
@@ -22,6 +23,7 @@ bokeh_available = importlib.util.find_spec('bokeh') is not None
 
 
 @use_tempdirs
+@require_pyoptsparse(optimizer='SLSQP')
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
     def setUp(self):
