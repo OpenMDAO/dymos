@@ -54,9 +54,6 @@ class TestRaceCarForDocs(unittest.TestCase):
                 traj = dm.Trajectory()
                 p.model.add_subsystem('traj', subsys=traj)
 
-                # Define a Dymos Phase object with GaussLobatto Transcription
-                # tx = dm.Radau(num_segments=50, order=3, compressed=True)
-                tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=50))
                 phase = dm.Phase(ode_class=CombinedODE,
                                  transcription=tx)
 
@@ -153,7 +150,7 @@ class TestRaceCarForDocs(unittest.TestCase):
                 p.driver.opt_settings['compl_inf_tol'] = 1e-3
                 p.driver.opt_settings['acceptable_iter'] = 0
                 p.driver.opt_settings['tol'] = 1e-3
-                p.driver.opt_settings['print_level'] = 5
+                p.driver.opt_settings['print_level'] = 0
                 p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
                 p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
                 p.driver.opt_settings['mu_strategy'] = 'monotone'
