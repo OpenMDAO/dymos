@@ -1,11 +1,17 @@
 import unittest
 
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
+
 from openmdao.utils.testing_utils import use_tempdirs
 
 
 @use_tempdirs
 class TestBrachistochronePolynomialControl(unittest.TestCase):
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
         import matplotlib
         matplotlib.use('Agg')
@@ -90,6 +96,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_radau(self):
         import numpy as np
         import matplotlib
@@ -175,6 +182,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_birkhoff(self):
         import numpy as np
         import matplotlib
@@ -264,6 +272,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 @use_tempdirs
 class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase):
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
         import matplotlib
         matplotlib.use('Agg')
@@ -351,6 +360,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_radau(self):
         import matplotlib
         matplotlib.use('Agg')
@@ -438,6 +448,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_birkhoff(self):
         import numpy as np
         import matplotlib
@@ -530,6 +541,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 @use_tempdirs
 class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
@@ -615,6 +627,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_radau(self):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
@@ -700,6 +713,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_birkhoff(self):
         import numpy as np
         import matplotlib
@@ -791,6 +805,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 @use_tempdirs
 class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase):
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
         import numpy as np
         import matplotlib
@@ -878,6 +893,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_radau(self):
         import numpy as np
         import matplotlib
@@ -965,6 +981,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_birkhoff(self):
         import numpy as np
         import matplotlib
@@ -1056,6 +1073,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 @use_tempdirs
 class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase):
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
         import numpy as np
         import matplotlib
@@ -1143,6 +1161,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_radau(self):
         import numpy as np
         import matplotlib
@@ -1230,6 +1249,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         plt.show()
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_birkhoff(self):
         import numpy as np
         import matplotlib
@@ -1433,6 +1453,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         assert_near_equal(theta_exp[0], theta_imp[0])
         assert_near_equal(theta_exp[-1], theta_imp[-1])
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_birkhoff(self):
         import numpy as np
         import matplotlib

@@ -28,41 +28,42 @@ jobs:
         include:
           # baseline versions
           - NAME: baseline
-            PY: '3.10'
-            NUMPY: 1.22.4
-            SCIPY: 1.7
-            PETSc: 3.17
-            PYOPTSPARSE: 'v2.9.3'
+            PY: '3.12'
+            NUMPY: 1.26
+            SCIPY: 1.13
+            PETSc: 3.21.0
+            PYOPTSPARSE: 'v2.11.0'
             SNOPT: 7.7
             OPENMDAO: 'latest'
+            PEP517: true
             OPTIONAL: '[all]'
-            JAX: '0.4.14'
+            JAX: '0.4.28'
 
           # baseline versions except no pyoptsparse or SNOPT
           - NAME: no_pyoptsparse
-            PY: '3.10'
-            NUMPY: 1.22
-            SCIPY: 1.7
-            PETSc: 3.17
+            PY: '3.12'
+            NUMPY: 1.26
+            SCIPY: 1.13
+            PETSc: 3.21.0
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
 
           # baseline versions except with pyoptsparse but no SNOPT
           - NAME: no_snopt
-            PY: '3.10'
-            NUMPY: 1.22
-            SCIPY: 1.7
-            PETSc: 3.17
-            PYOPTSPARSE: 'v2.9.3'
+            PY: '3.12'
+            NUMPY: 1.26
+            SCIPY: 1.13
+            PETSc: 3.21.0
+            PYOPTSPARSE: 'v2.11.0'
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
 
           # baseline versions except no MPI/PETSc
           - NAME: no_mpi
-            PY: '3.10'
-            NUMPY: 1.22
-            SCIPY: 1.7
-            PYOPTSPARSE: 'v2.9.3'
+            PY: '3.12'
+            NUMPY: 1.26
+            SCIPY: 1.13
+            PYOPTSPARSE: 'v2.11.0'
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
 
@@ -71,7 +72,7 @@ jobs:
             PY: 3
             NUMPY: 1
             SCIPY: 1
-            PETSc: 3
+            PETSc: 3.21.0
             PYOPTSPARSE: 'latest'
             SNOPT: 7.7
             OPENMDAO: 'dev'
@@ -80,7 +81,7 @@ jobs:
 
           # oldest supported versions
           - NAME: oldest
-            PY: 3.8
+            PY: 3.9
             NUMPY: 1.22
             SCIPY: 1.7
             OPENMPI: '4.0'
@@ -89,6 +90,7 @@ jobs:
             PYOPTSPARSE: 'v2.6.1'
             SNOPT: 7.2
             OPENMDAO: 3.28.0
+            MATPLOTLIB: 3.5
             OPTIONAL: '[test]'
 
     steps:
@@ -129,11 +131,6 @@ jobs:
       - name: Checkout code
         if: env.RUN_BUILD
         uses: actions/checkout@v3
-
-      - name: Fetch tags
-        if: env.RUN_BUILD
-        run: |
-          git fetch --prune --unshallow --tags
 
       - name: Setup conda
         if: env.RUN_BUILD
@@ -180,7 +177,9 @@ jobs:
             conda install mpi4py petsc4py=${{ matrix.PETSc }} -q -y
           fi
           export OMPI_MCA_rmaps_base_oversubscribe=1
+          export OMPI_MCA_btl=^openib
           echo "OMPI_MCA_rmaps_base_oversubscribe=1" >> $GITHUB_ENV
+          echo "OMPI_MCA_btl=^openib" >> $GITHUB_ENV
           echo "-----------------------"
           echo "Quick test of mpi4py:"
           mpirun -n 2 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
@@ -251,6 +250,15 @@ jobs:
             pip install openmdao==${{ matrix.OPENMDAO }}
           fi
 
+      - name: Install Matplotlib
+        if: env.RUN_BUILD && matrix.MATPLOTLIB
+        shell: bash -l {0}
+        run: |
+          echo "============================================================="
+          echo "Install requested version of Matpltlib"
+          echo "============================================================="
+          python -m pip install matplotlib==${{ matrix.MATPLOTLIB }}
+
       - name: Install Dymos
         if: env.RUN_BUILD
         shell: bash -l {0}
@@ -258,9 +266,19 @@ jobs:
           echo "============================================================="
           echo "Install Dymos"
           echo "============================================================="
-          pip install .${{ matrix.OPTIONAL }}
+          if [[ "${{ matrix.PEP517 }}" == "true" ]]; then
+            pip wheel --no-deps --use-pep517 .
+            WHEEL=`find dymos-*.whl`
+            echo "-----------------------------------------------------------"
+            echo "Installing from wheel: $WHEEL"
+            echo "-----------------------------------------------------------"
+            python -m pip install $WHEEL${{ matrix.OPTIONAL }}
+          else
+            python -m pip install .${{ matrix.OPTIONAL }}
+          fi
 
       - name: Display environment info
+        id: env_info
         if: env.RUN_BUILD
         shell: bash -l {0}
         run: |
@@ -280,12 +298,27 @@ jobs:
           python -c "ver='${{ matrix.SCIPY }}'; import scipy; assert str(scipy.__version__).startswith(ver), \
                     f'Scipy version {scipy.__version__} is not the requested version ({ver})'"
 
+      - name: Display dependency tree
+        if: failure() && steps.env_info.outcome == 'failure'
+        run: |
+          pip install pipdeptree
+          pipdeptree
+
       - name: 'Upload environment artifact'
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.NAME }}_environment
           path: ${{ matrix.NAME }}_environment.yml
           retention-days: 5
+
+      - name: Check NumPy 2.0 Compatibility
+        run: |
+          echo "============================================================="
+          echo "Check Dymos code for NumPy 2.0 compatibility"
+          echo "See: https://numpy.org/devdocs/numpy_2_0_migration_guide.html"
+          echo "============================================================="
+          python -m pip install ruff
+          ruff check . --select NPY201
 
       - name: Run tests
         if: env.RUN_BUILD
@@ -303,9 +336,9 @@ jobs:
           testflo -b benchmark --pre_announce
           cd $HOME
           if [[ "${{ matrix.NAME }}" != "latest" ]]; then
-            testflo dymos -n 2 --show_skipped --durations 20 --coverage --coverpkg dymos
+            testflo dymos -n 2 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos
           else
-            testflo dymos -n 2 --show_skipped --durations 20
+            testflo dymos -n 2 --pre_announce --show_skipped --durations 20
           fi
 
       - name: Submit coverage

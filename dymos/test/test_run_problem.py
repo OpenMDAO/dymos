@@ -6,6 +6,11 @@ import pathlib
 import numpy as np
 from numpy.testing import assert_almost_equal
 
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
+
 import openmdao
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
@@ -676,6 +681,7 @@ class TestRunProblemPlotting(unittest.TestCase):
 
         self.p = p
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_run_brachistochrone_problem_make_plots(self):
         plots_cache = dm.options['plots']
         dm.options['plots'] = 'matplotlib'
@@ -688,6 +694,7 @@ class TestRunProblemPlotting(unittest.TestCase):
                             msg=f'{varname}.png' + ' does not exist.')
         dm.options['plots'] = plots_cache
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_run_brachistochrone_problem_make_plots_set_plot_dir(self):
         _cache = dm.options['plots']
         dm.options['plots'] = 'matplotlib'
@@ -722,6 +729,7 @@ class TestRunProblemPlotting(unittest.TestCase):
 
         self.assertTrue(os.path.exists(solution_record_file))
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_run_brachistochrone_problem_plot_simulation(self):
         plots_cache = dm.options['plots']
         dm.options['plots'] = 'matplotlib'
@@ -735,6 +743,7 @@ class TestRunProblemPlotting(unittest.TestCase):
             self.assertTrue(plotfile.exists(), msg=f'plot file {plotfile} does not exist!')
         dm.options['plots'] = plots_cache
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_run_brachistochrone_problem_plot_no_simulation_record_file_given(self):
         plots_cache = dm.options['plots']
         dm.options['plots'] = 'matplotlib'

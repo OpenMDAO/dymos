@@ -1,16 +1,18 @@
 import unittest
 
 import numpy as np
-import matplotlib
+
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    SHOW_PLOTS = True
+except ImportError:
+    SHOW_PLOTS = False
 
 import openmdao.api as om
 from dymos.utils.testing_utils import assert_check_partials
 
 from dymos.examples.min_time_climb.aero.cd0_comp import CD0Comp
-
-
-matplotlib.use('Agg')
-SHOW_PLOTS = True
 
 
 class TestCD0Comp(unittest.TestCase):

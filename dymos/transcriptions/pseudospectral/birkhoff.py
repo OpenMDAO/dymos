@@ -387,17 +387,19 @@ class Birkhoff(TranscriptionBase):
                                                                   src=src,
                                                                   rate=is_rate)
 
-                if src.startswith('states:'):
-                    var_name = ts_output["output_name"]
-                    state_name = var_name.split(':')[-1]
-                    ts_inputs_to_promote.append((f'input_values:{var_name}',
-                                                 f'states:{state_name}'))
-                elif added_src:
-                    phase.connect(src_name=src,
-                                  tgt_name=f'{timeseries_name}.input_values:{name}',
-                                  src_indices=ts_output['src_idxs'])
+                if added_src:
+                    # If the src was added, promote it if it was a state,
+                    # or connect it otherwise.
+                    if src.startswith('states:'):
+                        var_name = ts_output["output_name"]
+                        state_name = src.split(':')[-1]
+                        ts_inputs_to_promote.append((f'input_values:{name}',
+                                                    f'states:{state_name}'))
+                    else:
+                        phase.connect(src_name=src,
+                                      tgt_name=f'{timeseries_name}.input_values:{name}',
+                                      src_indices=ts_output['src_idxs'])
 
-            # print(ts_inputs_to_promote)
             phase.promotes(timeseries_name, inputs=ts_inputs_to_promote)
 
     def setup_timeseries_outputs(self, phase):

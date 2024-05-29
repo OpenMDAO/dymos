@@ -1,17 +1,11 @@
-import os
 import unittest
 
-import matplotlib
 import openmdao.api as om
-import matplotlib.pyplot as plt
 import dymos as dm
 
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.assert_utils import assert_near_equal
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-
-matplotlib.use('Agg')
-plt.style.use('ggplot')
 
 
 @use_tempdirs

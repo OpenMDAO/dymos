@@ -1,6 +1,11 @@
 import os
 import unittest
 
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
+
 from openmdao.utils.testing_utils import use_tempdirs
 
 
@@ -13,6 +18,7 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_recording(self):
         import matplotlib
         matplotlib.use('Agg')

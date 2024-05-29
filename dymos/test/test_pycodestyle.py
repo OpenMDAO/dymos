@@ -1,9 +1,11 @@
 import os
 import sys
 import unittest
-from io import StringIO
 
-import pycodestyle
+try:
+    import pycodestyle
+except ImportError:
+    pycodestyle = None
 
 import dymos
 
@@ -31,6 +33,7 @@ def _discover_python_files(path):
     return python_files
 
 
+@unittest.skipIf(pycodestyle is None, "This test requires pycodestyle")
 class TestPyCodeStyle(unittest.TestCase):
 
     def test_pycodestyle(self):

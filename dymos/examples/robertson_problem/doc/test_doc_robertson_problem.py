@@ -1,14 +1,16 @@
 import unittest
 
-import matplotlib
-import matplotlib.pyplot as plt
+try:
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use('Agg')
+    plt.style.use('ggplot')
+except ImportError:
+    matplotlib = None
 
 from openmdao.utils.testing_utils import use_tempdirs
 from dymos.examples.robertson_problem.robertson_ode import RobertsonODE
-
-
-matplotlib.use('Agg')
-plt.style.use('ggplot')
 
 
 @use_tempdirs
@@ -57,6 +59,7 @@ class TestRobertsonProblemForDocs(unittest.TestCase):
 
         return p
 
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_robertson_problem_for_docs(self):
 
         import openmdao.api as om

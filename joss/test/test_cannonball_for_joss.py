@@ -2,11 +2,16 @@ import unittest
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
 
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
 
 @use_tempdirs
 class TestCannonballForJOSS(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_results(self):
         # begin code for paper
         import numpy as np

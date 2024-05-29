@@ -9,20 +9,34 @@ from dymos.utils.lgl import lgl
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 
-@require_pyoptsparse(optimizer='SLSQP')
-def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_constraints=False):
+def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_constraints=False,
+                              show_output=True):
     p = om.Problem(model=om.Group())
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
     p.driver.declare_coloring()
     if optimizer == 'SNOPT':
-        p.driver.opt_settings['Major iterations limit'] = 20
+        p.driver.opt_settings['Major iterations limit'] = 50
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
-        p.driver.opt_settings["Linesearch tolerance"] = 0.10
-        p.driver.opt_settings['iSumm'] = 6
-    if optimizer == 'SLSQP':
-        p.driver.opt_settings['MAXIT'] = 50
+        p.driver.opt_settings['Linesearch tolerance'] = 0.10
+        if show_output:
+            p.driver.opt_settings['iSumm'] = 6
+    elif optimizer == 'IPOPT':
+        p.driver.opt_settings['mu_init'] = 1e-3
+        p.driver.opt_settings['max_iter'] = 200
+        p.driver.opt_settings['acceptable_tol'] = 1e-6
+        p.driver.opt_settings['constr_viol_tol'] = 1e-6
+        p.driver.opt_settings['compl_inf_tol'] = 1e-6
+        p.driver.opt_settings['acceptable_iter'] = 0
+        p.driver.opt_settings['tol'] = 1e-6
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+        p.driver.opt_settings['mu_strategy'] = 'monotone'
+        # p.driver.opt_settings['derivative_test'] = 'first-order'
+        p.driver.opt_settings['print_level'] = 0
+    elif optimizer == 'SLSQP':
+        p.driver.opt_settings['MAXIT'] = 100
 
     phase = dm.Phase(ode_class=AircraftODE,
                      transcription=transcription)
@@ -33,7 +47,8 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
     assumptions.add_output('mass_empty', val=1.0, units='kg')
     assumptions.add_output('mass_payload', val=1.0, units='kg')
 
-    p.model.add_subsystem('phase0', phase)
+    traj = p.model.add_subsystem('traj', dm.Trajectory())
+    traj.add_phase('phase0', phase)
 
     phase.set_time_options(fix_initial=True,
                            duration_bounds=(300, 10000),
@@ -59,10 +74,11 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
     phase.add_state('alt', units='kft',
                     rate_source='climb_rate',
                     fix_initial=True, fix_final=fix_final,
-                    lower=0.0, upper=60, ref=1e-3, defect_ref=1e-3)
+                    lower=0.0, upper=60, ref=1, defect_ref=1)
 
     phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
                       targets=['gam_comp.climb_rate'],
+                      ref0=-10_000, ref=10_000,
                       rate_continuity=True, rate2_continuity=False)
 
     phase.add_control('mach', targets=['tas_comp.mach', 'aero.mach'], opt=False)
@@ -76,32 +92,13 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
 
     phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0)
 
-    p.model.connect('assumptions.S', 'phase0.parameters:S')
-    p.model.connect('assumptions.mass_empty', 'phase0.parameters:mass_empty')
-    p.model.connect('assumptions.mass_payload', 'phase0.parameters:mass_payload')
+    p.model.connect('assumptions.S', 'traj.phase0.parameters:S')
+    p.model.connect('assumptions.mass_empty', 'traj.phase0.parameters:mass_empty')
+    p.model.connect('assumptions.mass_payload', 'traj.phase0.parameters:mass_payload')
 
     phase.add_objective('range', loc='final', ref=-1.0e-4)
 
     p.setup()
-
-    # p['phase0.t_initial'] = 0.0
-    # p['phase0.t_duration'] = 3600.0
-    # p['phase0.states:range'] = phase.interp('range', (0, 724.0))
-    # p['phase0.states:mass_fuel'] = phase.interp('mass_fuel', (30000, 1e-3))
-    # p['phase0.states:alt'][:] = 10.0
-    #
-    # # TODO: Make this unnecessary
-    # if isinstance(transcription, dm.Birkhoff):
-    #     p['phase0.initial_states:range'] = 0.0
-    #     p['phase0.final_states:range'] = 724.0
-    #
-    #     p['phase0.initial_states:mass_fuel'] = 30000
-    #     p['phase0.final_states:mass_fuel'] = 1.0E-3
-    #
-    #     p['phase0.initial_states:alt'] = 10.0
-    #     p['phase0.final_states:alt'] = 10.0
-    #
-    # p['phase0.controls:mach'][:] = 0.8
 
     phase.set_time_val(initial=0.0, duration=3600)
     phase.set_state_val('range', (0, 724.0))
@@ -113,7 +110,7 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
     p['assumptions.mass_empty'] = 0.15E6
     p['assumptions.mass_payload'] = 84.02869 * 400
 
-    dm.run_problem(p)
+    dm.run_problem(p, simulate=False, make_plots=True)
 
     return p
 
@@ -121,24 +118,26 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
 @use_tempdirs
 class TestExSteadyAircraftFlight(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_ex_aircraft_steady_flight_opt_radau(self):
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)
 
         tx = dm.Radau(num_segments=num_seg, segment_ends=seg_ends, order=3, compressed=False)
         p = ex_aircraft_steady_flight(transcription=tx, optimizer='SLSQP')
-        assert_near_equal(p.get_val('phase0.timeseries.range', units='NM')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.range', units='NM')[-1],
                           726.85, tolerance=1.0E-2)
 
-    @unittest.skip('Skipped for now since this is particularly long-running.')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_ex_aircraft_steady_flight_opt_birkhoff(self):
 
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=30, grid_type='lgl'),
+        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=50, grid_type='cgl'),
                          solve_segments=False)
-        p = ex_aircraft_steady_flight(transcription=tx, optimizer='SLSQP')
-        assert_near_equal(p.get_val('phase0.timeseries.range', units='NM')[-1],
-                          726.85, tolerance=1.0E-2)
+        p = ex_aircraft_steady_flight(transcription=tx, optimizer='IPOPT')
+        assert_near_equal(p.get_val('traj.phase0.timeseries.range', units='NM')[-1],
+                          726.85, tolerance=2.0E-2)
 
+    @require_pyoptsparse(optimizer='SLSQP')
     def test_ex_aircraft_steady_flight_solve_radau(self):
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)
@@ -147,7 +146,7 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
                       solve_segments='forward')
         p = ex_aircraft_steady_flight(transcription=tx, optimizer='SLSQP',
                                       use_boundary_constraints=True)
-        assert_near_equal(p.get_val('phase0.timeseries.range', units='NM')[-1],
+        assert_near_equal(p.get_val('traj.phase0.timeseries.range', units='NM')[-1],
                           726.85, tolerance=1.0E-2)
 
 

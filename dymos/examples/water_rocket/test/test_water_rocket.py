@@ -2,8 +2,12 @@ import unittest
 from collections import namedtuple
 
 import numpy as np
-import matplotlib as mpl
-import matplotlib.pyplot as plt
+
+try:
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+except ImportError:
+    mpl = None
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
@@ -17,6 +21,7 @@ from dymos.examples.water_rocket.phases import (new_water_rocket_trajectory,
 @use_tempdirs
 class TestWaterRocketForDocs(unittest.TestCase):
 
+    @unittest.skipIf(mpl is None, "This test requires matplotlib")
     def test_water_rocket_height_for_docs(self):
         import dymos as dm
         p = om.Problem(model=om.Group())
@@ -57,6 +62,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         assert_near_equal(summary['Water volume'].value, 0.98, 0.01)
         assert_near_equal(summary['Maximum height'].value, 53.5, 0.01)
 
+    @unittest.skipIf(mpl is None, "This test requires matplotlib")
     def test_water_rocket_range_for_docs(self):
         p = om.Problem(model=om.Group())
 

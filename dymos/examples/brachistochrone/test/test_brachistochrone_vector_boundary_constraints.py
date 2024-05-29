@@ -1,8 +1,5 @@
 import unittest
 
-import matplotlib
-import matplotlib.pyplot as plt
-
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
@@ -10,10 +7,6 @@ from openmdao.utils.testing_utils import use_tempdirs
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
-
-
-SHOW_PLOTS = True
-matplotlib.use('Agg')
 
 
 @use_tempdirs

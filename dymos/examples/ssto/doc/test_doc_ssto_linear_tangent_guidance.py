@@ -1,19 +1,22 @@
 import unittest
 
-import matplotlib
-import matplotlib.pyplot as plt
+try:
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use('Agg')
+    plt.style.use('ggplot')
+except ImportError:
+    matplotlib = None
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-
-
-matplotlib.use('Agg')
-plt.style.use('ggplot')
 
 
 @use_tempdirs
 class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')
+    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_doc_ssto_linear_tangent_guidance(self):
         import numpy as np
         import matplotlib.pyplot as plt

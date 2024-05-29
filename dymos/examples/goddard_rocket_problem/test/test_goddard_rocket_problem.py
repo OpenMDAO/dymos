@@ -3,12 +3,16 @@ import dymos as dm
 import unittest
 import os
 
+try:
+    import matplotlib
+    SHOW_PLOTS = True
+except ImportError:
+    SHOW_PLOTS = False
+
 from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 from dymos.examples.goddard_rocket_problem import RocketODE
-
-SHOW_PLOTS = False
 
 
 @require_pyoptsparse(optimizer='IPOPT')
