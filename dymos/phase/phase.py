@@ -1877,8 +1877,7 @@ class Phase(om.Group):
     def set_state_val(self, name, vals=None, time_vals=None,
                       units=None, interpolation_kind='linear'):
         """
-        Set the state values including the initial and final values as appropriate
-        for the specified transcription.
+        Set the necessary input values for state as appropriate for the specified transcription.
 
         Parameters
         ----------
