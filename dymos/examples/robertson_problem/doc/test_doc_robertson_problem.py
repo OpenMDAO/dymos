@@ -4,7 +4,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 from openmdao.utils.testing_utils import use_tempdirs
-from dymos.examples.robertson_problem.doc.robertson_ode import RobertsonODE
+from dymos.examples.robertson_problem.robertson_ode import RobertsonODE
 
 
 matplotlib.use('Agg')

@@ -99,20 +99,13 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         #
         p.setup()
 
-        phase.set_time_val(initial=0.0, duration=500)
+        phase.set_time_val(initial=0.0, duration=350)
         phase.set_state_val('r', [0.0, 50000.0])
         phase.set_state_val('h', [100.0, 20000.0])
         phase.set_state_val('v', [135.964, 283.159])
         phase.set_state_val('gam', [0.0, 0.0])
         phase.set_state_val('m', [19030.468, 10000.])
         phase.set_control_val('alpha', [0.0, 0.0])
-
-        p['traj.phase0.states:r'] = phase.interp('r', [0.0, 50000.0])
-        p['traj.phase0.states:h'] = phase.interp('h', [100.0, 20000.0])
-        p['traj.phase0.states:v'] = phase.interp('v', [135.964, 283.159])
-        p['traj.phase0.states:gam'] = phase.interp('gam', [0.0, 0.0])
-        p['traj.phase0.states:m'] = phase.interp('m', [19030.468, 10000.])
-        p['traj.phase0.controls:alpha'] = phase.interp('alpha', [0.0, 0.0])
 
         #
         # Solve for the optimal trajectory

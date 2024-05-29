@@ -105,7 +105,7 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
 
     phase.set_time_val(initial=0.0, duration=3600)
     phase.set_state_val('range', (0, 724.0))
-    phase.set_state_val('range', (30000, 1e-3))
+    phase.set_state_val('mass_fuel', (30000, 1e-3))
     phase.set_state_val('alt', 10.0)
     phase.set_control_val('mach', 0.8)
 

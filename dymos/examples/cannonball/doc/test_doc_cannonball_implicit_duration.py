@@ -226,13 +226,12 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         guess = initial_guess(t_dur=30.0)
 
-        p.set_val('traj.phase.t_initial', 0.0)
-        p.set_val('traj.phase.t_duration', 30.0)
+        phase.set_time_val(initial=0.0, duration=30.0)
 
-        p.set_val('traj.phase.states:r', phase.interp('r', ys=guess['r'], xs=guess['t']))
-        p.set_val('traj.phase.states:h', phase.interp('h', ys=guess['h'], xs=guess['t']))
-        p.set_val('traj.phase.states:v', phase.interp('v', ys=guess['v'], xs=guess['t']))
-        p.set_val('traj.phase.states:gam', phase.interp('gam', ys=guess['gam'], xs=guess['t']), units='rad')
+        phase.set_state_val('r', vals=guess['r'], time_vals=guess['t'])
+        phase.set_state_val('h', vals=guess['h'], time_vals=guess['t'])
+        phase.set_state_val('v', vals=guess['v'], time_vals=guess['t'])
+        phase.set_state_val('gam', vals=guess['gam'], time_vals=guess['t'], units='rad')
 
         #####################################################
         # Run the optimization and final explicit simulation
