@@ -42,11 +42,10 @@ class TestRaceCarForDocs(unittest.TestCase):
 
         txs = {'radau': dm.Radau(num_segments=50, order=3, compressed=True),
                'gauss-lobatto': dm.GaussLobatto(num_segments=50, order=3, compressed=True),
-               'birkhoff': dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=50))}
+               'birkhoff': dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=100))}
 
         for tx_name, tx in txs.items():
             with self.subTest(tx_name):
-
                 # Define the OpenMDAO problem
                 p = om.Problem(model=om.Group())
 

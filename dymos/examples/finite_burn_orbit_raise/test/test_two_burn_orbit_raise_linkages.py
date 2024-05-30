@@ -601,8 +601,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         coast.set_state_val('accel', [0, 0])
 
         burn2.set_time_val(initial=5.25, duration=1.75)
-        burn2.set_state_val('r', [1, 3])
-        burn2.set_state_val('theta', [0, 4])
+        burn2.set_state_val('r', [1.8, 3])
+        burn2.set_state_val('theta', [3.2, 4.0])
         burn2.set_state_val('vr', [0.5, 0])
         burn2.set_state_val('vt', [1, np.sqrt(1 / 3)])
         burn2.set_state_val('accel', [0.1, 0.0])

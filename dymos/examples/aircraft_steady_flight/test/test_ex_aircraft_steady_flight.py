@@ -63,13 +63,13 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
 
     phase.add_state('range', units='NM',
                     rate_source='range_rate_comp.dXdt:range',
-                    fix_initial=True, fix_final=False, ref=1e-3,
-                    defect_ref=1e-3, lower=0, upper=2000)
+                    fix_initial=True, fix_final=False, ref=1,
+                    defect_ref=1, lower=0, upper=2000)
 
     phase.add_state('mass_fuel', units='lbm',
                     rate_source='propulsion.dXdt:mass_fuel',
                     fix_initial=True, fix_final=fix_final,
-                    upper=1.5E5, lower=0.0, ref=1e2, defect_ref=1e2)
+                    upper=1.5E5, lower=0.0, ref=1e4, defect_ref=1e4)
 
     phase.add_state('alt', units='kft',
                     rate_source='climb_rate',
@@ -96,11 +96,11 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
     p.model.connect('assumptions.mass_empty', 'traj.phase0.parameters:mass_empty')
     p.model.connect('assumptions.mass_payload', 'traj.phase0.parameters:mass_payload')
 
-    phase.add_objective('range', loc='final', ref=-1.0e-4)
+    phase.add_objective('range', loc='final', ref=-100.0)
 
     p.setup()
 
-    phase.set_time_val(initial=0.0, duration=3600)
+    phase.set_time_val(initial=0.0, duration=5000.0)
     phase.set_state_val('range', (0, 724.0))
     phase.set_state_val('mass_fuel', (30000, 1e-3))
     phase.set_state_val('alt', 10.0)
