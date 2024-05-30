@@ -277,7 +277,7 @@ class TestMinTimeClimb(unittest.TestCase):
         self._test_mach_rate(p, plot=False)
 
     @require_pyoptsparse(optimizer='IPOPT')
-    @unittest.skipIf(om_version < (3, 31, 2), 'Test requires OpenMDAO 3.31.2 or later')
+    @unittest.skipIf(om_version < (3, 32, 2), 'Test requires OpenMDAO 3.31.2 or later')
     def test_results_birkhoff(self):
         NUM_SEG = 1
         ORDER = 30

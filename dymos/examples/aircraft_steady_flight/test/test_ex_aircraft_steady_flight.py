@@ -132,7 +132,7 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
                           726.85, tolerance=1.0E-2)
 
     @require_pyoptsparse(optimizer='IPOPT')
-    @unittest.skipIf(om_version < (3, 31, 2), 'Test requires OpenMDAO 3.31.1 or later')
+    @unittest.skipIf(om_version < (3, 32, 2), 'Test requires OpenMDAO 3.32.2 or later')
     def test_ex_aircraft_steady_flight_opt_birkhoff(self):
 
         tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=50, grid_type='cgl'),
