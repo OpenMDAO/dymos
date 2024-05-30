@@ -1,5 +1,6 @@
 import unittest
 
+import openmdao
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal, assert_no_approx_partials
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
@@ -7,6 +8,8 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 import dymos as dm
 from dymos.utils.lgl import lgl
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
+
+om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_constraints=False,
@@ -129,6 +132,7 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
                           726.85, tolerance=1.0E-2)
 
     @require_pyoptsparse(optimizer='IPOPT')
+    @unittest.skipIf(om_version < (3, 31, 1), 'Test requires OpenMDAO 3.31.1 or later')
     def test_ex_aircraft_steady_flight_opt_birkhoff(self):
 
         tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=50, grid_type='cgl'),
