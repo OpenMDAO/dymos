@@ -256,7 +256,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         burn1.set_state_val('vt', [1, 1])
         burn1.set_state_val('accel', [0.1, 0.0])
         burn1.set_state_val('deltav', [0, 0.1])
-        burn1.set_control_val('u1', [-3.5, 13.0])
+        burn1.set_control_val('u1', [0.0, 0.0])
 
     if coast in p.model.traj.phases._subsystems_myproc:
         coast.set_time_val(initial=2.25, duration=3.0)
