@@ -483,7 +483,8 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                     if x_name in sol_data and var_name in sol_data:
                         legend_items = []
                         if sol_data:
-                            sol_plot = fig.circle(x='time', y=var_name, source=sol_source, color=color)
+                            sol_plot = fig.scatter(x='time', y=var_name, source=sol_source,
+                                                   color=color, size=5)
                             sol_plot.tags.extend(['sol', f'phase:{phase_name}'])
                             legend_items.append(sol_plot)
                         if sim_data:
