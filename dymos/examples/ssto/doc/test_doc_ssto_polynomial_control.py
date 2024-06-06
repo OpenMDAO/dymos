@@ -248,14 +248,13 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
         #
         # Assign initial guesses for the independent variables in the problem.
         #
-        p['traj.phase0.t_initial'] = 0.0
-        p['traj.phase0.t_duration'] = 500.0
-        p['traj.phase0.states:x'] = phase.interp('x', [0, 350000.0])
-        p['traj.phase0.states:y'] = phase.interp('y', [0, 185000.0])
-        p['traj.phase0.states:vx'] = phase.interp('vx', [0, 1627.0])
-        p['traj.phase0.states:vy'] = phase.interp('vy', [1.0E-6, 0])
-        p['traj.phase0.states:m'] = phase.interp('m', [50000, 50000])
-        p['traj.phase0.polynomial_controls:tan_theta'] = [[0.5 * np.pi], [0.0]]
+        phase.set_time_val(initial=0.0, duration=500.0)
+        phase.set_state_val('x', [0, 350000.0])
+        phase.set_state_val('y', [0, 185000.0])
+        phase.set_state_val('vx', [0, 1627.0])
+        phase.set_state_val('vy', [1.0E-6, 0.0])
+        phase.set_state_val('m', 50000)
+        phase.set_polynomial_control_val('tan_theta', [[0.5 * np.pi], [0.0]])
 
         #
         # Solve the problem.

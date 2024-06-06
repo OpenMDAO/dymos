@@ -42,11 +42,10 @@ class TestRaceCarForDocs(unittest.TestCase):
 
         txs = {'radau': dm.Radau(num_segments=50, order=3, compressed=True),
                'gauss-lobatto': dm.GaussLobatto(num_segments=50, order=3, compressed=True),
-               'birkhoff': dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=50))}
+               'birkhoff': dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=100))}
 
         for tx_name, tx in txs.items():
             with self.subTest(tx_name):
-
                 # Define the OpenMDAO problem
                 p = om.Problem(model=om.Group())
 
@@ -167,21 +166,21 @@ class TestRaceCarForDocs(unittest.TestCase):
 
                 # States
                 # Nonzero velocity to avoid division by zero errors
-                p.set_val('traj.phase0.states:V', phase.interp('V', [20, 20]), units='m/s')
+                phase.set_state_val('V', 20.0, units='m/s')
                 # All other states start at 0
-                p.set_val('traj.phase0.states:lambda', phase.interp('lambda', [0.0, 0.0]), units='rad')
-                p.set_val('traj.phase0.states:omega', phase.interp('omega', [0.0, 0.0]), units='rad/s')
-                p.set_val('traj.phase0.states:alpha', phase.interp('alpha', [0.0, 0.0]), units='rad')
-                p.set_val('traj.phase0.states:ax', phase.interp('ax', [0.0, 0.0]), units='m/s**2')
-                p.set_val('traj.phase0.states:ay', phase.interp('ay', [0.0, 0.0]), units='m/s**2')
-                p.set_val('traj.phase0.states:n', phase.interp('n', [0.0, 0.0]), units='m')
+                phase.set_state_val('lambda', 0.0, units='rad')
+                phase.set_state_val('omega', 0.0, units='rad/s')
+                phase.set_state_val('alpha', 0.0, units='rad')
+                phase.set_state_val('ax', 0.0, units='m/s**2')
+                phase.set_state_val('ay', 0.0, units='m/s**2')
+                phase.set_state_val('n', 0.0, units='m')
                 # initial guess for what the final time should be
-                p.set_val('traj.phase0.states:t', phase.interp('t', [0.0, 100.0]), units='s')
+                phase.set_state_val('t', [0.0, 100.0], units='s')
 
                 # Controls
                 # a small amount of thrust can speed up convergence
-                p.set_val('traj.phase0.controls:delta', phase.interp('delta', [0.0, 0.0]), units='rad')
-                p.set_val('traj.phase0.controls:thrust', phase.interp('thrust', [0.1, 0.1]), units=None)
+                phase.set_control_val('delta', 0.0, units='rad')
+                phase.set_control_val('thrust', 0.1, units=None)
 
                 dm.run_problem(p, run_driver=True)
 

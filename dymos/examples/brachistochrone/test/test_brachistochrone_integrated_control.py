@@ -121,14 +121,13 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
         p.setup()
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
+        phase.set_time_val(initial=0.0, duration=2.0)
 
-        p.set_val('phase0.states:x', phase.interp('x', ys=[0, 10]))
-        p.set_val('phase0.states:y', phase.interp('y', ys=[10, 5]))
-        p.set_val('phase0.states:v', phase.interp('v', ys=[0, 9.9]))
-        p.set_val('phase0.states:theta', phase.interp('theta', ys=[5, 100.5]), units='deg')
-        p.set_val('phase0.controls:theta_dot', phase.interp('theta_dot', ys=[50, 50]))
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
+        phase.set_state_val('theta', [5, 100.5], units='deg')
+        phase.set_control_val('theta_dot', [50, 50])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -200,14 +199,13 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
         p.setup()
 
-        p['traj.phase0.t_initial'] = 0.0
-        p['traj.phase0.t_duration'] = 2.0
+        phase.set_time_val(initial=0.0, duration=2.0)
 
-        p.set_val('traj.phase0.states:x', phase.interp('x', ys=[0, 10]))
-        p.set_val('traj.phase0.states:y', phase.interp('y', ys=[10, 5]))
-        p.set_val('traj.phase0.states:v', phase.interp('v', ys=[0, 9.9]))
-        p.set_val('traj.phase0.states:theta', phase.interp('theta', ys=[5, 100.5]), units='deg')
-        p.set_val('traj.phase0.controls:theta_dot', phase.interp('theta_dot', ys=[50, 50]))
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
+        phase.set_state_val('theta', [5, 100.5], units='deg')
+        phase.set_control_val('theta_dot', [50, 50])
 
         # Solve for the optimal trajectory
         dm.run_problem(p, simulate=True, make_plots=True)

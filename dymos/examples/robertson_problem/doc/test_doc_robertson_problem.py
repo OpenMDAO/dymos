@@ -10,7 +10,7 @@ except ImportError:
     matplotlib = None
 
 from openmdao.utils.testing_utils import use_tempdirs
-from dymos.examples.robertson_problem.doc.robertson_ode import RobertsonODE
+from dymos.examples.robertson_problem.robertson_ode import RobertsonODE
 
 
 @use_tempdirs
@@ -52,12 +52,10 @@ class TestRobertsonProblemForDocs(unittest.TestCase):
         #
         # Set the initial values
         #
-        p['traj.phase0.t_initial'] = 0.0
-        p['traj.phase0.t_duration'] = t_final
-
-        p.set_val('traj.phase0.initial_states:x0', phase.interp('x0', ys=[1.0, 0.7]))
-        p.set_val('traj.phase0.initial_states:y0', phase.interp('y0', ys=[0.0, 1e-5]))
-        p.set_val('traj.phase0.initial_states:z0', phase.interp('z0', ys=[0.0, 0.3]))
+        phase.set_time_val(initial=0.0, duration=t_final)
+        phase.set_state_val('x0', [1.0, 0.7])
+        phase.set_state_val('y0', [0.0, 1e-5])
+        phase.set_state_val('z0', [0.0, 0.3])
 
         return p
 

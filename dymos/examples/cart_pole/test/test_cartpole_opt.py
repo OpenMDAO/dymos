@@ -82,13 +82,13 @@ class TestCartPoleOptimization(unittest.TestCase):
         # --- set initial guess ---
         # The initial condition of cart-pole (i.e., state values at time 0) is set here
         # because we set `fix_initial=True` when declaring the states.
-        p.set_val("traj.phase.t_initial", 0.0)  # set initial time to 0.
-        p.set_val("traj.phase.states:x", phase.interp(xs=[0, 1, 2], ys=[0, 1, 1], nodes="state_input"), units="m")
-        p.set_val("traj.phase.states:x_dot", phase.interp(xs=[0, 1, 2], ys=[0, 0.1, 0], nodes="state_input"), units="m/s")
-        p.set_val("traj.phase.states:theta", phase.interp(xs=[0, 1, 2], ys=[0, np.pi/2, np.pi], nodes="state_input"), units="rad")
-        p.set_val("traj.phase.states:theta_dot", phase.interp(xs=[0, 1, 2], ys=[0, 1, 0], nodes="state_input"), units="rad/s")
-        p.set_val("traj.phase.states:energy", phase.interp(xs=[0, 1, 2], ys=[0, 30, 60], nodes="state_input"))
-        p.set_val("traj.phase.controls:f", phase.interp(xs=[0, 1, 2], ys=[3, -1, 0], nodes="control_input"), units="N")
+        phase.set_time_val(initial=0.0)  # set initial time to 0.
+        phase.set_state_val('x', vals=[0, 1, 1], time_vals=[0, 1, 2], units='m')
+        phase.set_state_val('x_dot', vals=[0, 0.1, 0], time_vals=[0, 1, 2], units='m/s')
+        phase.set_state_val('theta', vals=[0, np.pi/2, np.pi], time_vals=[0, 1, 2], units='rad')
+        phase.set_state_val('theta_dot', vals=[0, 1, 0], time_vals=[0, 1, 2], units='rad/s')
+        phase.set_state_val('energy', vals=[0, 30, 60], time_vals=[0, 1, 2])
+        phase.set_control_val('f', vals=[3, -1, 0], time_vals=[0, 1, 2], units='N')
 
         # --- run optimization ---
         dm.run_problem(p, run_driver=True, simulate=False, simulate_kwargs={"method": "Radau", "times_per_seg": 10})

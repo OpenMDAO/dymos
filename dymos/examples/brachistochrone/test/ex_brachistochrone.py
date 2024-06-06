@@ -84,20 +84,14 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     phase.set_simulate_options(method='RK23')
 
-    p['traj0.phase0.t_initial'] = 0.0
-    p['traj0.phase0.t_duration'] = 2.0
+    phase.set_time_val(initial=0.0, duration=2.0)
 
-    if transcription.startswith('shooting') or transcription == 'birkhoff':
-        p['traj0.phase0.initial_states:x'] = 0
-        p['traj0.phase0.initial_states:y'] = 10
-        p['traj0.phase0.initial_states:v'] = 0
-    else:
-        p['traj0.phase0.states:x'] = phase.interp('x', [0, 10])
-        p['traj0.phase0.states:y'] = phase.interp('y', [10, 5])
-        p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
+    phase.set_state_val('x', [0, 10])
+    phase.set_state_val('y', [10, 5])
+    phase.set_state_val('v', [0, 9.9])
 
-    p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
-    p['traj0.phase0.parameters:g'] = 9.80665
+    phase.set_control_val('theta', [5, 100])
+    phase.set_parameter_val('g', 9.80665)
 
     dm.run_problem(p, run_driver=run_driver, simulate=True, make_plots=True,
                    simulate_kwargs={'times_per_seg': 100})

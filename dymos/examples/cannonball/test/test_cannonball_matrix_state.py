@@ -55,12 +55,8 @@ class TestCannonballMatrixState(unittest.TestCase):
 
         p.setup()
 
-        p.set_val('traj.phase.t_initial', 0)
-        p.set_val('traj.phase.t_duration', 5)
-        if isinstance(tx, dm.Birkhoff):
-            p.set_val('traj.phase.initial_states:z', np.array([[0, 0], [10, 10]]))
-            p.set_val('traj.phase.final_states:z', np.array([[10, 0], [10, -10]]))
-        p.set_val('traj.phase.states:z', phase.interp('z', [[[0, 0], [10, 10]], [[10, 0], [10, -10]]]))
+        phase.set_time_val(initial=0, duration=5)
+        phase.set_state_val('z', [[[0, 0], [10, 10]], [[10, 0], [10, -10]]])
 
         return p
 
@@ -204,10 +200,8 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
 
         p.setup()
 
-        p.set_val('traj.phase.t_initial', 0)
-        p.set_val('traj.phase.t_duration', 5)
-        p.set_val('traj.phase.states:z',
-                  phase.interp('z', [[[0, 0], [10, 10]], [[10, 0], [10, -10]]]))
+        phase.set_time_val(initial=0, duration=5)
+        phase.set_state_val('z', [[[0, 0], [10, 10]], [[10, 0], [10, -10]]])
 
         return p
 
@@ -310,10 +304,8 @@ class TestCannonballMatrixStateNonFlatIndices(unittest.TestCase):
 
         p.setup()
 
-        p.set_val('traj.phase.t_initial', 0)
-        p.set_val('traj.phase.t_duration', 5)
-        p.set_val('traj.phase.states:z',
-                  phase.interp('z', [[[0, 0], [10, 10]], [[10, 0], [10, -10]]]))
+        phase.set_time_val(initial=0, duration=5)
+        phase.set_state_val('z', [[[0, 0], [10, 10]], [[10, 0], [10, -10]]])
 
         return p
 

@@ -62,29 +62,13 @@ class TestRobotArm(unittest.TestCase):
 
         p.setup(check=True, force_alloc_complex=False, mode='auto')
 
-        p.set_val('traj.phase.t_initial', 0)
-        p.set_val('traj.phase.t_duration', 10)
-
-        if isinstance(tx, dm.Birkhoff):
-            p.set_val('traj.phase.initial_states:x0', 4.5)
-            p.set_val('traj.phase.initial_states:x1', 0.0)
-            p.set_val('traj.phase.initial_states:x2', np.pi / 4)
-            p.set_val('traj.phase.initial_states:x3', 0.0)
-            p.set_val('traj.phase.initial_states:x4', 0.0)
-            p.set_val('traj.phase.initial_states:x5', 0.0)
-            p.set_val('traj.phase.final_states:x0', 4.5)
-            p.set_val('traj.phase.final_states:x1', 2 * np.pi / 3)
-            p.set_val('traj.phase.final_states:x2', np.pi / 4)
-            p.set_val('traj.phase.final_states:x3', 0.0)
-            p.set_val('traj.phase.final_states:x4', 0.0)
-            p.set_val('traj.phase.final_states:x5', 0.0)
-        else:
-            p.set_val('traj.phase.states:x0', phase.interp('x0', [4.5, 4.5]))
-            p.set_val('traj.phase.states:x1', phase.interp('x1', [0.0, 2 * np.pi / 3]))
-            p.set_val('traj.phase.states:x2', phase.interp('x2', [np.pi / 4, np.pi / 4]))
-            p.set_val('traj.phase.states:x3', phase.interp('x3', [0.0, 0.0]))
-            p.set_val('traj.phase.states:x4', phase.interp('x4', [0.0, 0.0]))
-            p.set_val('traj.phase.states:x5', phase.interp('x5', [0.0, 0.0]))
+        phase.set_time_val(initial=0, duration=10)
+        phase.set_state_val('x0', [4.5, 4.5])
+        phase.set_state_val('x1', [0.0, 2 * np.pi / 3])
+        phase.set_state_val('x2', [np.pi / 4, np.pi / 4])
+        phase.set_state_val('x3', [0.0, 0.0])
+        phase.set_state_val('x4', [0.0, 0.0])
+        phase.set_state_val('x5', [0.0, 0.0])
 
         return p
 

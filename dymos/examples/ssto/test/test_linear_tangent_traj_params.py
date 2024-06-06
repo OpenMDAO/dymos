@@ -308,15 +308,14 @@ class TestSSTOLinearTangentTrajParams(unittest.TestCase):
 
         p.setup(check=True)
 
-        p['traj.phase0.t_initial'] = 0.0
-        p['traj.phase0.t_duration'] = 500.0
-        p['traj.phase0.states:x'] = phase.interp('x', [0, 350000.0])
-        p['traj.phase0.states:y'] = phase.interp('y', [0, 185000.0])
-        p['traj.phase0.states:vx'] = phase.interp('vx', [0, 1627.0])
-        p['traj.phase0.states:vy'] = phase.interp('vy', [1.0E-6, 0])
-        p['traj.phase0.states:m'] = phase.interp('m', [50000, 50000])
-        p['traj.phase0.parameters:a_ctrl'] = -0.01
-        p['traj.phase0.parameters:b_ctrl'] = 3.0
+        phase.set_time_val(initial=0.0, duration=500.0)
+        phase.set_state_val('x', [0, 350000.0])
+        phase.set_state_val('y', [0, 185000.0])
+        phase.set_state_val('vx', [0, 1627.0])
+        phase.set_state_val('vy', [1.0E-6, 0.0])
+        phase.set_state_val('m', 50000)
+        phase.set_parameter_val('a_ctrl', -0.01)
+        phase.set_parameter_val('b_ctrl', 3.0)
 
         dm.run_problem(p, simulate=True)
 

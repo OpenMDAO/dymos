@@ -74,14 +74,13 @@ class TestDocSSTOEarth(unittest.TestCase):
         #
         p.setup(check=True)
 
-        p.set_val('traj.phase0.t_initial', 0.0)
-        p.set_val('traj.phase0.t_duration', 150.0)
-        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 1.15E5]))
-        p.set_val('traj.phase0.states:y', phase.interp('y', [0, 1.85E5]))
-        p.set_val('traj.phase0.states:vy', phase.interp('vx', [1.0E-6, 0]))
-        p.set_val('traj.phase0.states:m', phase.interp('vy', [117000, 1163]))
-        p.set_val('traj.phase0.controls:theta', phase.interp('theta', [1.5, -0.76]))
-        p.set_val('traj.phase0.parameters:thrust', 2.1, units='MN')
+        phase.set_time_val(initial=0.0, duration=150.0)
+        phase.set_state_val('x', [0, 1.15E5])
+        phase.set_state_val('y', [0, 1.85E5])
+        phase.set_state_val('vy', [1.0E-6, 0])
+        phase.set_state_val('m', [117000, 1163])
+        phase.set_control_val('theta', [1.5, -0.76])
+        phase.set_parameter_val('thrust', 2.1, units='MN')
 
         #
         # Solve the Problem

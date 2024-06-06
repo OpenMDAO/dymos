@@ -127,24 +127,12 @@ class TestStaticODEOutput(unittest.TestCase):
 
         # Now that the OpenMDAO problem is setup, we can set the values of the states.
 
-        p.set_val('traj.phase0.t_initial', 0.0, units='s')
-        p.set_val('traj.phase0.t_duration', 5.0, units='s')
+        phase.set_time_val(initial=0.0, duration=5.0, units='s')
 
-        p.set_val('traj.phase0.states:x',
-                  phase.interp('x', [0, 10]),
-                  units='m')
-
-        p.set_val('traj.phase0.states:y',
-                  phase.interp('y', [10, 5]),
-                  units='m')
-
-        p.set_val('traj.phase0.states:v',
-                  phase.interp('v', [0, 5]),
-                  units='m/s')
-
-        p.set_val('traj.phase0.controls:theta',
-                  phase.interp('theta', [0.01, 90]),
-                  units='deg')
+        phase.set_state_val('x', [0, 10], units='m')
+        phase.set_state_val('y', [10, 5], units='m')
+        phase.set_state_val('v', [0, 5], units='m/s')
+        phase.set_control_val('theta', [1, 90], units='deg')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=False)

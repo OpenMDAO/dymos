@@ -66,7 +66,6 @@ class TestHyperSensitive(unittest.TestCase):
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', ref=100)
         phase0.add_control('u', opt=True, targets=['u'])
 
-        # phase0.add_boundary_constraint('x', loc='final', equals=1)
         phase0.add_boundary_constraint('x', loc='initial', equals=1.5)
         phase0.add_boundary_constraint('x', loc='final', equals=1)
 
@@ -78,16 +77,10 @@ class TestHyperSensitive(unittest.TestCase):
         p.set_solver_print(0)
         p.setup(check=True, force_alloc_complex=True)
 
-        if transcription == 'birkhoff':
-            p.set_val('traj.phase0.initial_states:x', 1.5)
-            p.set_val('traj.phase0.initial_states:xL', 0.0)
-
-        p.set_val('traj.phase0.states:x', phase0.interp('x', [1.5, 1]))
-        p.set_val('traj.phase0.states:xL', phase0.interp('xL', [0, 1]))
-
-        p.set_val('traj.phase0.t_initial', 0)
-        p.set_val('traj.phase0.t_duration', tf)
-        p.set_val('traj.phase0.controls:u', phase0.interp('u', [-0.6, 2.4]))
+        phase0.set_time_val(initial=0, duration=tf)
+        phase0.set_state_val('x', [1.5, 1])
+        phase0.set_state_val('xL', [0, 1])
+        phase0.set_control_val('u', [-0.6, 2.4])
 
         return p
 

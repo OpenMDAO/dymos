@@ -92,17 +92,10 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         prob.setup()
 
-        prob['traj.phase0.t_initial'] = 0
-        prob['traj.phase0.t_duration'] = 1.0*3600
-
-        prob['traj.phase1.t_initial'] = 1.0*3600
-        prob['traj.phase1.t_duration'] = 1.0*3600
-
-        prob['traj.phase1_bfail.t_initial'] = 1.0*3600
-        prob['traj.phase1_bfail.t_duration'] = 1.0*3600
-
-        prob['traj.phase1_mfail.t_initial'] = 1.0*3600
-        prob['traj.phase1_mfail.t_duration'] = 1.0*3600
+        phase0.set_time_val(initial=0.0, duration=3600)
+        phase1.set_time_val(initial=3600.0, duration=3600.0)
+        phase1_bfail.set_time_val(initial=3600.0, duration=3600.0)
+        phase1_mfail.set_time_val(initial=3600.0, duration=3600.0)
 
         prob.set_solver_print(level=0)
         dm.run_problem(prob)
@@ -176,19 +169,11 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         prob.setup()
 
-        prob['traj.phase0.t_initial'] = 0
-        prob['traj.phase0.t_duration'] = 1.0*3600
-
-        prob['traj.phase1.t_initial'] = 1.0*3600
-        prob['traj.phase1.t_duration'] = 1.0*3600
-
-        prob['traj.phase1_bfail.t_initial'] = 1.0*3600
-        prob['traj.phase1_bfail.t_duration'] = 1.0*3600
-
-        prob['traj.phase1_mfail.t_initial'] = 1.0*3600
-        prob['traj.phase1_mfail.t_duration'] = 1.0*3600
-
-        prob['traj.phase0.states:state_of_charge'][:] = 1.0
+        phase0.set_time_val(initial=0.0, duration=3600)
+        phase1.set_time_val(initial=3600.0, duration=3600.0)
+        phase1_bfail.set_time_val(initial=3600.0, duration=3600.0)
+        phase1_mfail.set_time_val(initial=3600.0, duration=3600.0)
+        phase0.set_state_val('state_of_charge', 1.0)
 
         prob.set_solver_print(level=0)
         prob.run_model()
@@ -223,9 +208,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         prob.setup()
 
-        prob['phase0.t_initial'] = 0
-        prob['phase0.t_duration'] = -1.0*3600
-        prob['phase0.states:state_of_charge'][:] = 0.63464982
+        phase0.set_time_val(initial=0.0, duration=-3600)
+        phase0.set_state_val('state_of_charge', 0.63464982)
 
         prob.set_solver_print(level=0)
         prob.run_model()
@@ -266,12 +250,9 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         prob.setup()
 
-        prob['traj.phase0.t_initial'] = 0
-        prob['traj.phase0.t_duration'] = -1.0*3600
-        prob['traj.phase0.states:state_of_charge'][:] = 0.23794217
-
-        prob['traj.phase1.t_initial'] = 0
-        prob['traj.phase1.t_duration'] = -1.0*3600
+        phase0.set_time_val(initial=0.0, duration=-3600)
+        phase1.set_time_val(initial=0.0, duration=-3600.0)
+        phase0.set_state_val('state_of_charge', 0.23794217)
 
         prob.set_solver_print(level=0)
         prob.run_model()
@@ -349,17 +330,10 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         prob.setup(force_alloc_complex=True)
 
-        prob.set_val('traj.phase0.t_initial', 0)
-        prob.set_val('traj.phase0.t_duration', 1.0*3600)
-
-        prob.set_val('traj.phase1.t_initial', 1.0*3600)
-        prob.set_val('traj.phase1.t_duration', 1.0*3600)
-
-        prob.set_val('traj.phase1_bfail.t_initial', 1.0*3600)
-        prob.set_val('traj.phase1_bfail.t_duration', 1.0*3600)
-
-        prob.set_val('traj.phase1_mfail.t_initial', 1.0*3600)
-        prob.set_val('traj.phase1_mfail.t_duration', 1.0*3600)
+        phase0.set_time_val(initial=0.0, duration=3600)
+        phase1.set_time_val(initial=3600.0, duration=3600.0)
+        phase1_bfail.set_time_val(initial=3600.0, duration=3600.0)
+        phase1_mfail.set_time_val(initial=3600.0, duration=3600.0)
 
         prob.run_model()
 

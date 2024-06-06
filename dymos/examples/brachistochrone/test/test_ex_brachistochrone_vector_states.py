@@ -86,6 +86,17 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         self.assert_results(p)
         self.assert_partials(p)
 
+    def test_ex_brachistochrone_vs_birkhoff(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = True
+        p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='birkhoff',
+                                                           transcription_order=12,
+                                                           compressed=True,
+                                                           force_alloc_complex=True,
+                                                           run_driver=True)
+
+        self.assert_results(p)
+        self.assert_partials(p)
+
 
 if __name__ == "__main__":
     unittest.main()

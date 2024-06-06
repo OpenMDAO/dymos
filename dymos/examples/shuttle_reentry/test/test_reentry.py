@@ -71,37 +71,15 @@ class TestReentry(unittest.TestCase):
 
         p.setup(check=True, force_alloc_complex=True)
 
-        p.set_val('traj.phase0.states:h',
-                  phase0.interp('h', [260000, 80000]), units='ft')
-        p.set_val('traj.phase0.states:gamma',
-                  phase0.interp('gamma', [-1 * np.pi / 180, -5 * np.pi / 180]),
-                  units='rad')
-        p.set_val('traj.phase0.states:phi',
-                  phase0.interp('phi', [0, 75 * np.pi / 180]), units='rad')
-        p.set_val('traj.phase0.states:psi',
-                  phase0.interp('psi', [90 * np.pi / 180, 10 * np.pi / 180]),
-                  units='rad')
-        p.set_val('traj.phase0.states:theta',
-                  phase0.interp('theta', [0, 25 * np.pi / 180]), units='rad')
-        p.set_val('traj.phase0.states:v', phase0.interp('v', [25600, 2500]), units='ft/s')
-        p.set_val('traj.phase0.t_initial', 0, units='s')
-        p.set_val('traj.phase0.t_duration', 2000, units='s')
-        p.set_val('traj.phase0.controls:alpha',
-                  phase0.interp('alpha', [17.4 * np.pi / 180, 17.4 * np.pi / 180]), units='rad')
-        p.set_val('traj.phase0.controls:beta',
-                  phase0.interp('beta', [-75 * np.pi / 180, 0 * np.pi / 180]), units='rad')
-
-        if isinstance(transcription, dm.Birkhoff):
-            p.set_val('traj.phase0.initial_states:h', 260000, units='ft')
-            p.set_val('traj.phase0.initial_states:gamma', -1 * np.pi / 180, units='rad')
-            p.set_val('traj.phase0.initial_states:phi', 0.0, units='rad')
-            p.set_val('traj.phase0.initial_states:psi', 90 * np.pi / 180, units='rad')
-            p.set_val('traj.phase0.initial_states:theta', 0.0, units='rad')
-            p.set_val('traj.phase0.initial_states:v', 25600, units='ft/s')
-
-            p.set_val('traj.phase0.final_states:h', 80000, units='ft')
-            p.set_val('traj.phase0.final_states:gamma', -5 * np.pi / 180, units='rad')
-            p.set_val('traj.phase0.final_states:v', 2500, units='ft/s')
+        phase0.set_time_val(initial=0, duration=2000, units='s')
+        phase0.set_state_val('h', [260000, 80000], units='ft')
+        phase0.set_state_val('gamma', [-1 * np.pi / 180, -5 * np.pi / 180], units='rad')
+        phase0.set_state_val('phi', [0, 75 * np.pi / 180], units='rad')
+        phase0.set_state_val('psi', [90 * np.pi / 180, 10 * np.pi / 180], units='rad')
+        phase0.set_state_val('theta', [0, 25 * np.pi / 180], units='rad')
+        phase0.set_state_val('v', [25600, 2500], units='ft/s')
+        phase0.set_control_val('alpha', [17.4 * np.pi / 180, 17.4 * np.pi / 180], units='rad')
+        phase0.set_control_val('beta', [-75 * np.pi / 180, 0 * np.pi / 180], units='rad')
 
         return p
 
