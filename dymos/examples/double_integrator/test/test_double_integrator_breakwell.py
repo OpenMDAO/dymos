@@ -66,16 +66,11 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
 
     p.setup(check=True, force_alloc_complex=True)
 
-    p['traj.phase0.t_initial'] = 0.0
-    p['traj.phase0.t_duration'] = 1.0
-    p['traj.phase0.states:x'] = phase.interp('x', [0, 0])
-    p['traj.phase0.states:v'] = phase.interp('v', [1, 0])
-    p['traj.phase0.states:J'] = phase.interp('J', [0, 4])
-    p['traj.phase0.controls:u'] = phase.interp('u', [-5, -5])
-    if transcription == 'birkhoff':
-        p['traj.phase0.initial_states:x'] = 0.0
-        p['traj.phase0.initial_states:v'] = 1.0
-        p['traj.phase0.initial_states:J'] = 0.0
+    phase.set_time_val(initial=0.0, duration=1.0)
+    phase.set_state_val('x', [0, 0])
+    phase.set_state_val('v', [1, 0])
+    phase.set_state_val('J', [0, 4])
+    phase.set_control_val('u', [-5, -5])
 
     return p
 

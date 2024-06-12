@@ -76,15 +76,11 @@ class TestBrachistochroneSimulate_units(unittest.TestCase):
         p.setup(check=True)
 
         # Now that the OpenMDAO problem is setup, we can set the values of the states.
-        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
-
-        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
-
-        p.set_val('traj.phase0.states:v', phase.interp('v', [1.0E-6, 5]), units='m/s')
-
-        p.set_val('traj.phase0.controls:theta', phase.interp('theta', [5, 100]), units='deg')
-
-        p.set_val('traj.phase0.parameters:g', 9.80665, units='m/s**2')
+        phase.set_state_val('x', [0, 10], units='m')
+        phase.set_state_val('y', [10, 5], units='m')
+        phase.set_state_val('v', [1E-6, 9.9], units='m/s')
+        phase.set_control_val('theta', [5, 100], units='deg')
+        phase.set_parameter_val('g', 9.80665, units='m/s**2')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True)

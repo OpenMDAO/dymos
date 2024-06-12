@@ -163,7 +163,7 @@ def _get_traj_and_phases_from_problem(problem, rank: int = 0):
                 if phase_path.startswith(f'{traj_path}.'):
                     trajs[traj_path]['phases'][phase_path] = {'name': phase_path.split('.')[-1]}
                     for opt in ('time_options', 'parameter_options', 'state_options',
-                                'control_options', 'polynomial_control_options'):
+                                'control_options'):
                         trajs[traj_path]['phases'][phase_path][opt] = poptions[opt]
 
     return trajs
@@ -214,13 +214,11 @@ def _get_trajs_and_phases_from_cr(cr, problem=None):  # pragma: no cover
                                                                        'parameter_options': None,
                                                                        'state_options': None,
                                                                        'control_options': None,
-                                                                       'polynomial_control_options': None,
                                                                        'name': pn['name']}
                 phase_meta['time_options'] = phase_options['time_options']
                 phase_meta['parameter_options'] = phase_options['parameter_options']
                 phase_meta['state_options'] = phase_options['state_options']
                 phase_meta['control_options'] = phase_options['control_options']
-                phase_meta['polynomial_control_options'] = phase_options['polynomial_control_options']
 
     return trajs
 
@@ -483,7 +481,8 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                     if x_name in sol_data and var_name in sol_data:
                         legend_items = []
                         if sol_data:
-                            sol_plot = fig.circle(x='time', y=var_name, source=sol_source, color=color)
+                            sol_plot = fig.scatter(x='time', y=var_name, source=sol_source,
+                                                   color=color, size=5)
                             sol_plot.tags.extend(['sol', f'phase:{phase_name}'])
                             legend_items.append(sol_plot)
                         if sim_data:

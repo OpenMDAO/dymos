@@ -62,7 +62,6 @@ class ODEEvaluationGroup(om.Group):
         self._control_options = deepcopy(control_options)
 
         self._control_interpolants = {}
-        self._polynomial_control_interpolants = {}
         self._ode_class = ode_class
         self._input_grid_data = input_grid_data
         self._compute_derivs = compute_derivs
@@ -93,7 +92,7 @@ class ODEEvaluationGroup(om.Group):
         t_name = self._time_options['name']
         t_units = self._time_options['units']
 
-        # All states, controls, parameters, and polynomial controls need to exist
+        # All states, controls, and parameters need to exist
         # in the ODE evaluation group regardless of whether or not they have targets in the ODE.
         # This makes taking the derivatives more consistent without Exceptions.
         self._ivc = self.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
@@ -338,8 +337,6 @@ class ODEEvaluationGroup(om.Group):
             rate_path = f'states:{var}'
         elif self._control_options is not None and var in self._control_options:
             rate_path = f'control_values:{var}'
-        elif self._polynomial_control_options is not None and var in self._polynomial_control_options:
-            rate_path = f'control_values:{var}'
         elif self._parameter_options is not None and var in self._parameter_options:
             rate_path = f'parameters:{var}'
         elif var.endswith('_rate') and self._control_options is not None and \
@@ -347,12 +344,6 @@ class ODEEvaluationGroup(om.Group):
             rate_path = f'control_rates:{var}'
         elif var.endswith('_rate2') and self._control_options is not None and \
                 var[:-6] in self._control_options:
-            rate_path = f'control_rates:{var}'
-        elif var.endswith('_rate') and self._polynomial_control_options is not None and \
-                var[:-5] in self._polynomial_control_options:
-            rate_path = f'control_rates:{var}'
-        elif var.endswith('_rate2') and self._polynomial_control_options is not None and \
-                var[:-6] in self._polynomial_control_options:
             rate_path = f'control_rates:{var}'
         else:
             rate_path = f'ode.{var}'

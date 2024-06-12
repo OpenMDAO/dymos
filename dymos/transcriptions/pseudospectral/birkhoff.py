@@ -356,17 +356,19 @@ class Birkhoff(TranscriptionBase):
                                                                   src=src,
                                                                   rate=is_rate)
 
-                if src.startswith('states:'):
-                    var_name = ts_output["output_name"]
-                    state_name = var_name.split(':')[-1]
-                    ts_inputs_to_promote.append((f'input_values:{var_name}',
-                                                 f'states:{state_name}'))
-                elif added_src:
-                    phase.connect(src_name=src,
-                                  tgt_name=f'{timeseries_name}.input_values:{name}',
-                                  src_indices=ts_output['src_idxs'])
+                if added_src:
+                    # If the src was added, promote it if it was a state,
+                    # or connect it otherwise.
+                    if src.startswith('states:'):
+                        var_name = ts_output["output_name"]
+                        state_name = src.split(':')[-1]
+                        ts_inputs_to_promote.append((f'input_values:{name}',
+                                                    f'states:{state_name}'))
+                    else:
+                        phase.connect(src_name=src,
+                                      tgt_name=f'{timeseries_name}.input_values:{name}',
+                                      src_indices=ts_output['src_idxs'])
 
-            # print(ts_inputs_to_promote)
             phase.promotes(timeseries_name, inputs=ts_inputs_to_promote)
 
     def setup_timeseries_outputs(self, phase):
@@ -849,3 +851,47 @@ class Birkhoff(TranscriptionBase):
         any_rate_continuity = any_rate_continuity and num_seg > 1
 
         return any_state_continuity, any_control_continuity, any_rate_continuity
+
+    def _phase_set_state_val(self, phase, name, vals, time_vals, interpolation_kind):
+        """
+        Method to interpolate the provided input and return the variables that need to be set
+        along with their appropriate value.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase to which this transcription applies.
+        name : str
+            The name of the phase variable to be set.
+        vals : ndarray or Sequence or float
+            Array of control/state/parameter values.
+        time_vals : ndarray or Sequence or None
+            Array of integration variable values.
+        interpolation_kind : str
+            Specifies the kind of interpolation, as per the scipy.interpolate package.
+            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
+            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
+            interpolation of zeroth, first, second or third order) or as an
+            integer specifying the order of the spline interpolator to use.
+            Default is 'linear'.
+
+        Returns
+        -------
+        input_data : dict
+            Dict containing the values that need to be set in the phase
+
+        """
+        input_data = {}
+        if np.isscalar(vals):
+            input_data[f'states:{name}'] = vals
+            input_data[f'initial_states:{name}'] = vals
+            input_data[f'final_states:{name}'] = vals
+        else:
+            interp_vals = phase.interp(name, vals, time_vals,
+                                       nodes='state_input',
+                                       kind=interpolation_kind)
+            input_data[f'states:{name}'] = interp_vals
+            input_data[f'initial_states:{name}'] = vals[0]
+            input_data[f'final_states:{name}'] = vals[-1]
+
+        return input_data

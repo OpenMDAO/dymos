@@ -103,7 +103,6 @@ class ODEIntegrationComp(om.ExplicitComponent):
                                                  state_options=self.state_options,
                                                  parameter_options=self.parameter_options,
                                                  control_options=self.control_options,
-                                                 polynomial_control_options=self.polynomial_control_options,
                                                  ode_init_kwargs=self.options['ode_init_kwargs'],
                                                  input_grid_data=self._input_grid_data,
                                                  compute_derivs=self.options['propagate_derivs'],

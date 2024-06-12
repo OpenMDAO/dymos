@@ -288,6 +288,25 @@ class Trajectory(om.Group):
                                    upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref, shape=shape,
                                    dynamic=dynamic, static_target=static_target)
 
+    def set_parameter_val(self, name, val=None, units=None):
+        """
+        Set the parameter values.
+
+        Parameters
+        ----------
+        name : str
+            Name of the variable. This should be a parameter variable.
+        val : ndarray or Sequence or None
+            Array of state values.
+        units : str, optional
+            The units of the state values specified.
+            If None, use the units associated with the target.
+            If provided, must be compatible with the target units.
+        """
+        if units is None:
+            units = self.parameter_options[name]['units']
+        self.set_val(f'parameters:{name}', val=val, units=units)
+
     def _setup_parameters(self):
         """
         Adds an IndepVarComp if necessary and issues appropriate connections based

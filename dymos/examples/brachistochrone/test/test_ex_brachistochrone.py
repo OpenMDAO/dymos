@@ -90,7 +90,7 @@ class TestBrachistochroneExample(unittest.TestCase):
     def test_ex_brachistochrone_birkhoff(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='birkhoff',
-                                                        num_segments=1, transcription_order=11)
+                                                        num_segments=1, transcription_order=12)
         self.run_asserts(p)
         self.tearDown()
 

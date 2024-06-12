@@ -729,6 +729,38 @@ class TranscriptionBase(object):
         raise NotImplementedError(f'The transcription {self.__class__} does not provide an '
                                   f'implementation of _requires_continuity_constraints')
 
+    def _phase_set_state_val(self, phase, name, vals, times, interpolation_kind):
+        """
+        Method to interpolate the provided input and return the variables that need to be set
+        along with their appropriate value.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase to which this transcription applies.
+        name : str
+            The name of the phase variable to be set.
+        vals : ndarray or Sequence or float
+            Array of control/state/parameter values.
+        times : ndarray or Sequence or None
+            Array of integration variable values.
+        interpolation_kind : str
+            Specifies the kind of interpolation, as per the scipy.interpolate package.
+            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
+            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
+            interpolation of zeroth, first, second or third order) or as an
+            integer specifying the order of the spline interpolator to use.
+            Default is 'linear'.
+
+        Returns
+        -------
+        input_data : dict
+            Dict containing the values that need to be set in the phase
+
+        """
+        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
+                                  '_phase_set_val.')
+
     def _get_num_timeseries_nodes(self):
         """
         Returns the number of nodes in the default timeseries for this transcription.

@@ -1,5 +1,6 @@
 import unittest
 
+import openmdao
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal, assert_no_approx_partials
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
@@ -7,6 +8,8 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 import dymos as dm
 from dymos.utils.lgl import lgl
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
+
+om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_constraints=False,
@@ -100,25 +103,11 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
 
     p.setup()
 
-    p['traj.phase0.t_initial'] = 0.0
-    p['traj.phase0.t_duration'] = 5000.0
-    p['traj.phase0.states:range'] = phase.interp('range', (0, 800.0))
-    p['traj.phase0.states:mass_fuel'] = phase.interp('mass_fuel', (30000, 1e-3))
-    p['traj.phase0.states:alt'][:] = 10.0
-
-    # TODO: Make this unnecessary
-    if isinstance(transcription, dm.Birkhoff):
-
-        p['traj.phase0.initial_states:range'] = 0.0
-        p['traj.phase0.final_states:range'] = 724.0
-
-        p['traj.phase0.initial_states:mass_fuel'] = 30000
-        p['traj.phase0.final_states:mass_fuel'] = 1.0E-3
-
-        p['traj.phase0.initial_states:alt'] = 10.0
-        p['traj.phase0.final_states:alt'] = 10.0
-
-    p['traj.phase0.controls:mach'][:] = 0.8
+    phase.set_time_val(initial=0.0, duration=5000.0)
+    phase.set_state_val('range', (0, 724.0))
+    phase.set_state_val('mass_fuel', (30000, 1e-3))
+    phase.set_state_val('alt', 10.0)
+    phase.set_control_val('mach', 0.8)
 
     p['assumptions.S'] = 427.8
     p['assumptions.mass_empty'] = 0.15E6
@@ -143,6 +132,7 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
                           726.85, tolerance=1.0E-2)
 
     @require_pyoptsparse(optimizer='IPOPT')
+    @unittest.skipIf(om_version < (3, 32, 2), 'Test requires OpenMDAO 3.32.2 or later')
     def test_ex_aircraft_steady_flight_opt_birkhoff(self):
 
         tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=50, grid_type='cgl'),

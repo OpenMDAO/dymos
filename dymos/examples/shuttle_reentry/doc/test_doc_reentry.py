@@ -69,26 +69,15 @@ class TestReentryForDocs(unittest.TestCase):
 
         p.setup(check=True)
 
-        p.set_val('traj.phase0.t_initial', 0, units='s')
-        p.set_val('traj.phase0.t_duration', 2000, units='s')
-
-        p.set_val('traj.phase0.states:h',
-                  phase0.interp('h', [260000, 80000]), units='ft')
-        p.set_val('traj.phase0.states:gamma',
-                  phase0.interp('gamma', [-1, -5]), units='deg')
-        p.set_val('traj.phase0.states:phi',
-                  phase0.interp('phi', [0, 75]), units='deg')
-        p.set_val('traj.phase0.states:psi',
-                  phase0.interp('psi', [90, 10]), units='deg')
-        p.set_val('traj.phase0.states:theta',
-                  phase0.interp('theta', [0, 25]), units='deg')
-        p.set_val('traj.phase0.states:v',
-                  phase0.interp('v', [25600, 2500]), units='ft/s')
-
-        p.set_val('traj.phase0.controls:alpha',
-                  phase0.interp('alpha', ys=[17.4, 17.4]), units='deg')
-        p.set_val('traj.phase0.controls:beta',
-                  phase0.interp('beta', ys=[-75, 0]), units='deg')
+        phase0.set_time_val(initial=0, duration=2000, units='s')
+        phase0.set_state_val('h', [260000, 80000], units='ft')
+        phase0.set_state_val('gamma', [-1, -5], units='deg')
+        phase0.set_state_val('phi', [0, 75], units='deg')
+        phase0.set_state_val('psi', [90, 10], units='deg')
+        phase0.set_state_val('theta', [0, 25], units='deg')
+        phase0.set_state_val('v', [25600, 2500], units='ft/s')
+        phase0.set_control_val('alpha', 17.4, units='deg')
+        phase0.set_control_val('beta', [-75, 0], units='deg')
 
         # Run the driver
         dm.run_problem(p)

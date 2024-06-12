@@ -75,14 +75,13 @@ class TestIntegrateControl(unittest.TestCase):
 
         # Now that the OpenMDAO problem is setup, we can set the values of the states.
 
-        p.set_val('traj.phase0.t_initial', 0.0, units='s')
-        p.set_val('traj.phase0.t_duration', 5.0, units='s')
+        phase.set_time_val(initial=0.0, duration=5.0, units='s')
 
-        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
-        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
-        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
-        p.set_val('traj.phase0.states:int_theta', phase.interp('int_theta', [0.1, 45]), units='deg')
-        p.set_val('traj.phase0.controls:theta_rate', phase.interp('theta_rate', [10, 10]), units='deg/s')
+        phase.set_state_val('x', [0, 10], units='m')
+        phase.set_state_val('y', [10, 5], units='m')
+        phase.set_state_val('v', [0, 5], units='m/s')
+        phase.set_state_val('int_theta', [0.1, 45], units='deg')
+        phase.set_control_val('theta_rate', [10, 10], units='deg/s')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=False)
@@ -180,14 +179,13 @@ class TestIntegrateControl(unittest.TestCase):
 
         # Now that the OpenMDAO problem is setup, we can set the values of the states.
 
-        p.set_val('traj.phase0.t_initial', 0.0, units='s')
-        p.set_val('traj.phase0.t_duration', 5.0, units='s')
+        phase.set_time_val(initial=0.0, duration=5.0, units='s')
 
-        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
-        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
-        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
-        p.set_val('traj.phase0.states:int_theta', phase.interp('int_theta', [0.1, 45]), units='deg')
-        p.set_val('traj.phase0.controls:theta', phase.interp('theta', [0, 100]), units='deg')
+        phase.set_state_val('x', [0, 10], units='m')
+        phase.set_state_val('y', [10, 5], units='m')
+        phase.set_state_val('v', [0, 5], units='m/s')
+        phase.set_state_val('int_theta', [0.1, 45], units='deg')
+        phase.set_control_val('theta', [0, 100], units='deg')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=False)
@@ -296,16 +294,14 @@ class TestIntegrateControl(unittest.TestCase):
         p.setup(check=True)
 
         # Now that the OpenMDAO problem is setup, we can set the values of the states.
+        phase.set_time_val(initial=0.0, duration=5.0, units='s')
 
-        p.set_val('traj.phase0.t_initial', 0.0, units='s')
-        p.set_val('traj.phase0.t_duration', 5.0, units='s')
-
-        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
-        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
-        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
-        p.set_val('traj.phase0.states:int_theta', phase.interp('int_theta', [0.1, 45]), units='deg')
-        p.set_val('traj.phase0.states:int_theta_dot', phase.interp('int_theta_dot', [0, 0]), units='deg/s')
-        p.set_val('traj.phase0.controls:theta', phase.interp('theta', [0, 100]), units='deg')
+        phase.set_state_val('x', [0, 10], units='m')
+        phase.set_state_val('y', [10, 5], units='m')
+        phase.set_state_val('v', [0, 5], units='m/s')
+        phase.set_state_val('int_theta', [0.1, 45], units='deg')
+        phase.set_state_val('int_theta_dot', [0.0, 0.0], units='deg/s')
+        phase.set_control_val('theta', [0, 100], units='deg')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=False, simulate_kwargs={'atol': 1.0E-9, 'rtol': 1.0E-9})
@@ -422,14 +418,13 @@ class TestIntegratePolynomialControl(unittest.TestCase):
 
         # Now that the OpenMDAO problem is setup, we can set the values of the states.
 
-        p.set_val('traj.phase0.t_initial', 0.0, units='s')
-        p.set_val('traj.phase0.t_duration', 5.0, units='s')
+        phase.set_time_val(initial=0.0, duration=5.0, units='s')
 
-        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
-        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
-        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
-        p.set_val('traj.phase0.states:int_theta', phase.interp('int_theta', [0.1, 45]), units='deg')
-        p.set_val('traj.phase0.polynomial_controls:theta_rate', 10.0, units='deg/s')
+        phase.set_state_val('x', [0, 10], units='m')
+        phase.set_state_val('y', [10, 5], units='m')
+        phase.set_state_val('v', [0, 5], units='m/s')
+        phase.set_state_val('int_theta', [0.1, 45], units='deg')
+        phase.set_polynomial_control_val('theta_rate', 10.0, units='deg/s')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=True)
@@ -527,14 +522,13 @@ class TestIntegratePolynomialControl(unittest.TestCase):
 
         # Now that the OpenMDAO problem is setup, we can set the values of the states.
 
-        p.set_val('traj.phase0.t_initial', 0.0, units='s')
-        p.set_val('traj.phase0.t_duration', 5.0, units='s')
+        phase.set_time_val(initial=0.0, duration=5.0, units='s')
 
-        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
-        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
-        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
-        p.set_val('traj.phase0.states:int_theta', phase.interp('int_theta', [0.1, 45]), units='deg')
-        p.set_val('traj.phase0.polynomial_controls:theta', 45.0, units='deg')
+        phase.set_state_val('x', [0, 10], units='m')
+        phase.set_state_val('y', [10, 5], units='m')
+        phase.set_state_val('v', [0, 5], units='m/s')
+        phase.set_state_val('int_theta', [0.1, 45], units='deg')
+        phase.set_polynomial_control_val('theta', 45.0, units='deg')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=False)
@@ -645,15 +639,14 @@ class TestIntegratePolynomialControl(unittest.TestCase):
 
         # Now that the OpenMDAO problem is setup, we can set the values of the states.
 
-        p.set_val('traj.phase0.t_initial', 0.0, units='s')
-        p.set_val('traj.phase0.t_duration', 5.0, units='s')
+        phase.set_time_val(initial=0.0, duration=5.0, units='s')
 
-        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
-        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
-        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
-        p.set_val('traj.phase0.states:int_theta', phase.interp('int_theta', [0.1, 45]), units='deg')
-        p.set_val('traj.phase0.states:int_theta_dot', phase.interp('int_theta_dot', [0, 0]), units='deg/s')
-        p.set_val('traj.phase0.polynomial_controls:theta', 45.0, units='deg')
+        phase.set_state_val('x', [0, 10], units='m')
+        phase.set_state_val('y', [10, 5], units='m')
+        phase.set_state_val('v', [0, 5], units='m/s')
+        phase.set_state_val('int_theta', [0.1, 45], units='deg')
+        phase.set_state_val('int_theta_dot', [0.0, 0.0], units='deg/s')
+        phase.set_polynomial_control_val('theta', 45.0, units='deg')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=True)
@@ -773,41 +766,17 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
 
         # Now that the OpenMDAO problem is setup, we can set the values of the states.
 
-        p.set_val('traj.phase0.t_initial', 0.0, units='s')
-        p.set_val('traj.phase0.t_duration', 5.0, units='s')
+        phase.set_time_val(initial=0.0, duration=5.0, units='s')
 
-        p.set_val('traj.phase0.parameters:one', 1.0)
-
-        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
-
-        p.set_val('traj.phase0.states:y',
-                  phase.interp('y', [10, 5]),
-                  units='m')
-
-        p.set_val('traj.phase0.states:v',
-                  phase.interp('v', [0, 5]),
-                  units='m/s')
-
-        p.set_val('traj.phase0.controls:theta',
-                  phase.interp('theta', [0.1, 45], nodes='control_input'),
-                  units='deg')
-
-        # Additional states to test rate sources
-        p.set_val('traj.phase0.states:int_one',
-                  phase.interp('int_one', [0, 10]),
-                  units='s')
-
-        p.set_val('traj.phase0.states:int_time',
-                  phase.interp('int_time', [0, 10]),
-                  units='s**2')
-
-        p.set_val('traj.phase0.states:int_time_phase',
-                  phase.interp('int_time_phase', [0, 10]),
-                  units='s**2')
-
-        p.set_val('traj.phase0.states:int_int_one',
-                  phase.interp('int_int_one', [0, 10]),
-                  units='s**2')
+        phase.set_state_val('x', [0, 10], units='m')
+        phase.set_state_val('y', [10, 5], units='m')
+        phase.set_state_val('v', [0, 5], units='m/s')
+        phase.set_state_val('int_one', [0, 10], units='s')
+        phase.set_state_val('int_int_one', [0, 10], units='s**2')
+        phase.set_state_val('int_time', [0, 10], units='s**2')
+        phase.set_state_val('int_time_phase', [0, 10], units='s**2')
+        phase.set_control_val('theta', [0.1, 45], units='deg')
+        phase.set_parameter_val('one', 1.0)
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True)
@@ -933,3 +902,7 @@ class TestInvalidStateRateSource(unittest.TestCase):
 
         expected = 'Error during configure_states_introspection in phase traj0.phases.phase0.'
         self.assertEqual(str(ctx.exception), expected)
+
+if __name__ == '__main__':
+    z = TestIntegratePolynomialControl()
+    z.test_integrate_polynomial_control_gl()

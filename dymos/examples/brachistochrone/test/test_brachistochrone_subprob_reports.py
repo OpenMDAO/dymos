@@ -55,14 +55,14 @@ def setup_model_radau(do_reports):
 
     phase.set_simulate_options(method='RK23')
 
-    p['traj0.phase0.t_initial'] = 0.0
-    p['traj0.phase0.t_duration'] = 2.0
+    phase.set_time_val(initial=0.0, duration=2.0)
 
-    p['traj0.phase0.states:x'] = phase.interp('x', [0, 10])
-    p['traj0.phase0.states:y'] = phase.interp('y', [10, 5])
-    p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
-    p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
-    p['traj0.phase0.parameters:g'] = 9.80665
+    phase.set_state_val('x', [0, 10])
+    phase.set_state_val('y', [10, 5])
+    phase.set_state_val('v', [0, 9.9])
+
+    phase.set_control_val('theta', [5, 100.5])
+    phase.set_parameter_val('g', 9.80665)
 
     if do_reports:
         dm.run_problem(p, run_driver=True, simulate=True, simulate_kwargs={'reports': True})
@@ -103,13 +103,14 @@ def setup_model_shooting(do_reports):
 
     prob.setup(force_alloc_complex=True)
 
-    prob.set_val('phase0.t_initial', 0.0)
-    prob.set_val('phase0.t_duration', 2)
-    prob.set_val('phase0.initial_states:x', 0.0)
-    prob.set_val('phase0.initial_states:y', 10.0)
-    prob.set_val('phase0.initial_states:v', 1.0E-6)
-    prob.set_val('phase0.parameters:g', 1.0, units='m/s**2')
-    prob.set_val('phase0.controls:theta', phase.interp('theta', ys=[0.01, 90]), units='deg')
+    phase.set_time_val(initial=0.0, duration=2.0)
+
+    phase.set_state_val('x', [0, 10])
+    phase.set_state_val('y', [10, 5])
+    phase.set_state_val('v', [0, 9.9])
+
+    phase.set_control_val('theta', [0.01, 90], units='deg')
+    phase.set_parameter_val('g', 1.0)
 
     dm.run_problem(prob, run_driver=True, simulate=False)
 

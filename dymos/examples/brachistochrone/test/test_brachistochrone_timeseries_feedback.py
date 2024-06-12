@@ -138,15 +138,13 @@ class TestBrachistochroneTimeseriesFeedback(unittest.TestCase):
         p.setup(check=True)
 
         # Now that the OpenMDAO problem is setup, we can set the values of the states.
-        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]), units='m')
 
-        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]), units='m')
+        phase.set_state_val('x', [0, 10], units='m')
+        phase.set_state_val('y', [10, 5], units='m')
+        phase.set_state_val('v', [0, 5], units='m/s')
 
-        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
-
-        p.set_val('traj.phase0.controls:theta', phase.interp('theta', [90, 90]), units='deg')
-
-        p.set_val('traj.parameters:final_time', 0.0, units='s')
+        phase.set_control_val('theta', [90, 90])
+        phase.set_parameter_val('final_time', 0.0, units='s')
 
         # Run the driver to solve the problem
         dm.run_problem(p, run_driver=True, simulate=True)
@@ -156,8 +154,8 @@ class TestBrachistochroneTimeseriesFeedback(unittest.TestCase):
 
         final_time_timeseries_sol = sol_case.get_val('traj.phase0.timeseries.time')[-1, ...]
         final_time_traj_param_sol = sol_case.get_val('traj.parameter_vals:final_time')[0, 0]
-        final_time_timeseries_sim = sol_case.get_val('traj.phase0.timeseries.time')[-1, ...]
-        final_time_traj_param_sim = sol_case.get_val('traj.parameter_vals:final_time')[0, 0]
+        final_time_timeseries_sim = sim_case.get_val('traj.phase0.timeseries.time')[-1, ...]
+        final_time_traj_param_sim = sim_case.get_val('traj.parameter_vals:final_time')[0, 0]
 
         p.model.list_outputs(prom_name=True)
 

@@ -30,6 +30,10 @@ class TestBrachExecCompODE(unittest.TestCase):
             t = dm.Radau(num_segments=num_segments,
                          order=transcription_order,
                          compressed=compressed)
+        elif transcription == 'birkhoff':
+            grid = dm.BirkhoffGrid(num_nodes=transcription_order+1,
+                                   grid_type='cgl')
+            t = dm.Birkhoff(grid=grid)
 
         def ode(num_nodes):
             return om.ExecComp(['vdot = g * cos(theta)',
@@ -75,15 +79,14 @@ class TestBrachExecCompODE(unittest.TestCase):
         phase.add_objective('time_phase', loc='final', scaler=10)
 
         p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
+        phase.set_time_val(initial=0.0, duration=2.0)
 
-        p['traj0.phase0.t_initial'] = 0.0
-        p['traj0.phase0.t_duration'] = 2.0
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
 
-        p['traj0.phase0.states:x'] = phase.interp('x', [0, 10])
-        p['traj0.phase0.states:y'] = phase.interp('y', [10, 5])
-        p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
-        p['traj0.phase0.parameters:g'] = 9.80665
+        phase.set_control_val('theta', [5, 100])
+        phase.set_parameter_val('g', 9.80665)
 
         dm.run_problem(p, run_driver=run_driver, simulate=True)
 
@@ -129,6 +132,10 @@ class TestBrachExecCompODE(unittest.TestCase):
 
     def test_ex_brachistochrone_gl_uncompressed(self):
         self._make_problem(transcription='gauss-lobatto', compressed=False)
+        self.run_asserts()
+
+    def test_ex_brachistochrone_birkhoff_uncompressed(self):
+        self._make_problem(transcription='birkhoff', transcription_order=10)
         self.run_asserts()
 
 
@@ -287,14 +294,14 @@ class TestBrachCallableODE(unittest.TestCase):
 
         p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
 
-        p['traj0.phase0.t_initial'] = 0.0
-        p['traj0.phase0.t_duration'] = 2.0
+        phase.set_time_val(initial=0.0, duration=2.0)
 
-        p['traj0.phase0.states:x'] = phase.interp('x', [0, 10])
-        p['traj0.phase0.states:y'] = phase.interp('y', [10, 5])
-        p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
-        p['traj0.phase0.parameters:g'] = 9.80665
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
+
+        phase.set_control_val('theta', [5, 100])
+        phase.set_parameter_val('g', 9.80665)
 
         dm.run_problem(p, run_driver=run_driver, simulate=True)
 

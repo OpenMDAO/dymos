@@ -191,23 +191,21 @@ class TestTrajParamStaticAndDynamic(unittest.TestCase):
         p.set_val('external_params.radius', 0.05, units='m')
         p.set_val('external_params.dens', 7.87, units='g/cm**3')
 
-        p.set_val('traj.ascent.controls:CD', 0.5)
+        ascent.set_control_val('CD', 0.5)
 
-        p.set_val('traj.ascent.t_initial', 0.0)
-        p.set_val('traj.ascent.t_duration', 10.0)
+        ascent.set_time_val(initial=0.0, duration=10.0)
 
-        p.set_val('traj.ascent.states:r', ascent.interp('r', [0, 100]))
-        p.set_val('traj.ascent.states:h', ascent.interp('h', [0, 100]))
-        p.set_val('traj.ascent.states:v', ascent.interp('v', [200, 150]))
-        p.set_val('traj.ascent.states:gam', ascent.interp('gam', [25, 0]), units='deg')
+        ascent.set_state_val('r', [0, 100])
+        ascent.set_state_val('h', [0, 100])
+        ascent.set_state_val('v', [200, 150])
+        ascent.set_state_val('gam', [25, 0], units='deg')
 
-        p.set_val('traj.descent.t_initial', 10.0)
-        p.set_val('traj.descent.t_duration', 10.0)
+        descent.set_time_val(initial=10.0, duration=10.0)
 
-        p.set_val('traj.descent.states:r', descent.interp('r', [100, 200]))
-        p.set_val('traj.descent.states:h', descent.interp('h', [100, 0]))
-        p.set_val('traj.descent.states:v', descent.interp('v', [150, 200]))
-        p.set_val('traj.descent.states:gam', descent.interp('gam', [0, -45]), units='deg')
+        descent.set_state_val('r', [100, 200])
+        descent.set_state_val('h', [100, 0])
+        descent.set_state_val('v', [150, 200])
+        descent.set_state_val('gam', [0, -45], units='deg')
 
         dm.run_problem(p, simulate=True, make_plots=True)
 

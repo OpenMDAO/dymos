@@ -44,12 +44,11 @@ class TestMoonLandingProblem(unittest.TestCase):
 
         self.p.setup(check=True, force_alloc_complex=True)
 
-        self.p.set_val('traj.phase.initial_states:h', 1.0)
-        self.p.set_val('traj.phase.initial_states:v', -0.783)
-        self.p.set_val('traj.phase.initial_states:m', 1.0)
-        self.p.set_val('traj.phase.t_initial', 0)
-        self.p.set_val('traj.phase.t_duration', 1.0)
-        self.p.set_val('traj.phase.controls:T', phase.interp('T', [0.0, 1.227]))
+        phase.set_time_val(initial=0.0, duration=1.0)
+        phase.set_state_val('h', [1.0, 0.0])
+        phase.set_state_val('v', [-0.783, 0.0])
+        phase.set_state_val('m', [1.0, 0.2])
+        phase.set_control_val('T', [0.0, 1.227])
 
     def test_problem_lgl(self):
 
