@@ -476,6 +476,11 @@ class ControlGroup(om.Group):
         print('grids')
         print(gd)
         print(ogd)
+        # loop through both grids and print all attributes
+        for grid in [gd, ogd]:
+            for item in dir(grid):
+                if not item.startswith('__'):
+                    print(f'{item}: {getattr(grid, item)}')
         self.add_subsystem(
             'control_interp_comp',
             subsys=ControlInterpComp(time_units=time_units, grid_data=gd, output_grid_data=ogd,
