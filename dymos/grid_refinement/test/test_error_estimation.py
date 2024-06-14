@@ -69,7 +69,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         if control_type == 'control':
             p.set_val('traj0.phase0.controls:theta', phase.interp('theta', [90, 90]), units='deg')
         else:
-            p.set_val('traj0.phase0.polynomial_controls:theta',
+            p.set_val('traj0.phase0.controls:theta',
                       phase.interp('theta', [5, 100]), units='deg')
 
         p['traj0.phase0.parameters:g'] = g

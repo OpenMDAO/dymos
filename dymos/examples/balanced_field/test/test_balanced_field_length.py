@@ -456,7 +456,7 @@ class TestBalancedFieldLengthDefaultValues(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.rotate.t_initial'), 70)
         assert_near_equal(p.get_val('traj.rotate.t_duration'), 5)
-        assert_near_equal(p.get_val('traj.rotate.polynomial_controls:alpha'), np.array([[0, 10]]).T)
+        assert_near_equal(p.get_val('traj.rotate.controls:alpha'), np.array([[0, 10]]).T)
         assert_near_equal(p.get_val('traj.climb.controls:alpha'),
                           p.model.traj.phases.climb.interp('', [0.01, 0.01], nodes='control_input'))
         assert_near_equal(p.get_val('traj.climb.states:gam'),

@@ -262,7 +262,7 @@ class TestODEIntegrationComp(unittest.TestCase):
         p.set_val('integrator.t_duration', 1.8016)
         p.set_val('integrator.parameters:g', 9.80665)
 
-        p.set_val('integrator.polynomial_controls:theta',
+        p.set_val('integrator.controls:theta',
                   np.linspace(0.01, 100.0, poly_control_options['theta']['order']+1),
                   units='deg')
 

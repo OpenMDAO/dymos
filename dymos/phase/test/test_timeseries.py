@@ -428,7 +428,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         if polynomial_control:
             phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
-            control_name = 'polynomial_controls:theta'
+            control_name = 'controls:theta'
         else:
             phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
                               units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)

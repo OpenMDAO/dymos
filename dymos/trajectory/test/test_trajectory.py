@@ -536,7 +536,7 @@ class TestLinkages(unittest.TestCase):
         p.set_val('burn2.states:vt', val=burn2.interp('vt', [1, np.sqrt(1 / 3)]))
         p.set_val('burn2.states:accel', val=burn2.interp('accel', [0.1, 0]))
         p.set_val('burn2.states:deltav', val=burn2.interp('deltav', [0.1, 0.2]))
-        p.set_val('burn2.polynomial_controls:u1', val=burn2.interp('u1', [1, 1]))
+        p.set_val('burn2.controls:u1', val=burn2.interp('u1', [1, 1]))
         p.set_val('burn2.parameters:c', val=1.5)
 
         p.run_model()
@@ -939,7 +939,7 @@ class TestLinkages(unittest.TestCase):
         p.set_val('burn2.states:vt', val=burn2.interp('vt', [1, np.sqrt(1 / 3)]))
         p.set_val('burn2.states:accel', val=burn2.interp('accel', [0.1, 0]))
         p.set_val('burn2.states:deltav', val=burn2.interp('deltav', [0.1, 0.2]))
-        p.set_val('burn2.polynomial_controls:u1', val=burn2.interp('u1', [1, 1]))
+        p.set_val('burn2.controls:u1', val=burn2.interp('u1', [1, 1]))
         p.set_val('burn2.parameters:c', val=1.5)
 
         p.run_model()
@@ -1073,7 +1073,7 @@ class TestLinkages(unittest.TestCase):
         p.set_val('burn2.states:vt', val=burn2.interp('vt', [1, np.sqrt(1 / 3)]))
         p.set_val('burn2.states:accel', val=burn2.interp('accel', [0.1, 0]))
         p.set_val('burn2.states:deltav', val=burn2.interp('deltav', [0.1, 0.2]))
-        p.set_val('burn2.polynomial_controls:u1', val=burn2.interp('u1', [1, 1]))
+        p.set_val('burn2.controls:u1', val=burn2.interp('u1', [1, 1]))
         p.set_val('burn2.parameters:c', val=1.5)
 
         p.run_model()

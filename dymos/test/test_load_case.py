@@ -51,7 +51,7 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=Fal
     p['phase0.states:v'] = phase.interp('v', [0, 9.9])
 
     if polynomial_control:
-        p['phase0.polynomial_controls:theta'] = phase.interp('theta', [5, 100.5])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100.5])
     else:
         p['phase0.controls:theta'] = phase.interp('theta', [5, 100.5])
 
@@ -117,8 +117,8 @@ class TestLoadCase(unittest.TestCase):
         # Run the model to ensure we find the same output values as those that we recorded
         p.run_model()
 
-        assert_near_equal(p.get_val('phase0.polynomial_controls:theta'),
-                          case.get_val('phase0.polynomial_controls:theta'))
+        assert_near_equal(p.get_val('phase0.controls:theta'),
+                          case.get_val('phase0.controls:theta'))
 
     def test_load_case_lgl_to_radau(self):
         import openmdao.api as om
@@ -249,7 +249,7 @@ class TestLoadCase(unittest.TestCase):
                           fix_final_state=False, fix_final_control=True)
 
         # Load the values from the previous solution
-        msg = f"phase0.polynomial_controls:theta specifies 'fix_final=True'. If the given restart file has a" \
+        msg = f"phase0.controls:theta specifies 'fix_final=True'. If the given restart file has a" \
               f" different final value this will overwrite the user-specified value"
 
         with assert_warning(UserWarning, msg):

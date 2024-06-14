@@ -267,7 +267,7 @@ class TestReentry(unittest.TestCase):
         p.set_val('traj.phase0.t_duration', 2000, units='s')
         p.set_val('traj.phase0.controls:alpha',
                   phase0.interp('alpha', [17.4, 17.4]), units='deg')
-        p.set_val('traj.phase0.polynomial_controls:beta',
+        p.set_val('traj.phase0.controls:beta',
                   phase0.interp('beta', [-20, 0]), units='deg')
 
         dm.run_problem(p, simulate=True)

@@ -79,7 +79,7 @@ class TestSimulateShapedParams(unittest.TestCase):
 
         p.set_val('hop0.main_phase.t_initial', 0.0)
         p.set_val('hop0.main_phase.t_duration', 10)
-        p.set_val('hop0.main_phase.polynomial_controls:Thrust', val=-3400, indices=om.slicer[:, 0])
+        p.set_val('hop0.main_phase.controls:Thrust', val=-3400, indices=om.slicer[:, 0])
         p.set_val('hop0.main_phase.states:impulse',  main_phase.interp('impulse', [0, 0]))
 
         p.run_driver()
@@ -123,7 +123,7 @@ class TestSimulateShapedParams(unittest.TestCase):
 
         p.set_val('hop0.main_phase.t_initial', 0.0)
         p.set_val('hop0.main_phase.t_duration', 10)
-        p.set_val('hop0.main_phase.polynomial_controls:Thrust', val=-3400, indices=om.slicer[:, 0])
+        p.set_val('hop0.main_phase.controls:Thrust', val=-3400, indices=om.slicer[:, 0])
         p.set_val('hop0.main_phase.states:impulse',  main_phase.interp('impulse', [0, 0]))
 
         p.run_driver()

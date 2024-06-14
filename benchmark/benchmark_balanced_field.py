@@ -229,7 +229,7 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
     p.set_val('traj.rotate.t_duration', 5)
     p.set_val('traj.rotate.states:r', rotate.interp('r', [1750, 1800.0]))
     p.set_val('traj.rotate.states:v', rotate.interp('v', [80, 85.0]))
-    p.set_val('traj.rotate.polynomial_controls:alpha', 0.0, units='deg')
+    p.set_val('traj.rotate.controls:alpha', 0.0, units='deg')
 
     p.set_val('traj.climb.t_initial', 75)
     p.set_val('traj.climb.t_duration', 15)
