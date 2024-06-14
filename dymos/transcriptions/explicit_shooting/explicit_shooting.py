@@ -401,8 +401,11 @@ class ExplicitShooting(TranscriptionBase):
         ode_inputs = get_promoted_vars(ode, 'input')
 
         # Add the appropriate design parameters
-        ncin = self.options['grid'].subset_num_nodes['control_input']
         for control_name, options in phase.control_options.items():
+            if options['control_type'] == 'polynomial':
+                ncin = options['order'] + 1
+            else:
+                ncin = options['grid'].subset_num_nodes['control_input']
 
             phase.promotes('integrator', inputs=[f'controls:{control_name}'])
 

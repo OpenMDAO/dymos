@@ -264,7 +264,11 @@ class ODEIntegrationComp(om.ExplicitComponent):
         self._control_input_names = {}
 
         for control_name, options in self.control_options.items():
-            control_param_shape = (self._num_control_input_nodes,) + options['shape']
+            if options['control_type'] == 'polynomial':
+                num_input_nodes = options['order'] + 1
+                control_param_shape = (num_input_nodes,) + options['shape']
+            else:
+                control_param_shape = (self._num_control_input_nodes,) + options['shape']
             control_param_size = np.prod(control_param_shape, dtype=int)
             self._control_input_names[control_name] = f'controls:{control_name}'
 
@@ -276,37 +280,6 @@ class ODEIntegrationComp(om.ExplicitComponent):
                            desc=f'values for control {control_name} at input nodes')
 
             self.u_size += control_param_size
-
-    def _setup_polynomial_controls(self):
-        if self._standalone_mode:
-            self._configure_polynomial_controls()
-
-    def _configure_polynomial_controls(self):
-        """
-        Components do not have configure methods, but since we rely on configure-time introspection to determine
-        properties of the states, times, controls, parameters, and timeseries, we need to call this method at
-        configure time in the parent ExplicitShooting transcription object.
-        """
-        self.up_size = 0
-        self._polynomial_control_idxs_in_theta = {}
-        self._polynomial_control_idxs_in_z = {}
-        self._polynomial_control_input_names = {}
-
-        for name, options in self.polynomial_control_options.items():
-            num_input_nodes = options['order'] + 1
-            control_param_shape = (num_input_nodes,) + options['shape']
-            control_param_size = np.prod(control_param_shape, dtype=int)
-
-            self._polynomial_control_input_names[name] = f'controls:{name}'
-
-            self._totals_wrt_names.append(self._polynomial_control_input_names[name])
-
-            self.add_input(self._polynomial_control_input_names[name],
-                           shape=control_param_shape,
-                           units=options['units'],
-                           desc=f'values for control {name} at input nodes')
-
-            self.up_size += control_param_size
 
     def _build_dx_dz_idxs(self):
         self._partial_dx_dz_idxs = {}
@@ -464,7 +437,6 @@ class ODEIntegrationComp(om.ExplicitComponent):
         self._setup_time()
         self._setup_parameters()
         self._setup_controls()
-        self._setup_polynomial_controls()
         self._setup_states()
         self._setup_storage()
 

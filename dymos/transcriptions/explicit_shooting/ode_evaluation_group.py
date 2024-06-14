@@ -260,9 +260,12 @@ class ODEEvaluationGroup(om.Group):
                 raise ValueError('ODEEvaluationGroup was provided with control options but '
                                  'a GridData object was not provided.')
 
-            num_control_input_nodes = igd.subset_num_nodes['control_input']
-
             for name, options in self._control_options.items():
+                if options['control_type'] == 'polynomial':
+                    num_control_input_nodes = options['order'] + 1
+                else:
+                    num_control_input_nodes = igd.subset_num_nodes['control_input']
+                    
                 shape = options['shape']
                 units = options['units']
                 rate_units = get_rate_units(units, time_units, deriv=1)

@@ -94,7 +94,7 @@ class ControlInterpComp(om.ExplicitComponent):
         time_units = self.options['time_units']
 
         for name, options in control_options.items():
-            if control_options[name]['control_type'] == 'polynomial':
+            if options['control_type'] == 'polynomial':
                 disc_nodes, _ = lgl(options['order'] + 1)
                 num_control_input_nodes = len(disc_nodes)
                 shape = options['shape']
@@ -116,6 +116,11 @@ class ControlInterpComp(om.ExplicitComponent):
                 self._output_val_names[name] = f'control_values:{name}'
                 self._output_rate_names[name] = f'control_rates:{name}_rate'
                 self._output_rate2_names[name] = f'control_rates:{name}_rate2'
+
+                print(f'input name: {self._input_names[name]}')
+                # print all shapes
+                print(f'input shape: {input_shape}')
+                print(f'output shape: {output_shape}')
 
                 self.add_input(self._input_names[name], val=np.ones(input_shape), units=units)
                 self.add_output(self._output_val_names[name], shape=output_shape, units=units)
@@ -468,6 +473,9 @@ class ControlGroup(om.Group):
         if len(control_options) < 1:
             return
         
+        print('grids')
+        print(gd)
+        print(ogd)
         self.add_subsystem(
             'control_interp_comp',
             subsys=ControlInterpComp(time_units=time_units, grid_data=gd, output_grid_data=ogd,
