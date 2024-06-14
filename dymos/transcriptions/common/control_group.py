@@ -93,6 +93,8 @@ class ControlInterpComp(om.ExplicitComponent):
         time_units = self.options['time_units']
 
         for name, options in control_options.items():
+            if 'control_type' not in options:
+                options['control_type'] = 'full'
             if options['control_type'] == 'polynomial':
                 disc_nodes, _ = lgl(options['order'] + 1)
                 num_control_input_nodes = len(disc_nodes)

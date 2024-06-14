@@ -69,7 +69,7 @@ class TestPhaseInterp(unittest.TestCase):
             phase.interp('x', [0, 100])
 
         expected = 'Could not find a state, control, or polynomial control named x to be ' \
-                   'interpolated.\nPlease explicitly specified the node subset onto which this ' \
+                   'interpolated.\nPlease explicitly specify the node subset onto which this ' \
                    'value should be interpolated.'
 
         self.assertEqual(str(e.exception), expected)
