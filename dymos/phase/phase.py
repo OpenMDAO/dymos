@@ -1824,12 +1824,17 @@ class Phase(om.Group):
             integer specifying the order of the spline interpolator to use.
             Default is 'linear'.
         """
+        control_options = self.control_options[name]
+        if control_options['control_type'] == 'polynomial':
+            nodes = None
+        else:
+            nodes = 'control_input'
         if np.isscalar(vals):
             val = vals
         else:
-            val = self.interp(name, ys=vals, xs=time_vals, nodes='control_input', kind=interpolation_kind)
+            val = self.interp(name, ys=vals, xs=time_vals, nodes=nodes, kind=interpolation_kind)
         if units is None:
-            units = self.control_options[name]['units']
+            units = control_options['units']
         self.set_val(f'controls:{name}', val=val, units=units)
 
     def set_polynomial_control_val(self, name, vals=None, time_vals=None,
@@ -2310,7 +2315,7 @@ class Phase(om.Group):
                     node_locations = gd.node_ptau[gd.subset_node_indices['control_input']]
             else:
                 raise ValueError('Could not find a state, control, or polynomial control named '
-                                 f'{name} to be interpolated.\nPlease explicitly specified the '
+                                 f'{name} to be interpolated.\nPlease explicitly specify the '
                                  f'node subset onto which this value should be interpolated.')
         else:
             node_locations = gd.node_ptau[gd.subset_node_indices[nodes]]

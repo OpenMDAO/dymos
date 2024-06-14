@@ -89,12 +89,8 @@ class SimulationPhase(Phase):
             self.set_val(f'parameters:{name}', val, units=options['units'])
 
         for name, options in self.control_options.items():
-            if options['control_type'] == 'polynomial':
-                control_str = 'polynomial_controls'
-            else:
-                control_str = 'controls'
-            val = from_phase.get_val(f'{control_str}:{name}', units=options['units'], from_src=False)
-            self.set_val(f'{control_str}:{name}', val, units=options['units'])
+            val = from_phase.get_val(f'controls:{name}', units=options['units'], from_src=False)
+            self.set_val(f'controls:{name}', val, units=options['units'])
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,

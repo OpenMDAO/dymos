@@ -405,7 +405,7 @@ class ExplicitShooting(TranscriptionBase):
             if options['control_type'] == 'polynomial':
                 ncin = options['order'] + 1
             else:
-                ncin = options['grid'].subset_num_nodes['control_input']
+                ncin = self.options['grid'].subset_num_nodes['control_input']
 
             phase.promotes('integrator', inputs=[f'controls:{control_name}'])
 

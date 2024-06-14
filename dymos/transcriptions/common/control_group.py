@@ -85,9 +85,8 @@ class ControlInterpComp(om.ExplicitComponent):
 
     def _configure_controls(self):
         gd = self.options['grid_data']
-        num_nodes = gd.subset_num_nodes['all']
-        eval_nodes = gd.node_ptau
         ogd = self.options['output_grid_data'] or gd
+        eval_nodes = ogd.node_ptau
         control_options = self.options['control_options']
         num_output_nodes = ogd.num_nodes
         num_control_input_nodes = gd.subset_num_nodes['control_input']
@@ -104,7 +103,7 @@ class ControlInterpComp(om.ExplicitComponent):
                 rate2_units = get_rate_units(units, self.options['time_units'], deriv=2)
 
                 input_shape = (num_control_input_nodes,) + shape
-                output_shape = (num_nodes,) + shape
+                output_shape = (num_output_nodes,) + shape
 
                 L_de, D_de = lagrange_matrices(disc_nodes, eval_nodes)
                 _, D_dd = lagrange_matrices(disc_nodes, disc_nodes)
@@ -117,32 +116,27 @@ class ControlInterpComp(om.ExplicitComponent):
                 self._output_rate_names[name] = f'control_rates:{name}_rate'
                 self._output_rate2_names[name] = f'control_rates:{name}_rate2'
 
-                print(f'input name: {self._input_names[name]}')
-                # print all shapes
-                print(f'input shape: {input_shape}')
-                print(f'output shape: {output_shape}')
-
                 self.add_input(self._input_names[name], val=np.ones(input_shape), units=units)
                 self.add_output(self._output_val_names[name], shape=output_shape, units=units)
                 self.add_output(self._output_rate_names[name], shape=output_shape, units=rate_units)
                 self.add_output(self._output_rate2_names[name], shape=output_shape, units=rate2_units)
 
-                self.val_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
-                self.rate_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
-                self.rate2_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
+                self.val_jacs[name] = np.zeros((num_output_nodes, size, num_control_input_nodes, size))
+                self.rate_jacs[name] = np.zeros((num_output_nodes, size, num_control_input_nodes, size))
+                self.rate2_jacs[name] = np.zeros((num_output_nodes, size, num_control_input_nodes, size))
 
                 for i in range(size):
                     self.val_jacs[name][:, i, :, i] = L_de
                     self.rate_jacs[name][:, i, :, i] = D_de
                     self.rate2_jacs[name][:, i, :, i] = D2_de
 
-                self.val_jacs[name] = self.val_jacs[name].reshape((num_nodes * size,
+                self.val_jacs[name] = self.val_jacs[name].reshape((num_output_nodes * size,
                                                                 num_control_input_nodes * size),
                                                                 order='C')
-                self.rate_jacs[name] = self.rate_jacs[name].reshape((num_nodes * size,
+                self.rate_jacs[name] = self.rate_jacs[name].reshape((num_output_nodes * size,
                                                                     num_control_input_nodes * size),
                                                                     order='C')
-                self.rate2_jacs[name] = self.rate2_jacs[name].reshape((num_nodes * size,
+                self.rate2_jacs[name] = self.rate2_jacs[name].reshape((num_output_nodes * size,
                                                                     num_control_input_nodes * size),
                                                                     order='C')
                 self.val_jac_rows[name], self.val_jac_cols[name] = \
@@ -159,7 +153,7 @@ class ControlInterpComp(om.ExplicitComponent):
                                     wrt=self._input_names[name],
                                     rows=rs, cols=cs, val=self.val_jacs[name][rs, cs])
 
-                rs = np.concatenate([np.arange(0, num_nodes * size, size, dtype=int) + i
+                rs = np.concatenate([np.arange(0, num_output_nodes * size, size, dtype=int) + i
                                     for i in range(size)])
 
                 self.declare_partials(of=self._output_rate_names[name],
@@ -380,7 +374,7 @@ class ControlInterpComp(om.ExplicitComponent):
         """
         control_options = self.options['control_options']
         num_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
-        nn = self.options['grid_data'].num_nodes
+        nn = self.options['output_grid_data'].num_nodes
 
         dstau_dt = np.reciprocal(inputs['dt_dstau'])
         dstau_dt2 = (dstau_dt ** 2)[:, np.newaxis]
@@ -473,14 +467,6 @@ class ControlGroup(om.Group):
         if len(control_options) < 1:
             return
         
-        print('grids')
-        print(gd)
-        print(ogd)
-        # loop through both grids and print all attributes
-        for grid in [gd, ogd]:
-            for item in dir(grid):
-                if not item.startswith('__'):
-                    print(f'{item}: {getattr(grid, item)}')
         self.add_subsystem(
             'control_interp_comp',
             subsys=ControlInterpComp(time_units=time_units, grid_data=gd, output_grid_data=ogd,

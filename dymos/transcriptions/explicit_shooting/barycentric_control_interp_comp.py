@@ -160,7 +160,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             If True, allocate storage for complex step.
         """
         self.options['segment_index'] = idx
-        disc_node_idxs = self._disc_node_idxs_by_segment[idx]
 
         i1, i2 = self._grid_data.subset_segment_indices['control_disc'][idx, :]
         indices = self._grid_data.subset_node_indices['control_disc'][i1:i2]
@@ -172,7 +171,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             if options['control_type'] == 'polynomial':
                 order = options['order']
                 ptaus[control_name] = lgl(order + 1)[0]
-                print(ptaus)
         self._compute_barycentric_weights(taus_seg, ptaus)
         dtype = complex if alloc_complex else float
 

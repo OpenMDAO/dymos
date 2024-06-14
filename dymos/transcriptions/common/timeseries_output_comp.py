@@ -165,8 +165,6 @@ class TimeseriesOutputComp(om.ExplicitComponent):
             input_units = self._units[input_name]
         else:
             input_name = f'input_values:{name}'
-            print(f'Adding input {input_name} for {name}')
-            print(input_num_nodes)
             self.add_input(input_name,
                            shape=(input_num_nodes,) + shape,
                            units=units, desc=desc)
