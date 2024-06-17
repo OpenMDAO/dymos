@@ -89,7 +89,6 @@ class ControlInterpComp(om.ExplicitComponent):
         eval_nodes = ogd.node_ptau
         control_options = self.options['control_options']
         num_output_nodes = ogd.num_nodes
-        num_control_input_nodes = gd.subset_num_nodes['control_input']
         time_units = self.options['time_units']
 
         for name, options in control_options.items():
@@ -178,6 +177,7 @@ class ControlInterpComp(om.ExplicitComponent):
                 self._output_rate_names[name] = f'control_rates:{name}_rate'
                 self._output_rate2_names[name] = f'control_rates:{name}_rate2'
                 shape = options['shape']
+                num_control_input_nodes = gd.subset_num_nodes['control_input']
                 input_shape = (num_control_input_nodes,) + shape
                 output_shape = (num_output_nodes,) + shape
 
@@ -375,8 +375,6 @@ class ControlInterpComp(om.ExplicitComponent):
             Subjac components written to partials[output_name, input_name].
         """
         control_options = self.options['control_options']
-        num_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
-        nn = self.options['output_grid_data'].num_nodes
 
         dstau_dt = np.reciprocal(inputs['dt_dstau'])
         dstau_dt2 = (dstau_dt ** 2)[:, np.newaxis]
@@ -390,6 +388,7 @@ class ControlInterpComp(om.ExplicitComponent):
                 control_name = self._input_names[name]
                 num_input_nodes = options['order'] + 1
                 L_de, D_de, D2_de = self._matrices[name]
+                nn = self.options['output_grid_data'].num_nodes
 
                 size = self.sizes[name]
                 rate_name = self._output_rate_names[name]
@@ -421,6 +420,7 @@ class ControlInterpComp(om.ExplicitComponent):
                 size = self.sizes[name]
                 rate_name = self._output_rate_names[name]
                 rate2_name = self._output_rate2_names[name]
+                num_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
 
                 # Unroll shaped controls into an array at each node
                 u_flat = np.reshape(inputs[control_name], (num_input_nodes, size))

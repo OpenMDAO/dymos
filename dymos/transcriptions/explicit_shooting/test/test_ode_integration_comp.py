@@ -232,14 +232,13 @@ class TestODEIntegrationComp(unittest.TestCase):
         param_options['g']['units'] = 'm/s**2'
         param_options['g']['targets'] = ['g']
 
-        poly_control_options = {'theta': dm.phase.options.PolynomialControlOptionsDictionary()}
+        control_options = {'theta': dm.phase.options.ControlOptionsDictionary()}
 
-        poly_control_options['theta']['shape'] = (1,)
-        poly_control_options['theta']['order'] = 2
-        poly_control_options['theta']['units'] = 'rad'
-        poly_control_options['theta']['targets'] = ['theta']
-
-        control_options = {}
+        control_options['theta']['control_type'] = 'polynomial'
+        control_options['theta']['shape'] = (1,)
+        control_options['theta']['order'] = 2
+        control_options['theta']['units'] = 'rad'
+        control_options['theta']['targets'] = ['theta']
 
         p = om.Problem()
 
@@ -249,7 +248,6 @@ class TestODEIntegrationComp(unittest.TestCase):
                                                  state_options=state_options,
                                                  parameter_options=param_options,
                                                  control_options=control_options,
-                                                 polynomial_control_options=poly_control_options,
                                                  input_grid_data=gd,
                                                  ode_init_kwargs=None))
 
@@ -263,7 +261,7 @@ class TestODEIntegrationComp(unittest.TestCase):
         p.set_val('integrator.parameters:g', 9.80665)
 
         p.set_val('integrator.controls:theta',
-                  np.linspace(0.01, 100.0, poly_control_options['theta']['order']+1),
+                  np.linspace(0.01, 100.0, control_options['theta']['order']+1),
                   units='deg')
 
         p.run_model()

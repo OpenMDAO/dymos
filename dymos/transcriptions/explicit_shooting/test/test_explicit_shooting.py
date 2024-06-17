@@ -314,6 +314,7 @@ class TestExplicitShooting(unittest.TestCase):
                 for path_rename in (True, False):
                     with self.subTest(f'output_grid = {output_grid_type}  compressed = {compressed}  '
                                       f'rename_path_const = {path_rename}'):
+                        print(f'output_grid = {output_grid_type}  compressed = {compressed}  ')
                         prob = om.Problem()
 
                         input_grid = dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=3, compressed=compressed)
