@@ -1862,6 +1862,9 @@ class Phase(om.Group):
             integer specifying the order of the spline interpolator to use.
             Default is 'linear'.
         """
+        om.issue_warning(f'{self.pathname}: The method `set_polynomial_control_val` is '
+                         'deprecated and will be removed in Dymos 2.1.',
+                         category=om.OMDeprecationWarning)
         if np.isscalar(vals):
             val = vals
         else:
