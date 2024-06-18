@@ -37,11 +37,10 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
     **kwargs
         Keyword arguments passed to ExplicitComponent.
     """
-    def __init__(self, grid_data, control_options=None, polynomial_control_options=None,
+    def __init__(self, grid_data, control_options=None,
                  time_units=None, standalone_mode=False, **kwargs):
         self._grid_data = grid_data
         self._control_options = {} if control_options is None else control_options
-        self._polynomial_control_options = {} if polynomial_control_options is None else polynomial_control_options
         self._time_units = time_units
         self._standalone_mode = standalone_mode
 

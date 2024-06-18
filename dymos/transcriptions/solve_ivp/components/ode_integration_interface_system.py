@@ -28,10 +28,6 @@ class ODEIntegrationInterfaceSystem(om.Group):
         self.options.declare('control_options', default=None, types=dict, allow_none=True,
                              desc='Dictionary of control names/options for the segments parent Phase.')
 
-        self.options.declare('polynomial_control_options', default=None, types=dict, allow_none=True,
-                             desc='Dictionary of polynomial control names/options for the segments '
-                                  'parent Phase.')
-
         self.options.declare('parameter_options', default=None, types=dict, allow_none=True,
                              desc='Dictionary of parameter names/options for the segments '
                                   'parent Phase.')
@@ -64,11 +60,10 @@ class ODEIntegrationInterfaceSystem(om.Group):
 
         self.connect('t_duration', [f'ode.{tgt}' for tgt in time_options['t_duration_targets']])
 
-        if self.options['control_options'] or self.options['polynomial_control_options']:
+        if self.options['control_options']:
             self._interp_comp = \
                 ODEIntControlInterpolationComp(time_units=time_units,
-                                               control_options=self.options['control_options'],
-                                               polynomial_control_options=self.options['polynomial_control_options'])
+                                               control_options=self.options['control_options'])
 
             self.add_subsystem('indep_controls', self._interp_comp, promotes_outputs=['*'])
             self.connect('t', ['indep_controls.time'])
@@ -115,19 +110,6 @@ class ODEIntegrationInterfaceSystem(om.Group):
         # Configure controls
         if self.options['control_options']:
             for name, options in self.options['control_options'].items():
-                if options['targets']:
-                    self.connect(f'controls:{name}',
-                                 [f'ode.{tgt}' for tgt in options['targets']])
-                if options['rate_targets']:
-                    self.connect(f'control_rates:{name}_rate',
-                                 [f'ode.{tgt}' for tgt in options['rate_targets']])
-                if options['rate2_targets']:
-                    self.connect(f'control_rates:{name}_rate2',
-                                 [f'ode.{tgt}' for tgt in options['rate2_targets']])
-
-        # Polynomial controls
-        if self.options['polynomial_control_options']:
-            for name, options in self.options['polynomial_control_options'].items():
                 if options['targets']:
                     self.connect(f'controls:{name}',
                                  [f'ode.{tgt}' for tgt in options['targets']])
