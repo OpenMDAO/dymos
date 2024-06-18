@@ -79,7 +79,6 @@ class TestODEIntegrationComp(unittest.TestCase):
                 param_options['p']['targets'] = ['p']
 
                 control_options = {}
-                polynomial_control_options = {}
 
                 prob = om.Problem()
 
@@ -89,7 +88,6 @@ class TestODEIntegrationComp(unittest.TestCase):
                                                             time_options=time_options, state_options=state_options,
                                                             parameter_options=param_options,
                                                             control_options=control_options,
-                                                            polynomial_control_options=polynomial_control_options,
                                                             ode_class=SimpleODE, ode_init_kwargs=None))
                 prob.setup()
                 prob.set_val('integrator.states:x', 0.5)
@@ -154,8 +152,6 @@ class TestODEIntegrationComp(unittest.TestCase):
         control_options['theta']['units'] = 'rad'
         control_options['theta']['targets'] = ['theta']
 
-        polynomial_control_options = {}
-
         p = om.Problem()
 
         p.model.add_subsystem('integrator',
@@ -164,7 +160,6 @@ class TestODEIntegrationComp(unittest.TestCase):
                                                  state_options=state_options,
                                                  parameter_options=param_options,
                                                  control_options=control_options,
-                                                 polynomial_control_options=polynomial_control_options,
                                                  input_grid_data=gd,
                                                  ode_init_kwargs=None))
 

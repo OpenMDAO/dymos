@@ -132,14 +132,14 @@ class ControlInterpComp(om.ExplicitComponent):
                     self.rate2_jacs[name][:, i, :, i] = D2_de
 
                 self.val_jacs[name] = self.val_jacs[name].reshape((num_output_nodes * size,
-                                                                num_control_input_nodes * size),
-                                                                order='C')
+                                                                  num_control_input_nodes * size),
+                                                                  order='C')
                 self.rate_jacs[name] = self.rate_jacs[name].reshape((num_output_nodes * size,
                                                                     num_control_input_nodes * size),
                                                                     order='C')
                 self.rate2_jacs[name] = self.rate2_jacs[name].reshape((num_output_nodes * size,
-                                                                    num_control_input_nodes * size),
-                                                                    order='C')
+                                                                      num_control_input_nodes * size),
+                                                                      order='C')
                 self.val_jac_rows[name], self.val_jac_cols[name] = \
                     np.where(self.val_jacs[name] != 0)
                 self.rate_jac_rows[name], self.rate_jac_cols[name] = \
@@ -151,26 +151,26 @@ class ControlInterpComp(om.ExplicitComponent):
 
                 rs, cs = self.val_jac_rows[name], self.val_jac_cols[name]
                 self.declare_partials(of=self._output_val_names[name],
-                                    wrt=self._input_names[name],
-                                    rows=rs, cols=cs, val=self.val_jacs[name][rs, cs])
+                                      wrt=self._input_names[name],
+                                      rows=rs, cols=cs, val=self.val_jacs[name][rs, cs])
 
                 rs = np.concatenate([np.arange(0, num_output_nodes * size, size, dtype=int) + i
                                     for i in range(size)])
 
                 self.declare_partials(of=self._output_rate_names[name],
-                                    wrt='t_duration', rows=rs, cols=np.zeros_like(rs))
+                                      wrt='t_duration', rows=rs, cols=np.zeros_like(rs))
 
                 self.declare_partials(of=self._output_rate_names[name],
-                                    wrt=self._input_names[name],
-                                    rows=self.rate_jac_rows[name], cols=self.rate_jac_cols[name])
+                                      wrt=self._input_names[name],
+                                      rows=self.rate_jac_rows[name], cols=self.rate_jac_cols[name])
 
                 self.declare_partials(of=self._output_rate2_names[name],
-                                    wrt='t_duration', rows=rs, cols=np.zeros_like(rs))
+                                      wrt='t_duration', rows=rs, cols=np.zeros_like(rs))
 
                 self.declare_partials(of=self._output_rate2_names[name],
-                                    wrt=self._input_names[name],
-                                    rows=self.rate2_jac_rows[name], cols=self.rate2_jac_cols[name])
-                
+                                      wrt=self._input_names[name],
+                                      rows=self.rate2_jac_rows[name], cols=self.rate2_jac_cols[name])
+
             else:
                 self._input_names[name] = f'controls:{name}'
                 self._output_val_names[name] = f'control_values:{name}'
@@ -204,20 +204,20 @@ class ControlInterpComp(om.ExplicitComponent):
                 J_val = sp.kron(self.L, sp_eye, format='csr')
                 rs, cs, data = sp.find(J_val)
                 self.declare_partials(of=self._output_val_names[name],
-                                    wrt=self._input_names[name],
-                                    rows=rs, cols=cs, val=data)
+                                      wrt=self._input_names[name],
+                                      rows=rs, cols=cs, val=data)
 
                 # The partials of the output rate and second derivative wrt dt_dstau
                 rs = np.arange(num_output_nodes * size, dtype=int)
                 cs = np.repeat(np.arange(num_output_nodes, dtype=int), size)
 
                 self.declare_partials(of=self._output_rate_names[name],
-                                    wrt='dt_dstau',
-                                    rows=rs, cols=cs)
+                                      wrt='dt_dstau',
+                                      rows=rs, cols=cs)
 
                 self.declare_partials(of=self._output_rate2_names[name],
-                                    wrt='dt_dstau',
-                                    rows=rs, cols=cs)
+                                      wrt='dt_dstau',
+                                      rows=rs, cols=cs)
 
                 # The partials of the rates and second derivatives are nonlinear but the sparsity
                 # pattern is obtained from the kronecker product of the 1st and 2nd differentiation
@@ -226,15 +226,15 @@ class ControlInterpComp(om.ExplicitComponent):
                 rs, cs = self.rate_jacs[name].nonzero()
 
                 self.declare_partials(of=self._output_rate_names[name],
-                                    wrt=self._input_names[name],
-                                    rows=rs, cols=cs)
+                                      wrt=self._input_names[name],
+                                      rows=rs, cols=cs)
 
                 self.rate2_jacs[name] = sp.kron(self.D2, sp_eye, format='csr')
                 rs, cs = self.rate2_jacs[name].nonzero()
 
                 self.declare_partials(of=self._output_rate2_names[name],
-                                    wrt=self._input_names[name],
-                                    rows=rs, cols=cs)
+                                      wrt=self._input_names[name],
+                                      rows=rs, cols=cs)
 
     def configure_io(self):
         """
@@ -468,7 +468,7 @@ class ControlGroup(om.Group):
 
         if len(control_options) < 1:
             return
-        
+
         self.add_subsystem(
             'control_interp_comp',
             subsys=ControlInterpComp(time_units=time_units, grid_data=gd, output_grid_data=ogd,

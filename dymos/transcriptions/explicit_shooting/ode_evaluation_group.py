@@ -265,7 +265,7 @@ class ODEEvaluationGroup(om.Group):
                     num_control_input_nodes = options['order'] + 1
                 else:
                     num_control_input_nodes = igd.subset_num_nodes['control_input']
-                    
+
                 shape = options['shape']
                 units = options['units']
                 rate_units = get_rate_units(units, time_units, deriv=1)

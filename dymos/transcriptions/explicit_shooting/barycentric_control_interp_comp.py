@@ -347,7 +347,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         discrete_outputs : `Vector`
             `Vector` containing discrete_outputs.
         """
-        gd = self._grid_data
         seg_idx = self.options['segment_index']
         stau = inputs['stau']
         dstau_dt = inputs['dstau_dt']
@@ -379,9 +378,7 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         L_id = self._L_id['controls']
         L_seg = L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
                      input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
-        
-        
-        gd = self._grid_data
+
         seg_idx = self.options['segment_index']
         ptau = inputs['ptau']
         dptau_dt = 2. / inputs['t_duration']
@@ -434,7 +431,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
                 outputs[output_name] = wbuhat.T @ l
                 outputs[rate_name] = wbuhat.T @ dl_dptau * dptau_dt
                 outputs[rate2_name] = wbuhat.T @ d2l_dptau2 * dptau_dt ** 2
-
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """
@@ -513,7 +509,7 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             L_id = self._L_id['controls']
             L_seg = L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
                          input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
-            
+
             ptau = inputs['ptau']
             t_duration = inputs['t_duration']
             dptau_dt = 2.0 / t_duration
@@ -552,7 +548,7 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
                         partials[rate2_name, input_name] = 0.0
                         partials[rate2_name, input_name][..., input_node_idxs] = \
                             (d2l_dstau2 * w_b * dstau_dt ** 2).T @ L_seg
-                        
+
                 else:
                     gd = self._grid_data
                     n = options['order'] + 1

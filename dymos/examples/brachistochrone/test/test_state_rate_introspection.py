@@ -902,7 +902,3 @@ class TestInvalidStateRateSource(unittest.TestCase):
 
         expected = 'Error during configure_states_introspection in phase traj0.phases.phase0.'
         self.assertEqual(str(ctx.exception), expected)
-
-if __name__ == '__main__':
-    z = TestIntegratePolynomialControl()
-    z.test_integrate_polynomial_control_gl()

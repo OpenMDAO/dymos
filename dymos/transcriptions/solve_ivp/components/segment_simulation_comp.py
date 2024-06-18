@@ -141,18 +141,18 @@ class SegmentSimulationComp(om.ExplicitComponent):
             for name, options in self.options['control_options'].items():
                 if options['control_type'] == 'full':
                     self.add_input(name='controls:{0}'.format(name),
-                                val=np.ones(((ncdsps,) + options['shape'])),
-                                units=options['units'],
-                                desc='Values of control {0} at control discretization '
+                                   val=np.ones(((ncdsps,) + options['shape'])),
+                                   units=options['units'],
+                                   desc='Values of control {0} at control discretization '
                                         'nodes within the segment.'.format(name))
                     interp = LagrangeBarycentricInterpolant(control_disc_seg_stau, options['shape'])
                     self.options['ode_integration_interface'].set_interpolant(name, interp)
                 else:
                     poly_control_disc_ptau, _ = lgl(options['order'] + 1)
                     self.add_input(name='controls:{0}'.format(name),
-                                val=np.ones(((options['order'] + 1,) + options['shape'])),
-                                units=options['units'],
-                                desc='Values of polynomial control {0} at control discretization '
+                                   val=np.ones(((options['order'] + 1,) + options['shape'])),
+                                   units=options['units'],
+                                   desc='Values of polynomial control {0} at control discretization '
                                         'nodes within the phase.'.format(name))
                     interp = LagrangeBarycentricInterpolant(poly_control_disc_ptau, options['shape'])
                     self.options['ode_integration_interface'].set_interpolant(name, interp)

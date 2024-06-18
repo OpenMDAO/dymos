@@ -27,8 +27,6 @@ class VandermondeControlInterpComp(om.ExplicitComponent):
         nodes are layed out.
     control_options : dict of {str: ControlOptionsDictionary}
         A mapping that maps the name of each control to a ControlOptionsDictionary of its options.
-    polynomial_control_options : dict of {str: PolynomialControlOptionsDictionary}
-        A mapping that maps the name of each polynomial control to an OptionsDictionary of its options.
     time_units : str
         The time units pertaining to the control rates.
     standalone_mode : bool

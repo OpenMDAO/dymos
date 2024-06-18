@@ -515,8 +515,8 @@ class Phase(om.Group):
         elif name in self.parameter_options:
             raise ValueError(f'{name} has already been added as a parameter.')
 
-    def add_control(self, name, control_type=_unspecified, order=_unspecified, units=_unspecified, desc=_unspecified, opt=_unspecified,
-                    fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
+    def add_control(self, name, control_type=_unspecified, order=_unspecified, units=_unspecified, desc=_unspecified,
+                    opt=_unspecified, fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
                     rate_targets=_unspecified, rate2_targets=_unspecified, val=_unspecified,
                     shape=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
                     adder=_unspecified, ref0=_unspecified, ref=_unspecified, continuity=_unspecified,
@@ -619,8 +619,8 @@ class Phase(om.Group):
             self.control_options[name] = ControlOptionsDictionary()
             self.control_options[name]['name'] = name
 
-        self.set_control_options(name, control_type=control_type, order=order, units=units, desc=desc, opt=opt, fix_initial=fix_initial,
-                                 fix_final=fix_final, targets=targets, rate_targets=rate_targets,
+        self.set_control_options(name, control_type=control_type, order=order, units=units, desc=desc, opt=opt,
+                                 fix_initial=fix_initial, fix_final=fix_final, targets=targets, rate_targets=rate_targets,
                                  rate2_targets=rate2_targets, val=val, shape=shape, lower=lower,
                                  upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref,
                                  continuity=continuity, continuity_scaler=continuity_scaler,
@@ -631,8 +631,8 @@ class Phase(om.Group):
                                  rate2_continuity_scaler=rate2_continuity_scaler,
                                  rate2_continuity_ref=rate2_continuity_ref)
 
-    def set_control_options(self, name, control_type=_unspecified, order=_unspecified, units=_unspecified, desc=_unspecified, opt=_unspecified,
-                            fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
+    def set_control_options(self, name, control_type=_unspecified, order=_unspecified, units=_unspecified, desc=_unspecified,
+                            opt=_unspecified, fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
                             rate_targets=_unspecified, rate2_targets=_unspecified, val=_unspecified,
                             shape=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
                             adder=_unspecified, ref0=_unspecified, ref=_unspecified, continuity=_unspecified,
@@ -884,9 +884,9 @@ class Phase(om.Group):
             The shape of the control variable at each point in time.
         """
         om.issue_warning(f'{self.pathname}: The method `add_polynomial_control` is '
-                    'deprecated and will be removed in Dymos 2.1. Please use '
-                    '`add_control` with the appropriate options to define a polynomial control.',
-                    category=om.OMDeprecationWarning)
+                         'deprecated and will be removed in Dymos 2.1. Please use '
+                         '`add_control` with the appropriate options to define a polynomial control.',
+                         category=om.OMDeprecationWarning)
 
         self.check_parameter(name)
 
@@ -897,8 +897,8 @@ class Phase(om.Group):
 
         control_type = 'polynomial'
 
-        self.set_control_options(name, control_type=control_type, order=order, units=units, desc=desc, opt=opt, fix_initial=fix_initial,
-                                 fix_final=fix_final, targets=targets, rate_targets=rate_targets,
+        self.set_control_options(name, control_type=control_type, order=order, units=units, desc=desc, opt=opt,
+                                 fix_initial=fix_initial, fix_final=fix_final, targets=targets, rate_targets=rate_targets,
                                  rate2_targets=rate2_targets, val=val, shape=shape, lower=lower,
                                  upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref,
                                  continuity=False, rate_continuity=False, rate2_continuity=False)

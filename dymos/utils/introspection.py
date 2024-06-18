@@ -304,7 +304,7 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
             if any(['dymos.static_target' in meta['tags'] for meta in targets.values()]):
                 raise ValueError(f"Control '{name}' cannot be connected to its targets because one "
                                  f"or more targets are tagged with 'dymos.static_target'.")
-            
+
         # Now check rate targets
         rate_targets = _get_targets_metadata(ode_inputs, name=f'{name}_rate',
                                              user_targets=options['rate_targets'])

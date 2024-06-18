@@ -1516,5 +1516,4 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
 
 if __name__ == '__main__':  # pragma: no cover
-    z = TestBrachistochronePolynomialControlRate2PathConstrained()
-    z.test_brachistochrone_polynomial_control_gauss_lobatto()
+    unittest.main()
