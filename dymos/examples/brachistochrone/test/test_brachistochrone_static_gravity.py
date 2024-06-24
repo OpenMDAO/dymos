@@ -155,7 +155,7 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         """ Tests that control cannot be connected to target tagged as 'dymos.static_target'. """
         p, phase = self._make_problem(dm.GaussLobatto(num_segments=10))
 
-        phase.add_polynomial_control('g', opt=False, order=5)
+        phase.add_control('g', opt=False, order=5, control_type='polynomial')
         with self.assertRaises(ValueError) as e:
             p.setup()
 
@@ -168,7 +168,7 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         """ Tests that control cannot be connected to target tagged as 'dymos.static_target'. """
         p, phase = self._make_problem(dm.Radau(num_segments=10))
 
-        phase.add_polynomial_control('g', opt=False, order=5)
+        phase.add_control('g', opt=False, order=5, control_type='polynomial')
         with self.assertRaises(ValueError) as e:
             p.setup()
 
@@ -181,8 +181,8 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         """ Tests that control cannot be connected to target tagged as 'dymos.static_target'. """
         p, phase = self._make_problem(dm.GaussLobatto(num_segments=10))
 
-        phase.add_polynomial_control('foo', opt=False, order=5, shape=(1,), units='m/s',
-                                     rate_targets=['g'])
+        phase.add_control('foo', opt=False, order=5, shape=(1,), units='m/s',
+                                     rate_targets=['g'], control_type='polynomial')
         with self.assertRaises(ValueError) as e:
             p.setup()
 
@@ -195,8 +195,8 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         """ Tests that control cannot be connected to target tagged as 'dymos.static_target'. """
         p, phase = self._make_problem(dm.Radau(num_segments=10))
 
-        phase.add_polynomial_control('foo', opt=False, order=5, shape=(1,), units='m/s',
-                                     rate_targets=['g'])
+        phase.add_control('foo', opt=False, order=5, shape=(1,), units='m/s',
+                                     rate_targets=['g'], control_type='polynomial')
         with self.assertRaises(ValueError) as e:
             p.setup()
 
@@ -209,8 +209,8 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         """ Tests that control cannot be connected to target tagged as 'dymos.static_target'. """
         p, phase = self._make_problem(dm.GaussLobatto(num_segments=10))
 
-        phase.add_polynomial_control('foo', opt=False, order=5, shape=(1,), units='m/s',
-                                     rate2_targets=['g'])
+        phase.add_control('foo', opt=False, order=5, shape=(1,), units='m/s',
+                                     rate2_targets=['g'], control_type='polynomial')
         with self.assertRaises(ValueError) as e:
             p.setup()
 
@@ -223,8 +223,8 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         """ Tests that control cannot be connected to target tagged as 'dymos.static_target'. """
         p, phase = self._make_problem(dm.Radau(num_segments=10))
 
-        phase.add_polynomial_control('foo', opt=False, order=5, shape=(1,), units='m/s',
-                                     rate2_targets=['g'])
+        phase.add_control('foo', opt=False, order=5, shape=(1,), units='m/s',
+                                     rate2_targets=['g'], control_type='polynomial')
         with self.assertRaises(ValueError) as e:
             p.setup()
 

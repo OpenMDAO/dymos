@@ -515,7 +515,7 @@ class Phase(om.Group):
         elif name in self.parameter_options:
             raise ValueError(f'{name} has already been added as a parameter.')
 
-    def add_control(self, name, control_type=_unspecified, order=_unspecified, units=_unspecified, desc=_unspecified,
+    def add_control(self, name, order=_unspecified, units=_unspecified, desc=_unspecified,
                     opt=_unspecified, fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
                     rate_targets=_unspecified, rate2_targets=_unspecified, val=_unspecified,
                     shape=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
@@ -523,7 +523,7 @@ class Phase(om.Group):
                     continuity_scaler=_unspecified, continuity_ref=_unspecified, rate_continuity=_unspecified,
                     rate_continuity_scaler=_unspecified, rate_continuity_ref=_unspecified,
                     rate2_continuity=_unspecified, rate2_continuity_scaler=_unspecified,
-                    rate2_continuity_ref=_unspecified):
+                    rate2_continuity_ref=_unspecified, control_type=_unspecified):
         """
         Adds a dynamic control variable to be tied to a parameter in the ODE.
 
@@ -619,7 +619,7 @@ class Phase(om.Group):
             self.control_options[name] = ControlOptionsDictionary()
             self.control_options[name]['name'] = name
 
-        self.set_control_options(name, control_type=control_type, order=order, units=units, desc=desc, opt=opt,
+        self.set_control_options(name, order=order, units=units, desc=desc, opt=opt,
                                  fix_initial=fix_initial, fix_final=fix_final, targets=targets, rate_targets=rate_targets,
                                  rate2_targets=rate2_targets, val=val, shape=shape, lower=lower,
                                  upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref,
@@ -629,9 +629,10 @@ class Phase(om.Group):
                                  rate_continuity_ref=rate_continuity_ref,
                                  rate2_continuity=rate2_continuity,
                                  rate2_continuity_scaler=rate2_continuity_scaler,
-                                 rate2_continuity_ref=rate2_continuity_ref)
+                                 rate2_continuity_ref=rate2_continuity_ref,
+                                 control_type=control_type)
 
-    def set_control_options(self, name, control_type=_unspecified, order=_unspecified, units=_unspecified, desc=_unspecified,
+    def set_control_options(self, name, order=_unspecified, units=_unspecified, desc=_unspecified,
                             opt=_unspecified, fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
                             rate_targets=_unspecified, rate2_targets=_unspecified, val=_unspecified,
                             shape=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
@@ -639,7 +640,8 @@ class Phase(om.Group):
                             continuity_scaler=_unspecified, continuity_ref=_unspecified,
                             rate_continuity=_unspecified, rate_continuity_scaler=_unspecified,
                             rate_continuity_ref=_unspecified, rate2_continuity=_unspecified,
-                            rate2_continuity_scaler=_unspecified, rate2_continuity_ref=_unspecified):
+                            rate2_continuity_scaler=_unspecified, rate2_continuity_ref=_unspecified,
+                            control_type=_unspecified):
         """
         Set options on an existing dynamic control variable in the phase.
 
@@ -897,11 +899,136 @@ class Phase(om.Group):
 
         control_type = 'polynomial'
 
-        self.set_control_options(name, control_type=control_type, order=order, units=units, desc=desc, opt=opt,
+        self.set_control_options(name, order=order, units=units, desc=desc, opt=opt,
                                  fix_initial=fix_initial, fix_final=fix_final, targets=targets, rate_targets=rate_targets,
                                  rate2_targets=rate2_targets, val=val, shape=shape, lower=lower,
                                  upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref,
-                                 continuity=False, rate_continuity=False, rate2_continuity=False)
+                                 continuity=False, rate_continuity=False, rate2_continuity=False,
+                                 control_type=control_type)
+
+    def set_polynomial_control_options(self, name, order=_unspecified, desc=_unspecified, val=_unspecified,
+                                       units=_unspecified, opt=_unspecified, fix_initial=_unspecified,
+                                       fix_final=_unspecified, lower=_unspecified, upper=_unspecified,
+                                       scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
+                                       ref=_unspecified, targets=_unspecified, rate_targets=_unspecified,
+                                       rate2_targets=_unspecified, shape=_unspecified):
+        """
+        Set options on an existing polynomial control variable in the phase.
+
+        Parameters
+        ----------
+        name : str
+            Name of the controllable parameter in the ODE.
+        order : int
+            The order of the interpolating polynomial used to represent the control value in
+            phase tau space.
+        desc : str
+            A description of the polynomial control.
+        val : float or ndarray
+            Default value of the control at all nodes.  If val scalar and the control
+            is dynamic it will be broadcast.
+        units : str or None or 0
+            Units in which the control variable is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        opt : bool
+            If True (default) the value(s) of this control will be design variables in
+            the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
+            If False, the values of this control will exist as input controls:{name}.
+        fix_initial : bool
+            If True, the given initial value of the polynomial control is not a design variable and
+            will not be changed during the optimization.
+        fix_final : bool
+            If True, the given final value of the polynomial control is not a design variable and
+            will not be changed during the optimization.
+        lower : float or ndarray
+            The lower bound of the control at the nodes of the phase.
+        upper : float or ndarray
+            The upper bound of the control at the nodes of the phase.
+        scaler : float or ndarray
+            The scaler of the control value at the nodes of the phase.
+        adder : float or ndarray
+            The adder of the control value at the nodes of the phase.
+        ref0 : float or ndarray
+            The zero-reference value of the control at the nodes of the phase.
+        ref : float or ndarray
+            The unit-reference value of the control at the nodes of the phase.
+        targets : Sequence of str or None
+            Targets in the ODE to which this polynomial control is connected.
+        rate_targets : None or str
+            The name of the parameter in the ODE to which the first time-derivative
+            of the control value is connected.
+        rate2_targets : None or str
+            The name of the parameter in the ODE to which the second time-derivative
+            of the control value is connected.
+        shape : Sequence of int
+            The shape of the control variable at each point in time.
+        """
+        om.issue_warning(f'{self.pathname}: The method `set_polynomial_control_options` is '
+                    'deprecated and will be removed in Dymos 2.1. Please use '
+                    '`set_control_options` with the appropriate options to define a polynomial control.',
+                    category=om.OMDeprecationWarning)
+
+        self.control_options[name]['control_type'] = 'polynomial'
+
+        if order is not _unspecified:
+            self.control_options[name]['order'] = order
+
+        if units is not _unspecified:
+            self.control_options[name]['units'] = units
+
+        if opt is not _unspecified:
+            self.control_options[name]['opt'] = opt
+
+        if desc is not _unspecified:
+            self.control_options[name]['desc'] = desc
+
+        if targets is not _unspecified:
+            if isinstance(targets, str):
+                self.control_options[name]['targets'] = (targets,)
+            else:
+                self.control_options[name]['targets'] = targets
+
+        if rate_targets is not _unspecified:
+            if isinstance(rate_targets, str):
+                self.control_options[name]['rate_targets'] = (rate_targets,)
+            else:
+                self.control_options[name]['rate_targets'] = rate_targets
+
+        if rate2_targets is not _unspecified:
+            if isinstance(rate2_targets, str):
+                self.control_options[name]['rate2_targets'] = (rate2_targets,)
+            else:
+                self.control_options[name]['rate2_targets'] = rate2_targets
+
+        if val is not _unspecified:
+            self.control_options[name]['val'] = val
+
+        if shape is not _unspecified:
+            self.control_options[name]['shape'] = shape
+
+        if fix_initial is not _unspecified:
+            self.control_options[name]['fix_initial'] = fix_initial
+
+        if fix_final is not _unspecified:
+            self.control_options[name]['fix_final'] = fix_final
+
+        if lower is not _unspecified:
+            self.control_options[name]['lower'] = lower
+
+        if upper is not _unspecified:
+            self.control_options[name]['upper'] = upper
+
+        if scaler is not _unspecified:
+            self.control_options[name]['scaler'] = scaler
+
+        if adder is not _unspecified:
+            self.control_options[name]['adder'] = adder
+
+        if ref0 is not _unspecified:
+            self.control_options[name]['ref0'] = ref0
+
+        if ref is not _unspecified:
+            self.control_options[name]['ref'] = ref
 
     def add_parameter(self, name, val=_unspecified, units=_unspecified, opt=False,
                       desc=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,

@@ -487,7 +487,7 @@ class TestLinkages(unittest.TestCase):
                         rate_source='at_dot', units='DU/TU**2')
         burn2.add_state('deltav', fix_initial=False, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
-        burn2.add_polynomial_control('u1', order=2, units='deg', scaler=0.01, lower=-30, upper=30)
+        burn2.add_control('u1', order=2, units='deg', scaler=0.01, lower=-30, upper=30, control_type='polynomial')
         burn2.add_parameter('c', opt=False, val=1.5, units='DU/TU')
 
         burn2.add_objective('deltav', loc='final')
@@ -884,7 +884,7 @@ class TestLinkages(unittest.TestCase):
                         rate_source='at_dot', units='DU/TU**2')
         burn2.add_state('deltav', fix_initial=False, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
-        burn2.add_polynomial_control('u1', units='deg', order=2, scaler=0.01, lower=-30, upper=30)
+        burn2.add_control('u1', units='deg', order=2, scaler=0.01, lower=-30, upper=30, control_type='polynomial')
         burn2.add_parameter('c', opt=False, val=1.5, units='DU/TU')
 
         burn2.add_objective('deltav', loc='final')
@@ -1019,7 +1019,7 @@ class TestLinkages(unittest.TestCase):
                         rate_source='at_dot', units='DU/TU**2')
         burn2.add_state('deltav', fix_initial=False, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
-        burn2.add_polynomial_control('u1', units='deg', order=2, scaler=0.01, lower=-30, upper=30)
+        burn2.add_control('u1', units='deg', order=2, scaler=0.01, lower=-30, upper=30, control_type='polynomial')
         burn2.add_parameter('c', opt=False, val=1.5, units='DU/TU')
 
         burn2.add_objective('deltav', loc='final')

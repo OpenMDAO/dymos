@@ -52,7 +52,7 @@ class TestPhaseInterp(unittest.TestCase):
     def test_polynomial_control(self):
         tx = dm.GaussLobatto(num_segments=8, order=5, compressed=True)
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
-        phase.add_polynomial_control('u', fix_initial=True, fix_final=True, order=3)
+        phase.add_control('u', fix_initial=True, fix_final=True, order=3, control_type='polynomial')
         xs = np.linspace(-10, 10, 100)
         ys = xs**3
 

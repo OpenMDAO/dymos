@@ -31,8 +31,8 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=Fal
         phase.add_control('theta', units='deg',
                           rate_continuity=False, lower=0.01, upper=179.9, fix_final=fix_final_control)
     else:
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
-                                     fix_final=fix_final_control)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     fix_final=fix_final_control, control_type='polynomial')
 
     phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 

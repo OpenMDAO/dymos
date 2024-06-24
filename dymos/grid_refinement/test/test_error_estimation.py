@@ -49,7 +49,7 @@ class TestBrachistochroneExample(unittest.TestCase):
             phase.add_control('theta', continuity=True, rate_continuity=True,
                               units='deg', lower=0.01, upper=179.9)
         elif control_type == 'polynomial_control':
-            phase.add_polynomial_control('theta', units='deg', lower=0.01, upper=179.9, order=3)
+            phase.add_control('theta', units='deg', lower=0.01, upper=179.9, order=3, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', val=1.0)
 

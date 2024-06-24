@@ -401,7 +401,7 @@ class TestIntegratePolynomialControl(unittest.TestCase):
                         targets=['theta'])
 
         # Define theta as a control.
-        phase.add_polynomial_control(name='theta_rate', order=11, units='rad/s', shape=(1,), targets=None)
+        phase.add_control(name='theta_rate', order=11, units='rad/s', shape=(1,), targets=None, control_type='polynomial')
 
         # Minimize final time.
         phase.add_objective('time', loc='final')
@@ -424,7 +424,7 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         phase.set_state_val('y', [10, 5], units='m')
         phase.set_state_val('v', [0, 5], units='m/s')
         phase.set_state_val('int_theta', [0.1, 45], units='deg')
-        phase.set_polynomial_control_val('theta_rate', 10.0, units='deg/s')
+        phase.set_control_val('theta_rate', 10.0, units='deg/s')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=True)
@@ -500,7 +500,7 @@ class TestIntegratePolynomialControl(unittest.TestCase):
                         targets=['theta'])
 
         # Define theta as a control.
-        phase.add_polynomial_control(name='theta', order=11, units='rad', shape=(1,), targets=None)
+        phase.add_control(name='theta', order=11, units='rad', shape=(1,), targets=None, control_type='polynomial')
 
         # Force the initial value of the theta polynomial control to equal the initial value of the theta state.
         traj.add_linkage_constraint(phase_a='phase0', phase_b='phase0',
@@ -528,7 +528,7 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         phase.set_state_val('y', [10, 5], units='m')
         phase.set_state_val('v', [0, 5], units='m/s')
         phase.set_state_val('int_theta', [0.1, 45], units='deg')
-        phase.set_polynomial_control_val('theta', 45.0, units='deg')
+        phase.set_control_val('theta', 45.0, units='deg')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=False)
@@ -608,7 +608,7 @@ class TestIntegratePolynomialControl(unittest.TestCase):
                         targets=['theta'])
 
         # Define theta as a control.
-        phase.add_polynomial_control(name='theta', order=11, units='rad', shape=(1,), targets=None)
+        phase.add_control(name='theta', order=11, units='rad', shape=(1,), targets=None, control_type='polynomial')
 
         # Force the initial value of the theta polynomial control to equal the initial value of the theta state.
         traj.add_linkage_constraint(phase_a='phase0', phase_b='phase0',
@@ -646,7 +646,7 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         phase.set_state_val('v', [0, 5], units='m/s')
         phase.set_state_val('int_theta', [0.1, 45], units='deg')
         phase.set_state_val('int_theta_dot', [0.0, 0.0], units='deg/s')
-        phase.set_polynomial_control_val('theta', 45.0, units='deg')
+        phase.set_control_val('theta', 45.0, units='deg')
 
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=True)
