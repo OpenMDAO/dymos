@@ -343,7 +343,7 @@ class TestExplicitShooting(unittest.TestCase):
 
                         phase.add_parameter('g', val=1.0, units='m/s**2', opt=True, lower=1, upper=9.80665)
                         phase.add_control('theta', order=2, val=45.0, units='deg', opt=True,
-                                                     lower=1.0E-6, upper=179.9, ref=90., control_type='polynomial')
+                                          lower=1.0E-6, upper=179.9, ref=90., control_type='polynomial')
 
                         phase.add_boundary_constraint('x', loc='final', equals=10.0)
                         phase.add_boundary_constraint('y', loc='final', equals=5.0)

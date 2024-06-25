@@ -69,9 +69,9 @@ class TestSimulateShapedParams(unittest.TestCase):
                              solve_segments=False)
 
         main_phase.add_control('Thrust', units='N',
-                                          targets='Thrust',
-                                          lower=-3450, upper=-500,
-                                          order=5, opt=True, control_type='polynomial')
+                               targets='Thrust',
+                               lower=-3450, upper=-500,
+                               order=5, opt=True, control_type='polynomial')
 
         main_phase.add_objective('impulse', loc='final', ref=-1)
 
@@ -113,9 +113,9 @@ class TestSimulateShapedParams(unittest.TestCase):
                              solve_segments=False)
 
         main_phase.add_control('Thrust', units='N',
-                                          targets='Thrust',
-                                          lower=-3450, upper=-500,
-                                          order=5, opt=True, control_type='polynomial')
+                               targets='Thrust',
+                               lower=-3450, upper=-500,
+                               order=5, opt=True, control_type='polynomial')
 
         main_phase.add_objective('impulse', loc='final', ref=-1)
 

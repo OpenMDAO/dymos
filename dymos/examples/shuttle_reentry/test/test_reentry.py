@@ -239,7 +239,7 @@ class TestReentry(unittest.TestCase):
         phase0.add_control('alpha', units='rad', opt=True,
                            lower=-np.pi / 2, upper=np.pi / 2)
         phase0.add_control('beta', order=9, units='rad', opt=True,
-                                      lower=-89 * np.pi / 180, upper=1 * np.pi / 180, control_type='polynomial')
+                           lower=-89 * np.pi / 180, upper=1 * np.pi / 180, control_type='polynomial')
 
         phase0.add_objective('theta', loc='final', ref=-0.01)
         phase0.add_path_constraint('q', lower=0, upper=70, ref=70)

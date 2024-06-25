@@ -532,8 +532,6 @@ class Phase(om.Group):
         name : str
             The name assigned to the control variable.  If the ODE has been decorated with
             parameters, this should be the name of a control in the system.
-        control_type : str
-            The type of control variable.  Valid options include 'full' and 'polynomial'.
         order : int
             The order of the polynomial control variable.  This option is invalid if control_type is 'full'.
         units : str or None
@@ -609,6 +607,8 @@ class Phase(om.Group):
         rate2_continuity_ref : float or None
             Reference unit value of the rate2 continuity constraint at segment boundaries, for use in
             place of rate_continuity_scaler.
+        control_type : str
+            The type of control variable.  Valid options include 'full' and 'polynomial'.
 
         Notes
         -----
@@ -619,7 +619,8 @@ class Phase(om.Group):
             self.control_options[name] = ControlOptionsDictionary()
             self.control_options[name]['name'] = name
 
-        # if continuity, rate_continuity, or rate2_continuity are not specified, default to False for cases when control_type is 'polynomial'
+        # if continuity, rate_continuity, or rate2_continuity are not specified,
+        # default to False for cases when control_type is 'polynomial'
         if control_type == 'polynomial':
             if continuity is _unspecified:
                 continuity = False
@@ -659,8 +660,6 @@ class Phase(om.Group):
         name : str
             The name assigned to the control variable.  If the ODE has been decorated with
             parameters, this should be the name of a control in the system.
-        control_type : str
-            The type of control variable.  Valid options include 'full' and 'polynomial'.
         order : int
             The order of the polynomial control variable.  This option is invalid if control_type is 'full'.
         units : str or None
@@ -736,6 +735,8 @@ class Phase(om.Group):
         rate2_continuity_ref : float or None
             Reference unit value of the rate2 continuity constraint at segment boundaries, for use in
             place of rate_continuity_scaler.
+        control_type : str
+            The type of control variable.  Valid options include 'full' and 'polynomial'.
 
         Notes
         -----
@@ -973,9 +974,9 @@ class Phase(om.Group):
             The shape of the control variable at each point in time.
         """
         om.issue_warning(f'{self.pathname}: The method `set_polynomial_control_options` is '
-                    'deprecated and will be removed in Dymos 2.1. Please use '
-                    '`set_control_options` with the appropriate options to define a polynomial control.',
-                    category=om.OMDeprecationWarning)
+                         'deprecated and will be removed in Dymos 2.1. Please use '
+                         '`set_control_options` with the appropriate options to define a polynomial control.',
+                         category=om.OMDeprecationWarning)
 
         self.control_options[name]['control_type'] = 'polynomial'
 

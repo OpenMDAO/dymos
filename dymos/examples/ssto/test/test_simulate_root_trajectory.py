@@ -207,7 +207,7 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
         # The tangent of theta is modeled as a linear polynomial over the duration of the phase.
         #
         phase.add_control('tan_theta', order=1, units=None, opt=True,
-                                     targets=['guidance.tan_theta'], control_type='polynomial')
+                          targets=['guidance.tan_theta'], control_type='polynomial')
 
         #
         # Parameters values for thrust and specific impulse are design parameters. They are

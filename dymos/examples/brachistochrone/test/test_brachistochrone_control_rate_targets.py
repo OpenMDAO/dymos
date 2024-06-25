@@ -531,7 +531,7 @@ class TestBrachistochronePolynomialControlRateTargets(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', order=3, units='deg*s', lower=0.01, upper=179.9,
-                                     fix_initial=True, control_type='polynomial')
+                          fix_initial=True, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -625,7 +625,7 @@ class TestBrachistochronePolynomialControlRateTargets(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', order=3, units='deg*s', lower=0.01, upper=179.9,
-                                     fix_initial=True, control_type='polynomial')
+                          fix_initial=True, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -722,7 +722,7 @@ class TestBrachistochronePolynomialControlExplicitRateTargets(unittest.TestCase)
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', order=3, units='deg*s', lower=0.01, upper=179.9,
-                                     rate_targets=['theta_rate'], fix_initial=True, control_type='polynomial')
+                          rate_targets=['theta_rate'], fix_initial=True, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -816,7 +816,7 @@ class TestBrachistochronePolynomialControlExplicitRateTargets(unittest.TestCase)
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', order=3, units='deg*s', lower=0.01, upper=179.9,
-                                     rate_targets=['theta_rate'], fix_initial=True, control_type='polynomial')
+                          rate_targets=['theta_rate'], fix_initial=True, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -913,7 +913,7 @@ class TestBrachistochronePolynomialControlExplicitRate2Targets(unittest.TestCase
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', order=5, units='deg*s**2', lower=0.01, upper=179.9,
-                                     rate_targets=None, rate2_targets=['theta_rate'], fix_initial=True, control_type='polynomial')
+                          rate_targets=None, rate2_targets=['theta_rate'], fix_initial=True, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -930,7 +930,7 @@ class TestBrachistochronePolynomialControlExplicitRate2Targets(unittest.TestCase
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
         phase.set_control_val('theta', [0, 10, 40, 60, 80, 100],
-                                         time_vals=[0, 0.4, 0.8, 1.2, 1.6, 2.0])
+                              time_vals=[0, 0.4, 0.8, 1.2, 1.6, 2.0])
 
         # Solve for the optimal trajectory
         dm.run_problem(p, simulate=True)
