@@ -619,15 +619,8 @@ class Phase(om.Group):
             self.control_options[name] = ControlOptionsDictionary()
             self.control_options[name]['name'] = name
 
-        # if continuity, rate_continuity, or rate2_continuity are not specified,
-        # default to False for cases when control_type is 'polynomial'
         if control_type == 'polynomial':
-            if continuity is _unspecified:
-                continuity = False
-            if rate_continuity is _unspecified:
-                rate_continuity = False
-            if rate2_continuity is _unspecified:
-                rate2_continuity = False
+            continuity = rate_continuity = rate2_continuity = False
 
         self.set_control_options(name, order=order, units=units, desc=desc, opt=opt,
                                  fix_initial=fix_initial, fix_final=fix_final, targets=targets, rate_targets=rate_targets,
