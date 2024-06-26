@@ -1259,7 +1259,7 @@ Model viewer data has already been recorded for Driver.
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/recorders/sqlite_recorder.py:226: UserWarning:The existing case recorder file, dymos_solution.db, is being overwritten.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/driver.py:466: DriverWarning:The following design variable initial conditions are out of their specified bounds:
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/driver.py:619: DriverWarning:The following design variable initial conditions are out of their specified bounds:
   traj.phase0.t_duration
     val: [500.]
     lower: 50.0
@@ -1270,7 +1270,7 @@ Set the initial value of the design variable to a valid value or set the driver 
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.2698697120000588 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.2660214370000631 seconds.
 Total jacobian shape: (361, 212) 
 
 
@@ -1279,10 +1279,10 @@ FWD solves: 13   REV solves: 0
 Total colors vs. total size: 13 vs 212  (93.87% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.2699 sec
-Time to compute coloring:   0.1916 sec
-Memory to compute coloring:   0.1250 MB
-Coloring created on: 2024-06-06 15:20:57
+Time to compute sparsity:   0.2660 sec
+Time to compute coloring:   0.1900 sec
+Memory to compute coloring:   0.2500 MB
+Coloring created on: 2024-06-26 20:40:20
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1635: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
@@ -1294,11 +1294,11 @@ Coloring created on: 2024-06-06 15:20:57
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    6.1430
-       User Objective Time :       2.5511
-       User Sensitivity Time :     2.1485
-       Interface Time :            0.6775
-       Opt Solver Time:            0.7659
+    Total Time:                    5.8725
+       User Objective Time :       2.4540
+       User Sensitivity Time :     2.0091
+       Interface Time :            0.6708
+       Opt Solver Time:            0.7386
     Calls to Objective Function :     149
     Calls to Sens Function :          122
 
@@ -1904,10 +1904,10 @@ FWD solves: 13   REV solves: 0
 Total colors vs. total size: 13 vs 212  (93.87% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.2699 sec
-Time to compute coloring:   0.1916 sec
-Memory to compute coloring:   0.1250 MB
-Coloring created on: 2024-06-06 15:20:57
+Time to compute sparsity:   0.2660 sec
+Time to compute coloring:   0.1900 sec
+Memory to compute coloring:   0.2500 MB
+Coloring created on: 2024-06-26 20:40:20
 
 --- Constraint Report [traj] ---
     --- phase0 ---
@@ -1926,7 +1926,7 @@ Coloring created on: 2024-06-06 15:20:57
 Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/driver.py:466: DriverWarning:The following design variable initial conditions are out of their specified bounds:
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/driver.py:619: DriverWarning:The following design variable initial conditions are out of their specified bounds:
   traj.phase0.t_duration
     val: [500.]
     lower: 50.0
@@ -1934,7 +1934,7 @@ Model viewer data has already been recorded for Driver.
 Set the initial value of the design variable to a valid value or set the driver option[&#39;invalid_desvar_behavior&#39;] to &#39;ignore&#39;.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem2&#39; was computed 3 times, taking 0.30289940000000115 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem2&#39; was computed 3 times, taking 0.298259819000009 seconds.
 Total jacobian shape: (361, 212) 
 </pre></div>
 </div>
@@ -1943,10 +1943,10 @@ FWD solves: 154   REV solves: 0
 Total colors vs. total size: 154 vs 212  (27.36% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.3029 sec
-Time to compute coloring:   0.9413 sec
-Memory to compute coloring:   6.3047 MB
-Coloring created on: 2024-06-06 15:21:06
+Time to compute sparsity:   0.2983 sec
+Time to compute coloring:   0.9397 sec
+Memory to compute coloring:   5.6680 MB
+Coloring created on: 2024-06-26 20:40:28
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1635: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
@@ -1958,11 +1958,11 @@ Coloring created on: 2024-06-06 15:21:06
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                   15.5312
-       User Objective Time :       2.9734
-       User Sensitivity Time :    10.2975
-       Interface Time :            0.6411
-       Opt Solver Time:            1.6193
+    Total Time:                   15.3086
+       User Objective Time :       2.8741
+       User Sensitivity Time :    10.2636
+       Interface Time :            0.6234
+       Opt Solver Time:            1.5475
     Calls to Objective Function :     120
     Calls to Sens Function :          109
 
@@ -2562,10 +2562,10 @@ FWD solves: 154   REV solves: 0
 Total colors vs. total size: 154 vs 212  (27.36% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.3029 sec
-Time to compute coloring:   0.9413 sec
-Memory to compute coloring:   6.3047 MB
-Coloring created on: 2024-06-06 15:21:06
+Time to compute sparsity:   0.2983 sec
+Time to compute coloring:   0.9397 sec
+Memory to compute coloring:   5.6680 MB
+Coloring created on: 2024-06-26 20:40:28
 
 --- Constraint Report [traj] ---
     --- phase0 ---
@@ -2584,7 +2584,7 @@ Coloring created on: 2024-06-06 15:21:06
 Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/driver.py:466: DriverWarning:The following design variable initial conditions are out of their specified bounds:
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/driver.py:619: DriverWarning:The following design variable initial conditions are out of their specified bounds:
   traj.phase0.t_duration
     val: [500.]
     lower: 50.0
@@ -2599,8 +2599,8 @@ FWD solves: 2   REV solves: 0
 Total colors vs. total size: 2 vs 120  (98.33% improvement)
 
 Sparsity computed using tolerance: 1e-06
-Time to compute sparsity:   0.0065 sec
-Time to compute coloring:   0.0073 sec
+Time to compute sparsity:   0.0064 sec
+Time to compute coloring:   0.0072 sec
 Memory to compute coloring:   0.0000 MB
 
 Coloring for &#39;traj.phases.phase0.rhs_col.aero.q_comp&#39; (class DynamicPressureCompFD)
@@ -2610,12 +2610,12 @@ FWD solves: 2   REV solves: 0
 Total colors vs. total size: 2 vs 60  (96.67% improvement)
 
 Sparsity computed using tolerance: 1e-06
-Time to compute sparsity:   0.0037 sec
-Time to compute coloring:   0.0038 sec
+Time to compute sparsity:   0.0034 sec
+Time to compute coloring:   0.0037 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem3&#39; was computed 3 times, taking 0.318250877999958 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem3&#39; was computed 3 times, taking 0.3088736469999276 seconds.
 Total jacobian shape: (361, 212) 
 
 
@@ -2624,10 +2624,10 @@ FWD solves: 13   REV solves: 0
 Total colors vs. total size: 13 vs 212  (93.87% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.3183 sec
-Time to compute coloring:   0.1944 sec
+Time to compute sparsity:   0.3089 sec
+Time to compute coloring:   0.1911 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-06-06 15:21:24
+Coloring created on: 2024-06-26 20:40:46
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1635: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
@@ -2639,11 +2639,11 @@ Coloring created on: 2024-06-06 15:21:24
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    6.2243
-       User Objective Time :       2.5027
-       User Sensitivity Time :     2.3020
-       Interface Time :            0.6668
-       Opt Solver Time:            0.7528
+    Total Time:                    6.0342
+       User Objective Time :       2.4306
+       User Sensitivity Time :     2.2009
+       Interface Time :            0.6667
+       Opt Solver Time:            0.7360
     Calls to Objective Function :     144
     Calls to Sens Function :          121
 
@@ -3243,10 +3243,10 @@ FWD solves: 13   REV solves: 0
 Total colors vs. total size: 13 vs 212  (93.87% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.3183 sec
-Time to compute coloring:   0.1944 sec
+Time to compute sparsity:   0.3089 sec
+Time to compute coloring:   0.1911 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-06-06 15:21:24
+Coloring created on: 2024-06-26 20:40:46
 </pre></div>
 </div>
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 550x550 with 0 Axes&gt;

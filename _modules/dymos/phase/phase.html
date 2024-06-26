@@ -718,7 +718,7 @@ title="Open an issue"
 
 <span class="kn">from</span> <span class="nn">.options</span> <span class="kn">import</span> <span class="n">ControlOptionsDictionary</span><span class="p">,</span> <span class="n">ParameterOptionsDictionary</span><span class="p">,</span> \
     <span class="n">StateOptionsDictionary</span><span class="p">,</span> <span class="n">TimeOptionsDictionary</span><span class="p">,</span> <span class="n">ConstraintOptionsDictionary</span><span class="p">,</span> \
-    <span class="n">PolynomialControlOptionsDictionary</span><span class="p">,</span> <span class="n">GridRefinementOptionsDictionary</span><span class="p">,</span> <span class="n">SimulateOptionsDictionary</span><span class="p">,</span> \
+    <span class="n">GridRefinementOptionsDictionary</span><span class="p">,</span> <span class="n">SimulateOptionsDictionary</span><span class="p">,</span> \
     <span class="n">TimeseriesOutputOptionsDictionary</span><span class="p">,</span> <span class="n">PhaseTimeseriesOptionsDictionary</span>
 
 <span class="kn">from</span> <span class="nn">..transcriptions.transcription_base</span> <span class="kn">import</span> <span class="n">TranscriptionBase</span>
@@ -771,7 +771,6 @@ title="Open an issue"
         <span class="c1"># self.time_options = TimeOptionsDictionary()</span>
         <span class="c1"># self.state_options = {}</span>
         <span class="c1"># self.control_options = {}</span>
-        <span class="c1"># self.polynomial_control_options = {}</span>
         <span class="c1"># self.parameter_options = {}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">refine_options</span> <span class="o">=</span> <span class="n">GridRefinementOptionsDictionary</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">simulate_options</span> <span class="o">=</span> <span class="n">SimulateOptionsDictionary</span><span class="p">()</span>
@@ -843,9 +842,6 @@ title="Open an issue"
         <span class="k">for</span> <span class="n">control_name</span><span class="p">,</span> <span class="n">control_options</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">p</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">control_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">control_options</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">pc_name</span><span class="p">,</span> <span class="n">pc_options</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">p</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">pc_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">pc_options</span><span class="p">)</span>
-
         <span class="n">p</span><span class="o">.</span><span class="n">time_options</span><span class="p">[</span><span class="s1">&#39;fix_initial&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fix_initial_time</span>
 
         <span class="n">_fis</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">fix_initial_states</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">fix_initial_states</span>
@@ -900,8 +896,6 @@ title="Open an issue"
                              <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Options for each parameter in this phase.&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;control_options&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">{},</span>
                              <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Options for each control in this phase.&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;polynomial_control_options&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">{},</span>
-                             <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Options for each polynomial control in this phase.&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">time_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -922,10 +916,6 @@ title="Open an issue"
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">control_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;control_options&#39;</span><span class="p">]</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">polynomial_control_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;polynomial_control_options&#39;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="Phase.add_state"><a class="viewcode-back" href="../../../api/phase_api.html#dymos.Phase.add_state">[docs]</a>    <span class="k">def</span> <span class="nf">add_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                   <span class="n">rate_source</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
@@ -1223,18 +1213,16 @@ title="Open an issue"
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> has already been added as a control.&#39;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_options</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> has already been added as a parameter.&#39;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> has already been added as a polynomial control.&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Phase.add_control"><a class="viewcode-back" href="../../../api/phase_api.html#dymos.Phase.add_control">[docs]</a>    <span class="k">def</span> <span class="nf">add_control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
-                    <span class="n">fix_initial</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+<div class="viewcode-block" id="Phase.add_control"><a class="viewcode-back" href="../../../api/phase_api.html#dymos.Phase.add_control">[docs]</a>    <span class="k">def</span> <span class="nf">add_control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                    <span class="n">opt</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                     <span class="n">rate_targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate2_targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                     <span class="n">shape</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                     <span class="n">adder</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">ref0</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">continuity</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                     <span class="n">continuity_scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">continuity_ref</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate_continuity</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                     <span class="n">rate_continuity_scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate_continuity_ref</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                     <span class="n">rate2_continuity</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate2_continuity_scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
-                    <span class="n">rate2_continuity_ref</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">):</span>
+                    <span class="n">rate2_continuity_ref</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">control_type</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a dynamic control variable to be tied to a parameter in the ODE.</span>
 
@@ -1243,6 +1231,8 @@ title="Open an issue"
 <span class="sd">        name : str</span>
 <span class="sd">            The name assigned to the control variable.  If the ODE has been decorated with</span>
 <span class="sd">            parameters, this should be the name of a control in the system.</span>
+<span class="sd">        order : int</span>
+<span class="sd">            The order of the polynomial control variable.  This option is invalid if control_type is &#39;full&#39;.</span>
 <span class="sd">        units : str or None</span>
 <span class="sd">            The units with which the control parameter in this phase will be defined.  It must be</span>
 <span class="sd">            compatible with the units of the targets to which the control is connected.</span>
@@ -1316,6 +1306,8 @@ title="Open an issue"
 <span class="sd">        rate2_continuity_ref : float or None</span>
 <span class="sd">            Reference unit value of the rate2 continuity constraint at segment boundaries, for use in</span>
 <span class="sd">            place of rate_continuity_scaler.</span>
+<span class="sd">        control_type : str</span>
+<span class="sd">            The type of control variable.  Valid options include &#39;full&#39; and &#39;polynomial&#39;.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
@@ -1326,8 +1318,11 @@ title="Open an issue"
             <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ControlOptionsDictionary</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_control_options</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="n">opt</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="n">fix_initial</span><span class="p">,</span>
-                                 <span class="n">fix_final</span><span class="o">=</span><span class="n">fix_final</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">targets</span><span class="p">,</span> <span class="n">rate_targets</span><span class="o">=</span><span class="n">rate_targets</span><span class="p">,</span>
+        <span class="k">if</span> <span class="n">control_type</span> <span class="o">==</span> <span class="s1">&#39;polynomial&#39;</span><span class="p">:</span>
+            <span class="n">continuity</span> <span class="o">=</span> <span class="n">rate_continuity</span> <span class="o">=</span> <span class="n">rate2_continuity</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_control_options</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="n">opt</span><span class="p">,</span>
+                                 <span class="n">fix_initial</span><span class="o">=</span><span class="n">fix_initial</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="n">fix_final</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">targets</span><span class="p">,</span> <span class="n">rate_targets</span><span class="o">=</span><span class="n">rate_targets</span><span class="p">,</span>
                                  <span class="n">rate2_targets</span><span class="o">=</span><span class="n">rate2_targets</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">val</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">lower</span><span class="p">,</span>
                                  <span class="n">upper</span><span class="o">=</span><span class="n">upper</span><span class="p">,</span> <span class="n">scaler</span><span class="o">=</span><span class="n">scaler</span><span class="p">,</span> <span class="n">adder</span><span class="o">=</span><span class="n">adder</span><span class="p">,</span> <span class="n">ref0</span><span class="o">=</span><span class="n">ref0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span>
                                  <span class="n">continuity</span><span class="o">=</span><span class="n">continuity</span><span class="p">,</span> <span class="n">continuity_scaler</span><span class="o">=</span><span class="n">continuity_scaler</span><span class="p">,</span>
@@ -1336,17 +1331,19 @@ title="Open an issue"
                                  <span class="n">rate_continuity_ref</span><span class="o">=</span><span class="n">rate_continuity_ref</span><span class="p">,</span>
                                  <span class="n">rate2_continuity</span><span class="o">=</span><span class="n">rate2_continuity</span><span class="p">,</span>
                                  <span class="n">rate2_continuity_scaler</span><span class="o">=</span><span class="n">rate2_continuity_scaler</span><span class="p">,</span>
-                                 <span class="n">rate2_continuity_ref</span><span class="o">=</span><span class="n">rate2_continuity_ref</span><span class="p">)</span></div>
+                                 <span class="n">rate2_continuity_ref</span><span class="o">=</span><span class="n">rate2_continuity_ref</span><span class="p">,</span>
+                                 <span class="n">control_type</span><span class="o">=</span><span class="n">control_type</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Phase.set_control_options"><a class="viewcode-back" href="../../../api/phase_api.html#dymos.Phase.set_control_options">[docs]</a>    <span class="k">def</span> <span class="nf">set_control_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
-                            <span class="n">fix_initial</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+<div class="viewcode-block" id="Phase.set_control_options"><a class="viewcode-back" href="../../../api/phase_api.html#dymos.Phase.set_control_options">[docs]</a>    <span class="k">def</span> <span class="nf">set_control_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                            <span class="n">opt</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                             <span class="n">rate_targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate2_targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                             <span class="n">shape</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                             <span class="n">adder</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">ref0</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">continuity</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                             <span class="n">continuity_scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">continuity_ref</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                             <span class="n">rate_continuity</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate_continuity_scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                             <span class="n">rate_continuity_ref</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate2_continuity</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
-                            <span class="n">rate2_continuity_scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate2_continuity_ref</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">):</span>
+                            <span class="n">rate2_continuity_scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate2_continuity_ref</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                            <span class="n">control_type</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set options on an existing dynamic control variable in the phase.</span>
 
@@ -1355,6 +1352,8 @@ title="Open an issue"
 <span class="sd">        name : str</span>
 <span class="sd">            The name assigned to the control variable.  If the ODE has been decorated with</span>
 <span class="sd">            parameters, this should be the name of a control in the system.</span>
+<span class="sd">        order : int</span>
+<span class="sd">            The order of the polynomial control variable.  This option is invalid if control_type is &#39;full&#39;.</span>
 <span class="sd">        units : str or None</span>
 <span class="sd">            The units with which the control parameter in this phase will be defined.  It must be</span>
 <span class="sd">            compatible with the units of the targets to which the control is connected.</span>
@@ -1428,11 +1427,19 @@ title="Open an issue"
 <span class="sd">        rate2_continuity_ref : float or None</span>
 <span class="sd">            Reference unit value of the rate2 continuity constraint at segment boundaries, for use in</span>
 <span class="sd">            place of rate_continuity_scaler.</span>
+<span class="sd">        control_type : str</span>
+<span class="sd">            The type of control variable.  Valid options include &#39;full&#39; and &#39;polynomial&#39;.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
 <span class="sd">        rate and rate2 continuity are not enforced for input controls.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">control_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;control_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">control_type</span>
+
+        <span class="k">if</span> <span class="n">order</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span>
+
         <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span>
 
@@ -1580,17 +1587,26 @@ title="Open an issue"
 <span class="sd">        shape : Sequence of int</span>
 <span class="sd">            The shape of the control variable at each point in time.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">om</span><span class="o">.</span><span class="n">issue_warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pathname</span><span class="si">}</span><span class="s1">: The method `add_polynomial_control` is &#39;</span>
+                         <span class="s1">&#39;deprecated and will be removed in Dymos 2.1. Please use &#39;</span>
+                         <span class="s1">&#39;`add_control` with the appropriate options to define a polynomial control.&#39;</span><span class="p">,</span>
+                         <span class="n">category</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">OMDeprecationWarning</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">check_parameter</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">PolynomialControlOptionsDictionary</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ControlOptionsDictionary</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_polynomial_control_options</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span>
-                                            <span class="n">fix_initial</span><span class="p">,</span> <span class="n">fix_final</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span>
-                                            <span class="n">scaler</span><span class="p">,</span> <span class="n">adder</span><span class="p">,</span> <span class="n">ref0</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span>
-                                            <span class="n">targets</span><span class="p">,</span> <span class="n">rate_targets</span><span class="p">,</span> <span class="n">rate2_targets</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span></div>
+        <span class="n">control_type</span> <span class="o">=</span> <span class="s1">&#39;polynomial&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_control_options</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="n">opt</span><span class="p">,</span>
+                                 <span class="n">fix_initial</span><span class="o">=</span><span class="n">fix_initial</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="n">fix_final</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">targets</span><span class="p">,</span> <span class="n">rate_targets</span><span class="o">=</span><span class="n">rate_targets</span><span class="p">,</span>
+                                 <span class="n">rate2_targets</span><span class="o">=</span><span class="n">rate2_targets</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">val</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">lower</span><span class="p">,</span>
+                                 <span class="n">upper</span><span class="o">=</span><span class="n">upper</span><span class="p">,</span> <span class="n">scaler</span><span class="o">=</span><span class="n">scaler</span><span class="p">,</span> <span class="n">adder</span><span class="o">=</span><span class="n">adder</span><span class="p">,</span> <span class="n">ref0</span><span class="o">=</span><span class="n">ref0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span>
+                                 <span class="n">continuity</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rate_continuity</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rate2_continuity</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                 <span class="n">control_type</span><span class="o">=</span><span class="n">control_type</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Phase.set_polynomial_control_options"><a class="viewcode-back" href="../../../api/phase_api.html#dymos.Phase.set_polynomial_control_options">[docs]</a>    <span class="k">def</span> <span class="nf">set_polynomial_control_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                                        <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
@@ -1649,65 +1665,72 @@ title="Open an issue"
 <span class="sd">        shape : Sequence of int</span>
 <span class="sd">            The shape of the control variable at each point in time.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">om</span><span class="o">.</span><span class="n">issue_warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pathname</span><span class="si">}</span><span class="s1">: The method `set_polynomial_control_options` is &#39;</span>
+                         <span class="s1">&#39;deprecated and will be removed in Dymos 2.1. Please use &#39;</span>
+                         <span class="s1">&#39;`set_control_options` with the appropriate options to define a polynomial control.&#39;</span><span class="p">,</span>
+                         <span class="n">category</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">OMDeprecationWarning</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;control_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;polynomial&#39;</span>
+
         <span class="k">if</span> <span class="n">order</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span>
 
         <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span>
 
         <span class="k">if</span> <span class="n">opt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;opt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">opt</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;opt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">opt</span>
 
         <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;desc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">desc</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;desc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">desc</span>
 
         <span class="k">if</span> <span class="n">targets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">targets</span><span class="p">,)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">targets</span><span class="p">,)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">targets</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">targets</span>
 
         <span class="k">if</span> <span class="n">rate_targets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rate_targets</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;rate_targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">rate_targets</span><span class="p">,)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;rate_targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">rate_targets</span><span class="p">,)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;rate_targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rate_targets</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;rate_targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rate_targets</span>
 
         <span class="k">if</span> <span class="n">rate2_targets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rate2_targets</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;rate2_targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">rate2_targets</span><span class="p">,)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;rate2_targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">rate2_targets</span><span class="p">,)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;rate2_targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rate2_targets</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;rate2_targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rate2_targets</span>
 
         <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
 
         <span class="k">if</span> <span class="n">shape</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shape</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shape</span>
 
         <span class="k">if</span> <span class="n">fix_initial</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;fix_initial&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fix_initial</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;fix_initial&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fix_initial</span>
 
         <span class="k">if</span> <span class="n">fix_final</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;fix_final&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fix_final</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;fix_final&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fix_final</span>
 
         <span class="k">if</span> <span class="n">lower</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;lower&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lower</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;lower&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lower</span>
 
         <span class="k">if</span> <span class="n">upper</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;upper&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">upper</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;upper&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">upper</span>
 
         <span class="k">if</span> <span class="n">scaler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;scaler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scaler</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;scaler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scaler</span>
 
         <span class="k">if</span> <span class="n">adder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;adder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">adder</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;adder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">adder</span>
 
         <span class="k">if</span> <span class="n">ref0</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;ref0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ref0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;ref0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ref0</span>
 
         <span class="k">if</span> <span class="n">ref</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;ref&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ref</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;ref&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ref</span></div>
 
 <div class="viewcode-block" id="Phase.add_parameter"><a class="viewcode-back" href="../../../api/phase_api.html#dymos.Phase.add_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">add_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                       <span class="n">desc</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
@@ -2018,7 +2041,7 @@ title="Open an issue"
                 <span class="k">if</span> <span class="n">var_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;control_rate&#39;</span><span class="p">):</span>
                     <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;constraint_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;control_rates:</span><span class="si">{</span><span class="n">constraint_name</span><span class="si">}</span><span class="s1">&#39;</span>
                 <span class="k">elif</span> <span class="n">var_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;polynomial_control_rate&#39;</span><span class="p">):</span>
-                    <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;constraint_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;polynomial_control_rates:</span><span class="si">{</span><span class="n">constraint_name</span><span class="si">}</span><span class="s1">&#39;</span>
+                    <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;constraint_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;control_rates:</span><span class="si">{</span><span class="n">constraint_name</span><span class="si">}</span><span class="s1">&#39;</span>
             <span class="k">if</span> <span class="n">constraint_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeseries</span><span class="p">[</span><span class="s1">&#39;timeseries&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="n">bc</span><span class="p">[</span><span class="s1">&#39;constraint_name&#39;</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">)</span></div>
 
@@ -2129,8 +2152,6 @@ title="Open an issue"
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeseries_options</span><span class="p">[</span><span class="s1">&#39;use_prefix&#39;</span><span class="p">]:</span>
                 <span class="k">if</span> <span class="n">var_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;control_rate&#39;</span><span class="p">):</span>
                     <span class="n">pc</span><span class="p">[</span><span class="s1">&#39;constraint_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;control_rates:</span><span class="si">{</span><span class="n">constraint_name</span><span class="si">}</span><span class="s1">&#39;</span>
-                <span class="k">elif</span> <span class="n">var_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;polynomial_control_rate&#39;</span><span class="p">):</span>
-                    <span class="n">pc</span><span class="p">[</span><span class="s1">&#39;constraint_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;polynomial_control_rates:</span><span class="si">{</span><span class="n">constraint_name</span><span class="si">}</span><span class="s1">&#39;</span>
             <span class="k">if</span> <span class="n">constraint_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeseries</span><span class="p">[</span><span class="s1">&#39;timeseries&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="n">pc</span><span class="p">[</span><span class="s1">&#39;constraint_name&#39;</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">)</span></div>
 
@@ -2632,12 +2653,17 @@ title="Open an issue"
 <span class="sd">            integer specifying the order of the spline interpolator to use.</span>
 <span class="sd">            Default is &#39;linear&#39;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">control_options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">control_options</span><span class="p">[</span><span class="s1">&#39;control_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;polynomial&#39;</span><span class="p">:</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="s1">&#39;control_input&#39;</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
             <span class="n">val</span> <span class="o">=</span> <span class="n">vals</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">ys</span><span class="o">=</span><span class="n">vals</span><span class="p">,</span> <span class="n">xs</span><span class="o">=</span><span class="n">time_vals</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="s1">&#39;control_input&#39;</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">interpolation_kind</span><span class="p">)</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">ys</span><span class="o">=</span><span class="n">vals</span><span class="p">,</span> <span class="n">xs</span><span class="o">=</span><span class="n">time_vals</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="n">nodes</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">interpolation_kind</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="n">control_options</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;controls:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">val</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Phase.set_polynomial_control_val"><a class="viewcode-back" href="../../../api/phase_api.html#dymos.Phase.set_polynomial_control_val">[docs]</a>    <span class="k">def</span> <span class="nf">set_polynomial_control_val</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">vals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time_vals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -2665,13 +2691,16 @@ title="Open an issue"
 <span class="sd">            integer specifying the order of the spline interpolator to use.</span>
 <span class="sd">            Default is &#39;linear&#39;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">om</span><span class="o">.</span><span class="n">issue_warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pathname</span><span class="si">}</span><span class="s1">: The method `set_polynomial_control_val` is &#39;</span>
+                         <span class="s1">&#39;deprecated and will be removed in Dymos 2.1.&#39;</span><span class="p">,</span>
+                         <span class="n">category</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">OMDeprecationWarning</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
             <span class="n">val</span> <span class="o">=</span> <span class="n">vals</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">ys</span><span class="o">=</span><span class="n">vals</span><span class="p">,</span> <span class="n">xs</span><span class="o">=</span><span class="n">time_vals</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">interpolation_kind</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;polynomial_controls:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">val</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span></div>
+            <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;controls:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">val</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Phase.set_parameter_val"><a class="viewcode-back" href="../../../api/phase_api.html#dymos.Phase.set_parameter_val">[docs]</a>    <span class="k">def</span> <span class="nf">set_parameter_val</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -2772,14 +2801,11 @@ title="Open an issue"
 <span class="sd">        str</span>
 <span class="sd">            The classification of the given variable, which is one of</span>
 <span class="sd">            &#39;t&#39;, &#39;t_phase&#39;, &#39;state&#39;, &#39;control&#39;, &#39;control_rate&#39;,</span>
-<span class="sd">            &#39;control_rate2&#39;, &#39;polynomial_control&#39;,</span>
-<span class="sd">            &#39;polynomial_control_rate&#39;, &#39;polynomial_control_rate2&#39;, &#39;parameter&#39;,</span>
-<span class="sd">            or &#39;ode&#39;.</span>
+<span class="sd">            &#39;control_rate2&#39;, &#39;parameter&#39;, or &#39;ode&#39;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">classify_var</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">time_options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_options</span><span class="p">,</span> <span class="n">state_options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">state_options</span><span class="p">,</span>
                             <span class="n">parameter_options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_options</span><span class="p">,</span>
                             <span class="n">control_options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">,</span>
-                            <span class="n">polynomial_control_options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">,</span>
                             <span class="n">timeseries_options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeseries</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_check_ode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2821,9 +2847,6 @@ title="Open an issue"
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">:</span>
             <span class="n">transcription</span><span class="o">.</span><span class="n">setup_controls</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">:</span>
-            <span class="n">transcription</span><span class="o">.</span><span class="n">setup_polynomial_controls</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_options</span><span class="p">:</span>
             <span class="n">transcription</span><span class="o">.</span><span class="n">setup_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
@@ -2854,10 +2877,6 @@ title="Open an issue"
             <span class="n">configure_controls_introspection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">,</span> <span class="n">ode</span><span class="p">,</span>
                                              <span class="n">time_units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_options</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">])</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">:</span>
-            <span class="n">configure_controls_introspection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">,</span> <span class="n">ode</span><span class="p">,</span>
-                                             <span class="n">time_units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_options</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">])</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_options</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">configure_parameters_introspection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_options</span><span class="p">,</span> <span class="n">ode</span><span class="p">)</span>
@@ -2868,7 +2887,6 @@ title="Open an issue"
         <span class="n">transcription</span><span class="o">.</span><span class="n">configure_states_introspection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">transcription</span><span class="o">.</span><span class="n">configure_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">transcription</span><span class="o">.</span><span class="n">configure_controls</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">transcription</span><span class="o">.</span><span class="n">configure_polynomial_controls</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">transcription</span><span class="o">.</span><span class="n">configure_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">transcription</span><span class="o">.</span><span class="n">configure_states</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
@@ -2967,26 +2985,6 @@ title="Open an issue"
                 <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;continuity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;rate_continuity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;rate2_continuity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-
-    <span class="k">def</span> <span class="nf">_check_polynomial_control_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Check that polynomial control options are valid and issue warnings if invalid options are provided.</span>
-
-<span class="sd">        Warns</span>
-<span class="sd">        -----</span>
-<span class="sd">        RuntimeWarning</span>
-<span class="sd">            RuntimeWarning is issued in the case of one or more invalid time options.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">options</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;opt&#39;</span><span class="p">]:</span>
-                <span class="n">invalid_options</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">opt</span> <span class="ow">in</span> <span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="s1">&#39;upper&#39;</span><span class="p">,</span> <span class="s1">&#39;scaler&#39;</span><span class="p">,</span> <span class="s1">&#39;adder&#39;</span><span class="p">,</span> <span class="s1">&#39;ref&#39;</span><span class="p">,</span> <span class="s1">&#39;ref0&#39;</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="n">opt</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">invalid_options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">opt</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">invalid_options</span><span class="p">:</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid options for non-optimal polynoimal control &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; in &quot;</span>
-                                  <span class="sa">f</span><span class="s2">&quot;phase &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">invalid_options</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-                                  <span class="ne">RuntimeWarning</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_check_parameter_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -3143,12 +3141,13 @@ title="Open an issue"
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">node_locations</span> <span class="o">=</span> <span class="n">gd</span><span class="o">.</span><span class="n">node_ptau</span><span class="p">[</span><span class="n">gd</span><span class="o">.</span><span class="n">subset_node_indices</span><span class="p">[</span><span class="s1">&#39;state_input&#39;</span><span class="p">]]</span>
             <span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">:</span>
-                <span class="n">node_locations</span> <span class="o">=</span> <span class="n">gd</span><span class="o">.</span><span class="n">node_ptau</span><span class="p">[</span><span class="n">gd</span><span class="o">.</span><span class="n">subset_node_indices</span><span class="p">[</span><span class="s1">&#39;control_input&#39;</span><span class="p">]]</span>
-            <span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">:</span>
-                <span class="n">node_locations</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">lgl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;order&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;control_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;polynomial&#39;</span><span class="p">:</span>
+                    <span class="n">node_locations</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">lgl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;order&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">node_locations</span> <span class="o">=</span> <span class="n">gd</span><span class="o">.</span><span class="n">node_ptau</span><span class="p">[</span><span class="n">gd</span><span class="o">.</span><span class="n">subset_node_indices</span><span class="p">[</span><span class="s1">&#39;control_input&#39;</span><span class="p">]]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Could not find a state, control, or polynomial control named &#39;</span>
-                                 <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> to be interpolated.</span><span class="se">\n</span><span class="s1">Please explicitly specified the &#39;</span>
+                                 <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> to be interpolated.</span><span class="se">\n</span><span class="s1">Please explicitly specify the &#39;</span>
                                  <span class="sa">f</span><span class="s1">&#39;node subset onto which this value should be interpolated.&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">node_locations</span> <span class="o">=</span> <span class="n">gd</span><span class="o">.</span><span class="n">node_ptau</span><span class="p">[</span><span class="n">gd</span><span class="o">.</span><span class="n">subset_node_indices</span><span class="p">[</span><span class="n">nodes</span><span class="p">]]</span>
@@ -3276,10 +3275,6 @@ title="Open an issue"
             <span class="n">sim_phase</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">control_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">control_options</span><span class="p">)</span>
             <span class="n">sim_phase</span><span class="o">.</span><span class="n">control_options</span><span class="p">[</span><span class="n">control_name</span><span class="p">][</span><span class="s1">&#39;opt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="k">for</span> <span class="n">pc_name</span><span class="p">,</span> <span class="n">pc_options</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">sim_phase</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">pc_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">pc_options</span><span class="p">)</span>
-            <span class="n">sim_phase</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">pc_name</span><span class="p">][</span><span class="s1">&#39;opt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-
         <span class="n">sim_phase</span><span class="o">.</span><span class="n">_timeseries</span> <span class="o">=</span> <span class="p">{</span><span class="n">ts_name</span><span class="p">:</span> <span class="n">ts_options</span> <span class="k">for</span> <span class="n">ts_name</span><span class="p">,</span> <span class="n">ts_options</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeseries</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
                                  <span class="k">if</span> <span class="n">ts_name</span> <span class="o">==</span> <span class="s1">&#39;timeseries&#39;</span><span class="p">}</span>
 
@@ -3342,12 +3337,6 @@ title="Open an issue"
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">options</span> <span class="ow">in</span> <span class="n">phs</span><span class="o">.</span><span class="n">control_options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">ip</span> <span class="o">=</span> <span class="n">ip_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;control_group.control_interp_comp.controls:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
             <span class="n">prob</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">self_path</span><span class="si">}</span><span class="s1">controls:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">][</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">ip</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">]</span>
-
-        <span class="c1"># Assign polynomial control values</span>
-        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">options</span> <span class="ow">in</span> <span class="n">phs</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">ip</span> <span class="o">=</span> <span class="n">ip_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;polynomial_control_group.interp_comp.&#39;</span>
-                         <span class="sa">f</span><span class="s1">&#39;polynomial_controls:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
-            <span class="n">prob</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">self_path</span><span class="si">}</span><span class="s1">polynomial_controls:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">][</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">ip</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">]</span>
 
         <span class="c1"># Assign parameter values</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">phs</span><span class="o">.</span><span class="n">parameter_options</span><span class="p">:</span>
@@ -3591,55 +3580,6 @@ title="Open an issue"
             <span class="n">control_name</span> <span class="o">=</span> <span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_control_fixed</span><span class="p">(</span><span class="n">control_name</span><span class="p">,</span> <span class="n">loc</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">is_polynomial_control_fixed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">loc</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Test if the polynomial control of the given name is guaranteed to be fixed at the initial or final time.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        name : str</span>
-<span class="sd">            The name of the polynomial control to be tested.</span>
-<span class="sd">        loc : str</span>
-<span class="sd">            The location of time to be tested: either &#39;initial&#39; or &#39;final&#39;.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            True if the state of the given name is guaranteed to be fixed at the given location.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">loc</span> <span class="o">==</span> <span class="s1">&#39;initial&#39;</span><span class="p">:</span>
-            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;fix_initial&#39;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">loc</span> <span class="o">==</span> <span class="s1">&#39;final&#39;</span><span class="p">:</span>
-            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;fix_final&#39;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unknown value for argument &quot;loc&quot;: must be either &quot;initial&quot; or &#39;</span>
-                             <span class="sa">f</span><span class="s1">&#39;&quot;final&quot; but got </span><span class="si">{</span><span class="n">loc</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">res</span>
-
-    <span class="k">def</span> <span class="nf">is_polynomial_control_rate_fixed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">loc</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Test if the polynomial control rate of the given name is guaranteed to be fixed at the initial or final time.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        name : str</span>
-<span class="sd">            The name of the control to be tested.</span>
-<span class="sd">        loc : str</span>
-<span class="sd">            The location of time to be tested: either &#39;initial&#39; or &#39;final&#39;.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            True if the state of the given name is guaranteed to be fixed at the given location.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_rate&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> \
-                <span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="p">:</span>
-            <span class="n">control_name</span> <span class="o">=</span> <span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_rate2&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> \
-                <span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;polynomial_control_options&#39;</span><span class="p">]:</span>
-            <span class="n">control_name</span> <span class="o">=</span> <span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_polynomial_control_fixed</span><span class="p">(</span><span class="n">control_name</span><span class="p">,</span> <span class="n">loc</span><span class="p">)</span>
-
     <span class="k">def</span> <span class="nf">_indices_in_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">loc</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a set of the C-order flattened indices involving constraint of the given name at the given loc.</span>
@@ -3702,8 +3642,6 @@ title="Open an issue"
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_state_fixed</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">loc</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">var_type</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;input_control&#39;</span><span class="p">,</span> <span class="s1">&#39;indep_control&#39;</span><span class="p">}:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_control_fixed</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">loc</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">var_type</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;input_polynomial_control&#39;</span><span class="p">,</span> <span class="s1">&#39;indep_polynomial_control&#39;</span><span class="p">}:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_polynomial_control_fixed</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">loc</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">var_type</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;control_rate&#39;</span><span class="p">,</span> <span class="s1">&#39;control_rate2&#39;</span><span class="p">}:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_control_rate_fixed</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">loc</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">var_type</span> <span class="o">==</span> <span class="s1">&#39;parameter&#39;</span><span class="p">:</span>
@@ -3839,34 +3777,6 @@ title="Open an issue"
                 <span class="bp">self</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;controls:</span><span class="si">{</span><span class="n">control_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">interp_vals</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">prev_control_units</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;fix_final&#39;</span><span class="p">]:</span>
                     <span class="n">warning_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">phase_name</span><span class="si">}</span><span class="s2">.controls:</span><span class="si">{</span><span class="n">control_name</span><span class="si">}</span><span class="s2"> specifies &#39;fix_final=True&#39;. &quot;</span> \
-                                      <span class="sa">f</span><span class="s2">&quot;If the given restart file has a&quot;</span> \
-                                      <span class="sa">f</span><span class="s2">&quot; different final value this will overwrite the user-specified value&quot;</span>
-                    <span class="n">issue_warning</span><span class="p">(</span><span class="n">warning_message</span><span class="p">)</span>
-
-            <span class="c1"># Set the output polynomial control outputs from the previous solution as the value</span>
-            <span class="k">for</span> <span class="n">pc_name</span><span class="p">,</span> <span class="n">options</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_control_options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prev_timeseries_prom_path</span><span class="si">}</span><span class="s1">.polynomial_controls:</span><span class="si">{</span><span class="n">pc_name</span><span class="si">}</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">prev_vars_prom2abs</span><span class="p">:</span>
-                    <span class="n">prev_pc_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prev_timeseries_prom_path</span><span class="si">}</span><span class="s1">.polynomial_controls:</span><span class="si">{</span><span class="n">pc_name</span><span class="si">}</span><span class="s1">&#39;</span>
-                <span class="k">elif</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prev_timeseries_prom_path</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">pc_name</span><span class="si">}</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">prev_vars_prom2abs</span><span class="p">:</span>
-                    <span class="n">prev_pc_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prev_timeseries_prom_path</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">pc_name</span><span class="si">}</span><span class="s1">&#39;</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">issue_warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unable to find polynomial control </span><span class="si">{</span><span class="n">pc_name</span><span class="si">}</span><span class="s1"> in timeseries data from case being &#39;</span>
-                                  <span class="sa">f</span><span class="s1">&#39;loaded.&#39;</span><span class="p">,</span> <span class="n">om</span><span class="o">.</span><span class="n">OpenMDAOWarning</span><span class="p">)</span>
-                    <span class="k">continue</span>
-
-                <span class="n">prev_pc_val</span> <span class="o">=</span> <span class="n">prev_vars</span><span class="p">[</span><span class="n">prev_pc_path</span><span class="p">][</span><span class="s1">&#39;val&#39;</span><span class="p">]</span>
-                <span class="n">prev_pc_units</span> <span class="o">=</span> <span class="n">prev_vars</span><span class="p">[</span><span class="n">prev_pc_path</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
-                <span class="n">interp_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">pc_name</span><span class="p">,</span>
-                                          <span class="n">xs</span><span class="o">=</span><span class="n">prev_time_val</span><span class="p">,</span>
-                                          <span class="n">ys</span><span class="o">=</span><span class="n">prev_pc_val</span><span class="p">[</span><span class="n">unique_idxs</span><span class="p">],</span>
-                                          <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;slinear&#39;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">interp_vals</span> <span class="o">=</span> <span class="n">interp_vals</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">])</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;polynomial_controls:</span><span class="si">{</span><span class="n">pc_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-                             <span class="n">interp_vals</span><span class="p">,</span>
-                             <span class="n">units</span><span class="o">=</span><span class="n">prev_pc_units</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;fix_final&#39;</span><span class="p">]:</span>
-                    <span class="n">warning_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">phase_name</span><span class="si">}</span><span class="s2">.polynomial_controls:</span><span class="si">{</span><span class="n">pc_name</span><span class="si">}</span><span class="s2"> specifies &#39;fix_final=True&#39;. &quot;</span> \
                                       <span class="sa">f</span><span class="s2">&quot;If the given restart file has a&quot;</span> \
                                       <span class="sa">f</span><span class="s2">&quot; different final value this will overwrite the user-specified value&quot;</span>
                     <span class="n">issue_warning</span><span class="p">(</span><span class="n">warning_message</span><span class="p">)</span>

@@ -961,7 +961,7 @@ INFO: checking out_of_order
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/recorders/sqlite_recorder.py:226: UserWarning:The existing case recorder file, dymos_solution.db, is being overwritten.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.07714110799997798 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.08071907099997588 seconds.
 Total jacobian shape: (40, 50) 
 
 
@@ -970,10 +970,10 @@ FWD solves: 8   REV solves: 0
 Total colors vs. total size: 8 vs 50  (84.00% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0771 sec
-Time to compute coloring:   0.0214 sec
-Memory to compute coloring:   0.1250 MB
-Coloring created on: 2024-06-06 15:14:14
+Time to compute sparsity:   0.0807 sec
+Time to compute coloring:   0.0223 sec
+Memory to compute coloring:   0.2500 MB
+Coloring created on: 2024-06-26 20:33:48
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -993,7 +993,16 @@ Model viewer data has already been recorded for Driver.
 Done simulating trajectory traj
 </pre></div>
 </div>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>False
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Problem: problem
+Driver:  ScipyOptimizeDriver
+  success     : True
+  iterations  : 41
+  runtime     : 6.0391E-01 s
+  model_evals : 41
+  model_time  : 2.6564E-02 s
+  deriv_evals : 39
+  deriv_time  : 2.0534E-01 s
+  exit_status : SUCCESS
 </pre></div>
 </div>
 </div>

@@ -1148,19 +1148,19 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.05782835000002251 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.056885728999986895 seconds.
 Total jacobian shape: (103, 103) 
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (103, 103)  (11.07% nonzero)
+
+
+Jacobian shape: (103, 103)  (11.07% nonzero)
 FWD solves: 17   REV solves: 0
 Total colors vs. total size: 17 vs 103  (83.50% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0578 sec
-Time to compute coloring:   0.0675 sec
+Time to compute sparsity:   0.0569 sec
+Time to compute coloring:   0.0659 sec
 Memory to compute coloring:   0.3750 MB
-Coloring created on: 2024-06-06 15:19:16
+Coloring created on: 2024-06-26 20:38:44
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1169,11 +1169,11 @@ Coloring created on: 2024-06-06 15:19:16
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    0.0614
-       User Objective Time :       0.0067
-       User Sensitivity Time :     0.0293
+    Total Time:                    0.0611
+       User Objective Time :       0.0068
+       User Sensitivity Time :     0.0290
        Interface Time :            0.0113
-       Opt Solver Time:            0.0141
+       Opt Solver Time:            0.0140
     Calls to Objective Function :       6
     Calls to Sens Function :            5
 
@@ -1408,7 +1408,16 @@ Model viewer data has already been recorded for Driver.
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
 </pre></div>
 </div>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>False
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Problem: problem
+Driver:  pyOptSparseDriver
+  success     : True
+  iterations  : 8
+  runtime     : 4.9882E-01 s
+  model_evals : 8
+  model_time  : 6.5917E-03 s
+  deriv_evals : 7
+  deriv_time  : 6.7235E-02 s
+  exit_status : SUCCESS
 </pre></div>
 </div>
 </div>
