@@ -294,7 +294,8 @@ class dymos_linkage_gui_test_case(_GuiTestCase):
         rotate.set_time_options(fix_initial=False, duration_bounds=(1.0, 5), duration_ref=1.0)
         rotate.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
         rotate.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0)
-        rotate.add_polynomial_control('alpha', order=1, opt=True, units='deg', lower=0, upper=10, ref=10, val=[0, 10])
+        rotate.add_control('alpha', order=1, opt=True, units='deg', lower=0, upper=10,
+                           ref=10, val=[0, 10], control_type='polynomial')
         rotate.add_timeseries_output('*')
 
         # Fifth Phase: Climb to target speed and altitude at end of runway.
@@ -444,7 +445,7 @@ class dymos_linkage_gui_test_case(_GuiTestCase):
         p.set_val('traj.rotate.t_duration', 5)
         p.set_val('traj.rotate.states:r', rotate.interp('r', [1750, 1800.0]))
         p.set_val('traj.rotate.states:v', rotate.interp('v', [80, 85.0]))
-        p.set_val('traj.rotate.polynomial_controls:alpha', 0.0, units='deg')
+        p.set_val('traj.rotate.controls:alpha', 0.0, units='deg')
 
         p.set_val('traj.climb.t_initial', 30)
         p.set_val('traj.climb.t_duration', 20)

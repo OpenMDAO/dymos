@@ -106,8 +106,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         nodes are layed out.
     control_options : dict of {str: ControlOptionsDictionary}
         A mapping that maps the name of each control to a ControlOptionsDictionary of its options.
-    polynomial_control_options : dict of {str: PolynomialControlOptionsDictionary}
-        A mapping that maps the name of each polynomial control to an OptionsDictionary of its options.
     time_units : str
         The time units pertaining to the control rates.
     standalone_mode : bool
@@ -118,11 +116,10 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
     **kwargs : dict, optional
         Keyword arguments passed to ExplicitComponent.
     """
-    def __init__(self, grid_data, control_options=None, polynomial_control_options=None,
+    def __init__(self, grid_data, control_options=None,
                  time_units=None, standalone_mode=False, compute_derivs=True, **kwargs):
         self._grid_data = grid_data
         self._control_options = {} if control_options is None else control_options
-        self._polynomial_control_options = {} if polynomial_control_options is None else polynomial_control_options
         self._time_units = time_units
         self._standalone_mode = standalone_mode
         self._compute_derivs = compute_derivs
@@ -163,16 +160,17 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             If True, allocate storage for complex step.
         """
         self.options['segment_index'] = idx
-        disc_node_idxs = self._disc_node_idxs_by_segment[idx]
 
         i1, i2 = self._grid_data.subset_segment_indices['control_disc'][idx, :]
         indices = self._grid_data.subset_node_indices['control_disc'][i1:i2]
         taus_seg = self._grid_data.node_stau[indices]
 
         n = len(taus_seg)
-        ar_n = np.arange(n, dtype=int)
-        ptaus = {pc_name: lgl(pc_options['order'] + 1)[0]
-                 for pc_name, pc_options in self._polynomial_control_options.items()}
+        ptaus = {}
+        for control_name, options in self._control_options.items():
+            if options['control_type'] == 'polynomial':
+                order = options['order']
+                ptaus[control_name] = lgl(order + 1)[0]
         self._compute_barycentric_weights(taus_seg, ptaus)
         dtype = complex if alloc_complex else float
 
@@ -193,9 +191,9 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         self._taus_seg['controls'] = taus_seg
 
         # Arrays pertaining to polynomial controls are stored with their name as a key
-        for pc_name, pc_options in self._polynomial_control_options.items():
+        for pc_name in ptaus:
+            pc_options = self._control_options[pc_name]
             n = pc_options['order'] + 1
-            ar_n = np.arange(n, dtype=int)
             self._taus_seg[pc_name] = lgl(n)[0]
             self._l[pc_name] = np.ones(n, dtype=dtype)
             self._dl_dg[pc_name] = np.zeros((n, n), dtype=dtype)
@@ -236,62 +234,61 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
 
         num_uhat_nodes = gd.subset_num_nodes['control_input']
         for control_name, options in self._control_options.items():
-            shape = options['shape']
-            units = options['units']
-            input_name = f'controls:{control_name}'
-            output_name = f'control_values:{control_name}'
-            rate_name = f'control_rates:{control_name}_rate'
-            rate2_name = f'control_rates:{control_name}_rate2'
-            rate_units = get_rate_units(units, self._time_units)
-            rate2_units = get_rate_units(units, self._time_units, deriv=2)
-            uhat_shape = (num_uhat_nodes,) + shape
-            output_shape = (1,) + shape
-            self.add_input(input_name, shape=uhat_shape, units=units)
-            self.add_output(output_name, shape=output_shape, units=units)
-            self.add_output(rate_name, shape=output_shape, units=rate_units)
-            self.add_output(rate2_name, shape=output_shape, units=rate2_units)
-            self._control_io_names[control_name] = (input_name, output_name, rate_name, rate2_name)
-            self.declare_partials(of=output_name, wrt=input_name)
-            self.declare_partials(of=output_name, wrt='stau')
-            self.declare_partials(of=rate_name, wrt=input_name)
-            self.declare_partials(of=rate_name, wrt='stau')
-            self.declare_partials(of=rate_name, wrt='dstau_dt')
+            if options['control_type'] == 'full':
+                shape = options['shape']
+                units = options['units']
+                input_name = f'controls:{control_name}'
+                output_name = f'control_values:{control_name}'
+                rate_name = f'control_rates:{control_name}_rate'
+                rate2_name = f'control_rates:{control_name}_rate2'
+                rate_units = get_rate_units(units, self._time_units)
+                rate2_units = get_rate_units(units, self._time_units, deriv=2)
+                uhat_shape = (num_uhat_nodes,) + shape
+                output_shape = (1,) + shape
+                self.add_input(input_name, shape=uhat_shape, units=units)
+                self.add_output(output_name, shape=output_shape, units=units)
+                self.add_output(rate_name, shape=output_shape, units=rate_units)
+                self.add_output(rate2_name, shape=output_shape, units=rate2_units)
+                self._control_io_names[control_name] = (input_name, output_name, rate_name, rate2_name)
+                self.declare_partials(of=output_name, wrt=input_name)
+                self.declare_partials(of=output_name, wrt='stau')
+                self.declare_partials(of=rate_name, wrt=input_name)
+                self.declare_partials(of=rate_name, wrt='stau')
+                self.declare_partials(of=rate_name, wrt='dstau_dt')
 
-            if self._compute_derivs:
-                self.declare_partials(of=rate2_name, wrt=input_name)
-                self.declare_partials(of=rate2_name, wrt='stau')
-                self.declare_partials(of=rate2_name, wrt='dstau_dt')
+                if self._compute_derivs:
+                    self.declare_partials(of=rate2_name, wrt=input_name)
+                    self.declare_partials(of=rate2_name, wrt='stau')
+                    self.declare_partials(of=rate2_name, wrt='dstau_dt')
 
-    def _configure_polynomial_controls(self):
+            elif options['control_type'] == 'polynomial':
+                order = options['order']
 
-        for pc_name, options in self._polynomial_control_options.items():
-            order = options['order']
+                shape = options['shape']
+                units = options['units']
+                input_name = f'controls:{control_name}'
+                output_name = f'control_values:{control_name}'
+                rate_name = f'control_rates:{control_name}_rate'
+                rate2_name = f'control_rates:{control_name}_rate2'
+                rate_units = get_rate_units(units, self._time_units)
+                rate2_units = get_rate_units(units, self._time_units, deriv=2)
+                input_shape = (order + 1,) + shape
+                output_shape = (1,) + shape
+                self.add_input(input_name, shape=input_shape, units=units)
+                self.add_output(output_name, shape=output_shape, units=units)
+                self.add_output(rate_name, shape=output_shape, units=rate_units)
+                self.add_output(rate2_name, shape=output_shape, units=rate2_units)
+                self._control_io_names[control_name] = (input_name, output_name, rate_name, rate2_name)
+                self.declare_partials(of=output_name, wrt=input_name)
+                self.declare_partials(of=output_name, wrt='ptau')
+                self.declare_partials(of=rate_name, wrt=input_name)
+                self.declare_partials(of=rate_name, wrt='ptau')
+                self.declare_partials(of=rate_name, wrt='t_duration')
 
-            shape = options['shape']
-            units = options['units']
-            input_name = f'polynomial_controls:{pc_name}'
-            output_name = f'polynomial_control_values:{pc_name}'
-            rate_name = f'polynomial_control_rates:{pc_name}_rate'
-            rate2_name = f'polynomial_control_rates:{pc_name}_rate2'
-            rate_units = get_rate_units(units, self._time_units)
-            rate2_units = get_rate_units(units, self._time_units, deriv=2)
-            input_shape = (order + 1,) + shape
-            output_shape = (1,) + shape
-            self.add_input(input_name, shape=input_shape, units=units)
-            self.add_output(output_name, shape=output_shape, units=units)
-            self.add_output(rate_name, shape=output_shape, units=rate_units)
-            self.add_output(rate2_name, shape=output_shape, units=rate2_units)
-            self._control_io_names[pc_name] = (input_name, output_name, rate_name, rate2_name)
-            self.declare_partials(of=output_name, wrt=input_name)
-            self.declare_partials(of=output_name, wrt='ptau')
-            self.declare_partials(of=rate_name, wrt=input_name)
-            self.declare_partials(of=rate_name, wrt='ptau')
-            self.declare_partials(of=rate_name, wrt='t_duration')
-
-            if self._compute_derivs:
-                self.declare_partials(of=rate2_name, wrt=input_name)
-                self.declare_partials(of=rate2_name, wrt='ptau')
-                self.declare_partials(of=rate2_name, wrt='t_duration')
+                if self._compute_derivs:
+                    self.declare_partials(of=rate2_name, wrt=input_name)
+                    self.declare_partials(of=rate2_name, wrt='ptau')
+                    self.declare_partials(of=rate2_name, wrt='t_duration')
 
     def setup(self):
         """
@@ -312,7 +309,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         self.add_input('ptau', shape=(1,), units=None)
 
         self._configure_controls()
-        self._configure_polynomial_controls()
 
     def _compute_barycentric_weights(self, taus: ArrayLike, ptaus: dict):
         """Computes the barycentric weights given a set of nodes.
@@ -351,7 +347,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         discrete_outputs : `Vector`
             `Vector` containing discrete_outputs.
         """
-        gd = self._grid_data
         seg_idx = self.options['segment_index']
         stau = inputs['stau']
         dstau_dt = inputs['dstau_dt']
@@ -384,35 +379,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         L_seg = L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
                      input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
 
-        for control_name in self._control_options:
-            input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
-
-            # Translate the input nodes to the discretization nodes.
-            u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
-
-            # Perform a row_wise multiplication of w_b and u_hat
-            wbuhat = np.einsum("ij,i...->i...", w_b, u_hat)
-
-            outputs[output_name] = np.einsum('i...,i...->...', l, wbuhat)
-            outputs[rate_name] = wbuhat.T @ dl_dstau * dstau_dt
-            outputs[rate2_name] = wbuhat.T @ d2l_dstau2 * dstau_dt ** 2
-
-    def _compute_polynomial_controls(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
-        """
-        Compute interpolated control values and rates for the polynomial controls.
-
-        Parameters
-        ----------
-        inputs : `Vector`
-            `Vector` containing inputs.
-        outputs : `Vector`
-            `Vector` containing outputs.
-        discrete_inputs : `Vector`
-            `Vector` containing discrete_inputs.
-        discrete_outputs : `Vector`
-            `Vector` containing discrete_outputs.
-        """
-        gd = self._grid_data
         seg_idx = self.options['segment_index']
         ptau = inputs['ptau']
         dptau_dt = 2. / inputs['t_duration']
@@ -420,37 +386,51 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         disc_node_idxs = self._disc_node_idxs_by_segment[seg_idx]
         input_node_idxs = self._input_node_idxs_by_segment[seg_idx]
 
-        for pc_name in self._polynomial_control_options:
-            # Retrieve the storage vectors that pertain to the polynomial control
-            taus_seg = self._taus_seg[pc_name]
-            l = self._l[pc_name]
-            dl_dg = self._dl_dg[pc_name]
-            d2l_dg2 = self._d2l_dg2[pc_name]
+        for control_name, options in self._control_options.items():
+            if options['control_type'] == 'full':
+                input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
 
-            dl_dptau = self._dl_dtau[pc_name]
-            d2l_dptau2 = self._d2l_dtau2[pc_name]
-            w_b = self._w_b[pc_name]
+                # Translate the input nodes to the discretization nodes.
+                u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
 
-            _compute_dl_dg(ptau, taus_seg, l, dl_dg, d2l_dg2)
+                # Perform a row_wise multiplication of w_b and u_hat
+                wbuhat = np.einsum("ij,i...->i...", w_b, u_hat)
 
-            # Equivalent of multiplying dl_dg @ dg_dtau, where dg_dtau is a column vector of n ones.
-            dl_dptau[...] = np.sum(dl_dg, axis=-1, keepdims=True)
+                outputs[output_name] = np.einsum('i...,i...->...', l, wbuhat)
+                outputs[rate_name] = wbuhat.T @ dl_dstau * dstau_dt
+                outputs[rate2_name] = wbuhat.T @ d2l_dstau2 * dstau_dt ** 2
 
-            # d2l_dg @ dg_dtau + dl_dg @ d2g_dtau2 but d2g_dtau2 is zero.
-            d2l_dptau2[...] = np.sum(np.sum(d2l_dg2, axis=-1), axis=-1, keepdims=True)
+            else:
+                # Retrieve the storage vectors that pertain to the polynomial control
+                taus_seg = self._taus_seg[control_name]
+                l = self._l[control_name]
+                dl_dg = self._dl_dg[control_name]
+                d2l_dg2 = self._d2l_dg2[control_name]
 
-            input_name, output_name, rate_name, rate2_name = self._control_io_names[pc_name]
+                dl_dptau = self._dl_dtau[control_name]
+                d2l_dptau2 = self._d2l_dtau2[control_name]
+                w_b = self._w_b[control_name]
 
-            # Translate the input nodes to the discretization nodes.
-            u_hat = inputs[input_name]
+                _compute_dl_dg(ptau, taus_seg, l, dl_dg, d2l_dg2)
 
-            # Perform a row_wise multiplication of w_b and u_hat
-            wbuhat = np.einsum("ij,i...->i...", w_b, u_hat)
+                # Equivalent of multiplying dl_dg @ dg_dtau, where dg_dtau is a column vector of n ones.
+                dl_dptau[...] = np.sum(dl_dg, axis=-1, keepdims=True)
 
-            # outputs[output_name] = np.einsum('i...,i...->...', l, wbuhat)
-            outputs[output_name] = wbuhat.T @ l
-            outputs[rate_name] = wbuhat.T @ dl_dptau * dptau_dt
-            outputs[rate2_name] = wbuhat.T @ d2l_dptau2 * dptau_dt ** 2
+                # d2l_dg @ dg_dtau + dl_dg @ d2g_dtau2 but d2g_dtau2 is zero.
+                d2l_dptau2[...] = np.sum(np.sum(d2l_dg2, axis=-1), axis=-1, keepdims=True)
+
+                input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
+
+                # Translate the input nodes to the discretization nodes.
+                u_hat = inputs[input_name]
+
+                # Perform a row_wise multiplication of w_b and u_hat
+                wbuhat = np.einsum("ij,i...->i...", w_b, u_hat)
+
+                # outputs[output_name] = np.einsum('i...,i...->...', l, wbuhat)
+                outputs[output_name] = wbuhat.T @ l
+                outputs[rate_name] = wbuhat.T @ dl_dptau * dptau_dt
+                outputs[rate2_name] = wbuhat.T @ d2l_dptau2 * dptau_dt ** 2
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """
@@ -476,8 +456,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             # Do the compute if our inputs have changed
             if self._control_options:
                 self._compute_controls(inputs, outputs, discrete_inputs, discrete_outputs)
-            if self._polynomial_control_options:
-                self._compute_polynomial_controls(inputs, outputs, discrete_inputs, discrete_outputs)
             self._inputs_hash_cache = inputs_hash
 
     def _compute_partials_controls(self, inputs, partials, discrete_inputs=None):
@@ -532,112 +510,98 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             L_seg = L_id[disc_node_idxs[0]:disc_node_idxs[0] + len(disc_node_idxs),
                          input_node_idxs[0]:input_node_idxs[0] + len(input_node_idxs)]
 
-            for control_name in self._control_options:
-                input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
+            ptau = inputs['ptau']
+            t_duration = inputs['t_duration']
+            dptau_dt = 2.0 / t_duration
 
-                # Translate the input nodes to the discretization nodes.
-                u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
+            for control_name, options in enumerate(self._control_options):
+                if options['control_type'] == 'full':
+                    input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
 
-                # Perform a row_wise multiplication of w_b and u_hat
-                wbuhat = np.einsum("ij,i...->i...", w_b, u_hat)
+                    # Translate the input nodes to the discretization nodes.
+                    u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs])
 
-                # outputs[output_name] = np.einsum('i...,i...->...', l, wbuhat)
-                partials[output_name, 'stau'] = dl_dstau.T @ wbuhat
+                    # Perform a row_wise multiplication of w_b and u_hat
+                    wbuhat = np.einsum("ij,i...->i...", w_b, u_hat)
 
-                partials[rate_name, 'stau'] = d2l_dstau2.T @ wbuhat * dstau_dt
-                partials[rate_name, 'dstau_dt'] = partials[output_name, 'stau']
+                    # outputs[output_name] = np.einsum('i...,i...->...', l, wbuhat)
+                    partials[output_name, 'stau'] = dl_dstau.T @ wbuhat
 
+                    partials[rate_name, 'stau'] = d2l_dstau2.T @ wbuhat * dstau_dt
+                    partials[rate_name, 'dstau_dt'] = partials[output_name, 'stau']
+
+                    if self._compute_derivs:
+                        partials[rate2_name, 'stau'] = d3l_dstau3.T @ wbuhat * dstau_dt ** 2
+                        partials[rate2_name, 'dstau_dt'] = 2 * wbuhat.T @ d2l_dstau2 * dstau_dt
+
+                    # Assign only thos jacobian columns due to the current segment, since
+                    # other segments cannot impact interpolation in this one.
+                    partials[output_name, input_name] = 0.0
+                    partials[output_name, input_name][..., input_node_idxs] = \
+                        ((l * w_b.T) @ L_seg)
+
+                    partials[rate_name, input_name] = 0.0
+                    partials[rate_name, input_name][..., input_node_idxs] = \
+                        (dl_dstau * w_b * dstau_dt).T @ L_seg
+
+                    if self._compute_derivs:
+                        partials[rate2_name, input_name] = 0.0
+                        partials[rate2_name, input_name][..., input_node_idxs] = \
+                            (d2l_dstau2 * w_b * dstau_dt ** 2).T @ L_seg
+
+                else:
+                    gd = self._grid_data
+                    n = options['order'] + 1
+
+                    taus_seg = self._taus_seg[control_name]
+
+                    # Retrieve the storage vectors that pertain to the collocated controls
+                    l = self._l[control_name]
+                    dl_dg = self._dl_dg[control_name]
+                    d2l_dg2 = self._d2l_dg2[control_name]
+                    d3l_dg3 = self._d3l_dg3[control_name]
+                    dl_dstau = self._dl_dtau[control_name]
+                    d2l_dstau2 = self._d2l_dtau2[control_name]
+                    d3l_dstau3 = self._d3l_dtau3[control_name]
+                    w_b = self._w_b[control_name]
+
+                    _compute_dl_dg(ptau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3)
+
+                    # Equivalent of multiplying dl_dg @ dg_dtau, where dg_dtau is a column vector of n ones.
+                    dl_dstau[...] = np.sum(dl_dg, axis=-1, keepdims=True)
+                    d2l_dstau2[...] = np.sum(np.sum(d2l_dg2, axis=-1), axis=-1, keepdims=True)
+
+                    input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
+
+                    # Translate the input nodes to the discretization nodes.
+                    u_hat = inputs[input_name]
+
+                    # Perform a row_wise multiplication of w_b and u_hat
+                    wbuhat = np.einsum("ij,i...->i...", w_b, u_hat)
+
+                    # outputs[output_name] = np.einsum('i...,i...->...', l, wbuhat)
+
+                    d_dptau_dt_d_t_duration = -2.0 / t_duration ** 2
+
+                    partials[output_name, 'ptau'] = dl_dstau.T @ wbuhat
+
+                    partials[rate_name, 'ptau'] = d2l_dstau2.T @ wbuhat * dptau_dt
+                    partials[rate_name, 't_duration'] = partials[output_name, 'ptau'] * d_dptau_dt_d_t_duration
+
+                    # Assign only thos jacobian columns due to the current segment, since
+                    # other segments cannot impact interpolation in this one.
+                    # partials[output_name, input_name] = 0.0
+                    partials[output_name, input_name][...] = ((l * w_b.T).T).T
+
+                    # partials[rate_name, input_name] = 0.0
+                    partials[rate_name, input_name][...] = (dl_dstau * w_b * dptau_dt).T
+
+                    # partials[rate2_name, input_name] = 0.0
                 if self._compute_derivs:
-                    partials[rate2_name, 'stau'] = d3l_dstau3.T @ wbuhat * dstau_dt ** 2
-                    partials[rate2_name, 'dstau_dt'] = 2 * wbuhat.T @ d2l_dstau2 * dstau_dt
-
-                # Assign only thos jacobian columns due to the current segment, since
-                # other segments cannot impact interpolation in this one.
-                partials[output_name, input_name] = 0.0
-                partials[output_name, input_name][..., input_node_idxs] = \
-                    ((l * w_b.T) @ L_seg)
-
-                partials[rate_name, input_name] = 0.0
-                partials[rate_name, input_name][..., input_node_idxs] = \
-                    (dl_dstau * w_b * dstau_dt).T @ L_seg
-
-                if self._compute_derivs:
-                    partials[rate2_name, input_name] = 0.0
-                    partials[rate2_name, input_name][..., input_node_idxs] = \
-                        (d2l_dstau2 * w_b * dstau_dt ** 2).T @ L_seg
-
-    def _compute_partials_polynomial_controls(self, inputs, partials, discrete_inputs=None):
-        """
-        Compute partials of interpolated control values and rates for the collocated controls.
-
-        Parameters
-        ----------
-        inputs : `Vector`
-            `Vector` containing inputs.
-        outputs : `Vector`
-            `Vector` containing outputs.
-        discrete_inputs : `Vector`
-            `Vector` containing discrete_inputs.
-        discrete_outputs : `Vector`
-            `Vector` containing discrete_outputs.
-        """
-        ptau = inputs['ptau']
-        t_duration = inputs['t_duration']
-        dptau_dt = 2.0 / t_duration
-
-        for pc_name, pc_options in self._polynomial_control_options.items():
-            gd = self._grid_data
-            n = pc_options['order'] + 1
-
-            taus_seg = self._taus_seg[pc_name]
-
-            # Retrieve the storage vectors that pertain to the collocated controls
-            l = self._l[pc_name]
-            dl_dg = self._dl_dg[pc_name]
-            d2l_dg2 = self._d2l_dg2[pc_name]
-            d3l_dg3 = self._d3l_dg3[pc_name]
-            dl_dstau = self._dl_dtau[pc_name]
-            d2l_dstau2 = self._d2l_dtau2[pc_name]
-            d3l_dstau3 = self._d3l_dtau3[pc_name]
-            w_b = self._w_b[pc_name]
-
-            _compute_dl_dg(ptau, taus_seg, l, dl_dg, d2l_dg2, d3l_dg3)
-
-            # Equivalent of multiplying dl_dg @ dg_dtau, where dg_dtau is a column vector of n ones.
-            dl_dstau[...] = np.sum(dl_dg, axis=-1, keepdims=True)
-            d2l_dstau2[...] = np.sum(np.sum(d2l_dg2, axis=-1), axis=-1, keepdims=True)
-
-            input_name, output_name, rate_name, rate2_name = self._control_io_names[pc_name]
-
-            # Translate the input nodes to the discretization nodes.
-            u_hat = inputs[input_name]
-
-            # Perform a row_wise multiplication of w_b and u_hat
-            wbuhat = np.einsum("ij,i...->i...", w_b, u_hat)
-
-            # outputs[output_name] = np.einsum('i...,i...->...', l, wbuhat)
-
-            d_dptau_dt_d_t_duration = -2.0 / t_duration ** 2
-
-            partials[output_name, 'ptau'] = dl_dstau.T @ wbuhat
-
-            partials[rate_name, 'ptau'] = d2l_dstau2.T @ wbuhat * dptau_dt
-            partials[rate_name, 't_duration'] = partials[output_name, 'ptau'] * d_dptau_dt_d_t_duration
-
-            # Assign only thos jacobian columns due to the current segment, since
-            # other segments cannot impact interpolation in this one.
-            # partials[output_name, input_name] = 0.0
-            partials[output_name, input_name][...] = ((l * w_b.T).T).T
-
-            # partials[rate_name, input_name] = 0.0
-            partials[rate_name, input_name][...] = (dl_dstau * w_b * dptau_dt).T
-
-            # partials[rate2_name, input_name] = 0.0
-        if self._compute_derivs:
-            d3l_dstau3[...] = np.sum(np.sum(np.sum(d3l_dg3, axis=-1), axis=-1), axis=-1, keepdims=True)
-            partials[rate2_name, 'ptau'] = d3l_dstau3.T @ wbuhat * dptau_dt ** 2
-            partials[rate2_name, 't_duration'] = 2 * wbuhat.T @ d2l_dstau2 * dptau_dt * d_dptau_dt_d_t_duration
-            partials[rate2_name, input_name][...] = (d2l_dstau2 * w_b * dptau_dt ** 2).T
+                    d3l_dstau3[...] = np.sum(np.sum(np.sum(d3l_dg3, axis=-1), axis=-1), axis=-1, keepdims=True)
+                    partials[rate2_name, 'ptau'] = d3l_dstau3.T @ wbuhat * dptau_dt ** 2
+                    partials[rate2_name, 't_duration'] = 2 * wbuhat.T @ d2l_dstau2 * dptau_dt * d_dptau_dt_d_t_duration
+                    partials[rate2_name, input_name][...] = (d2l_dstau2 * w_b * dptau_dt ** 2).T
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
         """
@@ -654,64 +618,3 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         """
         if self._control_options:
             self._compute_partials_controls(inputs, partials, discrete_inputs)
-
-        if self._polynomial_control_options:
-            self._compute_partials_polynomial_controls(inputs, partials, discrete_inputs)
-
-            # for control_name, options in self._control_options.items():
-            #     input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
-
-            #     u_hat = np.dot(L_seg, inputs[input_name][input_node_idxs].real)
-            #     a = self._V_hat_inv[seg_order] @ u_hat
-
-            #     da_duhat = self._V_hat_inv[seg_order] @ L_seg
-            #     dV_a = dV_stau @ a
-            #     dV2_a = dV2_stau @ a
-            #     dV3_a = dV3_stau @ a
-
-            #     partials[output_name, input_name][...] = 0.0
-            #     partials[output_name, input_name][..., u_idxs] = V_stau @ da_duhat
-            #     partials[output_name, 'stau'] = dV_a.ravel()
-
-            #     pudot_pa = dstau_dt * dV_stau
-            #     pa_puhat = self._V_hat_inv[seg_order]
-            #     partials[rate_name, input_name][...] = 0.0
-            #     partials[rate_name, input_name][..., u_idxs] = pudot_pa @ pa_puhat
-            #     partials[rate_name, 'dstau_dt'][...] = dV_a
-            #     partials[rate_name, 'stau'][...] = dV2_a.ravel()
-
-            #     pu2dot_pa = dstau_dt**2 * dV2_stau
-            #     partials[rate2_name, input_name][...] = 0.0
-            #     partials[rate2_name, input_name][..., u_idxs] = pu2dot_pa @ pa_puhat
-            #     partials[rate2_name, 'dstau_dt'][...] = 2 * dstau_dt * dV2_a
-            #     partials[rate2_name, 'stau'][...] = dV3_a.ravel()
-
-        # for pc_name, options in self._polynomial_control_options.items():
-        #     input_name, output_name, rate_name, rate2_name = self._control_io_names[pc_name]
-        #     order = options['order']
-
-        #     V_ptau = np.vander(ptau, N=order+1, increasing=True)
-        #     dV_ptau, dV2_ptau, dV3_ptau = self._dvander(V_ptau)
-
-        #     u_hat = inputs[input_name].real
-        #     a = self._V_hat_inv[order] @ u_hat
-
-        #     dV_a = dV_ptau @ a
-        #     dV2_a = dV2_ptau @ a
-        #     dV3_a = dV3_ptau @ a
-
-        #     da_duhat = self._V_hat_inv[order]
-
-        #     partials[output_name, input_name][...] = V_ptau @ da_duhat
-        #     partials[output_name, 'ptau'][...] = dV_a.ravel()
-
-        #     pudot_pa = dptau_dt * dV_ptau
-        #     pa_puhat = self._V_hat_inv[order]
-        #     partials[rate_name, input_name][...] = pudot_pa @ pa_puhat
-        #     partials[rate_name, 't_duration'][...] = ddptau_dt_dtduration * dV_a
-        #     partials[rate_name, 'ptau'][...] = dptau_dt * dV2_a.ravel()
-
-        #     pu2dot_pa = dptau_dt ** 2 * dV2_ptau
-        #     partials[rate2_name, input_name][...] = pu2dot_pa @ pa_puhat
-        #     partials[rate2_name, 't_duration'][...] = 2 * dptau_dt * ddptau_dt_dtduration * dV2_a
-        #     partials[rate2_name, 'ptau'][...] = dptau_dt**2 * dV3_a.ravel()

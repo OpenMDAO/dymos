@@ -201,8 +201,8 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
         #
         # The tangent of theta is modeled as a linear polynomial over the duration of the phase.
         #
-        phase.add_polynomial_control('tan_theta', order=1, units=None, opt=True,
-                                     targets=['guidance.tan_theta'])
+        phase.add_control('tan_theta', order=1, units=None, opt=True,
+                          targets=['guidance.tan_theta'], control_type='polynomial')
 
         #
         # Parameters values for thrust and specific impulse are design parameters. They are
@@ -254,7 +254,7 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
         phase.set_state_val('vx', [0, 1627.0])
         phase.set_state_val('vy', [1.0E-6, 0.0])
         phase.set_state_val('m', 50000)
-        phase.set_polynomial_control_val('tan_theta', [[0.5 * np.pi], [0.0]])
+        phase.set_control_val('tan_theta', [[0.5 * np.pi], [0.0]])
 
         #
         # Solve the problem.

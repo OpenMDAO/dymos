@@ -68,10 +68,10 @@ class TestSimulateShapedParams(unittest.TestCase):
                              rate_source='Out',
                              solve_segments=False)
 
-        main_phase.add_polynomial_control('Thrust', units='N',
-                                          targets='Thrust',
-                                          lower=-3450, upper=-500,
-                                          order=5, opt=True)
+        main_phase.add_control('Thrust', units='N',
+                               targets='Thrust',
+                               lower=-3450, upper=-500,
+                               order=5, opt=True, control_type='polynomial')
 
         main_phase.add_objective('impulse', loc='final', ref=-1)
 
@@ -79,7 +79,7 @@ class TestSimulateShapedParams(unittest.TestCase):
 
         p.set_val('hop0.main_phase.t_initial', 0.0)
         p.set_val('hop0.main_phase.t_duration', 10)
-        p.set_val('hop0.main_phase.polynomial_controls:Thrust', val=-3400, indices=om.slicer[:, 0])
+        p.set_val('hop0.main_phase.controls:Thrust', val=-3400, indices=om.slicer[:, 0])
         p.set_val('hop0.main_phase.states:impulse',  main_phase.interp('impulse', [0, 0]))
 
         p.run_driver()
@@ -112,10 +112,10 @@ class TestSimulateShapedParams(unittest.TestCase):
                              rate_source='Out',
                              solve_segments=False)
 
-        main_phase.add_polynomial_control('Thrust', units='N',
-                                          targets='Thrust',
-                                          lower=-3450, upper=-500,
-                                          order=5, opt=True)
+        main_phase.add_control('Thrust', units='N',
+                               targets='Thrust',
+                               lower=-3450, upper=-500,
+                               order=5, opt=True, control_type='polynomial')
 
         main_phase.add_objective('impulse', loc='final', ref=-1)
 
@@ -123,7 +123,7 @@ class TestSimulateShapedParams(unittest.TestCase):
 
         p.set_val('hop0.main_phase.t_initial', 0.0)
         p.set_val('hop0.main_phase.t_duration', 10)
-        p.set_val('hop0.main_phase.polynomial_controls:Thrust', val=-3400, indices=om.slicer[:, 0])
+        p.set_val('hop0.main_phase.controls:Thrust', val=-3400, indices=om.slicer[:, 0])
         p.set_val('hop0.main_phase.states:impulse',  main_phase.interp('impulse', [0, 0]))
 
         p.run_driver()

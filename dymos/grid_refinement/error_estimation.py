@@ -106,8 +106,6 @@ def eval_ode_on_grid(phase, transcription):
     dict of (str: ndarray)
         A dictionary of the control values from the phase interpolated to the new transcription.
     dict of (str: ndarray)
-        A dictionary of the polynomial control values from the phase interpolated to the new transcription.
-    dict of (str: ndarray)
         A dictionary of the state rates computed in the phase's ODE at the new transcription points.
     """
     x = {}
@@ -133,7 +131,6 @@ def eval_ode_on_grid(phase, transcription):
                                                      time=phase.time_options,
                                                      states=phase.state_options,
                                                      controls=phase.control_options,
-                                                     polynomial_controls=phase.polynomial_control_options,
                                                      parameters=phase.parameter_options,
                                                      ode_class=phase.options['ode_class'],
                                                      ode_init_kwargs=phase.options[
@@ -179,7 +176,7 @@ def eval_ode_on_grid(phase, transcription):
     for name, options in phase.control_options.items():
         targets = get_targets(ode, name, options['targets'])
         rate_targets = get_targets(ode, f'{name}_rate', options['rate_targets'])
-        rate2_targets = get_targets(ode, f'{name}_rate12', options['rate2_targets'])
+        rate2_targets = get_targets(ode, f'{name}_rate2', options['rate2_targets'])
 
         u_prev = phase.get_val(f'timeseries.{control_prefix}{name}', units=options['units'])
         u[name] = np.dot(L, u_prev)
@@ -196,27 +193,6 @@ def eval_ode_on_grid(phase, transcription):
                 u_rate2_prev = phase.get_val(f'timeseries.control_rates:{name}_rate2')
                 u_rate2[name] = np.dot(L, u_rate2_prev)
                 p_refine.set_val(f'control_rates:{name}_rate2', u_rate2[name])
-
-    for name, options in phase.polynomial_control_options.items():
-        targets = get_targets(ode, name, options['targets'])
-        rate_targets = get_targets(ode, f'{name}_rate', options['rate_targets'])
-        rate2_targets = get_targets(ode, f'{name}_rate2', options['rate2_targets'])
-
-        p_prev = phase.get_val(f'timeseries.polynomial_controls:{name}', units=options['units'])
-        p[name] = np.dot(L, p_prev)
-        if targets:
-            p_refine.set_val(f'polynomial_controls:{name}', p[name])
-
-        if phase.timeseries_options['include_control_rates']:
-            p_rate_prev = phase.get_val(f'timeseries.polynomial_control_rates:{name}_rate')
-            p_rate[name] = np.dot(L, p_rate_prev)
-            if rate_targets:
-                p_refine.set_val(f'polynomial_control_rates:{name}_rate', p_rate[name])
-
-            p_rate2_prev = phase.get_val(f'timeseries.polynomial_control_rates:{name}_rate2')
-            p_rate2[name] = np.dot(L, p_rate2_prev)
-            if rate2_targets:
-                p_refine.set_val(f'polynomial_control_rates:{name}_rate2', p_rate2[name])
 
     # Configure the parameters
     for name, options in phase.parameter_options.items():
@@ -256,19 +232,6 @@ def eval_ode_on_grid(phase, transcription):
             u_units = phase.control_options[u_name]['units']
             src_units = get_rate_units(u_units, phase.time_options['units'], deriv=2)
             f[name] = om.convert_units(u_rate2[rate_source], src_units, rate_units)
-        elif rate_source_class in {'input_polynomial_control', 'indep_polynomial_control'}:
-            src_units = phase.polynomial_control_options[rate_source]['units']
-            f[name] = om.convert_units(p[rate_source], src_units, rate_units)
-        elif rate_source_class in {'polynomial_control_rate'}:
-            pc_name = rate_source[:-5]
-            pc_units = phase.polynomial_control_options[pc_name]['units']
-            src_units = get_rate_units(pc_units, phase.time_options['units'], deriv=1)
-            f[name] = om.convert_units(p_rate[rate_source], src_units, rate_units)
-        elif rate_source_class in {'polynomial_control_rate2'}:
-            pc_name = rate_source[:-6]
-            pc_units = phase.polynomial_control_options[pc_name]['units']
-            src_units = get_rate_units(pc_units, phase.time_options['units'], deriv=2)
-            f[name] = om.convert_units(p_rate2[rate_source], src_units, rate_units)
         elif rate_source_class in {'parameter'}:
             src_units = phase.parameter_options[rate_source]['units']
             shape = phase.parameter_options[rate_source]['shape']

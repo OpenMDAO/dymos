@@ -59,7 +59,8 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         rotate.set_time_options(fix_initial=False, duration_bounds=(1.0, 5), duration_ref=1.0)
         rotate.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
         rotate.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0)
-        rotate.add_polynomial_control('alpha', order=1, opt=True, units='deg', lower=0, upper=10, ref=10, val=[0, 10])
+        rotate.add_control('alpha', order=1, opt=True, units='deg', lower=0, upper=10, ref=10,
+                           val=[0, 10], control_type='polynomial')
         rotate.add_timeseries_output('*')
 
         # Fifth Phase: Climb to target speed and altitude at end of runway.
@@ -204,7 +205,7 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         rotate.set_time_val(initial=35.0, duration=5.0)
         rotate.set_state_val('r', [1750, 1800.0])
         rotate.set_state_val('v', [80, 85.0])
-        rotate.set_polynomial_control_val('alpha', 0.0, units='deg')
+        rotate.set_control_val('alpha', 0.0, units='deg')
 
         climb.set_time_val(initial=30.0, duration=20.0)
         climb.set_state_val('r', [5000, 5500.0], units='ft')
@@ -321,7 +322,8 @@ class TestBalancedFieldLengthDefaultValues(unittest.TestCase):
                          val=rotate.interp(ys=[1750, 1800.0], nodes='state_input'))
         rotate.add_state('v', fix_initial=False, lower=0.0001, ref=100.0, defect_ref=100.0,
                          val=rotate.interp(ys=[80, 85.0], nodes='state_input'))
-        rotate.add_polynomial_control('alpha', order=1, opt=True, units='deg', lower=0, upper=10, ref=10, val=[0, 10])
+        rotate.add_control('alpha', order=1, opt=True, units='deg', lower=0, upper=10, ref=10,
+                           val=[0, 10], control_type='polynomial')
         rotate.add_timeseries_output('*')
 
         # Fifth Phase: Climb to target speed and altitude at end of runway.
@@ -456,7 +458,7 @@ class TestBalancedFieldLengthDefaultValues(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.rotate.t_initial'), 70)
         assert_near_equal(p.get_val('traj.rotate.t_duration'), 5)
-        assert_near_equal(p.get_val('traj.rotate.polynomial_controls:alpha'), np.array([[0, 10]]).T)
+        assert_near_equal(p.get_val('traj.rotate.controls:alpha'), np.array([[0, 10]]).T)
         assert_near_equal(p.get_val('traj.climb.controls:alpha'),
                           p.model.traj.phases.climb.interp('', [0.01, 0.01], nodes='control_input'))
         assert_near_equal(p.get_val('traj.climb.states:gam'),

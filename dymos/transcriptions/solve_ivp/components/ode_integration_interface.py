@@ -24,8 +24,6 @@ class ODEIntegrationInterface(object):
         The state options for the phase being simulated.
     control_options : dict of {str: ControlOptionsDictionary}
         The control options for the phase being simulated.
-    polynomial_control_options : dict of {str: PolynomialControlOptionsDictionary}
-        The polynomial control options for the phase being simulated.
     parameter_options : dict of {str: ParameterOptionsDictionary}
         The parameter options for the phase being simulated.
     ode_init_kwargs : dict
@@ -34,7 +32,7 @@ class ODEIntegrationInterface(object):
         The reports argument to be passed to the subproblems.  By default, no subproblem reports are generated.
     """
     def __init__(self, ode_class, time_options, state_options, control_options,
-                 polynomial_control_options, parameter_options, ode_init_kwargs=None,
+                 parameter_options, ode_init_kwargs=None,
                  reports=False):
 
         # Get the state vector.  This isn't necessarily ordered
@@ -42,7 +40,6 @@ class ODEIntegrationInterface(object):
         self.state_options = OrderedDict()
         self.time_options = time_options
         self.control_options = control_options
-        self.polynomial_control_options = polynomial_control_options
         self.parameter_options = parameter_options
         self.control_interpolants = {}
         self.polynomial_control_interpolants = {}
@@ -68,7 +65,6 @@ class ODEIntegrationInterface(object):
                                                                    time_options=time_options,
                                                                    state_options=state_options,
                                                                    control_options=control_options,
-                                                                   polynomial_control_options=polynomial_control_options,
                                                                    parameter_options=parameter_options,
                                                                    ode_init_kwargs=ode_init_kwargs),
                                reports=reports)
@@ -139,8 +135,6 @@ class ODEIntegrationInterface(object):
             The value of the control at the nodes in the segment or phase.
         """
         if name in self.prob.model.options['control_options']:
-            self.prob.model.setup_interpolant(name, x0, xf, f_j)
-        elif name in self.prob.model.options['polynomial_control_options']:
             self.prob.model.setup_interpolant(name, x0, xf, f_j)
         else:
             raise KeyError(f'Unable to set control interpolant of unknown control: {name}')

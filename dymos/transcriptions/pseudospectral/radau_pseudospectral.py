@@ -113,37 +113,6 @@ class Radau(PseudospectralBase):
                 phase.connect(f'control_rates:{name}_rate2',
                               [f'rhs_all.{t}' for t in options['rate2_targets']])
 
-    def configure_polynomial_controls(self, phase):
-        """
-        Configure the inputs/outputs for the polynomial controls.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        super(Radau, self).configure_polynomial_controls(phase)
-
-        ode_inputs = get_promoted_vars(self._get_ode(phase), 'input')
-
-        for name, options in phase.polynomial_control_options.items():
-            targets = get_targets(ode=ode_inputs, name=name, user_targets=options['targets'])
-            if targets:
-                phase.connect(f'polynomial_control_values:{name}',
-                              [f'rhs_all.{t}' for t in targets])
-
-            targets = get_targets(ode=phase.rhs_all, name=f'{name}_rate',
-                                  user_targets=options['rate_targets'])
-            if targets:
-                phase.connect(f'polynomial_control_rates:{name}_rate',
-                              [f'rhs_all.{t}' for t in targets])
-
-            targets = get_targets(ode=phase.rhs_all, name=f'{name}_rate2',
-                                  user_targets=options['rate2_targets'])
-            if targets:
-                phase.connect(f'polynomial_control_rates:{name}_rate2',
-                              [f'rhs_all.{t}' for t in targets])
-
     def setup_ode(self, phase):
         """
         Setup the ode for this transcription.
@@ -299,18 +268,18 @@ class Radau(PseudospectralBase):
             rate_path = f'control_rates:{control_name}_rate2'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'indep_polynomial_control':
-            rate_path = f'polynomial_control_values:{var}'
+            rate_path = f'control_values:{var}'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'input_polynomial_control':
-            rate_path = f'polynomial_control_values:{var}'
+            rate_path = f'control_values:{var}'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'polynomial_control_rate':
             control_name = var[:-5]
-            rate_path = f'polynomial_control_rates:{control_name}_rate'
+            rate_path = f'control_rates:{control_name}_rate'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'polynomial_control_rate2':
             control_name = var[:-6]
-            rate_path = f'polynomial_control_rates:{control_name}_rate2'
+            rate_path = f'control_rates:{control_name}_rate2'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'parameter':
             rate_path = f'parameter_vals:{var}'
@@ -404,19 +373,19 @@ class Radau(PseudospectralBase):
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=2)
             src_shape = phase.control_options[control_name]['shape']
         elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-            path = f'polynomial_control_values:{var}'
-            src_units = phase.polynomial_control_options[var]['units']
-            src_shape = phase.polynomial_control_options[var]['shape']
+            path = f'control_values:{var}'
+            src_units = phase.control_options[var]['units']
+            src_shape = phase.control_options[var]['shape']
         elif var_type == 'polynomial_control_rate':
             control_name = var[:-5]
-            path = f'polynomial_control_rates:{control_name}_rate'
-            control = phase.polynomial_control_options[control_name]
+            path = f'control_rates:{control_name}_rate'
+            control = phase.control_options[control_name]
             src_units = get_rate_units(control['units'], time_units, deriv=1)
             src_shape = control['shape']
         elif var_type == 'polynomial_control_rate2':
             control_name = var[:-6]
-            path = f'polynomial_control_rates:{control_name}_rate2'
-            control = phase.polynomial_control_options[control_name]
+            path = f'control_rates:{control_name}_rate2'
+            control = phase.control_options[control_name]
             src_units = get_rate_units(control['units'], time_units, deriv=2)
             src_shape = control['shape']
         elif var_type == 'parameter':

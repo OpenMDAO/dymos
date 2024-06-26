@@ -23,8 +23,6 @@ class ODEIntControlInterpolationComp(om.ExplicitComponent):
                              desc='Units of time')
         self.options.declare('control_options', types=dict, allow_none=True, default=None,
                              desc='Dictionary of options for the dynamic controls')
-        self.options.declare('polynomial_control_options', types=dict, allow_none=True,
-                             default=None, desc='Dictionary of options for the polynomial controls')
         self.options.declare('control_interpolants', types=dict, allow_none=True, default={},
                              desc='Dictionary of interpolants for the dynamic controls',
                              recordable=False)
@@ -54,21 +52,6 @@ class ODEIntControlInterpolationComp(om.ExplicitComponent):
             self.add_output('control_rates:{0}_rate2'.format(control_name), shape=shape,
                             units=rate2_units)
 
-        for control_name, options in self.options['polynomial_control_options'].items():
-            shape = options['shape']
-            units = options['units']
-            rate_units = get_rate_units(units, time_units, deriv=1)
-            rate2_units = get_rate_units(units, time_units, deriv=2)
-
-            self.add_output('polynomial_controls:{0}'.format(control_name), shape=shape,
-                            units=units)
-
-            self.add_output('polynomial_control_rates:{0}_rate'.format(control_name), shape=shape,
-                            units=rate_units)
-
-            self.add_output('polynomial_control_rates:{0}_rate2'.format(control_name), shape=shape,
-                            units=rate2_units)
-
     def compute(self, inputs, outputs):
         """
         Compute component outputs.
@@ -93,15 +76,3 @@ class ODEIntControlInterpolationComp(om.ExplicitComponent):
             outputs['control_rates:{0}_rate'.format(name)] = interp.eval_deriv(time)
 
             outputs['control_rates:{0}_rate2'.format(name)] = interp.eval_deriv(time, der=2)
-
-        for name in self.options['polynomial_control_options']:
-            if name not in self.options['polynomial_control_interpolants']:
-                raise ValueError('No interpolant has been specified for {0}'.format(name))
-
-            interp = self.options['polynomial_control_interpolants'][name]
-
-            outputs['polynomial_controls:{0}'.format(name)] = interp.eval(time)
-
-            outputs['polynomial_control_rates:{0}_rate'.format(name)] = interp.eval_deriv(time)
-
-            outputs['polynomial_control_rates:{0}_rate2'.format(name)] = interp.eval_deriv(time, der=2)

@@ -335,65 +335,6 @@ class AnalyticPhase(Phase):
         """
         raise NotImplementedError('AnalyticPhase does not support polynomial controls.')
 
-    def set_polynomial_control_options(self, name, order=_unspecified, desc=_unspecified, val=_unspecified,
-                                       units=_unspecified, opt=_unspecified, fix_initial=_unspecified,
-                                       fix_final=_unspecified, lower=_unspecified, upper=_unspecified,
-                                       scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
-                                       ref=_unspecified, targets=_unspecified, rate_targets=_unspecified,
-                                       rate2_targets=_unspecified, shape=_unspecified):
-        """
-        Set options on an existing polynomial control variable in the phase.
-
-        Parameters
-        ----------
-        name : str
-            Name of the controllable parameter in the ODE.
-        order : int
-            The order of the interpolating polynomial used to represent the control value in
-            phase tau space.
-        desc : str
-            A description of the polynomial control.
-        val : float or ndarray
-            Default value of the control at all nodes.  If val scalar and the control
-            is dynamic it will be broadcast.
-        units : str or None or 0
-            Units in which the control variable is defined.  If 0, use the units declared
-            for the parameter in the ODE.
-        opt : bool
-            If True (default) the value(s) of this control will be design variables in
-            the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the values of this control will exist as input controls:{name}.
-        fix_initial : bool
-            If True, the given initial value of the polynomial control is not a design variable and
-            will not be changed during the optimization.
-        fix_final : bool
-            If True, the given final value of the polynomial control is not a design variable and
-            will not be changed during the optimization.
-        lower : float or ndarray
-            The lower bound of the control at the nodes of the phase.
-        upper : float or ndarray
-            The upper bound of the control at the nodes of the phase.
-        scaler : float or ndarray
-            The scaler of the control value at the nodes of the phase.
-        adder : float or ndarray
-            The adder of the control value at the nodes of the phase.
-        ref0 : float or ndarray
-            The zero-reference value of the control at the nodes of the phase.
-        ref : float or ndarray
-            The unit-reference value of the control at the nodes of the phase.
-        targets : Sequence of str or None
-            Targets in the ODE to which this polynomial control is connected.
-        rate_targets : None or str
-            The name of the parameter in the ODE to which the first time-derivative
-            of the control value is connected.
-        rate2_targets : None or str
-            The name of the parameter in the ODE to which the second time-derivative
-            of the control value is connected.
-        shape : Sequence of int
-            The shape of the control variable at each point in time.
-        """
-        raise NotImplementedError('AnalyticPhase does not support polynomial controls.')
-
     def setup(self):
         """
         Build the model hierarchy for a Dymos AnalyticPhase.
@@ -405,9 +346,6 @@ class AnalyticPhase(Phase):
 
         if self.control_options:
             transcription.setup_controls(self)
-
-        if self.polynomial_control_options:
-            transcription.setup_polynomial_controls(self)
 
         if self.parameter_options:
             transcription.setup_parameters(self)

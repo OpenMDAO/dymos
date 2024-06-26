@@ -193,20 +193,6 @@ def load_case(problem, previous_solution, deprecation_warning=True):
                                       f" different final value this will overwrite the user-specified value"
                     issue_warning(warning_message)
 
-            # Set the output polynomial control outputs from the previous solution as the value
-            for pc_name, options in phase.polynomial_control_options.items():
-                pc_path = [s for s in phase_vars if
-                           s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
-                prev_pc_path = [s for s in prev_vars if s.endswith(f'{phase_name}.polynomial_controls:{pc_name}')][0]
-                prev_pc_val = prev_vars[prev_pc_path]['val']
-                prev_pc_units = prev_vars[prev_pc_path]['units']
-                problem.set_val(pc_path, prev_pc_val, units=prev_pc_units)
-                if options['fix_final']:
-                    warning_message = f"{phase_name}.polynomial_controls:{pc_name} specifies 'fix_final=True'. " \
-                                      f"If the given restart file has a" \
-                                      f" different final value this will overwrite the user-specified value"
-                    issue_warning(warning_message)
-
         # Set the timeseries parameter outputs from the previous solution as the parameter value
         for param_name in phase.parameter_options:
             prev_match = [s for s in prev_vars if s.endswith(f'{phase_name}.parameters:{param_name}')]

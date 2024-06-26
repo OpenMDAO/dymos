@@ -1,13 +1,10 @@
-from fnmatch import filter
-import warnings
-
 import numpy as np
 
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
 from .components import SegmentSimulationComp, SegmentStateMuxComp, \
-    SolveIVPControlGroup, SolveIVPPolynomialControlGroup, SolveIVPTimeseriesOutputComp
+    SolveIVPControlGroup, SolveIVPTimeseriesOutputComp
 from ..common import TimeComp, TimeseriesOutputGroup
 from ...utils.misc import get_rate_units
 from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata
@@ -249,7 +246,6 @@ class SolveIVP(TranscriptionBase):
                 time_options=phase.time_options,
                 state_options=phase.state_options,
                 control_options=phase.control_options,
-                polynomial_control_options=phase.polynomial_control_options,
                 parameter_options=phase.parameter_options,
                 output_nodes_per_seg=self.options['output_nodes_per_seg'],
                 reports=self.options['reports'])
@@ -309,8 +305,8 @@ class SolveIVP(TranscriptionBase):
 
             phase.add_subsystem('control_group',
                                 subsys=control_group,
-                                promotes=['controls:*', 'control_values:*', 'control_values_all:*',
-                                          'control_rates:*'])
+                                promotes=['*controls:*', '*control_values:*', '*control_values_all:*',
+                                          '*control_rates:*'])
 
     def configure_controls(self, phase):
         """
@@ -344,55 +340,6 @@ class SolveIVP(TranscriptionBase):
 
             if options['rate2_targets']:
                 phase.connect(f'control_rates:{name}_rate2', [f'ode.{t}' for t in options['rate2_targets']])
-
-    def setup_polynomial_controls(self, phase):
-        """
-        Adds the polynomial control group to the model if any polynomial controls are present.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        if phase.polynomial_control_options:
-            sys = SolveIVPPolynomialControlGroup(grid_data=self.grid_data,
-                                                 polynomial_control_options=phase.polynomial_control_options,
-                                                 time_units=phase.time_options['units'],
-                                                 output_nodes_per_seg=self.options['output_nodes_per_seg'])
-            phase.add_subsystem('polynomial_control_group', subsys=sys,
-                                promotes_inputs=['*'], promotes_outputs=['*'])
-
-    def configure_polynomial_controls(self, phase):
-        """
-        Configure the inputs/outputs for the polynomial controls.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        # In transcription_base, we get the control units/shape from the target, and then call
-        # configure on the control_group.
-        super(SolveIVP, self).configure_polynomial_controls(phase)
-
-        # Additional connections.
-        for name, options in phase.polynomial_control_options.items():
-            targets = options['targets']
-
-            for iseg in range(self.grid_data.num_segments):
-                phase.connect(src_name=f'polynomial_controls:{name}',
-                              tgt_name=f'segment_{iseg}.polynomial_controls:{name}')
-
-            if options['targets']:
-                phase.connect(f'polynomial_control_values:{name}', [f'ode.{t}' for t in targets])
-
-            if options['rate_targets']:
-                phase.connect(f'polynomial_control_rates:{name}_rate',
-                              [f'ode.{t}' for t in targets])
-
-            if options['rate2_targets']:
-                phase.connect(f'polynomial_control_rates:{name}_rate2',
-                              [f'ode.{t}' for t in targets])
 
     def configure_parameters(self, phase):
         """
@@ -640,22 +587,6 @@ class SolveIVP(TranscriptionBase):
             path = f'control_rates:{control_name}_rate2'
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=2)
             src_shape = phase.control_options[control_name]['shape']
-        elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-            path = f'polynomial_control_values:{var}'
-            src_units = phase.polynomial_control_options[var]['units']
-            src_shape = phase.polynomial_control_options[var]['shape']
-        elif var_type == 'polynomial_control_rate':
-            control_name = var[:-5]
-            path = f'polynomial_control_rates:{control_name}_rate'
-            control = phase.polynomial_control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=1)
-            src_shape = control['shape']
-        elif var_type == 'polynomial_control_rate2':
-            control_name = var[:-6]
-            path = f'polynomial_control_rates:{control_name}_rate2'
-            control = phase.polynomial_control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=1)
-            src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'
             num_seg = self.grid_data.num_segments

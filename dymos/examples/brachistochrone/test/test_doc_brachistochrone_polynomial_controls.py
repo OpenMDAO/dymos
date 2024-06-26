@@ -38,7 +38,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
         phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -54,7 +54,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -124,7 +124,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -140,7 +140,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -210,7 +210,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -226,7 +226,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -299,7 +299,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -318,7 +318,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -387,7 +387,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -406,7 +406,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -476,7 +476,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -495,7 +495,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -567,7 +567,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -585,7 +585,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -653,7 +653,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -671,7 +671,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -741,7 +741,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -759,7 +759,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -833,7 +833,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -851,7 +851,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -921,7 +921,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -939,7 +939,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -1009,7 +1009,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -1027,7 +1027,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -1101,7 +1101,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -1119,7 +1119,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -1189,7 +1189,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -1207,7 +1207,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -1277,7 +1277,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -1295,7 +1295,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -1364,7 +1364,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -1380,7 +1380,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -1420,7 +1420,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -1436,7 +1436,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -1481,7 +1481,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
         phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -1497,7 +1497,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [0, 9.9])
-        phase.set_polynomial_control_val('theta', [5, 100])
+        phase.set_control_val('theta', [5, 100])
 
         # Solve for the optimal trajectory
         p.run_driver()

@@ -53,10 +53,6 @@ class SegmentSimulationComp(om.ExplicitComponent):
         self.options.declare('control_options', default=None, types=dict, allow_none=True,
                              desc='Dictionary of control names/options for the segments parent Phase.')
 
-        self.options.declare('polynomial_control_options', default=None, types=dict, allow_none=True,
-                             desc='Dictionary of polynomial control names/options for the segments '
-                                  'parent Phase.')
-
         self.options.declare('parameter_options', default=None, types=dict, allow_none=True,
                              desc='Dictionary of parameter names/options for the segments '
                                   'parent Phase.')
@@ -106,7 +102,6 @@ class SegmentSimulationComp(om.ExplicitComponent):
                 time_options=self.options['time_options'],
                 state_options=self.options['state_options'],
                 control_options=self.options['control_options'],
-                polynomial_control_options=self.options['polynomial_control_options'],
                 parameter_options=self.options['parameter_options'],
                 ode_init_kwargs=self.options['ode_init_kwargs'],
                 reports=self.options['reports'])
@@ -144,24 +139,23 @@ class SegmentSimulationComp(om.ExplicitComponent):
         # Setup the control interpolants
         if self.options['control_options']:
             for name, options in self.options['control_options'].items():
-                self.add_input(name='controls:{0}'.format(name),
-                               val=np.ones(((ncdsps,) + options['shape'])),
-                               units=options['units'],
-                               desc='Values of control {0} at control discretization '
-                                    'nodes within the segment.'.format(name))
-                interp = LagrangeBarycentricInterpolant(control_disc_seg_stau, options['shape'])
-                self.options['ode_integration_interface'].set_interpolant(name, interp)
-
-        if self.options['polynomial_control_options']:
-            for name, options in self.options['polynomial_control_options'].items():
-                poly_control_disc_ptau, _ = lgl(options['order'] + 1)
-                self.add_input(name='polynomial_controls:{0}'.format(name),
-                               val=np.ones(((options['order'] + 1,) + options['shape'])),
-                               units=options['units'],
-                               desc='Values of polynomial control {0} at control discretization '
-                                    'nodes within the phase.'.format(name))
-                interp = LagrangeBarycentricInterpolant(poly_control_disc_ptau, options['shape'])
-                self.options['ode_integration_interface'].set_interpolant(name, interp)
+                if options['control_type'] == 'full':
+                    self.add_input(name='controls:{0}'.format(name),
+                                   val=np.ones(((ncdsps,) + options['shape'])),
+                                   units=options['units'],
+                                   desc='Values of control {0} at control discretization '
+                                        'nodes within the segment.'.format(name))
+                    interp = LagrangeBarycentricInterpolant(control_disc_seg_stau, options['shape'])
+                    self.options['ode_integration_interface'].set_interpolant(name, interp)
+                else:
+                    poly_control_disc_ptau, _ = lgl(options['order'] + 1)
+                    self.add_input(name='controls:{0}'.format(name),
+                                   val=np.ones(((options['order'] + 1,) + options['shape'])),
+                                   units=options['units'],
+                                   desc='Values of polynomial control {0} at control discretization '
+                                        'nodes within the phase.'.format(name))
+                    interp = LagrangeBarycentricInterpolant(poly_control_disc_ptau, options['shape'])
+                    self.options['ode_integration_interface'].set_interpolant(name, interp)
 
         self.declare_partials(of='*', wrt='*', method='fd')
 
@@ -195,22 +189,20 @@ class SegmentSimulationComp(om.ExplicitComponent):
             t0_seg = inputs[time_name][0]
             tf_seg = inputs[time_name][-1]
             for name, options in self.options['control_options'].items():
-                ctrl_vals = inputs[f'controls:{name}']
-                self.options['ode_integration_interface'].setup_interpolant(name,
-                                                                            x0=t0_seg,
-                                                                            xf=tf_seg,
-                                                                            f_j=ctrl_vals)
-
-        # Setup the polynomial control interpolants
-        if self.options['polynomial_control_options']:
-            t0_phase = inputs['t_initial']
-            tf_phase = inputs['t_initial'] + inputs['t_duration']
-            for name, options in self.options['polynomial_control_options'].items():
-                ctrl_vals = inputs[f'polynomial_controls:{name}']
-                self.options['ode_integration_interface'].setup_interpolant(name,
-                                                                            x0=t0_phase,
-                                                                            xf=tf_phase,
-                                                                            f_j=ctrl_vals)
+                if options['control_type'] == 'full':
+                    ctrl_vals = inputs[f'controls:{name}']
+                    self.options['ode_integration_interface'].setup_interpolant(name,
+                                                                                x0=t0_seg,
+                                                                                xf=tf_seg,
+                                                                                f_j=ctrl_vals)
+                else:
+                    t0_phase = inputs['t_initial']
+                    tf_phase = inputs['t_initial'] + inputs['t_duration']
+                    ctrl_vals = inputs[f'controls:{name}']
+                    self.options['ode_integration_interface'].setup_interpolant(name,
+                                                                                x0=t0_phase,
+                                                                                xf=tf_phase,
+                                                                                f_j=ctrl_vals)
 
         # Set the values of t_initial and t_duration
         iface_prob.set_val('t_initial',

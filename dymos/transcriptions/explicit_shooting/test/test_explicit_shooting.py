@@ -314,6 +314,7 @@ class TestExplicitShooting(unittest.TestCase):
                 for path_rename in (True, False):
                     with self.subTest(f'output_grid = {output_grid_type}  compressed = {compressed}  '
                                       f'rename_path_const = {path_rename}'):
+                        print(f'output_grid = {output_grid_type}  compressed = {compressed}  ')
                         prob = om.Problem()
 
                         input_grid = dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=3, compressed=compressed)
@@ -341,8 +342,8 @@ class TestExplicitShooting(unittest.TestCase):
                         phase.set_state_options('v', fix_initial=True)
 
                         phase.add_parameter('g', val=1.0, units='m/s**2', opt=True, lower=1, upper=9.80665)
-                        phase.add_polynomial_control('theta', order=2, val=45.0, units='deg', opt=True,
-                                                     lower=1.0E-6, upper=179.9, ref=90.)
+                        phase.add_control('theta', order=2, val=45.0, units='deg', opt=True,
+                                          lower=1.0E-6, upper=179.9, ref=90., control_type='polynomial')
 
                         phase.add_boundary_constraint('x', loc='final', equals=10.0)
                         phase.add_boundary_constraint('y', loc='final', equals=5.0)
@@ -359,7 +360,7 @@ class TestExplicitShooting(unittest.TestCase):
                         prob.set_val('traj0.phase0.initial_states:y', 10.0)
                         prob.set_val('traj0.phase0.initial_states:v', 1.0E-6)
                         prob.set_val('traj0.phase0.parameters:g', 9.80665, units='m/s**2')
-                        prob.set_val('traj0.phase0.polynomial_controls:theta',
+                        prob.set_val('traj0.phase0.controls:theta',
                                      phase.interp('theta', ys=[0.01, 50]), units='deg')
 
                         dm.run_problem(prob)

@@ -43,9 +43,8 @@ class TestPhaseTimeOptions(unittest.TestCase):
 
         phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_polynomial_control('theta',
-                                     order=1,
-                                     units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', order=1, units='deg',
+                          lower=0.01, upper=179.9, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', val=9.80665, opt=False)
 

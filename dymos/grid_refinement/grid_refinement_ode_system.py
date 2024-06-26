@@ -46,10 +46,6 @@ class GridRefinementODESystem(om.Group):
         self.options.declare('controls', default=None, types=dict, allow_none=True,
                              desc='Dictionary of control names/options for the segments parent Phase.')
 
-        self.options.declare('polynomial_controls', default=None, types=dict, allow_none=True,
-                             desc='Dictionary of polynomial control names/options for the segments '
-                                  'parent Phase.')
-
         self.options.declare('parameters', default=None, types=dict, allow_none=True,
                              desc='Dictionary of parameter names/options for the segments '
                                   'parent Phase.')
@@ -152,38 +148,6 @@ class GridRefinementODESystem(om.Group):
                 for tgt in targets:
                     self.promotes('ode', inputs=[(tgt, f'control_rates:{name}_rate2')])
                 self.set_input_defaults(name=f'control_rates:{name}_rate2',
-                                        val=np.ones(num_nodes),
-                                        units=rate2_units)
-
-        # Configure the polynomial controls
-        for name, options in self.options['polynomial_controls'].items():
-            rate_units = get_rate_units(units=options['units'],
-                                        time_units=self.options['time']['units'])
-            rate2_units = get_rate_units(units=options['units'],
-                                         time_units=self.options['time']['units'],
-                                         deriv=2)
-
-            targets = get_targets(self.ode, name, options['targets'])
-            if targets:
-                for tgt in targets:
-                    self.promotes('ode', inputs=[(tgt, f'polynomial_controls:{name}')])
-                self.set_input_defaults(name=f'polynomial_controls:{name}',
-                                        val=np.ones(num_nodes),
-                                        units=options['units'])
-
-            targets = get_targets(self.ode, f'{name}_rate', options['rate_targets'])
-            if targets:
-                for tgt in targets:
-                    self.promotes('ode', inputs=[(tgt, f'polynomial_control_rates:{name}_rate')])
-                self.set_input_defaults(name=f'polynomial_control_rates:{name}_rate',
-                                        val=np.ones(num_nodes),
-                                        units=rate_units)
-
-            targets = get_targets(self.ode, f'{name}_rate2', options['rate2_targets'])
-            if targets:
-                for tgt in targets:
-                    self.promotes('ode', inputs=[(tgt, f'polynomial_control_rates:{name}_rate2')])
-                self.set_input_defaults(name=f'polynomial_control_rates:{name}_rate2',
                                         val=np.ones(num_nodes),
                                         units=rate2_units)
 

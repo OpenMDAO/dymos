@@ -6,6 +6,7 @@ import openmdao.api as om
 
 from ..grid_data import GridData
 from ...utils.misc import get_rate_units, CoerceDesvar, reshape_val
+from ...utils.lgl import lgl
 from ...utils.lagrange import lagrange_matrices
 from ...utils.indexing import get_desvar_indices
 from ...utils.constants import INF_BOUND
@@ -67,6 +68,7 @@ class ControlInterpComp(om.ExplicitComponent):
         self._output_val_names = {}
         self._output_rate_names = {}
         self._output_rate2_names = {}
+        self._matrices = {}
 
     def setup(self):
         """
@@ -84,74 +86,155 @@ class ControlInterpComp(om.ExplicitComponent):
     def _configure_controls(self):
         gd = self.options['grid_data']
         ogd = self.options['output_grid_data'] or gd
+        eval_nodes = ogd.node_ptau
         control_options = self.options['control_options']
         num_output_nodes = ogd.num_nodes
-        num_control_input_nodes = gd.subset_num_nodes['control_input']
         time_units = self.options['time_units']
 
         for name, options in control_options.items():
-            self._input_names[name] = f'controls:{name}'
-            self._output_val_names[name] = f'control_values:{name}'
-            self._output_rate_names[name] = f'control_rates:{name}_rate'
-            self._output_rate2_names[name] = f'control_rates:{name}_rate2'
-            shape = options['shape']
-            input_shape = (num_control_input_nodes,) + shape
-            output_shape = (num_output_nodes,) + shape
+            if 'control_type' not in options:
+                options['control_type'] = 'full'
+            if options['control_type'] == 'polynomial':
+                disc_nodes, _ = lgl(options['order'] + 1)
+                num_control_input_nodes = len(disc_nodes)
+                shape = options['shape']
+                size = np.prod(shape)
+                units = options['units']
+                rate_units = get_rate_units(units, self.options['time_units'], deriv=1)
+                rate2_units = get_rate_units(units, self.options['time_units'], deriv=2)
 
-            units = options['units']
-            rate_units = get_rate_units(units, time_units)
-            rate2_units = get_rate_units(units, time_units, deriv=2)
+                input_shape = (num_control_input_nodes,) + shape
+                output_shape = (num_output_nodes,) + shape
 
-            self.add_input(self._input_names[name], val=np.ones(input_shape), units=units)
+                L_de, D_de = lagrange_matrices(disc_nodes, eval_nodes)
+                _, D_dd = lagrange_matrices(disc_nodes, disc_nodes)
+                D2_de = np.dot(D_de, D_dd)
 
-            self.add_output(self._output_val_names[name], shape=output_shape, units=units)
+                self._matrices[name] = L_de, D_de, D2_de
 
-            self.add_output(self._output_rate_names[name], shape=output_shape, units=rate_units)
+                self._input_names[name] = f'controls:{name}'
+                self._output_val_names[name] = f'control_values:{name}'
+                self._output_rate_names[name] = f'control_rates:{name}_rate'
+                self._output_rate2_names[name] = f'control_rates:{name}_rate2'
 
-            self.add_output(self._output_rate2_names[name], shape=output_shape,
-                            units=rate2_units)
+                self.add_input(self._input_names[name], val=np.ones(input_shape), units=units)
+                self.add_output(self._output_val_names[name], shape=output_shape, units=units)
+                self.add_output(self._output_rate_names[name], shape=output_shape, units=rate_units)
+                self.add_output(self._output_rate2_names[name], shape=output_shape, units=rate2_units)
 
-            size = np.prod(shape)
-            self.sizes[name] = size
-            sp_eye = sp.eye(size, format='csr')
+                self.val_jacs[name] = np.zeros((num_output_nodes, size, num_control_input_nodes, size))
+                self.rate_jacs[name] = np.zeros((num_output_nodes, size, num_control_input_nodes, size))
+                self.rate2_jacs[name] = np.zeros((num_output_nodes, size, num_control_input_nodes, size))
 
-            # The partial of interpolated value wrt the control input values is linear
-            # and can be computed as the kronecker product of the interpolation matrix (L)
-            # and eye(size).
-            J_val = sp.kron(self.L, sp_eye, format='csr')
-            rs, cs, data = sp.find(J_val)
-            self.declare_partials(of=self._output_val_names[name],
-                                  wrt=self._input_names[name],
-                                  rows=rs, cols=cs, val=data)
+                for i in range(size):
+                    self.val_jacs[name][:, i, :, i] = L_de
+                    self.rate_jacs[name][:, i, :, i] = D_de
+                    self.rate2_jacs[name][:, i, :, i] = D2_de
 
-            # The partials of the output rate and second derivative wrt dt_dstau
-            rs = np.arange(num_output_nodes * size, dtype=int)
-            cs = np.repeat(np.arange(num_output_nodes, dtype=int), size)
+                self.val_jacs[name] = self.val_jacs[name].reshape((num_output_nodes * size,
+                                                                  num_control_input_nodes * size),
+                                                                  order='C')
+                self.rate_jacs[name] = self.rate_jacs[name].reshape((num_output_nodes * size,
+                                                                    num_control_input_nodes * size),
+                                                                    order='C')
+                self.rate2_jacs[name] = self.rate2_jacs[name].reshape((num_output_nodes * size,
+                                                                      num_control_input_nodes * size),
+                                                                      order='C')
+                self.val_jac_rows[name], self.val_jac_cols[name] = \
+                    np.where(self.val_jacs[name] != 0)
+                self.rate_jac_rows[name], self.rate_jac_cols[name] = \
+                    np.where(self.rate_jacs[name] != 0)
+                self.rate2_jac_rows[name], self.rate2_jac_cols[name] = \
+                    np.where(self.rate2_jacs[name] != 0)
 
-            self.declare_partials(of=self._output_rate_names[name],
-                                  wrt='dt_dstau',
-                                  rows=rs, cols=cs)
+                self.sizes[name] = size
 
-            self.declare_partials(of=self._output_rate2_names[name],
-                                  wrt='dt_dstau',
-                                  rows=rs, cols=cs)
+                rs, cs = self.val_jac_rows[name], self.val_jac_cols[name]
+                self.declare_partials(of=self._output_val_names[name],
+                                      wrt=self._input_names[name],
+                                      rows=rs, cols=cs, val=self.val_jacs[name][rs, cs])
 
-            # The partials of the rates and second derivatives are nonlinear but the sparsity
-            # pattern is obtained from the kronecker product of the 1st and 2nd differentiation
-            # matrices (D and D2) and eye(size).
-            self.rate_jacs[name] = sp.kron(self.D, sp_eye, format='csr')
-            rs, cs = self.rate_jacs[name].nonzero()
+                rs = np.concatenate([np.arange(0, num_output_nodes * size, size, dtype=int) + i
+                                    for i in range(size)])
 
-            self.declare_partials(of=self._output_rate_names[name],
-                                  wrt=self._input_names[name],
-                                  rows=rs, cols=cs)
+                self.declare_partials(of=self._output_rate_names[name],
+                                      wrt='t_duration', rows=rs, cols=np.zeros_like(rs))
 
-            self.rate2_jacs[name] = sp.kron(self.D2, sp_eye, format='csr')
-            rs, cs = self.rate2_jacs[name].nonzero()
+                self.declare_partials(of=self._output_rate_names[name],
+                                      wrt=self._input_names[name],
+                                      rows=self.rate_jac_rows[name], cols=self.rate_jac_cols[name])
 
-            self.declare_partials(of=self._output_rate2_names[name],
-                                  wrt=self._input_names[name],
-                                  rows=rs, cols=cs)
+                self.declare_partials(of=self._output_rate2_names[name],
+                                      wrt='t_duration', rows=rs, cols=np.zeros_like(rs))
+
+                self.declare_partials(of=self._output_rate2_names[name],
+                                      wrt=self._input_names[name],
+                                      rows=self.rate2_jac_rows[name], cols=self.rate2_jac_cols[name])
+
+            else:
+                self._input_names[name] = f'controls:{name}'
+                self._output_val_names[name] = f'control_values:{name}'
+                self._output_rate_names[name] = f'control_rates:{name}_rate'
+                self._output_rate2_names[name] = f'control_rates:{name}_rate2'
+                shape = options['shape']
+                num_control_input_nodes = gd.subset_num_nodes['control_input']
+                input_shape = (num_control_input_nodes,) + shape
+                output_shape = (num_output_nodes,) + shape
+
+                units = options['units']
+                rate_units = get_rate_units(units, time_units)
+                rate2_units = get_rate_units(units, time_units, deriv=2)
+
+                self.add_input(self._input_names[name], val=np.ones(input_shape), units=units)
+
+                self.add_output(self._output_val_names[name], shape=output_shape, units=units)
+
+                self.add_output(self._output_rate_names[name], shape=output_shape, units=rate_units)
+
+                self.add_output(self._output_rate2_names[name], shape=output_shape,
+                                units=rate2_units)
+
+                size = np.prod(shape)
+                self.sizes[name] = size
+                sp_eye = sp.eye(size, format='csr')
+
+                # The partial of interpolated value wrt the control input values is linear
+                # and can be computed as the kronecker product of the interpolation matrix (L)
+                # and eye(size).
+                J_val = sp.kron(self.L, sp_eye, format='csr')
+                rs, cs, data = sp.find(J_val)
+                self.declare_partials(of=self._output_val_names[name],
+                                      wrt=self._input_names[name],
+                                      rows=rs, cols=cs, val=data)
+
+                # The partials of the output rate and second derivative wrt dt_dstau
+                rs = np.arange(num_output_nodes * size, dtype=int)
+                cs = np.repeat(np.arange(num_output_nodes, dtype=int), size)
+
+                self.declare_partials(of=self._output_rate_names[name],
+                                      wrt='dt_dstau',
+                                      rows=rs, cols=cs)
+
+                self.declare_partials(of=self._output_rate2_names[name],
+                                      wrt='dt_dstau',
+                                      rows=rs, cols=cs)
+
+                # The partials of the rates and second derivatives are nonlinear but the sparsity
+                # pattern is obtained from the kronecker product of the 1st and 2nd differentiation
+                # matrices (D and D2) and eye(size).
+                self.rate_jacs[name] = sp.kron(self.D, sp_eye, format='csr')
+                rs, cs = self.rate_jacs[name].nonzero()
+
+                self.declare_partials(of=self._output_rate_names[name],
+                                      wrt=self._input_names[name],
+                                      rows=rs, cols=cs)
+
+                self.rate2_jacs[name] = sp.kron(self.D2, sp_eye, format='csr')
+                rs, cs = self.rate2_jacs[name].nonzero()
+
+                self.declare_partials(of=self._output_rate2_names[name],
+                                      wrt=self._input_names[name],
+                                      rows=rs, cols=cs)
 
     def configure_io(self):
         """
@@ -165,9 +248,20 @@ class ControlInterpComp(om.ExplicitComponent):
 
         self.add_input('dt_dstau', shape=output_num_nodes, units=time_units)
 
+        self.val_jacs = {}
         self.rate_jacs = {}
         self.rate2_jacs = {}
+        self.val_jac_rows = {}
+        self.val_jac_cols = {}
+        self.rate_jac_rows = {}
+        self.rate_jac_cols = {}
+        self.rate2_jac_rows = {}
+        self.rate2_jac_cols = {}
         self.sizes = {}
+
+        self.add_input('t_duration', val=1.0, units=self.options['time_units'],
+                       desc='duration of the phase to which this interpolated control group '
+                            'belongs')
 
         num_disc_nodes = gd.subset_num_nodes['control_disc']
         num_input_nodes = gd.subset_num_nodes['control_input']
@@ -233,27 +327,41 @@ class ControlInterpComp(om.ExplicitComponent):
         control_options = self.options['control_options']
         num_control_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
         num_output_nodes = ogd.num_nodes
+        dt_dptau = 0.5 * inputs['t_duration']
 
         for name, options in control_options.items():
-            size = np.prod(options['shape'])
+            if control_options[name]['control_type'] == 'polynomial':
+                L_de, D_de, D2_de = self._matrices[name]
 
-            u_flat = np.reshape(inputs[self._input_names[name]],
-                                newshape=(num_control_input_nodes, size))
+                u = inputs[self._input_names[name]]
 
-            a = self.D.dot(u_flat)
-            b = self.D2.dot(u_flat)
+                a = np.tensordot(D_de, u, axes=(1, 0)).T
+                b = np.tensordot(D2_de, u, axes=(1, 0)).T
 
-            val = np.reshape(self.L.dot(u_flat), (num_output_nodes,) + options['shape'])
+                # divide each "row" by dt_dptau or dt_dptau**2
+                outputs[self._output_val_names[name]] = np.tensordot(L_de, u, axes=(1, 0))
+                outputs[self._output_rate_names[name]] = (a / dt_dptau).T
+                outputs[self._output_rate2_names[name]] = (b / dt_dptau ** 2).T
+            else:
+                size = np.prod(options['shape'])
 
-            rate = a / inputs['dt_dstau'][:, np.newaxis]
-            rate = np.reshape(rate, (num_output_nodes,) + options['shape'])
+                u_flat = np.reshape(inputs[self._input_names[name]],
+                                    newshape=(num_control_input_nodes, size))
 
-            rate2 = b / inputs['dt_dstau'][:, np.newaxis] ** 2
-            rate2 = np.reshape(rate2, (num_output_nodes,) + options['shape'])
+                a = self.D.dot(u_flat)
+                b = self.D2.dot(u_flat)
 
-            outputs[self._output_val_names[name]] = val
-            outputs[self._output_rate_names[name]] = rate
-            outputs[self._output_rate2_names[name]] = rate2
+                val = np.reshape(self.L.dot(u_flat), (num_output_nodes,) + options['shape'])
+
+                rate = a / inputs['dt_dstau'][:, np.newaxis]
+                rate = np.reshape(rate, (num_output_nodes,) + options['shape'])
+
+                rate2 = b / inputs['dt_dstau'][:, np.newaxis] ** 2
+                rate2 = np.reshape(rate2, (num_output_nodes,) + options['shape'])
+
+                outputs[self._output_val_names[name]] = val
+                outputs[self._output_rate_names[name]] = rate
+                outputs[self._output_rate2_names[name]] = rate2
 
     def compute_partials(self, inputs, partials):
         """
@@ -267,31 +375,65 @@ class ControlInterpComp(om.ExplicitComponent):
             Subjac components written to partials[output_name, input_name].
         """
         control_options = self.options['control_options']
-        num_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
 
         dstau_dt = np.reciprocal(inputs['dt_dstau'])
         dstau_dt2 = (dstau_dt ** 2)[:, np.newaxis]
         dstau_dt3 = (dstau_dt ** 3)[:, np.newaxis]
 
+        t_duration = inputs['t_duration']
+
         for name in control_options:
-            control_name = self._input_names[name]
+            if control_options[name]['control_type'] == 'polynomial':
+                options = control_options[name]
+                control_name = self._input_names[name]
+                num_input_nodes = options['order'] + 1
+                L_de, D_de, D2_de = self._matrices[name]
+                nn = self.options['output_grid_data'].num_nodes
 
-            size = self.sizes[name]
-            rate_name = self._output_rate_names[name]
-            rate2_name = self._output_rate2_names[name]
+                size = self.sizes[name]
+                rate_name = self._output_rate_names[name]
+                rate2_name = self._output_rate2_names[name]
 
-            # Unroll shaped controls into an array at each node
-            u_flat = np.reshape(inputs[control_name], (num_input_nodes, size))
+                # Unroll matrix-shaped controls into an array at each node
+                u_d = np.reshape(inputs[control_name], (num_input_nodes, size))
 
-            partials[rate_name, 'dt_dstau'] = (-self.D.dot(u_flat) * dstau_dt2).ravel()
-            partials[rate2_name, 'dt_dstau'] = (-2.0 * self.D2.dot(u_flat) * dstau_dt3).ravel()
+                t_duration_tile = np.tile(t_duration, size * nn)
 
-            dstau_dt_x_size = np.repeat(dstau_dt, size)[:, np.newaxis]
-            dstau_dt2_x_size = np.repeat(dstau_dt2, size)[:, np.newaxis]
+                partials[rate_name, 't_duration'] = \
+                    0.5 * (-np.dot(D_de, u_d).ravel(order='F') / (0.5 * t_duration_tile) ** 2)
 
-            partials[rate_name, control_name] = self.rate_jacs[name].multiply(dstau_dt_x_size).data
+                partials[rate2_name, 't_duration'] = \
+                    -1.0 * (np.dot(D2_de, u_d).ravel(order='F') / (0.5 * t_duration_tile) ** 3)
 
-            partials[rate2_name, control_name] = self.rate2_jacs[name].multiply(dstau_dt2_x_size).data
+                t_duration_x_size = np.repeat(t_duration, size * nn)[:, np.newaxis]
+
+                r_nz, c_nz = self.rate_jac_rows[name], self.rate_jac_cols[name]
+                partials[rate_name, control_name] = \
+                    (self.rate_jacs[name] / (0.5 * t_duration_x_size))[r_nz, c_nz]
+
+                r_nz, c_nz = self.rate2_jac_rows[name], self.rate2_jac_cols[name]
+                partials[rate2_name, control_name] = \
+                    (self.rate2_jacs[name] / (0.5 * t_duration_x_size) ** 2)[r_nz, c_nz]
+            else:
+                control_name = self._input_names[name]
+
+                size = self.sizes[name]
+                rate_name = self._output_rate_names[name]
+                rate2_name = self._output_rate2_names[name]
+                num_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
+
+                # Unroll shaped controls into an array at each node
+                u_flat = np.reshape(inputs[control_name], (num_input_nodes, size))
+
+                partials[rate_name, 'dt_dstau'] = (-self.D.dot(u_flat) * dstau_dt2).ravel()
+                partials[rate2_name, 'dt_dstau'] = (-2.0 * self.D2.dot(u_flat) * dstau_dt3).ravel()
+
+                dstau_dt_x_size = np.repeat(dstau_dt, size)[:, np.newaxis]
+                dstau_dt2_x_size = np.repeat(dstau_dt2, size)[:, np.newaxis]
+
+                partials[rate_name, control_name] = self.rate_jacs[name].multiply(dstau_dt_x_size).data
+
+                partials[rate2_name, control_name] = self.rate2_jacs[name].multiply(dstau_dt2_x_size).data
 
 
 class ControlGroup(om.Group):
@@ -345,35 +487,62 @@ class ControlGroup(om.Group):
         self.control_interp_comp.configure_io()
 
         for name, options in control_options.items():
-            dvname = f'controls:{name}'
-            shape = options['shape']
-            size = np.prod(shape)
-            if options['opt']:
-                desvar_indices = get_desvar_indices(size, num_input_nodes,
-                                                    options['fix_initial'], options['fix_final'])
+            if options['control_type'] == 'polynomial':
+                num_input_nodes = options['order'] + 1
+                shape = options['shape']
+                default_val = reshape_val(options['val'], shape, num_input_nodes)
+                if options['opt']:
 
-                if len(desvar_indices) > 0:
-                    coerce_desvar_option = CoerceDesvar(num_input_nodes, desvar_indices,
-                                                        options=options)
+                    desvar_indices = np.arange(num_input_nodes, dtype=int)
+                    if options['fix_initial']:
+                        desvar_indices = desvar_indices[1:]
+                    if options['fix_final']:
+                        desvar_indices = desvar_indices[:-1]
 
-                    lb = np.zeros_like(desvar_indices, dtype=float)
-                    lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
-                        coerce_desvar_option('lower')
+                    lb = -INF_BOUND if options['lower'] is None else options['lower']
+                    ub = INF_BOUND if options['upper'] is None else options['upper']
 
-                    ub = np.zeros_like(desvar_indices, dtype=float)
-                    ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
-                        coerce_desvar_option('upper')
-
-                    self.add_design_var(name=dvname,
+                    self.add_design_var(f'controls:{name}',
                                         lower=lb,
                                         upper=ub,
-                                        scaler=coerce_desvar_option('scaler'),
-                                        adder=coerce_desvar_option('adder'),
-                                        ref0=coerce_desvar_option('ref0'),
-                                        ref=coerce_desvar_option('ref'),
+                                        ref=options['ref'],
+                                        ref0=options['ref0'],
+                                        adder=options['adder'],
+                                        scaler=options['scaler'],
                                         indices=desvar_indices,
                                         flat_indices=True)
 
-            default_val = reshape_val(options['val'], shape, num_input_nodes)
+                self.set_input_defaults(name=f'controls:{name}', val=default_val, units=options['units'])
+            else:
+                dvname = f'controls:{name}'
+                shape = options['shape']
+                size = np.prod(shape)
+                if options['opt']:
+                    desvar_indices = get_desvar_indices(size, num_input_nodes,
+                                                        options['fix_initial'], options['fix_final'])
 
-            self.set_input_defaults(name=dvname, val=default_val, units=options['units'])
+                    if len(desvar_indices) > 0:
+                        coerce_desvar_option = CoerceDesvar(num_input_nodes, desvar_indices,
+                                                            options=options)
+
+                        lb = np.zeros_like(desvar_indices, dtype=float)
+                        lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+                            coerce_desvar_option('lower')
+
+                        ub = np.zeros_like(desvar_indices, dtype=float)
+                        ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+                            coerce_desvar_option('upper')
+
+                        self.add_design_var(name=dvname,
+                                            lower=lb,
+                                            upper=ub,
+                                            scaler=coerce_desvar_option('scaler'),
+                                            adder=coerce_desvar_option('adder'),
+                                            ref0=coerce_desvar_option('ref0'),
+                                            ref=coerce_desvar_option('ref'),
+                                            indices=desvar_indices,
+                                            flat_indices=True)
+
+                default_val = reshape_val(options['val'], shape, num_input_nodes)
+
+                self.set_input_defaults(name=dvname, val=default_val, units=options['units'])

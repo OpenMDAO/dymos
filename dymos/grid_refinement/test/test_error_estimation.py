@@ -49,7 +49,7 @@ class TestBrachistochroneExample(unittest.TestCase):
             phase.add_control('theta', continuity=True, rate_continuity=True,
                               units='deg', lower=0.01, upper=179.9)
         elif control_type == 'polynomial_control':
-            phase.add_polynomial_control('theta', units='deg', lower=0.01, upper=179.9, order=3)
+            phase.add_control('theta', units='deg', lower=0.01, upper=179.9, order=3, control_type='polynomial')
 
         phase.add_parameter('g', units='m/s**2', val=1.0)
 
@@ -69,7 +69,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         if control_type == 'control':
             p.set_val('traj0.phase0.controls:theta', phase.interp('theta', [90, 90]), units='deg')
         else:
-            p.set_val('traj0.phase0.polynomial_controls:theta',
+            p.set_val('traj0.phase0.controls:theta',
                       phase.interp('theta', [5, 100]), units='deg')
 
         p['traj0.phase0.parameters:g'] = g
@@ -109,11 +109,6 @@ class TestBrachistochroneExample(unittest.TestCase):
                             u_solution = phase.get_val(f'timeseries.controls:{name}')
                             print(f'{name} interpolation error',
                                   max(np.abs(u[name].ravel() - u_solution.ravel())))
-
-                        for name, options in phase.polynomial_control_options.items():
-                            p_solution = phase.get_val(f'timeseries.polynomial_controls:{name}')
-                            print(f'{name} interpolation error',
-                                  max(np.abs(pp[name].ravel() - p_solution.ravel())))
 
                         for name, options in phase.state_options.items():
                             x_solution = phase.get_val(f'timeseries.states:{name}')

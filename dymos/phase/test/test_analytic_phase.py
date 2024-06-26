@@ -284,22 +284,6 @@ class TestAnalyticPhaseInvalidOptions(unittest.TestCase):
 
         self.assertEqual('AnalyticPhase does not support controls.', str(e.exception))
 
-    def test_add_polynomial_control(self):
-        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=11)
-
-        with self.assertRaises(NotImplementedError) as e:
-            phase.add_polynomial_control('foo', order=2)
-
-        self.assertEqual('AnalyticPhase does not support polynomial controls.', str(e.exception))
-
-    def test_set_polynomial_control_options(self):
-        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=11)
-
-        with self.assertRaises(NotImplementedError) as e:
-            phase.set_polynomial_control_options('foo', lower=0)
-
-        self.assertEqual('AnalyticPhase does not support polynomial controls.', str(e.exception))
-
     def test_timeseries_expr(self):
         p = om.Problem()
         traj = p.model.add_subsystem('traj', dm.Trajectory())

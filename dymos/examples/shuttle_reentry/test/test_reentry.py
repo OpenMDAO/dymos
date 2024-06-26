@@ -238,8 +238,8 @@ class TestReentry(unittest.TestCase):
                          rate_source='vdot', targets=['v'], lower=500, ref0=2500, ref=25000)
         phase0.add_control('alpha', units='rad', opt=True,
                            lower=-np.pi / 2, upper=np.pi / 2)
-        phase0.add_polynomial_control('beta', order=9, units='rad', opt=True,
-                                      lower=-89 * np.pi / 180, upper=1 * np.pi / 180)
+        phase0.add_control('beta', order=9, units='rad', opt=True,
+                           lower=-89 * np.pi / 180, upper=1 * np.pi / 180, control_type='polynomial')
 
         phase0.add_objective('theta', loc='final', ref=-0.01)
         phase0.add_path_constraint('q', lower=0, upper=70, ref=70)
@@ -267,7 +267,7 @@ class TestReentry(unittest.TestCase):
         p.set_val('traj.phase0.t_duration', 2000, units='s')
         p.set_val('traj.phase0.controls:alpha',
                   phase0.interp('alpha', [17.4, 17.4]), units='deg')
-        p.set_val('traj.phase0.polynomial_controls:beta',
+        p.set_val('traj.phase0.controls:beta',
                   phase0.interp('beta', [-20, 0]), units='deg')
 
         dm.run_problem(p, simulate=True)

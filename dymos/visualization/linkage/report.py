@@ -100,8 +100,6 @@ def _is_fixed(var_name: str, class_name: str, phase, loc: str):
         fixed = phase.is_state_fixed(var_name, loc)
     elif class_name in {'input_control', 'indep_control'}:
         fixed = phase.is_control_fixed(var_name, loc)
-    elif class_name in {'input_polynomial_control', 'indep_polynomial_control'}:
-        fixed = phase.is_polynomial_control_fixed(var_name, loc)
     else:
         fixed = True
 
@@ -212,11 +210,6 @@ def _trajectory_to_dict(traj):
         for control_name in phase.control_options:
             for loc, child in condition_children.items():
                 child[control_name] = _tree_var(control_name, phase, loc, 'controls:')
-
-        # Polynomial Controls
-        for pc_name in phase.polynomial_control_options:
-            for loc, child in condition_children.items():
-                child[pc_name] = _tree_var(pc_name, phase, loc, 'polynomial_controls:')
 
         # Parameters
         for param_name, param in phase.parameter_options.items():

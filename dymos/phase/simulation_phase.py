@@ -92,10 +92,6 @@ class SimulationPhase(Phase):
             val = from_phase.get_val(f'controls:{name}', units=options['units'], from_src=False)
             self.set_val(f'controls:{name}', val, units=options['units'])
 
-        for name, options in self.polynomial_control_options.items():
-            val = from_phase.get_val(f'polynomial_controls:{name}', units=options['units'], from_src=False)
-            self.set_val(f'polynomial_controls:{name}', val, units=options['units'])
-
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
                                 scaler=None, adder=None, ref=None, ref0=None, linear=False, flat_indices=False):
@@ -263,19 +259,6 @@ class SimulationPhase(Phase):
     def _check_control_options(self):
         """
         Check that control options are valid and issue warnings if invalid options are provided.
-
-        This check is not performed by SimulationPhase.
-
-        Warns
-        -----
-        RuntimeWarning
-            RuntimeWarning is issued in the case of one or more invalid time options.
-        """
-        pass
-
-    def _check_polynomial_control_options(self):
-        """
-        Check that polynomial control options are valid and issue warnings if invalid options are provided.
 
         This check is not performed by SimulationPhase.
 

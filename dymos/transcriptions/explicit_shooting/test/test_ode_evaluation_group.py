@@ -31,7 +31,6 @@ class TestODEEvaluationGroup(unittest.TestCase):
         param_options['p']['targets'] = ['p']
 
         control_options = {}
-        polynomial_control_options = {}
 
         p = om.Problem()
 
@@ -43,7 +42,6 @@ class TestODEEvaluationGroup(unittest.TestCase):
                                                              state_options=state_options,
                                                              parameter_options=param_options,
                                                              control_options=control_options,
-                                                             polynomial_control_options=polynomial_control_options,
                                                              ode_init_kwargs=None))
         p.setup(force_alloc_complex=True)
 

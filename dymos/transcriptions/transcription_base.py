@@ -4,7 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 
-from .common import ControlGroup, PolynomialControlGroup, ParameterComp
+from .common import ControlGroup, ParameterComp
 from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.misc import _none_or_unspecified
@@ -159,6 +159,8 @@ class TranscriptionBase(object):
             phase.add_subsystem('control_group',
                                 subsys=control_group)
 
+            phase.connect('t_duration_val', 'control_group.t_duration')
+
     def configure_controls(self, phase):
         """
         Configure the inputs/outputs for the controls.
@@ -184,55 +186,6 @@ class TranscriptionBase(object):
                         (phase.timeseries_options['include_control_rates'] or options['rate2_targets']):
                     phase.add_timeseries_output(f'{name}_rate2', output_name=f'{control_rate_prefix}{name}_rate2',
                                                 timeseries=ts_name)
-
-    def setup_polynomial_controls(self, phase):
-        """
-        Adds the polynomial control group to the model if any polynomial controls are present.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        if phase.polynomial_control_options:
-            sys = PolynomialControlGroup(grid_data=self.grid_data,
-                                         polynomial_control_options=phase.polynomial_control_options,
-                                         time_units=phase.time_options['units'])
-            phase.add_subsystem('polynomial_control_group', subsys=sys,
-                                promotes_inputs=['polynomial_controls:*'],
-                                promotes_outputs=['polynomial_control_values:*',
-                                                  'polynomial_control_rates:*'])
-
-            phase.connect('t_duration_val', 'polynomial_control_group.t_duration')
-
-    def configure_polynomial_controls(self, phase):
-        """
-        Configure the inputs/outputs for the polynomial controls.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        if phase.polynomial_control_options:
-            phase.polynomial_control_group.configure_io()
-
-            prefix = 'polynomial_controls:' if phase.timeseries_options['use_prefix'] else ''
-            rate_prefix = 'polynomial_control_rates:' if phase.timeseries_options['use_prefix'] else ''
-
-            for name, options in phase.polynomial_control_options.items():
-                for ts_name, ts_options in phase._timeseries.items():
-                    if f'{prefix}{name}' not in ts_options['outputs']:
-                        phase.add_timeseries_output(name, output_name=f'{prefix}{name}',
-                                                    timeseries=ts_name)
-                    if f'{rate_prefix}{name}_rate' not in ts_options['outputs'] and \
-                            (phase.timeseries_options['include_control_rates'] or options['rate_targets']):
-                        phase.add_timeseries_output(f'{name}_rate', output_name=f'{rate_prefix}{name}_rate',
-                                                    timeseries=ts_name)
-                    if f'{rate_prefix}{name}_rate2' not in ts_options['outputs'] and \
-                            (phase.timeseries_options['include_control_rates'] or options['rate2_targets']):
-                        phase.add_timeseries_output(f'{name}_rate2', output_name=f'{rate_prefix}{name}_rate2',
-                                                    timeseries=ts_name)
 
     def setup_parameters(self, phase):
         """
@@ -309,7 +262,7 @@ class TranscriptionBase(object):
         ode = self._get_ode(phase)
         try:
             configure_states_introspection(phase.state_options, phase.time_options, phase.control_options,
-                                           phase.parameter_options, phase.polynomial_control_options, ode)
+                                           phase.parameter_options, ode)
         except (ValueError, RuntimeError) as e:
             raise RuntimeError(f'Error during configure_states_introspection in phase {phase.pathname}.') from e
 
