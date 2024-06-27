@@ -1375,9 +1375,10 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <span class="c1"># the rate of change of curvature.</span>
 <span class="c1"># The state equations are written with respect to time, the variable change occurs in</span>
 <span class="c1"># timeODE.py</span>
-<span class="n">phase</span><span class="o">.</span><span class="n">set_time_options</span><span class="p">(</span><span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fix_duration</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">duration_val</span><span class="o">=</span><span class="n">s_final</span><span class="p">,</span>
-                       <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;curv.s&#39;</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">duration_ref</span><span class="o">=</span><span class="n">s_final</span><span class="p">,</span>
-                       <span class="n">duration_ref0</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
+<span class="c1"># Here we&#39;re using set_integ_var_options, which is just an alias for set_time_options.</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_integ_var_options</span><span class="p">(</span><span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fix_duration</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">duration_val</span><span class="o">=</span><span class="n">s_final</span><span class="p">,</span>
+                            <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;curv.s&#39;</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">duration_ref</span><span class="o">=</span><span class="n">s_final</span><span class="p">,</span>
+                            <span class="n">duration_ref0</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
 
 <span class="c1"># Define states</span>
 <span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
@@ -1507,7 +1508,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:2258: UserWarning: Phase time options have no effect because fix_duration=True or input_duration=True for phase &#39;traj.phases.phase0&#39;: duration_ref, duration_ref0
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:2303: UserWarning: Phase time options have no effect because fix_duration=True or input_duration=True for phase &#39;traj.phases.phase0&#39;: duration_ref, duration_ref0
   warnings.warn(f&#39;Phase time options have no effect because fix_duration=True &#39;
 </pre></div>
 </div>
@@ -1602,7 +1603,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 7.983404465000035 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 7.983331880000037 seconds.
 Total jacobian shape: (1256, 609) 
 </pre></div>
 </div>
@@ -1611,10 +1612,10 @@ FWD solves: 20   REV solves: 0
 Total colors vs. total size: 20 vs 609  (96.72% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   7.9834 sec
-Time to compute coloring:   0.5218 sec
-Memory to compute coloring: -14.5781 MB
-Coloring created on: 2024-06-26 20:37:42
+Time to compute sparsity:   7.9833 sec
+Time to compute coloring:   0.5254 sec
+Memory to compute coloring: -14.5742 MB
+Coloring created on: 2024-06-27 16:47:54
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1635: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;c_fr&#39;, inds=[(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0), (9, 0), (10, 0), (11, 0), (12, 0), (13, 0), (14, 0), (15, 0), (16, 0), (17, 0), (18, 0), (19, 0), (20, 0), (21, 0), (22, 0), (23, 0), (24, 0), (25, 0), (26, 0), (27, 0), (28, 0), (29, 0), (30, 0), (31, 0), (32, 0), (33, 0), (34, 0), (35, 0), (36, 0), (37, 0), (38, 0), (39, 0), (40, 0), (41, 0), (42, 0), (43, 0), (44, 0), (45, 0), (46, 0), (47, 0), (48, 0), (49, 0), (50, 0), (51, 0), (52, 0), (53, 0), (54, 0), (55, 0), (56, 0), (57, 0), (58, 0), (59, 0), (60, 0), (61, 0), (62, 0), (63, 0), (64, 0), (65, 0), (66, 0), (67, 0), (68, 0), (69, 0), (70, 0), (71, 0), (72, 0), (73, 0), (74, 0), (75, 0), (76, 0), (77, 0), (78, 0), (79, 0), (80, 0), (81, 0), (82, 0), (83, 0), (84, 0), (85, 0), (86, 0), (87, 0), (88, 0), (89, 0), (90, 0), (91, 0), (92, 0), (93, 0), (94, 0), (95, 0), (96, 0), (97, 0), (98, 0), (99, 0), (100, 0), (101, 0), (102, 0), (103, 0), (104, 0), (105, 0), (106, 0), (107, 0), (108, 0), (109, 0), (110, 0), (111, 0), (112, 0), (113, 0), (114, 0), (115, 0), (116, 0), (117, 0), (118, 0), (119, 0), (120, 0), (121, 0), (122, 0), (123, 0), (124, 0), (125, 0), (126, 0), (127, 0), (128, 0), (129, 0), (130, 0), (131, 0), (132, 0), (133, 0), (134, 0), (135, 0), (136, 0), (137, 0), (138, 0), (139, 0), (140, 0), (141, 0), (142, 0), (143, 0), (144, 0), (145, 0), (146, 0), (147, 0), (148, 0), (149, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;c_fl&#39;, inds=[(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0), (9, 0), (10, 0), (11, 0), (12, 0), (13, 0), (14, 0), (15, 0), (16, 0), (17, 0), (18, 0), (19, 0), (20, 0), (21, 0), (22, 0), (23, 0), (24, 0), (25, 0), (26, 0), (27, 0), (28, 0), (29, 0), (30, 0), (31, 0), (32, 0), (33, 0), (34, 0), (35, 0), (36, 0), (37, 0), (38, 0), (39, 0), (40, 0), (41, 0), (42, 0), (43, 0), (44, 0), (45, 0), (46, 0), (47, 0), (48, 0), (49, 0), (50, 0), (51, 0), (52, 0), (53, 0), (54, 0), (55, 0), (56, 0), (57, 0), (58, 0), (59, 0), (60, 0), (61, 0), (62, 0), (63, 0), (64, 0), (65, 0), (66, 0), (67, 0), (68, 0), (69, 0), (70, 0), (71, 0), (72, 0), (73, 0), (74, 0), (75, 0), (76, 0), (77, 0), (78, 0), (79, 0), (80, 0), (81, 0), (82, 0), (83, 0), (84, 0), (85, 0), (86, 0), (87, 0), (88, 0), (89, 0), (90, 0), (91, 0), (92, 0), (93, 0), (94, 0), (95, 0), (96, 0), (97, 0), (98, 0), (99, 0), (100, 0), (101, 0), (102, 0), (103, 0), (104, 0), (105, 0), (106, 0), (107, 0), (108, 0), (109, 0), (110, 0), (111, 0), (112, 0), (113, 0), (114, 0), (115, 0), (116, 0), (117, 0), (118, 0), (119, 0), (120, 0), (121, 0), (122, 0), (123, 0), (124, 0), (125, 0), (126, 0), (127, 0), (128, 0), (129, 0), (130, 0), (131, 0), (132, 0), (133, 0), (134, 0), (135, 0), (136, 0), (137, 0), (138, 0), (139, 0), (140, 0), (141, 0), (142, 0), (143, 0), (144, 0), (145, 0), (146, 0), (147, 0), (148, 0), (149, 0)])] cannot be impacted by the design variables of the problem.
@@ -1806,6 +1807,167 @@ Coloring created on: 2024-06-26 20:37:42
 <img alt="../../_images/70da6cd0df9231d01e5638062c6f0d014ef05bc733fcfbc0c95f7f000c9fc673.png" src="../../_images/70da6cd0df9231d01e5638062c6f0d014ef05bc733fcfbc0c95f7f000c9fc673.png" />
 <img alt="../../_images/1df8f92623b9a5d396da3eb6ef5adf9192cf1cad8ca71678359a9f37fb0a00c7.png" src="../../_images/1df8f92623b9a5d396da3eb6ef5adf9192cf1cad8ca71678359a9f37fb0a00c7.png" />
 <img alt="../../_images/48872b4a3286b683afe68e980f80351de9161c5a73ad0ed10512b0c4da72951a.png" src="../../_images/48872b4a3286b683afe68e980f80351de9161c5a73ad0ed10512b0c4da72951a.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[[   0.        ]
+ [  12.44822972]
+ [  24.89645943]
+ [  24.89645943]
+ [  37.34468915]
+ [  49.79291886]
+ [  49.79291886]
+ [  62.24114858]
+ [  74.68937829]
+ [  74.68937829]
+ [  87.13760801]
+ [  99.58583772]
+ [  99.58583772]
+ [ 112.03406744]
+ [ 124.48229715]
+ [ 124.48229715]
+ [ 136.93052687]
+ [ 149.37875658]
+ [ 149.37875658]
+ [ 161.8269863 ]
+ [ 174.27521601]
+ [ 174.27521601]
+ [ 186.72344573]
+ [ 199.17167544]
+ [ 199.17167544]
+ [ 211.61990516]
+ [ 224.06813487]
+ [ 224.06813487]
+ [ 236.51636459]
+ [ 248.9645943 ]
+ [ 248.9645943 ]
+ [ 261.41282402]
+ [ 273.86105373]
+ [ 273.86105373]
+ [ 286.30928345]
+ [ 298.75751316]
+ [ 298.75751316]
+ [ 311.20574288]
+ [ 323.65397259]
+ [ 323.65397259]
+ [ 336.10220231]
+ [ 348.55043202]
+ [ 348.55043202]
+ [ 360.99866174]
+ [ 373.44689145]
+ [ 373.44689145]
+ [ 385.89512117]
+ [ 398.34335088]
+ [ 398.34335088]
+ [ 410.7915806 ]
+ [ 423.23981031]
+ [ 423.23981031]
+ [ 435.68804003]
+ [ 448.13626974]
+ [ 448.13626974]
+ [ 460.58449946]
+ [ 473.03272917]
+ [ 473.03272917]
+ [ 485.48095889]
+ [ 497.9291886 ]
+ [ 497.9291886 ]
+ [ 510.37741832]
+ [ 522.82564803]
+ [ 522.82564803]
+ [ 535.27387775]
+ [ 547.72210746]
+ [ 547.72210746]
+ [ 560.17033718]
+ [ 572.61856689]
+ [ 572.61856689]
+ [ 585.06679661]
+ [ 597.51502632]
+ [ 597.51502632]
+ [ 609.96325604]
+ [ 622.41148575]
+ [ 622.41148575]
+ [ 634.85971547]
+ [ 647.30794518]
+ [ 647.30794518]
+ [ 659.7561749 ]
+ [ 672.20440461]
+ [ 672.20440461]
+ [ 684.65263433]
+ [ 697.10086404]
+ [ 697.10086404]
+ [ 709.54909376]
+ [ 721.99732347]
+ [ 721.99732347]
+ [ 734.44555319]
+ [ 746.8937829 ]
+ [ 746.8937829 ]
+ [ 759.34201262]
+ [ 771.79024233]
+ [ 771.79024233]
+ [ 784.23847205]
+ [ 796.68670176]
+ [ 796.68670176]
+ [ 809.13493148]
+ [ 821.58316119]
+ [ 821.58316119]
+ [ 834.03139091]
+ [ 846.47962062]
+ [ 846.47962062]
+ [ 858.92785034]
+ [ 871.37608005]
+ [ 871.37608005]
+ [ 883.82430977]
+ [ 896.27253948]
+ [ 896.27253948]
+ [ 908.7207692 ]
+ [ 921.16899891]
+ [ 921.16899891]
+ [ 933.61722863]
+ [ 946.06545834]
+ [ 946.06545834]
+ [ 958.51368806]
+ [ 970.96191777]
+ [ 970.96191777]
+ [ 983.41014749]
+ [ 995.8583772 ]
+ [ 995.8583772 ]
+ [1008.30660692]
+ [1020.75483663]
+ [1020.75483663]
+ [1033.20306635]
+ [1045.65129606]
+ [1045.65129606]
+ [1058.09952578]
+ [1070.54775549]
+ [1070.54775549]
+ [1082.99598521]
+ [1095.44421492]
+ [1095.44421492]
+ [1107.89244464]
+ [1120.34067435]
+ [1120.34067435]
+ [1132.78890407]
+ [1145.23713378]
+ [1145.23713378]
+ [1157.6853635 ]
+ [1170.13359321]
+ [1170.13359321]
+ [1182.58182293]
+ [1195.03005264]
+ [1195.03005264]
+ [1207.47828236]
+ [1219.92651207]
+ [1219.92651207]
+ [1232.37474179]
+ [1244.8229715 ]]
+</pre></div>
+</div>
 </div>
 </div>
 </section>
