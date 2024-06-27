@@ -1890,6 +1890,15 @@ class Phase(om.Group):
 
         This is an alias for set_time_options that may be more intuitive
         when the variable of integration is not time.
+
+        See `set_time_options` for descirptions of the arguments.
+
+        Parameters
+        ----------
+        *args : tuple
+            Positional arguments to be passed to set_time_options.
+        **kwargs : dict
+            Keyword arguments to be passed to set_time_options.
         """
         self.set_time_options(*args, **kwargs)
 
@@ -1919,6 +1928,15 @@ class Phase(om.Group):
 
         This is an alias for set_time_val that may be more intuitive
         when the variable of integration is not time.
+
+        Parameters
+        ----------
+        initial : float or None
+            Initial value for the integation variable.
+        duration : float or None
+            Value for the phase duration in the integration variable.
+        units : str or None
+            Units of the time. If none are specified, the default units are used.
         """
         self.set_time_val(initial, duration, units)
 
