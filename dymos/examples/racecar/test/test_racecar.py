@@ -64,9 +64,9 @@ class TestRaceCarForDocs(unittest.TestCase):
                 # the rate of change of curvature.
                 # The state equations are written with respect to time, the variable change occurs in
                 # timeODE.py
-                phase.set_time_options(fix_initial=True, fix_duration=True, duration_val=s_final,
-                                       name='s', targets=['curv.s'], units='m', duration_ref=s_final,
-                                       duration_ref0=10)
+                phase.set_integ_var_options(fix_initial=True, fix_duration=True, duration_val=s_final,
+                                            name='s', targets=['curv.s'], units='m', duration_ref=s_final,
+                                            duration_ref0=10)
 
                 # Define states
                 phase.add_state('t', fix_initial=True, fix_final=False, units='s', lower=0,
@@ -163,6 +163,11 @@ class TestRaceCarForDocs(unittest.TestCase):
                 # Setup the problem
                 p.setup(check=True)  # force_alloc_complex=True
                 # Now that the OpenMDAO problem is setup, we can set the values of the states.
+
+                # Test that set_integ_var_val works.
+                # This isn't necessary because we already set the fixed endpoints
+                # in set_integ_var_options, but here it's serving as a test of the method.
+                phase.set_integ_var_val(initial=0, duration=s_final, units='m')
 
                 # States
                 # Nonzero velocity to avoid division by zero errors

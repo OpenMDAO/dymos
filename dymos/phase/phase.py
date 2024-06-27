@@ -207,6 +207,15 @@ class Phase(om.Group):
         self.options['time_options'] = tod
 
     @property
+    def integ_var_options(self):
+        """ An alias for time options. """
+        return self.options['time_options']
+
+    @integ_var_options.setter
+    def integ_var_options(self, iod: TimeOptionsDictionary):
+        self.options['time_options'] = iod
+
+    @property
     def state_options(self):
         return self.options['state_options']
 
@@ -1875,6 +1884,24 @@ class Phase(om.Group):
         if name is not _unspecified:
             self.time_options['name'] = name
 
+    def set_integ_var_options(self, *args, **kwargs):
+        """
+        Set the integration variable options for the phase.
+
+        This is an alias for set_time_options that may be more intuitive
+        when the variable of integration is not time.
+
+        See `set_time_options` for descirptions of the arguments.
+
+        Parameters
+        ----------
+        *args : tuple
+            Positional arguments to be passed to set_time_options.
+        **kwargs : dict
+            Keyword arguments to be passed to set_time_options.
+        """
+        self.set_time_options(*args, **kwargs)
+
     def set_time_val(self, initial=None, duration=None, units=None):
         """
         Set the values for initial time and the duration of the phase.
@@ -1894,6 +1921,24 @@ class Phase(om.Group):
             self.set_val('t_initial', initial, units=units)
         if duration is not None:
             self.set_val('t_duration', duration, units=units)
+
+    def set_integ_var_val(self, initial=None, duration=None, units=None):
+        """
+        Set the values for initial integration variable value and duration in the phase.
+
+        This is an alias for set_time_val that may be more intuitive
+        when the variable of integration is not time.
+
+        Parameters
+        ----------
+        initial : float or None
+            Initial value for the integation variable.
+        duration : float or None
+            Value for the phase duration in the integration variable.
+        units : str or None
+            Units of the time. If none are specified, the default units are used.
+        """
+        self.set_time_val(initial, duration, units)
 
     def set_state_val(self, name, vals=None, time_vals=None,
                       units=None, interpolation_kind='linear'):
