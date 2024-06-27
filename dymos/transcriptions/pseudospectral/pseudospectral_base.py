@@ -402,7 +402,7 @@ class PseudospectralBase(TranscriptionBase):
         state_disc_idxs = grid_data.subset_node_indices['state_disc']
 
         if any_state_cnty:
-            state_input_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
+            state_input_subidxs = np.where(np.isin(state_disc_idxs, segment_end_idxs))[0]
 
             for name, options in phase.state_options.items():
                 shape = options['shape']

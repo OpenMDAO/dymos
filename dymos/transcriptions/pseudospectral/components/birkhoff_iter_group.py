@@ -289,7 +289,7 @@ class BirkhoffIterGroup(om.Group):
                 # Repeat nodes that are on segment bounds (but not the first or last nodes in the phase)
                 nodes_to_repeat = list(set(state_input_idxs).intersection(segment_end_idxs))
                 # Now find these nodes in the state input indices
-                idxs_of_ntr_in_state_inputs = np.where(np.in1d(state_input_idxs, nodes_to_repeat))[0]
+                idxs_of_ntr_in_state_inputs = np.where(np.isin(state_input_idxs, nodes_to_repeat))[0]
                 # All state input nodes are used once, but nodes_to_repeat are used twice
                 repeat_idxs[idxs_of_ntr_in_state_inputs] = 2
             # Now we have a way of mapping the state input indices to all nodes
