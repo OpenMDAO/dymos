@@ -815,8 +815,8 @@ cannonball problem, we will simultaneously find the optimal design for
 the cannonball (its radius) and the optimal flight profile (its launch
 angle). However, here we will use a single phase that terminates at the
 condition</p>
-<div class="amsmath math notranslate nohighlight" id="equation-3940a952-c803-4366-9879-f38264eb4de7">
-<span class="eqno">(91)<a class="headerlink" href="#equation-3940a952-c803-4366-9879-f38264eb4de7" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-32a65d68-630a-41cd-8394-b570595d4ae2">
+<span class="eqno">(91)<a class="headerlink" href="#equation-32a65d68-630a-41cd-8394-b570595d4ae2" title="Permalink to this equation">#</a></span>\[\begin{align}
     h(t_f) = 0
 \end{align}\]</div>
 <section id="the-cannonball-sizing-component">
@@ -1112,12 +1112,12 @@ FWD solves: 6   REV solves: 0
 Total colors vs. total size: 6 vs 303  (98.02% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0900 sec
-Time to compute coloring:   0.0303 sec
+Time to compute sparsity:   0.0916 sec
+Time to compute coloring:   0.0352 sec
 Memory to compute coloring:   0.5000 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;cannonball_implicit_duration&#39; was computed 3 times, taking 0.25800643200000195 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;cannonball_implicit_duration&#39; was computed 3 times, taking 0.25517838100000745 seconds.
 Total jacobian shape: (98, 100) 
 
 
@@ -1126,10 +1126,10 @@ FWD solves: 27   REV solves: 0
 Total colors vs. total size: 27 vs 100  (73.00% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.2580 sec
-Time to compute coloring:   0.0798 sec
-Memory to compute coloring:   0.6250 MB
-Coloring created on: 2024-06-27 16:44:42
+Time to compute sparsity:   0.2552 sec
+Time to compute coloring:   0.0792 sec
+Memory to compute coloring:   1.0000 MB
+Coloring created on: 2024-06-27 18:27:44
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1138,11 +1138,11 @@ Coloring created on: 2024-06-27 16:44:42
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                   16.5130
-       User Objective Time :      13.9597
-       User Sensitivity Time :     2.2452
-       Interface Time :            0.1627
-       Opt Solver Time:            0.1454
+    Total Time:                   16.3972
+       User Objective Time :      13.8465
+       User Sensitivity Time :     2.2442
+       Interface Time :            0.1614
+       Opt Solver Time:            0.1451
     Calls to Objective Function :     239
     Calls to Sens Function :           55
 
@@ -1372,11 +1372,11 @@ Model viewer data has already been recorded for Driver.
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 240
-  runtime     : 1.7183E+01 s
+  runtime     : 1.7069E+01 s
   model_evals : 240
-  model_time  : 1.3890E+01 s
+  model_time  : 1.3776E+01 s
   deriv_evals : 55
-  deriv_time  : 1.9850E+00 s
+  deriv_time  : 1.9844E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>

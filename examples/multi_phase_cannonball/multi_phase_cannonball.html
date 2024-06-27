@@ -838,24 +838,24 @@ the system at an event in the trajectory. Here, we have the first phase
 (ascent) terminate when the flight path angle reaches zero (apogee). The
 descent phase follows until the cannonball impacts the ground.</p>
 <p>The dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-e3489545-2881-451b-b915-f39cb6b70b38">
-<span class="eqno">(70)<a class="headerlink" href="#equation-e3489545-2881-451b-b915-f39cb6b70b38" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-1c0cf997-c6a1-45b7-a1ac-336d253ca2a5">
+<span class="eqno">(70)<a class="headerlink" href="#equation-1c0cf997-c6a1-45b7-a1ac-336d253ca2a5" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dv}{dt} &amp;= \frac{D}{m} - g \sin \gamma \\
   \frac{d\gamma}{dt} &amp;= - \frac{g \cos \gamma}{v} \\
   \frac{dh}{dt} &amp;= v \sin \gamma \\
   \frac{dr}{dt} &amp;= v \cos \gamma \\
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-f66ddd37-1509-4397-83b7-2980992ce656">
-<span class="eqno">(71)<a class="headerlink" href="#equation-f66ddd37-1509-4397-83b7-2980992ce656" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-8f646cb1-4f93-43e0-8f00-129f00ecab0c">
+<span class="eqno">(71)<a class="headerlink" href="#equation-8f646cb1-4f93-43e0-8f00-129f00ecab0c" title="Permalink to this equation">#</a></span>\[\begin{align}
   r_0 &amp;= 0 \rm{\,m} \\
   h_0 &amp;= 100 \rm{\,m} \\
   v_0 &amp;= \rm{free} \\
   \gamma_0 &amp;= \rm{free}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-5662a42d-66ba-4db5-9dea-e40cd4077c9d">
-<span class="eqno">(72)<a class="headerlink" href="#equation-5662a42d-66ba-4db5-9dea-e40cd4077c9d" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-15397827-d203-4713-9c8f-0cfe41fc1fe1">
+<span class="eqno">(72)<a class="headerlink" href="#equation-15397827-d203-4713-9c8f-0cfe41fc1fe1" title="Permalink to this equation">#</a></span>\[\begin{align}
   h_f &amp;= 0 \rm{\,m}
 \end{align}\]</div>
 </section>
@@ -868,8 +868,8 @@ energy and that our cannonball is made of solid iron. The volume (and
 mass) of the cannonball is proportional to its radius cubed, while the
 cross-sectional area is proportional to its radius squared. If we
 increase the size of the cannonball, the ballistic coefficient</p>
-<div class="amsmath math notranslate nohighlight" id="equation-2660c1a1-31e4-449f-a1cc-dfc2a8083310">
-<span class="eqno">(73)<a class="headerlink" href="#equation-2660c1a1-31e4-449f-a1cc-dfc2a8083310" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-cf261c5a-50ec-4c41-a1e3-ccc5866141f7">
+<span class="eqno">(73)<a class="headerlink" href="#equation-cf261c5a-50ec-4c41-a1e3-ccc5866141f7" title="Permalink to this equation">#</a></span>\[\begin{align}
   BC &amp;= \frac{m}{C_D A}
 \end{align}\]</div>
 <p>will increase, meaning the cannonball overcome air resistance more
@@ -1167,7 +1167,7 @@ FWD solves: 6   REV solves: 0
 Total colors vs. total size: 6 vs 63  (90.48% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0167 sec
+Time to compute sparsity:   0.0165 sec
 Time to compute coloring:   0.0071 sec
 Memory to compute coloring:   0.3750 MB
 
@@ -1178,7 +1178,7 @@ FWD solves: 6   REV solves: 0
 Total colors vs. total size: 6 vs 33  (81.82% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0089 sec
+Time to compute sparsity:   0.0088 sec
 Time to compute coloring:   0.0036 sec
 Memory to compute coloring:   0.0000 MB
 
@@ -1190,11 +1190,11 @@ Total colors vs. total size: 6 vs 18  (66.67% improvement)
 
 Sparsity computed using tolerance: 1e-25
 Time to compute sparsity:   0.0051 sec
-Time to compute coloring:   0.0021 sec
+Time to compute coloring:   0.0020 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.10452613199993266 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.10561430699999619 seconds.
 Total jacobian shape: (87, 88) 
 
 
@@ -1203,10 +1203,10 @@ FWD solves: 30   REV solves: 0
 Total colors vs. total size: 30 vs 88  (65.91% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1045 sec
-Time to compute coloring:   0.0534 sec
+Time to compute sparsity:   0.1056 sec
+Time to compute coloring:   0.0532 sec
 Memory to compute coloring:   0.5000 MB
-Coloring created on: 2024-06-27 16:47:35
+Coloring created on: 2024-06-27 18:30:35
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1215,11 +1215,11 @@ Coloring created on: 2024-06-27 16:47:35
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    1.7362
-       User Objective Time :       0.1980
-       User Sensitivity Time :     1.1831
-       Interface Time :            0.1972
-       Opt Solver Time:            0.1579
+    Total Time:                    1.7378
+       User Objective Time :       0.1936
+       User Sensitivity Time :     1.1870
+       Interface Time :            0.1984
+       Opt Solver Time:            0.1588
     Calls to Objective Function :     118
     Calls to Sens Function :           89
 
@@ -1426,11 +1426,11 @@ Model viewer data has already been recorded for Driver.
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 119
-  runtime     : 1.9966E+00 s
+  runtime     : 1.9937E+00 s
   model_evals : 119
-  model_time  : 1.5880E-01 s
+  model_time  : 1.5488E-01 s
   deriv_evals : 89
-  deriv_time  : 8.8414E-01 s
+  deriv_time  : 8.8911E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>
