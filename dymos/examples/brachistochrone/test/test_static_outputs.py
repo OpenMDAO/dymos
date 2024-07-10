@@ -44,7 +44,7 @@ class BrachODEStaticOutput(om.ExplicitComponent):
                         tags=['dymos.static_output'])
 
         self.declare_partials(of='*', wrt='*', method='cs')
-        self.declare_coloring(wrt='*', method='cs', show_summary=True, show_sparsity=True)
+        self.declare_coloring(wrt='*', method='cs', show_summary=True, show_sparsity=False)
 
     def compute(self, inputs, outputs):
         theta = inputs['theta']
