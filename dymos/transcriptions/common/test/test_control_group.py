@@ -28,23 +28,21 @@ class TestControlGroup(unittest.TestCase):
 
     def test_poly_con_bug(self):
         prob = om.Problem()
-        
-        prob.driver = om.pyOptSparseDriver()
-        
+
         phase = dm.Phase(ode_class=MyODE,
                          transcription=dm.GaussLobatto(num_segments=3))
-        
+
         phase.add_state('state', rate_source='state_deriv')
-        
+
         phase.add_control('polycon', order=1, val=0.0, opt=True, control_type='polynomial')
         phase.add_control('con', val=0.0, opt=True)
-        
+
         phase.add_objective('out', loc='final', ref=1000.0)
-        
+
         traj = dm.Trajectory()
         prob.model.add_subsystem('traj', traj)
         traj.add_phase('phase', phase)
-        
+
         # Make sure we raise no exceptions.
         prob.setup()
 
