@@ -482,7 +482,6 @@ class ControlGroup(om.Group):
         """
         control_options = self.options['control_options']
         gd = self.options['grid_data']
-        num_input_nodes = gd.subset_num_nodes['control_input']
 
         self.control_interp_comp.configure_io()
 
@@ -514,6 +513,8 @@ class ControlGroup(om.Group):
 
                 self.set_input_defaults(name=f'controls:{name}', val=default_val, units=options['units'])
             else:
+                num_input_nodes = gd.subset_num_nodes['control_input']
+
                 dvname = f'controls:{name}'
                 shape = options['shape']
                 size = np.prod(shape)
