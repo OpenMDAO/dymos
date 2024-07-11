@@ -815,8 +815,8 @@ cannonball problem, we will simultaneously find the optimal design for
 the cannonball (its radius) and the optimal flight profile (its launch
 angle). However, here we will use a single phase that terminates at the
 condition</p>
-<div class="amsmath math notranslate nohighlight" id="equation-f898da01-224a-4790-a71a-0d51670bb52d">
-<span class="eqno">(91)<a class="headerlink" href="#equation-f898da01-224a-4790-a71a-0d51670bb52d" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-bfe6b0af-7d46-40ed-99f8-004ac0bfc4a7">
+<span class="eqno">(91)<a class="headerlink" href="#equation-bfe6b0af-7d46-40ed-99f8-004ac0bfc4a7" title="Permalink to this equation">#</a></span>\[\begin{align}
     h(t_f) = 0
 \end{align}\]</div>
 <section id="the-cannonball-sizing-component">
@@ -1102,22 +1102,23 @@ necessarily optimal once air resistance is taken into account.</p>
 &#39;rhs_checking&#39; is disabled for &#39;DirectSolver in &#39;traj.phases.phase&#39; &lt;class Phase&gt;&#39; but that solver has redundant adjoint solves. If it is expensive to compute derivatives for this solver, turning on &#39;rhs_checking&#39; may improve performance.
 
 Model viewer data has already been recorded for Driver.
-Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.phase.rhs_all&#39; (class CannonballODE)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
+
+Coloring for &#39;traj.phases.phase.rhs_all&#39; (class CannonballODE)
 
 Jacobian shape: (500, 303)  (0.92% nonzero)
 FWD solves: 6   REV solves: 0
 Total colors vs. total size: 6 vs 303  (98.02% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0887 sec
-Time to compute coloring:   0.0313 sec
+Time to compute sparsity:   0.0908 sec
+Time to compute coloring:   0.0308 sec
 Memory to compute coloring:   0.5000 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;cannonball_implicit_duration&#39; was computed 3 times, taking 0.2643286279999302 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;cannonball_implicit_duration&#39; was computed 3 times, taking 0.2591953529999955 seconds.
 Total jacobian shape: (98, 100) 
 
 
@@ -1126,10 +1127,10 @@ FWD solves: 27   REV solves: 0
 Total colors vs. total size: 27 vs 100  (73.00% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.2643 sec
-Time to compute coloring:   0.0805 sec
-Memory to compute coloring:   0.6250 MB
-Coloring created on: 2024-07-10 17:13:10
+Time to compute sparsity:   0.2592 sec
+Time to compute coloring:   0.0798 sec
+Memory to compute coloring:   1.1250 MB
+Coloring created on: 2024-07-11 11:28:07
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1138,11 +1139,11 @@ Coloring created on: 2024-07-10 17:13:10
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                   17.3689
-       User Objective Time :      14.7232
-       User Sensitivity Time :     2.3245
-       Interface Time :            0.1699
-       Opt Solver Time:            0.1512
+    Total Time:                   17.0193
+       User Objective Time :      14.3968
+       User Sensitivity Time :     2.3010
+       Interface Time :            0.1715
+       Opt Solver Time:            0.1500
     Calls to Objective Function :     239
     Calls to Sens Function :           55
 
@@ -1372,11 +1373,11 @@ Model viewer data has already been recorded for Driver.
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 240
-  runtime     : 1.8059E+01 s
+  runtime     : 1.7712E+01 s
   model_evals : 240
-  model_time  : 1.4634E+01 s
+  model_time  : 1.4310E+01 s
   deriv_evals : 55
-  deriv_time  : 2.0476E+00 s
+  deriv_time  : 2.0279E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>
