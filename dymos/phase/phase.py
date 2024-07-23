@@ -3064,8 +3064,7 @@ class Phase(om.Group):
             prev_time_val = np.flip(prev_time_val, axis=0)
             unique_idxs = np.flip(unique_idxs, axis=0)
 
-        self.set_val('t_initial', t_initial, units=prev_time_units)
-        self.set_val('t_duration', t_duration, units=prev_time_units)
+        self.set_time_val(initial=t_initial, duration=t_duration, units=prev_time_units)
 
         # Interpolate the timeseries state outputs from the previous solution onto the new grid.
         if not isinstance(self, dm.AnalyticPhase):
@@ -3081,19 +3080,12 @@ class Phase(om.Group):
 
                 prev_state_val = prev_vars[prev_state_path]['val']
                 prev_state_units = prev_vars[prev_state_path]['units']
-                interp_vals = self.interp(name=state_name,
-                                          xs=prev_time_val,
-                                          ys=prev_state_val[unique_idxs],
-                                          kind='slinear')
                 if options['lower'] is not None or options['upper'] is not None:
-                    interp_vals = interp_vals.clip(options['lower'], options['upper'])
-                self.set_val(f'states:{state_name}',
-                             interp_vals,
-                             units=prev_state_units)
-                try:
-                    self.set_val(f'initial_states:{state_name}', prev_state_val[0, ...], units=prev_state_units)
-                except KeyError:
-                    pass
+                    prev_state_val = prev_state_val.clip(options['lower'], options['upper'])
+                self.set_state_val(state_name,
+                                   vals=prev_state_val[unique_idxs],
+                                   time_vals=prev_time_val,
+                                   units=prev_state_units)
 
                 if options['fix_final']:
                     warning_message = f"{phase_name}.states:{state_name} specifies 'fix_final=True'. " \
@@ -3114,13 +3106,12 @@ class Phase(om.Group):
 
                 prev_control_val = prev_vars[prev_control_path]['val']
                 prev_control_units = prev_vars[prev_control_path]['units']
-                interp_vals = self.interp(name=control_name,
-                                          xs=prev_time_val,
-                                          ys=prev_control_val[unique_idxs],
-                                          kind='slinear')
                 if options['lower'] is not None or options['upper'] is not None:
-                    interp_vals = interp_vals.clip(options['lower'], options['upper'])
-                self.set_val(f'controls:{control_name}', interp_vals, units=prev_control_units)
+                    prev_control_val = prev_control_val.clip(options['lower'], options['upper'])
+                self.set_control_val(control_name,
+                                     vals=prev_control_val[unique_idxs],
+                                     time_vals=prev_time_val,
+                                     units=prev_control_units)
                 if options['fix_final']:
                     warning_message = f"{phase_name}.controls:{control_name} specifies 'fix_final=True'. " \
                                       f"If the given restart file has a" \
@@ -3132,7 +3123,7 @@ class Phase(om.Group):
             if f'{prev_phase_prom_path}.parameter_vals:{param_name}' in prev_vars:
                 prev_param_val = prev_vars[f'{prev_phase_prom_path}.parameter_vals:{param_name}']['val']
                 prev_param_units = prev_vars[f'{prev_phase_prom_path}.parameter_vals:{param_name}']['units']
-                self.set_val(f'parameters:{param_name}', prev_param_val[0, ...], units=prev_param_units)
+                self.set_parameter_val(param_name, prev_param_val[0, ...], units=prev_param_units)
             else:
                 issue_warning(f'Unable to find "{prev_phase_prom_path}.parameter_vals:{param_name}" '
                               f'in data from case being loaded.')
