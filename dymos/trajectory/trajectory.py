@@ -11,6 +11,7 @@ from openmdao.utils.units import unit_conversion
 import numpy as np
 import networkx as nx
 
+import openmdao
 import openmdao.api as om
 from openmdao.utils.mpi import MPI
 
@@ -24,6 +25,9 @@ from ..transcriptions.common import ParameterComp
 from ..utils.misc import get_rate_units, _unspecified, _none_or_unspecified
 from ..utils.introspection import get_promoted_vars, get_source_metadata, _get_common_metadata
 from .._options import options as dymos_options
+
+
+om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 class Trajectory(om.Group):
@@ -1484,7 +1488,10 @@ class Trajectory(om.Group):
             # fault of the user.
             warnings.filterwarnings(action='ignore', category=om.UnusedOptionWarning)
             warnings.filterwarnings(action='ignore', category=om.SetupWarning)
-            sim_prob.setup(parent=self)
+            if om_version <= (3, 42, 2):
+                sim_prob.setup(check=True)
+            else:
+                sim_prob.setup(check=True, parent=self)
             sim_prob.final_setup()
 
         # Assign trajectory parameter values

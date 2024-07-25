@@ -2740,7 +2740,10 @@ class Phase(om.Group):
             rec = om.SqliteRecorder(record_file)
             sim_prob.add_recorder(rec)
 
-        sim_prob.setup(check=True, parent=self)
+        if om_version <= (3, 42, 2):
+            sim_prob.setup(check=True)
+        else:
+            sim_prob.setup(check=True, parent=self)
         sim_prob.final_setup()
 
         sim_phase.set_vals_from_phase(from_phase=self)
