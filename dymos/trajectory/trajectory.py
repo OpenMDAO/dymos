@@ -1466,7 +1466,8 @@ class Trajectory(om.Group):
 
         sim_traj.parameter_options.update(self.parameter_options)
 
-        sim_prob = om.Problem(model=om.Group(), reports=reports, comm=self.comm)
+        sim_prob = om.Problem(model=om.Group(), reports=reports, comm=self.comm,
+                              name=f'{self.name}_simulation')
 
         traj_name = self.name if self.name else 'sim_traj'
         sim_prob.model.add_subsystem(traj_name, sim_traj)
@@ -1483,7 +1484,7 @@ class Trajectory(om.Group):
             # fault of the user.
             warnings.filterwarnings(action='ignore', category=om.UnusedOptionWarning)
             warnings.filterwarnings(action='ignore', category=om.SetupWarning)
-            sim_prob.setup()
+            sim_prob.setup(parent=self)
             sim_prob.final_setup()
 
         # Assign trajectory parameter values

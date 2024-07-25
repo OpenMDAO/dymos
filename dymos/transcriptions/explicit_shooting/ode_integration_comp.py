@@ -93,7 +93,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
                              'transcription where the number of nodes per segment can exceed 20 to 30.')
 
     def _setup_subprob(self):
-        self._eval_subprob = p = om.Problem(comm=self.comm, reports=self._reports)
+        self._eval_subprob = p = om.Problem(comm=self.comm, reports=self._reports,
+                                            name=f'{self.pathname}_subprob')
         p.model.add_subsystem('ode_eval',
                               ODEEvaluationGroup(ode_class=self.options['ode_class'],
                                                  time_options=self.time_options,
@@ -107,7 +108,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        p.setup()
+        p.setup(parent=self)
         p.final_setup()
 
     def _set_segment_index(self, idx):

@@ -2729,7 +2729,7 @@ class Phase(om.Group):
             can be interrogated to obtain timeseries outputs in the same manner as other Phases
             to obtain results at the requested times.
         """
-        sim_prob = om.Problem(model=om.Group())
+        sim_prob = om.Problem(model=om.Group(), comm=self.comm, name=f'{self.name}_simulation')
 
         sim_phase = self.get_simulation_phase(times_per_seg=times_per_seg, method=method, atol=atol, rtol=rtol,
                                               first_step=first_step, max_step=max_step)
@@ -2740,7 +2740,7 @@ class Phase(om.Group):
             rec = om.SqliteRecorder(record_file)
             sim_prob.add_recorder(rec)
 
-        sim_prob.setup(check=True)
+        sim_prob.setup(check=True, parent=self)
         sim_prob.final_setup()
 
         sim_phase.set_vals_from_phase(from_phase=self)
