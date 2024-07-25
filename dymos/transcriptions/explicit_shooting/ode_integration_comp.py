@@ -9,7 +9,7 @@ from ..._options import options as dymos_options
 from .ode_evaluation_group import ODEEvaluationGroup
 
 
-        om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
+om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 class ODEIntegrationComp(om.ExplicitComponent):
