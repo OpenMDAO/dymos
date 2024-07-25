@@ -140,7 +140,8 @@ class TestSubproblemReportToggle(unittest.TestCase):
         if self.testflo_running is not None:
             os.environ['TESTFLO_RUNNING'] = self.testflo_running
 
-    @unittest.skipIf(om_version <= (3, 34, 2))
+
+    @unittest.skipIf(om_version <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
     @hooks_active
     def test_no_sim_reports(self):
         p = setup_model_radau(do_reports=False, probname='test_no_sim_reports')
@@ -153,22 +154,21 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
         self.assertFalse(sim_reports_dir.exists())
 
-    @unittest.skipIf(om_version <= (3, 34, 2))
+    @unittest.skipIf(om_version <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
     @hooks_active
     def test_make_sim_reports(self):
         p = setup_model_radau(do_reports=True, probname='test_make_sim_reports')
 
-        main_outputs_dir = p.get_outputs_dir()
         main_reports_dir = p.get_reports_dir()
 
-        sim_outputs_dir = main_outputs_dir / 'traj0_simulation_out'
-        sim_reports_dir = sim_outputs_dir / 'reports'
+        traj = p.model._get_subsystem('traj0')
+        sim_reports_dir = traj.sim_prob.get_reports_dir()
 
         self.assertTrue((main_reports_dir / self.n2_filename).exists())
         self.assertTrue(sim_reports_dir.exists())
         self.assertTrue((sim_reports_dir / self.n2_filename).exists())
 
-    @unittest.skipIf(om_version <= (3, 34, 2))
+    @unittest.skipIf(om_version <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
     @hooks_active
     def test_explicitshooting_no_subprob_reports(self):
         p = setup_model_shooting(do_reports=False,
@@ -184,7 +184,7 @@ class TestSubproblemReportToggle(unittest.TestCase):
         self.assertIn(self.n2_filename, main_reports)
         self.assertIn(self.scaling_filename, main_reports)
 
-    @unittest.skipIf(om_version <= (3, 34, 2))
+    @unittest.skipIf(om_version <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
     @hooks_active
     def test_explicitshooting_make_subprob_reports(self):
         p = setup_model_shooting(do_reports=True,
@@ -203,3 +203,7 @@ class TestSubproblemReportToggle(unittest.TestCase):
 
         # The subprob has no optimization, so should not have a scaling report
         self.assertNotIn(self.scaling_filename, subprob_reports)
+
+
+if __name__ == '__main__':
+    unittest.main()

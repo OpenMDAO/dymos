@@ -1,7 +1,6 @@
-from collections.abc import Iterable, Callable, Sequence
+from collections.abc import Iterable, Callable
 from copy import deepcopy
 import inspect
-from os import path
 import warnings
 
 import numpy as np
@@ -12,6 +11,7 @@ import openmdao
 import openmdao.api as om
 from openmdao.utils.mpi import MPI
 from openmdao.utils.om_warnings import issue_warning
+from openmdao.core.problem import _problem_names
 from openmdao.core.system import System
 from openmdao.recorders.case import Case
 
@@ -52,6 +52,12 @@ class Phase(om.Group):
     On setup, the Phase runs through its setup stack which will add the appropriate OpenMDAO
     systems as prescribed by its associated Transcription.
 
+    Attributes
+    ----------
+    sim_prob : Problem or None
+        The OpenMDAO problem used for trajectory simulation.
+        This is None unless the simulate method has been called.
+
     Parameters
     ----------
     from_phase : <Phase> or None
@@ -69,10 +75,6 @@ class Phase(om.Group):
 
         # These are the options which will be set at setup time.
         # Prior to setup, the options are placed into the user_*_options dictionaries.
-        # self.time_options = TimeOptionsDictionary()
-        # self.state_options = {}
-        # self.control_options = {}
-        # self.parameter_options = {}
         self.refine_options = GridRefinementOptionsDictionary()
         self.simulate_options = SimulateOptionsDictionary()
         self.timeseries_ec_vars = {}
@@ -87,6 +89,7 @@ class Phase(om.Group):
                                            'subset': 'all',
                                            'outputs': {}}}
         self._objectives = {}
+        self.sim_prob = None
 
         super(Phase, self).__init__(**_kwargs)
 
@@ -2729,7 +2732,15 @@ class Phase(om.Group):
             can be interrogated to obtain timeseries outputs in the same manner as other Phases
             to obtain results at the requested times.
         """
-        sim_prob = om.Problem(model=om.Group(), comm=self.comm, name=f'{self.name}_simulation')
+        # Find a unique sim problem name. This mostly causes problems
+        # when many simulations are being run in a single process, as in testing.
+        i = 0
+        sim_prob_name = f'{self.name}_simulation_{i}'
+        while sim_prob_name in _problem_names:
+            i += 1
+            sim_prob_name = f'{self.name}_simulation_{i}'
+
+        self.sim_prob = sim_prob = om.Problem(model=om.Group(), comm=self.comm, name=sim_prob_name)
 
         sim_phase = self.get_simulation_phase(times_per_seg=times_per_seg, method=method, atol=atol, rtol=rtol,
                                               first_step=first_step, max_step=max_step)

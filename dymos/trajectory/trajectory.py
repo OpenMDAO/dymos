@@ -13,6 +13,7 @@ import networkx as nx
 
 import openmdao
 import openmdao.api as om
+from openmdao.core.problem import _problem_names
 from openmdao.utils.mpi import MPI
 
 from ..utils.constants import INF_BOUND
@@ -48,6 +49,9 @@ class Trajectory(om.Group):
         A dictionary of parameter names and their associated TrajectoryParameterOptionsDictionary
     phases : om.Group or om.ParallelGroup
         The Group which contains phases for this Trajectory.
+    sim_prob : Problem or None
+        The OpenMDAO problem used for trajectory simulation.
+        This is None unless the simulate method has been called.
 
     _linkages : OrderedDict
         A dictionary containing phase linkage information for the Trajectory.
@@ -63,6 +67,7 @@ class Trajectory(om.Group):
         self._phases = {}
         self._phase_graph = nx.DiGraph()
         self._has_connected_phases = False
+        self.sim_prob = None
 
         self.phases = om.ParallelGroup() if self.options['parallel_phases'] else om.Group()
 
@@ -1470,8 +1475,16 @@ class Trajectory(om.Group):
 
         sim_traj.parameter_options.update(self.parameter_options)
 
-        sim_prob = om.Problem(model=om.Group(), reports=reports, comm=self.comm,
-                              name=f'{self.name}_simulation')
+        # Find a unique sim problem name. This mostly causes problems
+        # when many simulations are being run in a single process, as in testing.
+        i = 0
+        sim_prob_name = f'{self.name}_simulation_{i}'
+        while sim_prob_name in _problem_names:
+            i += 1
+            sim_prob_name = f'{self.name}_simulation_{i}'
+
+        self.sim_prob = sim_prob = om.Problem(model=om.Group(), reports=reports, comm=self.comm,
+                                               name=sim_prob_name)
 
         traj_name = self.name if self.name else 'sim_traj'
         sim_prob.model.add_subsystem(traj_name, sim_traj)
