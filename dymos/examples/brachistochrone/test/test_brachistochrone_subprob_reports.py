@@ -140,7 +140,6 @@ class TestSubproblemReportToggle(unittest.TestCase):
         if self.testflo_running is not None:
             os.environ['TESTFLO_RUNNING'] = self.testflo_running
 
-
     @unittest.skipIf(om_version <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
     @hooks_active
     def test_no_sim_reports(self):

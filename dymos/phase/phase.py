@@ -52,18 +52,18 @@ class Phase(om.Group):
     On setup, the Phase runs through its setup stack which will add the appropriate OpenMDAO
     systems as prescribed by its associated Transcription.
 
-    Attributes
-    ----------
-    sim_prob : Problem or None
-        The OpenMDAO problem used for trajectory simulation.
-        This is None unless the simulate method has been called.
-
     Parameters
     ----------
     from_phase : <Phase> or None
         A phase instance from which the initialized phase should copy its data.
     **kwargs : dict
         Dictionary of optional phase arguments.
+
+    Attributes
+    ----------
+    sim_prob : Problem or None
+        The OpenMDAO problem used for trajectory simulation.
+        This is None unless the simulate method has been called.
     """
     def __init__(self, from_phase=None, **kwargs):
         _kwargs = kwargs.copy()

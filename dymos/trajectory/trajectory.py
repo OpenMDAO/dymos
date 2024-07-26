@@ -1484,7 +1484,7 @@ class Trajectory(om.Group):
             sim_prob_name = f'{self.name}_simulation_{i}'
 
         self.sim_prob = sim_prob = om.Problem(model=om.Group(), reports=reports, comm=self.comm,
-                                               name=sim_prob_name)
+                                              name=sim_prob_name)
 
         traj_name = self.name if self.name else 'sim_traj'
         sim_prob.model.add_subsystem(traj_name, sim_traj)
