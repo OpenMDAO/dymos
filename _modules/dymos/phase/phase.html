@@ -697,10 +697,9 @@ title="Open an issue"
             <article class="bd-article" role="main">
               
   <h1>Source code for dymos.phase.phase</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Sequence</span>
+<span></span><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Callable</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
-<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -728,7 +727,7 @@ title="Open an issue"
 <span class="kn">from</span> <span class="nn">..utils.introspection</span> <span class="kn">import</span> <span class="n">configure_time_introspection</span><span class="p">,</span> <span class="n">_configure_constraint_introspection</span><span class="p">,</span> \
     <span class="n">configure_controls_introspection</span><span class="p">,</span> <span class="n">configure_parameters_introspection</span><span class="p">,</span> \
     <span class="n">configure_timeseries_output_introspection</span><span class="p">,</span> <span class="n">classify_var</span><span class="p">,</span> <span class="n">configure_timeseries_expr_introspection</span>
-<span class="kn">from</span> <span class="nn">..utils.misc</span> <span class="kn">import</span> <span class="n">_unspecified</span>
+<span class="kn">from</span> <span class="nn">..utils.misc</span> <span class="kn">import</span> <span class="n">_unspecified</span><span class="p">,</span> <span class="n">create_subprob</span>
 <span class="kn">from</span> <span class="nn">..utils.lgl</span> <span class="kn">import</span> <span class="n">lgl</span>
 
 
@@ -757,6 +756,12 @@ title="Open an issue"
 <span class="sd">        A phase instance from which the initialized phase should copy its data.</span>
 <span class="sd">    **kwargs : dict</span>
 <span class="sd">        Dictionary of optional phase arguments.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sim_prob : Problem or None</span>
+<span class="sd">        The OpenMDAO problem used for trajectory simulation.</span>
+<span class="sd">        This is None unless the simulate method has been called.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">from_phase</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -768,10 +773,6 @@ title="Open an issue"
 
         <span class="c1"># These are the options which will be set at setup time.</span>
         <span class="c1"># Prior to setup, the options are placed into the user_*_options dictionaries.</span>
-        <span class="c1"># self.time_options = TimeOptionsDictionary()</span>
-        <span class="c1"># self.state_options = {}</span>
-        <span class="c1"># self.control_options = {}</span>
-        <span class="c1"># self.parameter_options = {}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">refine_options</span> <span class="o">=</span> <span class="n">GridRefinementOptionsDictionary</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">simulate_options</span> <span class="o">=</span> <span class="n">SimulateOptionsDictionary</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">timeseries_ec_vars</span> <span class="o">=</span> <span class="p">{}</span>
@@ -786,6 +787,7 @@ title="Open an issue"
                                            <span class="s1">&#39;subset&#39;</span><span class="p">:</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span>
                                            <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="p">{}}}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_objectives</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sim_prob</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">Phase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">_kwargs</span><span class="p">)</span>
 
@@ -3398,7 +3400,7 @@ title="Open an issue"
             <span class="n">prob</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="n">prob_path</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Phase.simulate"><a class="viewcode-back" href="../../../api/phase_api.html#dymos.Phase.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">times_per_seg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
-                 <span class="n">first_step</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">max_step</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">record_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                 <span class="n">first_step</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">max_step</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">record_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reports</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Simulate the Phase using scipy.integrate.solve_ivp.</span>
 
@@ -3420,6 +3422,8 @@ title="Open an issue"
 <span class="sd">        record_file : str or None</span>
 <span class="sd">            If a string, the file to which the result of the simulation will be saved.</span>
 <span class="sd">            If None, no record of the simulation will be saved.</span>
+<span class="sd">        reports : bool or None or str or Sequence</span>
+<span class="sd">            Reports setting for the subproblems run under simualate.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -3428,7 +3432,9 @@ title="Open an issue"
 <span class="sd">            can be interrogated to obtain timeseries outputs in the same manner as other Phases</span>
 <span class="sd">            to obtain results at the requested times.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">sim_prob</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sim_prob</span> <span class="o">=</span> <span class="n">sim_prob</span> <span class="o">=</span> <span class="n">create_subprob</span><span class="p">(</span><span class="n">base_name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">_simulation&#39;</span><span class="p">,</span>
+                                                  <span class="n">comm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="p">,</span>
+                                                  <span class="n">reports</span><span class="o">=</span><span class="n">reports</span><span class="p">)</span>
 
         <span class="n">sim_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_simulation_phase</span><span class="p">(</span><span class="n">times_per_seg</span><span class="o">=</span><span class="n">times_per_seg</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">,</span>
                                               <span class="n">first_step</span><span class="o">=</span><span class="n">first_step</span><span class="p">,</span> <span class="n">max_step</span><span class="o">=</span><span class="n">max_step</span><span class="p">)</span>
@@ -3439,7 +3445,10 @@ title="Open an issue"
             <span class="n">rec</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">SqliteRecorder</span><span class="p">(</span><span class="n">record_file</span><span class="p">)</span>
             <span class="n">sim_prob</span><span class="o">.</span><span class="n">add_recorder</span><span class="p">(</span><span class="n">rec</span><span class="p">)</span>
 
-        <span class="n">sim_prob</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">om_version</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">sim_prob</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sim_prob</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">sim_prob</span><span class="o">.</span><span class="n">final_setup</span><span class="p">()</span>
 
         <span class="n">sim_phase</span><span class="o">.</span><span class="n">set_vals_from_phase</span><span class="p">(</span><span class="n">from_phase</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
@@ -3763,8 +3772,7 @@ title="Open an issue"
             <span class="n">prev_time_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">prev_time_val</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">unique_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">unique_idxs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="s1">&#39;t_initial&#39;</span><span class="p">,</span> <span class="n">t_initial</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">prev_time_units</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="s1">&#39;t_duration&#39;</span><span class="p">,</span> <span class="n">t_duration</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">prev_time_units</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_time_val</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="n">t_initial</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">t_duration</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">prev_time_units</span><span class="p">)</span>
 
         <span class="c1"># Interpolate the timeseries state outputs from the previous solution onto the new grid.</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dm</span><span class="o">.</span><span class="n">AnalyticPhase</span><span class="p">):</span>
@@ -3780,19 +3788,12 @@ title="Open an issue"
 
                 <span class="n">prev_state_val</span> <span class="o">=</span> <span class="n">prev_vars</span><span class="p">[</span><span class="n">prev_state_path</span><span class="p">][</span><span class="s1">&#39;val&#39;</span><span class="p">]</span>
                 <span class="n">prev_state_units</span> <span class="o">=</span> <span class="n">prev_vars</span><span class="p">[</span><span class="n">prev_state_path</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
-                <span class="n">interp_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">state_name</span><span class="p">,</span>
-                                          <span class="n">xs</span><span class="o">=</span><span class="n">prev_time_val</span><span class="p">,</span>
-                                          <span class="n">ys</span><span class="o">=</span><span class="n">prev_state_val</span><span class="p">[</span><span class="n">unique_idxs</span><span class="p">],</span>
-                                          <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;slinear&#39;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">interp_vals</span> <span class="o">=</span> <span class="n">interp_vals</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">])</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;states:</span><span class="si">{</span><span class="n">state_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-                             <span class="n">interp_vals</span><span class="p">,</span>
-                             <span class="n">units</span><span class="o">=</span><span class="n">prev_state_units</span><span class="p">)</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;initial_states:</span><span class="si">{</span><span class="n">state_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">prev_state_val</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="n">prev_state_units</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                    <span class="k">pass</span>
+                    <span class="n">prev_state_val</span> <span class="o">=</span> <span class="n">prev_state_val</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="n">state_name</span><span class="p">,</span>
+                                   <span class="n">vals</span><span class="o">=</span><span class="n">prev_state_val</span><span class="p">[</span><span class="n">unique_idxs</span><span class="p">],</span>
+                                   <span class="n">time_vals</span><span class="o">=</span><span class="n">prev_time_val</span><span class="p">,</span>
+                                   <span class="n">units</span><span class="o">=</span><span class="n">prev_state_units</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;fix_final&#39;</span><span class="p">]:</span>
                     <span class="n">warning_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">phase_name</span><span class="si">}</span><span class="s2">.states:</span><span class="si">{</span><span class="n">state_name</span><span class="si">}</span><span class="s2"> specifies &#39;fix_final=True&#39;. &quot;</span> \
@@ -3813,13 +3814,12 @@ title="Open an issue"
 
                 <span class="n">prev_control_val</span> <span class="o">=</span> <span class="n">prev_vars</span><span class="p">[</span><span class="n">prev_control_path</span><span class="p">][</span><span class="s1">&#39;val&#39;</span><span class="p">]</span>
                 <span class="n">prev_control_units</span> <span class="o">=</span> <span class="n">prev_vars</span><span class="p">[</span><span class="n">prev_control_path</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
-                <span class="n">interp_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">control_name</span><span class="p">,</span>
-                                          <span class="n">xs</span><span class="o">=</span><span class="n">prev_time_val</span><span class="p">,</span>
-                                          <span class="n">ys</span><span class="o">=</span><span class="n">prev_control_val</span><span class="p">[</span><span class="n">unique_idxs</span><span class="p">],</span>
-                                          <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;slinear&#39;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">interp_vals</span> <span class="o">=</span> <span class="n">interp_vals</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">])</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;controls:</span><span class="si">{</span><span class="n">control_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">interp_vals</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">prev_control_units</span><span class="p">)</span>
+                    <span class="n">prev_control_val</span> <span class="o">=</span> <span class="n">prev_control_val</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_control_val</span><span class="p">(</span><span class="n">control_name</span><span class="p">,</span>
+                                     <span class="n">vals</span><span class="o">=</span><span class="n">prev_control_val</span><span class="p">[</span><span class="n">unique_idxs</span><span class="p">],</span>
+                                     <span class="n">time_vals</span><span class="o">=</span><span class="n">prev_time_val</span><span class="p">,</span>
+                                     <span class="n">units</span><span class="o">=</span><span class="n">prev_control_units</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;fix_final&#39;</span><span class="p">]:</span>
                     <span class="n">warning_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">phase_name</span><span class="si">}</span><span class="s2">.controls:</span><span class="si">{</span><span class="n">control_name</span><span class="si">}</span><span class="s2"> specifies &#39;fix_final=True&#39;. &quot;</span> \
                                       <span class="sa">f</span><span class="s2">&quot;If the given restart file has a&quot;</span> \
@@ -3831,7 +3831,7 @@ title="Open an issue"
             <span class="k">if</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prev_phase_prom_path</span><span class="si">}</span><span class="s1">.parameter_vals:</span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">prev_vars</span><span class="p">:</span>
                 <span class="n">prev_param_val</span> <span class="o">=</span> <span class="n">prev_vars</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prev_phase_prom_path</span><span class="si">}</span><span class="s1">.parameter_vals:</span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">][</span><span class="s1">&#39;val&#39;</span><span class="p">]</span>
                 <span class="n">prev_param_units</span> <span class="o">=</span> <span class="n">prev_vars</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prev_phase_prom_path</span><span class="si">}</span><span class="s1">.parameter_vals:</span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;parameters:</span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">prev_param_val</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="n">prev_param_units</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter_val</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="n">prev_param_val</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="n">prev_param_units</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">issue_warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unable to find &quot;</span><span class="si">{</span><span class="n">prev_phase_prom_path</span><span class="si">}</span><span class="s1">.parameter_vals:</span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s1">&quot; &#39;</span>
                               <span class="sa">f</span><span class="s1">&#39;in data from case being loaded.&#39;</span><span class="p">)</span>

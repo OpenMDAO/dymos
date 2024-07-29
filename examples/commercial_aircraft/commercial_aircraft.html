@@ -1189,8 +1189,8 @@ preferable when using a differential inclusion approach to problems.</p>
 <p><em>TrueAirspeedComp</em> uses the Mach number, provided as a
 control, and the speed of sound from the atmosphere model to compute the
 true airspeed of the aircraft.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-7b9d47b4-315d-4166-bfd1-c8e173cf6251">
-<span class="eqno">(33)<a class="headerlink" href="#equation-7b9d47b4-315d-4166-bfd1-c8e173cf6251" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-453b12a9-f891-4dda-8e00-b14b49c26c36">
+<span class="eqno">(33)<a class="headerlink" href="#equation-453b12a9-f891-4dda-8e00-b14b49c26c36" title="Permalink to this equation">#</a></span>\[\begin{align}
   TAS &amp;= mach \cdot sos
 \end{align}\]</div>
 <table class="table">
@@ -1221,8 +1221,8 @@ true airspeed of the aircraft.</p>
 <p><em>SteadyFlightPathAngleComp</em> uses the true airspeed and the
 climb rate, obtained by differentiating the altitude time history at the
 nodes, to compute the flight path angle.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-b89a7d62-cbd9-47c8-bc22-5ca3cb1e48ce">
-<span class="eqno">(34)<a class="headerlink" href="#equation-b89a7d62-cbd9-47c8-bc22-5ca3cb1e48ce" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-2761f6f6-1ceb-4414-af66-7b4ac73665b9">
+<span class="eqno">(34)<a class="headerlink" href="#equation-2761f6f6-1ceb-4414-af66-7b4ac73665b9" title="Permalink to this equation">#</a></span>\[\begin{align}
   \gamma &amp;= \arcsin \frac{\dot h}{TAS}
 \end{align}\]</div>
 <table class="table">
@@ -1253,8 +1253,8 @@ nodes, to compute the flight path angle.</p>
 <p><em>RangeRateComp</em> uses the true airspeed and the flight path
 angle to determine the velocity projected along the ground. This is the
 derivative of the state variable <em>range</em>.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-25c3630d-3ac1-419c-8289-7156a5fdf3e2">
-<span class="eqno">(35)<a class="headerlink" href="#equation-25c3630d-3ac1-419c-8289-7156a5fdf3e2" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-6a2ca78f-1843-471f-a243-2679a2289f16">
+<span class="eqno">(35)<a class="headerlink" href="#equation-6a2ca78f-1843-471f-a243-2679a2289f16" title="Permalink to this equation">#</a></span>\[\begin{align}
   \dot{range} &amp;= TAS \cos \gamma
 \end{align}\]</div>
 <table class="table">
@@ -1286,8 +1286,8 @@ derivative of the state variable <em>range</em>.</p>
 <code class="docutils literal notranslate"><span class="pre">mass_comp.py</span></code> computes the aircraft total mass based on
 its empty mass, payload mass, and current fuel mass. It also computes
 total weight which simplifies some equations later on.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-c64e239b-b61a-4d5c-9cfc-88d98c3716df">
-<span class="eqno">(36)<a class="headerlink" href="#equation-c64e239b-b61a-4d5c-9cfc-88d98c3716df" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-830909d6-ae30-4451-95a1-37cb90cd8ad4">
+<span class="eqno">(36)<a class="headerlink" href="#equation-830909d6-ae30-4451-95a1-37cb90cd8ad4" title="Permalink to this equation">#</a></span>\[\begin{align}
   mass_{total} &amp;= mass_{empty} + mass_{payload} + mass_{fuel} \\
   W_{total} &amp;= 9.80665 \, mass_{total}
 \end{align}\]</div>
@@ -1326,8 +1326,8 @@ total weight which simplifies some equations later on.</p>
 <h3>Dynamic Pressure<a class="headerlink" href="#dynamic-pressure" title="Permalink to this heading">#</a></h3>
 <p>The <em>DynamicPressureComp</em> computes the dynamic pressure from
 true airspeed and atmospheric density.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-18f95dac-08c0-45df-85de-b4f595a365ac">
-<span class="eqno">(37)<a class="headerlink" href="#equation-18f95dac-08c0-45df-85de-b4f595a365ac" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-45f026bc-0698-4d70-87fb-b1ebbb742af0">
+<span class="eqno">(37)<a class="headerlink" href="#equation-45f026bc-0698-4d70-87fb-b1ebbb742af0" title="Permalink to this equation">#</a></span>\[\begin{align}
   q &amp;= \frac{1}{2} \rho TAS^2
 \end{align}\]</div>
 <table class="table">
@@ -1435,14 +1435,14 @@ profile being modeled is so benign that assuming steady flight at
 discrete points (nodes) in the trajectory is not terribly inaccurate.</p>
 <p>The thrust necessary for steady flight is computed by balancing the drag
 equation</p>
-<div class="amsmath math notranslate nohighlight" id="equation-d710ed83-3f46-47e5-ba14-8a2a2d19d48d">
-<span class="eqno">(38)<a class="headerlink" href="#equation-d710ed83-3f46-47e5-ba14-8a2a2d19d48d" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-1dd631d9-75f9-4307-a8b2-4d01940c6c4b">
+<span class="eqno">(38)<a class="headerlink" href="#equation-1dd631d9-75f9-4307-a8b2-4d01940c6c4b" title="Permalink to this equation">#</a></span>\[\begin{align}
   C_T &amp;= W_{total} \frac{sin \gamma}{q \cdot S \cdot \cos \alpha} + \frac{C_D}{\cos \alpha}
 \end{align}\]</div>
 <p>The lift coefficient required for steady flight is found by balancing
 lift and weight:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-32dfc306-a348-4883-9845-02edda95b1ee">
-<span class="eqno">(39)<a class="headerlink" href="#equation-32dfc306-a348-4883-9845-02edda95b1ee" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-01023ad4-11fe-438c-a12f-49e4b181c9fa">
+<span class="eqno">(39)<a class="headerlink" href="#equation-01023ad4-11fe-438c-a12f-49e4b181c9fa" title="Permalink to this equation">#</a></span>\[\begin{align}
   \tilde{C_L} &amp;= W_{total} \frac{cos \gamma}{q \cdot S} - C_T \sin \alpha
 \end{align}\]</div>
 <p>Using coefficients in the balance equations is better scaled from a numerical standpoint.</p>
@@ -1454,30 +1454,30 @@ rate of fuel burn. In addition, by normalizing thrust at any point by
 the maximum possible thrust, we obtain the throttle parameter <span class="math notranslate nohighlight">\(\tau\)</span>.
 The propulsion group uses a number of components to perform these
 calculations.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-1776d266-dd1c-4533-b73c-c9f0ba5ff67f">
-<span class="eqno">(40)<a class="headerlink" href="#equation-1776d266-dd1c-4533-b73c-c9f0ba5ff67f" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-5a7b76a7-a669-466c-b6e4-187d83e7d353">
+<span class="eqno">(40)<a class="headerlink" href="#equation-5a7b76a7-a669-466c-b6e4-187d83e7d353" title="Permalink to this equation">#</a></span>\[\begin{align}
   T &amp;= C_T \cdot q \cdot S
 \end{align}\]</div>
 <p>Maximum thrust is computed by multiplying sea-level thrust by the ratio
 of pressure to sea-level atmospheric pressure.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-d8431631-5ae7-406d-b703-abed92d5c069">
-<span class="eqno">(41)<a class="headerlink" href="#equation-d8431631-5ae7-406d-b703-abed92d5c069" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-2246e142-e9b4-438a-8be2-a2c22b5d1ef2">
+<span class="eqno">(41)<a class="headerlink" href="#equation-2246e142-e9b4-438a-8be2-a2c22b5d1ef2" title="Permalink to this equation">#</a></span>\[\begin{align}
   T_{max} &amp;= T_{max,sl} \frac{P}{P_{sl}}
 \end{align}\]</div>
 <p>The throttle parameter is then the ratio current thrust to maximum
 possible thrust.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-8259294c-69e9-4c1e-9ee7-3c298f364a8c">
-<span class="eqno">(42)<a class="headerlink" href="#equation-8259294c-69e9-4c1e-9ee7-3c298f364a8c" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-d2799cb2-905c-4b13-b839-678ae66a5241">
+<span class="eqno">(42)<a class="headerlink" href="#equation-d2799cb2-905c-4b13-b839-678ae66a5241" title="Permalink to this equation">#</a></span>\[\begin{align}
   \tau &amp;= \frac{T}{T_{max}}
 \end{align}\]</div>
 <p>The thrust specific fuel consumption is computed as follows:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-6bc63f0e-d731-4cff-9683-bc66b45cc444">
-<span class="eqno">(43)<a class="headerlink" href="#equation-6bc63f0e-d731-4cff-9683-bc66b45cc444" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-8291be86-4b88-4a86-a71c-c1c04d988d6b">
+<span class="eqno">(43)<a class="headerlink" href="#equation-8291be86-4b88-4a86-a71c-c1c04d988d6b" title="Permalink to this equation">#</a></span>\[\begin{align}
   TSFC &amp;= TSFC_{sl} - 1.5 E - 10 \cdot 9.80665 \cdot alt
 \end{align}\]</div>
 <p>Finally, fuel burn rate is:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-b7c37209-cef0-425f-bb5c-12e46227ab02">
-<span class="eqno">(44)<a class="headerlink" href="#equation-b7c37209-cef0-425f-bb5c-12e46227ab02" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-3aa654bd-6db1-4d07-add2-4ad754ca3a35">
+<span class="eqno">(44)<a class="headerlink" href="#equation-3aa654bd-6db1-4d07-add2-4ad754ca3a35" title="Permalink to this equation">#</a></span>\[\begin{align}
   \dot{mass_{fuel}} &amp;= -TSFC \frac{T}{9.80665}
 \end{align}\]</div>
 </section>
@@ -1794,7 +1794,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
         [path]    1.0000e-02 &lt;= propulsion.tau &lt;= 2.0000e+00  [None]
 </pre></div>
 </div>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;openmdao.core.problem.Problem at 0x7fc21549f390&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;openmdao.core.problem.Problem at 0x7fa12e945950&gt;
 </pre></div>
 </div>
 </div>
@@ -1832,7 +1832,7 @@ Plots of the resulting solution and simulation will be generated.</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.6825962789999949 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.6720800480001117 seconds.
 Total jacobian shape: (224, 221) 
 
 
@@ -1841,10 +1841,10 @@ FWD solves: 11   REV solves: 0
 Total colors vs. total size: 11 vs 221  (95.02% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.6826 sec
-Time to compute coloring:   0.1112 sec
-Memory to compute coloring:   0.1250 MB
-Coloring created on: 2024-07-11 11:28:37
+Time to compute sparsity:   0.6721 sec
+Time to compute coloring:   0.1115 sec
+Memory to compute coloring:   0.2500 MB
+Coloring created on: 2024-07-29 16:12:31
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1853,11 +1853,11 @@ Coloring created on: 2024-07-11 11:28:37
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                   19.4988
-       User Objective Time :      17.7434
-       User Sensitivity Time :     1.4380
-       Interface Time :            0.1368
-       Opt Solver Time:            0.1806
+    Total Time:                   19.4908
+       User Objective Time :      17.2213
+       User Sensitivity Time :     1.9529
+       Interface Time :            0.1357
+       Opt Solver Time:            0.1809
     Calls to Objective Function :      34
     Calls to Sens Function :           32
 
@@ -2369,11 +2369,63 @@ Coloring created on: 2024-07-11 11:28:37
   ax.set_ylim([ymin_plot, ymax_plot])
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1098: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:climb_rate_rate2, ode_eval.control_interp.control_rates:mach_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
 Model viewer data has already been recorded for Driver.
+INFO: checking out_of_order
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1101: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:climb_rate_rate2, ode_eval.control_interp.control_rates:mach_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
@@ -2383,11 +2435,11 @@ Model viewer data has already been recorded for Driver.
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 36
-  runtime     : 2.1673E+01 s
+  runtime     : 2.1049E+01 s
   model_evals : 36
-  model_time  : 1.8439E+01 s
-  deriv_evals : 34
-  deriv_time  : 1.5159E+00 s
+  model_time  : 1.7915E+01 s
+  deriv_evals : 33
+  deriv_time  : 1.4333E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>
