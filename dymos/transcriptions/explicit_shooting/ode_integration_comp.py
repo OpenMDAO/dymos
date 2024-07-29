@@ -3,11 +3,11 @@ from scipy.integrate import solve_ivp
 
 import openmdao
 import openmdao.api as om
-from openmdao.core.problem import _problem_names
 
 from ..._options import options as dymos_options
 
 from .ode_evaluation_group import ODEEvaluationGroup
+from dymos.utils.misc import create_subprob
 
 
 om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
@@ -99,16 +99,10 @@ class ODEIntegrationComp(om.ExplicitComponent):
                              'transcription where the number of nodes per segment can exceed 20 to 30.')
 
     def _setup_subprob(self):
-        # Find a unique sim problem name. This mostly causes problems
-        # when many simulations are being run in a single process, as in testing.
-        i = 0
-        sim_prob_name = f'{self.pathname}_subprob{i}'
-        while sim_prob_name in _problem_names:
-            i += 1
-            sim_prob_name = f'{self.pathname}_subprob{i}'
+        self._eval_subprob = p = create_subprob(base_name=f'{self.pathname}_subprob',
+                                                comm=self.comm,
+                                                reports=self._reports)
 
-        self._eval_subprob = p = om.Problem(comm=self.comm, reports=self._reports,
-                                            name=sim_prob_name)
         p.model.add_subsystem('ode_eval',
                               ODEEvaluationGroup(ode_class=self.options['ode_class'],
                                                  time_options=self.time_options,

@@ -11,7 +11,6 @@ import openmdao
 import openmdao.api as om
 from openmdao.utils.mpi import MPI
 from openmdao.utils.om_warnings import issue_warning
-from openmdao.core.problem import _problem_names
 from openmdao.core.system import System
 from openmdao.recorders.case import Case
 
@@ -29,7 +28,7 @@ from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
     configure_timeseries_output_introspection, classify_var, configure_timeseries_expr_introspection
-from ..utils.misc import _unspecified
+from ..utils.misc import _unspecified, create_subprob
 from ..utils.lgl import lgl
 
 
@@ -2702,7 +2701,7 @@ class Phase(om.Group):
             prob.set_val(prob_path, val)
 
     def simulate(self, times_per_seg=None, method=_unspecified, atol=_unspecified, rtol=_unspecified,
-                 first_step=_unspecified, max_step=_unspecified, record_file=None):
+                 first_step=_unspecified, max_step=_unspecified, record_file=None, reports=False):
         """
         Simulate the Phase using scipy.integrate.solve_ivp.
 
@@ -2724,6 +2723,8 @@ class Phase(om.Group):
         record_file : str or None
             If a string, the file to which the result of the simulation will be saved.
             If None, no record of the simulation will be saved.
+        reports : bool or None or str or Sequence
+            Reports setting for the subproblems run under simualate.
 
         Returns
         -------
@@ -2732,15 +2733,9 @@ class Phase(om.Group):
             can be interrogated to obtain timeseries outputs in the same manner as other Phases
             to obtain results at the requested times.
         """
-        # Find a unique sim problem name. This mostly causes problems
-        # when many simulations are being run in a single process, as in testing.
-        i = 0
-        sim_prob_name = f'{self.name}_simulation_{i}'
-        while sim_prob_name in _problem_names:
-            i += 1
-            sim_prob_name = f'{self.name}_simulation_{i}'
-
-        self.sim_prob = sim_prob = om.Problem(model=om.Group(), comm=self.comm, name=sim_prob_name)
+        self.sim_prob = sim_prob = create_subprob(base_name=f'{self.name}_simulation',
+                                                  comm=self.comm,
+                                                  reports=reports)
 
         sim_phase = self.get_simulation_phase(times_per_seg=times_per_seg, method=method, atol=atol, rtol=rtol,
                                               first_step=first_step, max_step=max_step)

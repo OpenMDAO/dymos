@@ -2,9 +2,11 @@ from collections.abc import Iterable
 
 import numpy as np
 
+import openmdao.api as om
+from openmdao.core.constants import _ReprClass
+
 from .constants import INF_BOUND
 from .indexing import get_desvar_indices
-from openmdao.core.constants import _ReprClass
 
 
 # unique object to check if default is given (when None is an allowed value)
@@ -212,3 +214,44 @@ def GroupWrapperConfig(comp_class, config_io_args=None):
             self.configure_io(*args)
 
     return WrappedClass
+
+
+def create_subprob(base_name, comm, reports=False):
+    """
+    Create a new problem using basename possibly appended with unique identifiers if name collisions occur.
+
+    Parameters
+    ----------
+    base_name : str
+        The base name of the problem. This may be appended by `_{int}` to obtain a unique problem name.
+        In the event of running under MPI, an 8-character hash may further append the name to ensure
+        it is unique.
+    comm : comm
+        The MPI comm to be used by the subproblem.
+    reports : bool or None or str or Sequence
+        Reports setting for the subproblems run under simualate.
+
+    Returns
+    -------
+    Problem
+        The instantiated OpenMDAO problem instance.
+    """
+    from openmdao.core.problem import _problem_names
+
+    # Find a unique sim problem name. This mostly causes problems
+    # when many simulations are being run in a single process, as in testing.
+    i = 0
+    sim_prob_name = f'{base_name}_{i}'
+    while sim_prob_name in _problem_names:
+        i += 1
+        sim_prob_name = f'{base_name}_{i}'
+
+    try:
+        p = om.Problem(comm=comm, reports=reports, name=sim_prob_name)
+    except ValueError:
+        # Testing under MPI, we still might have name collisions. In that case, add a random hash
+        # to the end of the problem name.
+        import hashlib
+        str_hash = hashlib.sha256(used_for_security=False)[:8]
+        p = om.Problem(comm=comm, reports=reports, name=f'{sim_prob_name}_{str_hash}')
+    return p

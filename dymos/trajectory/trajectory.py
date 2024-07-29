@@ -13,7 +13,6 @@ import networkx as nx
 
 import openmdao
 import openmdao.api as om
-from openmdao.core.problem import _problem_names
 from openmdao.utils.mpi import MPI
 
 from ..utils.constants import INF_BOUND
@@ -23,7 +22,7 @@ from .phase_linkage_comp import PhaseLinkageComp
 from ..phase.analytic_phase import AnalyticPhase
 from ..phase.options import TrajParameterOptionsDictionary
 from ..transcriptions.common import ParameterComp
-from ..utils.misc import get_rate_units, _unspecified, _none_or_unspecified
+from ..utils.misc import create_subprob, get_rate_units, _unspecified, _none_or_unspecified
 from ..utils.introspection import get_promoted_vars, get_source_metadata, _get_common_metadata
 from .._options import options as dymos_options
 
@@ -1464,7 +1463,6 @@ class Trajectory(om.Group):
         for name, phs in self._phases.items():
             if phs.simulate_options is None:
                 continue
-
             sim_phs = phs.get_simulation_phase(times_per_seg=times_per_seg, method=method,
                                                atol=atol, rtol=rtol, first_step=first_step,
                                                max_step=max_step, reports=reports)
@@ -1475,16 +1473,9 @@ class Trajectory(om.Group):
 
         sim_traj.parameter_options.update(self.parameter_options)
 
-        # Find a unique sim problem name. This mostly causes problems
-        # when many simulations are being run in a single process, as in testing.
-        i = 0
-        sim_prob_name = f'{self.name}_simulation_{i}'
-        while sim_prob_name in _problem_names:
-            i += 1
-            sim_prob_name = f'{self.name}_simulation_{i}'
-
-        self.sim_prob = sim_prob = om.Problem(model=om.Group(), reports=reports, comm=self.comm,
-                                              name=sim_prob_name)
+        self.sim_prob = sim_prob = create_subprob(base_name=f'{self.name}_simulation',
+                                                  comm=self.comm,
+                                                  reports=reports)
 
         traj_name = self.name if self.name else 'sim_traj'
         sim_prob.model.add_subsystem(traj_name, sim_traj)
