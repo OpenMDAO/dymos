@@ -686,7 +686,7 @@ class PseudospectralBase(TranscriptionBase):
         if np.isscalar(vals):
             interp_vals = vals
         else:
-            interp_vals = phase.interp(name, vals, time_vals,
+            interp_vals = phase.interp(name, ys=vals, xs=time_vals,
                                        nodes='state_input',
                                        kind=interpolation_kind)
         input_data[f'states:{name}'] = interp_vals

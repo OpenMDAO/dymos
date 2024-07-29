@@ -11,6 +11,7 @@ from openmdao.utils.units import unit_conversion
 import numpy as np
 import networkx as nx
 
+import openmdao
 import openmdao.api as om
 from openmdao.utils.mpi import MPI
 
@@ -21,9 +22,12 @@ from .phase_linkage_comp import PhaseLinkageComp
 from ..phase.analytic_phase import AnalyticPhase
 from ..phase.options import TrajParameterOptionsDictionary
 from ..transcriptions.common import ParameterComp
-from ..utils.misc import get_rate_units, _unspecified, _none_or_unspecified
+from ..utils.misc import create_subprob, get_rate_units, _unspecified, _none_or_unspecified
 from ..utils.introspection import get_promoted_vars, get_source_metadata, _get_common_metadata
 from .._options import options as dymos_options
+
+
+om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 class Trajectory(om.Group):
@@ -44,6 +48,9 @@ class Trajectory(om.Group):
         A dictionary of parameter names and their associated TrajectoryParameterOptionsDictionary
     phases : om.Group or om.ParallelGroup
         The Group which contains phases for this Trajectory.
+    sim_prob : Problem or None
+        The OpenMDAO problem used for trajectory simulation.
+        This is None unless the simulate method has been called.
 
     _linkages : OrderedDict
         A dictionary containing phase linkage information for the Trajectory.
@@ -59,6 +66,7 @@ class Trajectory(om.Group):
         self._phases = {}
         self._phase_graph = nx.DiGraph()
         self._has_connected_phases = False
+        self.sim_prob = None
 
         self.phases = om.ParallelGroup() if self.options['parallel_phases'] else om.Group()
 
@@ -1455,7 +1463,6 @@ class Trajectory(om.Group):
         for name, phs in self._phases.items():
             if phs.simulate_options is None:
                 continue
-
             sim_phs = phs.get_simulation_phase(times_per_seg=times_per_seg, method=method,
                                                atol=atol, rtol=rtol, first_step=first_step,
                                                max_step=max_step, reports=reports)
@@ -1466,7 +1473,9 @@ class Trajectory(om.Group):
 
         sim_traj.parameter_options.update(self.parameter_options)
 
-        sim_prob = om.Problem(model=om.Group(), reports=reports, comm=self.comm)
+        self.sim_prob = sim_prob = create_subprob(base_name=f'{self.name}_simulation',
+                                                  comm=self.comm,
+                                                  reports=reports)
 
         traj_name = self.name if self.name else 'sim_traj'
         sim_prob.model.add_subsystem(traj_name, sim_traj)
@@ -1483,7 +1492,10 @@ class Trajectory(om.Group):
             # fault of the user.
             warnings.filterwarnings(action='ignore', category=om.UnusedOptionWarning)
             warnings.filterwarnings(action='ignore', category=om.SetupWarning)
-            sim_prob.setup()
+            if om_version <= (3, 42, 2):
+                sim_prob.setup(check=True)
+            else:
+                sim_prob.setup(check=True, parent=self)
             sim_prob.final_setup()
 
         # Assign trajectory parameter values

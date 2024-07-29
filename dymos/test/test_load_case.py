@@ -184,6 +184,76 @@ class TestLoadCase(unittest.TestCase):
                           q.model.phase0.interp(xs=time_q, ys=theta_q, nodes='all'),
                           tolerance=1.0E-2)
 
+    def test_load_case_radau_to_birkhoff(self):
+        import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_near_equal
+        import dymos as dm
+
+        p = setup_problem(dm.Radau(num_segments=20))
+
+        # Solve for the optimal trajectory
+        dm.run_problem(p)
+
+        # Load the solution
+        case = om.CaseReader('dymos_solution.db').get_case('final')
+
+        # create a problem with a different transcription with a different number of variables
+        q = setup_problem(dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=50)))
+
+        # Fill q with junk so that we can be sure load_case worked
+        q['phase0.t_initial'] = -88
+        q['phase0.t_duration'] = 88
+
+        q['phase0.states:x'] = -88
+        q['phase0.states:y'] = -88
+        q['phase0.states:v'] = -88
+
+        q['phase0.initial_states:x'] = -88
+        q['phase0.initial_states:y'] = -88
+        q['phase0.initial_states:v'] = -88
+
+        q['phase0.final_states:x'] = -88
+        q['phase0.final_states:y'] = -88
+        q['phase0.final_states:v'] = -88
+
+        # Load the values from the previous solution
+        q.load_case(case)
+
+        # Run the model to ensure we find the same output values as those that we recorded
+        q.run_model()
+
+        time_p = case.get_val('phase0.timeseries.time')
+        theta_p = case.get_val('phase0.timeseries.theta')
+
+        time_q = q.get_val('phase0.timeseries.time')
+        theta_q = q.get_val('phase0.timeseries.theta')
+
+        x_p = case.get_val('phase0.timeseries.x')
+        y_p = case.get_val('phase0.timeseries.y')
+        v_p = case.get_val('phase0.timeseries.v')
+
+        x0_q = q.get_val('phase0.initial_states:x')
+        xf_q = q.get_val('phase0.final_states:x')
+
+        y0_q = q.get_val('phase0.initial_states:y')
+        yf_q = q.get_val('phase0.final_states:y')
+
+        v0_q = q.get_val('phase0.initial_states:v')
+        vf_q = q.get_val('phase0.final_states:v')
+
+        assert_near_equal(q.model.phase0.interp(xs=time_p, ys=theta_p, nodes='all'),
+                          q.model.phase0.interp(xs=time_q, ys=theta_q, nodes='all'),
+                          tolerance=1.0E-2)
+
+        assert_near_equal(x_p[0, ...], x0_q, tolerance=1.0E-5)
+        assert_near_equal(x_p[-1, ...], xf_q, tolerance=1.0E-5)
+
+        assert_near_equal(y_p[0, ...], y0_q, tolerance=1.0E-5)
+        assert_near_equal(y_p[-1, ...], yf_q, tolerance=1.0E-5)
+
+        assert_near_equal(v_p[0, ...], v0_q, tolerance=1.0E-5)
+        assert_near_equal(v_p[-1, ...], vf_q, tolerance=1.0E-5)
+
     def test_load_case_warn_fix_final_states(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_warnings

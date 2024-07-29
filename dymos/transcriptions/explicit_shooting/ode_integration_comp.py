@@ -1,10 +1,16 @@
 import numpy as np
-import openmdao.api as om
 from scipy.integrate import solve_ivp
+
+import openmdao
+import openmdao.api as om
 
 from ..._options import options as dymos_options
 
 from .ode_evaluation_group import ODEEvaluationGroup
+from dymos.utils.misc import create_subprob
+
+
+om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 class ODEIntegrationComp(om.ExplicitComponent):
@@ -93,7 +99,10 @@ class ODEIntegrationComp(om.ExplicitComponent):
                              'transcription where the number of nodes per segment can exceed 20 to 30.')
 
     def _setup_subprob(self):
-        self._eval_subprob = p = om.Problem(comm=self.comm, reports=self._reports)
+        self._eval_subprob = p = create_subprob(base_name=f'{self.pathname}_subprob',
+                                                comm=self.comm,
+                                                reports=self._reports)
+
         p.model.add_subsystem('ode_eval',
                               ODEEvaluationGroup(ode_class=self.options['ode_class'],
                                                  time_options=self.time_options,
@@ -107,7 +116,10 @@ class ODEIntegrationComp(om.ExplicitComponent):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        p.setup()
+        if om_version <= (3, 34, 2):
+            p.setup()
+        else:
+            p.setup(parent=self)
         p.final_setup()
 
     def _set_segment_index(self, idx):

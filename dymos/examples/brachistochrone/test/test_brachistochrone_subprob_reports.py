@@ -4,21 +4,24 @@ import pathlib
 import os
 from packaging.version import Version
 
+import openmdao
 import openmdao.api as om
 import openmdao.core.problem
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.tests.test_hooks import hooks_active
 from openmdao.visualization.n2_viewer.n2_viewer import _default_n2_filename
 from openmdao.visualization.scaling_viewer.scaling_report import _default_scaling_filename
-from openmdao import __version__ as openmdao_version
 
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
-def setup_model_radau(do_reports):
-    p = om.Problem(model=om.Group())
+om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
+
+
+def setup_model_radau(do_reports, probname):
+    p = om.Problem(model=om.Group(), name=probname)
 
     p.driver = om.ScipyOptimizeDriver()
     p.driver.declare_coloring(tol=1.0E-12)
@@ -64,16 +67,13 @@ def setup_model_radau(do_reports):
     phase.set_control_val('theta', [5, 100.5])
     phase.set_parameter_val('g', 9.80665)
 
-    if do_reports:
-        dm.run_problem(p, run_driver=True, simulate=True, simulate_kwargs={'reports': True})
-    else:
-        dm.run_problem(p, run_driver=True, simulate=True)
+    dm.run_problem(p, run_driver=True, simulate=True, simulate_kwargs={'reports': do_reports})
 
     return p
 
 
-def setup_model_shooting(do_reports):
-    prob = om.Problem()
+def setup_model_shooting(do_reports, probname):
+    prob = om.Problem(name=probname)
 
     prob.driver = om.ScipyOptimizeDriver()
     prob.driver.declare_coloring(tol=1.0E-12)
@@ -112,198 +112,97 @@ def setup_model_shooting(do_reports):
     phase.set_control_val('theta', [0.01, 90], units='deg')
     phase.set_parameter_val('g', 1.0)
 
-    dm.run_problem(prob, run_driver=True, simulate=False)
+    dm.run_problem(prob, run_driver=True, simulate=True)
 
     return prob
 
 
-# reports API between 3.18 and 3.19, so handle it here in order to be able to test against older
-# versions of openmdao
-if Version(openmdao_version) > Version("3.18"):
-    from openmdao.utils.reports_system import get_reports_dir, clear_reports
+@use_tempdirs
+class TestSubproblemReportToggle(unittest.TestCase):
 
-    @use_tempdirs
-    class TestSubproblemReportToggle(unittest.TestCase):
+    def setUp(self):
+        self.n2_filename = _default_n2_filename
+        self.scaling_filename = _default_scaling_filename
 
-        def setUp(self):
-            self.n2_filename = _default_n2_filename
-            self.scaling_filename = _default_scaling_filename
+        # set things to a known initial state for all the test runs
+        openmdao.core.problem._problem_names = []  # need to reset these to simulate separate runs
+        os.environ.pop('OPENMDAO_REPORTS', None)
+        os.environ.pop('OPENMDAO_REPORTS_DIR', None)
+        # We need to remove the TESTFLO_RUNNING environment variable for these tests to run.
+        # The reports code checks to see if TESTFLO_RUNNING is set and will not do anything if set
+        # But we need to remember whether it was set so we can restore it
+        self.testflo_running = os.environ.pop('TESTFLO_RUNNING', None)
 
-            # set things to a known initial state for all the test runs
-            openmdao.core.problem._problem_names = []  # need to reset these to simulate separate runs
-            os.environ.pop('OPENMDAO_REPORTS', None)
-            os.environ.pop('OPENMDAO_REPORTS_DIR', None)
-            # We need to remove the TESTFLO_RUNNING environment variable for these tests to run.
-            # The reports code checks to see if TESTFLO_RUNNING is set and will not do anything if set
-            # But we need to remember whether it was set so we can restore it
-            self.testflo_running = os.environ.pop('TESTFLO_RUNNING', None)
-            clear_reports()
+        self.count = 0
 
-            self.count = 0
+    def tearDown(self):
+        # restore what was there before running the test
+        if self.testflo_running is not None:
+            os.environ['TESTFLO_RUNNING'] = self.testflo_running
 
-        def tearDown(self):
-            # restore what was there before running the test
-            if self.testflo_running is not None:
-                os.environ['TESTFLO_RUNNING'] = self.testflo_running
+    @unittest.skipIf(om_version <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
+    @hooks_active
+    def test_no_sim_reports(self):
+        p = setup_model_radau(do_reports=False, probname='test_no_sim_reports')
 
-        @hooks_active
-        def test_no_sim_reports(self):
-            p = setup_model_radau(do_reports=False)
+        main_outputs_dir = p.get_outputs_dir()
+        main_reports_dir = p.get_reports_dir()
 
-            report_subdirs = sorted([e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()])
+        sim_outputs_dir = main_outputs_dir / 'traj0_simulation_out'
+        sim_reports_dir = sim_outputs_dir / 'reports'
 
-            # Test that a report subdir was made
-            self.assertEqual(len(report_subdirs), 1)
+        self.assertFalse(sim_reports_dir.exists())
 
-            path = pathlib.Path(report_subdirs[0]).joinpath(self.n2_filename)
-            self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
-            path = pathlib.Path(report_subdirs[0]).joinpath(self.scaling_filename)
-            self.assertTrue(path.is_file(), f'The scaling report file, {str(path)}, was not found')
+    @unittest.skipIf(om_version <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
+    @hooks_active
+    def test_make_sim_reports(self):
+        p = setup_model_radau(do_reports=True, probname='test_make_sim_reports')
 
-        @hooks_active
-        def test_make_sim_reports(self):
-            p = setup_model_radau(do_reports=True)
+        main_reports_dir = p.get_reports_dir()
 
-            report_subdirs = sorted([e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()])
+        traj = p.model._get_subsystem('traj0')
+        sim_reports_dir = traj.sim_prob.get_reports_dir()
 
-            # Test that a report subdir was made
-            # There is the nominal problem, the simulation problem, and a subproblem for the simulation.
-            self.assertEqual(len(report_subdirs), 3)
+        self.assertTrue((main_reports_dir / self.n2_filename).exists())
+        self.assertTrue(sim_reports_dir.exists())
+        self.assertTrue((sim_reports_dir / self.n2_filename).exists())
 
-            for subdir in report_subdirs:
-                path = pathlib.Path(subdir).joinpath(self.n2_filename)
-                self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
+    @unittest.skipIf(om_version <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
+    @hooks_active
+    def test_explicitshooting_no_subprob_reports(self):
+        p = setup_model_shooting(do_reports=False,
+                                 probname='test_explicitshooting_no_subprob_reports')
 
-        @hooks_active
-        def test_explicitshooting_no_subprob_reports(self):
-            p = setup_model_shooting(do_reports=False)
+        main_reports_dir = p.get_reports_dir()
+        subprob_reports_dir = p.model.phase0.integrator._eval_subprob.get_reports_dir()
 
-            report_subdirs = sorted([e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()])
+        main_reports = os.listdir(main_reports_dir)
 
-            # Test that a report subdir was made
-            self.assertEqual(len(report_subdirs), 1)
+        self.assertFalse(subprob_reports_dir.exists())
 
-            path = pathlib.Path(report_subdirs[0]).joinpath(self.n2_filename)
-            self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
-            path = pathlib.Path(report_subdirs[0]).joinpath(self.scaling_filename)
-            self.assertTrue(path.is_file(), f'The scaling report file, {str(path)}, was not found')
+        self.assertIn(self.n2_filename, main_reports)
+        self.assertIn(self.scaling_filename, main_reports)
 
-        @hooks_active
-        def test_explicitshooting_make_subprob_reports(self):
-            p = setup_model_shooting(do_reports=True)
+    @unittest.skipIf(om_version <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
+    @hooks_active
+    def test_explicitshooting_make_subprob_reports(self):
+        p = setup_model_shooting(do_reports=True,
+                                 probname='test_explicitshooting_make_subprob_reports')
 
-            report_subdirs = sorted([e for e in pathlib.Path(get_reports_dir()).iterdir() if e.is_dir()])
+        main_reports_dir = p.get_reports_dir()
+        subprob_reports_dir = p.model.phase0.integrator._eval_subprob.get_reports_dir()
 
-            # Test that a report subdir was made
-            # There is the nominal problem, a subproblem for integration, and a subproblem for the derivatives.
-            self.assertEqual(len(report_subdirs), 2)
+        main_reports = os.listdir(main_reports_dir)
+        subprob_reports = os.listdir(subprob_reports_dir)
 
-            path = pathlib.Path(report_subdirs[0]).joinpath(self.n2_filename)
-            self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
-            path = pathlib.Path(report_subdirs[0]).joinpath(self.scaling_filename)
-            self.assertTrue(path.is_file(), f'The scaling report file, {str(path)}, was not found')
+        self.assertIn(self.n2_filename, main_reports)
+        self.assertIn(self.n2_filename, subprob_reports)
 
-            for subdir in report_subdirs:
-                path = pathlib.Path(subdir).joinpath(self.n2_filename)
-                self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
+        self.assertIn(self.scaling_filename, main_reports)
 
-else:  # old OM versions before reports API changed...
-    from openmdao.utils.reports_system import set_default_reports_dir, _reports_dir, clear_reports, \
-        setup_default_reports
+        # The subprob has no optimization, so should not have a scaling report
+        self.assertNotIn(self.scaling_filename, subprob_reports)
 
-    @use_tempdirs
-    class TestSubproblemReportToggle(unittest.TestCase):
 
-        def setUp(self):
-            self.n2_filename = _default_n2_filename
-            self.scaling_filename = _default_scaling_filename
-
-            # set things to a known initial state for all the test runs
-            openmdao.core.problem._problem_names = []  # need to reset these to simulate separate runs
-            os.environ.pop('OPENMDAO_REPORTS', None)
-            os.environ.pop('OPENMDAO_REPORTS_DIR', None)
-            # We need to remove the TESTFLO_RUNNING environment variable for these tests to run.
-            # The reports code checks to see if TESTFLO_RUNNING is set and will not do anything if set
-            # But we need to remember whether it was set so we can restore it
-            self.testflo_running = os.environ.pop('TESTFLO_RUNNING', None)
-            clear_reports()
-            set_default_reports_dir(_reports_dir)
-
-            self.count = 0
-
-        def tearDown(self):
-            # restore what was there before running the test
-            if self.testflo_running is not None:
-                os.environ['TESTFLO_RUNNING'] = self.testflo_running
-
-        @hooks_active
-        def test_no_sim_reports(self):
-            setup_default_reports()
-
-            p = setup_model_radau(do_reports=False)
-
-            problem_reports_dir = pathlib.Path(_reports_dir).joinpath(p._name)
-            report_subdirs = sorted([e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()])
-
-            # Test that a report subdir was made
-            self.assertEqual(len(report_subdirs), 1)
-
-            path = pathlib.Path(problem_reports_dir).joinpath(self.n2_filename)
-            self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
-            path = pathlib.Path(problem_reports_dir).joinpath(self.scaling_filename)
-            self.assertTrue(path.is_file(), f'The scaling report file, {str(path)}, was not found')
-
-        @hooks_active
-        def test_make_sim_reports(self):
-            setup_default_reports()
-
-            p = setup_model_radau(do_reports=True)
-
-            report_subdirs = sorted([e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()])
-
-            # Test that a report subdir was made
-            # # There is the nominal problem, the simulation problem, and a subproblem for each segment in the simulation.
-            self.assertEqual(len(report_subdirs), 12)
-
-            for subdir in report_subdirs:
-                path = pathlib.Path(subdir).joinpath(self.n2_filename)
-                self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
-
-        @hooks_active
-        def test_explicitshooting_no_subprob_reports(self):
-            setup_default_reports()
-
-            p = setup_model_shooting(do_reports=False)
-
-            problem_reports_dir = pathlib.Path(_reports_dir).joinpath(p._name)
-            report_subdirs = sorted([e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()])
-
-            # Test that a report subdir was made
-            self.assertEqual(len(report_subdirs), 1)
-
-            path = pathlib.Path(problem_reports_dir).joinpath(self.n2_filename)
-            self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
-            path = pathlib.Path(problem_reports_dir).joinpath(self.scaling_filename)
-            self.assertTrue(path.is_file(), f'The scaling report file, {str(path)}, was not found')
-
-        @hooks_active
-        def test_explicitshooting_make_subprob_reports(self):
-            setup_default_reports()
-
-            p = setup_model_shooting(do_reports=True)
-
-            problem_reports_dir = pathlib.Path(_reports_dir).joinpath(p._name)
-            report_subdirs = sorted([e for e in pathlib.Path(_reports_dir).iterdir() if e.is_dir()])
-
-            # Test that a report subdir was made
-            # There is the nominal problem and a subproblem for integration
-            self.assertEqual(len(report_subdirs), 2)
-
-            path = pathlib.Path(problem_reports_dir).joinpath(self.n2_filename)
-            self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
-            path = pathlib.Path(problem_reports_dir).joinpath(self.scaling_filename)
-            self.assertTrue(path.is_file(), f'The scaling report file, {str(path)}, was not found')
-
-            for subdir in report_subdirs:
-                path = pathlib.Path(subdir).joinpath(self.n2_filename)
-                self.assertTrue(path.is_file(), f'The N2 report file, {str(path)} was not found')
+if __name__ == '__main__':
+    unittest.main()
