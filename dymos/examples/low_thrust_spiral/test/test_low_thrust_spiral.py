@@ -23,7 +23,7 @@ def low_thrust_spiral_direct_collocation(grid_type='lgl'):
         p.driver.opt_settings['Major optimality tolerance'] = 5.0E-4
         p.driver.opt_settings['iSumm'] = 6
 
-    t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=101, grid_type=grid_type))
+    t = dm.Birkhoff(num_nodes=101, grid_type=grid_type)
 
     traj = p.model.add_subsystem('traj', dm.Trajectory())
 

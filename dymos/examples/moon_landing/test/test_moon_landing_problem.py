@@ -22,7 +22,7 @@ class TestMoonLandingProblem(unittest.TestCase):
         self.p.driver.opt_settings['linear_solver'] = 'mumps'
         self.p.driver.declare_coloring()
 
-        t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=20, grid_type=grid_type))
+        t = dm.Birkhoff(num_nodes=20, grid_type=grid_type)
 
         traj = self.p.model.add_subsystem('traj', dm.Trajectory())
         phase = dm.Phase(ode_class=MoonLandingProblemODE,

@@ -29,7 +29,7 @@ def double_integrator(transcription='gauss-lobatto', compressed=True, grid_type=
     elif transcription == "radau-ps":
         t = dm.Radau(num_segments=30, order=3, compressed=compressed)
     elif transcription == 'birkhoff':
-        t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=100, grid_type=grid_type))
+        t = dm.Birkhoff(num_nodes=100, grid_type=grid_type)
     else:
         raise ValueError('invalid transcription')
 

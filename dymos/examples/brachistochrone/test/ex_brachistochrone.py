@@ -41,9 +41,8 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                             compressed=compressed)
         t = dm.ExplicitShooting(grid=grid)
     elif transcription == 'birkhoff':
-        grid = dm.BirkhoffGrid(num_nodes=transcription_order + 1,
-                               grid_type='cgl')
-        t = dm.Birkhoff(grid=grid)
+        t = dm.Birkhoff(num_nodes=transcription_order + 1,
+                        grid_type='cgl')
         # phase = dm.ImplicitPhase(ode_class=BrachistochroneODE, num_nodes=11)
 
     traj = dm.Trajectory()

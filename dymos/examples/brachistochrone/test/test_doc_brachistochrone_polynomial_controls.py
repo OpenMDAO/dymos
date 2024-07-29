@@ -198,7 +198,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=15)))
+                         transcription=dm.Birkhoff(num_nodes=15))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -464,7 +464,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=15)))
+                         transcription=dm.Birkhoff(num_nodes=15))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -729,7 +729,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=15)))
+                         transcription=dm.Birkhoff(num_nodes=15))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -997,7 +997,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=15)))
+                         transcription=dm.Birkhoff(num_nodes=15))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1265,7 +1265,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=15)))
+                         transcription=dm.Birkhoff(num_nodes=15))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1469,7 +1469,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=15)))
+                         transcription=dm.Birkhoff(num_nodes=15))
 
         p.model.add_subsystem('phase0', phase)
 

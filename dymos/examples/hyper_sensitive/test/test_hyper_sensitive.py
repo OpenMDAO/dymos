@@ -56,7 +56,7 @@ class TestHyperSensitive(unittest.TestCase):
         elif transcription == 'radau-ps':
             t = dm.Radau(num_segments=numseg, order=3)
         elif transcription == 'birkhoff':
-            t = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=order + 1, grid_type='lgl'),
+            t = dm.Birkhoff(num_nodes=order + 1, grid_type='lgl',
                             solve_segments=solve_segments)
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())

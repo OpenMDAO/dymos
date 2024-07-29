@@ -121,7 +121,7 @@ class TestReentry(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_constrained_birkhoff_lgl(self):
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=30, grid_type='lgl'))
+        tx = dm.Birkhoff(num_nodes=30, grid_type='lgl')
         p = self.make_problem(constrained=True, transcription=tx, optimizer='IPOPT')
 
         p.run_driver()
@@ -135,7 +135,7 @@ class TestReentry(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_constrained_birkhoff_cgl(self):
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=30, grid_type='cgl'))
+        tx = dm.Birkhoff(num_nodes=30, grid_type='cgl')
         p = self.make_problem(constrained=True, transcription=tx, optimizer='IPOPT')
 
         p.run_driver()
@@ -177,7 +177,7 @@ class TestReentry(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_unconstrained_birkhoff_lgl(self):
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=60, grid_type='lgl'))
+        tx = dm.Birkhoff(num_nodes=60, grid_type='lgl')
         p = self.make_problem(constrained=False, transcription=tx, optimizer='IPOPT')
 
         p.run_driver()
@@ -191,7 +191,7 @@ class TestReentry(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_reentry_unconstrained_birkhoff_cgl(self):
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=60, grid_type='cgl'))
+        tx = dm.Birkhoff(num_nodes=60, grid_type='cgl')
         p = self.make_problem(constrained=False, transcription=tx, optimizer='IPOPT')
 
         p.run_driver()

@@ -31,8 +31,8 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
                          order=transcription_order,
                          compressed=compressed)
         elif transcription == 'birkhoff':
-            grid = dm.BirkhoffGrid(num_nodes=transcription_order+1, grid_type='cgl')
-            t = dm.Birkhoff(grid=grid)
+            t = dm.Birkhoff(num_nodes=transcription_order+1,
+                            grid_type='cgl')
 
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)

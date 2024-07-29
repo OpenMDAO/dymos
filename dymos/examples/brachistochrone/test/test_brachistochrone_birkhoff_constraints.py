@@ -19,8 +19,7 @@ class TestBrachistochroneBirkhoffConstraints(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring(tol=1.0E-12)
 
-        grid = dm.BirkhoffGrid(num_nodes=25, grid_type='lgl')
-        tx = dm.Birkhoff(grid=grid)
+        tx = dm.Birkhoff(num_nodes=25, grid_type='lgl')
 
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
@@ -75,8 +74,7 @@ class TestBrachistochroneBirkhoffConstraints(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring(tol=1.0E-12)
 
-        grid = dm.BirkhoffGrid(num_nodes=25, grid_type='lgl')
-        tx = dm.Birkhoff(grid=grid)
+        tx = dm.Birkhoff(num_nodes=25, grid_type='lgl')
 
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
@@ -131,8 +129,7 @@ class TestBrachistochroneBirkhoffConstraints(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring(tol=1.0E-12)
 
-        grid = dm.BirkhoffGrid(num_nodes=25, grid_type='lgl')
-        tx = dm.Birkhoff(grid=grid)
+        tx = dm.Birkhoff(num_nodes=25, grid_type='lgl')
 
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
@@ -186,8 +183,7 @@ class TestBrachistochroneBirkhoffConstraints(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring(tol=1.0E-12)
 
-        grid = dm.BirkhoffGrid(num_nodes=25, grid_type='lgl')
-        tx = dm.Birkhoff(grid=grid)
+        tx = dm.Birkhoff(num_nodes=25, grid_type='lgl')
 
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
