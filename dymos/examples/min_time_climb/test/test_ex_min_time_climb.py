@@ -51,7 +51,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     elif transcription == 'radau-ps':
         tx = dm.Radau(num_segments=num_seg, order=transcription_order)
     elif transcription == 'birkhoff':
-        tx = dm.Birkhoff(order=transcription_order)
+        tx = dm.Birkhoff(num_nodes=transcription_order)
 
     traj = dm.Trajectory()
 
