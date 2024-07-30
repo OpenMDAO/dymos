@@ -1,7 +1,6 @@
-from collections.abc import Iterable, Callable, Sequence
+from collections.abc import Iterable, Callable
 from copy import deepcopy
 import inspect
-from os import path
 import warnings
 
 import numpy as np
@@ -29,7 +28,7 @@ from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
     configure_timeseries_output_introspection, classify_var, configure_timeseries_expr_introspection
-from ..utils.misc import _unspecified
+from ..utils.misc import _unspecified, create_subprob
 from ..utils.lgl import lgl
 
 
@@ -58,6 +57,12 @@ class Phase(om.Group):
         A phase instance from which the initialized phase should copy its data.
     **kwargs : dict
         Dictionary of optional phase arguments.
+
+    Attributes
+    ----------
+    sim_prob : Problem or None
+        The OpenMDAO problem used for trajectory simulation.
+        This is None unless the simulate method has been called.
     """
     def __init__(self, from_phase=None, **kwargs):
         _kwargs = kwargs.copy()
@@ -69,10 +74,6 @@ class Phase(om.Group):
 
         # These are the options which will be set at setup time.
         # Prior to setup, the options are placed into the user_*_options dictionaries.
-        # self.time_options = TimeOptionsDictionary()
-        # self.state_options = {}
-        # self.control_options = {}
-        # self.parameter_options = {}
         self.refine_options = GridRefinementOptionsDictionary()
         self.simulate_options = SimulateOptionsDictionary()
         self.timeseries_ec_vars = {}
@@ -87,6 +88,7 @@ class Phase(om.Group):
                                            'subset': 'all',
                                            'outputs': {}}}
         self._objectives = {}
+        self.sim_prob = None
 
         super(Phase, self).__init__(**_kwargs)
 
@@ -2699,7 +2701,7 @@ class Phase(om.Group):
             prob.set_val(prob_path, val)
 
     def simulate(self, times_per_seg=None, method=_unspecified, atol=_unspecified, rtol=_unspecified,
-                 first_step=_unspecified, max_step=_unspecified, record_file=None):
+                 first_step=_unspecified, max_step=_unspecified, record_file=None, reports=False):
         """
         Simulate the Phase using scipy.integrate.solve_ivp.
 
@@ -2721,6 +2723,8 @@ class Phase(om.Group):
         record_file : str or None
             If a string, the file to which the result of the simulation will be saved.
             If None, no record of the simulation will be saved.
+        reports : bool or None or str or Sequence
+            Reports setting for the subproblems run under simualate.
 
         Returns
         -------
@@ -2729,7 +2733,9 @@ class Phase(om.Group):
             can be interrogated to obtain timeseries outputs in the same manner as other Phases
             to obtain results at the requested times.
         """
-        sim_prob = om.Problem(model=om.Group())
+        self.sim_prob = sim_prob = create_subprob(base_name=f'{self.name}_simulation',
+                                                  comm=self.comm,
+                                                  reports=reports)
 
         sim_phase = self.get_simulation_phase(times_per_seg=times_per_seg, method=method, atol=atol, rtol=rtol,
                                               first_step=first_step, max_step=max_step)
@@ -2740,7 +2746,10 @@ class Phase(om.Group):
             rec = om.SqliteRecorder(record_file)
             sim_prob.add_recorder(rec)
 
-        sim_prob.setup(check=True)
+        if om_version <= (3, 42, 2):
+            sim_prob.setup(check=True)
+        else:
+            sim_prob.setup(check=True, parent=self)
         sim_prob.final_setup()
 
         sim_phase.set_vals_from_phase(from_phase=self)
@@ -3064,8 +3073,7 @@ class Phase(om.Group):
             prev_time_val = np.flip(prev_time_val, axis=0)
             unique_idxs = np.flip(unique_idxs, axis=0)
 
-        self.set_val('t_initial', t_initial, units=prev_time_units)
-        self.set_val('t_duration', t_duration, units=prev_time_units)
+        self.set_time_val(initial=t_initial, duration=t_duration, units=prev_time_units)
 
         # Interpolate the timeseries state outputs from the previous solution onto the new grid.
         if not isinstance(self, dm.AnalyticPhase):
@@ -3081,19 +3089,12 @@ class Phase(om.Group):
 
                 prev_state_val = prev_vars[prev_state_path]['val']
                 prev_state_units = prev_vars[prev_state_path]['units']
-                interp_vals = self.interp(name=state_name,
-                                          xs=prev_time_val,
-                                          ys=prev_state_val[unique_idxs],
-                                          kind='slinear')
                 if options['lower'] is not None or options['upper'] is not None:
-                    interp_vals = interp_vals.clip(options['lower'], options['upper'])
-                self.set_val(f'states:{state_name}',
-                             interp_vals,
-                             units=prev_state_units)
-                try:
-                    self.set_val(f'initial_states:{state_name}', prev_state_val[0, ...], units=prev_state_units)
-                except KeyError:
-                    pass
+                    prev_state_val = prev_state_val.clip(options['lower'], options['upper'])
+                self.set_state_val(state_name,
+                                   vals=prev_state_val[unique_idxs],
+                                   time_vals=prev_time_val,
+                                   units=prev_state_units)
 
                 if options['fix_final']:
                     warning_message = f"{phase_name}.states:{state_name} specifies 'fix_final=True'. " \
@@ -3114,13 +3115,12 @@ class Phase(om.Group):
 
                 prev_control_val = prev_vars[prev_control_path]['val']
                 prev_control_units = prev_vars[prev_control_path]['units']
-                interp_vals = self.interp(name=control_name,
-                                          xs=prev_time_val,
-                                          ys=prev_control_val[unique_idxs],
-                                          kind='slinear')
                 if options['lower'] is not None or options['upper'] is not None:
-                    interp_vals = interp_vals.clip(options['lower'], options['upper'])
-                self.set_val(f'controls:{control_name}', interp_vals, units=prev_control_units)
+                    prev_control_val = prev_control_val.clip(options['lower'], options['upper'])
+                self.set_control_val(control_name,
+                                     vals=prev_control_val[unique_idxs],
+                                     time_vals=prev_time_val,
+                                     units=prev_control_units)
                 if options['fix_final']:
                     warning_message = f"{phase_name}.controls:{control_name} specifies 'fix_final=True'. " \
                                       f"If the given restart file has a" \
@@ -3132,7 +3132,7 @@ class Phase(om.Group):
             if f'{prev_phase_prom_path}.parameter_vals:{param_name}' in prev_vars:
                 prev_param_val = prev_vars[f'{prev_phase_prom_path}.parameter_vals:{param_name}']['val']
                 prev_param_units = prev_vars[f'{prev_phase_prom_path}.parameter_vals:{param_name}']['units']
-                self.set_val(f'parameters:{param_name}', prev_param_val[0, ...], units=prev_param_units)
+                self.set_parameter_val(param_name, prev_param_val[0, ...], units=prev_param_units)
             else:
                 issue_warning(f'Unable to find "{prev_phase_prom_path}.parameter_vals:{param_name}" '
                               f'in data from case being loaded.')
