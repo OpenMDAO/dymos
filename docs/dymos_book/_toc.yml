@@ -30,6 +30,7 @@ parts:
     - file: examples/length_constrained_brachistochrone/length_constrained_brachistochrone
     - file: examples/min_time_climb/min_time_climb
     - file: examples/mountain_car/mountain_car
+    - file: examples/moon_landing/moon_landing
     - file: examples/multi_phase_cannonball/multi_phase_cannonball
     - file: examples/multibranch_trajectory/multibranch_trajectory
     - file: examples/racecar/racecar
