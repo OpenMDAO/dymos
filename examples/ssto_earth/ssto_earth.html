@@ -535,6 +535,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../min_time_climb/min_time_climb.html">Supersonic Interceptor Minimum Time Climb</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../moon_landing/moon_landing.html">Moon Landing Problem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../racecar/racecar.html">Race car Lap Simulation</a></li>
@@ -805,8 +806,8 @@ It finds the pitch profile for a single-stage-to-orbit launch vehicle that minim
 required to reach orbit insertion under constant thrust.</p>
 <p><img alt="The free-body-diagram of the single-stage-to-orbit problem." src="../../_images/ssto_fbd.png" /></p>
 <p>The vehicle dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-63ade32e-90ad-4001-a285-761eda1ca8da">
-<span class="eqno">(79)<a class="headerlink" href="#equation-63ade32e-90ad-4001-a285-761eda1ca8da" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-7a91479e-1112-4189-8794-8c3923e90757">
+<span class="eqno">(84)<a class="headerlink" href="#equation-7a91479e-1112-4189-8794-8c3923e90757" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dx}{dt} &amp;= v_x \\
   \frac{dy}{dt} &amp;= v_y \\
   \frac{dv_x}{dt} &amp;= \frac{1}{m} (T \cos \theta - D \cos \gamma) \\
@@ -814,8 +815,8 @@ required to reach orbit insertion under constant thrust.</p>
   \frac{dm}{dt} &amp;= \frac{T}{g I_{sp}}
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-d631f707-6960-4675-912d-2a31dc39bede">
-<span class="eqno">(80)<a class="headerlink" href="#equation-d631f707-6960-4675-912d-2a31dc39bede" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-e5c18408-b6e1-4979-869f-b3ea18a5723d">
+<span class="eqno">(85)<a class="headerlink" href="#equation-e5c18408-b6e1-4979-869f-b3ea18a5723d" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_0 &amp;= 0 \\
   y_0 &amp;= 0 \\
   v_{x0} &amp;= 0 \\
@@ -823,8 +824,8 @@ required to reach orbit insertion under constant thrust.</p>
   m_0 &amp;= 117000 \rm{\,kg}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-39e2f074-4f8d-42bd-b69d-04ede73ba455">
-<span class="eqno">(81)<a class="headerlink" href="#equation-39e2f074-4f8d-42bd-b69d-04ede73ba455" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-e2134a90-2e71-4b88-9357-88ef5baa3dda">
+<span class="eqno">(86)<a class="headerlink" href="#equation-e2134a90-2e71-4b88-9357-88ef5baa3dda" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_f &amp;= \rm{free} \\
   y_f &amp;= 185 \rm{\,km} \\
   v_{xf} &amp;= V_{circ} \\
@@ -1118,36 +1119,35 @@ FWD solves: 5   REV solves: 0
 Total colors vs. total size: 5 vs 168  (97.02% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0258 sec
-Time to compute coloring:   0.0127 sec
+Time to compute sparsity:   0.0262 sec
+Time to compute coloring:   0.0134 sec
 Memory to compute coloring:   0.2500 MB
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.phase0.rhs_col&#39; (class LaunchVehicleODE)
+
+Coloring for &#39;traj.phases.phase0.rhs_col&#39; (class LaunchVehicleODE)
 
 Jacobian shape: (72, 84)  (2.98% nonzero)
 FWD solves: 5   REV solves: 0
 Total colors vs. total size: 5 vs 84  (94.05% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0133 sec
-Time to compute coloring:   0.0064 sec
+Time to compute sparsity:   0.0123 sec
+Time to compute coloring:   0.0067 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.08075987300003362 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.09072625999999673 seconds.
 Total jacobian shape: (74, 152) 
-
-
-Jacobian shape: (74, 152)  (5.38% nonzero)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (74, 152)  (5.38% nonzero)
 FWD solves: 12   REV solves: 0
 Total colors vs. total size: 12 vs 152  (92.11% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.0808 sec
-Time to compute coloring:   0.0553 sec
+Time to compute sparsity:   0.0907 sec
+Time to compute coloring:   0.0593 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-07-29 16:16:15
+Coloring created on: 2024-08-06 12:54:04
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1156,11 +1156,11 @@ Coloring created on: 2024-07-29 16:16:15
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    1.6171
-       User Objective Time :       0.0731
-       User Sensitivity Time :     0.9401
-       Interface Time :            0.1411
-       Opt Solver Time:            0.4629
+    Total Time:                    1.9199
+       User Objective Time :       0.1159
+       User Sensitivity Time :     1.1473
+       Interface Time :            0.1673
+       Opt Solver Time:            0.4894
     Calls to Objective Function :      51
     Calls to Sens Function :           48
 
@@ -1544,11 +1544,11 @@ INFO: checking out_of_order
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 53
-  runtime     : 1.8839E+00 s
+  runtime     : 2.2128E+00 s
   model_evals : 53
-  model_time  : 5.4841E-02 s
+  model_time  : 8.1403E-02 s
   deriv_evals : 49
-  deriv_time  : 7.3799E-01 s
+  deriv_time  : 8.7943E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -1608,7 +1608,7 @@ Driver:  pyOptSparseDriver
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../../_images/bd22c18790ad946e9316c7f1f912be8788971aa585c567ce60e027e56bed490f.png" src="../../_images/bd22c18790ad946e9316c7f1f912be8788971aa585c567ce60e027e56bed490f.png" />
+<img alt="../../_images/c9baffc722feb8f5cdf1a08ea586a22404b2882b156a895ea17cbf6ca60ce7ce.png" src="../../_images/c9baffc722feb8f5cdf1a08ea586a22404b2882b156a895ea17cbf6ca60ce7ce.png" />
 </div>
 </div>
 </section>

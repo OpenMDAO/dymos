@@ -535,6 +535,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../examples/length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/min_time_climb/min_time_climb.html">Supersonic Interceptor Minimum Time Climb</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/moon_landing/moon_landing.html">Moon Landing Problem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/racecar/racecar.html">Race car Lap Simulation</a></li>
@@ -825,8 +826,8 @@ Such phases are avaialble in dymos through the <code class="docutils literal not
 Compared to implicit approaches this reduces the size of the optimization problem by removing some design variables and corresponding defect constraints.
 Compared to explicit approaches it removes the need to numerically propagate the ODE, which is generally a performance bottleneck.</p>
 <p>For analytic phases, the OpenMDAO system we provide to the phase provides the <em>solution</em> to the ODE, not the ODE itself.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-9b7daaf2-430c-4d89-aa17-3c6ec895746f">
-<span class="eqno">(94)<a class="headerlink" href="#equation-9b7daaf2-430c-4d89-aa17-3c6ec895746f" title="Permalink to this equation">#</a></span>\[\begin{align}  
+<div class="amsmath math notranslate nohighlight" id="equation-69861b6b-77a4-4796-8c5d-1e3c9eaf5884">
+<span class="eqno">(99)<a class="headerlink" href="#equation-69861b6b-77a4-4796-8c5d-1e3c9eaf5884" title="Permalink to this equation">#</a></span>\[\begin{align}  
     \textbf x = \textbf f(t, \textbf p)
 \end{align}\]</div>
 <p>where
@@ -877,26 +878,26 @@ a shape of (3,).</p>
 <section id="a-basic-example">
 <h2>A basic example<a class="headerlink" href="#a-basic-example" title="Permalink to this heading">#</a></h2>
 <p>Suppose we want to use Dymos to solve the ODE</p>
-<div class="amsmath math notranslate nohighlight" id="equation-2f2b26d1-4fb0-453c-916a-f54c09e501ee">
-<span class="eqno">(95)<a class="headerlink" href="#equation-2f2b26d1-4fb0-453c-916a-f54c09e501ee" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-2f409a9a-e764-46f6-8a36-cf4ef4fa8d75">
+<span class="eqno">(100)<a class="headerlink" href="#equation-2f409a9a-e764-46f6-8a36-cf4ef4fa8d75" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dx}{dt} = x - t^2 + 1
 \end{align}\]</div>
 <p>subject to:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-b604d37e-d2f2-485b-9730-c4a73ed5b9bc">
-<span class="eqno">(96)<a class="headerlink" href="#equation-b604d37e-d2f2-485b-9730-c4a73ed5b9bc" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-65d042fc-fa0f-4c1f-87f3-c0e5ae09c51b">
+<span class="eqno">(101)<a class="headerlink" href="#equation-65d042fc-fa0f-4c1f-87f3-c0e5ae09c51b" title="Permalink to this equation">#</a></span>\[\begin{align}
   x(0) = 0.5
 \end{align}\]</div>
 <p>Here we want to find the value of <em>x</em> at t=2.</p>
 <p>We can absolutely use a pseudospectral method or explicit shooting in Dymos to find the value of <em>x</em> on a given interval using this information.
 But in this case, the solution is known analytically.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-0d2b7ccb-a0b0-4201-8d7a-0743deab3ba7">
-<span class="eqno">(97)<a class="headerlink" href="#equation-0d2b7ccb-a0b0-4201-8d7a-0743deab3ba7" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-ec4db1a0-6881-4b3c-92e7-4556066585e3">
+<span class="eqno">(102)<a class="headerlink" href="#equation-ec4db1a0-6881-4b3c-92e7-4556066585e3" title="Permalink to this equation">#</a></span>\[\begin{align}
   x(t) &amp;= t^2 + 2t + 1 - c_1e^t
 \end{align}\]</div>
 <p>We need to find the value of constant <span class="math notranslate nohighlight">\(c_1\)</span> to find our particular solution.
 Applying the given initial condition gives c_1 as 0.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-039b37b7-f0ca-4c0f-96b1-49e7fffa32b0">
-<span class="eqno">(98)<a class="headerlink" href="#equation-039b37b7-f0ca-4c0f-96b1-49e7fffa32b0" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-8e74955c-91ce-4b87-9f6d-8b6aeea50ef4">
+<span class="eqno">(103)<a class="headerlink" href="#equation-8e74955c-91ce-4b87-9f6d-8b6aeea50ef4" title="Permalink to this equation">#</a></span>\[\begin{align}
   x(0) &amp;= 1 - c_1 = 0.5 \\
   c_1 &amp;\equiv y_0 = 0.5
 \end{align}\]</div>
@@ -987,7 +988,7 @@ Applying the given initial condition gives c_1 as 0.</p>
 x(2.0) = 5.305471950534675
 </pre></div>
 </div>
-<img alt="../../_images/3dbd030b3b7ed9b7bd05e0aa761d3c3a598c8eb80f80a533e8b806e520b2405b.png" src="../../_images/3dbd030b3b7ed9b7bd05e0aa761d3c3a598c8eb80f80a533e8b806e520b2405b.png" />
+<img alt="../../_images/ce4d4a4f5503e806d55543de21b655b80110d39be9117bfc273b2887f0274017.png" src="../../_images/ce4d4a4f5503e806d55543de21b655b80110d39be9117bfc273b2887f0274017.png" />
 </div>
 </div>
 </section>
@@ -1121,7 +1122,7 @@ Optimization Complete
 x(2.0) = 5.305471950534675
 </pre></div>
 </div>
-<img alt="../../_images/1a4ed3faac666ef1f25717975f845de239d1aa2239c902484d14c6893926250d.png" src="../../_images/1a4ed3faac666ef1f25717975f845de239d1aa2239c902484d14c6893926250d.png" />
+<img alt="../../_images/8b3dc92f5678e283be5a8ee12478629ead720a0bf87a9b2a9e45ba12daacb22f.png" src="../../_images/8b3dc92f5678e283be5a8ee12478629ead720a0bf87a9b2a9e45ba12daacb22f.png" />
 </div>
 </div>
 </section>

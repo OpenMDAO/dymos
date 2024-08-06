@@ -535,6 +535,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../min_time_climb/min_time_climb.html">Supersonic Interceptor Minimum Time Climb</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../moon_landing/moon_landing.html">Moon Landing Problem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../racecar/racecar.html">Race car Lap Simulation</a></li>
@@ -809,8 +810,8 @@ optimal control problem governed by six equations of motion and limited
 by the aerodynamic heating rate. For a detailed layout of this problem
 and other optimal control problems see Betts <span id="id1">[<a class="reference internal" href="#id19" title="J. Betts. Practical Methods for Optimal Control and Estimation Using Nonlinear Programming. Society for Industrial and Applied Mathematics, second edition, 2010. URL: https://epubs.siam.org/doi/abs/10.1137/1.9780898718577, arXiv:https://epubs.siam.org/doi/pdf/10.1137/1.9780898718577, doi:10.1137/1.9780898718577.">Bet10</a>]</span>.
 The governing equations of motion for this problem are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-082d1514-15c3-4476-b6fa-88c305f5b36c">
-<span class="eqno">(74)<a class="headerlink" href="#equation-082d1514-15c3-4476-b6fa-88c305f5b36c" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-26dacb47-7f44-461c-a35f-7c6390ce025f">
+<span class="eqno">(79)<a class="headerlink" href="#equation-26dacb47-7f44-461c-a35f-7c6390ce025f" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dh}{dt} &amp;= v \sin \gamma \\
   \frac{d\phi}{dt} &amp;= \frac{v}{r} \cos \gamma \frac{\sin \psi}{\cos \theta} \\
   \frac{d\theta}{dt} &amp;= \frac{v}{r} \cos \gamma \cos \psi  \\
@@ -833,8 +834,8 @@ final altitude, without exceding a maximum heat rate at the leading
 edges. This heat rate is constrained by <span class="math notranslate nohighlight">\(q \leq 70\)</span> where q
 <span class="math notranslate nohighlight">\([\frac{btu}{ft^2s}]\)</span> is the heating rate.</p>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-5c0286b4-1d3c-4839-9679-d7cb21c4caa4">
-<span class="eqno">(75)<a class="headerlink" href="#equation-5c0286b4-1d3c-4839-9679-d7cb21c4caa4" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-bc67ba0f-cc70-4e18-ba43-96a23d1f9ed5">
+<span class="eqno">(80)<a class="headerlink" href="#equation-bc67ba0f-cc70-4e18-ba43-96a23d1f9ed5" title="Permalink to this equation">#</a></span>\[\begin{align}
   h_0 &amp;= 26000 \\
   v_0 &amp;= 25600 \\
   \phi_0 &amp;= 0 \\
@@ -843,8 +844,8 @@ edges. This heat rate is constrained by <span class="math notranslate nohighligh
   \psi_0 &amp;= \frac{\pi}{2}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-8c0ccf67-5382-476d-95fc-7b749f68f3ad">
-<span class="eqno">(76)<a class="headerlink" href="#equation-8c0ccf67-5382-476d-95fc-7b749f68f3ad" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-d1afca4c-1848-49cd-b63c-dace037c5b6e">
+<span class="eqno">(81)<a class="headerlink" href="#equation-d1afca4c-1848-49cd-b63c-dace037c5b6e" title="Permalink to this equation">#</a></span>\[\begin{align}
   h_0 &amp;= 80000 \\
   v_0 &amp;= 2500 \\
   \gamma_0 &amp;= -0.08727 \\
@@ -862,13 +863,13 @@ second component computes the aerodynamic forces of lift and drag on the
 shuttle. The third component is where the heating rate on the leading
 edge of the shuttles wings is computed. The heating rate is given by
 <span class="math notranslate nohighlight">\(q = q_a q_r\)</span> where</p>
-<div class="amsmath math notranslate nohighlight" id="equation-fd2d0c1b-4de5-427e-94a6-4ddf9a17df77">
-<span class="eqno">(77)<a class="headerlink" href="#equation-fd2d0c1b-4de5-427e-94a6-4ddf9a17df77" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-f843d680-fcf1-4d0f-8998-91627646b9a9">
+<span class="eqno">(82)<a class="headerlink" href="#equation-f843d680-fcf1-4d0f-8998-91627646b9a9" title="Permalink to this equation">#</a></span>\[\begin{align}
   q_a &amp;= c_0 + c_1\alpha + c_2 \alpha^2 + c_3 \alpha^3
 \end{align}\]</div>
 <p>and</p>
-<div class="amsmath math notranslate nohighlight" id="equation-46d78802-99b0-416b-8372-e0920331d1ed">
-<span class="eqno">(78)<a class="headerlink" href="#equation-46d78802-99b0-416b-8372-e0920331d1ed" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-b6c920fd-d2d8-489d-b559-2b5ab59b86bf">
+<span class="eqno">(83)<a class="headerlink" href="#equation-b6c920fd-d2d8-489d-b559-2b5ab59b86bf" title="Permalink to this equation">#</a></span>\[\begin{align}
   q_r &amp;= 17700 \rho^.5 (.0001v)^{3.07}
 \end{align}\]</div>
 <p>where <span class="math notranslate nohighlight">\(c_0, c_1, c_2,\)</span> and <span class="math notranslate nohighlight">\(c_3\)</span> are constants, <span class="math notranslate nohighlight">\(\alpha\)</span> <span class="math notranslate nohighlight">\([deg]\)</span> is the
@@ -1456,7 +1457,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.775161345000015 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.7940217969999139 seconds.
 Total jacobian shape: (327, 358) 
 </pre></div>
 </div>
@@ -1465,10 +1466,10 @@ FWD solves: 20   REV solves: 0
 Total colors vs. total size: 20 vs 358  (94.41% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.7752 sec
-Time to compute coloring:   0.2785 sec
+Time to compute sparsity:   0.7940 sec
+Time to compute coloring:   0.2828 sec
 Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-07-29 16:15:42
+Coloring created on: 2024-08-06 12:53:25
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/examples/shuttle_reentry/heating_comp.py:45: RuntimeWarning: invalid value encountered in power
@@ -1481,11 +1482,11 @@ Coloring created on: 2024-07-29 16:15:42
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                   22.4545
-       User Objective Time :       0.3782
-       User Sensitivity Time :     3.3381
-       Interface Time :            0.8180
-       Opt Solver Time:           17.9202
+    Total Time:                   24.1854
+       User Objective Time :       0.4890
+       User Sensitivity Time :     3.9541
+       Interface Time :            0.8893
+       Opt Solver Time:           18.8530
     Calls to Objective Function :     274
     Calls to Sens Function :          141
 
@@ -2257,11 +2258,11 @@ INFO: checking out_of_order
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 275
-  runtime     : 2.3617E+01 s
+  runtime     : 2.5394E+01 s
   model_evals : 275
-  model_time  : 2.6508E-01 s
+  model_time  : 3.3412E-01 s
   deriv_evals : 141
-  deriv_time  : 2.3297E+00 s
+  deriv_time  : 2.5470E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -2287,7 +2288,7 @@ Driver:  pyOptSparseDriver
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/921034a534c45e242f5476242eecbeff61c101ca5cfaa3b60bd98aed2471c006.png" src="../../_images/921034a534c45e242f5476242eecbeff61c101ca5cfaa3b60bd98aed2471c006.png" />
+<img alt="../../_images/b29d0d5df7766f909161596663a02452762cd75051a912bafd3f9a0d42452bd9.png" src="../../_images/b29d0d5df7766f909161596663a02452762cd75051a912bafd3f9a0d42452bd9.png" />
 </div>
 </div>
 </section>

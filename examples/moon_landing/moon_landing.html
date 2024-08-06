@@ -1,0 +1,1538 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Moon Landing Problem &#8212; Dymos</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+<link href="../../_static/styles/bootstrap.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+
+  
+  <link href="../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=4ec06e9971c5264fbd345897d5258098f11cc577" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/myfile.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94">
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94">
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/clipboard.min.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?digest=8bf782fb4ee92b3d3646425e50f299c4e1fd152d"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="../../_static/sphinx-thebe.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/moon_landing/moon_landing';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Multi-Phase Cannonball" href="../multi_phase_cannonball/multi_phase_cannonball.html" />
+    <link rel="prev" title="The Mountain Car Problem" href="../mountain_car/mountain_car.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="docsearch:language" content="en">
+  </head>
+  
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  
+  <input type="checkbox" class="sidebar-toggle" name="__primary" id="__primary">
+  <label class="overlay overlay-primary" for="__primary"></label>
+
+  
+  <input type="checkbox" class="sidebar-toggle" name="__secondary" id="__secondary">
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+      
+<form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+    </div>
+  </div>
+
+  
+  <nav class="bd-header navbar navbar-expand-lg bd-navbar" id="navbar-main"><div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+      <span class="fa-solid fa-bars"></span>
+  </label>
+  <div id="navbar-start">
+    
+    
+  
+
+
+<a class="navbar-brand logo" href="../../index.html">
+
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <img src="../../_static/dymos_logo.png" class="logo__image only-light" alt="Logo image">
+    <img src="../../_static/dymos_logo.png" class="logo__image only-dark" alt="Logo image">
+  
+  
+</a>
+    
+  </div>
+
+  
+  <div class="col-lg-9 navbar-header-items">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <nav class="navbar-nav">
+    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
+        Site Navigation
+    </p>
+    <ul id="navbar-main-elements" class="navbar-nav">
+        
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../installation.html">
+                        Installing Dymos
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../getting_started/optimal_control.html">
+                        Optimal Control
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../getting_started/transcriptions.html">
+                        Optimal Control Transcriptions
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../getting_started/defining_odes.html">
+                        Defining ODEs
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../getting_started/collocation.html">
+                        What is collocation?
+                      </a>
+                    </li>
+                
+            <div class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    More
+                </button>
+                <div class="dropdown-menu">
+                    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">
+                        Modeling Dynamic Systems with Dymos
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../getting_started/intro_to_dymos/intro_segments.html">
+                        Segments of Phases
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../examples.html">
+                        Dymos by Example
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../features/phases/phases_list.html">
+                        Phases
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../features/trajectories/trajectories.html">
+                        Organizing Phases into Trajectories
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../features/exploiting_sparsity.html">
+                        Exploiting Sparsity for Faster Derivative Calculation
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../features/plotting.html">
+                        Plotting Timeseries
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../faq/faq.html">
+                        Frequently Asked Questions
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../api/api.html">
+                        Dymos Reference API
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../contributing/contributing.html">
+                        Contributing to Dymos
+                      </a>
+                    </li>
+                
+                </div>
+            </div>
+            
+    </ul>
+</nav>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+        <div class="navbar-end-item navbar-persistent--container">
+          
+<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-toggle="tooltip">
+  <i class="fa-solid fa-magnifying-glass"></i>
+</button>
+        </div>
+      
+      
+      <div class="navbar-end-item">
+        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+</button>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+
+
+  
+  
+    <div class="navbar-persistent--mobile">
+<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-toggle="tooltip">
+  <i class="fa-solid fa-magnifying-glass"></i>
+</button>
+    </div>
+  
+
+  
+  <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fa-solid fa-outdent"></span>
+  </label>
+  
+
+</div>
+  </nav>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+      
+      <div class="navbar-center-item">
+        <nav class="navbar-nav">
+    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
+        Site Navigation
+    </p>
+    <ul id="navbar-main-elements" class="navbar-nav">
+        
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../installation.html">
+                        Installing Dymos
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../getting_started/optimal_control.html">
+                        Optimal Control
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../getting_started/transcriptions.html">
+                        Optimal Control Transcriptions
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../getting_started/defining_odes.html">
+                        Defining ODEs
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../getting_started/collocation.html">
+                        What is collocation?
+                      </a>
+                    </li>
+                
+            <div class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    More
+                </button>
+                <div class="dropdown-menu">
+                    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">
+                        Modeling Dynamic Systems with Dymos
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../getting_started/intro_to_dymos/intro_segments.html">
+                        Segments of Phases
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../examples.html">
+                        Dymos by Example
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../features/phases/phases_list.html">
+                        Phases
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../features/trajectories/trajectories.html">
+                        Organizing Phases into Trajectories
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../features/exploiting_sparsity.html">
+                        Exploiting Sparsity for Faster Derivative Calculation
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../features/plotting.html">
+                        Plotting Timeseries
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../faq/faq.html">
+                        Frequently Asked Questions
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../api/api.html">
+                        Dymos Reference API
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../contributing/contributing.html">
+                        Contributing to Dymos
+                      </a>
+                    </li>
+                
+                </div>
+            </div>
+            
+    </ul>
+</nav>
+      </div>
+      
+      </div>
+    
+
+    
+    
+    <div class="sidebar-header-items__end">
+      
+      <div class="navbar-end-item">
+        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+</button>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+    
+  </div>
+
+  
+  <div class="sidebar-start-items sidebar-primary__section">
+    <div class="sidebar-start-items__item">
+  
+
+
+<a class="navbar-brand logo" href="../../index.html">
+
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <img src="../../_static/dymos_logo.png" class="logo__image only-light" alt="Logo image">
+    <img src="../../_static/dymos_logo.png" class="logo__image only-dark" alt="Logo image">
+  
+  
+</a>
+    </div>
+    <div class="sidebar-start-items__item">
+<form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+    </div>
+    <div class="sidebar-start-items__item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../index.html">
+                    Multidisciplinary Optimal Control Library
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installing Dymos</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/optimal_control.html">Optimal Control</a></li>
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/transcriptions.html">Optimal Control Transcriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/defining_odes.html">Defining ODEs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/collocation.html">What is collocation?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">Modeling Dynamic Systems with Dymos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/intro_to_dymos/intro_segments.html">Segments of Phases</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples and Tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../examples.html">Dymos by Example</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone.html">The Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone_upstream_init_duration_states.html">The Brachistochrone with externally-sourced initial state values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vanderpol/vanderpol.html">The Van der Pol Oscillator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../balanced_field/balanced_field.html">Aircraft Balanced Field Length Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../balanced_field/balanced_field_funccomp.html">Balanced Field Length using OpenMDAO’s Function Wrapping Components.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bryson_denham/bryson_denham.html">The Bryson-Denham Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../commercial_aircraft/commercial_aircraft.html">Commercial Aircraft Range Maximization by Differential Inclusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../double_integrator/double_integrator.html">Double Integrator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hull/hull_problem.html">The Hull Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hypersensitive/hypersensitive.html">Hyper-Sensitive Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../finite_burn_orbit_raise/finite_burn_orbit_raise.html">Two-Burn Orbit Raise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../min_time_climb/min_time_climb.html">Supersonic Interceptor Minimum Time Climb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Moon Landing Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../racecar/racecar.html">Race car Lap Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reentry/reentry.html">Single-Phase Space Shuttle Reentry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_earth/ssto_earth.html">SSTO Earth Launch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_moon_linear_tangent/ssto_moon_linear_tangent.html">SSTO Lunar Ascent with Linear Tangent Guidance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.html">SSTO Lunar Ascent with Polynomial Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../robertson_problem/robertson_problem.html">The Robertson Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../water_rocket/water_rocket.html">Water Rocket</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cannonball_implicit_duration/cannonball_implicit_duration.html">Cannonball Implicit Duration</a></li>
+</ul>
+</li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Feature Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../features/phases/phases_list.html">Phases</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/phases.html">Phases of a Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/analytic_phases.html">Analytic Phases in Dymos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/segments.html">Segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/variables.html">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/constraints.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/objective.html">Objective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/timeseries.html">Timeseries Outputs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/exploiting_sparsity.html">Exploiting Sparsity for Faster Derivative Calculation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/plotting.html">Plotting Timeseries</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Frequently Asked Questions</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../faq/faq.html">Frequently Asked Questions</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/add_ode_output_to_timeseries.html">How do I add an ODE output to the timeseries outputs?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/connect_scalar_parameters_to_ode.html">How do I connect a scalar input to the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/upstream_analysis.html">How do I connect the outputs of an upstream analysis as inputs to Dymos?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/downstream_analysis.html">How do I connect the outputs of Dymos to a downstream analysis?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/tandem_phases.html">How do I run two phases parallel-in-time?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/use_partial_coloring.html">How can I more efficiently use finite-differenced components in the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/debugging.html">How can I debug models when things go wrong?</a></li>
+</ul>
+</li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dymos API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/api.html">Dymos Reference API</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/run_problem_function.html">The run_problem function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/phase_api.html">Phase Options</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../api/transcriptions_api.html">The Transcriptions API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/trajectory_api.html">The Trajectory API</a></li>
+</ul>
+</li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/contributing.html">Contributing to Dymos</a></li>
+</ul>
+
+    </div>
+</nav>
+    </div>
+  </div>
+  
+
+  
+  <div class="sidebar-end-items sidebar-primary__section">
+    <div class="sidebar-end-items__item">
+    </div>
+  </div>
+
+  
+  <div id="rtd-footer-container"></div>
+
+      </div>
+      <main id="main-content" class="bd-main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+        <div class="bd-content">
+          <div class="bd-article-container">
+            
+            <div class="bd-header-article">
+                
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        <label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" data-toggle="tooltip" data-placement="right" title="Toggle primary sidebar">
+            <span class="fa-solid fa-bars"></span>
+        </label>
+    </div>
+    <div class="header-article__right">
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
+  </button>
+  <ul class="dropdown-menu">
+      <li><a href="https://colab.research.google.com/github/OpenMDAO/dymos/blob/master/docs/dymos_book/examples/moon_landing/moon_landing.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   data-toggle="tooltip"
+data-placement="left"
+title="Launch on Colab"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img src="../../_static/images/logo_colab.png">
+  </span>
+<span class="btn__text-container">Colab</span>
+</a>
+</a>
+      
+  </ul>
+</div>
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="dropdown dropdown-repository-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
+   class="btn btn-sm dropdown-item"
+   data-toggle="tooltip"
+data-placement="left"
+title="Source repository"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">repository</span>
+</a>
+</a>
+      
+      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Fexamples/moon_landing/moon_landing.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm dropdown-item"
+   data-toggle="tooltip"
+data-placement="left"
+title="Open an issue"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">open issue</span>
+</a>
+</a>
+      
+  </ul>
+</div>
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      <li><a href="../../_sources/examples/moon_landing/moon_landing.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</a>
+      
+      <li>
+<button onclick="printPdf(this)"
+  class="btn btn-sm dropdown-item"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</a>
+      
+  </ul>
+</div>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary" data-toggle="tooltip" data-placement="left" title="Toggle secondary sidebar">
+            <span class="fa-solid fa-list"></span>
+        </label>
+    </div>
+</div>
+            </div>
+            
+            
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Moon Landing Problem</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#state-and-control-variables">
+   State and control variables
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#problem-definition">
+   Problem Definition
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#defining-the-ode">
+   Defining the ODE
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#solving-the-moon-landing-problem-with-dymos">
+   Solving the Moon landing problem with Dymos
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#notes-on-the-solution">
+     Notes on the solution
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#references">
+   References
+  </a>
+ </li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+
+            <article class="bd-article" role="main">
+              
+  <section class="tex2jax_ignore mathjax_ignore" id="moon-landing-problem">
+<h1>Moon Landing Problem<a class="headerlink" href="#moon-landing-problem" title="Permalink to this heading">#</a></h1>
+<p>The Moon landing problem is a version of the soft landing problem presented in <span id="id1">[<a class="reference internal" href="#id55" title="J. Meditch. On the problem of optimal thrust programming for a lunar soft landing. IEEE Transactions on Automatic Control, 9(4):477-484, 1964. doi:10.1109/TAC.1964.1105758.">Med64</a>]</span>. The problem is simplified to have one degree-of-freedom and normalized such that the Moon’s gravity is unity. The goal is to minimize the amount of fuel consumed or, stated differently, maximize the final mass, while bringing the lander down to the surface for a soft landing.</p>
+<section id="state-and-control-variables">
+<h2>State and control variables<a class="headerlink" href="#state-and-control-variables" title="Permalink to this heading">#</a></h2>
+<p>This system has three state variables, the altitude (<span class="math notranslate nohighlight">\(h\)</span>), velocity (<span class="math notranslate nohighlight">\(v\)</span>), and mass (<span class="math notranslate nohighlight">\(m\)</span>) of the lander.</p>
+<p>This system has one control variable, (<span class="math notranslate nohighlight">\(T\)</span>), the thrust applied to the vehicle.</p>
+<p>The dynamics of the system are given by</p>
+<div class="amsmath math notranslate nohighlight" id="equation-d4f93c63-d7ac-452b-8020-8b2fb8874ee8">
+<span class="eqno">(70)<a class="headerlink" href="#equation-d4f93c63-d7ac-452b-8020-8b2fb8874ee8" title="Permalink to this equation">#</a></span>\[\begin{align}
+  \dot{h} &amp;= v \\
+  \dot{v} &amp;= -1 + \frac{T}{m} \\
+  \dot{m} &amp;= -\frac{T}{2.349}
+\end{align}\]</div>
+</section>
+<section id="problem-definition">
+<h2>Problem Definition<a class="headerlink" href="#problem-definition" title="Permalink to this heading">#</a></h2>
+<p>We seek to maximize the final mass of the vehicle while bringing it to a soft landing.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-396a155e-ec91-4302-b02a-d33ab8c5f787">
+<span class="eqno">(71)<a class="headerlink" href="#equation-396a155e-ec91-4302-b02a-d33ab8c5f787" title="Permalink to this equation">#</a></span>\[\begin{align}
+  \mathrm{Minimize} \, J &amp;= m_f
+\end{align}\]</div>
+<p>The initial conditions are</p>
+<div class="amsmath math notranslate nohighlight" id="equation-b5e30525-8954-46b2-99c0-8f04a270c280">
+<span class="eqno">(72)<a class="headerlink" href="#equation-b5e30525-8954-46b2-99c0-8f04a270c280" title="Permalink to this equation">#</a></span>\[\begin{align}
+  h_0 &amp;= 1 \\
+  v_0 &amp;= -0.783 \\
+  m_0 &amp;= 1
+\end{align}\]</div>
+<p>and the terminal constraints are</p>
+<div class="amsmath math notranslate nohighlight" id="equation-63c3dfad-ccaf-4d3f-9cbb-94faf749e368">
+<span class="eqno">(73)<a class="headerlink" href="#equation-63c3dfad-ccaf-4d3f-9cbb-94faf749e368" title="Permalink to this equation">#</a></span>\[\begin{align}
+  h_f &amp;= 0 \\
+  v_f &amp;= 0
+\end{align}\]</div>
+<p>Additionally, the thrust is constrained to be positive but remain under 1.227.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-bd0ba232-e7c1-47ce-b684-f6e3d45d22a9">
+<span class="eqno">(74)<a class="headerlink" href="#equation-bd0ba232-e7c1-47ce-b684-f6e3d45d22a9" title="Permalink to this equation">#</a></span>\[\begin{align}
+  0 \le T \le 1.227 
+\end{align}\]</div>
+</section>
+<section id="defining-the-ode">
+<h2>Defining the ODE<a class="headerlink" href="#defining-the-ode" title="Permalink to this heading">#</a></h2>
+<p>The following implements the dynamics of the Moon landing problem described above.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">openmdao.api</span> <span class="k">as</span> <span class="nn">om</span>
+
+
+<span class="k">class</span> <span class="nc">MoonLandingProblemODE</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">ExplicitComponent</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">]</span>
+
+        <span class="c1"># inputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Altitude&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;1/s&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Velocity&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Mass&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Thrust&#39;</span><span class="p">)</span>
+
+        <span class="c1"># outputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;h_dot&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;1/s&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Rate of change of Altitude&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;v_dot&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;1/s**2&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Rate of change of Velocity&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;m_dot&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;1/s&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Rate of change of Mass&#39;</span><span class="p">)</span>
+
+        <span class="c1"># partials</span>
+        <span class="n">ar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nn</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;h_dot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;v_dot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">ar</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;v_dot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">ar</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;m_dot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">val</span><span class="o">=-</span><span class="mi">1</span><span class="o">/</span><span class="mf">2.349</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;m_dot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">val</span><span class="o">=-</span><span class="mi">1</span><span class="o">/</span><span class="mf">2.349</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">discrete_inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">discrete_outputs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">]</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">]</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]</span>
+
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;h_dot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;v_dot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="n">T</span><span class="o">/</span><span class="n">m</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;m_dot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">T</span><span class="o">/</span><span class="mf">2.349</span>
+
+    <span class="k">def</span> <span class="nf">compute_partials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">partials</span><span class="p">,</span> <span class="n">discrete_inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">]</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]</span>
+
+        <span class="n">partials</span><span class="p">[</span><span class="s1">&#39;v_dot&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">m</span>
+        <span class="n">partials</span><span class="p">[</span><span class="s1">&#39;v_dot&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">T</span><span class="o">/</span><span class="n">m</span><span class="o">**</span><span class="mi">2</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="solving-the-moon-landing-problem-with-dymos">
+<h2>Solving the Moon landing problem with Dymos<a class="headerlink" href="#solving-the-moon-landing-problem-with-dymos" title="Permalink to this heading">#</a></h2>
+<p>The optimal solution to this problem is known to have <em>bang-bang</em> control. That is, the control has a “jump” that render it discontinuous in time. Capturing this behavior accurately requires the use of grid refinement for the Gauss-Lobatto and Radau pseudospectral transcriptions but the Birkhoff pseudospectral transcription can be used to handle this behavior without the use of any grid refinement. The following code shows the use of the Birkhoff pseudospectral transcription to solve the problem.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">dymos</span> <span class="k">as</span> <span class="nn">dm</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="n">p</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">())</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">pyOptSparseDriver</span><span class="p">()</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">declare_coloring</span><span class="p">()</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;IPOPT&#39;</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;hessian_approximation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;limited-memory&#39;</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;print_level&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;linear_solver&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;mumps&#39;</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">declare_coloring</span><span class="p">()</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Birkhoff</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="n">traj</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="s1">&#39;traj&#39;</span><span class="p">,</span> <span class="n">dm</span><span class="o">.</span><span class="n">Trajectory</span><span class="p">())</span>
+<span class="n">phase</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">MoonLandingProblemODE</span><span class="p">,</span> <span class="n">transcription</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">set_time_options</span><span class="p">(</span><span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fix_duration</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;h_dot&#39;</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;v_dot&#39;</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;m_dot&#39;</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_control</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1.227</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_boundary_constraint</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">equals</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_boundary_constraint</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">equals</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_objective</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">scaler</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_simulate_options</span><span class="p">(</span><span class="n">atol</span><span class="o">=</span><span class="mf">1.0E-1</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1.0E-2</span><span class="p">)</span>
+
+<span class="n">traj</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
+
+<span class="n">p</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_alloc_complex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">set_time_val</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.783</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">])</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_control_val</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.227</span><span class="p">])</span>
+<span class="n">dm</span><span class="o">.</span><span class="n">run_problem</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">simulate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">simulate_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;times_per_seg&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">},</span> <span class="n">make_plots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>--- Constraint Report [traj] ---
+    --- phase ---
+        [final]   0.0000e+00 == h [None]
+        [final]   0.0000e+00 == v [1/s]
+
+INFO: checking out_of_order
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
+INFO: checking out_of_order
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.09460944400007065 seconds.
+Total jacobian shape: (63, 124) 
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (63, 124)  (2.60% nonzero)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>FWD solves: 4   REV solves: 0
+Total colors vs. total size: 4 vs 124  (96.77% improvement)
+
+Sparsity computed using tolerance: 1e-25
+Time to compute sparsity:   0.0946 sec
+Time to compute coloring:   0.0408 sec
+Memory to compute coloring:   0.3750 MB
+Coloring created on: 2024-08-06 12:51:30
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
+================================================================================
+    Objective Function: _objfunc
+
+    Solution: 
+--------------------------------------------------------------------------------
+    Total Time:                    0.7916
+       User Objective Time :       0.0189
+       User Sensitivity Time :     0.6856
+       Interface Time :            0.0416
+       Opt Solver Time:            0.0455
+    Calls to Objective Function :      16
+    Calls to Sens Function :           16
+
+
+   Objectives
+      Index  Name                                  Value
+          0  traj.phase.boundary_vals.m    -3.952837E-01
+
+   Variables (c - continuous, i - integer, d - discrete)
+      Index  Name                          Type      Lower Bound            Value      Upper Bound     Status
+          0  traj.phase.t_duration_0          c    -1.000000E+21     1.397227E+00     1.000000E+21           
+          1  traj.phase.controls:T_0          c     0.000000E+00     1.900625E-07     1.227000E+00          l
+          2  traj.phase.controls:T_1          c     0.000000E+00     1.200754E-08     1.227000E+00          l
+          3  traj.phase.controls:T_2          c     0.000000E+00     2.042712E-09     1.227000E+00          l
+          4  traj.phase.controls:T_3          c     0.000000E+00     1.360111E-09     1.227000E+00          l
+          5  traj.phase.controls:T_4          c     0.000000E+00     4.448197E-09     1.227000E+00          l
+          6  traj.phase.controls:T_5          c     0.000000E+00     4.256705E-01     1.227000E+00           
+          7  traj.phase.controls:T_6          c     0.000000E+00     1.227000E+00     1.227000E+00          u
+          8  traj.phase.controls:T_7          c     0.000000E+00     1.227000E+00     1.227000E+00          u
+          9  traj.phase.controls:T_8          c     0.000000E+00     1.227000E+00     1.227000E+00          u
+         10  traj.phase.controls:T_9          c     0.000000E+00     1.227000E+00     1.227000E+00          u
+         11  traj.phase.controls:T_10         c     0.000000E+00     1.227000E+00     1.227000E+00          u
+         12  traj.phase.controls:T_11         c     0.000000E+00     1.227000E+00     1.227000E+00          u
+         13  traj.phase.controls:T_12         c     0.000000E+00     1.227000E+00     1.227000E+00          u
+         14  traj.phase.controls:T_13         c     0.000000E+00     1.227000E+00     1.227000E+00          u
+         15  traj.phase.controls:T_14         c     0.000000E+00     1.227000E+00     1.227000E+00          u
+         16  traj.phase.controls:T_15         c     0.000000E+00     1.227000E+00     1.227000E+00          u
+         17  traj.phase.controls:T_16         c     0.000000E+00     1.227000E+00     1.227000E+00          u
+         18  traj.phase.controls:T_17         c     0.000000E+00     1.227000E+00     1.227000E+00          u
+         19  traj.phase.controls:T_18         c     0.000000E+00     1.227000E+00     1.227000E+00          u
+         20  traj.phase.controls:T_19         c     0.000000E+00     1.227000E+00     1.227000E+00          u
+         21  traj.phase.states:h_0            c    -1.000000E+30     1.000000E+00     1.000000E+30           
+         22  traj.phase.states:h_1            c    -1.000000E+30     9.924938E-01     1.000000E+30           
+         23  traj.phase.states:h_2            c    -1.000000E+30     9.696467E-01     1.000000E+30           
+         24  traj.phase.states:h_3            c    -1.000000E+30     9.305227E-01     1.000000E+30           
+         25  traj.phase.states:h_4            c    -1.000000E+30     8.738058E-01     1.000000E+30           
+         26  traj.phase.states:h_5            c    -1.000000E+30     7.982641E-01     1.000000E+30           
+         27  traj.phase.states:h_6            c    -1.000000E+30     7.064505E-01     1.000000E+30           
+         28  traj.phase.states:h_7            c    -1.000000E+30     6.061256E-01     1.000000E+30           
+         29  traj.phase.states:h_8            c    -1.000000E+30     5.024707E-01     1.000000E+30           
+         30  traj.phase.states:h_9            c    -1.000000E+30     3.999428E-01     1.000000E+30           
+         31  traj.phase.states:h_10           c    -1.000000E+30     3.034069E-01     1.000000E+30           
+         32  traj.phase.states:h_11           c    -1.000000E+30     2.170119E-01     1.000000E+30           
+         33  traj.phase.states:h_12           c    -1.000000E+30     1.443228E-01     1.000000E+30           
+         34  traj.phase.states:h_13           c    -1.000000E+30     8.734397E-02     1.000000E+30           
+         35  traj.phase.states:h_14           c    -1.000000E+30     4.664210E-02     1.000000E+30           
+         36  traj.phase.states:h_15           c    -1.000000E+30     2.082882E-02     1.000000E+30           
+         37  traj.phase.states:h_16           c    -1.000000E+30     7.075257E-03     1.000000E+30           
+         38  traj.phase.states:h_17           c    -1.000000E+30     1.469604E-03     1.000000E+30           
+         39  traj.phase.states:h_18           c    -1.000000E+30     9.514736E-05     1.000000E+30           
+         40  traj.phase.states:h_19           c    -1.000000E+30    -3.543057E-17     1.000000E+30           
+         41  traj.phase.state_rates:h_0       c    -1.000000E+30    -5.470143E-01     1.000000E+30           
+         42  traj.phase.state_rates:h_1       c    -1.000000E+30    -5.536763E-01     1.000000E+30           
+         43  traj.phase.state_rates:h_2       c    -1.000000E+30    -5.734247E-01     1.000000E+30           
+         44  traj.phase.state_rates:h_3       c    -1.000000E+30    -6.058871E-01     1.000000E+30           
+         45  traj.phase.state_rates:h_4       c    -1.000000E+30    -6.500537E-01     1.000000E+30           
+         46  traj.phase.state_rates:h_5       c    -1.000000E+30    -6.965069E-01     1.000000E+30           
+         47  traj.phase.state_rates:h_6       c    -1.000000E+30    -7.033109E-01     1.000000E+30           
+         48  traj.phase.state_rates:h_7       c    -1.000000E+30    -6.772406E-01     1.000000E+30           
+         49  traj.phase.state_rates:h_8       c    -1.000000E+30    -6.489352E-01     1.000000E+30           
+         50  traj.phase.state_rates:h_9       c    -1.000000E+30    -6.080881E-01     1.000000E+30           
+         51  traj.phase.state_rates:h_10      c    -1.000000E+30    -5.594978E-01     1.000000E+30           
+         52  traj.phase.state_rates:h_11      c    -1.000000E+30    -4.988972E-01     1.000000E+30           
+         53  traj.phase.state_rates:h_12      c    -1.000000E+30    -4.298995E-01     1.000000E+30           
+         54  traj.phase.state_rates:h_13      c    -1.000000E+30    -3.521394E-01     1.000000E+30           
+         55  traj.phase.state_rates:h_14      c    -1.000000E+30    -2.705403E-01     1.000000E+30           
+         56  traj.phase.state_rates:h_15      c    -1.000000E+30    -1.889000E-01     1.000000E+30           
+         57  traj.phase.state_rates:h_16      c    -1.000000E+30    -1.143464E-01     1.000000E+30           
+         58  traj.phase.state_rates:h_17      c    -1.000000E+30    -5.363801E-02     1.000000E+30           
+         59  traj.phase.state_rates:h_18      c    -1.000000E+30    -1.387949E-02     1.000000E+30           
+         60  traj.phase.state_rates:h_19      c    -1.000000E+30     6.127492E-18     1.000000E+30           
+         61  traj.phase.final_states:h_0      c    -1.000000E+30     0.000000E+00     1.000000E+30           
+         62  traj.phase.states:v_0            c    -1.000000E+30    -7.830000E-01     1.000000E+30           
+         63  traj.phase.states:v_1            c    -1.000000E+30    -7.925359E-01     1.000000E+30           
+         64  traj.phase.states:v_2            c    -1.000000E+30    -8.208041E-01     1.000000E+30           
+         65  traj.phase.states:v_3            c    -1.000000E+30    -8.672708E-01     1.000000E+30           
+         66  traj.phase.states:v_4            c    -1.000000E+30    -9.304912E-01     1.000000E+30           
+         67  traj.phase.states:v_5            c    -1.000000E+30    -9.969847E-01     1.000000E+30           
+         68  traj.phase.states:v_6            c    -1.000000E+30    -1.006724E+00     1.000000E+30           
+         69  traj.phase.states:v_7            c    -1.000000E+30    -9.694068E-01     1.000000E+30           
+         70  traj.phase.states:v_8            c    -1.000000E+30    -9.288902E-01     1.000000E+30           
+         71  traj.phase.states:v_9            c    -1.000000E+30    -8.704215E-01     1.000000E+30           
+         72  traj.phase.states:v_10           c    -1.000000E+30    -8.008690E-01     1.000000E+30           
+         73  traj.phase.states:v_11           c    -1.000000E+30    -7.141249E-01     1.000000E+30           
+         74  traj.phase.states:v_12           c    -1.000000E+30    -6.153610E-01     1.000000E+30           
+         75  traj.phase.states:v_13           c    -1.000000E+30    -5.040547E-01     1.000000E+30           
+         76  traj.phase.states:v_14           c    -1.000000E+30    -3.872532E-01     1.000000E+30           
+         77  traj.phase.states:v_15           c    -1.000000E+30    -2.703927E-01     1.000000E+30           
+         78  traj.phase.states:v_16           c    -1.000000E+30    -1.636762E-01     1.000000E+30           
+         79  traj.phase.states:v_17           c    -1.000000E+30    -7.677782E-02     1.000000E+30           
+         80  traj.phase.states:v_18           c    -1.000000E+30    -1.986720E-02     1.000000E+30           
+         81  traj.phase.states:v_19           c    -1.000000E+30     8.770933E-18     1.000000E+30           
+         82  traj.phase.state_rates:v_0       c    -1.000000E+30    -6.986133E-01     1.000000E+30           
+         83  traj.phase.state_rates:v_1       c    -1.000000E+30    -6.986134E-01     1.000000E+30           
+         84  traj.phase.state_rates:v_2       c    -1.000000E+30    -6.986134E-01     1.000000E+30           
+         85  traj.phase.state_rates:v_3       c    -1.000000E+30    -6.986134E-01     1.000000E+30           
+         86  traj.phase.state_rates:v_4       c    -1.000000E+30    -6.986134E-01     1.000000E+30           
+         87  traj.phase.state_rates:v_5       c    -1.000000E+30    -3.997705E-01     1.000000E+30           
+         88  traj.phase.state_rates:v_6       c    -1.000000E+30     1.930710E-01     1.000000E+30           
+         89  traj.phase.state_rates:v_7       c    -1.000000E+30     2.474667E-01     1.000000E+30           
+         90  traj.phase.state_rates:v_8       c    -1.000000E+30     3.095485E-01     1.000000E+30           
+         91  traj.phase.state_rates:v_9       c    -1.000000E+30     3.864465E-01     1.000000E+30           
+         92  traj.phase.state_rates:v_10      c    -1.000000E+30     4.751158E-01     1.000000E+30           
+         93  traj.phase.state_rates:v_11      c    -1.000000E+30     5.799643E-01     1.000000E+30           
+         94  traj.phase.state_rates:v_12      c    -1.000000E+30     6.980260E-01     1.000000E+30           
+         95  traj.phase.state_rates:v_13      c    -1.000000E+30     8.307085E-01     1.000000E+30           
+         96  traj.phase.state_rates:v_14      c    -1.000000E+30     9.719486E-01     1.000000E+30           
+         97  traj.phase.state_rates:v_15      c    -1.000000E+30     1.116772E+00     1.000000E+30           
+         98  traj.phase.state_rates:v_16      c    -1.000000E+30     1.252712E+00     1.000000E+30           
+         99  traj.phase.state_rates:v_17      c    -1.000000E+30     1.366703E+00     1.000000E+30           
+        100  traj.phase.state_rates:v_18      c    -1.000000E+30     1.442978E+00     1.000000E+30           
+        101  traj.phase.state_rates:v_19      c    -1.000000E+30     1.469952E+00     1.000000E+30           
+        102  traj.phase.final_states:v_0      c    -1.000000E+30    -1.945852E-29     1.000000E+30           
+        103  traj.phase.states:m_0            c     1.000000E-03     1.000000E+00     1.000000E+30           
+        104  traj.phase.states:m_1            c     1.000000E-03     1.000003E+00     1.000000E+30           
+        105  traj.phase.states:m_2            c     1.000000E-03     9.999805E-01     1.000000E+30           
+        106  traj.phase.states:m_3            c     1.000000E-03     1.000026E+00     1.000000E+30           
+        107  traj.phase.states:m_4            c     1.000000E-03     1.000087E+00     1.000000E+30           
+        108  traj.phase.states:m_5            c     1.000000E-03     9.951016E-01     1.000000E+30           
+        109  traj.phase.states:m_6            c     1.000000E-03     9.613252E-01     1.000000E+30           
+        110  traj.phase.states:m_7            c     1.000000E-03     9.060529E-01     1.000000E+30           
+        111  traj.phase.states:m_8            c     1.000000E-03     8.502589E-01     1.000000E+30           
+        112  traj.phase.states:m_9            c     1.000000E-03     7.900012E-01     1.000000E+30           
+        113  traj.phase.states:m_10           c     1.000000E-03     7.303206E-01     1.000000E+30           
+        114  traj.phase.states:m_11           c     1.000000E-03     6.704314E-01     1.000000E+30           
+        115  traj.phase.states:m_12           c     1.000000E-03     6.137581E-01     1.000000E+30           
+        116  traj.phase.states:m_13           c     1.000000E-03     5.605090E-01     1.000000E+30           
+        117  traj.phase.states:m_14           c     1.000000E-03     5.131199E-01     1.000000E+30           
+        118  traj.phase.states:m_15           c     1.000000E-03     4.721855E-01     1.000000E+30           
+        119  traj.phase.states:m_16           c     1.000000E-03     4.392904E-01     1.000000E+30           
+        120  traj.phase.states:m_17           c     1.000000E-03     4.150448E-01     1.000000E+30           
+        121  traj.phase.states:m_18           c     1.000000E-03     4.002624E-01     1.000000E+30           
+        122  traj.phase.states:m_19           c     1.000000E-03     3.952837E-01     1.000000E+30           
+        123  traj.phase.state_rates:m_0       c    -1.000000E+30    -5.651950E-08     1.000000E+30           
+        124  traj.phase.state_rates:m_1       c    -1.000000E+30    -3.570203E-09     1.000000E+30           
+        125  traj.phase.state_rates:m_2       c    -1.000000E+30    -6.070162E-10     1.000000E+30           
+        126  traj.phase.state_rates:m_3       c    -1.000000E+30    -4.040443E-10     1.000000E+30           
+        127  traj.phase.state_rates:m_4       c    -1.000000E+30    -1.322227E-09     1.000000E+30           
+        128  traj.phase.state_rates:m_5       c    -1.000000E+30    -1.265982E-01     1.000000E+30           
+        129  traj.phase.state_rates:m_6       c    -1.000000E+30    -3.649207E-01     1.000000E+30           
+        130  traj.phase.state_rates:m_7       c    -1.000000E+30    -3.649207E-01     1.000000E+30           
+        131  traj.phase.state_rates:m_8       c    -1.000000E+30    -3.649207E-01     1.000000E+30           
+        132  traj.phase.state_rates:m_9       c    -1.000000E+30    -3.649207E-01     1.000000E+30           
+        133  traj.phase.state_rates:m_10      c    -1.000000E+30    -3.649207E-01     1.000000E+30           
+        134  traj.phase.state_rates:m_11      c    -1.000000E+30    -3.649207E-01     1.000000E+30           
+        135  traj.phase.state_rates:m_12      c    -1.000000E+30    -3.649207E-01     1.000000E+30           
+        136  traj.phase.state_rates:m_13      c    -1.000000E+30    -3.649207E-01     1.000000E+30           
+        137  traj.phase.state_rates:m_14      c    -1.000000E+30    -3.649207E-01     1.000000E+30           
+        138  traj.phase.state_rates:m_15      c    -1.000000E+30    -3.649207E-01     1.000000E+30           
+        139  traj.phase.state_rates:m_16      c    -1.000000E+30    -3.649207E-01     1.000000E+30           
+        140  traj.phase.state_rates:m_17      c    -1.000000E+30    -3.649207E-01     1.000000E+30           
+        141  traj.phase.state_rates:m_18      c    -1.000000E+30    -3.649207E-01     1.000000E+30           
+        142  traj.phase.state_rates:m_19      c    -1.000000E+30    -3.649207E-01     1.000000E+30           
+        143  traj.phase.final_states:m_0      c    -1.000000E+30     3.952837E-01     1.000000E+30           
+
+   Constraints (i - inequality, e - equality)
+      Index  Name                                            Type          Lower           Value           Upper    Status  Lagrange Multiplier (N/A)
+          0  traj.phases.phase-&gt;final_boundary_constraint-&gt;h    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+          1  traj.phases.phase-&gt;final_boundary_constraint-&gt;v    e   0.000000E+00   -1.945852E-29    0.000000E+00              9.00000E+100
+          2  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+          3  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+          4  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+          5  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+          6  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+          7  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+          8  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+          9  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         10  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         11  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         12  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         13  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         14  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         15  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         16  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         17  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         18  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         19  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         20  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         21  traj.phase.state_defects:h                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         22  traj.phase.state_defects:h                         e  -1.000000E+00   -1.000000E+00   -1.000000E+00              9.00000E+100
+         23  traj.phase.state_rate_defects:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         24  traj.phase.state_rate_defects:h                    e   0.000000E+00   -7.360779E-14    0.000000E+00              9.00000E+100
+         25  traj.phase.state_rate_defects:h                    e   0.000000E+00   -6.949996E-14    0.000000E+00              9.00000E+100
+         26  traj.phase.state_rate_defects:h                    e   0.000000E+00   -1.553202E-13    0.000000E+00              9.00000E+100
+         27  traj.phase.state_rate_defects:h                    e   0.000000E+00   -2.114975E-13    0.000000E+00              9.00000E+100
+         28  traj.phase.state_rate_defects:h                    e   0.000000E+00   -2.492451E-13    0.000000E+00              9.00000E+100
+         29  traj.phase.state_rate_defects:h                    e   0.000000E+00   -7.294165E-14    0.000000E+00              9.00000E+100
+         30  traj.phase.state_rate_defects:h                    e   0.000000E+00   -7.704948E-14    0.000000E+00              9.00000E+100
+         31  traj.phase.state_rate_defects:h                    e   0.000000E+00   -9.214851E-15    0.000000E+00              9.00000E+100
+         32  traj.phase.state_rate_defects:h                    e   0.000000E+00   -2.775558E-14    0.000000E+00              9.00000E+100
+         33  traj.phase.state_rate_defects:h                    e   0.000000E+00    5.662137E-15    0.000000E+00              9.00000E+100
+         34  traj.phase.state_rate_defects:h                    e   0.000000E+00   -6.661338E-15    0.000000E+00              9.00000E+100
+         35  traj.phase.state_rate_defects:h                    e   0.000000E+00    2.720046E-15    0.000000E+00              9.00000E+100
+         36  traj.phase.state_rate_defects:h                    e   0.000000E+00   -1.054712E-15    0.000000E+00              9.00000E+100
+         37  traj.phase.state_rate_defects:h                    e   0.000000E+00   -9.992007E-15    0.000000E+00              9.00000E+100
+         38  traj.phase.state_rate_defects:h                    e   0.000000E+00   -4.773959E-15    0.000000E+00              9.00000E+100
+         39  traj.phase.state_rate_defects:h                    e   0.000000E+00   -2.363387E-14    0.000000E+00              9.00000E+100
+         40  traj.phase.state_rate_defects:h                    e   0.000000E+00   -7.646661E-15    0.000000E+00              9.00000E+100
+         41  traj.phase.state_rate_defects:h                    e   0.000000E+00   -2.470767E-14    0.000000E+00              9.00000E+100
+         42  traj.phase.state_rate_defects:h                    e   0.000000E+00    1.372803E-29    0.000000E+00              9.00000E+100
+         43  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         44  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         45  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         46  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         47  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         48  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         49  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         50  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         51  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         52  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         53  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         54  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         55  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         56  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         57  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         58  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         59  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         60  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         61  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         62  traj.phase.state_defects:v                         e  -7.830000E-01   -7.830000E-01   -7.830000E-01              9.00000E+100
+         63  traj.phase.state_defects:v                         e   7.830000E-01    7.830000E-01    7.830000E-01              9.00000E+100
+         64  traj.phase.state_rate_defects:v                    e   0.000000E+00   -1.593492E-11    0.000000E+00              9.00000E+100
+         65  traj.phase.state_rate_defects:v                    e   0.000000E+00   -3.216982E-12    0.000000E+00              9.00000E+100
+         66  traj.phase.state_rate_defects:v                    e   0.000000E+00   -1.696532E-12    0.000000E+00              9.00000E+100
+         67  traj.phase.state_rate_defects:v                    e   0.000000E+00   -2.151168E-12    0.000000E+00              9.00000E+100
+         68  traj.phase.state_rate_defects:v                    e   0.000000E+00   -3.867795E-12    0.000000E+00              9.00000E+100
+         69  traj.phase.state_rate_defects:v                    e   0.000000E+00    4.051981E-12    0.000000E+00              9.00000E+100
+         70  traj.phase.state_rate_defects:v                    e   0.000000E+00    1.224409E-12    0.000000E+00              9.00000E+100
+         71  traj.phase.state_rate_defects:v                    e   0.000000E+00    5.514755E-13    0.000000E+00              9.00000E+100
+         72  traj.phase.state_rate_defects:v                    e   0.000000E+00    2.658429E-13    0.000000E+00              9.00000E+100
+         73  traj.phase.state_rate_defects:v                    e   0.000000E+00    1.875722E-13    0.000000E+00              9.00000E+100
+         74  traj.phase.state_rate_defects:v                    e   0.000000E+00    1.423861E-13    0.000000E+00              9.00000E+100
+         75  traj.phase.state_rate_defects:v                    e   0.000000E+00    1.011413E-13    0.000000E+00              9.00000E+100
+         76  traj.phase.state_rate_defects:v                    e   0.000000E+00    9.670043E-14    0.000000E+00              9.00000E+100
+         77  traj.phase.state_rate_defects:v                    e   0.000000E+00    6.661338E-14    0.000000E+00              9.00000E+100
+         78  traj.phase.state_rate_defects:v                    e   0.000000E+00    6.794565E-14    0.000000E+00              9.00000E+100
+         79  traj.phase.state_rate_defects:v                    e   0.000000E+00    7.460699E-14    0.000000E+00              9.00000E+100
+         80  traj.phase.state_rate_defects:v                    e   0.000000E+00    9.992007E-14    0.000000E+00              9.00000E+100
+         81  traj.phase.state_rate_defects:v                    e   0.000000E+00    2.537970E-13    0.000000E+00              9.00000E+100
+         82  traj.phase.state_rate_defects:v                    e   0.000000E+00    7.103207E-13    0.000000E+00              9.00000E+100
+         83  traj.phase.state_rate_defects:v                    e   0.000000E+00    9.912737E-12    0.000000E+00              9.00000E+100
+         84  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         85  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         86  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         87  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         88  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         89  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         90  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         91  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         92  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         93  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         94  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         95  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         96  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         97  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         98  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+         99  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+        100  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+        101  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+        102  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+        103  traj.phase.state_defects:m                         e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+        104  traj.phase.state_defects:m                         e  -1.000000E+00   -1.000000E+00   -1.000000E+00              9.00000E+100
+        105  traj.phase.state_rate_defects:m                    e   0.000000E+00    6.783670E-12    0.000000E+00              9.00000E+100
+        106  traj.phase.state_rate_defects:m                    e   0.000000E+00    9.471588E-13    0.000000E+00              9.00000E+100
+        107  traj.phase.state_rate_defects:m                    e   0.000000E+00    5.043391E-13    0.000000E+00              9.00000E+100
+        108  traj.phase.state_rate_defects:m                    e   0.000000E+00    4.648805E-13    0.000000E+00              9.00000E+100
+        109  traj.phase.state_rate_defects:m                    e   0.000000E+00    7.062860E-13    0.000000E+00              9.00000E+100
+        110  traj.phase.state_rate_defects:m                    e   0.000000E+00   -6.810108E-13    0.000000E+00              9.00000E+100
+        111  traj.phase.state_rate_defects:m                    e   0.000000E+00   -3.421707E-13    0.000000E+00              9.00000E+100
+        112  traj.phase.state_rate_defects:m                    e   0.000000E+00   -1.522671E-13    0.000000E+00              9.00000E+100
+        113  traj.phase.state_rate_defects:m                    e   0.000000E+00   -8.643086E-14    0.000000E+00              9.00000E+100
+        114  traj.phase.state_rate_defects:m                    e   0.000000E+00   -6.045164E-14    0.000000E+00              9.00000E+100
+        115  traj.phase.state_rate_defects:m                    e   0.000000E+00   -4.457545E-14    0.000000E+00              9.00000E+100
+        116  traj.phase.state_rate_defects:m                    e   0.000000E+00   -3.702594E-14    0.000000E+00              9.00000E+100
+        117  traj.phase.state_rate_defects:m                    e   0.000000E+00   -3.153033E-14    0.000000E+00              9.00000E+100
+        118  traj.phase.state_rate_defects:m                    e   0.000000E+00   -2.980949E-14    0.000000E+00              9.00000E+100
+        119  traj.phase.state_rate_defects:m                    e   0.000000E+00   -2.886580E-14    0.000000E+00              9.00000E+100
+        120  traj.phase.state_rate_defects:m                    e   0.000000E+00   -3.153033E-14    0.000000E+00              9.00000E+100
+        121  traj.phase.state_rate_defects:m                    e   0.000000E+00   -3.635980E-14    0.000000E+00              9.00000E+100
+        122  traj.phase.state_rate_defects:m                    e   0.000000E+00   -5.101475E-14    0.000000E+00              9.00000E+100
+        123  traj.phase.state_rate_defects:m                    e   0.000000E+00   -9.697798E-14    0.000000E+00              9.00000E+100
+        124  traj.phase.state_rate_defects:m                    e   0.000000E+00   -1.067257E-12    0.000000E+00              9.00000E+100
+
+
+   Exit Status
+      Inform  Description
+           0  Solve Succeeded
+--------------------------------------------------------------------------------
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Problem: problem
+Driver:  pyOptSparseDriver
+  success     : True
+  iterations  : 18
+  runtime     : 9.7324E-01 s
+  model_evals : 18
+  model_time  : 1.3859E-02 s
+  deriv_evals : 17
+  deriv_time  : 4.0030E-01 s
+  exit_status : SUCCESS
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">IFrame</span>
+<span class="n">IFrame</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_reports_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;traj_results_report.html&#39;</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">1200</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html">
+        <iframe
+            width="800"
+            height="1200"
+            src="reports/problem/traj_results_report.html"
+            frameborder="0"
+            allowfullscreen
+            
+        ></iframe>
+        </div></div>
+</div>
+<section id="notes-on-the-solution">
+<h3>Notes on the solution<a class="headerlink" href="#notes-on-the-solution" title="Permalink to this heading">#</a></h3>
+<p>We can see that the collocation solution accurately captures the jump in the thrust. The oscillatory behavior observed is a result of interpolation performed post solution rather than a property of the solution itself.</p>
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">#</a></h2>
+<div class="docutils container" id="id2">
+<div class="citation" id="id55" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Med64</a><span class="fn-bracket">]</span></span>
+<p>J. Meditch. On the problem of optimal thrust programming for a lunar soft landing. <em>IEEE Transactions on Automatic Control</em>, 9(4):477–484, 1964. <a class="reference external" href="https://doi.org/10.1109/TAC.1964.1105758">doi:10.1109/TAC.1964.1105758</a>.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./examples/moon_landing"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+            </article>
+            
+
+            
+            
+            <footer class="bd-footer-article">
+                <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+  <a class='left-prev' id="prev-link" href="../mountain_car/mountain_car.html" title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+          <p class="prev-next-subtitle">previous</p>
+          <p class="prev-next-title">The Mountain Car Problem</p>
+      </div>
+  </a>
+  <a class='right-next' id="next-link" href="../multi_phase_cannonball/multi_phase_cannonball.html" title="next page">
+  <div class="prev-next-info">
+      <p class="prev-next-subtitle">next</p>
+      <p class="prev-next-title">Multi-Phase Cannonball</p>
+  </div>
+  <i class="fa-solid fa-angle-right"></i>
+  </a>
+</div>
+            </footer>
+            
+          </div>
+          
+          
+          
+            <div class="bd-sidebar-secondary bd-toc">
+              
+<div class="toc-item">
+  
+<div class="tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+</div>
+<nav id="bd-toc-nav" class="page-toc">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#state-and-control-variables">
+   State and control variables
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#problem-definition">
+   Problem Definition
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#defining-the-ode">
+   Defining the ODE
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#solving-the-moon-landing-problem-with-dymos">
+   Solving the Moon landing problem with Dymos
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#notes-on-the-solution">
+     Notes on the solution
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#references">
+   References
+  </a>
+ </li>
+</ul>
+
+</nav>
+</div>
+
+            </div>
+          
+          
+        </div>
+        <footer class="bd-footer-content">
+          <div class="bd-footer-content__inner">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By The Dymos Development Team
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+<p class="copyright">
+
+    &copy; Copyright 2022.<br>
+
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="last-updated">
+Last updated on None.<br>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </div>
+        </footer>
+        
+
+      </main>
+    </div>
+  </div>
+
+  
+    
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94"></script>
+
+  </body>
+</html>

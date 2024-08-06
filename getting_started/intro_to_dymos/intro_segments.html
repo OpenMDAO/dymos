@@ -535,6 +535,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../examples/length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/min_time_climb/min_time_climb.html">Supersonic Interceptor Minimum Time Climb</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/moon_landing/moon_landing.html">Moon Landing Problem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/racecar/racecar.html">Race car Lap Simulation</a></li>
@@ -1059,7 +1060,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
 </pre></div>
 </div>
-<img alt="../../_images/16cde9612498e318d871de88e80039b8cfb61025f8121ca6981d00d590d3f0fb.png" src="../../_images/16cde9612498e318d871de88e80039b8cfb61025f8121ca6981d00d590d3f0fb.png" />
+<img alt="../../_images/7d8c9043aee3f5cefdd337f6c30d96cd1c91517c3a5cbb093fb19a1f5a2215dd.png" src="../../_images/7d8c9043aee3f5cefdd337f6c30d96cd1c91517c3a5cbb093fb19a1f5a2215dd.png" />
 </div>
 </div>
 <p>Why does this happen?
@@ -1227,7 +1228,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
 </pre></div>
 </div>
-<img alt="../../_images/5fba46ee4523f0a422557ee4005811f3d6db6be04d730322e51dc7fdad6bcd49.png" src="../../_images/5fba46ee4523f0a422557ee4005811f3d6db6be04d730322e51dc7fdad6bcd49.png" />
+<img alt="../../_images/ebd9f27d386ca62fe5b43206c9d0517ff1f13c5dc3d1724be81b8d13dbae6cfd.png" src="../../_images/ebd9f27d386ca62fe5b43206c9d0517ff1f13c5dc3d1724be81b8d13dbae6cfd.png" />
 </div>
 </div>
 <p>Alternatively, we could stick with 4 segments but give each a higher order (7 in this case).</p>
@@ -1385,7 +1386,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
 </pre></div>
 </div>
-<img alt="../../_images/867ca154ad97477c9c1862af7669165116d2f90ef5e0720ee44082ab0e870edc.png" src="../../_images/867ca154ad97477c9c1862af7669165116d2f90ef5e0720ee44082ab0e870edc.png" />
+<img alt="../../_images/3f08791dd414e4e71feb11121f921fa90820f99066c957772699752e9ac381dc.png" src="../../_images/3f08791dd414e4e71feb11121f921fa90820f99066c957772699752e9ac381dc.png" />
 </div>
 </div>
 <p>In both these cases, we obtained a better match of the dynamics using either more segments or higher-order segments. This gives the state interpolating polynomials enough freedom to more accurately match the true behavior of the system. Increasing the number of segments and increasing the segment orders both increase the number of discrete points, and thus slow down the solution a bit. Theres a balance to be found between using enough discretization points to get an accurate solution, and slowing down the analysis due to having an overabundance of points. In general, using a high number of low-order segments is preferable to using fewer high-order segments because it makes the constraint jacobian more sparse.</p>

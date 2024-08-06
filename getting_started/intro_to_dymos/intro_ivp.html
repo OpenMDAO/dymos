@@ -535,6 +535,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../examples/length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/min_time_climb/min_time_climb.html">Supersonic Interceptor Minimum Time Climb</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/moon_landing/moon_landing.html">Moon Landing Problem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/racecar/racecar.html">Race car Lap Simulation</a></li>
@@ -832,13 +833,13 @@ Dynamic systems are typically defined by some set of ordinary
 differential equations (the ODE) which governs their behavior.</p>
 <p>Consider a simple damped harmonic oscillator.</p>
 <p><img alt="Damped harmonic oscillator free-body diagram" src="../../_images/spring_mass_damper.png" /></p>
-<div class="amsmath math notranslate nohighlight" id="equation-78418f12-3e17-47e6-984a-026dc386710b">
-<span class="eqno">(11)<a class="headerlink" href="#equation-78418f12-3e17-47e6-984a-026dc386710b" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-15392d78-8e8c-43d3-a289-85be51d3ba36">
+<span class="eqno">(11)<a class="headerlink" href="#equation-15392d78-8e8c-43d3-a289-85be51d3ba36" title="Permalink to this equation">#</a></span>\[\begin{align}
     \ddot{x} &amp;= -\frac{kx}{m} - \frac{c \dot{x}}{m}
 \end{align}\]</div>
 <p>Converting this to a first order system results in an ODE system with two states:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-9960b746-37e6-416d-a316-3a7307e90fb2">
-<span class="eqno">(12)<a class="headerlink" href="#equation-9960b746-37e6-416d-a316-3a7307e90fb2" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-41a5df16-1125-4d47-832b-0e4538b90fd0">
+<span class="eqno">(12)<a class="headerlink" href="#equation-41a5df16-1125-4d47-832b-0e4538b90fd0" title="Permalink to this equation">#</a></span>\[\begin{align}
     \dot{x} &amp;= v \\
     \dot{v} &amp;= -\frac{kx}{m} - \frac{c \dot{x}}{m}
 \end{align}\]</div>
@@ -1043,7 +1044,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
 </pre></div>
 </div>
-<img alt="../../_images/16cde9612498e318d871de88e80039b8cfb61025f8121ca6981d00d590d3f0fb.png" src="../../_images/16cde9612498e318d871de88e80039b8cfb61025f8121ca6981d00d590d3f0fb.png" />
+<img alt="../../_images/7d8c9043aee3f5cefdd337f6c30d96cd1c91517c3a5cbb093fb19a1f5a2215dd.png" src="../../_images/7d8c9043aee3f5cefdd337f6c30d96cd1c91517c3a5cbb093fb19a1f5a2215dd.png" />
 </div>
 </div>
 </section>
@@ -1179,6 +1180,18 @@ Otherwise, we can pass it only to certain states as an argument to <code class="
         None
 </pre></div>
 </div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/transcriptions/transcription_base.py:401: OpenMDAOWarning:&#39;traj.phases.phase0&#39; &lt;class Phase&gt;
+  Non-default solvers are required
+    implicit duration: False
+    solved segments: True
+    input initial: False
+  Setting `traj.phases.phase0.nonlinear_solver = om.NewtonSolver(iprint=0, solve_subsystems=True, maxiter=1000, stall_limit=3)`
+  Explicitly set traj.phases.phase0.nonlinear_solver to override.
+  Setting `traj.phases.phase0.linear_solver = om.DirectSolver(iprint=2)`
+  Explicitly set traj.phases.phase0.linear_solver to override.
+  Set `traj.phases.phase0.options[&quot;auto_solvers&quot;] = False` to disable this behavior.
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order
 </pre></div>
 </div>
@@ -1195,18 +1208,6 @@ Otherwise, we can pass it only to certain states as an argument to <code class="
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/transcriptions/transcription_base.py:401: OpenMDAOWarning:&#39;traj.phases.phase0&#39; &lt;class Phase&gt;
-  Non-default solvers are required
-    implicit duration: False
-    solved segments: True
-    input initial: False
-  Setting `traj.phases.phase0.nonlinear_solver = om.NewtonSolver(iprint=0, solve_subsystems=True, maxiter=1000, stall_limit=3)`
-  Explicitly set traj.phases.phase0.nonlinear_solver to override.
-  Setting `traj.phases.phase0.linear_solver = om.DirectSolver(iprint=2)`
-  Explicitly set traj.phases.phase0.linear_solver to override.
-  Set `traj.phases.phase0.options[&quot;auto_solvers&quot;] = False` to disable this behavior.
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
@@ -1249,7 +1250,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
 </pre></div>
 </div>
-<img alt="../../_images/a2bea66264a3bb86843857a83481ea7549781ca475158170b8506b3b3d1c20df.png" src="../../_images/a2bea66264a3bb86843857a83481ea7549781ca475158170b8506b3b3d1c20df.png" />
+<img alt="../../_images/82b7d0cf1a0fab9658cc0855288b3e57b1371b94cb74247951a0b552c800244e.png" src="../../_images/82b7d0cf1a0fab9658cc0855288b3e57b1371b94cb74247951a0b552c800244e.png" />
 </div>
 </div>
 </section>
@@ -1415,7 +1416,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
 </pre></div>
 </div>
-<img alt="../../_images/a2bea66264a3bb86843857a83481ea7549781ca475158170b8506b3b3d1c20df.png" src="../../_images/a2bea66264a3bb86843857a83481ea7549781ca475158170b8506b3b3d1c20df.png" />
+<img alt="../../_images/82b7d0cf1a0fab9658cc0855288b3e57b1371b94cb74247951a0b552c800244e.png" src="../../_images/82b7d0cf1a0fab9658cc0855288b3e57b1371b94cb74247951a0b552c800244e.png" />
 </div>
 </div>
 </section>
