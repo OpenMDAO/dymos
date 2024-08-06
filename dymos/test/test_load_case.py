@@ -198,7 +198,7 @@ class TestLoadCase(unittest.TestCase):
         case = om.CaseReader('dymos_solution.db').get_case('final')
 
         # create a problem with a different transcription with a different number of variables
-        q = setup_problem(dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=50)))
+        q = setup_problem(dm.Birkhoff(num_nodes=50))
 
         # Fill q with junk so that we can be sure load_case worked
         q['phase0.t_initial'] = -88

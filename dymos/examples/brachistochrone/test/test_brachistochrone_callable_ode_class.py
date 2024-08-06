@@ -31,9 +31,8 @@ class TestBrachExecCompODE(unittest.TestCase):
                          order=transcription_order,
                          compressed=compressed)
         elif transcription == 'birkhoff':
-            grid = dm.BirkhoffGrid(num_nodes=transcription_order+1,
-                                   grid_type='cgl')
-            t = dm.Birkhoff(grid=grid)
+            t = dm.Birkhoff(num_nodes=transcription_order+1,
+                            grid_type='cgl')
 
         def ode(num_nodes):
             return om.ExecComp(['vdot = g * cos(theta)',

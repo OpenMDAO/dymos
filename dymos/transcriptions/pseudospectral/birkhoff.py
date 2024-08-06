@@ -34,10 +34,13 @@ class Birkhoff(TranscriptionBase):
         """
         Declare transcription options.
         """
-        self.options.declare('grid', types=(BirkhoffGrid, str),
-                             allow_none=True, default=None,
-                             desc='The grid distribution used to layout the control inputs and provide the default '
-                                  'output nodes. Use either "cgl" or "lgl".')
+        self.options.declare('num_nodes', types=int, default=3,
+                             desc='The number of nodes in the grid')
+
+        self.options.declare('grid_type', values=('cgl', 'lgl'), default='cgl',
+                             desc='Specifies which type of grid is to be used. '
+                                  'Options are Chebyshev-Gauss-Lobatto ("cgl") '
+                                  'and Legendre-Gauss-Lobatto ("lgl")')
 
         self.options.declare(name='solve_segments', default=False,
                              values=(False, 'forward', 'backward'),
@@ -55,11 +58,8 @@ class Birkhoff(TranscriptionBase):
         """
         Setup the GridData object for the Transcription.
         """
-        if self.options['grid'] in ('cgl', None):
-            self.grid_data = BirkhoffGrid(num_nodes=self.options['order'],
-                                          grid_type='cgl')
-        else:
-            self.grid_data = self.options['grid']
+        self.grid_data = BirkhoffGrid(num_nodes=self.options['num_nodes'],
+                                      grid_type=self.options['grid_type'])
 
     def setup_time(self, phase):
         """

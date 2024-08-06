@@ -135,7 +135,7 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
     @unittest.skipIf(om_version < (3, 32, 2), 'Test requires OpenMDAO 3.32.2 or later')
     def test_ex_aircraft_steady_flight_opt_birkhoff(self):
 
-        tx = dm.Birkhoff(grid=dm.BirkhoffGrid(num_nodes=50, grid_type='cgl'),
+        tx = dm.Birkhoff(num_nodes=50, grid_type='cgl',
                          solve_segments=False)
         p = ex_aircraft_steady_flight(transcription=tx, optimizer='IPOPT')
         assert_near_equal(p.get_val('traj.phase0.timeseries.range', units='NM')[-1],
