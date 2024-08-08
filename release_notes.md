@@ -1,3 +1,66 @@
+
+*******************************
+# Release Notes for Dymos 1.11.0
+
+August 08, 2024
+
+Dymos 1.11.0 includes the initial implementation of the Birkhoff transcription and a number of other significant improvements. These improvements have focused on the ability to the user to switch transcriptions or control types with a minimal change to their scripts.
+
+### Unification of controls and polynomial controls
+
+The separate APIs for controls and polynomial controls are no more, in favor of the `set_control_options` or `add_control` methods that can be used to either add a standard "fully collocated" control or a "polynomial" control. Methods `set_polynomial_control_options` and `add_polynomial_control` are deprecated.
+
+### set_time_val, set_state_val, set_control_val, and set_parameter_val
+
+The Birkhoff transcription is significantly different from the Gauss-Lobatto and Radau transcriptions in that it requires the estimated state rate, the initial state value, and the final state value to be additional design variables. This information is redundant from the user's perspective, but provides the Birkhoff method with some greater degree of robustness.
+
+To remove the need to provide these extra values when using the Birkhoff transcription, the `set_state_val` method on phase will automatically populate them based upon the interpolated values of the state in the phase. To make the dymos API consistent, similar methods are added for `set_time_val`, `set_control_val`,  and `set_parameter_val`.
+
+### integ_var_options and set_integ_var_options
+
+For cases when the integration variable is not time, the notion of using `phase.time_options` and `phase.set_time_options` can be confusing.
+For this reason, `phase.integ_var_options` and `phase.set_integ_var_options` have been added as alias to `phase.time_options` and `phase.set_time_options`, respectively.
+
+## Backwards Incompatible API Changes & Deprecations
+- `set_polynomial_control_options` and `phase.poylnomial_control_options` are deprecated in favor of the common use of `phase.set_control_options` and `phase.control_options` where an order for the control is specified if it is a polynomial control.
+
+## Enhancements
+- Changed phase default NonlinearSolver to have a maxiter of 100. [#1034](https://github.com/OpenMDAO/dymos/pull/1034)
+- Updated GitHub workflow to use only the conda-forge channel for dependencies [#1036](https://github.com/OpenMDAO/dymos/pull/1036)
+- Some Birkhoff constraints are now treated as linear. [#1043](https://github.com/OpenMDAO/dymos/pull/1043)
+- Use sparse partials for the Birkhoff state residuals when OpenMDAO bug is fixed. [#1055](https://github.com/OpenMDAO/dymos/pull/1055)
+- Use Barycentric Lagrange Interpolation for controls in Simulation [#1056](https://github.com/OpenMDAO/dymos/pull/1056)
+- Changed oldest support python to 3.9 [#1067](https://github.com/OpenMDAO/dymos/pull/1067)
+- API Change for setting values [#1072](https://github.com/OpenMDAO/dymos/pull/1072)
+- Unify controls and polynomial controls [#1078](https://github.com/OpenMDAO/dymos/pull/1078)
+- Added optional `integ_var_options` for `time_options` when the integration variable is not time. [#1079](https://github.com/OpenMDAO/dymos/pull/1079)
+- Updated phase.load_case so that it uses the state_xxx_vals API.  Specify parent when subproblems are used. [#1087](https://github.com/OpenMDAO/dymos/pull/1087)
+- Added Birkhoff Docs [#1088](https://github.com/OpenMDAO/dymos/pull/1088)
+
+
+## Bug Fixes
+- Fixed a bug that was causing trajectory result reports not to be displayed in the documentation. [#1032](https://github.com/OpenMDAO/dymos/pull/1032)
+- Fixed an issue where matplotlib was not required to install dymos without specifications but would fail to import. [#1035](https://github.com/OpenMDAO/dymos/pull/1035)
+- Fixed an issue with timeseries reports and the Birkhoff transcription. [#1040](https://github.com/OpenMDAO/dymos/pull/1040)
+- Fixed issue with running trajectory timeseries report under MPI [#1046](https://github.com/OpenMDAO/dymos/pull/1046)
+- Fix for test failure in test_error_estimation.py [#1047](https://github.com/OpenMDAO/dymos/pull/1047)
+- Fixed matplotlib calls that were broken by a change in the matplotlib API [#1070](https://github.com/OpenMDAO/dymos/pull/1070)
+- Fixed a logic issue in Birkhoff timeseries outputs. [#1071](https://github.com/OpenMDAO/dymos/pull/1071)
+- Fixed a bug where timeserires report use of fig.circle instead of fig.scatter stopped working in Bokeh 3.4. [#1073](https://github.com/OpenMDAO/dymos/pull/1073)
+- Replace deprecated numpy function `in1d()` with `isin()` [#1081](https://github.com/OpenMDAO/dymos/pull/1081)
+- Stopped coloring plots popping up during tests [#1082](https://github.com/OpenMDAO/dymos/pull/1082)
+- Fixed bug that caused aviary CI failure. [#1083](https://github.com/OpenMDAO/dymos/pull/1083)
+
+
+## Miscellaneous
+- Replaced `setup.py` with `pyproject.toml` using `hatchling` backend [#1052](https://github.com/OpenMDAO/dymos/pull/1052)
+- Minor spelling fixes [#1053](https://github.com/OpenMDAO/dymos/pull/1053)
+- Added inline directive to notebooks that use matplotlib [#1054](https://github.com/OpenMDAO/dymos/pull/1054)
+- Make docs link correctly formatted [#1059](https://github.com/OpenMDAO/dymos/pull/1059)
+- Added skip to handle tests that need matplotlib and/or pydocstyle when not installed [#1062](https://github.com/OpenMDAO/dymos/pull/1062)
+- Modified `latest` workflow build to use petsc 3.21.0 [#1064](https://github.com/OpenMDAO/dymos/pull/1064)
+
+
 *******************************
 # Release Notes for Dymos 1.10.0
 
@@ -85,7 +148,7 @@ This has been addressed.
 Dymos had previously been calling `allgather` excessively under MPI which could
 cause performance issues during setup.
 
-Finally, Trajectory.simulate() should now work correctly under MPI so that results can 
+Finally, Trajectory.simulate() should now work correctly under MPI so that results can
 be checked with explicit integration when working under MPI.
 
 ## Backwards Incompatible API Changes & Deprecations
@@ -212,7 +275,7 @@ November 14, 2022
 
 Version 1.6.1 of Dymos addresses bugs described below.
 
-This release also includes the start of an implementation to allow calculated expressions to be used as 
+This release also includes the start of an implementation to allow calculated expressions to be used as
 constraints and timeseries outputs, but this feature is still undergoing development and documentation.
 
 ## Backwards Incompatible API Changes & Deprecations
@@ -303,7 +366,7 @@ In an upcoming release, the user will be able to easily apply constraints to the
 * Added small changes to improve coverage. [#809](https://github.com/OpenMDAO/dymos/pull/809)
 * Fixed CI dependency issues based on some broken jupyter-book dependencies. [#812](https://github.com/OpenMDAO/dymos/pull/812)
 * Various code cleanup items added. [#807](https://github.com/OpenMDAO/dymos/pull/807)
-* Made a few minor cleanups for the cartpole example. [#815](https://github.com/OpenMDAO/dymos/pull/815) 
+* Made a few minor cleanups for the cartpole example. [#815](https://github.com/OpenMDAO/dymos/pull/815)
 
 *******************************
 # Release Notes for Dymos 1.5.0
@@ -339,10 +402,10 @@ This assumption of non-linearity also works around some issues we were seeing wi
 ## Enhancements
 
 * Users can now pass `simulate_kwargs` from `dymos.run_problem`. [#720](https://github.com/OpenMDAO/dymos/pull/720)
-* Added `set_parameter_options` method to `Trajectory` for better API consistency. [#721](https://github.com/OpenMDAO/dymos/pull/721) 
-* USatm1976Comp now accepts altitude as either geopotential or geodetic. [#735](https://github.com/OpenMDAO/dymos/pull/735) 
-* Disabled reports by default for subproblems under simulate and ExplicitShooting.  [#741](https://github.com/OpenMDAO/dymos/pull/741) 
-* Constraints are now applied directly to timeseries outputs, and several other constraint improvements.  [#743](https://github.com/OpenMDAO/dymos/pull/743) 
+* Added `set_parameter_options` method to `Trajectory` for better API consistency. [#721](https://github.com/OpenMDAO/dymos/pull/721)
+* USatm1976Comp now accepts altitude as either geopotential or geodetic. [#735](https://github.com/OpenMDAO/dymos/pull/735)
+* Disabled reports by default for subproblems under simulate and ExplicitShooting.  [#741](https://github.com/OpenMDAO/dymos/pull/741)
+* Constraints are now applied directly to timeseries outputs, and several other constraint improvements.  [#743](https://github.com/OpenMDAO/dymos/pull/743)
 
 ## Bug Fixes
 
