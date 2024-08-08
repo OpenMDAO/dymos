@@ -839,24 +839,24 @@ the system at an event in the trajectory. Here, we have the first phase
 (ascent) terminate when the flight path angle reaches zero (apogee). The
 descent phase follows until the cannonball impacts the ground.</p>
 <p>The dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-a961b42f-7cf8-4c21-82d3-2c034bb700f9">
-<span class="eqno">(75)<a class="headerlink" href="#equation-a961b42f-7cf8-4c21-82d3-2c034bb700f9" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-ee0d85ac-fe5d-4054-bdfe-ffa809ec5992">
+<span class="eqno">(75)<a class="headerlink" href="#equation-ee0d85ac-fe5d-4054-bdfe-ffa809ec5992" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dv}{dt} &amp;= \frac{D}{m} - g \sin \gamma \\
   \frac{d\gamma}{dt} &amp;= - \frac{g \cos \gamma}{v} \\
   \frac{dh}{dt} &amp;= v \sin \gamma \\
   \frac{dr}{dt} &amp;= v \cos \gamma \\
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-c70abdd7-b6ab-4a63-a1eb-df43f9c54d75">
-<span class="eqno">(76)<a class="headerlink" href="#equation-c70abdd7-b6ab-4a63-a1eb-df43f9c54d75" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-647c6f65-68d7-49ea-af6f-fe111065fe4c">
+<span class="eqno">(76)<a class="headerlink" href="#equation-647c6f65-68d7-49ea-af6f-fe111065fe4c" title="Permalink to this equation">#</a></span>\[\begin{align}
   r_0 &amp;= 0 \rm{\,m} \\
   h_0 &amp;= 100 \rm{\,m} \\
   v_0 &amp;= \rm{free} \\
   \gamma_0 &amp;= \rm{free}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-953b152f-eccf-4c38-a665-600dd531caac">
-<span class="eqno">(77)<a class="headerlink" href="#equation-953b152f-eccf-4c38-a665-600dd531caac" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-4e4d860e-e22c-4eab-8562-64c0363b06be">
+<span class="eqno">(77)<a class="headerlink" href="#equation-4e4d860e-e22c-4eab-8562-64c0363b06be" title="Permalink to this equation">#</a></span>\[\begin{align}
   h_f &amp;= 0 \rm{\,m}
 \end{align}\]</div>
 </section>
@@ -869,8 +869,8 @@ energy and that our cannonball is made of solid iron. The volume (and
 mass) of the cannonball is proportional to its radius cubed, while the
 cross-sectional area is proportional to its radius squared. If we
 increase the size of the cannonball, the ballistic coefficient</p>
-<div class="amsmath math notranslate nohighlight" id="equation-c0329856-5efe-4365-a73f-b9dabf691586">
-<span class="eqno">(78)<a class="headerlink" href="#equation-c0329856-5efe-4365-a73f-b9dabf691586" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-1838b343-9ff6-4e71-83f2-3db56d430315">
+<span class="eqno">(78)<a class="headerlink" href="#equation-1838b343-9ff6-4e71-83f2-3db56d430315" title="Permalink to this equation">#</a></span>\[\begin{align}
   BC &amp;= \frac{m}{C_D A}
 \end{align}\]</div>
 <p>will increase, meaning the cannonball overcome air resistance more
@@ -1168,8 +1168,8 @@ FWD solves: 6   REV solves: 0
 Total colors vs. total size: 6 vs 63  (90.48% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0172 sec
-Time to compute coloring:   0.0076 sec
+Time to compute sparsity:   0.0174 sec
+Time to compute coloring:   0.0073 sec
 Memory to compute coloring:   0.3750 MB
 
 Coloring for &#39;traj.phases.descent.rhs_disc&#39; (class CannonballODE)
@@ -1180,7 +1180,7 @@ Total colors vs. total size: 6 vs 33  (81.82% improvement)
 
 Sparsity computed using tolerance: 1e-25
 Time to compute sparsity:   0.0091 sec
-Time to compute coloring:   0.0038 sec
+Time to compute coloring:   0.0037 sec
 Memory to compute coloring:   0.0000 MB
 
 Coloring for &#39;traj.phases.descent.rhs_col&#39; (class CannonballODE)
@@ -1195,7 +1195,7 @@ Time to compute coloring:   0.0021 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.11680404200001249 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.10692089400004079 seconds.
 Total jacobian shape: (87, 88) 
 
 
@@ -1204,10 +1204,10 @@ FWD solves: 30   REV solves: 0
 Total colors vs. total size: 30 vs 88  (65.91% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1168 sec
-Time to compute coloring:   0.0546 sec
-Memory to compute coloring:   0.3750 MB
-Coloring created on: 2024-08-06 12:52:32
+Time to compute sparsity:   0.1069 sec
+Time to compute coloring:   0.0547 sec
+Memory to compute coloring:   0.5000 MB
+Coloring created on: 2024-08-08 16:58:08
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1216,11 +1216,11 @@ Coloring created on: 2024-08-06 12:52:32
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    2.0784
-       User Objective Time :       0.2580
-       User Sensitivity Time :     1.4129
-       Interface Time :            0.2306
-       Opt Solver Time:            0.1769
+    Total Time:                    1.7982
+       User Objective Time :       0.2076
+       User Sensitivity Time :     1.2249
+       Interface Time :            0.2045
+       Opt Solver Time:            0.1612
     Calls to Objective Function :     118
     Calls to Sens Function :           89
 
@@ -1479,11 +1479,11 @@ INFO: checking out_of_order
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 119
-  runtime     : 2.3521E+00 s
+  runtime     : 2.0561E+00 s
   model_evals : 119
-  model_time  : 1.9781E-01 s
+  model_time  : 1.6656E-01 s
   deriv_evals : 89
-  deriv_time  : 1.0493E+00 s
+  deriv_time  : 9.1275E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -1572,8 +1572,8 @@ launch angle: 32.01951038345158 deg
 maximum range: 3183.11772679979 m
 </pre></div>
 </div>
-<img alt="../../_images/718e5579ffb000c6174a229052716fb5adecc5e759c1c3d5f954fd39a4dffbd3.png" src="../../_images/718e5579ffb000c6174a229052716fb5adecc5e759c1c3d5f954fd39a4dffbd3.png" />
-<img alt="../../_images/56d17d6ccf7706a11c7914ca80b9748eba61c6a463d57e14dd9d5c8d4d76b22f.png" src="../../_images/56d17d6ccf7706a11c7914ca80b9748eba61c6a463d57e14dd9d5c8d4d76b22f.png" />
+<img alt="../../_images/41ef5d090a3dfef65fac60a823e728816696697b64f115ef24831b0bfcf462aa.png" src="../../_images/41ef5d090a3dfef65fac60a823e728816696697b64f115ef24831b0bfcf462aa.png" />
+<img alt="../../_images/f84fee0108163ffa7ff6cf9fd35ee80747c00e663a9f5e66cfbb9652bec00242.png" src="../../_images/f84fee0108163ffa7ff6cf9fd35ee80747c00e663a9f5e66cfbb9652bec00242.png" />
 </div>
 </div>
 </section>

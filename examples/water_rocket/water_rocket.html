@@ -952,8 +952,8 @@ The design of a water rocket is somewhat constrained by the soda bottle used as 
 This means that the volume available for water and air is fixed, the initial launch pressure is limited by the bottle’s strength (since the pressure is directly related to the energy available for the rocket, it is easy to see that it should be as high as possible) and the nozzle throat area is also fixed.
 Given these manufacturing constraints, the design variables we are left with are the empty mass (it can be easily changed through adding ballast), the water volume at the launch, and the launch angle.
 With this considerations in mind, a natural formulation for the water rocket problem is</p>
-<div class="amsmath math notranslate nohighlight" id="equation-fade7a40-3072-45a2-b5b8-965431cf34c8">
-<span class="eqno">(89)<a class="headerlink" href="#equation-fade7a40-3072-45a2-b5b8-965431cf34c8" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-86d6d020-35ef-473e-87b7-b44a04a82865">
+<span class="eqno">(89)<a class="headerlink" href="#equation-86d6d020-35ef-473e-87b7-b44a04a82865" title="Permalink to this equation">#</a></span>\[\begin{align}
     \text{maximize}   &amp;\quad \text{range or height} \\
     \text{w.r.t.}     &amp;\quad \text{empty mass, initial water volume, launch angle, trajectory} \\
     \text{subject to} &amp;\quad \text{flight dynamics} \\
@@ -1496,8 +1496,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">_MassAdder</span></code> component calculates the rocket’s instantaneous mass by
 summing the water mass with the rockets empty mass, i.e.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-03aa2463-f98e-4280-85ab-a94b9a4795bb">
-<span class="eqno">(90)<a class="headerlink" href="#equation-03aa2463-f98e-4280-85ab-a94b9a4795bb" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-3148b074-95dc-4b4b-8d4b-18eb9a2188c7">
+<span class="eqno">(90)<a class="headerlink" href="#equation-3148b074-95dc-4b4b-8d4b-18eb9a2188c7" title="Permalink to this equation">#</a></span>\[\begin{align}
     m = m_\text{empty}+\rho_w V_w
 \end{align}\]</div>
 <div class="cell tag_remove-input docutils container">
@@ -2517,7 +2517,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 1.7375672269999995 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 1.6688856690000193 seconds.
 Total jacobian shape: (1151, 1153) 
 </pre></div>
 </div>
@@ -2526,13 +2526,12 @@ FWD solves: 20   REV solves: 0
 Total colors vs. total size: 20 vs 1153  (98.27% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   1.7376 sec
-Time to compute coloring:   1.8541 sec
+Time to compute sparsity:   1.6689 sec
+Time to compute coloring:   1.8553 sec
 Memory to compute coloring:  -9.6289 MB
-Coloring created on: 2024-08-06 12:55:00
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>List of user-set options:
+Coloring created on: 2024-08-08 17:00:08
+
+List of user-set options:
 
                                     Name   Value                used
                         file_print_level = 5                     yes
@@ -2576,7 +2575,7 @@ Number of inequality constraint evaluations          = 0
 Number of equality constraint Jacobian evaluations   = 62
 Number of inequality constraint Jacobian evaluations = 0
 Number of Lagrangian Hessian evaluations             = 0
-Total seconds in IPOPT                               = 13.779
+Total seconds in IPOPT                               = 10.697
 
 EXIT: Optimal Solution Found.
 </pre></div>
@@ -2638,9 +2637,7 @@ INFO: checking out_of_order
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Launch angle: 85.0000 deg
+Launch angle: 85.0000 deg
 Flight angle at end of propulsion: 84.0887 deg
 Empty mass: 0.1449 kg
 Water volume: 0.9836 L
@@ -2660,7 +2657,7 @@ Maximum velocity: 46.1530 m/s
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/95c89a77aa7a434b4c5c14145ee5331f68436af873236878a22ce1aca3e34f16.png" src="../../_images/95c89a77aa7a434b4c5c14145ee5331f68436af873236878a22ce1aca3e34f16.png" />
+<img alt="../../_images/e5b65d143b7780bb5d44d488972150710a916f2b34d3647dba6b44366f71416e.png" src="../../_images/e5b65d143b7780bb5d44d488972150710a916f2b34d3647dba6b44366f71416e.png" />
 </div>
 </div>
 </section>
@@ -2675,7 +2672,7 @@ Maximum velocity: 46.1530 m/s
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/54df5686057abd9ce538397e41fa5727c79419043502744f7d5d6bcdeba99453.png" src="../../_images/54df5686057abd9ce538397e41fa5727c79419043502744f7d5d6bcdeba99453.png" />
+<img alt="../../_images/8487fc5a7af6bb6f2e89044b0e620c5dd3b73e5283536ab2ca8dcba78cb1360f.png" src="../../_images/8487fc5a7af6bb6f2e89044b0e620c5dd3b73e5283536ab2ca8dcba78cb1360f.png" />
 </div>
 </div>
 </section>
@@ -2688,7 +2685,7 @@ Maximum velocity: 46.1530 m/s
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/e0de8d6599b8c870ba9c248f9bccdcf4b4b84ed5c1bc903508f4c9c86c3bf9d8.png" src="../../_images/e0de8d6599b8c870ba9c248f9bccdcf4b4b84ed5c1bc903508f4c9c86c3bf9d8.png" />
+<img alt="../../_images/e8a8b872ac93980e5413877a3b05bd4f3bc6d38c5683b86125e9cf938a9aaa83.png" src="../../_images/e8a8b872ac93980e5413877a3b05bd4f3bc6d38c5683b86125e9cf938a9aaa83.png" />
 </div>
 </div>
 </section>
@@ -2744,12 +2741,10 @@ Maximum velocity: 46.1530 m/s
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
+Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem6&#39; was computed 3 times, taking 1.734532073999958 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem6&#39; was computed 3 times, taking 1.6586700039999869 seconds.
 Total jacobian shape: (1151, 1153) 
 </pre></div>
 </div>
@@ -2758,10 +2753,10 @@ FWD solves: 20   REV solves: 0
 Total colors vs. total size: 20 vs 1153  (98.27% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   1.7345 sec
-Time to compute coloring:   1.8515 sec
+Time to compute sparsity:   1.6587 sec
+Time to compute coloring:   1.8378 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-06 12:55:24
+Coloring created on: 2024-08-08 17:00:27
 
 List of user-set options:
 
@@ -2807,7 +2802,7 @@ Number of inequality constraint evaluations          = 0
 Number of equality constraint Jacobian evaluations   = 49
 Number of inequality constraint Jacobian evaluations = 0
 Number of Lagrangian Hessian evaluations             = 0
-Total seconds in IPOPT                               = 12.545
+Total seconds in IPOPT                               = 9.455
 
 EXIT: Optimal Solution Found.
 
@@ -2818,11 +2813,11 @@ Optimization Problem -- Optimization using pyOpt_sparse
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                   12.5473
-       User Objective Time :       0.2321
-       User Sensitivity Time :    10.9103
-       Interface Time :            0.8172
-       Opt Solver Time:            0.5876
+    Total Time:                    9.4560
+       User Objective Time :       0.1638
+       User Sensitivity Time :     7.9680
+       Interface Time :            0.7818
+       Opt Solver Time:            0.5425
     Calls to Objective Function :      56
     Calls to Sens Function :           49
 
@@ -5207,9 +5202,7 @@ INFO: checking out_of_order
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Launch angle: 46.0919 deg
+Launch angle: 46.0919 deg
 Flight angle at end of propulsion: 38.3884 deg
 Empty mass: 0.1891 kg
 Water volume: 1.0265 L
@@ -5229,7 +5222,7 @@ Maximum velocity: 41.3116 m/s
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/0c5872962d941df61f53fad0703b6f24ce1613c3be0150706ae16f6137b2313b.png" src="../../_images/0c5872962d941df61f53fad0703b6f24ce1613c3be0150706ae16f6137b2313b.png" />
+<img alt="../../_images/8c4e9c122c93847970872becb0ee5675fb4646ab08f4cf33777881d51d8eec8d.png" src="../../_images/8c4e9c122c93847970872becb0ee5675fb4646ab08f4cf33777881d51d8eec8d.png" />
 </div>
 </div>
 </section>
@@ -5242,7 +5235,7 @@ Maximum velocity: 41.3116 m/s
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/d6078dff3ab10f9f8755eb61ccd1a64c5e748be57cc4506a773fb5382dfe76f2.png" src="../../_images/d6078dff3ab10f9f8755eb61ccd1a64c5e748be57cc4506a773fb5382dfe76f2.png" />
+<img alt="../../_images/af09adc513ad86de2f9a949c55730fa09ffe9c5f624bbdf7a8e64fe40da091de.png" src="../../_images/af09adc513ad86de2f9a949c55730fa09ffe9c5f624bbdf7a8e64fe40da091de.png" />
 </div>
 </div>
 </section>
@@ -5255,7 +5248,7 @@ Maximum velocity: 41.3116 m/s
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/c8285b87754eb9fbec2a7f7094dd34bb744c37534d42ce5202606a65d6c9bad5.png" src="../../_images/c8285b87754eb9fbec2a7f7094dd34bb744c37534d42ce5202606a65d6c9bad5.png" />
+<img alt="../../_images/b5de01475ee008de6e3d206f3ce32dbef7f98af5e22f0b34d14ce2568c9e8435.png" src="../../_images/b5de01475ee008de6e3d206f3ce32dbef7f98af5e22f0b34d14ce2568c9e8435.png" />
 </div>
 </div>
 </section>
