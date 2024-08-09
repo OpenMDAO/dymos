@@ -800,20 +800,20 @@ traveled by a block (that starts and ends at rest) sliding without
 friction along a horizontal surface, with acceleration as the control.</p>
 <p>We minimize the final time, <span class="math notranslate nohighlight">\(t_f\)</span>, by varying the dynamic control,
 <span class="math notranslate nohighlight">\(u\)</span>, subject to the dynamics:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-1987a648-ac82-4961-9b88-adb0ea378ac3">
-<span class="eqno">(45)<a class="headerlink" href="#equation-1987a648-ac82-4961-9b88-adb0ea378ac3" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-b17c938c-9add-421a-a41c-e67e2ed2ac9b">
+<span class="eqno">(45)<a class="headerlink" href="#equation-b17c938c-9add-421a-a41c-e67e2ed2ac9b" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dx}{dt} &amp;= v \\
   \frac{dv}{dt} &amp;= u
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-a0522b57-d73f-4f21-9ca7-3de0d0bfa4a7">
-<span class="eqno">(46)<a class="headerlink" href="#equation-a0522b57-d73f-4f21-9ca7-3de0d0bfa4a7" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-c49029b6-f4e1-4970-bab3-625c2a632490">
+<span class="eqno">(46)<a class="headerlink" href="#equation-c49029b6-f4e1-4970-bab3-625c2a632490" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_0 &amp;= 0 \\
   v_0 &amp;= 0
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-6f63fce0-8f91-4a34-a7ee-9bff52423cac">
-<span class="eqno">(47)<a class="headerlink" href="#equation-6f63fce0-8f91-4a34-a7ee-9bff52423cac" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-ceb876a7-db39-43a8-bdff-28ad2c7a6f44">
+<span class="eqno">(47)<a class="headerlink" href="#equation-ceb876a7-db39-43a8-bdff-28ad2c7a6f44" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_f &amp;= \rm{free} \\
   v_f &amp;= 0
 \end{align}\]</div>
@@ -1086,7 +1086,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.06358422200003133 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.061000626000009106 seconds.
 Total jacobian shape: (181, 327) 
 </pre></div>
 </div>
@@ -1095,10 +1095,10 @@ FWD solves: 0   REV solves: 6
 Total colors vs. total size: 6 vs 181  (96.69% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0636 sec
-Time to compute coloring:   0.0857 sec
+Time to compute sparsity:   0.0610 sec
+Time to compute coloring:   0.0817 sec
 Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-08-08 18:29:36
+Coloring created on: 2024-08-09 19:37:59
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1107,11 +1107,11 @@ Coloring created on: 2024-08-08 18:29:36
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    2.4864
-       User Objective Time :       0.0234
-       User Sensitivity Time :     0.6963
-       Interface Time :            0.0749
-       Opt Solver Time:            1.6918
+    Total Time:                    2.3766
+       User Objective Time :       0.0154
+       User Sensitivity Time :     0.6359
+       Interface Time :            0.0686
+       Opt Solver Time:            1.6568
     Calls to Objective Function :      19
     Calls to Sens Function :           19
 
@@ -1700,6 +1700,7 @@ Coloring created on: 2024-08-08 18:29:36
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/visualization/opt_report/opt_report.py:625: UserWarning: Attempting to set identical low and high ylims makes transformation singular; automatically expanding.
   ax.set_ylim([ymin_plot, ymax_plot])
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1101: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order
@@ -1766,9 +1767,6 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1101: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
 </pre></div>
 </div>
@@ -1776,11 +1774,11 @@ INFO: checking out_of_order
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 21
-  runtime     : 2.6857E+00 s
+  runtime     : 2.5650E+00 s
   model_evals : 21
-  model_time  : 1.4854E-02 s
+  model_time  : 1.0524E-02 s
   deriv_evals : 20
-  deriv_time  : 7.9377E-02 s
+  deriv_time  : 7.0772E-02 s
   exit_status : SUCCESS
 </pre></div>
 </div>

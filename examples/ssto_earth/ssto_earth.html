@@ -806,8 +806,8 @@ It finds the pitch profile for a single-stage-to-orbit launch vehicle that minim
 required to reach orbit insertion under constant thrust.</p>
 <p><img alt="The free-body-diagram of the single-stage-to-orbit problem." src="../../_images/ssto_fbd.png" /></p>
 <p>The vehicle dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-bc9e7077-dbe8-439c-a8e1-859e937faf76">
-<span class="eqno">(84)<a class="headerlink" href="#equation-bc9e7077-dbe8-439c-a8e1-859e937faf76" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-24ee3f03-9c9e-4cd4-b3b4-906db99619bc">
+<span class="eqno">(84)<a class="headerlink" href="#equation-24ee3f03-9c9e-4cd4-b3b4-906db99619bc" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dx}{dt} &amp;= v_x \\
   \frac{dy}{dt} &amp;= v_y \\
   \frac{dv_x}{dt} &amp;= \frac{1}{m} (T \cos \theta - D \cos \gamma) \\
@@ -815,8 +815,8 @@ required to reach orbit insertion under constant thrust.</p>
   \frac{dm}{dt} &amp;= \frac{T}{g I_{sp}}
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-2bf72cf5-f31b-4f98-b5a3-3a7bb8a347fa">
-<span class="eqno">(85)<a class="headerlink" href="#equation-2bf72cf5-f31b-4f98-b5a3-3a7bb8a347fa" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-159e7f80-8cbf-404c-9255-e3387381c9ea">
+<span class="eqno">(85)<a class="headerlink" href="#equation-159e7f80-8cbf-404c-9255-e3387381c9ea" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_0 &amp;= 0 \\
   y_0 &amp;= 0 \\
   v_{x0} &amp;= 0 \\
@@ -824,8 +824,8 @@ required to reach orbit insertion under constant thrust.</p>
   m_0 &amp;= 117000 \rm{\,kg}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-92b10751-363f-4a34-9005-bf5a80178cba">
-<span class="eqno">(86)<a class="headerlink" href="#equation-92b10751-363f-4a34-9005-bf5a80178cba" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-58fc5258-45d8-415f-8761-9ae6f3ae9763">
+<span class="eqno">(86)<a class="headerlink" href="#equation-58fc5258-45d8-415f-8761-9ae6f3ae9763" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_f &amp;= \rm{free} \\
   y_f &amp;= 185 \rm{\,km} \\
   v_{xf} &amp;= V_{circ} \\
@@ -1119,8 +1119,8 @@ FWD solves: 5   REV solves: 0
 Total colors vs. total size: 5 vs 168  (97.02% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0256 sec
-Time to compute coloring:   0.0129 sec
+Time to compute sparsity:   0.0251 sec
+Time to compute coloring:   0.0122 sec
 Memory to compute coloring:   0.2500 MB
 </pre></div>
 </div>
@@ -1131,24 +1131,24 @@ FWD solves: 5   REV solves: 0
 Total colors vs. total size: 5 vs 84  (94.05% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0131 sec
-Time to compute coloring:   0.0068 sec
+Time to compute sparsity:   0.0133 sec
+Time to compute coloring:   0.0063 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.08512018300007185 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.07994479700005286 seconds.
 Total jacobian shape: (74, 152) 
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (74, 152)  (5.38% nonzero)
+
+
+Jacobian shape: (74, 152)  (5.38% nonzero)
 FWD solves: 12   REV solves: 0
 Total colors vs. total size: 12 vs 152  (92.11% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.0851 sec
-Time to compute coloring:   0.0579 sec
+Time to compute sparsity:   0.0799 sec
+Time to compute coloring:   0.0544 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-08 18:33:01
+Coloring created on: 2024-08-09 19:41:04
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1157,11 +1157,11 @@ Coloring created on: 2024-08-08 18:33:01
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    1.7445
-       User Objective Time :       0.0928
-       User Sensitivity Time :     1.0198
-       Interface Time :            0.1551
-       Opt Solver Time:            0.4768
+    Total Time:                    1.5731
+       User Objective Time :       0.0652
+       User Sensitivity Time :     0.9192
+       Interface Time :            0.1355
+       Opt Solver Time:            0.4533
     Calls to Objective Function :      51
     Calls to Sens Function :           48
 
@@ -1545,11 +1545,11 @@ INFO: checking out_of_order
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 53
-  runtime     : 2.0221E+00 s
+  runtime     : 1.8334E+00 s
   model_evals : 53
-  model_time  : 6.6975E-02 s
+  model_time  : 5.0004E-02 s
   deriv_evals : 49
-  deriv_time  : 7.8786E-01 s
+  deriv_time  : 7.1994E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>

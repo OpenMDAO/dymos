@@ -833,13 +833,13 @@ Dynamic systems are typically defined by some set of ordinary
 differential equations (the ODE) which governs their behavior.</p>
 <p>Consider a simple damped harmonic oscillator.</p>
 <p><img alt="Damped harmonic oscillator free-body diagram" src="../../_images/spring_mass_damper.png" /></p>
-<div class="amsmath math notranslate nohighlight" id="equation-12469b12-8138-4e5a-9e0d-4191c4b079e1">
-<span class="eqno">(11)<a class="headerlink" href="#equation-12469b12-8138-4e5a-9e0d-4191c4b079e1" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-4a6ea7e7-f857-4c5b-8f7d-8910f1e08c8e">
+<span class="eqno">(11)<a class="headerlink" href="#equation-4a6ea7e7-f857-4c5b-8f7d-8910f1e08c8e" title="Permalink to this equation">#</a></span>\[\begin{align}
     \ddot{x} &amp;= -\frac{kx}{m} - \frac{c \dot{x}}{m}
 \end{align}\]</div>
 <p>Converting this to a first order system results in an ODE system with two states:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-b83f6615-3bb7-4c00-abc5-13f9771977d2">
-<span class="eqno">(12)<a class="headerlink" href="#equation-b83f6615-3bb7-4c00-abc5-13f9771977d2" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-491f5f55-d8d4-42d5-b7cc-833b00f25398">
+<span class="eqno">(12)<a class="headerlink" href="#equation-491f5f55-d8d4-42d5-b7cc-833b00f25398" title="Permalink to this equation">#</a></span>\[\begin{align}
     \dot{x} &amp;= v \\
     \dot{v} &amp;= -\frac{kx}{m} - \frac{c \dot{x}}{m}
 \end{align}\]</div>
@@ -1183,18 +1183,6 @@ Otherwise, we can pass it only to certain states as an argument to <code class="
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/transcriptions/transcription_base.py:401: OpenMDAOWarning:&#39;traj.phases.phase0&#39; &lt;class Phase&gt;
-  Non-default solvers are required
-    implicit duration: False
-    solved segments: True
-    input initial: False
-  Setting `traj.phases.phase0.nonlinear_solver = om.NewtonSolver(iprint=0, solve_subsystems=True, maxiter=1000, stall_limit=3)`
-  Explicitly set traj.phases.phase0.nonlinear_solver to override.
-  Setting `traj.phases.phase0.linear_solver = om.DirectSolver(iprint=2)`
-  Explicitly set traj.phases.phase0.linear_solver to override.
-  Set `traj.phases.phase0.options[&quot;auto_solvers&quot;] = False` to disable this behavior.
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
 </pre></div>
 </div>
@@ -1221,6 +1209,18 @@ Otherwise, we can pass it only to certain states as an argument to <code class="
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
 INFO: checking out_of_order
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/transcriptions/transcription_base.py:401: OpenMDAOWarning:&#39;traj.phases.phase0&#39; &lt;class Phase&gt;
+  Non-default solvers are required
+    implicit duration: False
+    solved segments: True
+    input initial: False
+  Setting `traj.phases.phase0.nonlinear_solver = om.NewtonSolver(iprint=0, solve_subsystems=True, maxiter=1000, stall_limit=3)`
+  Explicitly set traj.phases.phase0.nonlinear_solver to override.
+  Setting `traj.phases.phase0.linear_solver = om.DirectSolver(iprint=2)`
+  Explicitly set traj.phases.phase0.linear_solver to override.
+  Set `traj.phases.phase0.options[&quot;auto_solvers&quot;] = False` to disable this behavior.
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
