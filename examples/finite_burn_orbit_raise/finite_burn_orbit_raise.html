@@ -805,8 +805,8 @@ three-phase orbit raising maneuver with a burn-coast-burn phase
 sequence. This example is based on the problem provided in
 Enright <span id="id1">[<a class="reference internal" href="#id24" title="Paul J Enright and Brace A Conway. Optimal finite-thrust spacecraft trajectories using collocation and nonlinear programming. Journal of Guidance, Control, and Dynamics, 14(5):981–985, 1991.">EC91</a>]</span>.</p>
 <p>The dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-d3b44356-b74a-4e4c-a194-4e103ca45ad8">
-<span class="eqno">(58)<a class="headerlink" href="#equation-d3b44356-b74a-4e4c-a194-4e103ca45ad8" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-5645defa-fd09-468e-896c-331a2cf6b212">
+<span class="eqno">(58)<a class="headerlink" href="#equation-5645defa-fd09-468e-896c-331a2cf6b212" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dr}{dt} &amp;= v_r \\
   \frac{d\theta}{dt} &amp;= \frac{v_\theta}{r} \\
   \frac{dv_r}{dt} &amp;= \frac{v^2_\theta}{r} - \frac{1}{r^2} + a_{thrust} \sin u_1 \\
@@ -815,8 +815,8 @@ Enright <span id="id1">[<a class="reference internal" href="#id24" title="Paul J
   \frac{d \Delta v}{dt} &amp;= a_{thrust}
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-17de4937-3db9-42d3-aaa2-d8820978c2a5">
-<span class="eqno">(59)<a class="headerlink" href="#equation-17de4937-3db9-42d3-aaa2-d8820978c2a5" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-823ca4c1-a1e8-4d20-9c21-637a4f5ad01d">
+<span class="eqno">(59)<a class="headerlink" href="#equation-823ca4c1-a1e8-4d20-9c21-637a4f5ad01d" title="Permalink to this equation">#</a></span>\[\begin{align}
   r &amp;= 1 \rm{\,DU} \\
   \theta &amp;= 0 \rm{\,rad} \\
   v_r &amp;= 0 \rm{\,DU/TU}\\
@@ -825,8 +825,8 @@ Enright <span id="id1">[<a class="reference internal" href="#id24" title="Paul J
   \Delta v &amp;= 0 \rm{\,DU/TU}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-9bb1abbe-d8aa-415a-b8eb-9d89e7290663">
-<span class="eqno">(60)<a class="headerlink" href="#equation-9bb1abbe-d8aa-415a-b8eb-9d89e7290663" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-93a16c8c-cbcc-498a-b441-8acf8e623eb3">
+<span class="eqno">(60)<a class="headerlink" href="#equation-93a16c8c-cbcc-498a-b441-8acf8e623eb3" title="Permalink to this equation">#</a></span>\[\begin{align}
   r &amp;= 3 \rm{\,DU} \\
   \theta &amp;= \rm{free} \\
   v_r &amp;= 0 \rm{\,DU/TU}\\
@@ -1326,7 +1326,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.4159932669999762 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.43947204400001283 seconds.
 Total jacobian shape: (112, 204) 
 
 
@@ -1335,10 +1335,10 @@ FWD solves: 13   REV solves: 0
 Total colors vs. total size: 13 vs 204  (93.63% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.4160 sec
-Time to compute coloring:   0.0641 sec
+Time to compute sparsity:   0.4395 sec
+Time to compute coloring:   0.0662 sec
 Memory to compute coloring:   0.1250 MB
-Coloring created on: 2024-08-09 19:38:06
+Coloring created on: 2024-08-12 13:36:50
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1347,11 +1347,11 @@ Coloring created on: 2024-08-09 19:38:06
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    2.0244
-       User Objective Time :       0.0834
-       User Sensitivity Time :     1.7066
-       Interface Time :            0.1257
-       Opt Solver Time:            0.1088
+    Total Time:                    2.1339
+       User Objective Time :       0.0942
+       User Sensitivity Time :     1.7918
+       Interface Time :            0.1353
+       Opt Solver Time:            0.1126
     Calls to Objective Function :      28
     Calls to Sens Function :           28
 
@@ -1839,11 +1839,11 @@ INFO: checking out_of_order
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 30
-  runtime     : 2.6089E+00 s
+  runtime     : 2.7484E+00 s
   model_evals : 30
-  model_time  : 7.6517E-02 s
+  model_time  : 8.5274E-02 s
   deriv_evals : 29
-  deriv_time  : 1.2448E+00 s
+  deriv_time  : 1.3244E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>
