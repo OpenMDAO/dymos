@@ -426,8 +426,8 @@ class TranscriptionBase(object):
 
             for input_name, src, src_idxs in timeseries_comp._configure_io(timeseries_options):
                 phase.connect(src_name=src,
-                                tgt_name=f'{timeseries_name}.{input_name}',
-                                src_indices=src_idxs)
+                              tgt_name=f'{timeseries_name}.{input_name}',
+                              src_indices=src_idxs)
 
     def configure_boundary_constraints(self, phase):
         """
