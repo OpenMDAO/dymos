@@ -2,13 +2,13 @@
 *******************************
 # Release Notes for Dymos 1.11.0
 
-August 09, 2024
+August 08, 2024
 
 Dymos 1.11.0 includes the initial implementation of the Birkhoff transcription and a number of other significant improvements. These improvements have focused on the ability to the user to switch transcriptions or control types with a minimal change to their scripts.
 
 ### Unification of controls and polynomial controls
 
-The separate APIs for controls and polynomial controls are no more, in favor of the `set_control_options` or `add_control` methods can be used to either add a standard "fully collocated" control or a "polynomial" control. Methods `set_polynomial_control_options` and `add_polynomial_control` are deprecated.
+The separate APIs for controls and polynomial controls are no more, in favor of the `set_control_options` or `add_control` methods that can be used to either add a standard "fully collocated" control or a "polynomial" control. Methods `set_polynomial_control_options` and `add_polynomial_control` are deprecated.
 
 ### set_time_val, set_state_val, set_control_val, and set_parameter_val
 
@@ -148,7 +148,7 @@ This has been addressed.
 Dymos had previously been calling `allgather` excessively under MPI which could
 cause performance issues during setup.
 
-Finally, Trajectory.simulate() should now work correctly under MPI so that results can 
+Finally, Trajectory.simulate() should now work correctly under MPI so that results can
 be checked with explicit integration when working under MPI.
 
 ## Backwards Incompatible API Changes & Deprecations
@@ -275,7 +275,7 @@ November 14, 2022
 
 Version 1.6.1 of Dymos addresses bugs described below.
 
-This release also includes the start of an implementation to allow calculated expressions to be used as 
+This release also includes the start of an implementation to allow calculated expressions to be used as
 constraints and timeseries outputs, but this feature is still undergoing development and documentation.
 
 ## Backwards Incompatible API Changes & Deprecations
@@ -366,7 +366,7 @@ In an upcoming release, the user will be able to easily apply constraints to the
 * Added small changes to improve coverage. [#809](https://github.com/OpenMDAO/dymos/pull/809)
 * Fixed CI dependency issues based on some broken jupyter-book dependencies. [#812](https://github.com/OpenMDAO/dymos/pull/812)
 * Various code cleanup items added. [#807](https://github.com/OpenMDAO/dymos/pull/807)
-* Made a few minor cleanups for the cartpole example. [#815](https://github.com/OpenMDAO/dymos/pull/815) 
+* Made a few minor cleanups for the cartpole example. [#815](https://github.com/OpenMDAO/dymos/pull/815)
 
 *******************************
 # Release Notes for Dymos 1.5.0
@@ -402,10 +402,10 @@ This assumption of non-linearity also works around some issues we were seeing wi
 ## Enhancements
 
 * Users can now pass `simulate_kwargs` from `dymos.run_problem`. [#720](https://github.com/OpenMDAO/dymos/pull/720)
-* Added `set_parameter_options` method to `Trajectory` for better API consistency. [#721](https://github.com/OpenMDAO/dymos/pull/721) 
-* USatm1976Comp now accepts altitude as either geopotential or geodetic. [#735](https://github.com/OpenMDAO/dymos/pull/735) 
-* Disabled reports by default for subproblems under simulate and ExplicitShooting.  [#741](https://github.com/OpenMDAO/dymos/pull/741) 
-* Constraints are now applied directly to timeseries outputs, and several other constraint improvements.  [#743](https://github.com/OpenMDAO/dymos/pull/743) 
+* Added `set_parameter_options` method to `Trajectory` for better API consistency. [#721](https://github.com/OpenMDAO/dymos/pull/721)
+* USatm1976Comp now accepts altitude as either geopotential or geodetic. [#735](https://github.com/OpenMDAO/dymos/pull/735)
+* Disabled reports by default for subproblems under simulate and ExplicitShooting.  [#741](https://github.com/OpenMDAO/dymos/pull/741)
+* Constraints are now applied directly to timeseries outputs, and several other constraint improvements.  [#743](https://github.com/OpenMDAO/dymos/pull/743)
 
 ## Bug Fixes
 
