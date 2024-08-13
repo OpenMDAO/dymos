@@ -455,7 +455,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
             for var_name in sorted(ts_units_dict.keys(), key=str.casefold):
                 fig_kwargs = {'x_range': x_range} if x_range is not None else {}
 
-                tool_tips = [(f'{x_name}', '$x'), (f'{var_name}', '$y')]
+                tool_tips = [(f'{x_name}', f'@{x_name}'), (f'{var_name}', f'@{var_name}')]
 
                 fig = figure(tools='pan,box_zoom,xwheel_zoom,hover,undo,reset,save',
                              tooltips=tool_tips,
