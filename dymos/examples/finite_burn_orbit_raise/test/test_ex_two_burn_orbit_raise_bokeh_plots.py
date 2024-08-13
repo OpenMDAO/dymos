@@ -44,8 +44,8 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
         with set_env_vars_context(OPENMDAO_REPORTS='1'):
             with dm.options.temporary(plots='bokeh'):
                 p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                                compressed=False, optimizer='SLSQP', show_output=False,
-                                                run_driver=False)
+                                                 compressed=False, optimizer='SLSQP', show_output=False,
+                                                 run_driver=False)
 
                 html_file = pathlib.Path(_get_reports_dir(p)) / 'traj_results_report.html'
                 self.assertTrue(html_file.exists(), msg=f'{html_file} does not exist!')
@@ -54,12 +54,12 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
     def test_mpl_plots(self):
         with dm.options.temporary(plots='matplotlib'):
             p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                            compressed=False, optimizer='SLSQP', show_output=False,
-                                            run_driver=False)
+                                             compressed=False, optimizer='SLSQP', show_output=False,
+                                             run_driver=False)
 
             expected_files = ('deltav.png', 'r.png', 'accel.png',
-                            'u1.png', 'vr.png', 'pos_x.png',
-                            'vt.png', 'pos_y.png', 'theta.png')
+                              'u1.png', 'vr.png', 'pos_x.png',
+                              'vt.png', 'pos_y.png', 'theta.png')
 
             for file in expected_files:
                 plotfile = pathlib.Path(_get_reports_dir(p)).joinpath('plots') / file
