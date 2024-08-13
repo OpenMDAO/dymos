@@ -800,20 +800,20 @@ traveled by a block (that starts and ends at rest) sliding without
 friction along a horizontal surface, with acceleration as the control.</p>
 <p>We minimize the final time, <span class="math notranslate nohighlight">\(t_f\)</span>, by varying the dynamic control,
 <span class="math notranslate nohighlight">\(u\)</span>, subject to the dynamics:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-8e686678-352c-4ce1-9fb7-30aa092d5215">
-<span class="eqno">(45)<a class="headerlink" href="#equation-8e686678-352c-4ce1-9fb7-30aa092d5215" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-5c6f7e66-69fe-4b05-aeef-7491e8a1a636">
+<span class="eqno">(45)<a class="headerlink" href="#equation-5c6f7e66-69fe-4b05-aeef-7491e8a1a636" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dx}{dt} &amp;= v \\
   \frac{dv}{dt} &amp;= u
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-ba85c9a0-31b9-4935-9efe-904ef05d6924">
-<span class="eqno">(46)<a class="headerlink" href="#equation-ba85c9a0-31b9-4935-9efe-904ef05d6924" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-5de7dda8-2931-4467-ab9c-82e97308183a">
+<span class="eqno">(46)<a class="headerlink" href="#equation-5de7dda8-2931-4467-ab9c-82e97308183a" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_0 &amp;= 0 \\
   v_0 &amp;= 0
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-ed0788da-ce96-4ea3-af5f-01d51899a7fe">
-<span class="eqno">(47)<a class="headerlink" href="#equation-ed0788da-ce96-4ea3-af5f-01d51899a7fe" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-dcb5866f-9b55-4550-bb60-a439e40e5595">
+<span class="eqno">(47)<a class="headerlink" href="#equation-dcb5866f-9b55-4550-bb60-a439e40e5595" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_f &amp;= \rm{free} \\
   v_f &amp;= 0
 \end{align}\]</div>
@@ -1086,7 +1086,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.06124491000002763 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.06089479600007053 seconds.
 Total jacobian shape: (181, 327) 
 </pre></div>
 </div>
@@ -1095,10 +1095,10 @@ FWD solves: 0   REV solves: 6
 Total colors vs. total size: 6 vs 181  (96.69% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0612 sec
-Time to compute coloring:   0.0814 sec
-Memory to compute coloring:   0.1250 MB
-Coloring created on: 2024-08-12 13:36:43
+Time to compute sparsity:   0.0609 sec
+Time to compute coloring:   0.0836 sec
+Memory to compute coloring:   0.2500 MB
+Coloring created on: 2024-08-13 12:32:35
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1107,11 +1107,11 @@ Coloring created on: 2024-08-12 13:36:43
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    2.4051
-       User Objective Time :       0.0202
-       User Sensitivity Time :     0.6413
-       Interface Time :            0.0733
-       Opt Solver Time:            1.6702
+    Total Time:                    2.3812
+       User Objective Time :       0.0165
+       User Sensitivity Time :     0.6388
+       Interface Time :            0.0701
+       Opt Solver Time:            1.6558
     Calls to Objective Function :      19
     Calls to Sens Function :           19
 
@@ -1774,11 +1774,11 @@ INFO: checking out_of_order
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 21
-  runtime     : 2.5937E+00 s
+  runtime     : 2.5717E+00 s
   model_evals : 21
-  model_time  : 1.3393E-02 s
+  model_time  : 1.1033E-02 s
   deriv_evals : 20
-  deriv_time  : 7.4753E-02 s
+  deriv_time  : 7.2448E-02 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -1803,7 +1803,7 @@ Driver:  pyOptSparseDriver
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/7ac77e413378a76da3bc78d3d9c8bc119bfff02acb951604a73775c58e0cccd5.png" src="../../_images/7ac77e413378a76da3bc78d3d9c8bc119bfff02acb951604a73775c58e0cccd5.png" />
+<img alt="../../_images/df9835ef3afb565dff44a81b5593e452da3be63c334f360705e7ca30ee00ef57.png" src="../../_images/df9835ef3afb565dff44a81b5593e452da3be63c334f360705e7ca30ee00ef57.png" />
 </div>
 </div>
 </section>

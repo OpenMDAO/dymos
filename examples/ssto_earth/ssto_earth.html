@@ -806,8 +806,8 @@ It finds the pitch profile for a single-stage-to-orbit launch vehicle that minim
 required to reach orbit insertion under constant thrust.</p>
 <p><img alt="The free-body-diagram of the single-stage-to-orbit problem." src="../../_images/ssto_fbd.png" /></p>
 <p>The vehicle dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-2aa55836-ca41-4ebb-ae41-7e8960ee0f4f">
-<span class="eqno">(84)<a class="headerlink" href="#equation-2aa55836-ca41-4ebb-ae41-7e8960ee0f4f" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-b8335df2-85fb-4d92-8108-1d0f6a0e7077">
+<span class="eqno">(84)<a class="headerlink" href="#equation-b8335df2-85fb-4d92-8108-1d0f6a0e7077" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dx}{dt} &amp;= v_x \\
   \frac{dy}{dt} &amp;= v_y \\
   \frac{dv_x}{dt} &amp;= \frac{1}{m} (T \cos \theta - D \cos \gamma) \\
@@ -815,8 +815,8 @@ required to reach orbit insertion under constant thrust.</p>
   \frac{dm}{dt} &amp;= \frac{T}{g I_{sp}}
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-7606077d-bffa-4749-b54f-7ad5a2dfe6dc">
-<span class="eqno">(85)<a class="headerlink" href="#equation-7606077d-bffa-4749-b54f-7ad5a2dfe6dc" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-8863a945-b228-4b6f-a9f5-0f22da49f9df">
+<span class="eqno">(85)<a class="headerlink" href="#equation-8863a945-b228-4b6f-a9f5-0f22da49f9df" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_0 &amp;= 0 \\
   y_0 &amp;= 0 \\
   v_{x0} &amp;= 0 \\
@@ -824,8 +824,8 @@ required to reach orbit insertion under constant thrust.</p>
   m_0 &amp;= 117000 \rm{\,kg}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-b05771c5-afb5-4db9-9ec5-a27399644936">
-<span class="eqno">(86)<a class="headerlink" href="#equation-b05771c5-afb5-4db9-9ec5-a27399644936" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-db79f707-abb8-4592-8417-79e4b5832b3b">
+<span class="eqno">(86)<a class="headerlink" href="#equation-db79f707-abb8-4592-8417-79e4b5832b3b" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_f &amp;= \rm{free} \\
   y_f &amp;= 185 \rm{\,km} \\
   v_{xf} &amp;= V_{circ} \\
@@ -1119,24 +1119,23 @@ FWD solves: 5   REV solves: 0
 Total colors vs. total size: 5 vs 168  (97.02% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0253 sec
-Time to compute coloring:   0.0125 sec
-Memory to compute coloring:   0.1250 MB
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.phase0.rhs_col&#39; (class LaunchVehicleODE)
+Time to compute sparsity:   0.0257 sec
+Time to compute coloring:   0.0131 sec
+Memory to compute coloring:   0.2500 MB
+
+Coloring for &#39;traj.phases.phase0.rhs_col&#39; (class LaunchVehicleODE)
 
 Jacobian shape: (72, 84)  (2.98% nonzero)
 FWD solves: 5   REV solves: 0
 Total colors vs. total size: 5 vs 84  (94.05% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0135 sec
-Time to compute coloring:   0.0066 sec
+Time to compute sparsity:   0.0122 sec
+Time to compute coloring:   0.0064 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.08013473900007284 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.08196605100010856 seconds.
 Total jacobian shape: (74, 152) 
 
 
@@ -1145,10 +1144,10 @@ FWD solves: 12   REV solves: 0
 Total colors vs. total size: 12 vs 152  (92.11% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.0801 sec
-Time to compute coloring:   0.0554 sec
+Time to compute sparsity:   0.0820 sec
+Time to compute coloring:   0.0545 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-12 13:39:51
+Coloring created on: 2024-08-13 12:35:43
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1157,11 +1156,11 @@ Coloring created on: 2024-08-12 13:39:51
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    1.6000
-       User Objective Time :       0.0706
-       User Sensitivity Time :     0.9383
-       Interface Time :            0.1404
-       Opt Solver Time:            0.4507
+    Total Time:                    1.6118
+       User Objective Time :       0.0752
+       User Sensitivity Time :     0.9454
+       Interface Time :            0.1400
+       Opt Solver Time:            0.4513
     Calls to Objective Function :      51
     Calls to Sens Function :           48
 
@@ -1545,11 +1544,11 @@ INFO: checking out_of_order
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 53
-  runtime     : 1.8644E+00 s
+  runtime     : 1.8769E+00 s
   model_evals : 53
-  model_time  : 5.3367E-02 s
+  model_time  : 5.6060E-02 s
   deriv_evals : 49
-  deriv_time  : 7.3657E-01 s
+  deriv_time  : 7.4649E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -1609,7 +1608,7 @@ Driver:  pyOptSparseDriver
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../../_images/00afa2ef2c8e0aa5e0a77a6fac989d631c6a35b8844f8966318dc045b1f51b2b.png" src="../../_images/00afa2ef2c8e0aa5e0a77a6fac989d631c6a35b8844f8966318dc045b1f51b2b.png" />
+<img alt="../../_images/83b2d60baae08fd74522e85207bb0ec8797dad7ccb6009fcfb8032a424beb035.png" src="../../_images/83b2d60baae08fd74522e85207bb0ec8797dad7ccb6009fcfb8032a424beb035.png" />
 </div>
 </div>
 </section>

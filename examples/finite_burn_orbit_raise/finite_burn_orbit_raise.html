@@ -805,8 +805,8 @@ three-phase orbit raising maneuver with a burn-coast-burn phase
 sequence. This example is based on the problem provided in
 Enright <span id="id1">[<a class="reference internal" href="#id24" title="Paul J Enright and Brace A Conway. Optimal finite-thrust spacecraft trajectories using collocation and nonlinear programming. Journal of Guidance, Control, and Dynamics, 14(5):981–985, 1991.">EC91</a>]</span>.</p>
 <p>The dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-5645defa-fd09-468e-896c-331a2cf6b212">
-<span class="eqno">(58)<a class="headerlink" href="#equation-5645defa-fd09-468e-896c-331a2cf6b212" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-41ff85db-90c3-4f73-94f3-4e4c34999ed8">
+<span class="eqno">(58)<a class="headerlink" href="#equation-41ff85db-90c3-4f73-94f3-4e4c34999ed8" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dr}{dt} &amp;= v_r \\
   \frac{d\theta}{dt} &amp;= \frac{v_\theta}{r} \\
   \frac{dv_r}{dt} &amp;= \frac{v^2_\theta}{r} - \frac{1}{r^2} + a_{thrust} \sin u_1 \\
@@ -815,8 +815,8 @@ Enright <span id="id1">[<a class="reference internal" href="#id24" title="Paul J
   \frac{d \Delta v}{dt} &amp;= a_{thrust}
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-823ca4c1-a1e8-4d20-9c21-637a4f5ad01d">
-<span class="eqno">(59)<a class="headerlink" href="#equation-823ca4c1-a1e8-4d20-9c21-637a4f5ad01d" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-2271e32b-797b-4f96-9dca-c76440d8411b">
+<span class="eqno">(59)<a class="headerlink" href="#equation-2271e32b-797b-4f96-9dca-c76440d8411b" title="Permalink to this equation">#</a></span>\[\begin{align}
   r &amp;= 1 \rm{\,DU} \\
   \theta &amp;= 0 \rm{\,rad} \\
   v_r &amp;= 0 \rm{\,DU/TU}\\
@@ -825,8 +825,8 @@ Enright <span id="id1">[<a class="reference internal" href="#id24" title="Paul J
   \Delta v &amp;= 0 \rm{\,DU/TU}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-93a16c8c-cbcc-498a-b441-8acf8e623eb3">
-<span class="eqno">(60)<a class="headerlink" href="#equation-93a16c8c-cbcc-498a-b441-8acf8e623eb3" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-ccdcbc4d-8ad4-4757-9f8c-c44b9592093c">
+<span class="eqno">(60)<a class="headerlink" href="#equation-ccdcbc4d-8ad4-4757-9f8c-c44b9592093c" title="Permalink to this equation">#</a></span>\[\begin{align}
   r &amp;= 3 \rm{\,DU} \\
   \theta &amp;= \rm{free} \\
   v_r &amp;= 0 \rm{\,DU/TU}\\
@@ -1326,7 +1326,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.43947204400001283 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.4237151699999231 seconds.
 Total jacobian shape: (112, 204) 
 
 
@@ -1335,10 +1335,10 @@ FWD solves: 13   REV solves: 0
 Total colors vs. total size: 13 vs 204  (93.63% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.4395 sec
-Time to compute coloring:   0.0662 sec
-Memory to compute coloring:   0.1250 MB
-Coloring created on: 2024-08-12 13:36:50
+Time to compute sparsity:   0.4237 sec
+Time to compute coloring:   0.0642 sec
+Memory to compute coloring:   0.2500 MB
+Coloring created on: 2024-08-13 12:32:42
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1347,11 +1347,11 @@ Coloring created on: 2024-08-12 13:36:50
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    2.1339
-       User Objective Time :       0.0942
-       User Sensitivity Time :     1.7918
-       Interface Time :            0.1353
-       Opt Solver Time:            0.1126
+    Total Time:                    2.0552
+       User Objective Time :       0.0859
+       User Sensitivity Time :     1.7276
+       Interface Time :            0.1317
+       Opt Solver Time:            0.1100
     Calls to Objective Function :      28
     Calls to Sens Function :           28
 
@@ -1822,14 +1822,14 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
 </pre></div>
 </div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1101: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u1_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1101: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u1_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1101: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u1_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1101: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u1_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
@@ -1839,11 +1839,11 @@ INFO: checking out_of_order
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 30
-  runtime     : 2.7484E+00 s
+  runtime     : 2.6503E+00 s
   model_evals : 30
-  model_time  : 8.5274E-02 s
+  model_time  : 7.8752E-02 s
   deriv_evals : 29
-  deriv_time  : 1.3244E+00 s
+  deriv_time  : 1.2589E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -1932,7 +1932,7 @@ Driver:  pyOptSparseDriver
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../../_images/4b155146fc0546d52be0264f2d56e85dec92642d6ae81623d97e597508696040.png" src="../../_images/4b155146fc0546d52be0264f2d56e85dec92642d6ae81623d97e597508696040.png" />
+<img alt="../../_images/3781718a7bcd6814e5c718e2357b60b82a1b4d8a316467e6fb3e157e161f7fda.png" src="../../_images/3781718a7bcd6814e5c718e2357b60b82a1b4d8a316467e6fb3e157e161f7fda.png" />
 </div>
 </div>
 </section>
