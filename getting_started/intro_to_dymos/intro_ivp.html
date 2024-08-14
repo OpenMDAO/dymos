@@ -833,13 +833,13 @@ Dynamic systems are typically defined by some set of ordinary
 differential equations (the ODE) which governs their behavior.</p>
 <p>Consider a simple damped harmonic oscillator.</p>
 <p><img alt="Damped harmonic oscillator free-body diagram" src="../../_images/spring_mass_damper.png" /></p>
-<div class="amsmath math notranslate nohighlight" id="equation-448ba6ca-61a2-4f49-861b-cbf81ea333fa">
-<span class="eqno">(11)<a class="headerlink" href="#equation-448ba6ca-61a2-4f49-861b-cbf81ea333fa" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-dd2f5e9a-6697-4a50-9acd-30c414447768">
+<span class="eqno">(11)<a class="headerlink" href="#equation-dd2f5e9a-6697-4a50-9acd-30c414447768" title="Permalink to this equation">#</a></span>\[\begin{align}
     \ddot{x} &amp;= -\frac{kx}{m} - \frac{c \dot{x}}{m}
 \end{align}\]</div>
 <p>Converting this to a first order system results in an ODE system with two states:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-a5a7974c-783d-44d3-9169-b3ab7fa9c93d">
-<span class="eqno">(12)<a class="headerlink" href="#equation-a5a7974c-783d-44d3-9169-b3ab7fa9c93d" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-5963e925-6a60-44ab-b736-705e5310ee88">
+<span class="eqno">(12)<a class="headerlink" href="#equation-5963e925-6a60-44ab-b736-705e5310ee88" title="Permalink to this equation">#</a></span>\[\begin{align}
     \dot{x} &amp;= v \\
     \dot{v} &amp;= -\frac{kx}{m} - \frac{c \dot{x}}{m}
 \end{align}\]</div>
@@ -1204,18 +1204,6 @@ Otherwise, we can pass it only to certain states as an argument to <code class="
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/transcriptions/transcription_base.py:401: OpenMDAOWarning:&#39;traj.phases.phase0&#39; &lt;class Phase&gt;
-  Non-default solvers are required
-    implicit duration: False
-    solved segments: True
-    input initial: False
-  Setting `traj.phases.phase0.nonlinear_solver = om.NewtonSolver(iprint=0, solve_subsystems=True, maxiter=1000, stall_limit=3)`
-  Explicitly set traj.phases.phase0.nonlinear_solver to override.
-  Setting `traj.phases.phase0.linear_solver = om.DirectSolver(iprint=2)`
-  Explicitly set traj.phases.phase0.linear_solver to override.
-  Set `traj.phases.phase0.options[&quot;auto_solvers&quot;] = False` to disable this behavior.
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
@@ -1245,6 +1233,18 @@ INFO: checking out_of_order
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/transcriptions/transcription_base.py:401: OpenMDAOWarning:&#39;traj.phases.phase0&#39; &lt;class Phase&gt;
+  Non-default solvers are required
+    implicit duration: False
+    solved segments: True
+    input initial: False
+  Setting `traj.phases.phase0.nonlinear_solver = om.NewtonSolver(iprint=0, solve_subsystems=True, maxiter=1000, stall_limit=3)`
+  Explicitly set traj.phases.phase0.nonlinear_solver to override.
+  Setting `traj.phases.phase0.linear_solver = om.DirectSolver(iprint=2)`
+  Explicitly set traj.phases.phase0.linear_solver to override.
+  Set `traj.phases.phase0.options[&quot;auto_solvers&quot;] = False` to disable this behavior.
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
@@ -1354,10 +1354,6 @@ Optimization Complete
 -----------------------------------
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/driver.py:1209: DriverWarning:ScipyOptimizeDriver: objective(s) [&#39;traj.phase0.t&#39;] do not depend on any design variables. Please check your problem formulation.
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1646: DerivativesWarning:Constraints or objectives [(&#39;traj.phase0.t&#39;, inds=[15])] cannot be impacted by the design variables of the problem.
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order
 </pre></div>
 </div>
@@ -1411,6 +1407,10 @@ INFO: checking out_of_order
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/driver.py:1209: DriverWarning:ScipyOptimizeDriver: objective(s) [&#39;traj.phase0.t&#39;] do not depend on any design variables. Please check your problem formulation.
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1646: DerivativesWarning:Constraints or objectives [(&#39;traj.phase0.t&#39;, inds=[15])] cannot be impacted by the design variables of the problem.
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj

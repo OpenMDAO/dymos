@@ -823,8 +823,8 @@ title="Print to PDF"
 <p>This system has three state variables, the altitude (<span class="math notranslate nohighlight">\(h\)</span>), velocity (<span class="math notranslate nohighlight">\(v\)</span>), and mass (<span class="math notranslate nohighlight">\(m\)</span>) of the lander.</p>
 <p>This system has one control variable, (<span class="math notranslate nohighlight">\(T\)</span>), the thrust applied to the vehicle.</p>
 <p>The dynamics of the system are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-9d845139-ac04-41bc-9f87-d22bd54ca5a5">
-<span class="eqno">(70)<a class="headerlink" href="#equation-9d845139-ac04-41bc-9f87-d22bd54ca5a5" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-bc07e75e-6fe7-4f12-a7d5-25242f7136b3">
+<span class="eqno">(70)<a class="headerlink" href="#equation-bc07e75e-6fe7-4f12-a7d5-25242f7136b3" title="Permalink to this equation">#</a></span>\[\begin{align}
   \dot{h} &amp;= v \\
   \dot{v} &amp;= -1 + \frac{T}{m} \\
   \dot{m} &amp;= -\frac{T}{2.349}
@@ -833,26 +833,26 @@ title="Print to PDF"
 <section id="problem-definition">
 <h2>Problem Definition<a class="headerlink" href="#problem-definition" title="Permalink to this heading">#</a></h2>
 <p>We seek to maximize the final mass of the vehicle while bringing it to a soft landing.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-82f04544-9638-46ac-9024-e4ac6973140a">
-<span class="eqno">(71)<a class="headerlink" href="#equation-82f04544-9638-46ac-9024-e4ac6973140a" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-0036f818-663a-4443-bc19-fdd8c4c77dcb">
+<span class="eqno">(71)<a class="headerlink" href="#equation-0036f818-663a-4443-bc19-fdd8c4c77dcb" title="Permalink to this equation">#</a></span>\[\begin{align}
   \mathrm{Minimize} \, J &amp;= m_f
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-2569c433-3901-42dc-998e-5203b3297fd3">
-<span class="eqno">(72)<a class="headerlink" href="#equation-2569c433-3901-42dc-998e-5203b3297fd3" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-269cf843-f955-4685-83e9-5592f6a1861a">
+<span class="eqno">(72)<a class="headerlink" href="#equation-269cf843-f955-4685-83e9-5592f6a1861a" title="Permalink to this equation">#</a></span>\[\begin{align}
   h_0 &amp;= 1 \\
   v_0 &amp;= -0.783 \\
   m_0 &amp;= 1
 \end{align}\]</div>
 <p>and the terminal constraints are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-4e8d460b-c187-498a-82e2-e3040d2553ac">
-<span class="eqno">(73)<a class="headerlink" href="#equation-4e8d460b-c187-498a-82e2-e3040d2553ac" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-c7d25517-3076-4f3a-88a8-a3e83c5b0867">
+<span class="eqno">(73)<a class="headerlink" href="#equation-c7d25517-3076-4f3a-88a8-a3e83c5b0867" title="Permalink to this equation">#</a></span>\[\begin{align}
   h_f &amp;= 0 \\
   v_f &amp;= 0
 \end{align}\]</div>
 <p>Additionally, the thrust is constrained to be positive but remain under 1.227.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-6e17cf8f-b362-41ae-b0c9-a379874fbc41">
-<span class="eqno">(74)<a class="headerlink" href="#equation-6e17cf8f-b362-41ae-b0c9-a379874fbc41" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-cf7f56b2-7b99-4459-bd71-5f36ffa21a01">
+<span class="eqno">(74)<a class="headerlink" href="#equation-cf7f56b2-7b99-4459-bd71-5f36ffa21a01" title="Permalink to this equation">#</a></span>\[\begin{align}
   0 \le T \le 1.227 
 \end{align}\]</div>
 </section>
@@ -1019,7 +1019,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.09401158600007875 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.09314824899990981 seconds.
 Total jacobian shape: (63, 124) 
 </pre></div>
 </div>
@@ -1028,10 +1028,10 @@ FWD solves: 4   REV solves: 0
 Total colors vs. total size: 4 vs 124  (96.77% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0940 sec
-Time to compute coloring:   0.0433 sec
+Time to compute sparsity:   0.0931 sec
+Time to compute coloring:   0.0408 sec
 Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-08-13 12:33:27
+Coloring created on: 2024-08-14 15:58:52
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1040,11 +1040,11 @@ Coloring created on: 2024-08-13 12:33:27
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    0.7355
-       User Objective Time :       0.0158
-       User Sensitivity Time :     0.6412
-       Interface Time :            0.0387
-       Opt Solver Time:            0.0399
+    Total Time:                    0.7526
+       User Objective Time :       0.0177
+       User Sensitivity Time :     0.6536
+       Interface Time :            0.0401
+       Opt Solver Time:            0.0412
     Calls to Objective Function :      16
     Calls to Sens Function :           16
 
@@ -1339,11 +1339,11 @@ Coloring created on: 2024-08-13 12:33:27
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 18
-  runtime     : 9.1454E-01 s
+  runtime     : 9.2843E-01 s
   model_evals : 18
-  model_time  : 1.2056E-02 s
+  model_time  : 1.2951E-02 s
   deriv_evals : 17
-  deriv_time  : 3.8814E-01 s
+  deriv_time  : 3.9144E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>
