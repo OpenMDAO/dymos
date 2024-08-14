@@ -29,7 +29,6 @@ class ExplicitShooting(TranscriptionBase):
     .. math::
         \bar{x}_{f} = \mathcal{I}(\bar{x}_0, t_0, t_d, \bar{\theta}) = \bar{x}_{0} + \int_{t_0}^{t_0+t_d} \left( f_{ode}(\bar{x}, t, \bar{\theta}) \right) dt
 
-
     then the inputs are the initial states ($\bar{x}$), the initial time and duration ($t_0$ and $t_d$), and some set
     of parameters that impact the ODE ($\theta$). For Dymos, $\theta$ may include the phase parameters, or the node values
     that govern the shape of the controls.
@@ -38,7 +37,6 @@ class ExplicitShooting(TranscriptionBase):
     ----------
     **kwargs : dict
         Dictionary of arguments.
-
     """  # nopep8: E501, W605
     def __init__(self, **kwargs):
         super(ExplicitShooting, self).__init__(**kwargs)
