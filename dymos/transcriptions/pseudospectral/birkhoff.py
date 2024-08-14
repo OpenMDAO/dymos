@@ -342,33 +342,16 @@ class Birkhoff(TranscriptionBase):
         for timeseries_name, timeseries_options in phase._timeseries.items():
             timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
             ts_inputs_to_promote = []
-            for ts_output_name, ts_output in timeseries_options['outputs'].items():
-                name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
-                units = ts_output['units']
-                shape = ts_output['shape']
-                src = ts_output['src']
-                is_rate = ts_output['is_rate']
-
-                added_src = timeseries_comp._add_output_configure(name,
-                                                                  shape=shape,
-                                                                  units=units,
-                                                                  desc='',
-                                                                  src=src,
-                                                                  rate=is_rate)
-
-                if added_src:
-                    # If the src was added, promote it if it was a state,
-                    # or connect it otherwise.
-                    if src.startswith('states:'):
-                        var_name = ts_output["output_name"]
-                        state_name = src.split(':')[-1]
-                        ts_inputs_to_promote.append((f'input_values:{name}',
-                                                    f'states:{state_name}'))
-                    else:
-                        phase.connect(src_name=src,
-                                      tgt_name=f'{timeseries_name}.input_values:{name}',
-                                      src_indices=ts_output['src_idxs'])
-
+            for input_name, src, src_idxs in timeseries_comp._configure_io(timeseries_options):
+                # If the src was added, promote it if it was a state,
+                # or connect it otherwise.
+                if src.startswith('states:'):
+                    state_name = src.split(':')[-1]
+                    ts_inputs_to_promote.append((input_name, f'states:{state_name}'))
+                else:
+                    phase.connect(src_name=src,
+                                  tgt_name=f'{timeseries_name}.{input_name}',
+                                  src_indices=src_idxs)
             phase.promotes(timeseries_name, inputs=ts_inputs_to_promote)
 
     def setup_timeseries_outputs(self, phase):

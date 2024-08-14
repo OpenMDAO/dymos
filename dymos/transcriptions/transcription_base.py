@@ -424,23 +424,10 @@ class TranscriptionBase(object):
         for timeseries_name, timeseries_options in phase._timeseries.items():
             timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
 
-            for ts_output_name, ts_output in timeseries_options['outputs'].items():
-                name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
-                units = ts_output['units']
-                shape = ts_output['shape']
-                src = ts_output['src']
-                is_rate = ts_output['is_rate']
-
-                added_src = timeseries_comp._add_output_configure(name,
-                                                                  shape=shape,
-                                                                  units=units,
-                                                                  desc='',
-                                                                  src=src,
-                                                                  rate=is_rate)
-
-                if added_src:
-                    phase.connect(src_name=src, tgt_name=f'{timeseries_name}.input_values:{name}',
-                                  src_indices=ts_output['src_idxs'])
+            for input_name, src, src_idxs in timeseries_comp._configure_io(timeseries_options):
+                phase.connect(src_name=src,
+                              tgt_name=f'{timeseries_name}.{input_name}',
+                              src_indices=src_idxs)
 
     def configure_boundary_constraints(self, phase):
         """
