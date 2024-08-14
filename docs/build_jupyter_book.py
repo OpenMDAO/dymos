@@ -26,7 +26,6 @@ def build_book(book_dir=BOOK_DIR, clean=True, ignore_warnings=False):
         subprocess.run(['jupyter-book', 'build', '--keep-going', book_dir])  # nosec: trusted input
     else:
         subprocess.run(['jupyter-book', 'build', '-W', '--keep-going', book_dir])  # nosec: trusted input
-    # copy_build_artifacts(book_dir)
     os.chdir(save_cwd)
 
 
