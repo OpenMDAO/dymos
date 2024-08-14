@@ -304,13 +304,13 @@ class TestPhaseTimeTargets(unittest.TestCase):
         time_col = time_all[gd.subset_node_indices['col']]
         time_disc = time_all[gd.subset_node_indices['state_disc']]
         time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
-                                  newshape=(gd.num_segments, 2))
+                                  (gd.num_segments, 2))
 
         time_phase_all = p['phase0.t_phase']
         time_phase_col = time_phase_all[gd.subset_node_indices['col']]
         time_phase_disc = time_phase_all[gd.subset_node_indices['state_disc']]
         time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
-                                        newshape=(gd.num_segments, 2))
+                                        (gd.num_segments, 2))
 
         assert_near_equal(p['phase0.rhs_disc.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 

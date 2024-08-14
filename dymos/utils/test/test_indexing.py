@@ -21,7 +21,7 @@ class TestIndexing(unittest.TestCase):
         idxs = get_src_indices_by_row(row_idxs, shape, flat=True)
 
         expected = np.zeros((3, 5, 2), dtype=int)
-        expected[0, ...] = np.reshape(np.arange(10, dtype=int), newshape=shape)
+        expected[0, ...] = np.reshape(np.arange(10, dtype=int), shape)
         expected[1, ...] = expected[0, ...] + 20
         expected[2, ...] = expected[0, ...] + 40
 
