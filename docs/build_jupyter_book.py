@@ -4,8 +4,6 @@ import os
 import subprocess
 import pathlib
 
-from copy_build_artifacts import copy_build_artifacts
-
 
 _this_file = pathlib.Path(__file__).resolve()
 REPO_ROOT = _this_file.parent
@@ -28,7 +26,6 @@ def build_book(book_dir=BOOK_DIR, clean=True, ignore_warnings=False):
         subprocess.run(['jupyter-book', 'build', '--keep-going', book_dir])  # nosec: trusted input
     else:
         subprocess.run(['jupyter-book', 'build', '-W', '--keep-going', book_dir])  # nosec: trusted input
-    copy_build_artifacts(book_dir)
     os.chdir(save_cwd)
 
 
