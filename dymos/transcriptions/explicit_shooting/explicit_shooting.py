@@ -18,7 +18,7 @@ from ..common import TimeComp, TimeseriesOutputGroup, ControlGroup, ParameterCom
 
 
 class ExplicitShooting(TranscriptionBase):
-    """
+    r"""
     The Transcription class for single explicit shooting.
 
     This transcription uses an external explicit integrator to propagate the states, and optionally their
@@ -27,8 +27,7 @@ class ExplicitShooting(TranscriptionBase):
     If we view integration as a function
 
     .. math::
-
-    \bar{x}_{f} = \mathcal{I}(\bar{x}_0, t_0, t_d, \bar{\theta}) = \bar{x}_{0} + \int_{t_0}^{t_0+t_d} \left( f_{ode}(\bar{x}, t, \bar{\theta}) \right) dt
+        \bar{x}_{f} = \mathcal{I}(\bar{x}_0, t_0, t_d, \bar{\theta}) = \bar{x}_{0} + \int_{t_0}^{t_0+t_d} \left( f_{ode}(\bar{x}, t, \bar{\theta}) \right) dt
 
     then the inputs are the initial states ($\bar{x}$), the initial time and duration ($t_0$ and $t_d$), and some set
     of parameters that impact the ODE ($\theta$). For Dymos, $\theta$ may include the phase parameters, or the node values
