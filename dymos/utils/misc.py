@@ -74,7 +74,7 @@ def reshape_val(val, shape, num_input_nodes):
     elif np.asarray(val).shape == shape:
         shaped_val = np.repeat(val[np.newaxis, ...], num_input_nodes, axis=0)
     else:
-        shaped_val = np.reshape(val, newshape=(num_input_nodes,) + shape)
+        shaped_val = np.reshape(val, (num_input_nodes,) + shape)
     return shaped_val
 
 

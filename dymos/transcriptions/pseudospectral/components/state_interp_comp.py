@@ -181,10 +181,10 @@ class StateInterpComp(om.ExplicitComponent):
             size = np.prod(shape)
 
             xd_flat = np.reshape(inputs[xd_str],
-                                 newshape=(num_disc_nodes, size))
+                                 (num_disc_nodes, size))
 
             outputs[xdotc_str] = np.reshape(self.matrices['Ad'].dot(xd_flat) / dt_dstau,
-                                            newshape=(num_col_nodes,) + shape)
+                                            (num_col_nodes,) + shape)
 
     def _compute_gauss_lobatto(self, inputs, outputs):
         state_options = self.options['state_options']
@@ -207,8 +207,8 @@ class StateInterpComp(om.ExplicitComponent):
             xd_str = self.xd_str[name]
             fd_str = self.fd_str[name]
 
-            xd_flat = np.reshape(inputs[xd_str], newshape=(num_disc_nodes, size))
-            fd_flat = np.reshape(inputs[fd_str], newshape=(num_disc_nodes, size))
+            xd_flat = np.reshape(inputs[xd_str], (num_disc_nodes, size))
+            fd_flat = np.reshape(inputs[fd_str], (num_disc_nodes, size))
 
             col_val = Bi.dot(fd_flat) * dt_dstau + Ai.dot(xd_flat)
 

@@ -241,7 +241,7 @@ def eval_ode_on_grid(phase, transcription):
             f[name] = p_refine.get_val(f'ode.{rate_source}', units=rate_units)
 
         if len(f[name].shape) == 1:
-            f[name] = np.reshape(f[name], newshape=(f[name].shape[0], 1))
+            f[name] = np.reshape(f[name], (f[name].shape[0], 1))
 
     return x, u, p, f
 
