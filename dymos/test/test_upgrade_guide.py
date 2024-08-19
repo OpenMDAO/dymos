@@ -22,7 +22,6 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         thrust = p.get_val('traj.phase0.timeseries.design_parameters:thrust')
         # upgrade_doc: end parameter_timeseries
         """
-        import numpy as np
         import openmdao.api as om
         import dymos as dm
 

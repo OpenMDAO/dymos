@@ -24,7 +24,6 @@ from ..phase.options import TrajParameterOptionsDictionary
 from ..transcriptions.common import ParameterComp
 from ..utils.misc import create_subprob, get_rate_units, _unspecified, _none_or_unspecified
 from ..utils.introspection import get_promoted_vars, get_source_metadata, _get_common_metadata
-from .._options import options as dymos_options
 
 
 om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
@@ -502,7 +501,7 @@ class Trajectory(om.Group):
                 if targets is None:
                     reason = f'Option `targets=None` but no phase in the trajectory has a parameter named `{name}`.'
                 elif all([t is None for t in targets.values()]) and targets.keys() == self._phases.keys():
-                    reason = f'Option `targets` is a dictionary keyed by phase name but target for each phase is None.'
+                    reason = 'Option `targets` is a dictionary keyed by phase name but target for each phase is None.'
                 else:
                     reason = ''
                 raise ValueError(f'No target was found for trajectory parameter `{name}` in any phase.\n{reason}')
@@ -667,7 +666,7 @@ class Trajectory(om.Group):
                                                user_shape=_unspecified)
                     shapes[i] = meta['shape']
                     units[i] = meta['units']
-                except ValueError as e:
+                except ValueError:
                     raise RuntimeError(f'{info_str}Error in linking {var_a} from {phase_name_a} to {var_b} in '
                                        f'{phase_name_b}. Unable to find variable \'{vars[i]}\' in phase '
                                        f'\'{phases[i].pathname}\' or its ODE.')

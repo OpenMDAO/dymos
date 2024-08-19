@@ -1,4 +1,3 @@
-from collections.abc import Iterable, Sequence
 import fnmatch
 from numbers import Number
 import re
@@ -465,8 +464,8 @@ def configure_time_introspection(time_options, ode):
     time_options['time_phase_targets'] = targets
 
     if any(['dymos.static_target' in meta['tags'] for meta in targets.values()]):
-        raise ValueError(f"'t_phase' cannot be connected to its targets because one "
-                         f"or more targets are tagged with 'dymos.static_target'.")
+        raise ValueError("'t_phase' cannot be connected to its targets because one "
+                         "or more targets are tagged with 'dymos.static_target'.")
 
 
 def configure_states_introspection(state_options, time_options, control_options, parameter_options,
@@ -782,7 +781,6 @@ def configure_timeseries_output_introspection(phase):
         not_found = set()
 
         for output_name, output_options in ts_opts['outputs'].items():
-            name = output_options['name']
             if output_options['is_expr']:
                 output_meta = phase.timeseries_ec_vars[ts_name][output_name]['meta_data']
             else:
@@ -790,7 +788,7 @@ def configure_timeseries_output_introspection(phase):
                     output_meta = transcription._get_timeseries_var_source(output_options['name'],
                                                                            output_options['output_name'],
                                                                            phase=phase)
-                except ValueError as e:
+                except ValueError:
                     not_found.add(output_name)
                     continue
 
@@ -873,7 +871,7 @@ def configure_timeseries_expr_introspection(phase):
                     else:
                         try:
                             expr_vars[var] = transcription._get_timeseries_var_source(var, output_name=var, phase=phase)
-                        except ValueError as e:
+                        except ValueError:
                             expr_vars[var] = transcription._get_timeseries_var_source(
                                 phase.timeseries_ec_vars[ts_name][var]['abs_name'],
                                 output_name=var, phase=phase)

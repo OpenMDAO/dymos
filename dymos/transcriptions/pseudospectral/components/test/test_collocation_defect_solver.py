@@ -6,8 +6,6 @@ from numpy.testing import assert_almost_equal
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 
-from dymos.transcriptions.grid_data import GridData
-from dymos.transcriptions.pseudospectral.components.state_independents import StateIndependentsComp
 
 # Modify class so we can run it standalone.
 import dymos as dm
@@ -348,6 +346,19 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
         dm.options['include_check_partials'] = True
         p = self.make_prob(transcription='gauss-lobatto', num_segments=3, transcription_order=3,
                            compressed=True)
+
+        def assert_partials(data):
+            for of, wrt in data:
+                if of == wrt:
+                    # IndepVarComp like outputs have correct derivs, but FD is wrong so we skip
+                    # them (should be some form of -I)
+                    continue
+                check_data = data[(of, wrt)]
+                self.assertLess(check_data['abs error'].forward, 1e-8)
+
+        cpd = p.check_partials(compact_print=True, method='fd', out_stream=None)
+        data = cpd['traj0.phases.phase0.indep_states']
+        assert_partials(data)
 
     def test_partials_radau(self):
         dm.options['include_check_partials'] = True

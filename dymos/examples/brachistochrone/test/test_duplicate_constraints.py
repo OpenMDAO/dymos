@@ -1,9 +1,7 @@
 import os
 import unittest
-import warnings
 
 import numpy as np
-from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
 import dymos as dm
@@ -12,7 +10,7 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.testing_utils import use_tempdirs
-from openmdao.utils.assert_utils import assert_near_equal, assert_warning
+from openmdao.utils.assert_utils import assert_near_equal
 
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT', fallback=True)
 

@@ -68,7 +68,6 @@ class BrachistochroneODE(om.ExplicitComponent):
 class TestBrachistochroneTimeseriesFeedback(unittest.TestCase):
 
     def test_timeseries_feedback(self):
-        import itertools
         import numpy as np
         import openmdao.api as om
         import dymos as dm

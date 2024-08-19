@@ -2,7 +2,7 @@ import unittest
 import warnings
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal, assert_warnings, assert_no_warning
+from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.mpi import MPI, multi_proc_exception_check
 
@@ -29,7 +29,6 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
                 assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
                                   tolerance=4.0E-3)
 
-        case1 = om.CaseReader('dymos_solution.db').get_case('final')
         sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
 
         # Run again without an actual optimizer
@@ -51,7 +50,6 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
         p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
                                          compressed=False, optimizer=optimizer, show_output=False)
 
-        case1 = om.CaseReader('dymos_solution.db').get_case('final')
         sim_case1 = om.CaseReader('dymos_simulation.db').get_case('final')
 
         with multi_proc_exception_check(p.comm):

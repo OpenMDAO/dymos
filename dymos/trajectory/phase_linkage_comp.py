@@ -96,12 +96,12 @@ class PhaseLinkageComp(om.ExplicitComponent):
 
         try:
             self.add_input(name=input_a, shape=ishape, val=np.zeros(ishape), units=units_a)
-        except ValueError as e:
+        except ValueError:
             pass
 
         try:
             self.add_input(name=input_b, shape=ishape, val=np.zeros(ishape), units=units_b)
-        except ValueError as e:
+        except ValueError:
             pass
 
         self.add_output(name=output, shape=shape, val=np.zeros(shape), units=units)

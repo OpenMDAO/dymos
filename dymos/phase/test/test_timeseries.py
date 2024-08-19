@@ -6,7 +6,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal, assert_warning
+from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
@@ -521,7 +521,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p['phase0.states:x'] = phase.interp('x', [0, 10])
         p['phase0.states:y'] = phase.interp('y', [10, 5])
         p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p[f'phase0.controls:theta'] = phase.interp('theta', [5, 100])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
 
         p.run_model()
@@ -571,7 +571,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p['phase0.states:x'] = phase.interp('x', [0, 10])
         p['phase0.states:y'] = phase.interp('y', [10, 5])
         p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p[f'phase0.controls:theta'] = phase.interp('theta', [5, 100])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
 
         p.run_model()

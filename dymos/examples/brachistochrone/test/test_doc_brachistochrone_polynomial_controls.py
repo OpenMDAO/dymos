@@ -98,7 +98,6 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_radau(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -184,7 +183,6 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_birkhoff(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -450,7 +448,6 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_birkhoff(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -715,7 +712,6 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_birkhoff(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -807,7 +803,6 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -895,7 +890,6 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_radau(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -983,7 +977,6 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_birkhoff(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -1075,7 +1068,6 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -1163,7 +1155,6 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_radau(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -1251,7 +1242,6 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_birkhoff(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -1455,10 +1445,8 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_brachistochrone_polynomial_control_birkhoff(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm

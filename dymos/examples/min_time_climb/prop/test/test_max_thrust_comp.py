@@ -5,7 +5,7 @@ from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
 
-from dymos.examples.min_time_climb.prop.max_thrust_comp import MaxThrustComp, THR_DATA, _LBF2N
+from dymos.examples.min_time_climb.prop.max_thrust_comp import MaxThrustComp, THR_DATA
 
 
 class TestBrysonThrustComp(unittest.TestCase):

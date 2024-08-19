@@ -1,7 +1,6 @@
 import os
 import unittest
 
-import numpy as np
 from openmdao.utils.testing_utils import use_tempdirs
 import openmdao
 import openmdao.api as om
@@ -296,8 +295,8 @@ class TestLoadCase(unittest.TestCase):
         # create a problem with a different transcription with a different number of variables
         q = setup_problem(dm.Radau(num_segments=10), fix_final_state=False, fix_final_control=True)
 
-        msg = f"phase0.controls:theta specifies 'fix_final=True'. If the given restart file has a" \
-              f" different final value this will overwrite the user-specified value"
+        msg = "phase0.controls:theta specifies 'fix_final=True'. If the given restart file has a" \
+              " different final value this will overwrite the user-specified value"
 
         with assert_warning(UserWarning, msg):
             q.load_case(case)
@@ -319,8 +318,8 @@ class TestLoadCase(unittest.TestCase):
                           fix_final_state=False, fix_final_control=True)
 
         # Load the values from the previous solution
-        msg = f"phase0.controls:theta specifies 'fix_final=True'. If the given restart file has a" \
-              f" different final value this will overwrite the user-specified value"
+        msg = "phase0.controls:theta specifies 'fix_final=True'. If the given restart file has a" \
+              " different final value this will overwrite the user-specified value"
 
         with assert_warning(UserWarning, msg):
             q.load_case(case)

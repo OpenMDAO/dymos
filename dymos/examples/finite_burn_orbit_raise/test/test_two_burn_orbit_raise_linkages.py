@@ -455,8 +455,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
     def test_two_burn_orbit_raise_link_control_to_param(self):
         import numpy as np
 
-        import matplotlib.pyplot as plt
-
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
 
@@ -578,7 +576,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
 
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True):
             p.setup(check=True, force_alloc_complex=True)
 
         # Set Initial Guesses
@@ -629,8 +627,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
     @unittest.skipIf(plt is None, "This test requires matplotlib")
     def test_two_burn_orbit_raise_gl_list_add_timeseries_output(self):
         import numpy as np
-
-        import matplotlib.pyplot as plt
 
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal

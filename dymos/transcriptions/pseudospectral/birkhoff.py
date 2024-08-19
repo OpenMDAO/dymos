@@ -8,7 +8,7 @@ from .components import BirkhoffIterGroup, BirkhoffBoundaryGroup
 
 from ..grid_data import BirkhoffGrid
 from dymos.utils.misc import get_rate_units
-from dymos.utils.introspection import get_promoted_vars, get_source_metadata, get_targets
+from dymos.utils.introspection import get_promoted_vars, get_source_metadata
 from dymos.utils.indexing import get_constraint_flat_idxs, get_src_indices_by_row
 
 
@@ -240,12 +240,6 @@ class Birkhoff(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        grid_data = self.grid_data
-        nn = grid_data.subset_num_nodes['all']
-        map_input_indices_to_disc = grid_data.input_maps['state_input_to_disc']
-        ode = phase._get_subsystem(self._rhs_source)
-        ode_inputs = get_promoted_vars(ode, 'input')
-
         phase._get_subsystem('boundary_vals').configure_io(phase)
         phase._get_subsystem('ode_iter_group').configure_io(phase)
 
@@ -269,8 +263,6 @@ class Birkhoff(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        grid_data = self.grid_data
-
         for name, options in phase.state_options.items():
             rate_source_type = phase.classify_var(options['rate_source'])
             rate_src_path = self._get_rate_source_path(name, phase)
@@ -597,7 +589,6 @@ class Birkhoff(TranscriptionBase):
         ndarray
             Array of source indices.
         """
-        gd = self.grid_data
         try:
             var = phase.state_options[state_name]['rate_source']
         except RuntimeError:
@@ -636,11 +627,6 @@ class Birkhoff(TranscriptionBase):
             rate_path = f'control_rates:{control_name}_rate2'
         elif var_type == 'parameter':
             rate_path = f'parameter_vals:{var}'
-            dynamic = not phase.parameter_options[var]['static_target']
-            if dynamic:
-                node_idxs = np.zeros(gd.subset_num_nodes['col'], dtype=int)
-            else:
-                node_idxs = np.zeros(1, dtype=int)
         else:
             # Failed to find variable, assume it is in the ODE
             rate_path = f'ode_all.{var}'

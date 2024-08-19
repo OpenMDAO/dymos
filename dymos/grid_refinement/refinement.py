@@ -5,7 +5,6 @@ from .ph_adaptive.ph_adaptive import PHAdaptive
 from .hp_adaptive.hp_adaptive import HPAdaptive
 from .write_iteration import write_error, write_refine_iter
 
-import openmdao.api as om
 from dymos.grid_refinement.error_estimation import check_error
 from dymos.load_case import load_case, find_phases
 

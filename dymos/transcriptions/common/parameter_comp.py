@@ -51,7 +51,7 @@ class ParameterComp(ExplicitComponent):
             self.add_output(name='t_initial_val', val=ti_val, shape=(1,), units=units)
             self.declare_partials(of='t_initial_val', wrt='t_initial', val=1.0)
 
-            self.add_input(name=f't_duration', val=td_val, shape=(1,), units=units)
+            self.add_input(name='t_duration', val=td_val, shape=(1,), units=units)
             self.add_output(name='t_duration_val', val=td_val, shape=(1,), units=units)
             self.declare_partials(of='t_duration_val', wrt='t_duration', val=1.0)
 

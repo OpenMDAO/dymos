@@ -5,8 +5,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
-import dymos as dm
-from dymos import Trajectory, GaussLobatto, Phase, Radau
+from dymos import Trajectory, GaussLobatto, Phase
 
 
 class crtbp_ode(om.ExplicitComponent):

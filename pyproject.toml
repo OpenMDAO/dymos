@@ -54,6 +54,7 @@ notebooks = [
     "tabulate",
 ]
 test = [
+    "pre-commit",
     "aiounittest",
     "matplotlib",
     "numpydoc>=1.1",
@@ -77,3 +78,29 @@ path = "dymos/__init__.py"
 include = [
     "/dymos",
 ]
+
+[tool.ruff]
+line-length = 100
+indent-width = 4
+
+[tool.ruff.format]
+indent-style = "space"
+line-ending = "lf"
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore `F401` (unused import) in api files.
+#"api.py" = ["F401"]
+#"parallel_api.py" = ["F401"]
+"__init__.py" = ["F401"]
+# Ignore files in the test suite.
+#"**/test_suite/**" = ["E","F"]
+# Allow variable name I for current
+#"**/extcode_resistor.py" = ["E741"]
+#"**/circuit_analysis_examples.ipynb" = ["E741"]
+# Ignore unused vars and imports in docs
+#"**/openmdao_book/**" = ["F401","E402","F811","F841"]
+# Ignore import related conventions in docs
+"**/dymos_book/**" = ["E402"]

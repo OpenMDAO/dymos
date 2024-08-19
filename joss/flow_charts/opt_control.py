@@ -1,4 +1,4 @@
-from pyxdsm.XDSM import XDSM, OPT, SUBOPT, SOLVER, DOE, IFUNC, FUNC, GROUP, IGROUP, METAMODEL
+from pyxdsm.XDSM import XDSM, OPT, GROUP
 
 
 x = XDSM(use_sfmath=False)

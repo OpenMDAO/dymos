@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.special as sp
 
 _cgl_cache = {}
 """ Cache for the LGL nodes and weights, keyed by n. """

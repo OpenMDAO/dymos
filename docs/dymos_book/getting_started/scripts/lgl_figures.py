@@ -1,19 +1,13 @@
-import unittest
-from openmdao.utils.testing_utils import use_tempdirs
 
-from dymos.utils.interpolate import LagrangeBarycentricInterpolant
 
 import numpy as np
 import openmdao.api as om
 import dymos as dm
-from dymos.utils.lagrange import lagrange_matrices
 from dymos.utils.hermite import hermite_matrices
 from dymos.utils.lgl import lgl
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 # plt.switch_backend('Agg')  # disable plotting to the screen
 
-from dymos.examples.oscillator.doc.oscillator_ode import OscillatorODE
 
 NUM_SEG = 1
 ORDER = 3

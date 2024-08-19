@@ -91,10 +91,8 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
                 os.remove(filename)
 
     def test_brachistochrone_integrated_control_gauss_lobatto(self):
-        import numpy as np
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
-        import dymos as dm
 
         p = om.Problem(model=om.Group())
         p.driver = om.ScipyOptimizeDriver()
@@ -164,10 +162,8 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         assert_near_equal(theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-4)
 
     def test_brachistochrone_integrated_control_radau_ps(self):
-        import numpy as np
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
-        import dymos as dm
 
         p = om.Problem(model=om.Group())
         p.driver = om.ScipyOptimizeDriver()

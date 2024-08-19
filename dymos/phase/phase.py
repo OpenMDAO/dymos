@@ -23,7 +23,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid, BirkhoffGrid
-from ..transcriptions import ExplicitShooting, GaussLobatto, Radau, Birkhoff
+from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
@@ -2553,7 +2553,6 @@ class Phase(om.Group):
         # t = deepcopy(self.options['transcription']) if transcription is None else transcription
         ode_class = self.options['ode_class']
         ode_init_kwargs = self.options['ode_init_kwargs']
-        auto_solvers = self.options['auto_solvers']
 
         self_tx = self.options['transcription']
         num_seg = self_tx.grid_data.num_segments
@@ -2659,8 +2658,6 @@ class Phase(om.Group):
                                                                                 out_stream=None)])
         ip_dict = dict([(name, options) for (name, options) in phs.list_inputs(units=True,
                                                                                out_stream=None)])
-
-        phs_path = phs.pathname + '.' if phs.pathname else ''
 
         if self.pathname.partition('.')[0] == self.name:
             self_path = self.name + '.'

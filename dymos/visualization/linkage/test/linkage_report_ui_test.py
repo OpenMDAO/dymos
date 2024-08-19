@@ -11,7 +11,6 @@ import sys
 import openmdao.api as om
 import openmdao
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
@@ -501,7 +500,7 @@ class dymos_linkage_gui_test_case(_GuiTestCase):
                     await self.page.wait_for_selector(nth_selector, state='attached',
                                                       timeout=max_time)
                     found = True
-                except:
+                except Exception:
                     num_tries += 1
 
             num_tries = 0
@@ -512,7 +511,7 @@ class dymos_linkage_gui_test_case(_GuiTestCase):
                     await self.page.wait_for_selector(nth_selector, state='detached',
                                                       timeout=max_time)
                     found = True
-                except:
+                except Exception:
                     num_tries += 1
 
         else:
@@ -524,7 +523,7 @@ class dymos_linkage_gui_test_case(_GuiTestCase):
                     await self.page.wait_for_selector(nth_selector, state='detached',
                                                       timeout=max_time)
                     found = True
-                except:
+                except Exception:
                     num_tries += 1
 
         hndl_list = await self.page.query_selector_all(selector)

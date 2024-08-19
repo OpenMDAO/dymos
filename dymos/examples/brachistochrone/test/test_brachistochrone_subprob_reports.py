@@ -1,8 +1,6 @@
 """Unit Tests for the code that does automatic report generation"""
 import unittest
-import pathlib
 import os
-from packaging.version import Version
 
 import openmdao
 import openmdao.api as om
@@ -146,7 +144,6 @@ class TestSubproblemReportToggle(unittest.TestCase):
         p = setup_model_radau(do_reports=False, probname='test_no_sim_reports')
 
         main_outputs_dir = p.get_outputs_dir()
-        main_reports_dir = p.get_reports_dir()
 
         sim_outputs_dir = main_outputs_dir / 'traj0_simulation_out'
         sim_reports_dir = sim_outputs_dir / 'reports'
