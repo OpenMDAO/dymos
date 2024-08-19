@@ -2,7 +2,8 @@ import numpy as np
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
-from ...utils.introspection import configure_analytic_states_introspection, get_promoted_vars, get_source_metadata, configure_analytic_states_discovery
+from ...utils.introspection import configure_analytic_states_introspection, get_promoted_vars, \
+    get_source_metadata, configure_analytic_states_discovery
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
