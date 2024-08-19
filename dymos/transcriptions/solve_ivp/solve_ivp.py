@@ -110,7 +110,7 @@ class SolveIVP(TranscriptionBase):
         num_seg = self.grid_data.num_segments
         grid_data = self.grid_data
         output_nodes_per_seg = self.options['output_nodes_per_seg']
-        ode = self._get_ode(phase)
+        # ode = self._get_ode(phase)
         time_name = phase.time_options['name']
 
         phase.time.configure_io()
@@ -139,26 +139,29 @@ class SolveIVP(TranscriptionBase):
         for name, targets, dynamic in [('t_initial', options['t_initial_targets'], False),
                                        ('t_duration', options['t_duration_targets'], False)]:
 
-            shape, units, static_target = get_target_metadata(ode, name=name,
-                                                              user_targets=targets,
-                                                              user_units=options['units'],
-                                                              user_shape=(1,))
-            if shape == (1,):
-                src_idxs = None
-                flat_src_idxs = None
-                src_shape = None
-            else:
-                src_idxs = np.zeros(self.grid_data.subset_num_nodes['all'])
-                flat_src_idxs = True
-                src_shape = (1,)
+            # FIXME: this logic uses the get_target_metadata function, which was removed in PR #656
+            # shape, units, static_target = get_target_metadata(ode, name=name,
+            #                                                   user_targets=targets,
+            #                                                   user_units=options['units'],
+            #                                                   user_shape=(1,))
 
-            for t in targets:
-                phase.promotes('ode', inputs=[(t, name)], src_indices=src_idxs,
-                               flat_src_indices=flat_src_idxs, src_shape=src_shape)
-            if targets:
-                phase.set_input_defaults(name=name,
-                                         val=np.ones((1,)),
-                                         units=options['units'])
+            # if shape == (1,):
+            #     src_idxs = None
+            #     flat_src_idxs = None
+            #     src_shape = None
+            # else:
+            #     src_idxs = np.zeros(self.grid_data.subset_num_nodes['all'])
+            #     flat_src_idxs = True
+            #     src_shape = (1,)
+
+            # for t in targets:
+            #     phase.promotes('ode', inputs=[(t, name)], src_indices=src_idxs,
+            #                    flat_src_indices=flat_src_idxs, src_shape=src_shape)
+            # if targets:
+            #     phase.set_input_defaults(name=name,
+            #                              val=np.ones((1,)),
+            #                              units=options['units'])
+            raise RuntimeError("Unhandled time_options, see https://github.com/OpenMDAO/dymos/issues/1103")
 
         phase.connect('dt_dstau', 'timeseries.dt_dstau')
 

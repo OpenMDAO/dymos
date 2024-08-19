@@ -191,7 +191,6 @@ class TestAircraftCruise(unittest.TestCase):
         time = p.get_val('phase0.timeseries.time')
         tas = p.get_val('phase0.timeseries.TAS', units='km/s')
         range = p.get_val('phase0.timeseries.range')
-        mass_fuel = p.get_val('phase0.timeseries.mass_fuel', units='kg')
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
 

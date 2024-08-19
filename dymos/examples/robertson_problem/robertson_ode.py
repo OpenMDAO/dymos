@@ -39,7 +39,7 @@ class RobertsonODE(om.ExplicitComponent):
         outputs['zdot'] = zdot
 
     def compute_partials(self, inputs, jacobian):
-        x = inputs['x']
+        # inputs['x']  # x is not needed to compute partials
         y = inputs['y']
         z = inputs['z']
 

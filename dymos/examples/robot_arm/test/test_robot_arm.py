@@ -85,7 +85,7 @@ class TestRobotArm(unittest.TestCase):
         p = self.make_problem(tx=dm.Radau(num_segments=30, order=3), optimizer='SLSQP')
         p.run_model()
         with printoptions(linewidth=1024, edgeitems=100):
-            cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
+            p.check_partials(method='fd', compact_print=True, out_stream=None)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_robot_arm_radau(self):

@@ -107,12 +107,14 @@ class TranscriptionBase(object):
         # Determine the time unit.
         if time_options['units'] in _none_or_unspecified:
             if time_options['targets']:
-                ode = phase._get_subsystem(self._rhs_source)
+                # FIXME: this logic uses the get_target_metadata function, which was removed in PR #656
+                # ode = phase._get_subsystem(self._rhs_source)
 
-                _, time_options['units'] = get_target_metadata(ode, name='time',
-                                                               user_targets=time_options['targets'],
-                                                               user_units=time_options['units'],
-                                                               user_shape='')
+                # _, time_options['units'] = get_target_metadata(ode, name='time',
+                #                                                user_targets=time_options['targets'],
+                #                                                user_units=time_options['units'],
+                #                                                user_shape='')
+                raise RuntimeError("Unhandled time_options, see https://github.com/OpenMDAO/dymos/issues/1103")
 
         if not (time_options['input_initial'] or time_options['fix_initial']):
             lb, ub = time_options['initial_bounds']

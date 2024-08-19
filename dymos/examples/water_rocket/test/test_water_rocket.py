@@ -109,14 +109,6 @@ class TestWaterRocketForDocs(unittest.TestCase):
 def plot_trajectory(p, exp_out):
     fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(6, 8))
 
-    time_imp = {'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.time'),
-                'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.time'),
-                'descent': p.get_val('traj.descent.timeseries.time')}
-
-    time_exp = {'ballistic_ascent': exp_out.get_val('traj.ballistic_ascent.timeseries.time'),
-                'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.time'),
-                'descent': exp_out.get_val('traj.descent.timeseries.time')}
-
     r_imp = {'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.r'),
              'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.r'),
              'descent': p.get_val('traj.descent.timeseries.r')}

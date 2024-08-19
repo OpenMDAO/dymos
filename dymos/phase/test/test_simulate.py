@@ -88,7 +88,7 @@ class TestSimulateShapedParams(unittest.TestCase):
 
         try:
             hop0.simulate()
-        except:
+        except Exception:
             self.fail('Simulate did not correctly complete.')
 
     def test_shaped_traj_params(self):
@@ -132,7 +132,7 @@ class TestSimulateShapedParams(unittest.TestCase):
 
         try:
             hop0.simulate()
-        except:
+        except Exception:
             self.fail('Simulate did not correctly complete.')
 
 

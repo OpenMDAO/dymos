@@ -57,7 +57,7 @@ class RobotArmODE(om.ExplicitComponent):
         L = self.options['arm_length']
 
         x0 = inputs['x0']
-        x1 = inputs['x1']
+        # x1 = inputs['x1']
         x2 = inputs['x2']
         x3 = inputs['x3']
         x4 = inputs['x4']

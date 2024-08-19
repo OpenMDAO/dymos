@@ -552,7 +552,7 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         int_theta_sim = sim.get_val('traj.phase0.timeseries.int_theta')
 
         theta_sol = sol.get_val('traj.phase0.timeseries.theta')
-        theta_sim = sim.get_val('traj.phase0.timeseries.theta')
+        # theta_sim = sim.get_val('traj.phase0.timeseries.theta')
 
         assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)

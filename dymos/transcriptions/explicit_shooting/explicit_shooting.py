@@ -173,7 +173,6 @@ class ExplicitShooting(TranscriptionBase):
         time_options = phase.time_options
         t_name = time_options['name']
         tphase_name = f'{t_name}_phase'
-        t_units = time_options['units']
 
         integ = phase._get_subsystem('integrator')
         integ._configure_time()
@@ -227,11 +226,9 @@ class ExplicitShooting(TranscriptionBase):
                 if tgt_shape == (1,):
                     src_idxs = None
                     flat_src_idxs = None
-                    src_shape = None
                 else:
                     src_idxs = np.zeros(self._output_grid_data.subset_num_nodes['all'])
                     flat_src_idxs = True
-                    src_shape = (1,)
 
                 phase.connect(f'{name}_val', f'ode.{name}',
                               src_indices=src_idxs,

@@ -196,7 +196,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                                                            transcription_order=11)
         self.assert_results(p)
 
-    def test_ex_brachistochrone_vs_radau_single_segment(self):
+    def test_ex_brachistochrone_vs_radau_single_segment_uncompressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = False
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
                                                            compressed=False,
@@ -206,7 +206,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                                                            transcription_order=11)
         self.assert_results(p)
 
-    def test_ex_brachistochrone_vs_gl_single_segment(self):
+    def test_ex_brachistochrone_vs_gl_single_segment_uncompressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = False
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
                                                            compressed=False,

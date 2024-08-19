@@ -177,7 +177,6 @@ class TestODEIntegrationComp(unittest.TestCase):
 
         p.run_model()
 
-        t = p.get_val('integrator.time')
         x = p.get_val('integrator.states_out:x')
         y = p.get_val('integrator.states_out:y')
         v = p.get_val('integrator.states_out:v')
@@ -261,7 +260,7 @@ class TestODEIntegrationComp(unittest.TestCase):
 
         p.run_model()
 
-        t = p.get_val('integrator.time')
+        p.get_val('integrator.time')
         x = p.get_val('integrator.states_out:x')
         y = p.get_val('integrator.states_out:y')
         v = p.get_val('integrator.states_out:v')
