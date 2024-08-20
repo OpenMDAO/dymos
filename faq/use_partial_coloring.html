@@ -1100,7 +1100,6 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span> 
-<span class="kn">import</span> <span class="nn">matplotlib</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
 
@@ -1274,19 +1273,19 @@ Model viewer data has already been recorded for Driver.
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.26693787800002156 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.27116090699996676 seconds.
 Total jacobian shape: (361, 212) 
-
-
-Jacobian shape: (361, 212)  (3.44% nonzero)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (361, 212)  (3.44% nonzero)
 FWD solves: 13   REV solves: 0
 Total colors vs. total size: 13 vs 212  (93.87% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.2669 sec
-Time to compute coloring:   0.1922 sec
-Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-08-19 22:15:39
+Time to compute sparsity:   0.2712 sec
+Time to compute coloring:   0.1959 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2024-08-20 14:54:51
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1646: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
@@ -1304,10 +1303,10 @@ FWD solves: 13   REV solves: 0
 Total colors vs. total size: 13 vs 212  (93.87% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.2669 sec
-Time to compute coloring:   0.1922 sec
-Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-08-19 22:15:39
+Time to compute sparsity:   0.2712 sec
+Time to compute coloring:   0.1959 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2024-08-20 14:54:51
 
 --- Constraint Report [traj] ---
     --- phase0 ---
@@ -1326,7 +1325,7 @@ Coloring created on: 2024-08-19 22:15:39
 Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem2&#39; was computed 3 times, taking 0.303991404000044 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem2&#39; was computed 3 times, taking 0.3045586739999635 seconds.
 Total jacobian shape: (361, 212) 
 </pre></div>
 </div>
@@ -1335,10 +1334,10 @@ FWD solves: 154   REV solves: 0
 Total colors vs. total size: 154 vs 212  (27.36% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.3040 sec
-Time to compute coloring:   0.9297 sec
-Memory to compute coloring:   7.4219 MB
-Coloring created on: 2024-08-19 22:15:47
+Time to compute sparsity:   0.3046 sec
+Time to compute coloring:   0.9304 sec
+Memory to compute coloring:   6.5430 MB
+Coloring created on: 2024-08-20 14:55:00
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1646: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
@@ -1350,10 +1349,10 @@ FWD solves: 154   REV solves: 0
 Total colors vs. total size: 154 vs 212  (27.36% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.3040 sec
-Time to compute coloring:   0.9297 sec
-Memory to compute coloring:   7.4219 MB
-Coloring created on: 2024-08-19 22:15:47
+Time to compute sparsity:   0.3046 sec
+Time to compute coloring:   0.9304 sec
+Memory to compute coloring:   6.5430 MB
+Coloring created on: 2024-08-20 14:55:00
 
 --- Constraint Report [traj] ---
     --- phase0 ---
@@ -1380,7 +1379,7 @@ Total colors vs. total size: 2 vs 120  (98.33% improvement)
 
 Sparsity computed using tolerance: 1e-06
 Time to compute sparsity:   0.0065 sec
-Time to compute coloring:   0.0072 sec
+Time to compute coloring:   0.0073 sec
 Memory to compute coloring:   0.0000 MB
 
 Coloring for &#39;traj.phases.phase0.rhs_col.aero.q_comp&#39; (class DynamicPressureCompFD)
@@ -1390,12 +1389,12 @@ FWD solves: 2   REV solves: 0
 Total colors vs. total size: 2 vs 60  (96.67% improvement)
 
 Sparsity computed using tolerance: 1e-06
-Time to compute sparsity:   0.0035 sec
-Time to compute coloring:   0.0037 sec
+Time to compute sparsity:   0.0037 sec
+Time to compute coloring:   0.0039 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem3&#39; was computed 3 times, taking 0.3104582889999392 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem3&#39; was computed 3 times, taking 0.3155591800000366 seconds.
 Total jacobian shape: (361, 212) 
 
 
@@ -1404,10 +1403,10 @@ FWD solves: 13   REV solves: 0
 Total colors vs. total size: 13 vs 212  (93.87% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.3105 sec
-Time to compute coloring:   0.1904 sec
+Time to compute sparsity:   0.3156 sec
+Time to compute coloring:   0.1947 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-19 22:16:09
+Coloring created on: 2024-08-20 14:55:22
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1646: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
@@ -1419,10 +1418,10 @@ FWD solves: 13   REV solves: 0
 Total colors vs. total size: 13 vs 212  (93.87% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.3105 sec
-Time to compute coloring:   0.1904 sec
+Time to compute sparsity:   0.3156 sec
+Time to compute coloring:   0.1947 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-19 22:16:09
+Coloring created on: 2024-08-20 14:55:22
 </pre></div>
 </div>
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 550x550 with 0 Axes&gt;

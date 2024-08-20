@@ -723,7 +723,7 @@ title="Open an issue"
 
 <span class="kn">from</span> <span class="nn">..transcriptions.transcription_base</span> <span class="kn">import</span> <span class="n">TranscriptionBase</span>
 <span class="kn">from</span> <span class="nn">..transcriptions.grid_data</span> <span class="kn">import</span> <span class="n">GaussLobattoGrid</span><span class="p">,</span> <span class="n">RadauGrid</span><span class="p">,</span> <span class="n">UniformGrid</span><span class="p">,</span> <span class="n">BirkhoffGrid</span>
-<span class="kn">from</span> <span class="nn">..transcriptions</span> <span class="kn">import</span> <span class="n">ExplicitShooting</span><span class="p">,</span> <span class="n">GaussLobatto</span><span class="p">,</span> <span class="n">Radau</span><span class="p">,</span> <span class="n">Birkhoff</span>
+<span class="kn">from</span> <span class="nn">..transcriptions</span> <span class="kn">import</span> <span class="n">ExplicitShooting</span><span class="p">,</span> <span class="n">GaussLobatto</span><span class="p">,</span> <span class="n">Radau</span>
 <span class="kn">from</span> <span class="nn">..utils.indexing</span> <span class="kn">import</span> <span class="n">get_constraint_flat_idxs</span>
 <span class="kn">from</span> <span class="nn">..utils.introspection</span> <span class="kn">import</span> <span class="n">configure_time_introspection</span><span class="p">,</span> <span class="n">_configure_constraint_introspection</span><span class="p">,</span> \
     <span class="n">configure_controls_introspection</span><span class="p">,</span> <span class="n">configure_parameters_introspection</span><span class="p">,</span> \
@@ -3253,7 +3253,6 @@ title="Open an issue"
         <span class="c1"># t = deepcopy(self.options[&#39;transcription&#39;]) if transcription is None else transcription</span>
         <span class="n">ode_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ode_class&#39;</span><span class="p">]</span>
         <span class="n">ode_init_kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ode_init_kwargs&#39;</span><span class="p">]</span>
-        <span class="n">auto_solvers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;auto_solvers&#39;</span><span class="p">]</span>
 
         <span class="n">self_tx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;transcription&#39;</span><span class="p">]</span>
         <span class="n">num_seg</span> <span class="o">=</span> <span class="n">self_tx</span><span class="o">.</span><span class="n">grid_data</span><span class="o">.</span><span class="n">num_segments</span>
@@ -3359,8 +3358,6 @@ title="Open an issue"
                                                                                 <span class="n">out_stream</span><span class="o">=</span><span class="kc">None</span><span class="p">)])</span>
         <span class="n">ip_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">name</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span> <span class="ow">in</span> <span class="n">phs</span><span class="o">.</span><span class="n">list_inputs</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                                                                <span class="n">out_stream</span><span class="o">=</span><span class="kc">None</span><span class="p">)])</span>
-
-        <span class="n">phs_path</span> <span class="o">=</span> <span class="n">phs</span><span class="o">.</span><span class="n">pathname</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="k">if</span> <span class="n">phs</span><span class="o">.</span><span class="n">pathname</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pathname</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
             <span class="n">self_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span>

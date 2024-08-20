@@ -830,7 +830,6 @@ only significant change is that we have a new component,
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">openmdao.api</span> <span class="k">as</span> <span class="nn">om</span>
 <span class="kn">import</span> <span class="nn">dymos</span> <span class="k">as</span> <span class="nn">dm</span>
-<span class="kn">from</span> <span class="nn">dymos.examples.plotting</span> <span class="kn">import</span> <span class="n">plot_results</span>
 
 <span class="n">g</span> <span class="o">=</span> <span class="mf">1.61544</span>  <span class="c1"># lunar gravity, m/s**2</span>
 
@@ -1149,7 +1148,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.056757243999982165 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.05745958099998916 seconds.
 Total jacobian shape: (103, 103) 
 </pre></div>
 </div>
@@ -1158,10 +1157,10 @@ FWD solves: 17   REV solves: 0
 Total colors vs. total size: 17 vs 103  (83.50% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0568 sec
-Time to compute coloring:   0.0670 sec
+Time to compute sparsity:   0.0575 sec
+Time to compute coloring:   0.0686 sec
 Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-08-19 22:13:59
+Coloring created on: 2024-08-20 14:53:12
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1170,10 +1169,10 @@ Coloring created on: 2024-08-19 22:13:59
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    0.3568
-       User Objective Time :       0.0080
-       User Sensitivity Time :     0.3225
-       Interface Time :            0.0118
+    Total Time:                    0.3701
+       User Objective Time :       0.0082
+       User Sensitivity Time :     0.3354
+       Interface Time :            0.0120
        Opt Solver Time:            0.0145
     Calls to Objective Function :       6
     Calls to Sens Function :            5
@@ -1465,11 +1464,11 @@ INFO: checking out_of_order
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 8
-  runtime     : 5.2536E-01 s
+  runtime     : 5.4161E-01 s
   model_evals : 8
-  model_time  : 7.5791E-03 s
+  model_time  : 7.5923E-03 s
   deriv_evals : 6
-  deriv_time  : 5.5280E-02 s
+  deriv_time  : 5.6240E-02 s
   exit_status : SUCCESS
 </pre></div>
 </div>

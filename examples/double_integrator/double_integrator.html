@@ -800,20 +800,20 @@ traveled by a block (that starts and ends at rest) sliding without
 friction along a horizontal surface, with acceleration as the control.</p>
 <p>We minimize the final time, <span class="math notranslate nohighlight">\(t_f\)</span>, by varying the dynamic control,
 <span class="math notranslate nohighlight">\(u\)</span>, subject to the dynamics:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-5bfeb232-1889-4e39-976e-d993b56609fa">
-<span class="eqno">(45)<a class="headerlink" href="#equation-5bfeb232-1889-4e39-976e-d993b56609fa" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-003f9812-c841-4d75-b3f4-554a1d0c12fe">
+<span class="eqno">(45)<a class="headerlink" href="#equation-003f9812-c841-4d75-b3f4-554a1d0c12fe" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dx}{dt} &amp;= v \\
   \frac{dv}{dt} &amp;= u
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-f381d175-0ef2-46bb-8b38-d9f6116738d2">
-<span class="eqno">(46)<a class="headerlink" href="#equation-f381d175-0ef2-46bb-8b38-d9f6116738d2" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-4a6f988c-3c77-426d-9a26-4cc2877da1fe">
+<span class="eqno">(46)<a class="headerlink" href="#equation-4a6f988c-3c77-426d-9a26-4cc2877da1fe" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_0 &amp;= 0 \\
   v_0 &amp;= 0
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-f0421a8f-e40a-402c-a186-5250d57b4b82">
-<span class="eqno">(47)<a class="headerlink" href="#equation-f0421a8f-e40a-402c-a186-5250d57b4b82" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-910e15ab-6d2e-4da1-a92b-d94dd09daba9">
+<span class="eqno">(47)<a class="headerlink" href="#equation-910e15ab-6d2e-4da1-a92b-d94dd09daba9" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_f &amp;= \rm{free} \\
   v_f &amp;= 0
 \end{align}\]</div>
@@ -964,7 +964,6 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <span class="kn">import</span> <span class="nn">openmdao.api</span> <span class="k">as</span> <span class="nn">om</span>
 <span class="kn">import</span> <span class="nn">dymos</span> <span class="k">as</span> <span class="nn">dm</span>
 <span class="kn">from</span> <span class="nn">dymos.examples.plotting</span> <span class="kn">import</span> <span class="n">plot_results</span>
-<span class="kn">from</span> <span class="nn">dymos.examples.double_integrator.double_integrator_ode</span> <span class="kn">import</span> <span class="n">DoubleIntegratorODE</span>
 
 <span class="c1"># Initialize the problem and assign the driver</span>
 <span class="n">p</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">())</span>
@@ -1086,7 +1085,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.06042173499997716 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.06107971699998416 seconds.
 Total jacobian shape: (181, 327) 
 </pre></div>
 </div>
@@ -1095,10 +1094,10 @@ FWD solves: 0   REV solves: 6
 Total colors vs. total size: 6 vs 181  (96.69% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0604 sec
-Time to compute coloring:   0.0849 sec
+Time to compute sparsity:   0.0611 sec
+Time to compute coloring:   0.0818 sec
 Memory to compute coloring:   0.1250 MB
-Coloring created on: 2024-08-19 22:10:44
+Coloring created on: 2024-08-20 14:49:56
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1107,11 +1106,11 @@ Coloring created on: 2024-08-19 22:10:44
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    2.3976
-       User Objective Time :       0.0162
-       User Sensitivity Time :     0.6297
-       Interface Time :            0.0702
-       Opt Solver Time:            1.6816
+    Total Time:                    2.4078
+       User Objective Time :       0.0205
+       User Sensitivity Time :     0.6554
+       Interface Time :            0.0732
+       Opt Solver Time:            1.6588
     Calls to Objective Function :      19
     Calls to Sens Function :           19
 
@@ -1774,11 +1773,11 @@ INFO: checking out_of_order
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 21
-  runtime     : 2.5885E+00 s
+  runtime     : 2.5983E+00 s
   model_evals : 21
-  model_time  : 1.1150E-02 s
+  model_time  : 1.3387E-02 s
   deriv_evals : 20
-  deriv_time  : 7.3582E-02 s
+  deriv_time  : 7.6212E-02 s
   exit_status : SUCCESS
 </pre></div>
 </div>

@@ -995,7 +995,6 @@ This allows us to declare a single ODE component for use in the problem regardle
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">openmdao.api</span> <span class="k">as</span> <span class="nn">om</span>
 <span class="kn">from</span> <span class="nn">openmdao.utils.general_utils</span> <span class="kn">import</span> <span class="n">set_pyoptsparse_opt</span>
 <span class="kn">import</span> <span class="nn">dymos</span> <span class="k">as</span> <span class="nn">dm</span>
 
@@ -1259,8 +1258,8 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.2338 sec
-Time to compute coloring:   0.0105 sec
+Time to compute sparsity:   0.2329 sec
+Time to compute coloring:   0.0106 sec
 Memory to compute coloring:   0.1250 MB
 </pre></div>
 </div>
@@ -1274,8 +1273,8 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1902 sec
-Time to compute coloring:   0.0109 sec
+Time to compute sparsity:   0.1908 sec
+Time to compute coloring:   0.0108 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
@@ -1289,8 +1288,8 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1923 sec
-Time to compute coloring:   0.0120 sec
+Time to compute sparsity:   0.1898 sec
+Time to compute coloring:   0.0111 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
@@ -1304,8 +1303,8 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.2903 sec
-Time to compute coloring:   0.0106 sec
+Time to compute sparsity:   0.1899 sec
+Time to compute coloring:   0.0110 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
@@ -1319,12 +1318,12 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 111  (85.59% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.2781 sec
-Time to compute coloring:   0.0193 sec
-Memory to compute coloring:   0.1250 MB
+Time to compute sparsity:   0.3751 sec
+Time to compute coloring:   0.0191 sec
+Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 3.2309012659999894 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 3.2405389390000323 seconds.
 Total jacobian shape: (178, 166) 
 
 
@@ -1333,10 +1332,10 @@ FWD solves: 14   REV solves: 0
 Total colors vs. total size: 14 vs 166  (91.57% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   3.2309 sec
-Time to compute coloring:   0.0688 sec
+Time to compute sparsity:   3.2405 sec
+Time to compute coloring:   0.0678 sec
 Memory to compute coloring:   0.1250 MB
-Coloring created on: 2024-08-19 22:08:16
+Coloring created on: 2024-08-20 14:47:31
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1646: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.climb-&gt;path_constraint-&gt;gam&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
@@ -1438,7 +1437,7 @@ INFO: checking out_of_order
                  <span class="n">textcoords</span><span class="o">=</span><span class="s1">&#39;axes fraction&#39;</span><span class="p">,</span> <span class="n">arrowprops</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">arrowstyle</span><span class="o">=</span><span class="s1">&#39;-&gt;&#39;</span><span class="p">),</span>
                  <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
 
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="n">tf_rto</span><span class="p">,</span> <span class="n">rf_rto</span><span class="p">),</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="n">tf_rto</span><span class="p">,</span> <span class="n">rf_rto</span><span class="p">),</span>
                  <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">xytext</span><span class="o">=</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
                  <span class="n">textcoords</span><span class="o">=</span><span class="s1">&#39;axes fraction&#39;</span><span class="p">,</span> <span class="n">arrowprops</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">arrowstyle</span><span class="o">=</span><span class="s1">&#39;-&gt;&#39;</span><span class="p">),</span>
                  <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>

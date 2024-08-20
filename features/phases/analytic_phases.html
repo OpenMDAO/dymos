@@ -826,8 +826,8 @@ Such phases are avaialble in dymos through the <code class="docutils literal not
 Compared to implicit approaches this reduces the size of the optimization problem by removing some design variables and corresponding defect constraints.
 Compared to explicit approaches it removes the need to numerically propagate the ODE, which is generally a performance bottleneck.</p>
 <p>For analytic phases, the OpenMDAO system we provide to the phase provides the <em>solution</em> to the ODE, not the ODE itself.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-ebfe4928-e082-4687-b7e3-c1449ea00b61">
-<span class="eqno">(99)<a class="headerlink" href="#equation-ebfe4928-e082-4687-b7e3-c1449ea00b61" title="Permalink to this equation">#</a></span>\[\begin{align}  
+<div class="amsmath math notranslate nohighlight" id="equation-c43b944b-c72d-4d85-8c7e-c0cbc6f68165">
+<span class="eqno">(99)<a class="headerlink" href="#equation-c43b944b-c72d-4d85-8c7e-c0cbc6f68165" title="Permalink to this equation">#</a></span>\[\begin{align}  
     \textbf x = \textbf f(t, \textbf p)
 \end{align}\]</div>
 <p>where
@@ -878,26 +878,26 @@ a shape of (3,).</p>
 <section id="a-basic-example">
 <h2>A basic example<a class="headerlink" href="#a-basic-example" title="Permalink to this heading">#</a></h2>
 <p>Suppose we want to use Dymos to solve the ODE</p>
-<div class="amsmath math notranslate nohighlight" id="equation-577cccc8-af55-4f4d-ae13-a06218f334df">
-<span class="eqno">(100)<a class="headerlink" href="#equation-577cccc8-af55-4f4d-ae13-a06218f334df" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-987a8749-5b76-4e20-b53c-bed92dcd4df0">
+<span class="eqno">(100)<a class="headerlink" href="#equation-987a8749-5b76-4e20-b53c-bed92dcd4df0" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dx}{dt} = x - t^2 + 1
 \end{align}\]</div>
 <p>subject to:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-84125a4d-c22e-4d75-bbce-7175b2cc5e7b">
-<span class="eqno">(101)<a class="headerlink" href="#equation-84125a4d-c22e-4d75-bbce-7175b2cc5e7b" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-232e3549-8439-4131-9856-caca00ed14e5">
+<span class="eqno">(101)<a class="headerlink" href="#equation-232e3549-8439-4131-9856-caca00ed14e5" title="Permalink to this equation">#</a></span>\[\begin{align}
   x(0) = 0.5
 \end{align}\]</div>
 <p>Here we want to find the value of <em>x</em> at t=2.</p>
 <p>We can absolutely use a pseudospectral method or explicit shooting in Dymos to find the value of <em>x</em> on a given interval using this information.
 But in this case, the solution is known analytically.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-ca6fbc48-3b45-47a7-9888-93a2bcdaf9d1">
-<span class="eqno">(102)<a class="headerlink" href="#equation-ca6fbc48-3b45-47a7-9888-93a2bcdaf9d1" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-45433623-4e95-4433-8219-fe150657023e">
+<span class="eqno">(102)<a class="headerlink" href="#equation-45433623-4e95-4433-8219-fe150657023e" title="Permalink to this equation">#</a></span>\[\begin{align}
   x(t) &amp;= t^2 + 2t + 1 - c_1e^t
 \end{align}\]</div>
 <p>We need to find the value of constant <span class="math notranslate nohighlight">\(c_1\)</span> to find our particular solution.
 Applying the given initial condition gives c_1 as 0.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-54f5c92b-23d7-406e-96f9-9683bf0046ea">
-<span class="eqno">(103)<a class="headerlink" href="#equation-54f5c92b-23d7-406e-96f9-9683bf0046ea" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-93555039-1ed5-4cbc-9aaa-1b33cfe3d191">
+<span class="eqno">(103)<a class="headerlink" href="#equation-93555039-1ed5-4cbc-9aaa-1b33cfe3d191" title="Permalink to this equation">#</a></span>\[\begin{align}
   x(0) &amp;= 1 - c_1 = 0.5 \\
   c_1 &amp;\equiv y_0 = 0.5
 \end{align}\]</div>
@@ -967,7 +967,9 @@ Applying the given initial condition gives c_1 as 0.</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;x(</span><span class="si">{</span><span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">) = </span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
 <span class="c1"># A dense version of the analytic solution for plot comparison.</span>
-<span class="n">expected</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">time</span><span class="p">:</span> <span class="n">time</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">time</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">expected</span><span class="p">(</span><span class="n">time</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">time</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">time</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+
 <span class="n">t_dense</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">100</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
@@ -1086,7 +1088,9 @@ You’ll need to make sure that both of the target parameters are not designated
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;x(</span><span class="si">{</span><span class="n">t_2</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">) = </span><span class="si">{</span><span class="n">x_2</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
 <span class="c1"># A dense version of the analytic solution for plot comparison.</span>
-<span class="n">expected</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">time</span><span class="p">:</span> <span class="n">time</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">time</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">x0_1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">expected</span><span class="p">(</span><span class="n">time</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">time</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">time</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">x0_1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+
 <span class="n">t_dense</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">t_1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t_2</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">100</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
