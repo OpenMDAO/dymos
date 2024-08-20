@@ -239,7 +239,7 @@ class TestMinTimeClimb(unittest.TestCase):
             assert_near_equal(mach_rate_nodes, deriv(time_nodes), tolerance=1.0E-9)
 
         # Comparing the mach rate over the entire trajectory since it is expected to be off at some points due to
-        # the equidistant time-spacing of nodes in SolveIVP's timeseries outputs.
+        # the equidistant time-spacing of nodes in ExplicitShooting's timeseries outputs.
         assert_timeseries_near_equal(t_ref=time, x_ref=mach_rate, t_check=sim_time, x_check=sim_mach_rate,
                                      abs_tolerance=0.02, rel_tolerance=0.02)
 

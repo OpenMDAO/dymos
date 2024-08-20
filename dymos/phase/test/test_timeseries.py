@@ -97,7 +97,7 @@ class TestTimeseriesOutput(unittest.TestCase):
                     assert_near_equal(p.get_val(f'phase0.parameter_vals:{dp}')[0],
                                       p.get_val(f'phase0.timeseries.{dp}')[i])
 
-        # call simulate to test SolveIVP transcription
+        # test simulation
         exp_out = phase.simulate()
         if test_smaller_timeseries:
             with self.assertRaises(KeyError):
@@ -185,7 +185,7 @@ class TestTimeseriesOutput(unittest.TestCase):
                     assert_near_equal(p.get_val(f'phase0.parameters:{dp}')[0],
                                       p.get_val(f'phase0.timeseries.{dp}')[i])
 
-        # call simulate to test SolveIVP transcription
+        # test simulation
         exp_out = phase.simulate()
         if test_smaller_timeseries:
             with self.assertRaises(KeyError):
