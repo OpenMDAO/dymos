@@ -1,3 +1,4 @@
+import os
 import warnings
 
 import openmdao
@@ -122,8 +123,14 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         outputs_dir = problem.get_outputs_dir()
 
         if om_version > (3, 34, 2):
-            _sol_record_file = outputs_dir / solution_record_file
-            _sim_record_file = None if not simulate else outputs_dir / simulation_record_file
+            if os.sep in str(solution_record_file):
+                _sol_record_file = solution_record_file
+            else:
+                _sol_record_file = outputs_dir / solution_record_file
+            if os.sep in str(simulation_record_file):
+                _sim_record_file = simulation_record_file
+            else:
+                _sim_record_file = outputs_dir / simulation_record_file
         else:
             _sol_record_file = solution_record_file
             _sim_record_file = None if not simulate else simulation_record_file
