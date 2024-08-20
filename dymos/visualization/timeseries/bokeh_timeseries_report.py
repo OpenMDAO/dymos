@@ -248,14 +248,12 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
     if Path(solution_record_file).is_file():
         sol_cr = om.CaseReader(solution_record_file)
         sol_case = sol_cr.get_case('final')
-        abs2prom_map = sol_cr.problem_metadata['abs2prom']
     else:
         sol_case = None
 
     if Path(simulation_record_file).is_file():
         sim_cr = om.CaseReader(simulation_record_file)
         sim_case = sim_cr.get_case('final')
-        abs2prom_map = sim_cr.problem_metadata['abs2prom']
     else:
         sim_case = None
 
@@ -288,7 +286,6 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
             sim_case = None
 
     for traj_path, traj_data in traj_and_phase_meta.items():
-        traj_params = traj_data['parameter_options']
         traj_name = traj_data['name']
         data_dict[traj_data['name']] = {'param_data_by_phase': {},
                                         'sol_data_by_phase': {},

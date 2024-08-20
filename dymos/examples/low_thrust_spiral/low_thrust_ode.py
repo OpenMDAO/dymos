@@ -1,6 +1,5 @@
 import openmdao.api as om
 import numpy as np
-import openmdao.utils.units as units
 
 
 class LowThrustODE(om.ExplicitComponent):

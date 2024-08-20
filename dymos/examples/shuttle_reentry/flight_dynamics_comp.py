@@ -1,5 +1,5 @@
 import numpy as np
-from openmdao.api import ExplicitComponent, Problem
+from openmdao.api import ExplicitComponent
 
 
 class FlightDynamics(ExplicitComponent):

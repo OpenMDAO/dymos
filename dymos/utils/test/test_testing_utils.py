@@ -133,8 +133,8 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
                                          abs_tolerance=abs_tolerance,
                                          rel_tolerance=rel_tolerance
                                          )
-        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to " \
-                                   f"absolute"
+        start_of_expected_errmsg = "The following timeseries data are out of tolerance due to " \
+                                   "absolute"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with '{start_of_expected_errmsg}' but "
@@ -195,7 +195,7 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         t_check, x_check = create_linear_time_series(100, 510.0, 1500.0, 0.0, 1000.0)
         with self.assertRaises(ValueError) as e:
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=1)
-        expected_msg = f"There is no overlapping time between the two time series"
+        expected_msg = "There is no overlapping time between the two time series"
         actual_errmsg = str(e.exception)
         self.assertEqual(actual_errmsg, expected_msg)
 
@@ -325,7 +325,7 @@ class TestAssertCasesEqual(unittest.TestCase):
         for file in ('p1.db', 'p2.db'):
             try:
                 os.remove(file)
-            except:
+            except Exception:
                 pass
 
     def test_different_variables(self):

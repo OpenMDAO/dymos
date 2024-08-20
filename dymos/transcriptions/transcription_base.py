@@ -7,7 +7,6 @@ import openmdao.api as om
 from .common import ControlGroup, ParameterComp
 from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_constraint_flat_idxs
-from ..utils.misc import _none_or_unspecified
 from ..utils.introspection import configure_states_introspection, get_promoted_vars, \
     configure_states_discovery
 

@@ -1,4 +1,3 @@
-import builtins
 import io
 import os
 
@@ -160,7 +159,7 @@ def _write_out_timeseries_values_out_of_tolerance(isclose, rel_tolerance, abs_to
              f"{'checked_data':13s} | " + \
              f"{'abs_error':13s} | " + \
              f"{'rel_error':13} | " + \
-             f" ABS or REL error "
+             " ABS or REL error "
     err_msg += f"{header}\n"
     err_msg += len(header) * '-' + '\n'
 

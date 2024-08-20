@@ -1,7 +1,6 @@
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.mpi import MPI
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE

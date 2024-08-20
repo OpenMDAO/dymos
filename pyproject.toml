@@ -54,6 +54,7 @@ notebooks = [
     "tabulate",
 ]
 test = [
+    "pre-commit",
     "aiounittest",
     "matplotlib",
     "numpydoc>=1.1",
@@ -77,3 +78,23 @@ path = "dymos/__init__.py"
 include = [
     "/dymos",
 ]
+
+[tool.ruff]
+line-length = 100
+indent-width = 4
+
+[tool.ruff.format]
+indent-style = "space"
+line-ending = "lf"
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 100
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore `F401` (unused import) in api files.
+"__init__.py" = ["F401"]
+# Ignore import related conventions in docs
+"**/dymos_book/**" = ["E402"]

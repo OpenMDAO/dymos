@@ -121,7 +121,7 @@ class TestStaticODEOutput(unittest.TestCase):
         p.driver.declare_coloring()
 
         # Setup the problem
-        with warnings.catch_warnings(record=True) as ctx:
+        with warnings.catch_warnings(record=True):
             warnings.simplefilter('always')
             p.setup(check=True)
 

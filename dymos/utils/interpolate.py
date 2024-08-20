@@ -179,7 +179,7 @@ class LagrangeBarycentricInterpolant(object):
         tau = self.x_to_tau(x)
 
         g = tau - self.tau_i
-        l = np.ones_like(g)
+        l = np.ones_like(g)  # noqa: E741, allow ambiguous name 'l' (lower case L)
 
         for i in range(self.num_nodes):
             for j in range(self.num_nodes):

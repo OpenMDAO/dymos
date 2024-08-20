@@ -568,67 +568,6 @@ class TestParameterIntrospection(unittest.TestCase):
         phase.add_parameter('S', val=49.2386)
 
         # Unit introspection for traj params. This doesn't work.
-        traj.add_parameter('Isp', val=1600.0, targets={'phase0': None})
-
-        phase.add_parameter('throttle', val=1.0, opt=False, targets=['throttle'])
-
-        with self.assertRaises(ValueError) as e:
-            p.setup(check=True)
-
-        expected = 'No target was found for trajectory parameter `Isp` in any phase.\n' \
-                   'Option `targets` is a dictionary keyed by phase name but target for each phase is None.'
-
-        self.assertEqual(str(e.exception), expected)
-
-    def test_parameter_introspection_targets_dict_no_valid_parameter_targets(self):
-        import openmdao.api as om
-
-        import dymos as dm
-
-        from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
-
-        p = om.Problem()
-
-        traj = dm.Trajectory()
-
-        phase = dm.Phase(ode_class=MinTimeClimbODE,
-                         transcription=dm.GaussLobatto(num_segments=5, compressed=False))
-
-        traj.add_phase('phase0', phase)
-
-        p.model.add_subsystem('traj', traj)
-
-        phase.set_time_options(fix_initial=True, duration_bounds=(50, 400),
-                               duration_ref=100.0)
-
-        phase.add_state('r', fix_initial=True, lower=0, upper=1.0E6, units='m',
-                        ref=1.0E3, defect_ref=1.0E3,
-                        rate_source='flight_dynamics.r_dot')
-
-        phase.add_state('h', fix_initial=True, lower=0, upper=20000.0, units='m',
-                        ref=100.0, defect_ref=1.0E2,
-                        rate_source='flight_dynamics.h_dot')
-
-        phase.add_state('v', fix_initial=True, lower=10.0, units='m/s',
-                        ref=1.0E2, defect_ref=1.0E2,
-                        rate_source='flight_dynamics.v_dot')
-
-        phase.add_state('gam', fix_initial=True, lower=-1.5, upper=1.5, units='rad',
-                        ref=1.0, defect_ref=1.0,
-                        rate_source='flight_dynamics.gam_dot')
-
-        phase.add_state('m', fix_initial=True, lower=10.0, upper=1.0E5, units='kg',
-                        ref=1.0E3, defect_ref=1.0E3,
-                        rate_source='prop.m_dot')
-
-        phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
-                          rate_continuity=True, rate_continuity_scaler=100.0,
-                          rate2_continuity=False)
-
-        # Unit introspection for phase params. This works.
-        phase.add_parameter('S', val=49.2386)
-
-        # Unit introspection for traj params. This doesn't work.
         traj.add_parameter('Isp', val=1600.0, targets={'phase0': 'Isp'})
 
         phase.add_parameter('throttle', val=1.0, opt=False, targets=['throttle'])

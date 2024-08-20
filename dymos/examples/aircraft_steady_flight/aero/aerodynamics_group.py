@@ -1,5 +1,4 @@
 import openmdao.api as om
-from .aero_coef_comp import AeroCoefComp
 from .aero_forces_comp import AeroForcesComp
 from .interpND_aero_coef_comp import InterpNDAeroCoeffComp, setup_surrogates_all
 

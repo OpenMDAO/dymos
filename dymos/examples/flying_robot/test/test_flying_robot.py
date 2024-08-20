@@ -1,4 +1,3 @@
-import itertools
 import os
 import unittest
 
@@ -70,7 +69,6 @@ class TestFlyingRobot(unittest.TestCase):
         t = p.get_val('traj.phase0.timeseries.time')
         x = p.get_val('traj.phase0.timeseries.x')
         v = p.get_val('traj.phase0.timeseries.v')
-        u = p.get_val('traj.phase0.timeseries.u')
 
         assert_near_equal(t[-1], 20.0, tolerance=tol)
         assert_near_equal(x[-1, ...], [-100, 100], tolerance=tol)

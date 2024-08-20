@@ -1,6 +1,5 @@
 import openmdao.api as om
 import dymos as dm
-import numpy as np
 
 import unittest
 from openmdao.utils.assert_utils import assert_near_equal

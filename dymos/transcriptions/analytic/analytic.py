@@ -2,12 +2,11 @@ import numpy as np
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
-from ...utils.introspection import configure_analytic_states_introspection, get_promoted_vars, get_targets, \
+from ...utils.introspection import configure_analytic_states_introspection, get_promoted_vars, \
     get_source_metadata, configure_analytic_states_discovery
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
-from ..._options import options as dymos_options
 
 
 class Analytic(TranscriptionBase):
@@ -512,7 +511,6 @@ class Analytic(TranscriptionBase):
             constraint_path = 't_phase'
         elif var_type == 'state':
             constraint_path = f'{self._rhs_source}.{var}'
-            src_path = phase.state_options[var]['source']
             meta = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
             shape = meta['shape']
             units = meta['units']

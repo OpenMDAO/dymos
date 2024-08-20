@@ -3,8 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 
@@ -29,9 +28,6 @@ class BrachistochroneVectorStatesODE(om.ExplicitComponent):
 
         self.declare_partials(of='vdot', wrt='g', rows=arange, cols=arange)
         self.declare_partials(of='vdot', wrt='theta', rows=arange, cols=arange)
-
-        rs = np.arange(2*nn, dtype=int)
-        cs = np.repeat(np.arange(nn, dtype=int), 2)
 
         self.declare_partials('*', '*', method='cs')
         self.declare_coloring(wrt='*', method='cs', show_sparsity=False)

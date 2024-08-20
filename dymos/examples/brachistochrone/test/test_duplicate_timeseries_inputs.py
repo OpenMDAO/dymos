@@ -1,6 +1,5 @@
 import io
 from contextlib import redirect_stdout
-import warnings
 import unittest
 
 import numpy as np

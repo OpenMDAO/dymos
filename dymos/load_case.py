@@ -128,7 +128,7 @@ def load_case(problem, previous_solution, deprecation_warning=True):
         try:
             integration_name = phase.time_options['name']
             prev_time_path = [s for s in prev_vars if s.endswith(f'{phase_name}.timeseries.{integration_name}')][0]
-        except IndexError as e:
+        except IndexError:
             continue
 
         prev_time_val = prev_vars[prev_time_path]['val']

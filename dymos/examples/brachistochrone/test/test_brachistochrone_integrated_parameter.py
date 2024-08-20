@@ -90,7 +90,6 @@ class TestBrachistochroneIntegratedParameter(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_integrated_param_gauss_lobatto(self):
-        import numpy as np
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
@@ -159,7 +158,6 @@ class TestBrachistochroneIntegratedParameter(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_brachistochrone_integrated_parameter_radau_ps(self):
-        import numpy as np
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm

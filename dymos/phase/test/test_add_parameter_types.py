@@ -5,7 +5,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 
 try:
     from openmdao.drivers.pyoptsparse_driver import pyOptSparseDriver
-except:
+except Exception:
     pyOptSparseDriver = None
 
 import dymos as dm

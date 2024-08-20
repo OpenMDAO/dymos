@@ -2,7 +2,7 @@ import unittest
 
 import openmdao
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal, assert_no_approx_partials
+from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm

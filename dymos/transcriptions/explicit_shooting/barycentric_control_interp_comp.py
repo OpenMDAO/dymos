@@ -5,7 +5,7 @@ from numpy.typing import ArrayLike
 import openmdao.api as om
 
 try:
-    from numba import njit, prange
+    from numba import njit
 except ImportError:
     # If numba is not available, just write a dummy njit wrapper.
     # Code will still run at a significant performance hit.
@@ -26,7 +26,7 @@ from ...utils.misc import get_rate_units
 @njit()
 def _compute_dl_dg(tau: float,
                    taus: ArrayLike,
-                   l: ArrayLike,
+                   l: ArrayLike,  # noqa: E741, allow ambiguous variable name 'l'
                    dl_dg: ArrayLike,
                    d2l_dg2: ArrayLike,
                    d3l_dg3: Union[ArrayLike, None] = None,):
@@ -358,7 +358,7 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         taus_seg = self._taus_seg['controls']
 
         # Retrieve the storage vectors that pertain to the collocated controls
-        l = self._l['controls']
+        l = self._l['controls']  # noqa: E741, allow ambiguous variable name 'l'
         dl_dg = self._dl_dg['controls']
         d2l_dg2 = self._d2l_dg2['controls']
 
@@ -403,7 +403,7 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             else:
                 # Retrieve the storage vectors that pertain to the polynomial control
                 taus_seg = self._taus_seg[control_name]
-                l = self._l[control_name]
+                l = self._l[control_name]  # noqa: E741, allow ambiguous variable name 'l'
                 dl_dg = self._dl_dg[control_name]
                 d2l_dg2 = self._d2l_dg2[control_name]
 
@@ -476,7 +476,6 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
         if self._control_options:
             gd = self._grid_data
             seg_idx = self.options['segment_index']
-            n = gd.transcription_order[seg_idx]
             stau = inputs['stau']
             dstau_dt = inputs['dstau_dt']
 
@@ -487,7 +486,7 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
             taus_seg = gd.node_stau[disc_node_idxs]
 
             # Retrieve the storage vectors that pertain to the collocated controls
-            l = self._l['controls']
+            l = self._l['controls']  # noqa: E741, allow ambiguous variable name 'l'
             dl_dg = self._dl_dg['controls']
             d2l_dg2 = self._d2l_dg2['controls']
             d3l_dg3 = self._d3l_dg3['controls']
@@ -551,12 +550,11 @@ class BarycentricControlInterpComp(om.ExplicitComponent):
 
                 else:
                     gd = self._grid_data
-                    n = options['order'] + 1
 
                     taus_seg = self._taus_seg[control_name]
 
                     # Retrieve the storage vectors that pertain to the collocated controls
-                    l = self._l[control_name]
+                    l = self._l[control_name]  # noqa: E741, allow ambiguous variable name 'l'
                     dl_dg = self._dl_dg[control_name]
                     d2l_dg2 = self._d2l_dg2[control_name]
                     d3l_dg3 = self._d3l_dg3[control_name]

@@ -102,22 +102,22 @@ class BirkhoffIterGroup(om.Group):
             ref0 = np.asarray(ref0)
             if ref0.shape == shape:
                 ref0_state = np.tile(ref0.flatten(), num_nodes)
-                ref0_seg_ends = np.tile(ref0.flatten(), 2)
+                # ref0_seg_ends = np.tile(ref0.flatten(), 2)
             else:
                 raise ValueError('array-valued scaler/ref must length equal to state-size')
         else:
             ref0_state = ref0
-            ref0_seg_ends = ref0
+            # ref0_seg_ends = ref0
         if not np.isscalar(ref) and ref is not None:
             ref = np.asarray(ref)
             if ref.shape == shape:
                 ref_state = np.tile(ref.flatten(), num_nodes)
-                ref_seg_ends = np.tile(ref.flatten(), 2)
+                # ref_seg_ends = np.tile(ref.flatten(), 2)
             else:
                 raise ValueError('array-valued scaler/ref must length equal to state-size')
         else:
             ref_state = ref
-            ref_seg_ends = ref
+            # ref_seg_ends = ref
 
         free_vars = {state_name, state_rate_name, initial_state_name, final_state_name}
 
@@ -190,7 +190,6 @@ class BirkhoffIterGroup(om.Group):
         ns = gd.num_segments
 
         state_options = self.options['state_options']
-        time_options = self.options['time_options']
         states_balance_comp = self._get_subsystem('states_balance_comp')
 
         for name, options in state_options.items():

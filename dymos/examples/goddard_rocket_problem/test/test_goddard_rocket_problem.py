@@ -4,7 +4,7 @@ import unittest
 import os
 
 try:
-    import matplotlib
+    import matplotlib  # noqa: F401
     SHOW_PLOTS = True
 except ImportError:
     SHOW_PLOTS = False
