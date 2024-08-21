@@ -7,6 +7,7 @@ try:
 except ImportError:
     matplotlib = None
 
+
 @use_tempdirs
 class TestCannonballForJOSS(unittest.TestCase):
 
@@ -30,7 +31,6 @@ class TestCannonballForJOSS(unittest.TestCase):
         rho_interp = interp1d(np.array(USatm1976Data.alt * english_to_metric_alt, dtype=complex),
                               np.array(USatm1976Data.rho * english_to_metric_rho, dtype=complex),
                               kind='linear')
-
 
         class CannonballSize(om.ExplicitComponent):
             """
@@ -56,7 +56,6 @@ class TestCannonballForJOSS(unittest.TestCase):
 
                 outputs['mass'] = (4 / 3.) * rho * np.pi * radius ** 3
                 outputs['area'] = np.pi * radius ** 2
-
 
         class CannonballODE(om.ExplicitComponent):
             """

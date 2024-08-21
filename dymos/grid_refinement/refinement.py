@@ -13,7 +13,6 @@ import numpy as np
 import sys
 
 
-
 def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_prefix=None, reset_iter_counts=True):
     """
     This function performs grid refinement for a phases in which solve_segments is true.
@@ -84,7 +83,7 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
                 failed = problem.run_driver(case_prefix=f'{_case_prefix}{refine_method}_{i}_')
 
             for stream in [f, sys.stdout]:
-                if i == refine_iteration_limit-1:
+                if i == refine_iteration_limit - 1:
                     print('Iteration limit exceeded. Unable to satisfy specified tolerance', file=stream)
                     failed = True
                 else:
