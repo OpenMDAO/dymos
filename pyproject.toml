@@ -100,4 +100,4 @@ convention = "numpy"
 # Ignore `F401` (unused import) in api files.
 "__init__.py" = ["F401"]
 # Ignore import related conventions in docs
-"**/dymos_book/**" = ["E402"]
+"**/dymos_book/**" = ["E402", "E501"]
