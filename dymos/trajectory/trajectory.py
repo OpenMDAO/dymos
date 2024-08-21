@@ -1491,7 +1491,7 @@ class Trajectory(om.Group):
             # fault of the user.
             warnings.filterwarnings(action='ignore', category=om.UnusedOptionWarning)
             warnings.filterwarnings(action='ignore', category=om.SetupWarning)
-            if om_version <= (3, 42, 2):
+            if om_version <= (3, 34, 2):
                 sim_prob.setup(check=True)
             else:
                 sim_prob.setup(check=True, parent=self)

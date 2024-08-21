@@ -292,9 +292,7 @@ class TestAircraftCruise(unittest.TestCase):
         p['assumptions.mass_empty'] = 0.15E6
         p['assumptions.mass_payload'] = 84.02869 * 400
 
-        dm.run_problem(p, simulate=False, make_plots=True)
-
-        # TODO: Simulation is inaccurate with Birkhoff and high orders. due to Vandermonde interpolation.
+        dm.run_problem(p, simulate=True, make_plots=True)
 
         time = p.get_val('traj.phase0.timeseries.time')
         tas = p.get_val('traj.phase0.timeseries.TAS', units='km/s')
@@ -304,15 +302,16 @@ class TestAircraftCruise(unittest.TestCase):
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
         assert_near_equal(mass_fuel[-1, ...], 0.0, tolerance=1.0E-4)
 
-        # case = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_out_dir = traj.sim_prob.get_outputs_dir()
+        case = om.CaseReader(sim_out_dir / 'dymos_simulation.db').get_case('final')
 
-        # time = case.get_val('traj.phase0.timeseries.time')
-        # tas = case.get_val('traj.phase0.timeseries.TAS', units='km/s')
-        # range = case.get_val('traj.phase0.timeseries.range')
-        # mass_fuel = case.get_val('traj.phase0.timeseries.mass_fuel')
+        time = case.get_val('traj.phase0.timeseries.time')
+        tas = case.get_val('traj.phase0.timeseries.TAS', units='km/s')
+        range = case.get_val('traj.phase0.timeseries.range')
+        mass_fuel = case.get_val('traj.phase0.timeseries.mass_fuel')
 
-        # assert_near_equal(range, tas*time, tolerance=1.0E-4)
-        # assert_near_equal(mass_fuel[-1, ...], 0.0, tolerance=1.0E-4)
+        assert_near_equal(range, tas*time, tolerance=1.0E-4)
+        assert_near_equal(mass_fuel[-1, ...], 0.0, tolerance=1.0E-4)
 
 
 if __name__ == '__main__':  # pragma: no cover

@@ -245,13 +245,13 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
     """
     data_dict = {}
 
-    if Path(solution_record_file).is_file():
+    if solution_record_file is not None and Path(solution_record_file).is_file():
         sol_cr = om.CaseReader(solution_record_file)
         sol_case = sol_cr.get_case('final')
     else:
         sol_case = None
 
-    if Path(simulation_record_file).is_file():
+    if simulation_record_file is not None and Path(simulation_record_file).is_file():
         sim_cr = om.CaseReader(simulation_record_file)
         sim_case = sim_cr.get_case('final')
     else:
