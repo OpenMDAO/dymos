@@ -283,4 +283,3 @@ def om_version():
         numeric = openmdao.__version__
         rel = 'release'
     return tuple([int(s) for s in numeric.split('.')]), rel
-

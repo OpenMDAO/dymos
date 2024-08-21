@@ -87,8 +87,11 @@ indent-width = 4
 indent-style = "space"
 line-ending = "lf"
 
+[tool.ruff.lint]
+select = ["E", "F"]
+
 [tool.ruff.lint.pycodestyle]
-max-line-length = 100
+max-line-length = 130
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"

@@ -1,11 +1,14 @@
 import os
+import pathlib
 import unittest
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.file_utils import clean_outputs
 from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
+from dymos.utils.misc import om_version
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
@@ -13,6 +16,9 @@ optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
 
 @use_tempdirs
 class TestAircraftCruise(unittest.TestCase):
+
+    def tearDown(self):
+        clean_outputs('.', prompt=False)
 
     def test_cruise_results_gl(self):
         p = om.Problem()
@@ -302,7 +308,10 @@ class TestAircraftCruise(unittest.TestCase):
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
         assert_near_equal(mass_fuel[-1, ...], 0.0, tolerance=1.0E-4)
 
-        sim_out_dir = traj.sim_prob.get_outputs_dir()
+        if om_version()[0] > (3, 34, 2):
+            sim_out_dir = traj.sim_prob.get_outputs_dir()
+        else:
+            sim_out_dir = pathlib.Path.cwd()
         case = om.CaseReader(sim_out_dir / 'dymos_simulation.db').get_case('final')
 
         time = case.get_val('traj.phase0.timeseries.time')

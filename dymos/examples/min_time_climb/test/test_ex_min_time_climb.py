@@ -14,8 +14,8 @@ from dymos.utils.introspection import get_promoted_vars
 
 import dymos as dm
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
+from dymos.utils.misc import om_version
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-from openmdao.utils.misc import om_version
 
 
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',

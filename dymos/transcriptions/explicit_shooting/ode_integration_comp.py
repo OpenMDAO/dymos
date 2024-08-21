@@ -9,8 +9,6 @@ from .ode_evaluation_group import ODEEvaluationGroup
 from dymos.utils.misc import create_subprob, om_version
 
 
-
-
 class ODEIntegrationComp(om.ExplicitComponent):
     """
     A component to perform explicit integration with a generic ODE integrator/IVP solver.

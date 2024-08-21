@@ -538,7 +538,8 @@ class GaussLobatto(PseudospectralBase):
             src_units = meta['units']
             src_tags = meta['tags']
             if 'dymos.static_output' in src_tags:
-                raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" and cannot be a timeseries output.')
+                raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" '
+                                   'and cannot be a timeseries output.')
 
         src_idxs = om.slicer[node_idxs, ...]
 
