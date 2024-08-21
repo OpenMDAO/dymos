@@ -259,16 +259,11 @@ def create_subprob(base_name, comm, reports=False):
 
 def om_version():
     """
-    Return version of OpenMDAO.
+    Return version infromation for OpenMDAO.
 
-    This tuple can be used for comparisons as follows:
-
-    ```
-    if om_version() < (3, 0, 0):
-        # behavior if OpenMDAO is older than 3.0.0
-    else:
-        # behavior for newer versions
-    ```
+    This information is useful for executing code that requires a specific
+    version of OpenMDAO. The tuple format returned by this function can
+    easily be compared using a statement like `if om_version()[0] < (3, 3, 0)`.
 
     Returns
     -------
