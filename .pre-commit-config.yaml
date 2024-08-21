@@ -6,3 +6,11 @@ repos:
     # Run the linter.
     - id: ruff
       types_or: [ python, pyi, jupyter ]
+-   repo: local
+    hooks:
+    - id: check-notebook-outputs
+      name: Check that notebooks have no output cells.
+      description: Verifies that documentation notebooks contain no output cells.
+      language: python
+      pass_filenames: false
+      entry: python ./docs/clean_notebooks.py --dryrun ./docs
