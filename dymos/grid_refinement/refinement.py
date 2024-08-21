@@ -7,11 +7,11 @@ from .write_iteration import write_error, write_refine_iter
 
 from dymos.grid_refinement.error_estimation import check_error
 from dymos.load_case import load_case, find_phases
+from dymos.utils.misc import om_version
 
 import numpy as np
 import sys
 
-import openmdao
 
 
 def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_prefix=None, reset_iter_counts=True):
@@ -62,8 +62,7 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
                 for stream in f, sys.stdout:
                     write_refine_iter(stream, i, phases, refine_results)
 
-                om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
-                if om_version < (3, 27, 1):
+                if om_version()[0] < (3, 27, 1):
                     prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
                                  'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
 

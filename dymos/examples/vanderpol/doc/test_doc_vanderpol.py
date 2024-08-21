@@ -1,12 +1,9 @@
 import os
 import unittest
 
-import openmdao
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.mpi import MPI
-
-
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
+from dymos.utils.misc import om_version
 
 
 @use_tempdirs
@@ -25,7 +22,7 @@ class TestVanderpolForDocs(unittest.TestCase):
 
         dm.run_problem(p, run_driver=False, simulate=True, make_plots=True)
 
-    @unittest.skipIf(om_version < (3, 29, 0), 'Test requires OpenMDAO 3.29.0 or later')
+    @unittest.skipIf(om_version()[0] < (3, 29, 0), 'Test requires OpenMDAO 3.29.0 or later')
     def test_vanderpol_for_docs_optimize(self):
         import dymos as dm
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
@@ -36,7 +33,7 @@ class TestVanderpolForDocs(unittest.TestCase):
 
         dm.run_problem(p, simulate=True, make_plots=True)
 
-    @unittest.skipIf(om_version < (3, 29, 0), 'Test requires OpenMDAO 3.29.0 or later')
+    @unittest.skipIf(om_version()[0] < (3, 29, 0), 'Test requires OpenMDAO 3.29.0 or later')
     def test_vanderpol_for_docs_optimize_refine(self):
         import dymos as dm
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
@@ -62,7 +59,7 @@ class TestVanderpolForDocs(unittest.TestCase):
 class TestVanderpolDelayMPI(unittest.TestCase):
     N_PROCS = 2
 
-    @unittest.skipIf(om_version < (3, 29, 0), 'Test requires OpenMDAO 3.29.0 or later')
+    @unittest.skipIf(om_version()[0] < (3, 29, 0), 'Test requires OpenMDAO 3.29.0 or later')
     def test_vanderpol_delay_mpi(self):
         import openmdao.api as om
         import dymos as dm

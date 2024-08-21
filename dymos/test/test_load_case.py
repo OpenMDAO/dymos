@@ -2,11 +2,8 @@ import os
 import unittest
 
 from openmdao.utils.testing_utils import use_tempdirs
-import openmdao
 import openmdao.api as om
 import dymos as dm
-
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=False,

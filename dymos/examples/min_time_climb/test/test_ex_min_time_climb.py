@@ -1,6 +1,5 @@
 import unittest
 import numpy as np
-import openmdao
 from numpy.polynomial import Polynomial as P
 try:
     import matplotlib.pyplot as plt
@@ -15,10 +14,8 @@ from dymos.utils.introspection import get_promoted_vars
 
 import dymos as dm
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
-
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
+from openmdao.utils.misc import om_version
 
 
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
@@ -277,7 +274,7 @@ class TestMinTimeClimb(unittest.TestCase):
         self._test_mach_rate(p, plot=False)
 
     @require_pyoptsparse(optimizer='IPOPT')
-    @unittest.skipIf(om_version < (3, 32, 2), 'Test requires OpenMDAO 3.31.2 or later')
+    @unittest.skipIf(om_version()[0] < (3, 32, 2), 'Test requires OpenMDAO 3.32.2 or later')
     def test_results_birkhoff(self):
         NUM_SEG = 1
         ORDER = 30

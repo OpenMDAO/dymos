@@ -1,16 +1,14 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 
-import openmdao
 import openmdao.api as om
 
 from ..._options import options as dymos_options
 
 from .ode_evaluation_group import ODEEvaluationGroup
-from dymos.utils.misc import create_subprob
+from dymos.utils.misc import create_subprob, om_version
 
 
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 class ODEIntegrationComp(om.ExplicitComponent):
@@ -116,7 +114,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        if om_version <= (3, 34, 2):
+        if om_version()[0] <= (3, 34, 2):
             p.setup()
         else:
             p.setup(parent=self)

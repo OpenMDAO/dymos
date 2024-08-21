@@ -11,7 +11,6 @@ try:
 except ImportError:
     matplotlib = None
 
-import openmdao
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
@@ -24,8 +23,6 @@ from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import Bra
 from dymos.utils.testing_utils import _get_reports_dir
 
 _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
-
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 @use_tempdirs

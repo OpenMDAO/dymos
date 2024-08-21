@@ -1,17 +1,14 @@
 import os
 import warnings
 
-import openmdao
 import openmdao.api as om
 from openmdao.recorders.case import Case
 from ._options import options as dymos_options
 from dymos.trajectory.trajectory import Trajectory
+from dymos.utils.misc import om_version
 from dymos.visualization.timeseries_plots import timeseries_plots
 
 from .grid_refinement.refinement import _refine_iter
-
-
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_driver=True,
@@ -86,7 +83,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     problem.final_setup()
 
     if restart is not None:
-        if om_version < (3, 27, 1):
+        if om_version()[0] < (3, 27, 1):
             from dymos.load_case import load_case
             load_case(problem, case, deprecation_warning=False)
         else:
@@ -121,7 +118,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
 
     if make_plots:
 
-        if om_version > (3, 34, 2):
+        if om_version()[0] > (3, 34, 2):
             outputs_dir = problem.get_outputs_dir()
             if os.sep in str(solution_record_file):
                 _sol_record_file = solution_record_file
