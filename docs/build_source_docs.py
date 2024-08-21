@@ -15,7 +15,6 @@ packages = [
     'transcriptions.common',
     'transcriptions.explicit_shooting',
     'transcriptions.pseudospectral',
-    'transcriptions.solve_ivp',
     'utils',
 ]
 
