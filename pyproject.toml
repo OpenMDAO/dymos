@@ -89,7 +89,7 @@ line-ending = "lf"
 
 [tool.ruff.lint]
 select = ["E", "F"]
-preview = true
+preview = false
 
 [tool.ruff.lint.pycodestyle]
 max-line-length = 130
