@@ -358,6 +358,8 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
         for models with only static parameters that are uninteresting to plot.
     """
     # get ready to generate plot files
+    if problem is not None:
+        plot_dir = problem.get_reports_dir() / plot_dir
     pathlib.Path(plot_dir).mkdir(parents=True, exist_ok=True)
 
     cr = om.CaseReader(solution_recorder_filename)
