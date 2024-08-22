@@ -4,7 +4,6 @@ import unittest
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.file_utils import clean_outputs
 from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
@@ -16,9 +15,6 @@ optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
 
 @use_tempdirs
 class TestAircraftCruise(unittest.TestCase):
-
-    def tearDown(self):
-        clean_outputs('.', prompt=False)
 
     def test_cruise_results_gl(self):
         p = om.Problem()

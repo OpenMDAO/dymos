@@ -1369,7 +1369,7 @@ class Trajectory(om.Group):
                         name = options['constraint_name']
                     else:
                         name = options['name']
-                    _, shape, units, linear = tx._get_objective_src(name, loc, phase, ode_outputs=ode_outputs)
+                    _, _, units, _ = tx._get_objective_src(name, loc, phase, ode_outputs=ode_outputs)
 
                     equals = options['equals']
                     lower = options['lower']
@@ -1489,9 +1489,9 @@ class Trajectory(om.Group):
             warnings.filterwarnings(action='ignore', category=om.UnusedOptionWarning)
             warnings.filterwarnings(action='ignore', category=om.SetupWarning)
             if om_version()[0] <= (3, 34, 2):
-                sim_prob.setup(check=True)
+                sim_prob.setup(check=False)
             else:
-                sim_prob.setup(check=True, parent=self)
+                sim_prob.setup(check=False, parent=self)
             sim_prob.final_setup()
 
         # Assign trajectory parameter values

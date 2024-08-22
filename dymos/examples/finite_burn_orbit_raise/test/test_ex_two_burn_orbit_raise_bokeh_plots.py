@@ -62,7 +62,7 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
                               'vt.png', 'pos_y.png', 'theta.png')
 
             for file in expected_files:
-                plotfile = pathlib.Path(_get_reports_dir(p)).joinpath('plots') / file
+                plotfile = pathlib.Path(p.get_reports_dir(p)).joinpath('plots') / file
                 self.assertTrue(plotfile.exists(), msg=f'{plotfile} does not exist!')
 
 

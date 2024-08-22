@@ -358,21 +358,7 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
         for models with only static parameters that are uninteresting to plot.
     """
     # get ready to generate plot files
-
-    if not pathlib.Path(plot_dir).is_absolute():
-        if problem is None:
-            plot_dir_path = pathlib.Path.cwd().joinpath(plot_dir)
-        else:
-            try:
-                repdir = problem.get_reports_dir()
-            except AttributeError:
-                from openmdao.utils.reports_system import get_reports_dir
-                repdir = get_reports_dir(problem)
-            plot_dir_path = pathlib.Path(repdir).joinpath(plot_dir)
-    else:
-        plot_dir_path = plot_dir
-
-    plot_dir_path.mkdir(parents=True, exist_ok=True)
+    plot_dir.mkdir(parents=True, exist_ok=True)
 
     cr = om.CaseReader(solution_recorder_filename)
 
@@ -430,10 +416,10 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
 
     if dymos_options['plots'] == 'bokeh':
         _bokeh_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
-                                last_solution_case, last_simulation_case, plot_dir_path)
+                                last_solution_case, last_simulation_case, plot_dir)
     elif dymos_options['plots'] == 'matplotlib':
         fnames = _mpl_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
-                                       last_solution_case, last_simulation_case, plot_dir_path,
+                                       last_solution_case, last_simulation_case, plot_dir,
                                        dpi, include_parameters)
         if (problem is not None) and make_html:
             for name in fnames:

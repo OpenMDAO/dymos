@@ -102,3 +102,5 @@ convention = "numpy"
 "__init__.py" = ["F401"]
 # Ignore import related conventions in docs
 "**/dymos_book/**" = ["E402", "E501"]
+# Ignore Test classifiers
+"test_*.py" = ["D", "E", "F"]

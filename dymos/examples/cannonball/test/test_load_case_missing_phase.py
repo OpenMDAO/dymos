@@ -166,7 +166,12 @@ class TestTwoPhaseCannonballLoadCase(unittest.TestCase):
         descent.set_state_val('v', [150, 200])
         descent.set_state_val('gam', [0, -45], units='deg')
 
-        case = om.CaseReader('dymos_solution.db').get_case('final')
+        sol_db = 'dymos_solution.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p_ascent_only.get_outputs_dir() / sol_db
+
+        case = om.CaseReader(sol_db).get_case('final')
+
         if om_version()[0] < (3, 26, 1):
             dm.load_case(p, previous_solution=case)
         else:

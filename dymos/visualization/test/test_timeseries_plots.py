@@ -89,7 +89,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         with dm.options.temporary(plots='matplotlib'):
             dm.run_problem(self.p, make_plots=False)
 
-            timeseries_plots('dymos_solution.db', problem=self.p)
+            timeseries_plots(self.p.get_outputs_dir() / 'dymos_solution.db', problem=self.p)
             plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
             self.assertTrue(plot_dir.joinpath('x.png').exists())
@@ -107,7 +107,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         # records to the default file 'dymos_simulation.db'
         dm.run_problem(self.p, make_plots=False, solution_record_file='solution_record_file.db')
 
-        timeseries_plots('solution_record_file.db', problem=self.p)
+        timeseries_plots(self.p.get_outputs_dir() / 'solution_record_file.db', problem=self.p)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
 
         self.assertTrue(plot_dir.joinpath('x.png').exists())
@@ -127,7 +127,12 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         dm.run_problem(self.p, simulate=True, make_plots=False,
                        simulation_record_file='simulation_record_file.db')
 
-        timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db', problem=self.p)
+        sol_out = self.p.get_outputs_dir()
+        sim_out = self.p.model.traj0.sim_prob.get_outputs_dir()
+
+        timeseries_plots(sol_out / 'dymos_solution.db',
+                         simulation_record_file=sim_out / 'simulation_record_file.db',
+                         problem=self.p)
 
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath("plots").resolve()
         self.assertTrue(plot_dir.joinpath('x.png').exists())
@@ -148,7 +153,8 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         dm.run_problem(self.p, make_plots=False)
 
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath("test_plot_dir").resolve()
-        timeseries_plots('dymos_solution.db', plot_dir=plot_dir, problem=self.p)
+        sol_out = self.p.get_outputs_dir()
+        timeseries_plots(sol_out / 'dymos_solution.db', plot_dir=plot_dir, problem=self.p)
 
         self.assertTrue(plot_dir.joinpath('x.png').exists())
         self.assertTrue(plot_dir.joinpath('y.png').exists())
@@ -307,7 +313,11 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         dm.run_problem(p, simulate=True, make_plots=False,
                        simulation_record_file='simulation_record_file.db')
 
-        timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db',
+        sol_out = self.p.get_outputs_dir()
+        sim_out = self.p.model.traj.sim_prob.get_outputs_dir()
+
+        timeseries_plots(sol_out / 'dymos_solution.db',
+                         simulation_record_file=sim_out / 'simulation_record_file.db',
                          problem=p)
         plot_dir = pathlib.Path(_get_reports_dir(p)).joinpath("plots")
 
@@ -408,7 +418,11 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         dm.run_problem(prob, simulate=True, make_plots=False,
                        simulation_record_file='simulation_record_file.db')
 
-        timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db',
+        sol_out = self.p.get_outputs_dir()
+        sim_out = self.p.model.traj.sim_prob.get_outputs_dir()
+
+        timeseries_plots(sol_out / 'dymos_solution.db',
+                         simulation_record_file=sim_out / 'simulation_record_file.db',
                          problem=prob)
         plot_dir = pathlib.Path(_get_reports_dir(prob)).joinpath("plots")
 
@@ -562,7 +576,11 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         dm.run_problem(p, simulate=True, make_plots=False,
                        simulation_record_file='simulation_record_file.db')
 
-        timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db',
+        sol_out = self.p.get_outputs_dir()
+        sim_out = self.p.model.traj.sim_prob.get_outputs_dir()
+
+        timeseries_plots(sol_out / 'dymos_solution.db',
+                         simulation_record_file=sim_out / 'simulation_record_file.db',
                          problem=p)
         plot_dir = pathlib.Path(_get_reports_dir(p)).joinpath("plots")
 

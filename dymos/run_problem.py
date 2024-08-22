@@ -1,4 +1,5 @@
 import os
+import pathlib
 import warnings
 
 import openmdao.api as om
@@ -65,7 +66,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         If True and model has been run previously, reset all iteration counters.
     """
     if restart is not None:
-        if isinstance(restart, str):
+        if isinstance(restart, (str, pathlib.Path)):
             case = om.CaseReader(restart).get_case('final')
         elif isinstance(restart, Case):
             case = restart
@@ -105,6 +106,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     problem.cleanup()
 
     if simulate:
+        sims = {}
         _simulate_kwargs = simulate_kwargs if simulate_kwargs is not None else {}
         if 'record_file' in _simulate_kwargs:
             raise ValueError('Key "record_file" was found in simulate_kwargs but should instead by provided by the '
@@ -114,12 +116,16 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
                              'argument "case_prefix", not part of the simulate_kwargs dictionary.')
         for subsys in problem.model.system_iter(include_self=True, recurse=True):
             if isinstance(subsys, Trajectory):
-                subsys.simulate(record_file=simulation_record_file, case_prefix=case_prefix, **_simulate_kwargs)
+                sim_prob = subsys.simulate(record_file=simulation_record_file,
+                                           case_prefix=case_prefix,
+                                           **_simulate_kwargs)
+                sims[subsys.pathname] = sim_prob
 
     if make_plots:
 
         if om_version()[0] > (3, 34, 2):
             outputs_dir = problem.get_outputs_dir()
+            sim_outputs_dir = list(sims.values())[0].get_outputs_dir()
             if os.sep in str(solution_record_file):
                 _sol_record_file = solution_record_file
             else:
@@ -127,7 +133,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
             if os.sep in str(simulation_record_file):
                 _sim_record_file = simulation_record_file
             else:
-                _sim_record_file = outputs_dir / simulation_record_file
+                _sim_record_file = sim_outputs_dir / simulation_record_file
         else:
             _sol_record_file = solution_record_file
             _sim_record_file = None if not simulate else simulation_record_file
@@ -139,8 +145,9 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
                                    simulation_record_file=_sim_record_file)
         else:
             _plot_kwargs = plot_kwargs if plot_kwargs is not None else {}
+            plots_dir = problem.get_reports_dir() / 'plots'
             timeseries_plots(_sol_record_file,
                              simulation_record_file=_sim_record_file,
-                             plot_dir=plot_dir, problem=problem, **_plot_kwargs)
+                             plot_dir=plots_dir, **_plot_kwargs)
 
     return failed
