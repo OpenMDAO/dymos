@@ -105,8 +105,8 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     problem.record(f'{_case_prefix}final')  # save case for potential restart
     problem.cleanup()
 
+    sims = {}
     if simulate:
-        sims = {}
         _simulate_kwargs = simulate_kwargs if simulate_kwargs is not None else {}
         if 'record_file' in _simulate_kwargs:
             raise ValueError('Key "record_file" was found in simulate_kwargs but should instead by provided by the '
@@ -125,15 +125,19 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
 
         if om_version()[0] > (3, 34, 2):
             outputs_dir = problem.get_outputs_dir()
-            sim_outputs_dir = list(sims.values())[0].get_outputs_dir()
             if os.sep in str(solution_record_file):
                 _sol_record_file = solution_record_file
             else:
                 _sol_record_file = outputs_dir / solution_record_file
-            if os.sep in str(simulation_record_file):
-                _sim_record_file = simulation_record_file
+
+            if simulate:
+                sim_outputs_dir = list(sims.values())[0].get_outputs_dir()
+                if os.sep in str(simulation_record_file):
+                    _sim_record_file = simulation_record_file
+                else:
+                    _sim_record_file = sim_outputs_dir / simulation_record_file
             else:
-                _sim_record_file = sim_outputs_dir / simulation_record_file
+                _sim_record_file = None
         else:
             _sol_record_file = solution_record_file
             _sim_record_file = None if not simulate else simulation_record_file

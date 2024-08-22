@@ -169,7 +169,6 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
             sol_db = self.p.get_outputs_dir() / sol_db
 
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath("test_plot_dir").resolve()
-        sol_out = self.p.get_outputs_dir()
         timeseries_plots(sol_db, plot_dir=plot_dir)
 
         self.assertTrue(plot_dir.joinpath('x.png').exists())
@@ -447,8 +446,7 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
 
         timeseries_plots(sol_db,
                          simulation_record_file=sim_db,
-                         problem=prob,
-                         plot_dir=plot_dir)
+                         problem=prob)
 
         self.assertTrue(plot_dir.joinpath('time_phase.png').exists())
         self.assertTrue(plot_dir.joinpath('state_of_charge.png').exists())

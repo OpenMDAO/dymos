@@ -254,8 +254,12 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         p.set_val('traj.phase.t_duration', 1.0, units='s')
         p.set_val('traj.phase.parameters:y0', 0.6, units='unitless')
 
+        sol_db = 'dymos_solution.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = self.p.get_outputs_dir() / sol_db
+
         # Load the previous case and rerun
-        dm.run_problem(p, simulate=False, restart='dymos_solution.db')
+        dm.run_problem(p, simulate=False, restart=sol_db)
 
         t = p.get_val('traj.phase.timeseries.time', units='s')
         y = p.get_val('traj.phase.timeseries.y', units='unitless')
