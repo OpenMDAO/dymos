@@ -266,7 +266,6 @@ class TestRunProblem(unittest.TestCase):
 
         dm.run_problem(p, simulate=True, simulate_kwargs={'times_per_seg': 100})
 
-        self.assertTrue(os.path.exists('dymos_solution.db'))
         # Assert the results are what we expect.
         sol_db = 'dymos_solution.db'
         sim_db = 'dymos_simulation.db'
@@ -276,6 +275,7 @@ class TestRunProblem(unittest.TestCase):
 
         sol_case = om.CaseReader(sol_db).get_case('final')
         sim_case = om.CaseReader(sim_db).get_case('final')
+        self.assertTrue(os.path.exists(sol_db))
 
         sol_t = sol_case.get_val('traj.phase0.timeseries.time')
         sim_t = sim_case.get_val('traj.phase0.timeseries.time')

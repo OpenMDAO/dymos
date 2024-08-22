@@ -91,26 +91,31 @@ class TestBrachExecCompODE(unittest.TestCase):
 
         return p
 
-    def run_asserts(self, sol_db, sim_db):
+    def run_asserts(self, c):
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = c.get_outputs_dir() / sol_db
+            sim_db = c.model.traj0.sim_prob.get_outputs_dir() / sim_db
 
         for db in [sol_db, sim_db]:
-            p = om.CaseReader(db).get_case('final')
+            c = om.CaseReader(db).get_case('final')
 
-            t_initial = p.get_val('traj0.phase0.timeseries.time')[0]
-            tf = p.get_val('traj0.phase0.timeseries.time')[-1]
+            t_initial = c.get_val('traj0.phase0.timeseries.time')[0]
+            tf = c.get_val('traj0.phase0.timeseries.time')[-1]
 
-            x0 = p.get_val('traj0.phase0.timeseries.x')[0]
-            xf = p.get_val('traj0.phase0.timeseries.x')[-1]
+            x0 = c.get_val('traj0.phase0.timeseries.x')[0]
+            xf = c.get_val('traj0.phase0.timeseries.x')[-1]
 
-            y0 = p.get_val('traj0.phase0.timeseries.y')[0]
-            yf = p.get_val('traj0.phase0.timeseries.y')[-1]
+            y0 = c.get_val('traj0.phase0.timeseries.y')[0]
+            yf = c.get_val('traj0.phase0.timeseries.y')[-1]
 
-            v0 = p.get_val('traj0.phase0.timeseries.v')[0]
-            vf = p.get_val('traj0.phase0.timeseries.v')[-1]
+            v0 = c.get_val('traj0.phase0.timeseries.v')[0]
+            vf = c.get_val('traj0.phase0.timeseries.v')[-1]
 
-            g = p.get_val('traj0.phase0.parameter_vals:g')[0]
+            g = c.get_val('traj0.phase0.parameter_vals:g')[0]
 
-            thetaf = p.get_val('traj0.phase0.timeseries.theta')[-1]
+            thetaf = c.get_val('traj0.phase0.timeseries.theta')[-1]
 
             assert_near_equal(t_initial, 0.0)
             assert_near_equal(x0, 0.0)
@@ -127,33 +132,15 @@ class TestBrachExecCompODE(unittest.TestCase):
 
     def test_ex_brachistochrone_radau_uncompressed(self):
         p = self._make_problem(transcription='radau-ps', compressed=False)
-
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj0.sim_prob.get_outputs_dir() / sim_db
-        self.run_asserts(sol_db, sim_db)
+        self.run_asserts(p)
 
     def test_ex_brachistochrone_gl_uncompressed(self):
         p = self._make_problem(transcription='gauss-lobatto', compressed=False)
-
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj0.sim_prob.get_outputs_dir() / sim_db
-        self.run_asserts(sol_db, sim_db)
+        self.run_asserts(p)
 
     def test_ex_brachistochrone_birkhoff_uncompressed(self):
         p = self._make_problem(transcription='birkhoff', transcription_order=10)
-
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj0.sim_prob.get_outputs_dir() / sim_db
-        self.run_asserts(sol_db, sim_db)
+        self.run_asserts(p)
 
 
 @use_tempdirs
@@ -324,26 +311,31 @@ class TestBrachCallableODE(unittest.TestCase):
 
         return p
 
-    def run_asserts(self, sol_db, sim_db):
+    def run_asserts(self, c):
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = c.get_outputs_dir() / sol_db
+            sim_db = c.model.traj0.sim_prob.get_outputs_dir() / sim_db
 
         for db in (sol_db, sim_db):
-            p = om.CaseReader(db).get_case('final')
+            c = om.CaseReader(db).get_case('final')
 
-            t_initial = p.get_val('traj0.phase0.timeseries.time')[0]
-            tf = p.get_val('traj0.phase0.timeseries.time')[-1]
+            t_initial = c.get_val('traj0.phase0.timeseries.time')[0]
+            tf = c.get_val('traj0.phase0.timeseries.time')[-1]
 
-            x0 = p.get_val('traj0.phase0.timeseries.x')[0]
-            xf = p.get_val('traj0.phase0.timeseries.x')[-1]
+            x0 = c.get_val('traj0.phase0.timeseries.x')[0]
+            xf = c.get_val('traj0.phase0.timeseries.x')[-1]
 
-            y0 = p.get_val('traj0.phase0.timeseries.y')[0]
-            yf = p.get_val('traj0.phase0.timeseries.y')[-1]
+            y0 = c.get_val('traj0.phase0.timeseries.y')[0]
+            yf = c.get_val('traj0.phase0.timeseries.y')[-1]
 
-            v0 = p.get_val('traj0.phase0.timeseries.v')[0]
-            vf = p.get_val('traj0.phase0.timeseries.v')[-1]
+            v0 = c.get_val('traj0.phase0.timeseries.v')[0]
+            vf = c.get_val('traj0.phase0.timeseries.v')[-1]
 
-            g = p.get_val('traj0.phase0.parameter_vals:g')[0]
+            g = c.get_val('traj0.phase0.parameter_vals:g')[0]
 
-            thetaf = p.get_val('traj0.phase0.timeseries.theta')[-1]
+            thetaf = c.get_val('traj0.phase0.timeseries.theta')[-1]
 
             assert_near_equal(t_initial, 0.0)
             assert_near_equal(x0, 0.0)
@@ -360,32 +352,11 @@ class TestBrachCallableODE(unittest.TestCase):
 
     def test_ex_brachistochrone_radau_uncompressed(self):
         p = self._make_problem(transcription='radau-ps', compressed=False)
-
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj0.sim_prob.get_outputs_dir() / sim_db
-
-        self.run_asserts(sol_db, sim_db)
+        self.run_asserts(p)
 
     def test_in_series(self):
         p = self._make_problem(transcription='gauss-lobatto', compressed=False)
-
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj0.sim_prob.get_outputs_dir() / sim_db
-
-        self.run_asserts(sol_db, sim_db)
+        self.run_asserts(p)
 
         p = self._make_problem(transcription='radau-ps', compressed=False)
-
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj0.sim_prob.get_outputs_dir() / sim_db
-
-        self.run_asserts(sol_db, sim_db)
+        self.run_asserts(p)
