@@ -16,6 +16,7 @@ from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
 from dymos.utils.lgl import lgl
+from dymos.utils.misc import om_version
 from dymos.utils.testing_utils import _get_reports_dir
 from dymos.visualization.timeseries_plots import timeseries_plots
 
@@ -418,13 +419,18 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         dm.run_problem(prob, simulate=True, make_plots=False,
                        simulation_record_file='simulation_record_file.db')
 
-        sol_out = self.p.get_outputs_dir()
-        sim_out = self.p.model.traj.sim_prob.get_outputs_dir()
+        sol_db = 'dymos_solution.db'
+        sim_db = 'simulation_record_file.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = prob.get_outputs_dir() / sol_db
+            sim_db = prob.model.traj.sim_prob.get_outputs_dir() / sim_db
 
-        timeseries_plots(sol_out / 'dymos_solution.db',
-                         simulation_record_file=sim_out / 'simulation_record_file.db',
-                         problem=prob)
         plot_dir = pathlib.Path(_get_reports_dir(prob)).joinpath("plots")
+
+        timeseries_plots(sol_db,
+                         simulation_record_file=sim_db,
+                         problem=prob,
+                         plot_dir=plot_dir)
 
         self.assertTrue(plot_dir.joinpath('time_phase.png').exists())
         self.assertTrue(plot_dir.joinpath('state_of_charge.png').exists())

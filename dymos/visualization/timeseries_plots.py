@@ -136,7 +136,7 @@ def _mpl_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
         plt.subplots_adjust(bottom=0.23, top=0.9, left=0.2)
 
         # save to file
-        plot_file_path = plot_dir_path.joinpath(f'{var_name.replace(":", "_")}.png')
+        plot_file_path = pathlib.Path(plot_dir_path).joinpath(f'{var_name.replace(":", "_")}.png')
         plt.savefig(plot_file_path, dpi=dpi)
         plt.close(fig)
         plotfiles.append(plot_file_path)
@@ -358,7 +358,7 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
         for models with only static parameters that are uninteresting to plot.
     """
     # get ready to generate plot files
-    plot_dir.mkdir(parents=True, exist_ok=True)
+    pathlib.Path(plot_dir).mkdir(parents=True, exist_ok=True)
 
     cr = om.CaseReader(solution_recorder_filename)
 
