@@ -745,16 +745,22 @@ class TestRunProblemPlotting(unittest.TestCase):
             self.assertFalse(plotfile.exists(), msg=f'Unexpectedly found plot file {plotfile}')
 
     def test_run_brachistochrone_problem_set_simulation_record_file(self):
-        simulation_record_file = 'simulation_record_file.db'
-        dm.run_problem(self.p, simulate=True, simulation_record_file=simulation_record_file)
+        sim_db = 'simulation_record_file.db'
+        dm.run_problem(self.p, simulate=True, simulation_record_file=sim_db)
 
-        self.assertTrue(os.path.exists(simulation_record_file))
+        if om_version()[0] > (3, 34, 2):
+            sim_db = self.p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        self.assertTrue(os.path.exists(sim_db))
 
     def test_run_brachistochrone_problem_set_solution_record_file(self):
-        solution_record_file = 'solution_record_file.db'
-        dm.run_problem(self.p, solution_record_file=solution_record_file)
+        sol_db = 'solution_record_file.db'
+        dm.run_problem(self.p, solution_record_file=sol_db)
 
-        self.assertTrue(os.path.exists(solution_record_file))
+        if om_version()[0] > (3, 34, 2):
+            sol_db =self.p.get_outputs_dir() / sol_db
+
+        self.assertTrue(os.path.exists(sol_db))
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_run_brachistochrone_problem_plot_simulation(self):
