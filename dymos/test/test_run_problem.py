@@ -758,7 +758,7 @@ class TestRunProblemPlotting(unittest.TestCase):
         dm.run_problem(self.p, solution_record_file=sol_db)
 
         if om_version()[0] > (3, 34, 2):
-            sol_db =self.p.get_outputs_dir() / sol_db
+            sol_db = self.p.get_outputs_dir() / sol_db
 
         self.assertTrue(os.path.exists(sol_db))
 
