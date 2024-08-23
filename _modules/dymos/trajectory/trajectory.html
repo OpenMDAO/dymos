@@ -711,7 +711,6 @@ title="Open an issue"
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 
-<span class="kn">import</span> <span class="nn">openmdao</span>
 <span class="kn">import</span> <span class="nn">openmdao.api</span> <span class="k">as</span> <span class="nn">om</span>
 <span class="kn">from</span> <span class="nn">openmdao.utils.mpi</span> <span class="kn">import</span> <span class="n">MPI</span>
 
@@ -722,11 +721,9 @@ title="Open an issue"
 <span class="kn">from</span> <span class="nn">..phase.analytic_phase</span> <span class="kn">import</span> <span class="n">AnalyticPhase</span>
 <span class="kn">from</span> <span class="nn">..phase.options</span> <span class="kn">import</span> <span class="n">TrajParameterOptionsDictionary</span>
 <span class="kn">from</span> <span class="nn">..transcriptions.common</span> <span class="kn">import</span> <span class="n">ParameterComp</span>
-<span class="kn">from</span> <span class="nn">..utils.misc</span> <span class="kn">import</span> <span class="n">create_subprob</span><span class="p">,</span> <span class="n">get_rate_units</span><span class="p">,</span> <span class="n">_unspecified</span><span class="p">,</span> <span class="n">_none_or_unspecified</span>
+<span class="kn">from</span> <span class="nn">..utils.misc</span> <span class="kn">import</span> <span class="n">create_subprob</span><span class="p">,</span> <span class="n">get_rate_units</span><span class="p">,</span> <span class="n">om_version</span><span class="p">,</span> \
+    <span class="n">_unspecified</span><span class="p">,</span> <span class="n">_none_or_unspecified</span>
 <span class="kn">from</span> <span class="nn">..utils.introspection</span> <span class="kn">import</span> <span class="n">get_promoted_vars</span><span class="p">,</span> <span class="n">get_source_metadata</span><span class="p">,</span> <span class="n">_get_common_metadata</span>
-
-
-<span class="n">om_version</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">openmdao</span><span class="o">.</span><span class="n">__version__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)])</span>
 
 
 <span class="k">class</span> <span class="nc">Trajectory</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
@@ -2072,7 +2069,7 @@ title="Open an issue"
                         <span class="n">name</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;constraint_name&#39;</span><span class="p">]</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">name</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
-                    <span class="n">_</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">linear</span> <span class="o">=</span> <span class="n">tx</span><span class="o">.</span><span class="n">_get_objective_src</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">ode_outputs</span><span class="o">=</span><span class="n">ode_outputs</span><span class="p">)</span>
+                    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">tx</span><span class="o">.</span><span class="n">_get_objective_src</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">ode_outputs</span><span class="o">=</span><span class="n">ode_outputs</span><span class="p">)</span>
 
                     <span class="n">equals</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;equals&#39;</span><span class="p">]</span>
                     <span class="n">lower</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">]</span>
@@ -2191,10 +2188,10 @@ title="Open an issue"
             <span class="c1"># fault of the user.</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">UnusedOptionWarning</span><span class="p">)</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">SetupWarning</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">om_version</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
-                <span class="n">sim_prob</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">om_version</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="n">sim_prob</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">sim_prob</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+                <span class="n">sim_prob</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
             <span class="n">sim_prob</span><span class="o">.</span><span class="n">final_setup</span><span class="p">()</span>
 
         <span class="c1"># Assign trajectory parameter values</span>

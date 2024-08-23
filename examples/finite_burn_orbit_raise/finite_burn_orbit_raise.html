@@ -805,8 +805,8 @@ three-phase orbit raising maneuver with a burn-coast-burn phase
 sequence. This example is based on the problem provided in
 Enright <span id="id1">[<a class="reference internal" href="#id24" title="Paul J Enright and Brace A Conway. Optimal finite-thrust spacecraft trajectories using collocation and nonlinear programming. Journal of Guidance, Control, and Dynamics, 14(5):981–985, 1991.">EC91</a>]</span>.</p>
 <p>The dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-757293a6-1dc6-4127-8b27-3954a5aeb01f">
-<span class="eqno">(58)<a class="headerlink" href="#equation-757293a6-1dc6-4127-8b27-3954a5aeb01f" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-0a690d61-3216-4b2c-a386-bc48ce85695c">
+<span class="eqno">(58)<a class="headerlink" href="#equation-0a690d61-3216-4b2c-a386-bc48ce85695c" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dr}{dt} &amp;= v_r \\
   \frac{d\theta}{dt} &amp;= \frac{v_\theta}{r} \\
   \frac{dv_r}{dt} &amp;= \frac{v^2_\theta}{r} - \frac{1}{r^2} + a_{thrust} \sin u_1 \\
@@ -815,8 +815,8 @@ Enright <span id="id1">[<a class="reference internal" href="#id24" title="Paul J
   \frac{d \Delta v}{dt} &amp;= a_{thrust}
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-b77bee98-d963-435b-a7ca-1448cd66a0cb">
-<span class="eqno">(59)<a class="headerlink" href="#equation-b77bee98-d963-435b-a7ca-1448cd66a0cb" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-54addaf3-7024-4a69-b10e-95a1b52f77d5">
+<span class="eqno">(59)<a class="headerlink" href="#equation-54addaf3-7024-4a69-b10e-95a1b52f77d5" title="Permalink to this equation">#</a></span>\[\begin{align}
   r &amp;= 1 \rm{\,DU} \\
   \theta &amp;= 0 \rm{\,rad} \\
   v_r &amp;= 0 \rm{\,DU/TU}\\
@@ -825,8 +825,8 @@ Enright <span id="id1">[<a class="reference internal" href="#id24" title="Paul J
   \Delta v &amp;= 0 \rm{\,DU/TU}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-0318a667-ea09-484f-8585-d29b0639e89f">
-<span class="eqno">(60)<a class="headerlink" href="#equation-0318a667-ea09-484f-8585-d29b0639e89f" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-0b8f2402-0c70-488c-a78f-2fa591485ba0">
+<span class="eqno">(60)<a class="headerlink" href="#equation-0b8f2402-0c70-488c-a78f-2fa591485ba0" title="Permalink to this equation">#</a></span>\[\begin{align}
   r &amp;= 3 \rm{\,DU} \\
   \theta &amp;= \rm{free} \\
   v_r &amp;= 0 \rm{\,DU/TU}\\
@@ -1326,7 +1326,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.4162796650000473 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.4220554669999501 seconds.
 Total jacobian shape: (112, 204) 
 
 
@@ -1335,10 +1335,10 @@ FWD solves: 13   REV solves: 0
 Total colors vs. total size: 13 vs 204  (93.63% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.4163 sec
-Time to compute coloring:   0.0636 sec
-Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-08-20 14:50:04
+Time to compute sparsity:   0.4221 sec
+Time to compute coloring:   0.0640 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2024-08-23 12:50:19
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1347,11 +1347,11 @@ Coloring created on: 2024-08-20 14:50:04
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    2.0666
-       User Objective Time :       0.0935
-       User Sensitivity Time :     1.7248
-       Interface Time :            0.1342
-       Opt Solver Time:            0.1141
+    Total Time:                    2.1010
+       User Objective Time :       0.0964
+       User Sensitivity Time :     1.7529
+       Interface Time :            0.1360
+       Opt Solver Time:            0.1158
     Calls to Objective Function :      28
     Calls to Sens Function :           28
 
@@ -1772,64 +1772,12 @@ Coloring created on: 2024-08-20 14:50:04
   ax.set_ylim([ymin_plot, ymax_plot])
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1104: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u1_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1104: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u1_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
 Model viewer data has already been recorded for Driver.
-INFO: checking out_of_order
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1101: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u1_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1101: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u1_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
@@ -1839,11 +1787,11 @@ INFO: checking out_of_order
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 30
-  runtime     : 2.6528E+00 s
+  runtime     : 2.6943E+00 s
   model_evals : 30
-  model_time  : 8.3567E-02 s
+  model_time  : 8.5686E-02 s
   deriv_evals : 29
-  deriv_time  : 1.2478E+00 s
+  deriv_time  : 1.2801E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -1860,8 +1808,8 @@ Driver:  pyOptSparseDriver
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sol</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
-<span class="n">sim</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="s1">&#39;dymos_simulation.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sol</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">sim_prob</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_simulation.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
 
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;Two Burn Orbit Raise Solution&#39;</span><span class="p">)</span>

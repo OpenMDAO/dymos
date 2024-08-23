@@ -698,13 +698,15 @@ title="Open an issue"
             <article class="bd-article" role="main">
               
   <h1>Source code for dymos.run_problem</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pathlib</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">openmdao</span>
 <span class="kn">import</span> <span class="nn">openmdao.api</span> <span class="k">as</span> <span class="nn">om</span>
 <span class="kn">from</span> <span class="nn">openmdao.recorders.case</span> <span class="kn">import</span> <span class="n">Case</span>
 <span class="kn">from</span> <span class="nn">._options</span> <span class="kn">import</span> <span class="n">options</span> <span class="k">as</span> <span class="n">dymos_options</span>
 <span class="kn">from</span> <span class="nn">dymos.trajectory.trajectory</span> <span class="kn">import</span> <span class="n">Trajectory</span>
+<span class="kn">from</span> <span class="nn">dymos.utils.misc</span> <span class="kn">import</span> <span class="n">om_version</span>
 <span class="kn">from</span> <span class="nn">dymos.visualization.timeseries_plots</span> <span class="kn">import</span> <span class="n">timeseries_plots</span>
 
 <span class="kn">from</span> <span class="nn">.grid_refinement.refinement</span> <span class="kn">import</span> <span class="n">_refine_iter</span>
@@ -764,7 +766,7 @@ title="Open an issue"
 <span class="sd">        If True and model has been run previously, reset all iteration counters.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">restart</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">restart</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">restart</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">)):</span>
             <span class="n">case</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">restart</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">restart</span><span class="p">,</span> <span class="n">Case</span><span class="p">):</span>
             <span class="n">case</span> <span class="o">=</span> <span class="n">restart</span>
@@ -782,8 +784,7 @@ title="Open an issue"
     <span class="n">problem</span><span class="o">.</span><span class="n">final_setup</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">restart</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">om_version</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">openmdao</span><span class="o">.</span><span class="n">__version__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)])</span>
-        <span class="k">if</span> <span class="n">om_version</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">27</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">om_version</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">27</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
             <span class="kn">from</span> <span class="nn">dymos.load_case</span> <span class="kn">import</span> <span class="n">load_case</span>
             <span class="n">load_case</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">case</span><span class="p">,</span> <span class="n">deprecation_warning</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -804,6 +805,7 @@ title="Open an issue"
     <span class="n">problem</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">_case_prefix</span><span class="si">}</span><span class="s1">final&#39;</span><span class="p">)</span>  <span class="c1"># save case for potential restart</span>
     <span class="n">problem</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
 
+    <span class="n">sims</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">simulate</span><span class="p">:</span>
         <span class="n">_simulate_kwargs</span> <span class="o">=</span> <span class="n">simulate_kwargs</span> <span class="k">if</span> <span class="n">simulate_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="s1">&#39;record_file&#39;</span> <span class="ow">in</span> <span class="n">_simulate_kwargs</span><span class="p">:</span>
@@ -814,18 +816,43 @@ title="Open an issue"
                              <span class="s1">&#39;argument &quot;case_prefix&quot;, not part of the simulate_kwargs dictionary.&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">subsys</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">system_iter</span><span class="p">(</span><span class="n">include_self</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recurse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">subsys</span><span class="p">,</span> <span class="n">Trajectory</span><span class="p">):</span>
-                <span class="n">subsys</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">record_file</span><span class="o">=</span><span class="n">simulation_record_file</span><span class="p">,</span> <span class="n">case_prefix</span><span class="o">=</span><span class="n">case_prefix</span><span class="p">,</span> <span class="o">**</span><span class="n">_simulate_kwargs</span><span class="p">)</span>
+                <span class="n">sim_prob</span> <span class="o">=</span> <span class="n">subsys</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">record_file</span><span class="o">=</span><span class="n">simulation_record_file</span><span class="p">,</span>
+                                           <span class="n">case_prefix</span><span class="o">=</span><span class="n">case_prefix</span><span class="p">,</span>
+                                           <span class="o">**</span><span class="n">_simulate_kwargs</span><span class="p">)</span>
+                <span class="n">sims</span><span class="p">[</span><span class="n">subsys</span><span class="o">.</span><span class="n">pathname</span><span class="p">]</span> <span class="o">=</span> <span class="n">sim_prob</span>
 
     <span class="k">if</span> <span class="n">make_plots</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">om_version</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">outputs_dir</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">solution_record_file</span><span class="p">):</span>
+                <span class="n">_sol_record_file</span> <span class="o">=</span> <span class="n">solution_record_file</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_sol_record_file</span> <span class="o">=</span> <span class="n">outputs_dir</span> <span class="o">/</span> <span class="n">solution_record_file</span>
+
+            <span class="k">if</span> <span class="n">simulate</span><span class="p">:</span>
+                <span class="n">sim_outputs_dir</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sims</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">simulation_record_file</span><span class="p">):</span>
+                    <span class="n">_sim_record_file</span> <span class="o">=</span> <span class="n">simulation_record_file</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_sim_record_file</span> <span class="o">=</span> <span class="n">sim_outputs_dir</span> <span class="o">/</span> <span class="n">simulation_record_file</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_sim_record_file</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_sol_record_file</span> <span class="o">=</span> <span class="n">solution_record_file</span>
+            <span class="n">_sim_record_file</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">simulate</span> <span class="k">else</span> <span class="n">simulation_record_file</span>
+
         <span class="k">if</span> <span class="n">dymos_options</span><span class="p">[</span><span class="s1">&#39;plots&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;bokeh&#39;</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">dymos.visualization.timeseries.bokeh_timeseries_report</span> <span class="kn">import</span> <span class="n">make_timeseries_report</span>
-            <span class="n">make_timeseries_report</span><span class="p">(</span><span class="n">prob</span><span class="o">=</span><span class="n">problem</span><span class="p">,</span> <span class="n">solution_record_file</span><span class="o">=</span><span class="n">solution_record_file</span><span class="p">,</span>
-                                   <span class="n">simulation_record_file</span><span class="o">=</span><span class="n">simulation_record_file</span><span class="p">)</span>
+            <span class="n">make_timeseries_report</span><span class="p">(</span><span class="n">prob</span><span class="o">=</span><span class="n">problem</span><span class="p">,</span>
+                                   <span class="n">solution_record_file</span><span class="o">=</span><span class="n">_sol_record_file</span><span class="p">,</span>
+                                   <span class="n">simulation_record_file</span><span class="o">=</span><span class="n">_sim_record_file</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">_sim_record_file</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">simulate</span> <span class="k">else</span> <span class="n">simulation_record_file</span>
             <span class="n">_plot_kwargs</span> <span class="o">=</span> <span class="n">plot_kwargs</span> <span class="k">if</span> <span class="n">plot_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
-            <span class="n">timeseries_plots</span><span class="p">(</span><span class="n">solution_record_file</span><span class="p">,</span> <span class="n">simulation_record_file</span><span class="o">=</span><span class="n">_sim_record_file</span><span class="p">,</span>
-                             <span class="n">plot_dir</span><span class="o">=</span><span class="n">plot_dir</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">,</span> <span class="o">**</span><span class="n">_plot_kwargs</span><span class="p">)</span>
+            <span class="n">plots_dir</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">get_reports_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;plots&#39;</span>
+            <span class="n">timeseries_plots</span><span class="p">(</span><span class="n">_sol_record_file</span><span class="p">,</span>
+                             <span class="n">simulation_record_file</span><span class="o">=</span><span class="n">_sim_record_file</span><span class="p">,</span>
+                             <span class="n">plot_dir</span><span class="o">=</span><span class="n">plots_dir</span><span class="p">,</span> <span class="o">**</span><span class="n">_plot_kwargs</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">failed</span></div>
 </pre></div>

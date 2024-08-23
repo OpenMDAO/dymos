@@ -707,7 +707,6 @@ title="Open an issue"
 
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
 
-<span class="kn">import</span> <span class="nn">openmdao</span>
 <span class="kn">import</span> <span class="nn">openmdao.api</span> <span class="k">as</span> <span class="nn">om</span>
 <span class="kn">from</span> <span class="nn">openmdao.utils.mpi</span> <span class="kn">import</span> <span class="n">MPI</span>
 <span class="kn">from</span> <span class="nn">openmdao.utils.om_warnings</span> <span class="kn">import</span> <span class="n">issue_warning</span>
@@ -728,12 +727,8 @@ title="Open an issue"
 <span class="kn">from</span> <span class="nn">..utils.introspection</span> <span class="kn">import</span> <span class="n">configure_time_introspection</span><span class="p">,</span> <span class="n">_configure_constraint_introspection</span><span class="p">,</span> \
     <span class="n">configure_controls_introspection</span><span class="p">,</span> <span class="n">configure_parameters_introspection</span><span class="p">,</span> \
     <span class="n">configure_timeseries_output_introspection</span><span class="p">,</span> <span class="n">classify_var</span><span class="p">,</span> <span class="n">configure_timeseries_expr_introspection</span>
-<span class="kn">from</span> <span class="nn">..utils.misc</span> <span class="kn">import</span> <span class="n">_unspecified</span><span class="p">,</span> <span class="n">create_subprob</span>
+<span class="kn">from</span> <span class="nn">..utils.misc</span> <span class="kn">import</span> <span class="n">_unspecified</span><span class="p">,</span> <span class="n">create_subprob</span><span class="p">,</span> <span class="n">om_version</span>
 <span class="kn">from</span> <span class="nn">..utils.lgl</span> <span class="kn">import</span> <span class="n">lgl</span>
-
-
-<span class="n">om_dev_version</span> <span class="o">=</span> <span class="n">openmdao</span><span class="o">.</span><span class="n">__version__</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;dev&#39;</span><span class="p">)</span>
-<span class="n">om_version</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">openmdao</span><span class="o">.</span><span class="n">__version__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">))</span>
 
 
 <span class="k">class</span> <span class="nc">Phase</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
@@ -3443,7 +3438,7 @@ title="Open an issue"
             <span class="n">rec</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">SqliteRecorder</span><span class="p">(</span><span class="n">record_file</span><span class="p">)</span>
             <span class="n">sim_prob</span><span class="o">.</span><span class="n">add_recorder</span><span class="p">(</span><span class="n">rec</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">om_version</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">om_version</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
             <span class="n">sim_prob</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">sim_prob</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>

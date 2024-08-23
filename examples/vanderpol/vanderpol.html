@@ -836,16 +836,16 @@ title="Print to PDF"
   <section class="tex2jax_ignore mathjax_ignore" id="the-van-der-pol-oscillator">
 <h1>The Van der Pol Oscillator<a class="headerlink" href="#the-van-der-pol-oscillator" title="Permalink to this heading">#</a></h1>
 <p>In dynamics, the Van Der Pol oscillator <span id="id1">[<a class="reference internal" href="#id23" title="Wikipedia contributors. Van der pol oscillator — Wikipedia, the free encyclopedia. 2020. [Online; accessed 12-June-2020]. URL: https://en.wikipedia.org/w/index.php?title=Van_der_Pol_oscillator&amp;oldid=953857769.">Wikipediacontributors20</a>]</span> is a non-conservative oscillator with non-linear damping. It evolves in time according to the second-order differential equation:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-f80e9246-cfbe-4ebd-b3e4-6a205ac137a9">
-<span class="eqno">(16)<a class="headerlink" href="#equation-f80e9246-cfbe-4ebd-b3e4-6a205ac137a9" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-24dc8489-cdab-4fba-9882-cad8b2f0a491">
+<span class="eqno">(16)<a class="headerlink" href="#equation-24dc8489-cdab-4fba-9882-cad8b2f0a491" title="Permalink to this equation">#</a></span>\[\begin{align}
     \frac{d^2x}{dt^2} - u (1 - x^2) \frac{dx}{dt} + x &amp;= 0
 \end{align}\]</div>
 <p>where <span class="math notranslate nohighlight">\(x\)</span> is the position coordinate (a function of the time <span class="math notranslate nohighlight">\(t\)</span>), and <span class="math notranslate nohighlight">\(u\)</span> is a scalar parameter
 indicating the nonlinearity and the strength of the damping.</p>
 <p>To make this an optimal control problem, we want to find the smallest control that will dampen the oscillation
 (drive the state variables to zero). We can express this as an objective function <span class="math notranslate nohighlight">\(J\)</span> to minimize:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-a398aa10-0852-4241-900a-8a11439048f1">
-<span class="eqno">(17)<a class="headerlink" href="#equation-a398aa10-0852-4241-900a-8a11439048f1" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-e79b0cab-5928-49e0-b952-9638cd4820ec">
+<span class="eqno">(17)<a class="headerlink" href="#equation-e79b0cab-5928-49e0-b952-9638cd4820ec" title="Permalink to this equation">#</a></span>\[\begin{align}
     J &amp;= \int x^2_0 + x^2_1 + u^2
 \end{align}\]</div>
 <p>In other words, we want to find the optimal (smallest) trajectory of the control <span class="math notranslate nohighlight">\(u\)</span> such that the oscillation
@@ -864,8 +864,8 @@ and the oscillation’s rate of change are driven to zero.</p>
 <section id="system-dynamics">
 <h2>System Dynamics<a class="headerlink" href="#system-dynamics" title="Permalink to this heading">#</a></h2>
 <p>The evolution of the state variables is given by the following ordinary differential equations (ODE):</p>
-<div class="amsmath math notranslate nohighlight" id="equation-a0c58558-8a76-44e9-b62e-78b3991a488c">
-<span class="eqno">(18)<a class="headerlink" href="#equation-a0c58558-8a76-44e9-b62e-78b3991a488c" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-bf465d40-f1d8-4f16-8f4e-12bbfa31acfe">
+<span class="eqno">(18)<a class="headerlink" href="#equation-bf465d40-f1d8-4f16-8f4e-12bbfa31acfe" title="Permalink to this equation">#</a></span>\[\begin{align}
     \frac{dx_0}{dt} &amp;= (1 - x^2_1) x_0 - x_1 + u \\
     \frac{dx_1}{dt} &amp;= x_0 \\
     \frac{dJ}{dt} &amp;= x^2_0 + x^2_1 + u^2
@@ -882,16 +882,16 @@ and the oscillation’s rate of change are driven to zero.</p>
 <section id="the-initial-and-final-conditions">
 <h2>The initial and final conditions<a class="headerlink" href="#the-initial-and-final-conditions" title="Permalink to this heading">#</a></h2>
 <p>The initial conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-139528ae-5505-4fb3-a4a3-0376edc49ed1">
-<span class="eqno">(19)<a class="headerlink" href="#equation-139528ae-5505-4fb3-a4a3-0376edc49ed1" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-070f087e-526d-4540-a990-2a5bbd34d439">
+<span class="eqno">(19)<a class="headerlink" href="#equation-070f087e-526d-4540-a990-2a5bbd34d439" title="Permalink to this equation">#</a></span>\[\begin{align}
     t_i &amp;= 0 \\
     x_{0i} &amp;= 1 \\
     x_{1i} &amp;= 1 \\
       u_i &amp;= -0.75
 \end{align}\]</div>
 <p>The final conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-1b0f45c4-90a1-4c03-a20e-12946a880759">
-<span class="eqno">(20)<a class="headerlink" href="#equation-1b0f45c4-90a1-4c03-a20e-12946a880759" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-a0bccda3-0253-47e8-a01c-f803ad5bb45f">
+<span class="eqno">(20)<a class="headerlink" href="#equation-a0bccda3-0253-47e8-a01c-f803ad5bb45f" title="Permalink to this equation">#</a></span>\[\begin{align}
     t_f &amp;= 10 \\
     x_{0f} &amp;= 0 \\
     x_{1f} &amp;= 0 \\
@@ -1190,63 +1190,13 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
-Model viewer data has already been recorded for Driver.
-INFO: checking out_of_order
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1101: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1104: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
@@ -1267,40 +1217,47 @@ control variable <span class="math notranslate nohighlight">\(u\)</span> vs time
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dymos.examples.plotting</span> <span class="kn">import</span> <span class="n">plot_results</span>
 
 <span class="c1"># Display the results</span>
-<span class="k">def</span> <span class="nf">vanderpol_plots</span><span class="p">():</span>
-    <span class="n">sol</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
-    <span class="n">sim</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="s1">&#39;dymos_simulation.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
-    
-    <span class="n">plot_results</span><span class="p">([(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;traj.phase0.timeseries.x1&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;$x_1$ (V)&#39;</span><span class="p">),</span>
-                 <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;traj.phase0.timeseries.x0&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;$x_0$ (V/s)&#39;</span><span class="p">),</span>
-                  <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;traj.phase0.timeseries.J&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;J&#39;</span><span class="p">),</span>
-                  <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.x0&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;traj.phase0.timeseries.x1&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;$x_0$ (V/s)&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;$x_1$ (V)&#39;</span><span class="p">),</span>
-                 <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;traj.phase0.timeseries.u&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;control u&#39;</span><span class="p">),</span>
-                  <span class="p">],</span>
-                 <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Van Der Pol Simulation&#39;</span><span class="p">,</span>
-                 <span class="n">p_sol</span><span class="o">=</span><span class="n">sol</span><span class="p">,</span> <span class="n">p_sim</span><span class="o">=</span><span class="n">sim</span><span class="p">)</span>
 
-<span class="n">vanderpol_plots</span><span class="p">()</span>
+<span class="n">sol</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+<span class="n">sim_prob</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">sim_prob</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">sim_prob</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_simulation.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+
+<span class="n">plot_results</span><span class="p">([(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.x1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_1$ (V)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;traj.phase0.timeseries.x0&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;$x_0$ (V/s)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.J&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;J&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.x0&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.x1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_0$ (V/s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_1$ (V)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;traj.phase0.timeseries.u&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;control u&#39;</span><span class="p">),</span>
+              <span class="p">],</span>
+              <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Van Der Pol Simulation&#39;</span><span class="p">,</span>
+              <span class="n">p_sol</span><span class="o">=</span><span class="n">sol</span><span class="p">,</span> <span class="n">p_sim</span><span class="o">=</span><span class="n">sim</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </details>
 <div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x800 with 5 Axes&gt;,
+ array([&lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;$x_1$ (V)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;$x_0$ (V/s)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;J&#39;&gt;,
+        &lt;Axes: xlabel=&#39;$x_0$ (V/s)&#39;, ylabel=&#39;$x_1$ (V)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;control u&#39;&gt;], dtype=object))
+</pre></div>
+</div>
 <img alt="../../_images/727fcc94e4e9321b82e701d4824ab4e4f2dd642a442ae2efd34033454544d6ef.png" src="../../_images/727fcc94e4e9321b82e701d4824ab4e4f2dd642a442ae2efd34033454544d6ef.png" />
 </div>
 </div>
@@ -1385,10 +1342,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/recorders/sqlite_recorder.py:226: UserWarning:The existing case recorder file, dymos_solution.db, is being overwritten.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem4&#39; was computed 3 times, taking 0.09709743299993079 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem4&#39; was computed 3 times, taking 0.09791103300005943 seconds.
 Total jacobian shape: (60, 130) 
 
 
@@ -1397,10 +1351,10 @@ FWD solves: 0   REV solves: 5
 Total colors vs. total size: 5 vs 60  (91.67% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0971 sec
+Time to compute sparsity:   0.0979 sec
 Time to compute coloring:   0.0328 sec
-Memory to compute coloring:   0.1250 MB
-Coloring created on: 2024-08-20 14:53:25
+Memory to compute coloring:   0.2500 MB
+Coloring created on: 2024-08-23 12:53:40
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>List of user-set options:
@@ -1410,7 +1364,7 @@ Coloring created on: 2024-08-20 14:53:25
                    hessian_approximation = limited-memory        yes
                            linear_solver = mumps                 yes
                       nlp_scaling_method = user-scaling          yes
-                             output_file = reports/problem4/IPOPT.out  yes
+                             output_file = problem4_out/IPOPT.out  yes
                              print_level = 4                     yes
                       print_user_options = yes                   yes
                                       sb = yes                   yes
@@ -1445,7 +1399,7 @@ Number of inequality constraint evaluations          = 0
 Number of equality constraint Jacobian evaluations   = 32
 Number of inequality constraint Jacobian evaluations = 0
 Number of Lagrangian Hessian evaluations             = 0
-Total seconds in IPOPT                               = 0.686
+Total seconds in IPOPT                               = 0.672
 
 EXIT: Optimal Solution Found.
 </pre></div>
@@ -1454,64 +1408,11 @@ EXIT: Optimal Solution Found.
   ax.set_ylim([ymin_plot, ymax_plot])
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1104: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
 Model viewer data has already been recorded for Driver.
-INFO: checking out_of_order
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1101: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/recorders/sqlite_recorder.py:226: UserWarning:The existing case recorder file, dymos_simulation.db, is being overwritten.
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
@@ -1521,11 +1422,11 @@ INFO: checking out_of_order
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 35
-  runtime     : 8.4808E-01 s
+  runtime     : 8.3699E-01 s
   model_evals : 35
-  model_time  : 2.5246E-02 s
+  model_time  : 2.6112E-02 s
   deriv_evals : 33
-  deriv_time  : 1.1170E-01 s
+  deriv_time  : 1.1214E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -1538,12 +1439,46 @@ Driver:  pyOptSparseDriver
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">vanderpol_plots</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sol</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+<span class="n">sim_prob</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">sim_prob</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">sim_prob</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_simulation.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+
+<span class="n">plot_results</span><span class="p">([(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.x1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_1$ (V)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;traj.phase0.timeseries.x0&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;$x_0$ (V/s)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.J&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;J&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.x0&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.x1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_0$ (V/s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_1$ (V)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;traj.phase0.timeseries.u&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;control u&#39;</span><span class="p">),</span>
+              <span class="p">],</span>
+              <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Van Der Pol Simulation&#39;</span><span class="p">,</span>
+              <span class="n">p_sol</span><span class="o">=</span><span class="n">sol</span><span class="p">,</span> <span class="n">p_sim</span><span class="o">=</span><span class="n">sim</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </details>
 <div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x800 with 5 Axes&gt;,
+ array([&lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;$x_1$ (V)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;$x_0$ (V/s)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;J&#39;&gt;,
+        &lt;Axes: xlabel=&#39;$x_0$ (V/s)&#39;, ylabel=&#39;$x_1$ (V)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;control u&#39;&gt;], dtype=object))
+</pre></div>
+</div>
 <img alt="../../_images/929a39270b4063bfada8ef2eca55b3f6e77fd4e85c7b3835a71d4aa3a3c464ec.png" src="../../_images/929a39270b4063bfada8ef2eca55b3f6e77fd4e85c7b3835a71d4aa3a3c464ec.png" />
 </div>
 </div>
@@ -1575,7 +1510,16 @@ and does not require supplying a good guess for the number segments.</p>
 INFO: checking out_of_order
 </pre></div>
 </div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
@@ -1584,7 +1528,16 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
 </pre></div>
 </div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
@@ -1593,7 +1546,16 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
 </pre></div>
 </div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
@@ -1603,7 +1565,16 @@ INFO: checking out_of_order
 INFO: checking out_of_order
 </pre></div>
 </div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
@@ -1612,7 +1583,16 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
 </pre></div>
 </div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
@@ -1621,16 +1601,22 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
 </pre></div>
 </div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/recorders/sqlite_recorder.py:226: UserWarning:The existing case recorder file, dymos_solution.db, is being overwritten.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem7&#39; was computed 3 times, taking 0.09661266500006604 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem7&#39; was computed 3 times, taking 0.10127029599993875 seconds.
 Total jacobian shape: (60, 74) 
 
 
@@ -1639,10 +1625,10 @@ FWD solves: 9   REV solves: 0
 Total colors vs. total size: 9 vs 74  (87.84% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0966 sec
-Time to compute coloring:   0.0252 sec
-Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-20 14:53:27
+Time to compute sparsity:   0.1013 sec
+Time to compute coloring:   0.0255 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2024-08-23 12:53:42
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -1683,12 +1669,12 @@ Optimization Complete
 Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4284: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3100: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3100: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4304: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3095: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3095: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem7&#39; was computed 3 times, taking 0.18601039600002878 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem7&#39; was computed 3 times, taking 0.18909821800002646 seconds.
 Total jacobian shape: (105, 149) 
 
 
@@ -1697,10 +1683,10 @@ FWD solves: 14   REV solves: 0
 Total colors vs. total size: 14 vs 149  (90.60% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1860 sec
-Time to compute coloring:   0.0511 sec
+Time to compute sparsity:   0.1891 sec
+Time to compute coloring:   0.0516 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-20 14:53:29
+Coloring created on: 2024-08-23 12:53:44
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -1742,12 +1728,12 @@ Optimization Complete
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4284: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3100: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3100: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4304: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3095: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3095: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem7&#39; was computed 3 times, taking 0.3075159429999985 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem7&#39; was computed 3 times, taking 0.3165525679999064 seconds.
 Total jacobian shape: (168, 239) 
 
 
@@ -1756,10 +1742,10 @@ FWD solves: 14   REV solves: 0
 Total colors vs. total size: 14 vs 239  (94.14% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.3075 sec
-Time to compute coloring:   0.0797 sec
+Time to compute sparsity:   0.3166 sec
+Time to compute coloring:   0.0824 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-20 14:53:30
+Coloring created on: 2024-08-23 12:53:45
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -1804,12 +1790,12 @@ Model viewer data has already been recorded for Driver.
   q_smooth = (np.log(self.error[phase_path][smooth_need_refine_idxs] /
 /usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/grid_refinement/hp_adaptive/hp_adaptive.py:411: RuntimeWarning: divide by zero encountered in divide
   q_split = np.log((self.error[phase_path][split_seg_idxs] /
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4284: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3100: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3100: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4304: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3095: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3095: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem7&#39; was computed 3 times, taking 0.5706828470000573 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem7&#39; was computed 3 times, taking 0.5698787449999827 seconds.
 Total jacobian shape: (274, 399) 
 
 
@@ -1818,10 +1804,10 @@ FWD solves: 0   REV solves: 27
 Total colors vs. total size: 27 vs 274  (90.15% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.5707 sec
-Time to compute coloring:   0.1431 sec
+Time to compute sparsity:   0.5699 sec
+Time to compute coloring:   0.1442 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-20 14:53:31
+Coloring created on: 2024-08-23 12:53:47
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -1864,12 +1850,12 @@ Optimization Complete
 Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4284: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3100: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3100: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4304: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3095: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3095: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem7&#39; was computed 3 times, taking 0.6354920840000204 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem7&#39; was computed 3 times, taking 0.6465581290000273 seconds.
 Total jacobian shape: (307, 449) 
 
 
@@ -1878,10 +1864,10 @@ FWD solves: 0   REV solves: 30
 Total colors vs. total size: 30 vs 307  (90.23% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.6355 sec
-Time to compute coloring:   0.1652 sec
+Time to compute sparsity:   0.6466 sec
+Time to compute coloring:   0.1663 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-20 14:53:34
+Coloring created on: 2024-08-23 12:53:49
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -1924,12 +1910,12 @@ Optimization Complete
 Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4284: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3100: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3100: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4304: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3095: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3095: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem7&#39; was computed 3 times, taking 0.7839238939999404 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem7&#39; was computed 3 times, taking 0.8015701210000543 seconds.
 Total jacobian shape: (356, 529) 
 </pre></div>
 </div>
@@ -1938,10 +1924,10 @@ FWD solves: 0   REV solves: 36
 Total colors vs. total size: 36 vs 356  (89.89% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.7839 sec
-Time to compute coloring:   0.2079 sec
+Time to compute sparsity:   0.8016 sec
+Time to compute coloring:   0.2072 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-20 14:53:37
+Coloring created on: 2024-08-23 12:53:52
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -1955,64 +1941,11 @@ Successfully completed grid refinement.
 ==================================================
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1104: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
 Model viewer data has already been recorded for Driver.
-INFO: checking out_of_order
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1101: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/recorders/sqlite_recorder.py:226: UserWarning:The existing case recorder file, dymos_simulation.db, is being overwritten.
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
@@ -2022,11 +1955,11 @@ INFO: checking out_of_order
 Driver:  ScipyOptimizeDriver
   success     : True
   iterations  : 4
-  runtime     : 2.0000E+00 s
+  runtime     : 2.0113E+00 s
   model_evals : 4
-  model_time  : 3.8838E-03 s
+  model_time  : 3.7438E-03 s
   deriv_evals : 2
-  deriv_time  : 4.8868E-02 s
+  deriv_time  : 4.9523E-02 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -2039,12 +1972,46 @@ Driver:  ScipyOptimizeDriver
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">vanderpol_plots</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sol</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+<span class="n">sim_prob</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">sim_prob</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">sim_prob</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_simulation.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+
+<span class="n">plot_results</span><span class="p">([(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.x1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_1$ (V)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;traj.phase0.timeseries.x0&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;$x_0$ (V/s)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.J&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;J&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.x0&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.x1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_0$ (V/s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_1$ (V)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;traj.phase0.timeseries.u&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;control u&#39;</span><span class="p">),</span>
+              <span class="p">],</span>
+              <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Van Der Pol Simulation&#39;</span><span class="p">,</span>
+              <span class="n">p_sol</span><span class="o">=</span><span class="n">sol</span><span class="p">,</span> <span class="n">p_sim</span><span class="o">=</span><span class="n">sim</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </details>
 <div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x800 with 5 Axes&gt;,
+ array([&lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;$x_1$ (V)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;$x_0$ (V/s)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;J&#39;&gt;,
+        &lt;Axes: xlabel=&#39;$x_0$ (V/s)&#39;, ylabel=&#39;$x_1$ (V)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;control u&#39;&gt;], dtype=object))
+</pre></div>
+</div>
 <img alt="../../_images/35611cf5db64734ede452d60d3f739b4c1af562a9181ce362ad94df2012cca5e.png" src="../../_images/35611cf5db64734ede452d60d3f739b4c1af562a9181ce362ad94df2012cca5e.png" />
 </div>
 </div>

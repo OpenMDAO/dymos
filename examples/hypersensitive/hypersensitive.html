@@ -804,18 +804,18 @@ title="Print to PDF"
 Patterson <span id="id1">[<a class="reference internal" href="#id22" title="Michael A Patterson, William W Hager, and Anil V Rao. A ph mesh refinement method for optimal control. Optimal Control Applications and Methods, 36(4):398–421, 2015.">PHR15</a>]</span>. In this problem we seek to minimize both
 the distance traveled when moving between fixed boundary conditions and
 also to minimize the control <span class="math notranslate nohighlight">\(u\)</span> used. The cost function to be minimized is:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-4208db84-4e8a-4e0e-bf1f-9a9dfb862579">
-<span class="eqno">(53)<a class="headerlink" href="#equation-4208db84-4e8a-4e0e-bf1f-9a9dfb862579" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-7a9a7504-f359-4f4e-8e45-d42e5b990014">
+<span class="eqno">(53)<a class="headerlink" href="#equation-7a9a7504-f359-4f4e-8e45-d42e5b990014" title="Permalink to this equation">#</a></span>\[\begin{align}
     J &amp;= \frac{1}{2} \int_{0}^{t_f} (x^2 + u^2) dt
 \end{align}\]</div>
 <p>The system is subject to the dynamic constraints:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-823a1792-7de8-4a11-96e2-6ee4c6c1f970">
-<span class="eqno">(54)<a class="headerlink" href="#equation-823a1792-7de8-4a11-96e2-6ee4c6c1f970" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-777fff1f-5658-4dcd-95cf-0a44054e89c4">
+<span class="eqno">(54)<a class="headerlink" href="#equation-777fff1f-5658-4dcd-95cf-0a44054e89c4" title="Permalink to this equation">#</a></span>\[\begin{align}
     \frac{dx}{dt} &amp;= -x + u
 \end{align}\]</div>
 <p>The boundary conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-8a48388e-cff4-45e8-8b4e-2944356f5e3d">
-<span class="eqno">(55)<a class="headerlink" href="#equation-8a48388e-cff4-45e8-8b4e-2944356f5e3d" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-e3bbd246-9321-485c-bc2b-822e93c64562">
+<span class="eqno">(55)<a class="headerlink" href="#equation-e3bbd246-9321-485c-bc2b-822e93c64562" title="Permalink to this equation">#</a></span>\[\begin{align}
     x(t_0) &amp;= 1.5 \\
     x(t_f) &amp;= 1
 \end{align}\]</div>
@@ -825,14 +825,14 @@ the problem exhibits a <em>dive</em>, <em>cruise</em>, and <em>resurface</em> ty
 structure, where the all interesting behavior occurs at the beginning and
 end while remaining relatively constant in the middle.</p>
 <p>This problem has a known analytic optimal solution:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-747deb9b-3d10-48fe-b5bf-67cd381a9bb9">
-<span class="eqno">(56)<a class="headerlink" href="#equation-747deb9b-3d10-48fe-b5bf-67cd381a9bb9" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-b1f1d7f5-1747-4fbe-be24-cf154ee71e94">
+<span class="eqno">(56)<a class="headerlink" href="#equation-b1f1d7f5-1747-4fbe-be24-cf154ee71e94" title="Permalink to this equation">#</a></span>\[\begin{align}
     x^*(t) &amp;= c_1 e^{\sqrt{2} t} + c_2 e^{-\sqrt{2} t} \\
       u^*(t) &amp;= \dot{x}^*(t) + x^*(t)
 \end{align}\]</div>
 <p>where:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-0176c894-2135-42e1-9996-e3f49974e49c">
-<span class="eqno">(57)<a class="headerlink" href="#equation-0176c894-2135-42e1-9996-e3f49974e49c" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-4e422072-f410-444e-acad-85aed9e896f8">
+<span class="eqno">(57)<a class="headerlink" href="#equation-4e422072-f410-444e-acad-85aed9e896f8" title="Permalink to this equation">#</a></span>\[\begin{align}
     c_1 &amp;= \frac{1.5 e^{-\sqrt{2} t_f} - 1}{e^{-\sqrt{2} t_f} - e^{\sqrt{2} t_f}} \\
     c_2 &amp;= \frac{1 - 1.5 e^{\sqrt{2} t_f}}{e^{-\sqrt{2} t_f} - e^{\sqrt{2} t_f}}
 \end{align}\]</div>
@@ -1002,7 +1002,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.08741640499999903 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.0888462420000451 seconds.
 Total jacobian shape: (80, 108) 
 
 
@@ -1011,10 +1011,10 @@ FWD solves: 0   REV solves: 9
 Total colors vs. total size: 9 vs 80  (88.75% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0874 sec
-Time to compute coloring:   0.0340 sec
+Time to compute sparsity:   0.0888 sec
+Time to compute coloring:   0.0343 sec
 Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-08-20 14:50:20
+Coloring created on: 2024-08-23 12:50:35
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1023,11 +1023,11 @@ Coloring created on: 2024-08-20 14:50:20
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    0.4112
-       User Objective Time :       0.0133
-       User Sensitivity Time :     0.3302
-       Interface Time :            0.0266
-       Opt Solver Time:            0.0412
+    Total Time:                    0.4220
+       User Objective Time :       0.0145
+       User Sensitivity Time :     0.3394
+       Interface Time :            0.0264
+       Opt Solver Time:            0.0417
     Calls to Objective Function :      16
     Calls to Sens Function :           14
 
@@ -1287,10 +1287,10 @@ Coloring created on: 2024-08-20 14:50:20
 Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4284: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4304: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.16975505400000657 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.17374862400004076 seconds.
 Total jacobian shape: (140, 198) 
 
 
@@ -1299,10 +1299,10 @@ FWD solves: 0   REV solves: 15
 Total colors vs. total size: 15 vs 140  (89.29% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1698 sec
-Time to compute coloring:   0.0667 sec
+Time to compute sparsity:   0.1737 sec
+Time to compute coloring:   0.0677 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-20 14:50:21
+Coloring created on: 2024-08-23 12:50:36
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1311,11 +1311,11 @@ Coloring created on: 2024-08-20 14:50:21
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    0.2234
-       User Objective Time :       0.0082
-       User Sensitivity Time :     0.0520
-       Interface Time :            0.0228
-       Opt Solver Time:            0.1405
+    Total Time:                    0.2329
+       User Objective Time :       0.0097
+       User Sensitivity Time :     0.0540
+       Interface Time :            0.0232
+       Opt Solver Time:            0.1461
     Calls to Objective Function :       9
     Calls to Sens Function :            8
 
@@ -1722,10 +1722,10 @@ Coloring created on: 2024-08-20 14:50:21
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4284: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4304: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.28490516199997273 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.2911653700000443 seconds.
 Total jacobian shape: (224, 318) 
 
 
@@ -1734,10 +1734,10 @@ FWD solves: 0   REV solves: 15
 Total colors vs. total size: 15 vs 224  (93.30% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.2849 sec
-Time to compute coloring:   0.1066 sec
+Time to compute sparsity:   0.2912 sec
+Time to compute coloring:   0.1045 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-20 14:50:22
+Coloring created on: 2024-08-23 12:50:37
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1746,11 +1746,11 @@ Coloring created on: 2024-08-20 14:50:22
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    0.7975
-       User Objective Time :       0.0102
-       User Sensitivity Time :     0.0652
+    Total Time:                    0.8070
+       User Objective Time :       0.0109
+       User Sensitivity Time :     0.0692
        Interface Time :            0.0392
-       Opt Solver Time:            0.6830
+       Opt Solver Time:            0.6878
     Calls to Objective Function :       9
     Calls to Sens Function :            9
 
@@ -2372,10 +2372,10 @@ Coloring created on: 2024-08-20 14:50:22
 Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4284: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4304: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.38593689399999676 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.3868936429998939 seconds.
 Total jacobian shape: (284, 405) 
 
 
@@ -2384,10 +2384,10 @@ FWD solves: 0   REV solves: 27
 Total colors vs. total size: 27 vs 284  (90.49% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.3859 sec
-Time to compute coloring:   0.1385 sec
+Time to compute sparsity:   0.3869 sec
+Time to compute coloring:   0.1366 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-20 14:50:23
+Coloring created on: 2024-08-23 12:50:39
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -2396,11 +2396,11 @@ Coloring created on: 2024-08-20 14:50:23
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    1.2192
-       User Objective Time :       0.0075
-       User Sensitivity Time :     0.0760
-       Interface Time :            0.0334
-       Opt Solver Time:            1.1024
+    Total Time:                    1.2144
+       User Objective Time :       0.0071
+       User Sensitivity Time :     0.0761
+       Interface Time :            0.0316
+       Opt Solver Time:            1.0996
     Calls to Objective Function :       6
     Calls to Sens Function :            6
 
@@ -3181,10 +3181,10 @@ Model viewer data has already been recorded for Driver.
   q_smooth = (np.log(self.error[phase_path][smooth_need_refine_idxs] /
 /usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/grid_refinement/hp_adaptive/hp_adaptive.py:411: RuntimeWarning: divide by zero encountered in divide
   q_split = np.log((self.error[phase_path][split_seg_idxs] /
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4284: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4304: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.4619686390000197 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.4694471950000434 seconds.
 Total jacobian shape: (332, 474) 
 
 
@@ -3193,10 +3193,10 @@ FWD solves: 0   REV solves: 27
 Total colors vs. total size: 27 vs 332  (91.87% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.4620 sec
-Time to compute coloring:   0.1620 sec
+Time to compute sparsity:   0.4694 sec
+Time to compute coloring:   0.1627 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-20 14:50:26
+Coloring created on: 2024-08-23 12:50:41
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -3205,11 +3205,11 @@ Coloring created on: 2024-08-20 14:50:26
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    0.6571
-       User Objective Time :       0.0039
-       User Sensitivity Time :     0.0272
-       Interface Time :            0.0131
-       Opt Solver Time:            0.6128
+    Total Time:                    0.6547
+       User Objective Time :       0.0036
+       User Sensitivity Time :     0.0275
+       Interface Time :            0.0132
+       Opt Solver Time:            0.6105
     Calls to Objective Function :       3
     Calls to Sens Function :            2
 
@@ -4109,10 +4109,10 @@ Coloring created on: 2024-08-20 14:50:26
 Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4284: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4304: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.5970553219999601 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.6062884280000844 seconds.
 Total jacobian shape: (406, 581) 
 </pre></div>
 </div>
@@ -4121,10 +4121,10 @@ FWD solves: 0   REV solves: 27
 Total colors vs. total size: 27 vs 406  (93.35% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.5971 sec
-Time to compute coloring:   0.2030 sec
+Time to compute sparsity:   0.6063 sec
+Time to compute coloring:   0.2056 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-20 14:50:28
+Coloring created on: 2024-08-23 12:50:43
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -4133,11 +4133,11 @@ Coloring created on: 2024-08-20 14:50:28
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    0.6142
-       User Objective Time :       0.0027
-       User Sensitivity Time :     0.0152
-       Interface Time :            0.0082
-       Opt Solver Time:            0.5881
+    Total Time:                    0.6115
+       User Objective Time :       0.0023
+       User Sensitivity Time :     0.0157
+       Interface Time :            0.0083
+       Opt Solver Time:            0.5853
     Calls to Objective Function :       2
     Calls to Sens Function :            1
 
@@ -5213,63 +5213,13 @@ Successfully completed grid refinement.
 ==================================================
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
-Model viewer data has already been recorded for Driver.
-INFO: checking out_of_order
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1104: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1101: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
@@ -5279,11 +5229,11 @@ INFO: checking out_of_order
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 4
-  runtime     : 1.4792E+00 s
+  runtime     : 1.4893E+00 s
   model_evals : 4
-  model_time  : 3.2321E-03 s
+  model_time  : 3.1825E-03 s
   deriv_evals : 2
-  deriv_time  : 2.3755E-02 s
+  deriv_time  : 2.4530E-02 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -5291,8 +5241,8 @@ Driver:  pyOptSparseDriver
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sol</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
-<span class="n">sim</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="s1">&#39;dymos_simulation.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sol</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">sim_prob</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_simulation.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
 
 <span class="n">plot_results</span><span class="p">([(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span> <span class="s1">&#39;traj.phase0.timeseries.x&#39;</span><span class="p">,</span>
                <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span> <span class="s1">&#39;x $(m)$&#39;</span><span class="p">),</span>
