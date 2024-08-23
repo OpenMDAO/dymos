@@ -2,11 +2,9 @@ import os
 import unittest
 
 from openmdao.utils.testing_utils import use_tempdirs
-import openmdao
 import openmdao.api as om
 import dymos as dm
-
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
+from dymos.utils.misc import om_version
 
 
 def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=False,
@@ -60,11 +58,6 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=Fal
 @use_tempdirs
 class TestLoadCase(unittest.TestCase):
 
-    def tearDown(self):
-        for filename in ['brachistochrone_solution.db']:
-            if os.path.exists(filename):
-                os.remove(filename)
-
     def test_load_case_unchanged_grid(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
@@ -76,7 +69,12 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        case = om.CaseReader('dymos_solution.db').get_case('final')
+        if om_version()[0] > (3, 34, 2):
+            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
+        else:
+            sol_file = 'dymos_solution.db'
+
+        case = om.CaseReader(sol_file).get_case('final')
 
         # Initialize the system with values from the case.
         # We unnecessarily call setup again just to make sure we obliterate the previous solution
@@ -104,7 +102,12 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        case = om.CaseReader('dymos_solution.db').get_case('final')
+        if om_version()[0] > (3, 34, 2):
+            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
+        else:
+            sol_file = 'dymos_solution.db'
+
+        case = om.CaseReader(sol_file).get_case('final')
 
         # Initialize the system with values from the case.
         # We unnecessarily call setup again just to make sure we obliterate the previous solution
@@ -130,7 +133,12 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        case = om.CaseReader('dymos_solution.db').get_case('final')
+        if om_version()[0] > (3, 34, 2):
+            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
+        else:
+            sol_file = 'dymos_solution.db'
+
+        case = om.CaseReader(sol_file).get_case('final')
 
         # create a problem with a different transcription with a different number of variables
         q = setup_problem(dm.Radau(num_segments=20))
@@ -162,7 +170,12 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        case = om.CaseReader('dymos_solution.db').get_case('final')
+        if om_version()[0] > (3, 34, 2):
+            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
+        else:
+            sol_file = 'dymos_solution.db'
+
+        case = om.CaseReader(sol_file).get_case('final')
 
         # create a problem with a different transcription with a different number of variables
         q = setup_problem(dm.GaussLobatto(num_segments=50))
@@ -194,7 +207,12 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        case = om.CaseReader('dymos_solution.db').get_case('final')
+        if om_version()[0] > (3, 34, 2):
+            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
+        else:
+            sol_file = 'dymos_solution.db'
+
+        case = om.CaseReader(sol_file).get_case('final')
 
         # create a problem with a different transcription with a different number of variables
         q = setup_problem(dm.Birkhoff(num_nodes=50))
@@ -264,7 +282,12 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        case = om.CaseReader('dymos_solution.db').get_case('final')
+        if om_version()[0] > (3, 34, 2):
+            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
+        else:
+            sol_file = 'dymos_solution.db'
+
+        case = om.CaseReader(sol_file).get_case('final')
 
         # create a problem with a different transcription with a different number of variables
         q = setup_problem(dm.GaussLobatto(num_segments=50))
@@ -290,7 +313,12 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        case = om.CaseReader('dymos_solution.db').get_case('final')
+        if om_version()[0] > (3, 34, 2):
+            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
+        else:
+            sol_file = 'dymos_solution.db'
+
+        case = om.CaseReader(sol_file).get_case('final')
 
         # create a problem with a different transcription with a different number of variables
         q = setup_problem(dm.Radau(num_segments=10), fix_final_state=False, fix_final_control=True)
@@ -311,7 +339,12 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        case = om.CaseReader('dymos_solution.db').get_case('final')
+        if om_version()[0] > (3, 34, 2):
+            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
+        else:
+            sol_file = 'dymos_solution.db'
+
+        case = om.CaseReader(sol_file).get_case('final')
 
         # create a problem with a different transcription with a different number of variables
         q = setup_problem(dm.Radau(num_segments=10), polynomial_control=True,

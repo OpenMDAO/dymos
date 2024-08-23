@@ -2,15 +2,11 @@ import unittest
 
 import numpy as np
 
-import openmdao
 import openmdao.api as om
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 from dymos.examples.cannonball.cannonball_ode import rho_interp
-
-om_dev_version = openmdao.__version__.endswith('dev')
-om_version = tuple(int(s) for s in openmdao.__version__.split('-')[0].split('.'))
 
 
 class CannonballODEVectorCD(om.ExplicitComponent):

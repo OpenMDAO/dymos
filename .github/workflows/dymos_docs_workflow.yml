@@ -31,7 +31,7 @@ jobs:
             SCIPY: '1.13'
             PETSc: '3.19'
             PYOPTSPARSE: 'v2.11.0'
-            OPENMDAO: 'latest'
+            OPENMDAO: 'dev'
             OPTIONAL: '[docs]'
             JAX: '0.4.28'
             PUBLISH_DOCS: 1

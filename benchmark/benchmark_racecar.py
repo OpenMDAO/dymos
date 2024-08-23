@@ -7,7 +7,6 @@ import openmdao.api as om
 import dymos as dm
 
 from dymos.examples.racecar.combinedODE import CombinedODE
-from dymos.examples.racecar.spline import get_spline, get_track_points
 from dymos.examples.racecar.tracks import ovaltrack  # track curvature imports
 
 
@@ -17,10 +16,7 @@ def _run_racecar_problem(transcription, timeseries=False, make_plots=False):
 
     # generate nodes along the centerline for curvature calculation (different
     # than collocation nodes)
-    points = get_track_points(track)
 
-    # fit the centerline spline.
-    finespline, gates, gatesd, curv, slope = get_spline(points, s=0.0)
     # by default 10000 points
     s_final = track.get_total_length()
 

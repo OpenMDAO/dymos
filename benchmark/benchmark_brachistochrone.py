@@ -14,7 +14,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p = om.Problem(model=om.Group())
 
     p.driver = om.pyOptSparseDriver()
-    OPT, OPTIMIZER = set_pyoptsparse_opt(optimizer, fallback=True)
+    _, OPTIMIZER = set_pyoptsparse_opt(optimizer, fallback=True)
     p.driver.options['optimizer'] = OPTIMIZER
 
     if simul_derivs:

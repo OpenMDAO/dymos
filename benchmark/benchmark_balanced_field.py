@@ -262,8 +262,8 @@ class BenchmarkBalancedFieldLength(unittest.TestCase):
                                            solvesegs=False)
 
     def benchmark_radau_timeseries_nosim_nosolveseg(self):
-            _run_balanced_field_length_problem(tx=dm.Radau, timeseries=True, sim=False,
-                                               solvesegs=False)
+        _run_balanced_field_length_problem(tx=dm.Radau, timeseries=True, sim=False,
+                                           solvesegs=False)
 
     def benchmark_radau_notimeseries_nosim_solveseg(self):
         _run_balanced_field_length_problem(tx=dm.Radau, timeseries=False, sim=False,

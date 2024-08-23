@@ -1,16 +1,12 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 
-import openmdao
 import openmdao.api as om
 
 from ..._options import options as dymos_options
 
 from .ode_evaluation_group import ODEEvaluationGroup
-from dymos.utils.misc import create_subprob
-
-
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
+from dymos.utils.misc import create_subprob, om_version
 
 
 class ODEIntegrationComp(om.ExplicitComponent):
@@ -116,10 +112,10 @@ class ODEIntegrationComp(om.ExplicitComponent):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        if om_version <= (3, 34, 2):
-            p.setup()
+        if om_version()[0] <= (3, 34, 2):
+            p.setup(check=None)
         else:
-            p.setup(parent=self)
+            p.setup(check=None, parent=self)
         p.final_setup()
 
     def _set_segment_index(self, idx):
@@ -250,7 +246,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
                            desc=f'value for parameter {param_name}')
 
             param_size = np.prod(options['shape'], dtype=int)
-            self.parameter_idxs[param_name] = np.s_[self.p_size:self.p_size+param_size]
+            self.parameter_idxs[param_name] = np.s_[self.p_size:self.p_size + param_size]
             self.p_size += param_size
 
     def _setup_controls(self):
@@ -365,7 +361,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
         for param_name, options in self.parameter_options.items():
             param_size = np.prod(options['shape'], dtype=int)
             self._parameter_idxs_in_z[param_name] = np.s_[start_z: start_z + param_size]
-            self._parameter_idxs_in_theta[param_name] = np.s_[start_theta: start_theta+param_size]
+            self._parameter_idxs_in_theta[param_name] = np.s_[start_theta: start_theta + param_size]
             z_input_names.extend([self._param_input_names[param_name]] * param_size)
             start_z += param_size
             start_theta += param_size
@@ -376,7 +372,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
                 control_param_shape = (num_input_nodes,) + options['shape']
                 control_param_size = np.prod(control_param_shape, dtype=int)
                 self._control_idxs_in_z[control_name] = np.s_[start_z:start_z + control_param_size]
-                self._control_idxs_in_theta[control_name] = np.s_[start_theta:start_theta+control_param_size]
+                self._control_idxs_in_theta[control_name] = np.s_[start_theta:start_theta + control_param_size]
                 z_input_names.extend([self._control_input_names[control_name]] * control_param_size)
                 start_z += control_param_size
                 start_theta += control_param_size
@@ -384,7 +380,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
                 control_param_shape = (len(control_input_node_ptau),) + options['shape']
                 control_param_size = np.prod(control_param_shape, dtype=int)
                 self._control_idxs_in_z[control_name] = np.s_[start_z:start_z + control_param_size]
-                self._control_idxs_in_theta[control_name] = np.s_[start_theta:start_theta+control_param_size]
+                self._control_idxs_in_theta[control_name] = np.s_[start_theta:start_theta + control_param_size]
                 z_input_names.extend([self._control_input_names[control_name]] * control_param_size)
                 start_z += control_param_size
                 start_theta += control_param_size
@@ -616,7 +612,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
         x_dot, f_x, f_t, f_theta = self.eval_ode(x, t, theta, eval_solution=True, eval_derivs=True)
 
         dh_dz = np.zeros((1, n_z))
-        dh_dz[0, n_x+1] = 1./td
+        dh_dz[0, n_x + 1] = 1. / td
         dt_dz_dot = dh_dz
 
         dx_dz_dot = f_x @ dx_dz + f_t @ dt_dz + f_theta @ dtheta_dz + x_dot @ dt_dz_dot
@@ -759,8 +755,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
                 sol = solve_ivp(self._f_augmented, t_span=t_span_seg, t_eval=t_eval_seg, y0=y0,
                                 args=(theta, self._dtheta_dz), method=method, first_step=first_step, max_step=max_step,
                                 atol=atol, rtol=rtol)
-                dx_dz_out[row_seg_i:row_seg_i+nnps[i], :] = sol.y.T[:, n_x:n_x+n_x*n_z]
-                dt_dz_out[row_seg_i:row_seg_i+nnps[i], :] = sol.y.T[:, -n_z:]
+                dx_dz_out[row_seg_i:row_seg_i + nnps[i], :] = sol.y.T[:, n_x:n_x + n_x * n_z]
+                dt_dz_out[row_seg_i:row_seg_i + nnps[i], :] = sol.y.T[:, -n_z:]
             else:
                 sol = solve_ivp(self._f_primal, t_span=t_span_seg, t_eval=t_eval_seg, y0=y0, args=(theta,),
                                 method=method, first_step=first_step, max_step=max_step, atol=atol, rtol=rtol)
@@ -768,7 +764,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
             if not sol.success:
                 raise om.AnalysisError(f'solve_ivp failed: {sol.message}')
 
-            x_out[row_seg_i:row_seg_i+nnps[i], :] = sol.y.T[:, :n_x]  # Save solution to the output nodes
+            x_out[row_seg_i:row_seg_i + nnps[i], :] = sol.y.T[:, :n_x]  # Save solution to the output nodes
             t_out[row_seg_i:row_seg_i + nnps[i], 0] = sol.t
             y0 = sol.y.T[-1, :]  # Set initial y for the next segment
             row_seg_i += nnps[i]  # Increment node associated with the start of the next segment
@@ -831,8 +827,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
         dt_dz = self._dt_dz_out
         dx_dz = self._dx_dz_out
 
-        partials[t_name, 't_duration'] = dt_dz[:, self.x_size+1]
-        partials[f'{t_name}_phase', 't_duration'] = dt_dz[:, self.x_size+1]
+        partials[t_name, 't_duration'] = dt_dz[:, self.x_size + 1]
+        partials[f'{t_name}_phase', 't_duration'] = dt_dz[:, self.x_size + 1]
 
         for state_name in self.state_options:
             of = self._state_output_names[state_name]

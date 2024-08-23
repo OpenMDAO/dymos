@@ -80,7 +80,7 @@ class LintJupyterOutputsTestCase(unittest.TestCase):
                   "        missing_packages.append('pyoptsparse')\n",
                   "if missing_packages:\n",
                   "    raise EnvironmentError('This notebook requires the following packages '\n",
-                  "                           'please install them and restart this notebook\\'s runtime: {\",\".join(missing_packages)}')"]
+                  "                           'please install them and restart this notebook\\'s runtime: {\",\".join(missing_packages)}')"]  # noqa: E501
 
         mpi_header = ['%pylab inline\n',
                       'from ipyparallel import Client, error\n',

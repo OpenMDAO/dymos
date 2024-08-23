@@ -4,6 +4,7 @@ import dymos as dm
 import unittest
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from dymos.utils.misc import om_version
 
 
 class ODEComp(om.ExplicitComponent):
@@ -74,7 +75,15 @@ class TestCannonballMatrixState(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
-        c = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        c = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
@@ -92,7 +101,15 @@ class TestCannonballMatrixState(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
-        c = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        c = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
@@ -110,7 +127,15 @@ class TestCannonballMatrixState(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
-        c = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        c = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
@@ -128,7 +153,15 @@ class TestCannonballMatrixState(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
-        c = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        c = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
@@ -147,7 +180,11 @@ class TestCannonballMatrixState(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
-        c = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        c = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
@@ -165,7 +202,11 @@ class TestCannonballMatrixState(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
-        c = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        c = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
@@ -216,7 +257,11 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
-        c = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        c = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
@@ -233,7 +278,11 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
-        c = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        c = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
@@ -251,7 +300,11 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
-        c = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        c = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
@@ -268,7 +321,11 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
-        c = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        c = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
@@ -320,7 +377,11 @@ class TestCannonballMatrixStateNonFlatIndices(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
-        c = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        c = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
@@ -337,7 +398,11 @@ class TestCannonballMatrixStateNonFlatIndices(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
-        c = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        c = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
@@ -355,7 +420,11 @@ class TestCannonballMatrixStateNonFlatIndices(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
-        c = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        c = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
@@ -372,7 +441,11 @@ class TestCannonballMatrixStateNonFlatIndices(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
-        c = om.CaseReader('dymos_simulation.db').get_case('final')
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        c = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(c.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(c.get_val('traj.phase.timeseries.z')[-1, 0, 1], 0.0, tolerance=1E-5)

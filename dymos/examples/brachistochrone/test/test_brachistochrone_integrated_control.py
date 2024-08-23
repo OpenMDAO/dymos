@@ -8,6 +8,7 @@ import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
+from dymos.utils.misc import om_version
 
 
 class BrachistochroneODE(om.ExplicitComponent):
@@ -206,8 +207,14 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         # Solve for the optimal trajectory
         dm.run_problem(p, simulate=True, make_plots=True)
 
-        sol_case = om.CaseReader('dymos_solution.db').get_case('final')
-        sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+            sim_db = traj.sim_prob.get_outputs_dir() / sim_db
+
+        sol_case = om.CaseReader(sol_db).get_case('final')
+        sim_case = om.CaseReader(sim_db).get_case('final')
 
         # Test the results
         assert_near_equal(sol_case.get_val('traj.phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)

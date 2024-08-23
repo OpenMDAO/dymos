@@ -1,10 +1,12 @@
+import os
+import pathlib
 import warnings
 
-import openmdao
 import openmdao.api as om
 from openmdao.recorders.case import Case
 from ._options import options as dymos_options
 from dymos.trajectory.trajectory import Trajectory
+from dymos.utils.misc import om_version
 from dymos.visualization.timeseries_plots import timeseries_plots
 
 from .grid_refinement.refinement import _refine_iter
@@ -64,7 +66,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         If True and model has been run previously, reset all iteration counters.
     """
     if restart is not None:
-        if isinstance(restart, str):
+        if isinstance(restart, (str, pathlib.Path)):
             case = om.CaseReader(restart).get_case('final')
         elif isinstance(restart, Case):
             case = restart
@@ -82,8 +84,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     problem.final_setup()
 
     if restart is not None:
-        om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
-        if om_version < (3, 27, 1):
+        if om_version()[0] < (3, 27, 1):
             from dymos.load_case import load_case
             load_case(problem, case, deprecation_warning=False)
         else:
@@ -104,6 +105,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     problem.record(f'{_case_prefix}final')  # save case for potential restart
     problem.cleanup()
 
+    sims = {}
     if simulate:
         _simulate_kwargs = simulate_kwargs if simulate_kwargs is not None else {}
         if 'record_file' in _simulate_kwargs:
@@ -114,17 +116,42 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
                              'argument "case_prefix", not part of the simulate_kwargs dictionary.')
         for subsys in problem.model.system_iter(include_self=True, recurse=True):
             if isinstance(subsys, Trajectory):
-                subsys.simulate(record_file=simulation_record_file, case_prefix=case_prefix, **_simulate_kwargs)
+                sim_prob = subsys.simulate(record_file=simulation_record_file,
+                                           case_prefix=case_prefix,
+                                           **_simulate_kwargs)
+                sims[subsys.pathname] = sim_prob
 
     if make_plots:
+
+        if om_version()[0] > (3, 34, 2):
+            outputs_dir = problem.get_outputs_dir()
+            if os.sep in str(solution_record_file):
+                _sol_record_file = solution_record_file
+            else:
+                _sol_record_file = outputs_dir / solution_record_file
+
+            if simulate:
+                sim_outputs_dir = list(sims.values())[0].get_outputs_dir()
+                if os.sep in str(simulation_record_file):
+                    _sim_record_file = simulation_record_file
+                else:
+                    _sim_record_file = sim_outputs_dir / simulation_record_file
+            else:
+                _sim_record_file = None
+        else:
+            _sol_record_file = solution_record_file
+            _sim_record_file = None if not simulate else simulation_record_file
+
         if dymos_options['plots'] == 'bokeh':
             from dymos.visualization.timeseries.bokeh_timeseries_report import make_timeseries_report
-            make_timeseries_report(prob=problem, solution_record_file=solution_record_file,
-                                   simulation_record_file=simulation_record_file)
+            make_timeseries_report(prob=problem,
+                                   solution_record_file=_sol_record_file,
+                                   simulation_record_file=_sim_record_file)
         else:
-            _sim_record_file = None if not simulate else simulation_record_file
             _plot_kwargs = plot_kwargs if plot_kwargs is not None else {}
-            timeseries_plots(solution_record_file, simulation_record_file=_sim_record_file,
-                             plot_dir=plot_dir, problem=problem, **_plot_kwargs)
+            plots_dir = problem.get_reports_dir() / 'plots'
+            timeseries_plots(_sol_record_file,
+                             simulation_record_file=_sim_record_file,
+                             plot_dir=plots_dir, **_plot_kwargs)
 
     return failed
