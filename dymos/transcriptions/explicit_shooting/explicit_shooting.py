@@ -75,10 +75,12 @@ class ExplicitShooting(TranscriptionBase):
                              default=None, desc='Number of integration steps in each segment',
                              deprecation='Option `num_steps_per_segment is deprecated. ExplicitShooting now uses '
                                          'adaptive-step methods.')
-        self.options.declare('control_interp', values=['vandermonde', 'barycentric', 'linear'], default='vandermonde',
-                             desc='Control interpolation algorithm, one of either "vandermonde" or "barycentric". In '
-                             'general, Vandermonde is faster but Barycentric is necessary for the Birkhoff '
-                             'transcription where the number of nodes per segment can exceed 20 to 30.')
+        self.options.declare('control_interp', values=['vandermonde', 'barycentric', 'cubic'], default='vandermonde',
+                             desc='Control interpolation algorithm, one of either "vandermonde", "barycentric",'
+                             ' or "cubic". In general, Vandermonde is faster but Barycentric is necessary for the'
+                             ' Birkhoff transcription where the number of nodes per segment can exceed 20 to 30.'
+                             ' Cubic uses the scipy interpolate cubic spline method and is typically the fastest'
+                             ' of the three')
 
         # Deprecated options previously inherited from transcription base.
         self.options.declare('num_segments', types=int, desc='Number of segments')

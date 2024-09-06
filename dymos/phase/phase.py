@@ -2598,7 +2598,7 @@ class Phase(om.Group):
                               rtol=_rtol,
                               first_step=_first_step,
                               max_step=_max_step,
-                              control_interp='linear')
+                              control_interp='cubic')
 
         sim_phase = SimulationPhase(transcription=tx,
                                     ode_class=ode_class,

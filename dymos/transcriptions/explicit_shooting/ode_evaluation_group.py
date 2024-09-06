@@ -3,7 +3,7 @@ import numpy as np
 import openmdao.api as om
 
 from dymos.transcriptions.explicit_shooting.vandermonde_control_interp_comp import VandermondeControlInterpComp
-from dymos.transcriptions.explicit_shooting.linear_control_interp_comp import LinearControlInterpComp
+from dymos.transcriptions.explicit_shooting.cubic_spline_control_interp_comp import CubicSplineControlInterpComp
 
 from .barycentric_control_interp_comp import BarycentricControlInterpComp
 from .state_rate_collector_comp import StateRateCollectorComp
@@ -124,10 +124,10 @@ class ODEEvaluationGroup(om.Group):
                                                         promotes_inputs=['ptau', 'stau', 't_duration', 'dstau_dt'])
             else:
                 self._control_comp = self.add_subsystem('control_interp',
-                                                        LinearControlInterpComp(grid_data=igd,
-                                                                                control_options=c_options,
-                                                                                time_units=t_units,
-                                                                                compute_derivs=self._compute_derivs),
+                                                        CubicSplineControlInterpComp(grid_data=igd,
+                                                                                     control_options=c_options,
+                                                                                     time_units=t_units,
+                                                                                     compute_derivs=self._compute_derivs),
                                                         promotes_inputs=['ptau', 'stau', 'dstau_dt', 't_duration'])
 
         self.add_subsystem('ode', self._ode_class(num_nodes=self._vec_size, **self._ode_init_kwargs))

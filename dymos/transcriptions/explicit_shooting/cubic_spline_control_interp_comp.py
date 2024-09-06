@@ -4,10 +4,12 @@ import openmdao.api as om
 from ...utils.misc import get_rate_units
 from ...utils.lgl import lgl
 
+from scipy.interpolate import CubicSpline
 
-class LinearControlInterpComp(om.ExplicitComponent):
+
+class CubicSplineControlInterpComp(om.ExplicitComponent):
     """
-    A component which interpolates control values in 1D using piece-wise linear interpolation.
+    A component which interpolates control values in 1D using cubic spline interpolation.
 
     Takes training values for control variables at given _input_ nodes,
     broadcasts them to _discretization_ nodes, and then interpolates the discretization values
@@ -15,7 +17,6 @@ class LinearControlInterpComp(om.ExplicitComponent):
 
     This interpolation method is intended for use in simulation phases and should not be used to
     solve optimization problems.
-    This method does not support control rates or derivatives.
 
     For dynamic controls, the current segment is given as a discrete input and the interpolation is
     a smooth polynomial along the given segment.
@@ -172,12 +173,20 @@ class LinearControlInterpComp(om.ExplicitComponent):
 
                     size = np.prod(shape)
                     out = np.zeros((vec_size, size))
+                    rate = np.zeros((vec_size, size))
+                    rate2 = np.zeros((vec_size, size))
 
                     for i in range(size):
-                        out[:, i] = np.interp(ptau, ptau_grid[input_node_idxs],
-                                              inputs[input_name].flatten('F')[self.num_uhat_nodes*i:
-                                                                              self.num_uhat_nodes*(i+1)])
+                        spl = CubicSpline(ptau_grid[input_node_idxs],
+                                          inputs[input_name].flatten('F')[self.num_uhat_nodes*i:
+                                                                          self.num_uhat_nodes*(i+1)])
+                        out[:, i] = spl(ptau)
+                        rate[:, i] = spl(ptau, nu=1)
+                        rate2[:, i] = spl(ptau, nu=2)
+
                     outputs[output_name] = out.reshape((vec_size,) + shape, order='F')
+                    outputs[rate_name] = rate.reshape((vec_size,) + shape, order='F')
+                    outputs[rate2_name] = rate2.reshape((vec_size,) + shape, order='F')
                 else:
                     input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
                     order = options['order']
