@@ -71,7 +71,7 @@ class _WaterExhaustSpeed(om.ExplicitComponent):
 
         partials['v_out', 'p'] = 1/v_out/rho_w
         partials['v_out', 'p_a'] = -1/v_out/rho_w
-        partials['v_out', 'rho_w'] = dv_outdrho_w = 1/v_out*(-(p-p_a)/rho_w**2)
+        partials['v_out', 'rho_w'] = 1/v_out*(-(p-p_a)/rho_w**2)
 
 
 class _WaterFlowRate(om.ExplicitComponent):

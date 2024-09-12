@@ -31,7 +31,7 @@ jobs:
             SCIPY: '1.13'
             PETSc: '3.19'
             PYOPTSPARSE: 'v2.11.0'
-            OPENMDAO: 'latest'
+            OPENMDAO: 'dev'
             OPTIONAL: '[docs]'
             JAX: '0.4.28'
             PUBLISH_DOCS: 1
@@ -240,7 +240,6 @@ jobs:
           cd docs
           export PYDEVD_DISABLE_FILE_VALIDATION=1
           jupyter-book build -W --keep-going dymos_book
-          python copy_build_artifacts.py
 
       - name: Display doc build reports
         continue-on-error: True

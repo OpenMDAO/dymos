@@ -346,7 +346,7 @@ class ControlInterpComp(om.ExplicitComponent):
                 size = np.prod(options['shape'])
 
                 u_flat = np.reshape(inputs[self._input_names[name]],
-                                    newshape=(num_control_input_nodes, size))
+                                    (num_control_input_nodes, size))
 
                 a = self.D.dot(u_flat)
                 b = self.D2.dot(u_flat)

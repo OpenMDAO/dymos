@@ -7,7 +7,6 @@ import numpy as np
 
 from scipy import interpolate
 
-import openmdao
 import openmdao.api as om
 from openmdao.utils.mpi import MPI
 from openmdao.utils.om_warnings import issue_warning
@@ -23,17 +22,13 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid, BirkhoffGrid
-from ..transcriptions import ExplicitShooting, GaussLobatto, Radau, Birkhoff
+from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
     configure_timeseries_output_introspection, classify_var, configure_timeseries_expr_introspection
-from ..utils.misc import _unspecified, create_subprob
+from ..utils.misc import _unspecified, create_subprob, om_version
 from ..utils.lgl import lgl
-
-
-om_dev_version = openmdao.__version__.endswith('dev')
-om_version = tuple(int(s) for s in openmdao.__version__.split('-')[0].split('.'))
 
 
 class Phase(om.Group):
@@ -2553,7 +2548,6 @@ class Phase(om.Group):
         # t = deepcopy(self.options['transcription']) if transcription is None else transcription
         ode_class = self.options['ode_class']
         ode_init_kwargs = self.options['ode_init_kwargs']
-        auto_solvers = self.options['auto_solvers']
 
         self_tx = self.options['transcription']
         num_seg = self_tx.grid_data.num_segments
@@ -2660,8 +2654,6 @@ class Phase(om.Group):
         ip_dict = dict([(name, options) for (name, options) in phs.list_inputs(units=True,
                                                                                out_stream=None)])
 
-        phs_path = phs.pathname + '.' if phs.pathname else ''
-
         if self.pathname.partition('.')[0] == self.name:
             self_path = self.name + '.'
         else:
@@ -2746,7 +2738,7 @@ class Phase(om.Group):
             rec = om.SqliteRecorder(record_file)
             sim_prob.add_recorder(rec)
 
-        if om_version <= (3, 42, 2):
+        if om_version()[0] <= (3, 42, 2):
             sim_prob.setup(check=True)
         else:
             sim_prob.setup(check=True, parent=self)

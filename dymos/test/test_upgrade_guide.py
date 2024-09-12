@@ -7,6 +7,7 @@ import dymos as dm
 
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from dymos.utils.misc import om_version
 
 
 @use_tempdirs
@@ -22,7 +23,6 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         thrust = p.get_val('traj.phase0.timeseries.design_parameters:thrust')
         # upgrade_doc: end parameter_timeseries
         """
-        import numpy as np
         import openmdao.api as om
         import dymos as dm
 
@@ -650,12 +650,6 @@ class TestUpgrade_0_17_0(unittest.TestCase):
 @use_tempdirs
 class TestUpgrade_0_19_0(unittest.TestCase):
 
-    def tearDown(self):
-        if os.path.exists('dymos_solution.db'):
-            os.remove('dymos_solution.db')
-        if os.path.exists('dymos_simulation.db'):
-            os.remove('dymos_simulation.db')
-
     @require_pyoptsparse(optimizer='SLSQP')
     def _make_problem(self, transcription='gauss-lobatto', num_segments=8, transcription_order=3,
                       compressed=True, optimizer='SLSQP', run_driver=True,
@@ -734,9 +728,15 @@ class TestUpgrade_0_19_0(unittest.TestCase):
 
         return p
 
-    def run_asserts(self):
+    def run_asserts(self, p):
 
-        for db in ['dymos_solution.db', 'dymos_simulation.db']:
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+            sim_db = p.model.traj0.sim_prob.get_outputs_dir() / sim_db
+
+        for db in (sol_db, sim_db):
             p = om.CaseReader(db).get_case('final')
 
             t_initial = p.get_val('traj0.phase0.timeseries.time')[0]
@@ -769,9 +769,9 @@ class TestUpgrade_0_19_0(unittest.TestCase):
             assert_near_equal(thetaf, 100.12, tolerance=0.01)
 
     def test_ex_brachistochrone_radau_uncompressed(self):
-        self._make_problem(transcription='radau-ps', compressed=False)
-        self.run_asserts()
+        p = self._make_problem(transcription='radau-ps', compressed=False)
+        self.run_asserts(p)
 
     def test_ex_brachistochrone_gl_uncompressed(self):
-        self._make_problem(transcription='gauss-lobatto', compressed=False)
-        self.run_asserts()
+        p = self._make_problem(transcription='gauss-lobatto', compressed=False)
+        self.run_asserts(p)

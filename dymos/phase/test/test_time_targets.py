@@ -189,9 +189,9 @@ class TestPhaseTimeTargets(unittest.TestCase):
                 exp_out = p.model._get_subsystem('phase0').simulate()
 
                 time_comp = exp_out.model.phase0._get_subsystem('time')
-                integrator_comp = exp_out.model.phase0._get_subsystem(f'integrator')
-                ode = exp_out.model.phase0._get_subsystem(f'ode')
-                timeseries_comp = exp_out.model.phase0._get_subsystem(f'timeseries')
+                integrator_comp = exp_out.model.phase0._get_subsystem('integrator')
+                ode = exp_out.model.phase0._get_subsystem('ode')
+                timeseries_comp = exp_out.model.phase0._get_subsystem('timeseries')
 
                 time_comp_t_initial = time_comp.get_val('t_initial')
                 integrator_comp_t_initial = integrator_comp.get_val('t_initial')
@@ -222,8 +222,6 @@ class TestPhaseTimeTargets(unittest.TestCase):
                 # Solve for the optimal trajectory
                 p.run_driver()
 
-                gd = p.model.phase0.options['transcription'].grid_data
-
                 time_all = p[f'phase0.timeseries.{time_name}'].ravel()
 
                 time_phase_all = p[f'phase0.timeseries.{time_name}_phase'].ravel()
@@ -241,9 +239,9 @@ class TestPhaseTimeTargets(unittest.TestCase):
                 exp_out = p.model.phase0.simulate()
 
                 time_comp = exp_out.model.phase0._get_subsystem('time')
-                integrator_comp = exp_out.model.phase0._get_subsystem(f'integrator')
-                ode = exp_out.model.phase0._get_subsystem(f'ode')
-                timeseries_comp = exp_out.model.phase0._get_subsystem(f'timeseries')
+                integrator_comp = exp_out.model.phase0._get_subsystem('integrator')
+                ode = exp_out.model.phase0._get_subsystem('ode')
+                timeseries_comp = exp_out.model.phase0._get_subsystem('timeseries')
 
                 time_comp_t_initial = time_comp.get_val('t_initial')
                 integrator_comp_t_initial = integrator_comp.get_val('t_initial')
@@ -275,8 +273,6 @@ class TestPhaseTimeTargets(unittest.TestCase):
                 # Solve for the optimal trajectory
                 p.run_driver()
 
-                gd = p.model.phase0.options['transcription'].grid_data
-
                 time_all = p[f'phase0.timeseries.{time_name}']
 
                 time_phase_all = p[f'phase0.timeseries.{time_name}_phase']
@@ -303,14 +299,14 @@ class TestPhaseTimeTargets(unittest.TestCase):
         time_all = p['phase0.t']
         time_col = time_all[gd.subset_node_indices['col']]
         time_disc = time_all[gd.subset_node_indices['state_disc']]
-        time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
-                                  newshape=(gd.num_segments, 2))
+        time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],  # noqa: F841
+                                  (gd.num_segments, 2))
 
         time_phase_all = p['phase0.t_phase']
         time_phase_col = time_phase_all[gd.subset_node_indices['col']]
         time_phase_disc = time_phase_all[gd.subset_node_indices['state_disc']]
-        time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
-                                        newshape=(gd.num_segments, 2))
+        time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],  # noqa: F841
+                                        (gd.num_segments, 2))
 
         assert_near_equal(p['phase0.rhs_disc.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
@@ -329,9 +325,9 @@ class TestPhaseTimeTargets(unittest.TestCase):
         exp_out = p.model._get_subsystem('phase0').simulate()
 
         time_comp = exp_out.model.phase0._get_subsystem('time')
-        integrator_comp = exp_out.model.phase0._get_subsystem(f'integrator')
-        ode = exp_out.model.phase0._get_subsystem(f'ode')
-        timeseries_comp = exp_out.model.phase0._get_subsystem(f'timeseries')
+        integrator_comp = exp_out.model.phase0._get_subsystem('integrator')
+        ode = exp_out.model.phase0._get_subsystem('ode')
+        timeseries_comp = exp_out.model.phase0._get_subsystem('timeseries')
 
         time_comp_t_initial = time_comp.get_val('t_initial')
         integrator_comp_t_initial = integrator_comp.get_val('t_initial')
@@ -360,8 +356,6 @@ class TestPhaseTimeTargets(unittest.TestCase):
         # Solve for the optimal trajectory
         p.run_driver()
 
-        gd = p.model.phase0.options['transcription'].grid_data
-
         time_all = p['phase0.t']
 
         time_phase_all = p['phase0.t_phase']
@@ -379,9 +373,9 @@ class TestPhaseTimeTargets(unittest.TestCase):
         exp_out = p.model._get_subsystem('phase0').simulate()
 
         time_comp = exp_out.model.phase0._get_subsystem('time')
-        integrator_comp = exp_out.model.phase0._get_subsystem(f'integrator')
-        ode = exp_out.model.phase0._get_subsystem(f'ode')
-        timeseries_comp = exp_out.model.phase0._get_subsystem(f'timeseries')
+        integrator_comp = exp_out.model.phase0._get_subsystem('integrator')
+        ode = exp_out.model.phase0._get_subsystem('ode')
+        timeseries_comp = exp_out.model.phase0._get_subsystem('timeseries')
 
         time_comp_t_initial = time_comp.get_val('t_initial')
         integrator_comp_t_initial = integrator_comp.get_val('t_initial')

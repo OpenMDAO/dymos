@@ -58,7 +58,6 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
     def test_control_rate2_path_constraint_gl(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -163,7 +162,6 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
     def test_control_rate2_path_constraint_radau(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 

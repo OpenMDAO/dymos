@@ -84,7 +84,7 @@ class DocstringLintTestCase(unittest.TestCase):
                         full_class_path = f'{module_name}.{class_name}'
                         try:
                             result = validate.validate(full_class_path)
-                        except:
+                        except Exception:
                             continue
 
                         for error_tuple in result['errors']:
@@ -108,7 +108,7 @@ class DocstringLintTestCase(unittest.TestCase):
                                 full_method_path = f'{module_name}.{class_name}.{method_name}'
                                 try:
                                     result = validate.validate(full_method_path)
-                                except:
+                                except Exception:
                                     continue
 
                                 for error_tuple in result['errors']:
@@ -131,7 +131,7 @@ class DocstringLintTestCase(unittest.TestCase):
                             full_function_path = f'{module_name}.{func_name}'
                             try:
                                 result = validate.validate(full_function_path)
-                            except:
+                            except Exception:
                                 continue
 
                             for error_tuple in result['errors']:

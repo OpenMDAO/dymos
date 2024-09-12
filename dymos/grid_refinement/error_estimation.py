@@ -82,9 +82,7 @@ def integration_matrix(grid):
         I_block = np.linalg.inv(D_block[:, 1:])
         I_blocks.append(I_block)
 
-    I = block_diag(*I_blocks)
-
-    return I
+    return block_diag(*I_blocks)
 
 
 def eval_ode_on_grid(phase, transcription):
@@ -113,8 +111,6 @@ def eval_ode_on_grid(phase, transcription):
     u_rate = {}
     u_rate2 = {}
     p = {}
-    p_rate = {}
-    p_rate2 = {}
     param = {}
     f = {}
 
@@ -142,7 +138,6 @@ def eval_ode_on_grid(phase, transcription):
     ode = p_refine.model.grid_refinement_system.ode
 
     t_name = phase.time_options['name']
-    t_phase_name = f'{t_name}_phase'
 
     t_prev = phase.get_val(f'timeseries.{t_name}', units=phase.time_options['units'])
     t_phase_prev = t_prev - t_prev[0]
@@ -155,13 +150,13 @@ def eval_ode_on_grid(phase, transcription):
     t_initial_targets = get_targets(ode, 't_initial', phase.time_options['t_initial_targets'])
     t_duration_targets = get_targets(ode, 't_duration', phase.time_options['t_duration_targets'])
     if targets:
-        p_refine.set_val(f'time', t)
+        p_refine.set_val('time', t)
     if t_phase_targets:
-        p_refine.set_val(f't_phase', t_phase)
+        p_refine.set_val('t_phase', t_phase)
     if t_initial_targets:
-        p_refine.set_val(f't_initial', t_initial)
+        p_refine.set_val('t_initial', t_initial)
     if t_duration_targets:
-        p_refine.set_val(f't_duration', t_duration)
+        p_refine.set_val('t_duration', t_duration)
 
     state_prefix = 'states:' if phase.timeseries_options['use_prefix'] else ''
     control_prefix = 'controls:' if phase.timeseries_options['use_prefix'] else ''
@@ -241,7 +236,7 @@ def eval_ode_on_grid(phase, transcription):
             f[name] = p_refine.get_val(f'ode.{rate_source}', units=rate_units)
 
         if len(f[name].shape) == 1:
-            f[name] = np.reshape(f[name], newshape=(f[name].shape[0], 1))
+            f[name] = np.reshape(f[name], (f[name].shape[0], 1))
 
     return x, u, p, f
 
@@ -273,7 +268,7 @@ def compute_state_quadratures(x_hat, f_hat, t_duration, transcription):
     gd = transcription.grid_data
 
     # Build the integration matrix which integrates state values at all nodes on the new grid.
-    I = integration_matrix(gd)
+    I = integration_matrix(gd)  # noqa: E741, allow ambiguous variable name `I`
 
     left_end_idxs = gd.subset_node_indices['segment_ends'][0::2]
     all_idxs = gd.subset_node_indices['all']

@@ -1,14 +1,9 @@
-from collections import defaultdict
-from fnmatch import filter
-import warnings
-
 import numpy as np
 import openmdao.api as om
-from openmdao.utils.om_warnings import issue_warning
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import RadauPSContinuityComp
-from ...utils.misc import get_rate_units, _unspecified
+from ...utils.misc import get_rate_units
 from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
@@ -402,7 +397,8 @@ class Radau(PseudospectralBase):
             src_units = meta['units']
             src_tags = meta['tags']
             if 'dymos.static_output' in src_tags:
-                raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" and cannot be a timeseries output.')
+                raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" and '
+                                   'cannot be a timeseries output.')
 
         src_idxs = om.slicer[node_idxs, ...]
 

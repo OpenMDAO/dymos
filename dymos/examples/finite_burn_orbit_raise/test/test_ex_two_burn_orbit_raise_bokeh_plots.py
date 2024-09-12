@@ -11,7 +11,7 @@ except ImportError:
 
 from openmdao.utils.testing_utils import require_pyoptsparse
 from openmdao.utils.general_utils import set_pyoptsparse_opt
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, set_env_vars_context
 
 
 import dymos as dm
@@ -41,30 +41,29 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
     @unittest.skipIf(not bokeh_available, 'bokeh unavailable')
     def test_bokeh_plots(self):
-        dm.options['plots'] = 'bokeh'
+        with set_env_vars_context(OPENMDAO_REPORTS='1'):
+            with dm.options.temporary(plots='bokeh'):
+                p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                                 compressed=False, optimizer='SLSQP', show_output=False,
+                                                 run_driver=False)
 
-        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer='SLSQP', show_output=False,
-                                         run_driver=False)
-
-        html_file = pathlib.Path(_get_reports_dir(p)) / 'traj_results_report.html'
-        self.assertTrue(html_file.exists(), msg=f'{html_file} does not exist!')
+                html_file = pathlib.Path(_get_reports_dir(p)) / 'traj_results_report.html'
+                self.assertTrue(html_file.exists(), msg=f'{html_file} does not exist!')
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_mpl_plots(self):
-        dm.options['plots'] = 'matplotlib'
+        with dm.options.temporary(plots='matplotlib'):
+            p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                             compressed=False, optimizer='SLSQP', show_output=False,
+                                             run_driver=False)
 
-        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer='SLSQP', show_output=False,
-                                         run_driver=False)
+            expected_files = ('deltav.png', 'r.png', 'accel.png',
+                              'u1.png', 'vr.png', 'pos_x.png',
+                              'vt.png', 'pos_y.png', 'theta.png')
 
-        expected_files = ('deltav.png', 'r.png', 'accel.png',
-                          'u1.png', 'vr.png', 'pos_x.png',
-                          'vt.png', 'pos_y.png', 'theta.png')
-
-        for file in expected_files:
-            plotfile = pathlib.Path(_get_reports_dir(p)).joinpath('plots') / file
-            self.assertTrue(plotfile.exists(), msg=f'{plotfile} does not exist!')
+            for file in expected_files:
+                plotfile = pathlib.Path(p.get_reports_dir(p)).joinpath('plots') / file
+                self.assertTrue(plotfile.exists(), msg=f'{plotfile} does not exist!')
 
 
 if __name__ == '__main__':  # pragma: no cover

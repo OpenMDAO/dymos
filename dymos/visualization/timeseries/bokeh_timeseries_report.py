@@ -245,17 +245,15 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
     """
     data_dict = {}
 
-    if Path(solution_record_file).is_file():
+    if solution_record_file is not None and Path(solution_record_file).is_file():
         sol_cr = om.CaseReader(solution_record_file)
         sol_case = sol_cr.get_case('final')
-        abs2prom_map = sol_cr.problem_metadata['abs2prom']
     else:
         sol_case = None
 
-    if Path(simulation_record_file).is_file():
+    if simulation_record_file is not None and Path(simulation_record_file).is_file():
         sim_cr = om.CaseReader(simulation_record_file)
         sim_case = sim_cr.get_case('final')
-        abs2prom_map = sim_cr.problem_metadata['abs2prom']
     else:
         sim_case = None
 
@@ -288,7 +286,6 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
             sim_case = None
 
     for traj_path, traj_data in traj_and_phase_meta.items():
-        traj_params = traj_data['parameter_options']
         traj_name = traj_data['name']
         data_dict[traj_data['name']] = {'param_data_by_phase': {},
                                         'sol_data_by_phase': {},
@@ -455,7 +452,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
             for var_name in sorted(ts_units_dict.keys(), key=str.casefold):
                 fig_kwargs = {'x_range': x_range} if x_range is not None else {}
 
-                tool_tips = [(f'{x_name}', '$x'), (f'{var_name}', '$y')]
+                tool_tips = [(f'{x_name}', f'@{x_name}'), (f'{var_name}', f'@{var_name}')]
 
                 fig = figure(tools='pan,box_zoom,xwheel_zoom,hover,undo,reset,save',
                              tooltips=tool_tips,

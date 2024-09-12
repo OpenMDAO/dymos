@@ -101,7 +101,7 @@ def upload_doc_version(source_dir, destination, *args):
 
     try:
         subprocess.run(cmd, shell=True, check=True)  # nosec: trusted input
-    except:
+    except Exception:
         raise Exception('Doc transfer failed.')
     else:
         print("Uploaded documentation for", name if rel else "latest")

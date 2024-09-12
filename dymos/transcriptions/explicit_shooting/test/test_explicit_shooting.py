@@ -149,7 +149,6 @@ class TestExplicitShooting(unittest.TestCase):
         prob.run_model()
 
         t_f = prob.get_val('phase0.integrator.t_final')
-        t = prob.get_val('phase0.integrator.time')
         x_f = prob.get_val('phase0.integrator.states_out:x')
         y_f = prob.get_val('phase0.integrator.states_out:y')
 

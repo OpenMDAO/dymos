@@ -1,4 +1,4 @@
-from openmdao.api import Problem, Group
+from openmdao.api import Group
 from dymos.examples.shuttle_reentry.heating_comp import AerodynamicHeating
 from dymos.examples.shuttle_reentry.flight_dynamics_comp import FlightDynamics
 from dymos.examples.shuttle_reentry.aerodynamics_comp import Aerodynamics

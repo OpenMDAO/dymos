@@ -235,12 +235,12 @@ class HPAdaptive:
                     for state_name, options in phase.state_options.items():
                         beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
                         c = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
-                        b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** l for l in
+                        b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** el for el in
                                                              range(seg_size[gd.transcription])]))
                         b_hat = np.multiply(c.ravel(),
-                                            np.array([(h_ / h[k + 1]) ** l for l in range(seg_size[gd.transcription])]))
+                                            np.array([(h_ / h[k + 1]) ** el for el in range(seg_size[gd.transcription])]))
                         err_val = np.dot(np.absolute(b - b_hat).ravel(),
-                                         np.array([2 ** l for l in range(seg_size[gd.transcription])])) / beta
+                                         np.array([2 ** el for el in range(seg_size[gd.transcription])])) / beta
 
                         if err_val > phase.refine_options['tolerance'] and merge_seg[k + 1]:
                             merge_seg[k + 1] = False
@@ -490,12 +490,12 @@ class HPAdaptive:
                     for state_name, options in phase.state_options.items():
                         beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
                         c = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
-                        b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** l for l in
+                        b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** el for el in
                                                              range(seg_size[gd.transcription])]))
                         b_hat = np.multiply(c.ravel(),
-                                            np.array([(h_ / h[k + 1]) ** l for l in range(seg_size[gd.transcription])]))
+                                            np.array([(h_ / h[k + 1]) ** el for el in range(seg_size[gd.transcription])]))
                         err_val = np.dot(np.absolute(b - b_hat).ravel(),
-                                         np.array([2 ** l for l in range(seg_size[gd.transcription])])) / beta
+                                         np.array([2 ** el for el in range(seg_size[gd.transcription])])) / beta
 
                         if err_val > phase.refine_options['tolerance']/10 and merge_seg[k + 1]:
                             merge_seg[k + 1] = False

@@ -15,7 +15,6 @@ packages = [
     'transcriptions.common',
     'transcriptions.explicit_shooting',
     'transcriptions.pseudospectral',
-    'transcriptions.solve_ivp',
     'utils',
 ]
 
@@ -120,7 +119,7 @@ def build_src_docs(top, src_dir, project_name='dymos'):
             # specifically don't use os.path.join here.  Even windows wants the
             # stuff in the file to have fwd slashes.
             title = f"[{package}]"
-            link = f"(packages/{package}.md)\n"
+            link = f"(packages/{package}.ipynb)\n"
             index_data += f"- {title}{link}"
 
             # make subpkg directory (e.g. _srcdocs/packages/core) for ref sheets
@@ -139,7 +138,7 @@ def build_src_docs(top, src_dir, project_name='dymos'):
                     # specifically don't use os.path.join here.  Even windows wants the
                     # stuff in the file to have fwd slashes.
                     title = f"[{sub_package}]"
-                    link = f"({package}/{sub_package}.md)\n"
+                    link = f"({package}/{sub_package}.ipynb)\n"
                     package_data += f"- {title}{link}"
 
                     # creates and writes out one reference sheet (e.g. core/component.ipynb)

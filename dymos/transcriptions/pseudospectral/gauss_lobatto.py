@@ -1,18 +1,14 @@
-from collections import defaultdict
-import warnings
 
 import numpy as np
 import openmdao.api as om
-from openmdao.utils.om_warnings import issue_warning
 
 from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
 from ..common import GaussLobattoContinuityComp
-from ...utils.misc import get_rate_units, _unspecified
+from ...utils.misc import get_rate_units
 from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData, make_subset_map
-from fnmatch import filter
 
 
 class GaussLobatto(PseudospectralBase):
@@ -131,7 +127,6 @@ class GaussLobatto(PseudospectralBase):
             The phase object to which this transcription instance applies.
         """
         super(GaussLobatto, self).configure_controls(phase)
-        ode_inputs = get_promoted_vars(self._get_ode(phase), 'input')
 
         grid_data = self.grid_data
 
@@ -390,7 +385,6 @@ class GaussLobatto(PseudospectralBase):
         except RuntimeError:
             raise ValueError(f"state '{state_name}' in phase '{phase.name}' was not given a rate_source")
         var_type = phase.classify_var(var)
-        time_name = phase.time_options['name']
 
         # Determine the path to the variable
         if var_type == 't':
@@ -544,7 +538,8 @@ class GaussLobatto(PseudospectralBase):
             src_units = meta['units']
             src_tags = meta['tags']
             if 'dymos.static_output' in src_tags:
-                raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" and cannot be a timeseries output.')
+                raise RuntimeError(f'ODE output {var} is tagged with "dymos.static_output" '
+                                   'and cannot be a timeseries output.')
 
         src_idxs = om.slicer[node_idxs, ...]
 

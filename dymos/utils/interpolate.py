@@ -89,7 +89,7 @@ class LagrangeBarycentricInterpolant(object):
 
         n = self.wbfj.shape[0]
         m = np.prod(self.wbfj.shape[1:])
-        self.wbfj_flat = np.reshape(self.wbfj, newshape=(n, m))
+        self.wbfj_flat = np.reshape(self.wbfj, (n, m))
         """ A flattened view of wbfj"""
 
         self.x0 = -1.0
@@ -179,14 +179,14 @@ class LagrangeBarycentricInterpolant(object):
         tau = self.x_to_tau(x)
 
         g = tau - self.tau_i
-        l = np.ones_like(g)
+        l = np.ones_like(g)  # noqa: E741, allow ambiguous name 'l' (lower case L)
 
         for i in range(self.num_nodes):
             for j in range(self.num_nodes):
                 if j != i:
                     l[i] *= g[j]
 
-        result = np.reshape(np.dot(l, self.wbfj_flat), newshape=self.wbfj.shape[1:])
+        result = np.reshape(np.dot(l, self.wbfj_flat), self.wbfj.shape[1:])
 
         return result
 
@@ -228,7 +228,7 @@ class LagrangeBarycentricInterpolant(object):
                             prod *= g[k]
                     lprime[i] += prod
             # df_dtau = np.dot(lprime, self.wbfj)
-            df_dtau = np.reshape(np.dot(lprime, self.wbfj_flat), newshape=self.wbfj.shape[1:])
+            df_dtau = np.reshape(np.dot(lprime, self.wbfj_flat), self.wbfj.shape[1:])
             return df_dtau / self.dx_dtau
         elif der == 2:
             for i in range(n):
@@ -243,7 +243,7 @@ class LagrangeBarycentricInterpolant(object):
                             if ii != i and ii != j and ii != k:
                                 prod *= g[ii]
                         lprime[i] += prod
-            df_dtau = np.reshape(np.dot(lprime, self.wbfj_flat), newshape=self.wbfj.shape[1:])
+            df_dtau = np.reshape(np.dot(lprime, self.wbfj_flat), self.wbfj.shape[1:])
             return df_dtau / self.dx_dtau**2
         else:
             raise ValueError('Barycentric interpolant currently only supports up to '

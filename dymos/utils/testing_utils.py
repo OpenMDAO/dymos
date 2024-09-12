@@ -1,4 +1,3 @@
-import builtins
 import io
 import os
 
@@ -160,7 +159,7 @@ def _write_out_timeseries_values_out_of_tolerance(isclose, rel_tolerance, abs_to
              f"{'checked_data':13s} | " + \
              f"{'abs_error':13s} | " + \
              f"{'rel_error':13} | " + \
-             f" ABS or REL error "
+             " ABS or REL error "
     err_msg += f"{header}\n"
     err_msg += len(header) * '-' + '\n'
 
@@ -269,7 +268,7 @@ def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=N
     # Flatten the timeseries data arrays
     num_elements = np.prod(shape_ref, dtype=int)
     time_series_len = x_ref.shape[0]
-    x_ref_data_flattened = np.reshape(x_ref, newshape=(time_series_len, num_elements))
+    x_ref_data_flattened = np.reshape(x_ref, (time_series_len, num_elements))
     t_ref_unique, idxs_unique_ref = np.unique(t_ref.ravel(), return_index=True)
     x_to_interp = x_ref_data_flattened[idxs_unique_ref, ...]
     t_check = t_check.ravel()
@@ -283,7 +282,7 @@ def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=N
 
     # get the interpolated values of the reference at the values of t_check
     # Reshape back to unflattened data values
-    x_ref_interp = np.reshape(interp(t_check), newshape=(t_check.size,) + shape_ref)
+    x_ref_interp = np.reshape(interp(t_check), (t_check.size,) + shape_ref)
 
     if abs_tolerance is None:  # so only have rel_tolerance
         isclose = np.isclose(x_check, x_ref_interp, rtol=rel_tolerance, atol=0.0)

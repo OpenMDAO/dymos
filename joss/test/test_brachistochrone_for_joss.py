@@ -120,3 +120,7 @@ class TestBrachistochroneForJOSS(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-4)
         assert_near_equal(x[-1], 10, tolerance=1.0E-4)
         assert_near_equal(y[-1], 5, tolerance=1.0E-4)
+
+
+if __name__ == '__main__':
+    unittest.main()

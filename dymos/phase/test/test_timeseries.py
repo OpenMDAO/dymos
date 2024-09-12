@@ -6,7 +6,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal, assert_warning
+from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
@@ -97,7 +97,7 @@ class TestTimeseriesOutput(unittest.TestCase):
                     assert_near_equal(p.get_val(f'phase0.parameter_vals:{dp}')[0],
                                       p.get_val(f'phase0.timeseries.{dp}')[i])
 
-        # call simulate to test SolveIVP transcription
+        # test simulation
         exp_out = phase.simulate()
         if test_smaller_timeseries:
             with self.assertRaises(KeyError):
@@ -185,7 +185,7 @@ class TestTimeseriesOutput(unittest.TestCase):
                     assert_near_equal(p.get_val(f'phase0.parameters:{dp}')[0],
                                       p.get_val(f'phase0.timeseries.{dp}')[i])
 
-        # call simulate to test SolveIVP transcription
+        # test simulation
         exp_out = phase.simulate()
         if test_smaller_timeseries:
             with self.assertRaises(KeyError):
@@ -521,7 +521,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p['phase0.states:x'] = phase.interp('x', [0, 10])
         p['phase0.states:y'] = phase.interp('y', [10, 5])
         p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p[f'phase0.controls:theta'] = phase.interp('theta', [5, 100])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
 
         p.run_model()
@@ -571,7 +571,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         p['phase0.states:x'] = phase.interp('x', [0, 10])
         p['phase0.states:y'] = phase.interp('y', [10, 5])
         p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p[f'phase0.controls:theta'] = phase.interp('theta', [5, 100])
+        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
         p['phase0.parameters:g'] = 9.80665
 
         p.run_model()

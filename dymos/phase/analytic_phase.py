@@ -1,7 +1,5 @@
 from copy import deepcopy
 
-import openmdao.api as om
-
 from .phase import Phase
 from ..transcriptions import Analytic
 from .options import StateOptionsDictionary

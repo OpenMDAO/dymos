@@ -1,11 +1,5 @@
-from openmdao.utils.mpi import MPI
-
 from .phase import Phase
-from .._options import options as dymos_options
-from ..transcriptions.grid_data import BirkhoffGrid, GaussLobattoGrid, RadauGrid, UniformGrid
-from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
-
-from ..utils.misc import _unspecified
+from ..transcriptions import ExplicitShooting
 
 
 class SimulationPhase(Phase):

@@ -5,6 +5,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 
+from dymos.utils.misc import om_version
 from dymos.utils.testing_utils import assert_cases_equal, assert_timeseries_near_equal
 
 
@@ -133,8 +134,8 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
                                          abs_tolerance=abs_tolerance,
                                          rel_tolerance=rel_tolerance
                                          )
-        start_of_expected_errmsg = f"The following timeseries data are out of tolerance due to " \
-                                   f"absolute"
+        start_of_expected_errmsg = "The following timeseries data are out of tolerance due to " \
+                                   "absolute"
         actual_errmsg = str(e.exception)
         self.assertTrue(actual_errmsg.startswith(start_of_expected_errmsg),
                         f"Error message expected to start with '{start_of_expected_errmsg}' but "
@@ -195,7 +196,7 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         t_check, x_check = create_linear_time_series(100, 510.0, 1500.0, 0.0, 1000.0)
         with self.assertRaises(ValueError) as e:
             assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=1)
-        expected_msg = f"There is no overlapping time between the two time series"
+        expected_msg = "There is no overlapping time between the two time series"
         actual_errmsg = str(e.exception)
         self.assertEqual(actual_errmsg, expected_msg)
 
@@ -325,7 +326,7 @@ class TestAssertCasesEqual(unittest.TestCase):
         for file in ('p1.db', 'p2.db'):
             try:
                 os.remove(file)
-            except:
+            except Exception:
                 pass
 
     def test_different_variables(self):
@@ -356,8 +357,14 @@ class TestAssertCasesEqual(unittest.TestCase):
         p2.record('final')
         p2.cleanup()
 
-        c1 = om.CaseReader('p1.db').get_case('final')
-        c2 = om.CaseReader('p2.db').get_case('final')
+        p1_db = 'p1.db'
+        p2_db = 'p2.db'
+        if om_version()[0] > (3, 34, 2):
+            p1_db = p1.get_outputs_dir() / p1_db
+            p2_db = p2.get_outputs_dir() / p2_db
+
+        c1 = om.CaseReader(p1_db).get_case('final')
+        c2 = om.CaseReader(p2_db).get_case('final')
 
         with self.assertRaises(AssertionError) as e:
             assert_cases_equal(c1, c2)
@@ -396,8 +403,14 @@ class TestAssertCasesEqual(unittest.TestCase):
         p2.record('final')
         p2.cleanup()
 
-        c1 = om.CaseReader('p1.db').get_case('final')
-        c2 = om.CaseReader('p2.db').get_case('final')
+        p1_db = 'p1.db'
+        p2_db = 'p2.db'
+        if om_version()[0] > (3, 34, 2):
+            p1_db = p1.get_outputs_dir() / p1_db
+            p2_db = p2.get_outputs_dir() / p2_db
+
+        c1 = om.CaseReader(p1_db).get_case('final')
+        c2 = om.CaseReader(p2_db).get_case('final')
 
         assert_cases_equal(c1, c2, require_same_vars=False)
 
@@ -428,8 +441,14 @@ class TestAssertCasesEqual(unittest.TestCase):
         p2.record('final')
         p2.cleanup()
 
-        c1 = om.CaseReader('p1.db').get_case('final')
-        c2 = om.CaseReader('p2.db').get_case('final')
+        p1_db = 'p1.db'
+        p2_db = 'p2.db'
+        if om_version()[0] > (3, 34, 2):
+            p1_db = p1.get_outputs_dir() / p1_db
+            p2_db = p2.get_outputs_dir() / p2_db
+
+        c1 = om.CaseReader(p1_db).get_case('final')
+        c2 = om.CaseReader(p2_db).get_case('final')
 
         with self.assertRaises(AssertionError) as e:
             assert_cases_equal(c1, c2)
@@ -467,8 +486,14 @@ class TestAssertCasesEqual(unittest.TestCase):
         p2.record('final')
         p2.cleanup()
 
-        c1 = om.CaseReader('p1.db').get_case('final')
-        c2 = om.CaseReader('p2.db').get_case('final')
+        p1_db = 'p1.db'
+        p2_db = 'p2.db'
+        if om_version()[0] > (3, 34, 2):
+            p1_db = p1.get_outputs_dir() / p1_db
+            p2_db = p2.get_outputs_dir() / p2_db
+
+        c1 = om.CaseReader(p1_db).get_case('final')
+        c2 = om.CaseReader(p2_db).get_case('final')
 
         expected = "\nThe following variables contain different values:\n" \
                    "var        max error       mean error\n" \

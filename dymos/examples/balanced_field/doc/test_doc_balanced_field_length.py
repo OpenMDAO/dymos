@@ -3,6 +3,8 @@ import unittest
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
 
+from dymos.utils.misc import om_version
+
 
 SHOW_PLOTS = True
 
@@ -237,8 +239,14 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)
 
-        sol = om.CaseReader('dymos_solution.db').get_case('final')
-        sim = om.CaseReader('dymos_simulation.db').get_case('final')
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+            sim_db = traj.sim_prob.get_outputs_dir() / sim_db
+
+        sol = om.CaseReader(sol_db).get_case('final')
+        sim = om.CaseReader(sim_db).get_case('final')
 
         sol_r_f_climb = sol.get_val('traj.climb.timeseries.r')[-1, ...]
         sol_r_f_rto = sol.get_val('traj.rto.timeseries.r')[-1, ...]

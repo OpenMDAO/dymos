@@ -10,6 +10,7 @@ from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
+from dymos.utils.misc import om_version
 
 
 @use_tempdirs
@@ -230,14 +231,24 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         p = self._make_problem()
         dm.run_problem(p, run_driver=True, simulate=False)
 
-        sol_results = om.CaseReader('dymos_solution.db').get_case('final')
+        sol_db = 'dymos_solution.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+
+        sol_results = om.CaseReader(sol_db).get_case('final')
 
         assert_near_equal(sol_results.get_val('traj.climb.timeseries.r')[-1], 1881, tolerance=0.01)
 
-        dm.run_problem(p, run_driver=True, simulate=True, restart='dymos_solution.db')
+        dm.run_problem(p, run_driver=True, simulate=True, restart=sol_db)
 
-        sol_results = om.CaseReader('dymos_solution.db').get_case('final')
-        sim_results = om.CaseReader('dymos_simulation.db').get_case('final')
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        sol_results = om.CaseReader(sol_db).get_case('final')
+        sim_results = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(sol_results.get_val('traj.climb.timeseries.r')[-1], 1881, tolerance=0.01)
         assert_near_equal(sim_results.get_val('traj.climb.timeseries.r')[-1], 1881, tolerance=0.01)
@@ -252,14 +263,20 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         p = self._make_problem()
         dm.run_problem(p, run_driver=True, simulate=True)
 
-        sol_results = om.CaseReader('dymos_solution.db').get_case('final')
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        sol_results = om.CaseReader(sol_db).get_case('final')
 
         assert_near_equal(sol_results.get_val('traj.climb.timeseries.r')[-1], 1881, tolerance=0.01)
 
-        dm.run_problem(p, run_driver=True, simulate=True, restart='dymos_simulation.db')
+        dm.run_problem(p, run_driver=True, simulate=True, restart=sim_db)
 
-        sol_results = om.CaseReader('dymos_solution.db').get_case('final')
-        sim_results = om.CaseReader('dymos_simulation.db').get_case('final')
+        sol_results = om.CaseReader(sol_db).get_case('final')
+        sim_results = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(sol_results.get_val('traj.climb.timeseries.r')[-1], 1881, tolerance=0.01)
         assert_near_equal(sim_results.get_val('traj.climb.timeseries.r')[-1], 1881, tolerance=0.01)

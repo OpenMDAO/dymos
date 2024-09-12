@@ -7,7 +7,6 @@ import openmdao.api as om
 from .common import ControlGroup, ParameterComp
 from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_constraint_flat_idxs
-from ..utils.misc import _none_or_unspecified
 from ..utils.introspection import configure_states_introspection, get_promoted_vars, \
     configure_states_discovery
 
@@ -103,16 +102,6 @@ class TranscriptionBase(object):
             The phase object to which this transcription instance applies.
         """
         time_options = phase.time_options
-
-        # Determine the time unit.
-        if time_options['units'] in _none_or_unspecified:
-            if time_options['targets']:
-                ode = phase._get_subsystem(self._rhs_source)
-
-                _, time_options['units'] = get_target_metadata(ode, name='time',
-                                                               user_targets=time_options['targets'],
-                                                               user_units=time_options['units'],
-                                                               user_shape='')
 
         if not (time_options['input_initial'] or time_options['fix_initial']):
             lb, ub = time_options['initial_bounds']
@@ -424,23 +413,10 @@ class TranscriptionBase(object):
         for timeseries_name, timeseries_options in phase._timeseries.items():
             timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
 
-            for ts_output_name, ts_output in timeseries_options['outputs'].items():
-                name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
-                units = ts_output['units']
-                shape = ts_output['shape']
-                src = ts_output['src']
-                is_rate = ts_output['is_rate']
-
-                added_src = timeseries_comp._add_output_configure(name,
-                                                                  shape=shape,
-                                                                  units=units,
-                                                                  desc='',
-                                                                  src=src,
-                                                                  rate=is_rate)
-
-                if added_src:
-                    phase.connect(src_name=src, tgt_name=f'{timeseries_name}.input_values:{name}',
-                                  src_indices=ts_output['src_idxs'])
+            for input_name, src, src_idxs in timeseries_comp._configure_io(timeseries_options):
+                phase.connect(src_name=src,
+                              tgt_name=f'{timeseries_name}.{input_name}',
+                              src_indices=src_idxs)
 
     def configure_boundary_constraints(self, phase):
         """

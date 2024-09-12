@@ -1,7 +1,7 @@
-from collections.abc import Iterable
 
 import numpy as np
 
+import openmdao
 import openmdao.api as om
 from openmdao.core.constants import _ReprClass
 
@@ -74,7 +74,7 @@ def reshape_val(val, shape, num_input_nodes):
     elif np.asarray(val).shape == shape:
         shaped_val = np.repeat(val[np.newaxis, ...], num_input_nodes, axis=0)
     else:
-        shaped_val = np.reshape(val, newshape=(num_input_nodes,) + shape)
+        shaped_val = np.reshape(val, (num_input_nodes,) + shape)
     return shaped_val
 
 
@@ -255,3 +255,26 @@ def create_subprob(base_name, comm, reports=False):
         str_hash = hashlib.sha256(used_for_security=False)[:8]
         p = om.Problem(comm=comm, reports=reports, name=f'{sim_prob_name}_{str_hash}')
     return p
+
+
+def om_version():
+    """
+    Return version infromation for OpenMDAO.
+
+    This information is useful for executing code that requires a specific
+    version of OpenMDAO. The tuple format returned by this function can
+    easily be compared using a statement like `if om_version()[0] < (3, 3, 0)`.
+
+    Returns
+    -------
+    tuple
+        The semantic version of OpenMDAO in a comparable tuple.
+    str
+        One of "dev" or "release".
+    """
+    try:
+        numeric, rel = openmdao.__version__.split('-')
+    except ValueError:
+        numeric = openmdao.__version__
+        rel = 'release'
+    return tuple([int(s) for s in numeric.split('.')]), rel

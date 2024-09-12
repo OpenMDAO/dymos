@@ -4,6 +4,7 @@ import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
+from dymos.utils.misc import om_version
 
 
 @use_tempdirs
@@ -90,8 +91,14 @@ class TestTimeseriesUnits(unittest.TestCase):
 
         dm.run_problem(p, run_driver=run_driver, simulate=True)
 
-        sol_case = om.CaseReader('dymos_solution.db').get_case('final')
-        sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+            sim_db = p.model.traj0.sim_prob.get_outputs_dir() / sim_db
+
+        sol_case = om.CaseReader(sol_db).get_case('final')
+        sim_case = om.CaseReader(sim_db).get_case('final')
 
         assert_near_equal(sol_case.get_val('traj0.phase0.timeseries.xdot', units='degF'),
                           sol_case.get_val('traj0.phase0.timeseries.xdot', units='degF'))

@@ -11,7 +11,6 @@ try:
 except ImportError:
     matplotlib = None
 
-import openmdao
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
@@ -21,11 +20,10 @@ import dymos as dm
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import BrachistochroneVectorStatesODE
+from dymos.utils.misc import om_version
 from dymos.utils.testing_utils import _get_reports_dir
 
 _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
-
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 @use_tempdirs
@@ -268,10 +266,16 @@ class TestRunProblem(unittest.TestCase):
 
         dm.run_problem(p, simulate=True, simulate_kwargs={'times_per_seg': 100})
 
-        self.assertTrue(os.path.exists('dymos_solution.db'))
         # Assert the results are what we expect.
-        sol_case = om.CaseReader('dymos_solution.db').get_case('final')
-        sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        sol_case = om.CaseReader(sol_db).get_case('final')
+        sim_case = om.CaseReader(sim_db).get_case('final')
+        self.assertTrue(os.path.exists(sol_db))
 
         sol_t = sol_case.get_val('traj.phase0.timeseries.time')
         sim_t = sim_case.get_val('traj.phase0.timeseries.time')
@@ -383,13 +387,19 @@ class TestRunProblem(unittest.TestCase):
 
         dm.run_problem(p, refine_iteration_limit=20)
 
-        self.assertTrue(os.path.exists('dymos_solution.db'))
+        sol_db = 'dymos_solution.db'
+        driver_db = 'brach_driver_rec.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+            driver_db = p.get_outputs_dir() / driver_db
+
+        self.assertTrue(os.path.exists(sol_db))
         # Assert the results are what we expect.
-        cr = om.CaseReader('dymos_solution.db')
+        cr = om.CaseReader(sol_db)
         case = cr.get_case('final')
         assert_almost_equal(case.outputs['traj.phase0.timeseries.time'].max(), 1.8016, decimal=4)
 
-        cr_opt = om.CaseReader('brach_driver_rec.db')
+        cr_opt = om.CaseReader(driver_db)
         cases = cr_opt.list_cases(source='driver', out_stream=None)
 
         for case in cases:
@@ -438,13 +448,18 @@ class TestRunProblem(unittest.TestCase):
 
         dm.run_problem(p, refine_iteration_limit=20, case_prefix='brach_test')
 
-        self.assertTrue(os.path.exists('dymos_solution.db'))
+        sol_db = 'dymos_solution.db'
+        driver_db = 'brach_driver_rec.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+            driver_db = p.get_outputs_dir() / driver_db
+
+        self.assertTrue(os.path.exists(sol_db))
         # Assert the results are what we expect.
-        cr = om.CaseReader('dymos_solution.db')
-        case = cr.get_case('brach_test_final')
+        case = om.CaseReader(sol_db).get_case('brach_test_final')
         assert_almost_equal(case.outputs['traj.phase0.timeseries.time'].max(), 1.8016, decimal=4)
 
-        cr_opt = om.CaseReader('brach_driver_rec.db')
+        cr_opt = om.CaseReader(driver_db)
         cases = cr_opt.list_cases(source='driver', out_stream=None)
 
         for case in cases:
@@ -534,10 +549,14 @@ class TestRunProblem(unittest.TestCase):
 
         dm.run_problem(p, simulate=True)
 
-        self.assertTrue(os.path.exists('dymos_solution.db'))
+        sol_db = 'dymos_solution.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+
+        self.assertTrue(os.path.exists(sol_db))
+
         # Assert the results are what we expect.
-        cr = om.CaseReader('dymos_solution.db')
-        case = cr.get_case('final')
+        case = om.CaseReader(sol_db).get_case('final')
         assert_almost_equal(case.outputs['traj.phase0.timeseries.time'].max(), 1.8016, decimal=4)
 
     def test_restart_from_file(self):
@@ -550,19 +569,22 @@ class TestRunProblem(unittest.TestCase):
         p = vanderpol(transcription='gauss-lobatto', num_segments=75)
 
         # Run the problem (simulate only)
-        p.run_model()
+        dm.run_problem(p, run_driver=False, simulate=True)
 
-        # simulate and record
-        p.model.traj.simulate(record_file='vanderpol_simulation.sql')
+        # Run the model
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
 
         # create a new problem for restart to simulate a different command line execution
         q = vanderpol(transcription='gauss-lobatto', num_segments=75)
 
-        # # Run the model
-        run_problem(q, run_driver=False, simulate=False, restart='vanderpol_simulation.sql')
+        run_problem(q, run_driver=False, simulate=False, restart=sim_db)
 
-        # s = q.model.traj.simulate(rtol=1.0E-9, atol=1.0E-9)
-        s = om.CaseReader('vanderpol_simulation.sql').get_case('final')
+        sol_db2 = 'dymos_solution.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db2 = q.get_outputs_dir() / sol_db2
+        s = om.CaseReader(sol_db2).get_case('final')
 
         # get_val returns data for duplicate time points; remove them before interpolating
         tq = q.get_val('traj.phase0.timeseries.time')[:, 0]
@@ -598,17 +620,22 @@ class TestRunProblem(unittest.TestCase):
         p = vanderpol(transcription='gauss-lobatto', num_segments=75)
 
         # Run the problem (simulate only)
-        p.run_model()
-
-        # simulate and record
-        p.model.traj.simulate(record_file='vanderpol_simulation.sql')
+        dm.run_problem(p, run_driver=False, simulate=True)
 
         # create a new problem for restart to simulate a different command line execution
         q = vanderpol(transcription='gauss-lobatto', num_segments=75)
 
-        # # Run the model
-        s = om.CaseReader('vanderpol_simulation.sql').get_case('final')
-        run_problem(q, run_driver=False, simulate=False, restart=s)
+        # Run the model
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        run_problem(q, run_driver=False, simulate=False, restart=sim_db)
+
+        sol_db2 = 'dymos_solution.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db2 = q.get_outputs_dir() / sol_db2
+        s = om.CaseReader(sol_db2).get_case('final')
 
         # get_val returns data for duplicate time points; remove them before interpolating
         tq = q.get_val('traj.phase0.timeseries.time')[:, 0]
@@ -718,16 +745,22 @@ class TestRunProblemPlotting(unittest.TestCase):
             self.assertFalse(plotfile.exists(), msg=f'Unexpectedly found plot file {plotfile}')
 
     def test_run_brachistochrone_problem_set_simulation_record_file(self):
-        simulation_record_file = 'simulation_record_file.db'
-        dm.run_problem(self.p, simulate=True, simulation_record_file=simulation_record_file)
+        sim_db = 'simulation_record_file.db'
+        dm.run_problem(self.p, simulate=True, simulation_record_file=sim_db)
 
-        self.assertTrue(os.path.exists(simulation_record_file))
+        if om_version()[0] > (3, 34, 2):
+            sim_db = self.p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        self.assertTrue(os.path.exists(sim_db))
 
     def test_run_brachistochrone_problem_set_solution_record_file(self):
-        solution_record_file = 'solution_record_file.db'
-        dm.run_problem(self.p, solution_record_file=solution_record_file)
+        sol_db = 'solution_record_file.db'
+        dm.run_problem(self.p, solution_record_file=sol_db)
 
-        self.assertTrue(os.path.exists(solution_record_file))
+        if om_version()[0] > (3, 34, 2):
+            sol_db = self.p.get_outputs_dir() / sol_db
+
+        self.assertTrue(os.path.exists(sol_db))
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_run_brachistochrone_problem_plot_simulation(self):
@@ -832,8 +865,14 @@ class TestSimulateArrayParam(unittest.TestCase):
         dm.run_problem(p, simulate=True)
 
         # Test the results
-        sol_results = om.CaseReader('dymos_solution.db').get_case('final')
-        sim_results = om.CaseReader('dymos_solution.db').get_case('final')
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        sol_results = om.CaseReader(sol_db).get_case('final')
+        sim_results = om.CaseReader(sim_db).get_case('final')
 
         sol = sol_results.get_val('traj.phase0.parameter_vals:array')
         sim = sim_results.get_val('traj.phase0.parameter_vals:array')

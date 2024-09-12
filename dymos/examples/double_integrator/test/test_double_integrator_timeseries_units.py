@@ -1,4 +1,3 @@
-import itertools
 import os
 import unittest
 
@@ -9,6 +8,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 import dymos as dm
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 from dymos.utils.testing_utils import assert_timeseries_near_equal
+from dymos.utils.misc import om_version
 
 
 @require_pyoptsparse(optimizer='SLSQP')
@@ -77,10 +77,16 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         assert_near_equal(v[-1], 0.0, tolerance=tol)
 
     def test_timeseries_units_gl(self):
-        double_integrator_direct_collocation(dm.GaussLobatto, compressed=True)
+        p = double_integrator_direct_collocation(dm.GaussLobatto, compressed=True)
 
-        sol_case = om.CaseReader('dymos_solution.db').get_case('final')
-        sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        sol_case = om.CaseReader(sol_db).get_case('final')
+        sim_case = om.CaseReader(sim_db).get_case('final')
 
         t_sol = sol_case.get_val('traj.phase0.timeseries.time')
         t_sim = sim_case.get_val('traj.phase0.timeseries.time')
@@ -92,10 +98,16 @@ class TestDoubleIntegratorExample(unittest.TestCase):
                                          abs_tolerance=0.01)
 
     def test_timeseries_units_radau(self):
-        double_integrator_direct_collocation(dm.Radau, compressed=True)
+        p = double_integrator_direct_collocation(dm.Radau, compressed=True)
 
-        sol_case = om.CaseReader('dymos_solution.db').get_case('final')
-        sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        sol_case = om.CaseReader(sol_db).get_case('final')
+        sim_case = om.CaseReader(sim_db).get_case('final')
 
         t_sol = sol_case.get_val('traj.phase0.timeseries.time')
         t_sim = sim_case.get_val('traj.phase0.timeseries.time')

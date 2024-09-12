@@ -71,57 +71,56 @@ class TimeseriesOutputComp(om.ExplicitComponent):
         """
         Define the independent variables as output variables.
         """
-        igd = self.options['input_grid_data']
-        ogd = self.options['output_grid_data']
-        output_subset = self.options['output_subset']
 
-        if ogd is None:
-            ogd = igd
+        # igd = self.options['input_grid_data']
+        # ogd = self.options['output_grid_data']
+        # output_subset = self.options['output_subset']
 
-        if ogd == igd and output_subset == 'all':
-            self._no_interp = True
+        # if ogd is None:
+        #     ogd = igd
 
-        self.input_num_nodes = igd.num_nodes
-        self.output_num_nodes = ogd.subset_num_nodes[output_subset]
+        # if ogd == igd and output_subset == 'all':
+        #     self._no_interp = True
 
-        # Build the interpolation matrix which maps from the input grid to the output grid.
-        # Rather than a single phase-wide interpolating polynomial, map each segment.
-        # To do this, find the nodes in the output grid which fall in each segment of the input
-        # grid.  Then build a Lagrange interpolating polynomial for that segment
-        L_blocks = []
-        D_blocks = []
-        output_nodes_ptau = ogd.node_ptau[ogd.subset_node_indices[output_subset]]
+        # self.input_num_nodes = igd.num_nodes
+        # self.output_num_nodes = ogd.subset_num_nodes[output_subset]
 
-        for iseg in range(igd.num_segments):
-            i1, i2 = igd.segment_indices[iseg]
-            iptau_segi = igd.node_ptau[i1:i2]
-            istau_segi = igd.node_stau[i1:i2]
+        # # Build the interpolation matrix which maps from the input grid to the output grid.
+        # # Rather than a single phase-wide interpolating polynomial, map each segment.
+        # # To do this, find the nodes in the output grid which fall in each segment of the input
+        # # grid.  Then build a Lagrange interpolating polynomial for that segment
+        # L_blocks = []
+        # D_blocks = []
+        # output_nodes_ptau = ogd.node_ptau[ogd.subset_node_indices[output_subset]]
 
-            # The indices of the output grid that fall within this segment of the input grid
-            if ogd is igd and output_subset == 'all':
-                optau_segi = iptau_segi
-            else:
-                ptau_hi = igd.segment_ends[iseg+1]
-                if iseg < igd.num_segments - 1:
-                    optau_segi = output_nodes_ptau[output_nodes_ptau <= ptau_hi]
-                else:
-                    optau_segi = output_nodes_ptau
+        # for iseg in range(igd.num_segments):
+        #     i1, i2 = igd.segment_indices[iseg]
+        #     iptau_segi = igd.node_ptau[i1:i2]
+        #     istau_segi = igd.node_stau[i1:i2]
 
-                # Remove the captured nodes so we don't accidentally include them again
-                output_nodes_ptau = output_nodes_ptau[len(optau_segi):]
+        #     # The indices of the output grid that fall within this segment of the input grid
+        #     if ogd is igd and output_subset == 'all':
+        #         optau_segi = iptau_segi
+        #     else:
+        #         ptau_hi = igd.segment_ends[iseg+1]
+        #         if iseg < igd.num_segments - 1:
+        #             optau_segi = output_nodes_ptau[output_nodes_ptau <= ptau_hi]
+        #         else:
+        #             optau_segi = output_nodes_ptau
 
-            # # Now get the output nodes which fall in iseg in iseg's segment tau space.
-            ostau_segi = 2.0 * (optau_segi - iptau_segi[0]) / (iptau_segi[-1] - iptau_segi[0]) - 1
+        #         # Remove the captured nodes so we don't accidentally include them again
+        #         output_nodes_ptau = output_nodes_ptau[len(optau_segi):]
 
-            # Create the interpolation matrix and add it to the blocks
-            L, D = lagrange_matrices(istau_segi, ostau_segi)
-            L_blocks.append(L)
-            D_blocks.append(D)
+        #     # # Now get the output nodes which fall in iseg in iseg's segment tau space.
+        #     ostau_segi = 2.0 * (optau_segi - iptau_segi[0]) / (iptau_segi[-1] - iptau_segi[0]) - 1
 
-        self.interpolation_matrix = sp.block_diag(L_blocks, format='csr')
-        self.differentiation_matrix = sp.block_diag(D_blocks, format='csr')
+        #     # Create the interpolation matrix and add it to the blocks
+        #     L, D = lagrange_matrices(istau_segi, ostau_segi)
+        #     L_blocks.append(L)
+        #     D_blocks.append(D)
 
-        self.add_input('dt_dstau', shape=(self.input_num_nodes,), units=self.options['time_units'])
+        # self.interpolation_matrix = sp.block_diag(L_blocks, format='csr')
+        # self.differentiation_matrix = sp.block_diag(D_blocks, format='csr')
 
     def _add_output_configure(self, name, units, shape, desc='', src=None, rate=False):
         """
@@ -237,6 +236,124 @@ class TimeseriesOutputComp(om.ExplicitComponent):
                               val=jac_val)
 
         return added_source
+
+    def _build_matrices(self, compute_L=True, compute_D=True):
+        """
+        Build the interpolation and differentiation matrices for the component, if necessary.
+
+        Parameters
+        ----------
+        compute_L : bool, optional
+            If True, compute and store the interpolation matrix. Otherwise return None in its place. Default is True.
+        compute_D : bool, optional
+            If True, compute and store the diferentiation matrix. Otherwise return None in its place. Default is True.
+        """
+        igd = self.options['input_grid_data']
+        ogd = self.options['output_grid_data']
+        output_subset = self.options['output_subset']
+
+        if ogd is None:
+            ogd = igd
+
+        self.input_num_nodes = igd.num_nodes
+        self.output_num_nodes = ogd.subset_num_nodes[output_subset]
+
+        self.add_input('dt_dstau', shape=(self.input_num_nodes,), units=self.options['time_units'])
+
+        # Build the interpolation matrix which maps from the input grid to the output grid.
+        # Rather than a single phase-wide interpolating polynomial, map each segment.
+        # To do this, find the nodes in the output grid which fall in each segment of the input
+        # grid.  Then build a Lagrange interpolating polynomial for that segment
+        L_blocks = []
+        D_blocks = []
+        output_nodes_ptau = ogd.node_ptau[ogd.subset_node_indices[output_subset]]
+
+        for iseg in range(igd.num_segments):
+            i1, i2 = igd.segment_indices[iseg]
+            iptau_segi = igd.node_ptau[i1:i2]
+            istau_segi = igd.node_stau[i1:i2]
+
+            # The indices of the output grid that fall within this segment of the input grid
+            if ogd is igd and output_subset == 'all':
+                optau_segi = iptau_segi
+            else:
+                ptau_hi = igd.segment_ends[iseg+1]
+                if iseg < igd.num_segments - 1:
+                    optau_segi = output_nodes_ptau[output_nodes_ptau <= ptau_hi]
+                else:
+                    optau_segi = output_nodes_ptau
+
+                # Remove the captured nodes so we don't accidentally include them again
+                output_nodes_ptau = output_nodes_ptau[len(optau_segi):]
+
+            # # Now get the output nodes which fall in iseg in iseg's segment tau space.
+            ostau_segi = 2.0 * (optau_segi - iptau_segi[0]) / (iptau_segi[-1] - iptau_segi[0]) - 1
+
+            # Create the interpolation matrix and add it to the blocks
+            L, D = lagrange_matrices(istau_segi, ostau_segi,
+                                     compute_interp_matrix=compute_L,
+                                     compute_diff_matrix=compute_D)
+            L_blocks.append(L)
+            D_blocks.append(D)
+
+        if compute_L:
+            self.interpolation_matrix = sp.block_diag(L_blocks, format='csr')
+        if compute_D:
+            self.differentiation_matrix = sp.block_diag(D_blocks, format='csr')
+
+    def _configure_io(self, timeseries_options):
+        """
+        Configure the component IO for the given timeseries.
+
+        Parameters
+        ----------
+        phase : Phase
+            The phase to which this component belongs.
+        timeseries_name : str
+            The name of the timeseries being configured.
+
+        Returns
+        -------
+        inputs : list
+            The timeseries inputs to this component.
+        """
+        igd = self.options['input_grid_data']
+        ogd = self.options['output_grid_data']
+        output_subset = self.options['output_subset']
+
+        if ogd is None:
+            ogd = igd
+
+        if ogd == igd and output_subset == 'all':
+            self._no_interp = True
+
+        self.input_num_nodes = igd.num_nodes
+        self.output_num_nodes = ogd.subset_num_nodes[output_subset]
+
+        # Check if we ever use rates, if not, don't bother computing/storing [D]
+        compute_D = any([ts_options['is_rate'] for ts_options in timeseries_options['outputs'].values()])
+        compute_L = not self._no_interp
+
+        # Compute and store the interpolation and differentiation matrices, if necessary.
+        self._build_matrices(compute_L, compute_D)
+
+        # Add the IO for the given timeseries
+        ts_inputs = []
+        for ts_output_name, ts_output in timeseries_options['outputs'].items():
+            name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
+            units = ts_output['units']
+            shape = ts_output['shape']
+            src = ts_output['src']
+            is_rate = ts_output['is_rate']
+
+            added_src = self._add_output_configure(name, shape=shape,
+                                                   units=units, desc='',
+                                                   src=src, rate=is_rate)
+
+            if added_src:
+                # If we hadn't already used this input, add it now.
+                ts_inputs.append((f'input_values:{name}', src, ts_output['src_idxs']))
+        return ts_inputs
 
     def compute(self, inputs, outputs):
         """

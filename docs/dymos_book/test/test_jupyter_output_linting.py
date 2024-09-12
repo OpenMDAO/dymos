@@ -1,6 +1,5 @@
 import unittest
 import os.path
-import pathlib
 import json
 
 exclude = [
@@ -46,7 +45,7 @@ class LintJupyterOutputsTestCase(unittest.TestCase):
                     for i in json_data['cells']:
                         if 'execution_count' in i and i['execution_count'] is not None:
                             msg = "Clear output with 'jupyter nbconvert  --clear-output " \
-                                  f"--inplace path_to_notebook.ipynb'"
+                                  "--inplace path_to_notebook.ipynb'"
                             self.fail(f"Output found in {file}.\n{msg}")
 
     def test_header(self):
@@ -56,21 +55,21 @@ class LintJupyterOutputsTestCase(unittest.TestCase):
         header = ["# This cell is mandatory in all Dymos documentation notebooks.\n",
                   "missing_packages = []\n",
                   "try:\n",
-                  "    import openmdao.api as om\n",
+                  "    import openmdao.api as om  # noqa: F401\n",
                   "except ImportError:\n",
                   "    if 'google.colab' in str(get_ipython()):\n",
                   "        !python -m pip install openmdao[notebooks]\n",
                   "    else:\n",
                   "        missing_packages.append('openmdao')\n",
                   "try:\n",
-                  "    import dymos as dm\n",
+                  "    import dymos as dm  # noqa: F401\n",
                   "except ImportError:\n",
                   "    if 'google.colab' in str(get_ipython()):\n",
                   "        !python -m pip install dymos\n",
                   "    else:\n",
                   "        missing_packages.append('dymos')\n",
                   "try:\n",
-                  "    import pyoptsparse\n",
+                  "    import pyoptsparse  # noqa: F401\n",
                   "except ImportError:\n",
                   "    if 'google.colab' in str(get_ipython()):\n",
                   "        !pip install -q condacolab\n",
@@ -81,7 +80,7 @@ class LintJupyterOutputsTestCase(unittest.TestCase):
                   "        missing_packages.append('pyoptsparse')\n",
                   "if missing_packages:\n",
                   "    raise EnvironmentError('This notebook requires the following packages '\n",
-                  "                           'please install them and restart this notebook\\'s runtime: {\",\".join(missing_packages)}')"]
+                  "                           'please install them and restart this notebook\\'s runtime: {\",\".join(missing_packages)}')"]  # noqa: E501
 
         mpi_header = ['%pylab inline\n',
                       'from ipyparallel import Client, error\n',

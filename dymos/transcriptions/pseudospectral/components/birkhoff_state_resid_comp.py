@@ -1,14 +1,11 @@
 import numpy as np
 
-import openmdao
 import openmdao.api as om
 
 from openmdao.utils.general_utils import ensure_compatible
 
-from ...._options import options as dymos_options
-
-
-_om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
+from dymos._options import options as dymos_options
+from dymos.utils.misc import om_version
 
 
 class BirkhoffStateResidComp(om.ImplicitComponent):
@@ -52,7 +49,7 @@ class BirkhoffStateResidComp(om.ImplicitComponent):
         self.add_input(name, **kwargs)
         self.add_residual(resid_name, **kwargs)
 
-        if _om_version > (3, 31, 1):
+        if om_version()[0] > (3, 31, 1):
             self.declare_partials(of=resid_name, wrt=name, rows=ar, cols=ar, val=1.0)
         else:
             self.declare_partials(of='*', wrt='*', method='fd')

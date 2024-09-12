@@ -236,8 +236,6 @@ class ODEEvaluationGroup(om.Group):
             else:
                 shape = options['shape']
 
-            static_target = [tgt for tgt, meta in targets.items() if 'dymos.static_target' in meta['tags']]
-
             self._ivc.add_output(var_name, shape=shape, units=units)
             self.add_design_var(var_name)
 

@@ -1,8 +1,6 @@
 """Unit Tests for the code that does automatic report generation"""
 import unittest
-import pathlib
 import os
-from packaging.version import Version
 
 import openmdao
 import openmdao.api as om
@@ -15,9 +13,7 @@ from openmdao.visualization.scaling_viewer.scaling_report import _default_scalin
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-
-
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
+from dymos.utils.misc import om_version
 
 
 def setup_model_radau(do_reports, probname):
@@ -140,20 +136,19 @@ class TestSubproblemReportToggle(unittest.TestCase):
         if self.testflo_running is not None:
             os.environ['TESTFLO_RUNNING'] = self.testflo_running
 
-    @unittest.skipIf(om_version <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
+    @unittest.skipIf(om_version()[0] <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
     @hooks_active
     def test_no_sim_reports(self):
         p = setup_model_radau(do_reports=False, probname='test_no_sim_reports')
 
         main_outputs_dir = p.get_outputs_dir()
-        main_reports_dir = p.get_reports_dir()
 
         sim_outputs_dir = main_outputs_dir / 'traj0_simulation_out'
         sim_reports_dir = sim_outputs_dir / 'reports'
 
         self.assertFalse(sim_reports_dir.exists())
 
-    @unittest.skipIf(om_version <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
+    @unittest.skipIf(om_version()[0] <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
     @hooks_active
     def test_make_sim_reports(self):
         p = setup_model_radau(do_reports=True, probname='test_make_sim_reports')
@@ -167,7 +162,7 @@ class TestSubproblemReportToggle(unittest.TestCase):
         self.assertTrue(sim_reports_dir.exists())
         self.assertTrue((sim_reports_dir / self.n2_filename).exists())
 
-    @unittest.skipIf(om_version <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
+    @unittest.skipIf(om_version()[0] <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
     @hooks_active
     def test_explicitshooting_no_subprob_reports(self):
         p = setup_model_shooting(do_reports=False,
@@ -183,7 +178,7 @@ class TestSubproblemReportToggle(unittest.TestCase):
         self.assertIn(self.n2_filename, main_reports)
         self.assertIn(self.scaling_filename, main_reports)
 
-    @unittest.skipIf(om_version <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
+    @unittest.skipIf(om_version()[0] <= (3, 34, 2), 'Requires OpenMDAO version later than 3.34.2')
     @hooks_active
     def test_explicitshooting_make_subprob_reports(self):
         p = setup_model_shooting(do_reports=True,

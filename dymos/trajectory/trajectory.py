@@ -11,7 +11,6 @@ from openmdao.utils.units import unit_conversion
 import numpy as np
 import networkx as nx
 
-import openmdao
 import openmdao.api as om
 from openmdao.utils.mpi import MPI
 
@@ -22,12 +21,9 @@ from .phase_linkage_comp import PhaseLinkageComp
 from ..phase.analytic_phase import AnalyticPhase
 from ..phase.options import TrajParameterOptionsDictionary
 from ..transcriptions.common import ParameterComp
-from ..utils.misc import create_subprob, get_rate_units, _unspecified, _none_or_unspecified
+from ..utils.misc import create_subprob, get_rate_units, om_version, \
+    _unspecified, _none_or_unspecified
 from ..utils.introspection import get_promoted_vars, get_source_metadata, _get_common_metadata
-from .._options import options as dymos_options
-
-
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 class Trajectory(om.Group):
@@ -502,7 +498,7 @@ class Trajectory(om.Group):
                 if targets is None:
                     reason = f'Option `targets=None` but no phase in the trajectory has a parameter named `{name}`.'
                 elif all([t is None for t in targets.values()]) and targets.keys() == self._phases.keys():
-                    reason = f'Option `targets` is a dictionary keyed by phase name but target for each phase is None.'
+                    reason = 'Option `targets` is a dictionary keyed by phase name but target for each phase is None.'
                 else:
                     reason = ''
                 raise ValueError(f'No target was found for trajectory parameter `{name}` in any phase.\n{reason}')
@@ -667,7 +663,7 @@ class Trajectory(om.Group):
                                                user_shape=_unspecified)
                     shapes[i] = meta['shape']
                     units[i] = meta['units']
-                except ValueError as e:
+                except ValueError:
                     raise RuntimeError(f'{info_str}Error in linking {var_a} from {phase_name_a} to {var_b} in '
                                        f'{phase_name_b}. Unable to find variable \'{vars[i]}\' in phase '
                                        f'\'{phases[i].pathname}\' or its ODE.')
@@ -1373,7 +1369,7 @@ class Trajectory(om.Group):
                         name = options['constraint_name']
                     else:
                         name = options['name']
-                    _, shape, units, linear = tx._get_objective_src(name, loc, phase, ode_outputs=ode_outputs)
+                    _, _, units, _ = tx._get_objective_src(name, loc, phase, ode_outputs=ode_outputs)
 
                     equals = options['equals']
                     lower = options['lower']
@@ -1492,10 +1488,10 @@ class Trajectory(om.Group):
             # fault of the user.
             warnings.filterwarnings(action='ignore', category=om.UnusedOptionWarning)
             warnings.filterwarnings(action='ignore', category=om.SetupWarning)
-            if om_version <= (3, 42, 2):
-                sim_prob.setup(check=True)
+            if om_version()[0] <= (3, 34, 2):
+                sim_prob.setup(check=False)
             else:
-                sim_prob.setup(check=True, parent=self)
+                sim_prob.setup(check=False, parent=self)
             sim_prob.final_setup()
 
         # Assign trajectory parameter values

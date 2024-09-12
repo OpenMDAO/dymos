@@ -2,7 +2,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
-from matplotlib.patches import FancyArrowPatch, Arc
+from matplotlib.patches import FancyArrowPatch
 
 LW = 2
 

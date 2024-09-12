@@ -6,6 +6,8 @@ import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.assert_utils import assert_near_equal
 
+from dymos.utils.misc import om_version
+
 
 class BrachistochroneODE(om.ExplicitComponent):
 
@@ -68,7 +70,6 @@ class BrachistochroneODE(om.ExplicitComponent):
 class TestBrachistochroneTimeseriesFeedback(unittest.TestCase):
 
     def test_timeseries_feedback(self):
-        import itertools
         import numpy as np
         import openmdao.api as om
         import dymos as dm
@@ -149,8 +150,14 @@ class TestBrachistochroneTimeseriesFeedback(unittest.TestCase):
         # Run the driver to solve the problem
         dm.run_problem(p, run_driver=True, simulate=True)
 
-        sol_case = om.CaseReader('dymos_solution.db').get_case('final')
-        sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+            sim_db = traj.sim_prob.get_outputs_dir() / sim_db
+
+        sol_case = om.CaseReader(sol_db).get_case('final')
+        sim_case = om.CaseReader(sim_db).get_case('final')
 
         final_time_timeseries_sol = sol_case.get_val('traj.phase0.timeseries.time')[-1, ...]
         final_time_traj_param_sol = sol_case.get_val('traj.parameter_vals:final_time')[0, 0]

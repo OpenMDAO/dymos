@@ -8,7 +8,7 @@ from .components import BirkhoffIterGroup, BirkhoffBoundaryGroup
 
 from ..grid_data import BirkhoffGrid
 from dymos.utils.misc import get_rate_units
-from dymos.utils.introspection import get_promoted_vars, get_source_metadata, get_targets
+from dymos.utils.introspection import get_promoted_vars, get_source_metadata
 from dymos.utils.indexing import get_constraint_flat_idxs, get_src_indices_by_row
 
 
@@ -240,12 +240,6 @@ class Birkhoff(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        grid_data = self.grid_data
-        nn = grid_data.subset_num_nodes['all']
-        map_input_indices_to_disc = grid_data.input_maps['state_input_to_disc']
-        ode = phase._get_subsystem(self._rhs_source)
-        ode_inputs = get_promoted_vars(ode, 'input')
-
         phase._get_subsystem('boundary_vals').configure_io(phase)
         phase._get_subsystem('ode_iter_group').configure_io(phase)
 
@@ -269,8 +263,6 @@ class Birkhoff(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        grid_data = self.grid_data
-
         for name, options in phase.state_options.items():
             rate_source_type = phase.classify_var(options['rate_source'])
             rate_src_path = self._get_rate_source_path(name, phase)
@@ -342,33 +334,16 @@ class Birkhoff(TranscriptionBase):
         for timeseries_name, timeseries_options in phase._timeseries.items():
             timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
             ts_inputs_to_promote = []
-            for ts_output_name, ts_output in timeseries_options['outputs'].items():
-                name = ts_output['output_name'] if ts_output['output_name'] is not None else ts_output['name']
-                units = ts_output['units']
-                shape = ts_output['shape']
-                src = ts_output['src']
-                is_rate = ts_output['is_rate']
-
-                added_src = timeseries_comp._add_output_configure(name,
-                                                                  shape=shape,
-                                                                  units=units,
-                                                                  desc='',
-                                                                  src=src,
-                                                                  rate=is_rate)
-
-                if added_src:
-                    # If the src was added, promote it if it was a state,
-                    # or connect it otherwise.
-                    if src.startswith('states:'):
-                        var_name = ts_output["output_name"]
-                        state_name = src.split(':')[-1]
-                        ts_inputs_to_promote.append((f'input_values:{name}',
-                                                    f'states:{state_name}'))
-                    else:
-                        phase.connect(src_name=src,
-                                      tgt_name=f'{timeseries_name}.input_values:{name}',
-                                      src_indices=ts_output['src_idxs'])
-
+            for input_name, src, src_idxs in timeseries_comp._configure_io(timeseries_options):
+                # If the src was added, promote it if it was a state,
+                # or connect it otherwise.
+                if src.startswith('states:'):
+                    state_name = src.split(':')[-1]
+                    ts_inputs_to_promote.append((input_name, f'states:{state_name}'))
+                else:
+                    phase.connect(src_name=src,
+                                  tgt_name=f'{timeseries_name}.{input_name}',
+                                  src_indices=src_idxs)
             phase.promotes(timeseries_name, inputs=ts_inputs_to_promote)
 
     def setup_timeseries_outputs(self, phase):
@@ -614,7 +589,6 @@ class Birkhoff(TranscriptionBase):
         ndarray
             Array of source indices.
         """
-        gd = self.grid_data
         try:
             var = phase.state_options[state_name]['rate_source']
         except RuntimeError:
@@ -653,11 +627,6 @@ class Birkhoff(TranscriptionBase):
             rate_path = f'control_rates:{control_name}_rate2'
         elif var_type == 'parameter':
             rate_path = f'parameter_vals:{var}'
-            dynamic = not phase.parameter_options[var]['static_target']
-            if dynamic:
-                node_idxs = np.zeros(gd.subset_num_nodes['col'], dtype=int)
-            else:
-                node_idxs = np.zeros(1, dtype=int)
         else:
             # Failed to find variable, assume it is in the ODE
             rate_path = f'ode_all.{var}'

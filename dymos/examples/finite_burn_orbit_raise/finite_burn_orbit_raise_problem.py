@@ -1,10 +1,10 @@
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.mpi import MPI
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
+from dymos.utils.misc import om_version
 
 
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=False,
@@ -308,8 +308,14 @@ if __name__ == '__main__':  # pragma: no cover
                                      compressed=False, optimizer=optimizer, simulate=True,
                                      connected=CONNECTED, show_output=False)
 
-    sol_case = om.CaseReader('dymos_solution.db').get_case('final')
-    sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
+    sol_db = 'dymos_solution.db'
+    sim_db = 'dymos_simulation.db'
+    if om_version()[0] > (3, 34, 2):
+        sol_db = p.get_outputs_dir() / sol_db
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+    sol_case = om.CaseReader(sol_db).get_case('final')
+    sim_case = om.CaseReader(sim_db).get_case('final')
 
     # The last phase in this case is run in reverse time if CONNECTED=True,
     # so grab the correct index to test the resulting delta-V.

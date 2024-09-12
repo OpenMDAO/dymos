@@ -27,7 +27,7 @@ def setup_surrogates_all(model_name='CRM'):
     for i in range(M_num):
         for j in range(a_num):
             for k in range(h_num):
-                for l in range(e_num):
+                for l in range(e_num):  # noqa: E741, allow ambiguous variable name 'l'
                     interp_CL[i][j][k][l] = CL[count]
                     interp_CD[i][j][k][l] = CD[count]
                     interp_CM[i][j][k][l] = CM[count]

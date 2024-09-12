@@ -1,6 +1,5 @@
 import unittest
 import numpy as np
-import openmdao
 from numpy.polynomial import Polynomial as P
 try:
     import matplotlib.pyplot as plt
@@ -15,10 +14,8 @@ from dymos.utils.introspection import get_promoted_vars
 
 import dymos as dm
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
-
+from dymos.utils.misc import om_version
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-
-om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
@@ -180,13 +177,18 @@ class TestMinTimeClimb(unittest.TestCase):
         ts = {k: v for k, v in output_dict.items() if 'timeseries.' in k}
         self.assertTrue('traj.phase0.timeseries.mach_rate' in ts)
 
-        case = om.CaseReader('dymos_solution.db').get_case('final')
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sol_db
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        case = om.CaseReader(sol_db).get_case('final')
+        sim_case = om.CaseReader(sol_db).get_case('final')
 
         time = case[f'traj.phase0.timeseries.{time_name}'][:, 0]
         mach = case['traj.phase0.timeseries.mach'][:, 0]
         mach_rate = case['traj.phase0.timeseries.mach_rate'][:, 0]
-
-        sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
 
         sim_time = sim_case[f'traj.phase0.timeseries.{time_name}'][:, 0]
         sim_mach = sim_case['traj.phase0.timeseries.mach'][:, 0]
@@ -239,7 +241,7 @@ class TestMinTimeClimb(unittest.TestCase):
             assert_near_equal(mach_rate_nodes, deriv(time_nodes), tolerance=1.0E-9)
 
         # Comparing the mach rate over the entire trajectory since it is expected to be off at some points due to
-        # the equidistant time-spacing of nodes in SolveIVP's timeseries outputs.
+        # the equidistant time-spacing of nodes in ExplicitShooting's timeseries outputs.
         assert_timeseries_near_equal(t_ref=time, x_ref=mach_rate, t_check=sim_time, x_check=sim_mach_rate,
                                      abs_tolerance=0.02, rel_tolerance=0.02)
 
@@ -277,7 +279,7 @@ class TestMinTimeClimb(unittest.TestCase):
         self._test_mach_rate(p, plot=False)
 
     @require_pyoptsparse(optimizer='IPOPT')
-    @unittest.skipIf(om_version < (3, 32, 2), 'Test requires OpenMDAO 3.31.2 or later')
+    @unittest.skipIf(om_version()[0] < (3, 32, 2), 'Test requires OpenMDAO 3.32.2 or later')
     def test_results_birkhoff(self):
         NUM_SEG = 1
         ORDER = 30

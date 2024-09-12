@@ -7,6 +7,7 @@ import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
+from dymos.utils.misc import om_version
 
 
 class BrachODEStaticOutput(om.ExplicitComponent):
@@ -121,7 +122,7 @@ class TestStaticODEOutput(unittest.TestCase):
         p.driver.declare_coloring()
 
         # Setup the problem
-        with warnings.catch_warnings(record=True) as ctx:
+        with warnings.catch_warnings(record=True):
             warnings.simplefilter('always')
             p.setup(check=True)
 
@@ -137,8 +138,14 @@ class TestStaticODEOutput(unittest.TestCase):
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=False)
 
-        sol = om.CaseReader('dymos_solution.db').get_case('final')
-        sim = om.CaseReader('dymos_simulation.db').get_case('final')
+        sol_db = 'dymos_solution.db'
+        sim_db = 'dymos_simulation.db'
+        if om_version()[0] > (3, 34, 2):
+            sol_db = p.get_outputs_dir() / sim_db
+            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+
+        sol = om.CaseReader(sim_db).get_case('final')
+        sim = om.CaseReader(sim_db).get_case('final')
 
         with self.assertRaises(expected_exception=KeyError) as e:
             sol.get_val('traj.phase0.timeseries.foo')

@@ -305,6 +305,7 @@ jobs:
           pipdeptree
 
       - name: 'Upload environment artifact'
+        if: env.RUN_BUILD
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.NAME }}_environment
@@ -312,6 +313,7 @@ jobs:
           retention-days: 5
 
       - name: Check NumPy 2.0 Compatibility
+        if: env.RUN_BUILD
         run: |
           echo "============================================================="
           echo "Check Dymos code for NumPy 2.0 compatibility"
@@ -319,6 +321,15 @@ jobs:
           echo "============================================================="
           python -m pip install ruff
           ruff check . --select NPY201
+
+      - name: Perform linting with Ruff
+        if: env.RUN_BUILD && matrix.NAME == 'baseline'
+        run: |
+          echo "============================================================="
+          echo "Lint Dymos code per settings in pyproject.toml"
+          echo "============================================================="
+          python -m pip install ruff
+          ruff check . --config pyproject.toml
 
       - name: Run tests
         if: env.RUN_BUILD
