@@ -191,4 +191,8 @@ class CubicSplineControlInterpComp(om.ExplicitComponent):
                     input_name, output_name, rate_name, rate2_name = self._control_io_names[control_name]
                     order = options['order']
                     poly = np.polyfit(self._polynomial_control_nodes[control_name], inputs[input_name].ravel(), order)
+                    der1 = np.polyder(poly)
+                    der2 = np.polyder(der1)
                     outputs[output_name] = np.polyval(poly, ptau)
+                    outputs[rate_name] = np.polyval(der1, ptau)
+                    outputs[rate2_name] = np.polyval(der2, ptau)
