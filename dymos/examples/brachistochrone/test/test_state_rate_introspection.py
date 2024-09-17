@@ -298,6 +298,7 @@ class TestIntegrateControl(unittest.TestCase):
 
         # Set the driver.
         p.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+        p.driver.opt_settings['ACC'] = 1e-9
 
         # Allow OpenMDAO to automatically determine our sparsity pattern.
         # Doing so can significant speed up the execution of Dymos.
