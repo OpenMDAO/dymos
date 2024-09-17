@@ -51,6 +51,7 @@ class CubicSplineControlInterpComp(om.ExplicitComponent):
         self._control_io_names = {}
         self._polynomial_control_nodes = {}
         self.num_uhat_nodes = None
+        self._input_grid = []
 
         super().__init__(**kwargs)
 
@@ -92,6 +93,10 @@ class CubicSplineControlInterpComp(om.ExplicitComponent):
                 self.add_output(rate_name, shape=output_shape, units=rate_units)
                 self.add_output(rate2_name, shape=output_shape, units=rate2_units)
                 self._control_io_names[control_name] = (input_name, output_name, rate_name, rate2_name)
+
+                input_ptau_grid = self._grid_data.node_ptau[self._grid_data.subset_node_indices['control_input']]
+                _, self._input_grid = np.unique(input_ptau_grid, return_index=True)
+
             else:
                 order = options['order']
                 shape = options['shape']
@@ -177,12 +182,12 @@ class CubicSplineControlInterpComp(om.ExplicitComponent):
                     rate2 = np.zeros((vec_size, size))
 
                     for i in range(size):
-                        spl = CubicSpline(ptau_grid[input_node_idxs],
-                                          inputs[input_name].flatten('F')[self.num_uhat_nodes*i:
-                                                                          self.num_uhat_nodes*(i+1)])
+                        spl = CubicSpline(ptau_grid[input_node_idxs][self._input_grid],
+                                          inputs[input_name][self._input_grid].flatten('F')[self.num_uhat_nodes*i:
+                                                                                            self.num_uhat_nodes*(i+1)])
                         out[:, i] = spl(ptau)
-                        rate[:, i] = spl(ptau, nu=1)
-                        rate2[:, i] = spl(ptau, nu=2)
+                        rate[:, i] = spl(ptau, nu=1) / (0.5 * inputs['t_duration'])
+                        rate2[:, i] = spl(ptau, nu=2) / (0.5 * inputs['t_duration'])**2
 
                     outputs[output_name] = out.reshape((vec_size,) + shape, order='F')
                     outputs[rate_name] = rate.reshape((vec_size,) + shape, order='F')
@@ -194,5 +199,5 @@ class CubicSplineControlInterpComp(om.ExplicitComponent):
                     der1 = np.polyder(poly)
                     der2 = np.polyder(der1)
                     outputs[output_name] = np.polyval(poly, ptau)
-                    outputs[rate_name] = np.polyval(der1, ptau)
-                    outputs[rate2_name] = np.polyval(der2, ptau)
+                    outputs[rate_name] = np.polyval(der1, ptau) / (0.5 * inputs['t_duration'])
+                    outputs[rate2_name] = np.polyval(der2, ptau) / (0.5 * inputs['t_duration'])**2
