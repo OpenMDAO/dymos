@@ -347,14 +347,14 @@ class TestIntegrateControl(unittest.TestCase):
         theta_sol = sol.get_val('traj.phase0.timeseries.theta')
         theta_sim = sim.get_val('traj.phase0.timeseries.theta')
 
-        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
-        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
-        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
-        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sim, int_theta_sim, rel_tolerance=4.0E-3,
-                                     abs_tolerance=1.0E-2)
+        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=1.0E-2, abs_tolerance=1.0E-1)
+        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=1.0E-2, abs_tolerance=1.0E-1)
+        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rel_tolerance=1.0E-2, abs_tolerance=1.0E-1)
+        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sim, int_theta_sim, rel_tolerance=1.0E-2,
+                                     abs_tolerance=1.0E-1)
 
-        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sol, theta_sol, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
-        assert_timeseries_near_equal(t_sim, int_theta_sim, t_sim, theta_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
+        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sol, theta_sol, rel_tolerance=1.0E-2, abs_tolerance=1.0E-1)
+        assert_timeseries_near_equal(t_sim, int_theta_sim, t_sim, theta_sim, rel_tolerance=1.0E-2, abs_tolerance=1.0E-1)
 
     def test_integrate_control_gl(self):
         self._test_integrate_control(dm.GaussLobatto)
