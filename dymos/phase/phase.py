@@ -2537,7 +2537,7 @@ class Phase(om.Group):
         reports : bool or None or str or Sequence
             The reports setting for the subproblem run under each simulation segment.
         interpolant : str
-            The interpolation method to be used for the controls in the simulation phase
+            The interpolation method to be used for the controls in the simulation phase.
 
         Returns
         -------
@@ -2721,7 +2721,7 @@ class Phase(om.Group):
         reports : bool or None or str or Sequence
             Reports setting for the subproblems run under simualate.
         interpolant : str
-            The interpolation method to be used for the controls in the simulation phase
+            The interpolation method to be used for the controls in the simulation phase.
 
         Returns
         -------
