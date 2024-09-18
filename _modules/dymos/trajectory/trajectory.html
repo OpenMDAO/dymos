@@ -2118,7 +2118,7 @@ title="Open an issue"
 
 <div class="viewcode-block" id="Trajectory.simulate"><a class="viewcode-back" href="../../../api/trajectory_api.html#dymos.Trajectory.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">times_per_seg</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                  <span class="n">first_step</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">max_step</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">record_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">case_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">reset_iter_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">reports</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                 <span class="n">reset_iter_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">reports</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interpolant</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Simulate the Trajectory using scipy.integrate.solve_ivp.</span>
 
@@ -2146,6 +2146,8 @@ title="Open an issue"
 <span class="sd">            If True and model has been run previously, reset all iteration counters.</span>
 <span class="sd">        reports : bool or None or str or Sequence</span>
 <span class="sd">            Reports setting for the subproblems run under simualate.</span>
+<span class="sd">        interpolant : str</span>
+<span class="sd">            The interpolation method to be used for the controls in the simulation phase.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2161,7 +2163,8 @@ title="Open an issue"
                 <span class="k">continue</span>
             <span class="n">sim_phs</span> <span class="o">=</span> <span class="n">phs</span><span class="o">.</span><span class="n">get_simulation_phase</span><span class="p">(</span><span class="n">times_per_seg</span><span class="o">=</span><span class="n">times_per_seg</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
                                                <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">,</span> <span class="n">first_step</span><span class="o">=</span><span class="n">first_step</span><span class="p">,</span>
-                                               <span class="n">max_step</span><span class="o">=</span><span class="n">max_step</span><span class="p">,</span> <span class="n">reports</span><span class="o">=</span><span class="n">reports</span><span class="p">)</span>
+                                               <span class="n">max_step</span><span class="o">=</span><span class="n">max_step</span><span class="p">,</span> <span class="n">reports</span><span class="o">=</span><span class="n">reports</span><span class="p">,</span>
+                                               <span class="n">interpolant</span><span class="o">=</span><span class="n">interpolant</span><span class="p">)</span>
             <span class="n">sim_traj</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">sim_phs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">sim_traj</span><span class="o">.</span><span class="n">_phases</span><span class="p">:</span>

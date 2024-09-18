@@ -3209,7 +3209,7 @@ title="Open an issue"
 
     <span class="k">def</span> <span class="nf">get_simulation_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">times_per_seg</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                              <span class="n">rtol</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">first_step</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">max_step</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
-                             <span class="n">reports</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                             <span class="n">reports</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interpolant</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a SimulationPhase instance that is essentially a copy of this Phase.</span>
 
@@ -3236,6 +3236,8 @@ title="Open an issue"
 <span class="sd">            Maximum step size for the integration.</span>
 <span class="sd">        reports : bool or None or str or Sequence</span>
 <span class="sd">            The reports setting for the subproblem run under each simulation segment.</span>
+<span class="sd">        interpolant : str</span>
+<span class="sd">            The interpolation method to be used for the controls in the simulation phase.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -3292,7 +3294,7 @@ title="Open an issue"
                               <span class="n">rtol</span><span class="o">=</span><span class="n">_rtol</span><span class="p">,</span>
                               <span class="n">first_step</span><span class="o">=</span><span class="n">_first_step</span><span class="p">,</span>
                               <span class="n">max_step</span><span class="o">=</span><span class="n">_max_step</span><span class="p">,</span>
-                              <span class="n">control_interp</span><span class="o">=</span><span class="s1">&#39;barycentric&#39;</span><span class="p">)</span>
+                              <span class="n">control_interp</span><span class="o">=</span><span class="n">interpolant</span><span class="p">)</span>
 
         <span class="n">sim_phase</span> <span class="o">=</span> <span class="n">SimulationPhase</span><span class="p">(</span><span class="n">transcription</span><span class="o">=</span><span class="n">tx</span><span class="p">,</span>
                                     <span class="n">ode_class</span><span class="o">=</span><span class="n">ode_class</span><span class="p">,</span>
@@ -3393,7 +3395,8 @@ title="Open an issue"
             <span class="n">prob</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="n">prob_path</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Phase.simulate"><a class="viewcode-back" href="../../../api/phase_api.html#dymos.Phase.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">times_per_seg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
-                 <span class="n">first_step</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">max_step</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">record_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reports</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                 <span class="n">first_step</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">max_step</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">record_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reports</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">interpolant</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Simulate the Phase using scipy.integrate.solve_ivp.</span>
 
@@ -3417,6 +3420,8 @@ title="Open an issue"
 <span class="sd">            If None, no record of the simulation will be saved.</span>
 <span class="sd">        reports : bool or None or str or Sequence</span>
 <span class="sd">            Reports setting for the subproblems run under simualate.</span>
+<span class="sd">        interpolant : str</span>
+<span class="sd">            The interpolation method to be used for the controls in the simulation phase.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -3430,7 +3435,7 @@ title="Open an issue"
                                                   <span class="n">reports</span><span class="o">=</span><span class="n">reports</span><span class="p">)</span>
 
         <span class="n">sim_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_simulation_phase</span><span class="p">(</span><span class="n">times_per_seg</span><span class="o">=</span><span class="n">times_per_seg</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">,</span>
-                                              <span class="n">first_step</span><span class="o">=</span><span class="n">first_step</span><span class="p">,</span> <span class="n">max_step</span><span class="o">=</span><span class="n">max_step</span><span class="p">)</span>
+                                              <span class="n">first_step</span><span class="o">=</span><span class="n">first_step</span><span class="p">,</span> <span class="n">max_step</span><span class="o">=</span><span class="n">max_step</span><span class="p">,</span> <span class="n">interpolant</span><span class="o">=</span><span class="n">interpolant</span><span class="p">)</span>
 
         <span class="n">sim_prob</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">sim_phase</span><span class="p">)</span>
 

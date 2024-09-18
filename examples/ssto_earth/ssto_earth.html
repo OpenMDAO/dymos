@@ -806,8 +806,8 @@ It finds the pitch profile for a single-stage-to-orbit launch vehicle that minim
 required to reach orbit insertion under constant thrust.</p>
 <p><img alt="The free-body-diagram of the single-stage-to-orbit problem." src="../../_images/ssto_fbd.png" /></p>
 <p>The vehicle dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-de7124b8-49d5-4576-b395-b8c3600ff674">
-<span class="eqno">(84)<a class="headerlink" href="#equation-de7124b8-49d5-4576-b395-b8c3600ff674" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-3d285a27-12f7-4021-81f3-fc1748a07ec8">
+<span class="eqno">(84)<a class="headerlink" href="#equation-3d285a27-12f7-4021-81f3-fc1748a07ec8" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dx}{dt} &amp;= v_x \\
   \frac{dy}{dt} &amp;= v_y \\
   \frac{dv_x}{dt} &amp;= \frac{1}{m} (T \cos \theta - D \cos \gamma) \\
@@ -815,8 +815,8 @@ required to reach orbit insertion under constant thrust.</p>
   \frac{dm}{dt} &amp;= \frac{T}{g I_{sp}}
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-df463fa9-9ab5-4953-961e-9846338d11b2">
-<span class="eqno">(85)<a class="headerlink" href="#equation-df463fa9-9ab5-4953-961e-9846338d11b2" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-761568cb-d9b4-4382-919f-a855dce0acfe">
+<span class="eqno">(85)<a class="headerlink" href="#equation-761568cb-d9b4-4382-919f-a855dce0acfe" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_0 &amp;= 0 \\
   y_0 &amp;= 0 \\
   v_{x0} &amp;= 0 \\
@@ -824,8 +824,8 @@ required to reach orbit insertion under constant thrust.</p>
   m_0 &amp;= 117000 \rm{\,kg}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-8010ae85-af6f-4dab-b511-a6bb060e16bf">
-<span class="eqno">(86)<a class="headerlink" href="#equation-8010ae85-af6f-4dab-b511-a6bb060e16bf" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-b7ed4023-c50a-4f7b-97cf-557c5916089b">
+<span class="eqno">(86)<a class="headerlink" href="#equation-b7ed4023-c50a-4f7b-97cf-557c5916089b" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_f &amp;= \rm{free} \\
   y_f &amp;= 185 \rm{\,km} \\
   v_{xf} &amp;= V_{circ} \\
@@ -1117,23 +1117,24 @@ FWD solves: 5   REV solves: 0
 Total colors vs. total size: 5 vs 168  (97.02% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0252 sec
-Time to compute coloring:   0.0131 sec
-Memory to compute coloring:   0.2500 MB
-
-Coloring for &#39;traj.phases.phase0.rhs_col&#39; (class LaunchVehicleODE)
+Time to compute sparsity:   0.0250 sec
+Time to compute coloring:   0.0128 sec
+Memory to compute coloring:   0.1250 MB
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.phase0.rhs_col&#39; (class LaunchVehicleODE)
 
 Jacobian shape: (72, 84)  (2.98% nonzero)
 FWD solves: 5   REV solves: 0
 Total colors vs. total size: 5 vs 84  (94.05% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0122 sec
-Time to compute coloring:   0.0065 sec
+Time to compute sparsity:   0.0123 sec
+Time to compute coloring:   0.0064 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.08253424299994094 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.0827348149999807 seconds.
 Total jacobian shape: (74, 152) 
 
 
@@ -1142,10 +1143,10 @@ FWD solves: 12   REV solves: 0
 Total colors vs. total size: 12 vs 152  (92.11% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.0825 sec
-Time to compute coloring:   0.0556 sec
+Time to compute sparsity:   0.0827 sec
+Time to compute coloring:   0.0551 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-08-29 21:50:59
+Coloring created on: 2024-09-18 14:41:37
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1154,11 +1155,11 @@ Coloring created on: 2024-08-29 21:50:59
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    1.6644
-       User Objective Time :       0.0862
-       User Sensitivity Time :     0.9607
-       Interface Time :            0.1474
-       Opt Solver Time:            0.4701
+    Total Time:                    1.6418
+       User Objective Time :       0.0824
+       User Sensitivity Time :     0.9576
+       Interface Time :            0.1447
+       Opt Solver Time:            0.4571
     Calls to Objective Function :      51
     Calls to Sens Function :           48
 
@@ -1476,7 +1477,7 @@ Coloring created on: 2024-08-29 21:50:59
   ax.set_ylim([ymin_plot, ymax_plot])
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1104: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:theta_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1109: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:theta_rate, ode_eval.control_interp.control_rates:theta_rate2, ode_eval.control_interp.control_values:theta] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
@@ -1490,11 +1491,11 @@ Model viewer data has already been recorded for Driver.
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 53
-  runtime     : 1.9330E+00 s
+  runtime     : 1.9091E+00 s
   model_evals : 53
-  model_time  : 6.2872E-02 s
+  model_time  : 6.0339E-02 s
   deriv_evals : 49
-  deriv_time  : 7.5712E-01 s
+  deriv_time  : 7.5181E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -1554,7 +1555,7 @@ Driver:  pyOptSparseDriver
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../../_images/83b2d60baae08fd74522e85207bb0ec8797dad7ccb6009fcfb8032a424beb035.png" src="../../_images/83b2d60baae08fd74522e85207bb0ec8797dad7ccb6009fcfb8032a424beb035.png" />
+<img alt="../../_images/9ecab3d37540e1b393cfed8aa17914cb18a7fcc2e19f80dcdfa7232716ea35f1.png" src="../../_images/9ecab3d37540e1b393cfed8aa17914cb18a7fcc2e19f80dcdfa7232716ea35f1.png" />
 </div>
 </div>
 </section>

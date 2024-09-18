@@ -959,10 +959,10 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/recorders/sqlite_recorder.py:231: UserWarning:The existing case recorder file, problem_out/dymos_solution.db, is being overwritten.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/recorders/sqlite_recorder.py:231: UserWarning:The existing case recorder file, /home/runner/work/dymos/dymos/docs/dymos_book/examples/brachistochrone/problem_out/dymos_solution.db, is being overwritten.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.07799354599995922 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.07742070199998352 seconds.
 Total jacobian shape: (40, 50) 
 
 
@@ -971,10 +971,10 @@ FWD solves: 8   REV solves: 0
 Total colors vs. total size: 8 vs 50  (84.00% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0780 sec
-Time to compute coloring:   0.0216 sec
+Time to compute sparsity:   0.0774 sec
+Time to compute coloring:   0.0218 sec
 Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-08-29 21:45:45
+Coloring created on: 2024-09-18 14:36:28
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -986,7 +986,7 @@ Optimization Complete
 -----------------------------------
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1104: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:theta_rate2] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1109: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:theta_rate, ode_eval.control_interp.control_rates:theta_rate2, ode_eval.control_interp.control_values:theta] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
@@ -998,11 +998,11 @@ Done simulating trajectory traj
 Driver:  ScipyOptimizeDriver
   success     : True
   iterations  : 41
-  runtime     : 6.8131E-01 s
+  runtime     : 6.9400E-01 s
   model_evals : 41
-  model_time  : 2.6578E-02 s
+  model_time  : 2.6559E-02 s
   deriv_evals : 39
-  deriv_time  : 1.9839E-01 s
+  deriv_time  : 2.0240E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -1044,7 +1044,7 @@ Driver:  ScipyOptimizeDriver
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/95745ee4dc617eb2f6d268eab3648ddb9c23eb191b3443b44a5064108542c60f.png" src="../../_images/95745ee4dc617eb2f6d268eab3648ddb9c23eb191b3443b44a5064108542c60f.png" />
+<img alt="../../_images/7d0b92cf4655af1364e23bbab5db69a4734977df7bce9b5e991b3b7ce70ea6fc.png" src="../../_images/7d0b92cf4655af1364e23bbab5db69a4734977df7bce9b5e991b3b7ce70ea6fc.png" />
 </div>
 </div>
 </section>
