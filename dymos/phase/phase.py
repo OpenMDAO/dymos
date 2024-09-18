@@ -2509,7 +2509,7 @@ class Phase(om.Group):
 
     def get_simulation_phase(self, times_per_seg=_unspecified, method=_unspecified, atol=_unspecified,
                              rtol=_unspecified, first_step=_unspecified, max_step=_unspecified,
-                             reports=False):
+                             reports=False, interpolant='cubic'):
         """
         Return a SimulationPhase instance that is essentially a copy of this Phase.
 
@@ -2536,6 +2536,8 @@ class Phase(om.Group):
             Maximum step size for the integration.
         reports : bool or None or str or Sequence
             The reports setting for the subproblem run under each simulation segment.
+        interpolant : str
+            The interpolation method to be used for the controls in the simulation phase.
 
         Returns
         -------
@@ -2592,7 +2594,7 @@ class Phase(om.Group):
                               rtol=_rtol,
                               first_step=_first_step,
                               max_step=_max_step,
-                              control_interp='barycentric')
+                              control_interp=interpolant)
 
         sim_phase = SimulationPhase(transcription=tx,
                                     ode_class=ode_class,
@@ -2693,7 +2695,8 @@ class Phase(om.Group):
             prob.set_val(prob_path, val)
 
     def simulate(self, times_per_seg=None, method=_unspecified, atol=_unspecified, rtol=_unspecified,
-                 first_step=_unspecified, max_step=_unspecified, record_file=None, reports=False):
+                 first_step=_unspecified, max_step=_unspecified, record_file=None, reports=False,
+                 interpolant='cubic'):
         """
         Simulate the Phase using scipy.integrate.solve_ivp.
 
@@ -2717,6 +2720,8 @@ class Phase(om.Group):
             If None, no record of the simulation will be saved.
         reports : bool or None or str or Sequence
             Reports setting for the subproblems run under simualate.
+        interpolant : str
+            The interpolation method to be used for the controls in the simulation phase.
 
         Returns
         -------
@@ -2730,7 +2735,7 @@ class Phase(om.Group):
                                                   reports=reports)
 
         sim_phase = self.get_simulation_phase(times_per_seg=times_per_seg, method=method, atol=atol, rtol=rtol,
-                                              first_step=first_step, max_step=max_step)
+                                              first_step=first_step, max_step=max_step, interpolant=interpolant)
 
         sim_prob.model.add_subsystem(self.name, sim_phase)
 

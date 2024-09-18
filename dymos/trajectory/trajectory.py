@@ -1418,7 +1418,7 @@ class Trajectory(om.Group):
 
     def simulate(self, times_per_seg=_unspecified, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None, case_prefix=None,
-                 reset_iter_counts=True, reports=False):
+                 reset_iter_counts=True, reports=False, interpolant='cubic'):
         """
         Simulate the Trajectory using scipy.integrate.solve_ivp.
 
@@ -1446,6 +1446,8 @@ class Trajectory(om.Group):
             If True and model has been run previously, reset all iteration counters.
         reports : bool or None or str or Sequence
             Reports setting for the subproblems run under simualate.
+        interpolant : str
+            The interpolation method to be used for the controls in the simulation phase.
 
         Returns
         -------
@@ -1461,7 +1463,8 @@ class Trajectory(om.Group):
                 continue
             sim_phs = phs.get_simulation_phase(times_per_seg=times_per_seg, method=method,
                                                atol=atol, rtol=rtol, first_step=first_step,
-                                               max_step=max_step, reports=reports)
+                                               max_step=max_step, reports=reports,
+                                               interpolant=interpolant)
             sim_traj.add_phase(name, sim_phs)
 
         if not sim_traj._phases:

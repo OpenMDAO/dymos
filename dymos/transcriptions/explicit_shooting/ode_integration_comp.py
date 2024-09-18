@@ -89,7 +89,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
                              desc='If True, propagate the state and derivatives of the state and time with respect to '
                                   'the integration parameters. If False, only propagate the primal states.')
         self.options.declare('ode_init_kwargs', types=dict, allow_none=True, default=None)
-        self.options.declare('control_interp', values=['vandermonde', 'barycentric'], default='vandermonde',
+        self.options.declare('control_interp', values=['vandermonde', 'barycentric', 'cubic'], default='vandermonde',
                              desc='Control interpolation algorithm, one of either "vandermonde" or "barycentric". In '
                              'general, Vandermonde is faster but Barycentric is necessary for the Birkhoff '
                              'transcription where the number of nodes per segment can exceed 20 to 30.')

@@ -298,6 +298,7 @@ class TestIntegrateControl(unittest.TestCase):
 
         # Set the driver.
         p.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+        p.driver.opt_settings['ACC'] = 1e-9
 
         # Allow OpenMDAO to automatically determine our sparsity pattern.
         # Doing so can significant speed up the execution of Dymos.
@@ -317,7 +318,8 @@ class TestIntegrateControl(unittest.TestCase):
         phase.set_control_val('theta', [0, 100], units='deg')
 
         # Run the driver to solve the problem
-        dm.run_problem(p, simulate=True, make_plots=False, simulate_kwargs={'atol': 1.0E-9, 'rtol': 1.0E-9})
+        dm.run_problem(p, simulate=True, make_plots=False, simulate_kwargs={'atol': 1.0E-9, 'rtol': 1.0E-9,
+                                                                            'times_per_seg': 10})
 
         sol_db = 'dymos_solution.db'
         sim_db = 'dymos_simulation.db'
@@ -346,13 +348,14 @@ class TestIntegrateControl(unittest.TestCase):
         theta_sol = sol.get_val('traj.phase0.timeseries.theta')
         theta_sim = sim.get_val('traj.phase0.timeseries.theta')
 
-        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
-        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
-        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
-        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sim, int_theta_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
+        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=1.0E-2, abs_tolerance=1.0E-1)
+        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=1.0E-2, abs_tolerance=1.0E-1)
+        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rel_tolerance=1.0E-2, abs_tolerance=1.0E-1)
+        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sim, int_theta_sim, rel_tolerance=1.0E-2,
+                                     abs_tolerance=1.0E-1)
 
-        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sol, theta_sol, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
-        assert_timeseries_near_equal(t_sim, int_theta_sim, t_sim, theta_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
+        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sol, theta_sol, rel_tolerance=1.0E-2, abs_tolerance=1.0E-1)
+        assert_timeseries_near_equal(t_sim, int_theta_sim, t_sim, theta_sim, rel_tolerance=1.0E-2, abs_tolerance=1.0E-1)
 
     def test_integrate_control_gl(self):
         self._test_integrate_control(dm.GaussLobatto)
@@ -478,8 +481,10 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
-        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sim, int_theta_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
-        assert_timeseries_near_equal(t_sim, theta_rate_sim, t_sol, theta_rate_sol, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
+        assert_timeseries_near_equal(t_sol, int_theta_sol, t_sim, int_theta_sim, rel_tolerance=4.0E-3,
+                                     abs_tolerance=1.0E-2)
+        assert_timeseries_near_equal(t_sim, theta_rate_sim, t_sol, theta_rate_sol, rel_tolerance=4.0E-3,
+                                     abs_tolerance=1.0E-2)
 
     def _test_integrate_polynomial_control_rate(self, transcription):
         #
@@ -556,7 +561,8 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         phase.set_control_val('theta', 45.0, units='deg')
 
         # Run the driver to solve the problem
-        dm.run_problem(p, simulate=True, make_plots=False)
+        dm.run_problem(p, simulate=True, make_plots=False,
+                       simulate_kwargs={'times_per_seg': 10})
 
         sol_db = 'dymos_solution.db'
         sim_db = 'dymos_simulation.db'
@@ -589,7 +595,7 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sol, int_theta_sol, t_sim, int_theta_sim,
-                                     rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
+                                     rel_tolerance=1.0E-2, abs_tolerance=1.5E-2)
 
         assert_timeseries_near_equal(t_sol, int_theta_sol, t_sol, theta_sol, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
 
