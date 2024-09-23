@@ -334,6 +334,7 @@ jobs:
           echo "Install additional packages for testing/coverage"
           echo "============================================================="
           echo "Pre-install playwright dependencies to avoid 'Playwright Host validation warning'"
+          pip install playwright
           playwright install --with-deps
 
       - name: Display environment info
