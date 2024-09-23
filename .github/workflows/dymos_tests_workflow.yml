@@ -309,15 +309,6 @@ jobs:
           echo "============================================================="
           python -m pip install matplotlib==${{ matrix.MATPLOTLIB }}
 
-      - name: Install optional dependencies
-        if: ${{ ! matrix.EXCLUDE && matrix.OPTIONAL == '[all]' }}
-        run: |
-          echo "============================================================="
-          echo "Install additional packages for testing/coverage"
-          echo "============================================================="
-          echo "Pre-install playwright dependencies to avoid 'Playwright Host validation warning'"
-          playwright install --with-deps
-
       - name: Install Dymos
         if: ${{ ! matrix.EXCLUDE }}
         shell: bash -l {0}
@@ -335,6 +326,15 @@ jobs:
           else
             python -m pip install .${{ matrix.OPTIONAL }}
           fi
+
+      - name: Install optional dependencies
+        if: ${{ ! matrix.EXCLUDE && matrix.OPTIONAL == '[all]' }}
+        run: |
+          echo "============================================================="
+          echo "Install additional packages for testing/coverage"
+          echo "============================================================="
+          echo "Pre-install playwright dependencies to avoid 'Playwright Host validation warning'"
+          playwright install --with-deps
 
       - name: Display environment info
         id: env_info
