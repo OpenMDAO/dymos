@@ -1258,9 +1258,9 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.2328 sec
-Time to compute coloring:   0.0105 sec
-Memory to compute coloring:   0.2500 MB
+Time to compute sparsity:   0.2334 sec
+Time to compute coloring:   0.0107 sec
+Memory to compute coloring:   0.1250 MB
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:1701: DerivativesWarning:&#39;traj.phases.rto.rhs_all&#39; &lt;class ExplicitFuncComp&gt;: No partials found but coloring was requested.  Declaring ALL partials as dense (method=&#39;jax&#39;)
@@ -1273,9 +1273,9 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1909 sec
-Time to compute coloring:   0.0117 sec
-Memory to compute coloring:   0.0000 MB
+Time to compute sparsity:   0.1942 sec
+Time to compute coloring:   0.0114 sec
+Memory to compute coloring:   0.1250 MB
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:1701: DerivativesWarning:&#39;traj.phases.v1_to_vr.rhs_all&#39; &lt;class ExplicitFuncComp&gt;: No partials found but coloring was requested.  Declaring ALL partials as dense (method=&#39;jax&#39;)
@@ -1288,8 +1288,8 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1910 sec
-Time to compute coloring:   0.0110 sec
+Time to compute sparsity:   0.1914 sec
+Time to compute coloring:   0.0113 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
@@ -1303,8 +1303,8 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1945 sec
-Time to compute coloring:   0.0112 sec
+Time to compute sparsity:   0.1930 sec
+Time to compute coloring:   0.0114 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
@@ -1318,12 +1318,12 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 111  (85.59% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.3861 sec
-Time to compute coloring:   0.0193 sec
+Time to compute sparsity:   0.3873 sec
+Time to compute coloring:   0.0202 sec
 Memory to compute coloring:   0.1250 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 3.315951086000041 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 3.283131960999981 seconds.
 Total jacobian shape: (178, 166) 
 
 
@@ -1332,17 +1332,17 @@ FWD solves: 14   REV solves: 0
 Total colors vs. total size: 14 vs 166  (91.57% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   3.3160 sec
-Time to compute coloring:   0.0694 sec
+Time to compute sparsity:   3.2831 sec
+Time to compute coloring:   0.0697 sec
 Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-09-18 14:35:59
+Coloring created on: 2024-09-24 15:27:18
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1652: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.climb-&gt;path_constraint-&gt;gam&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1109: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:alpha_rate, ode_eval.control_interp.control_rates:alpha_rate2, ode_eval.control_interp.control_values:alpha] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1109: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:alpha_rate, ode_eval.control_interp.control_rates:alpha_rate2, ode_eval.control_interp.control_values:alpha] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1130: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:alpha_rate, ode_eval.control_interp.control_rates:alpha_rate2, ode_eval.control_interp.control_values:alpha] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1130: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:alpha_rate, ode_eval.control_interp.control_rates:alpha_rate2, ode_eval.control_interp.control_values:alpha] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 /usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/recorders/sqlite_recorder.py:231: UserWarning:The existing case recorder file, /home/runner/work/dymos/dymos/docs/dymos_book/examples/balanced_field/problem_out/traj_simulation_0_out/dymos_simulation.db, is being overwritten.
 </pre></div>
 </div>
