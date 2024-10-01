@@ -1,5 +1,5 @@
 *******************************
-# Release Notes for Dymos 1.11.0
+# Release Notes for Dymos 1.12.0
 
 Oct 02, 2024
 
@@ -17,9 +17,6 @@ The SolveIVP transcription, which has long been deprecated in favor of the more 
 ## Enhancements
 - bokeh timeseries plots now comply with OpenMDAO's placement of recorder files. [#1106](https://github.com/OpenMDAO/dymos/pull/1106)
 - Faster interpolation for explicit shooting [#1109](https://github.com/OpenMDAO/dymos/pull/1109)
-
-## Bug Fixes
-
 
 ## Miscellaneous
 - Added readme to pyproject.toml [#1094](https://github.com/OpenMDAO/dymos/pull/1094)
