@@ -806,8 +806,8 @@ angle-of-attack history required to accelerate a supersonic interceptor
 from near ground level, Mach 0.4 to an altitude of 20 km and Mach 1.0.</p>
 <p><img alt="The free-body-diagram of the min-time-climb problem." src="../../_images/min_time_climb_fbd.png" /></p>
 <p>The vehicle dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-232689cb-9a3b-4726-bd2d-e7e2d7a66aa0">
-<span class="eqno">(62)<a class="headerlink" href="#equation-232689cb-9a3b-4726-bd2d-e7e2d7a66aa0" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-ccc5549e-77e0-4f5b-a23d-b32706b6714e">
+<span class="eqno">(62)<a class="headerlink" href="#equation-ccc5549e-77e0-4f5b-a23d-b32706b6714e" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dv}{dt} &amp;= \frac{T}{m} \cos \alpha - \frac{D}{m} - g \sin \gamma \\
   \frac{d\gamma}{dt} &amp;= \frac{T}{m v} \sin \alpha + \frac{L}{m v} - \frac{g \cos \gamma}{v} \\
   \frac{dh}{dt} &amp;= v \sin \gamma \\
@@ -815,8 +815,8 @@ from near ground level, Mach 0.4 to an altitude of 20 km and Mach 1.0.</p>
   \frac{dm}{dt} &amp;= - \frac{T}{g I_{sp}}
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-f91153f2-9be5-42ae-8130-3f9554ee587d">
-<span class="eqno">(63)<a class="headerlink" href="#equation-f91153f2-9be5-42ae-8130-3f9554ee587d" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-2577a935-798b-4671-998b-d1cf53c653f7">
+<span class="eqno">(63)<a class="headerlink" href="#equation-2577a935-798b-4671-998b-d1cf53c653f7" title="Permalink to this equation">#</a></span>\[\begin{align}
   r_0 &amp;= 0 \rm{\,m} \\
   h_0 &amp;= 100 \rm{\,m} \\
   v_0 &amp;= 135.964 \rm{\,m/s} \\
@@ -824,8 +824,8 @@ from near ground level, Mach 0.4 to an altitude of 20 km and Mach 1.0.</p>
   m_0 &amp;= 19030.468 \rm{\,kg}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-f290c222-aec4-4b4e-a984-39e526ade982">
-<span class="eqno">(64)<a class="headerlink" href="#equation-f290c222-aec4-4b4e-a984-39e526ade982" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-f6ddbe76-f1ad-4aee-ac10-b6cd78b00a80">
+<span class="eqno">(64)<a class="headerlink" href="#equation-f6ddbe76-f1ad-4aee-ac10-b6cd78b00a80" title="Permalink to this equation">#</a></span>\[\begin{align}
   h_f &amp;= 20000 \rm{\,m} \\
   M_f &amp;= 1.0 \\
   \gamma_0 &amp;= 0 \rm{\,deg}
@@ -1192,9 +1192,7 @@ INFO: checking out_of_order
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order
+INFO: checking out_of_order
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
@@ -1218,7 +1216,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.08994655499998316 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.09125974699998096 seconds.
 Total jacobian shape: (181, 191) 
 
 
@@ -1227,10 +1225,10 @@ FWD solves: 14   REV solves: 0
 Total colors vs. total size: 14 vs 191  (92.67% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0899 sec
-Time to compute coloring:   0.1233 sec
+Time to compute sparsity:   0.0913 sec
+Time to compute coloring:   0.1221 sec
 Memory to compute coloring:   0.1250 MB
-Coloring created on: 2024-10-02 16:24:38
+Coloring created on: 2024-10-02 16:49:01
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1652: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
@@ -1242,11 +1240,11 @@ Coloring created on: 2024-10-02 16:24:38
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    4.9365
-       User Objective Time :       0.9727
-       User Sensitivity Time :     1.2406
-       Interface Time :            0.4901
-       Opt Solver Time:            2.2331
+    Total Time:                    4.9851
+       User Objective Time :       0.9716
+       User Sensitivity Time :     1.2813
+       Interface Time :            0.4871
+       Opt Solver Time:            2.2452
     Calls to Objective Function :      94
     Calls to Sens Function :           84
 
@@ -1741,11 +1739,11 @@ Model viewer data has already been recorded for Driver.
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 96
-  runtime     : 5.2418E+00 s
+  runtime     : 5.2903E+00 s
   model_evals : 96
-  model_time  : 9.4809E-01 s
+  model_time  : 9.4307E-01 s
   deriv_evals : 85
-  deriv_time  : 7.4576E-01 s
+  deriv_time  : 7.6480E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>
