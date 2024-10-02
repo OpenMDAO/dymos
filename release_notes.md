@@ -27,7 +27,6 @@ The SolveIVP transcription, which has long been deprecated in favor of the more 
 - Added a pre-commit configuration to enable automatic linting with ruff [#1105](https://github.com/OpenMDAO/dymos/pull/1105)
 - Added the Gong challenge problem benchmark for Birkhoff transcription. [#1108](https://github.com/OpenMDAO/dymos/pull/1108)
 - Updated GitHub Workflows [#1111](https://github.com/OpenMDAO/dymos/pull/1111)
-(py311) (base) rfalck@arm64-apple-darwin20 OpenMDAO.git % 
 
 *******************************
 # Release Notes for Dymos 1.11.0
