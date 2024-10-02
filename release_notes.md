@@ -1,3 +1,32 @@
+*******************************
+# Release Notes for Dymos 1.12.0
+
+Oct 02, 2024
+
+Dymos 1.12.0 primarily supports the updated paths to OpenMDAO output files in the OpenMDAO 3.35.0 release.
+
+The Birkhoff transcription can involve extraordinarily long segments with hundreds of nodes. The lagrange polynomial interpolation algorith used with shorter segments is inefficient in this case and is replaced (for simulation) by
+the use of cubic splines from scipy.interpolate. This provides fast interpolation that's accurate enough for simulation,
+when derivatives are not needed.
+
+The SolveIVP transcription, which has long been deprecated in favor of the more general and derivative-capable ExplicitShooting transcription, is removed.
+
+## Backwards Incompatible API Changes & Deprecations
+- Removed `SolveIVP` and removed dead code from TranscriptionBase [#1104](https://github.com/OpenMDAO/dymos/pull/1104)
+
+## Enhancements
+- bokeh timeseries plots now comply with OpenMDAO's placement of recorder files. [#1106](https://github.com/OpenMDAO/dymos/pull/1106)
+- Faster interpolation for explicit shooting [#1109](https://github.com/OpenMDAO/dymos/pull/1109)
+
+## Miscellaneous
+- Added readme to pyproject.toml [#1094](https://github.com/OpenMDAO/dymos/pull/1094)
+- Reduced the memory allocation in the TimeseriesOutputComp in common use cases. [#1096](https://github.com/OpenMDAO/dymos/pull/1096)
+- Timeseries report tooltip hover change. [#1098](https://github.com/OpenMDAO/dymos/pull/1098)
+- Removed need for copy_build_artifacts in the doc build process. [#1100](https://github.com/OpenMDAO/dymos/pull/1100)
+- Removed use of newshape keyword argument from numpy reshape calls. [#1102](https://github.com/OpenMDAO/dymos/pull/1102)
+- Added a pre-commit configuration to enable automatic linting with ruff [#1105](https://github.com/OpenMDAO/dymos/pull/1105)
+- Added the Gong challenge problem benchmark for Birkhoff transcription. [#1108](https://github.com/OpenMDAO/dymos/pull/1108)
+- Updated GitHub Workflows [#1111](https://github.com/OpenMDAO/dymos/pull/1111)
 
 *******************************
 # Release Notes for Dymos 1.11.0
