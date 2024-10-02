@@ -36,6 +36,12 @@ on:
         required: false
         default: false
 
+      numpy2_no_pyoptsparse:
+        type: boolean
+        description: "Include 'numpy2_no_pyoptsparse' in test matrix"
+        required: false
+        default: false
+
       no_snopt:
         type: boolean
         description: "Include 'no_snopt' in test matrix"
@@ -96,6 +102,15 @@ jobs:
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.no_pyoptsparse }}
+
+          # numpy 2.x but no PETSc, pyoptsparse or SNOPT
+          - NAME: numpy2_no_pyoptsparse
+            PY: '3.12'
+            NUMPY: 2
+            SCIPY: 1.14
+            OPENMDAO: 'latest'
+            OPTIONAL: '[all]'
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.numpy2_no_pyoptsparse }}
 
           # baseline versions except with pyoptsparse but no SNOPT
           - NAME: no_snopt
