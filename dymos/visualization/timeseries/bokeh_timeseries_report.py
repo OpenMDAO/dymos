@@ -149,8 +149,12 @@ def _get_traj_and_phases_from_problem(problem, rank: int = 0):
         a subdictionary of phases and their associated options. Under MPI, this dictionary
     """
     comm_rank = 0 if MPI is None else MPI.COMM_WORLD.rank
-    traj_options = _gather_system_options(problem.model, sys_cls=Trajectory, rank=rank)
-    phase_options = _gather_system_options(problem.model, sys_cls=Phase, rank=rank)
+    traj_options = _gather_system_options(problem.model, ['parameter_options'],
+                                          sys_cls=Trajectory, rank=rank)
+    phase_options = _gather_system_options(problem.model,
+                                           ['time_options', 'parameter_options',
+                                            'state_options', 'control_options'],
+                                           sys_cls=Phase, rank=rank)
 
     trajs = {}
 
@@ -344,13 +348,16 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
     return data_dict
 
 
-def _gather_system_options(model, sys_cls=None, rank=0):
+def _gather_system_options(model, options, sys_cls=None, rank=0,):
     """Retreive system options for systems of the given class and/or pathname.
 
     Parameters
     ----------
     model : System
         The root system from which model options are being gathered.
+    options : Sequence of str
+        The names of the options to be gathered from systems.
+        Should be one of Trajectory or Phase.
     sys_cls : class, optional
         The class of system for which we want to retrieve options, or None if we
         should look for all systems regardless of class.
@@ -363,7 +370,8 @@ def _gather_system_options(model, sys_cls=None, rank=0):
 
     system_options = {}
     for subsys in model.system_iter(include_self=True, recurse=True, typ=sys_cls):
-        system_options[subsys.pathname] = {k: v['val'] for k, v in subsys.options._dict.items() if v['recordable']}
+        system_options[subsys.pathname] = {k: v['val'] for k, v in subsys.options._dict.items()
+                                           if k in options}
 
     if comm_size > 1:
         gathered = MPI.COMM_WORLD.gather(system_options, rank)
