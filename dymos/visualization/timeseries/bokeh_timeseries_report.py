@@ -363,7 +363,7 @@ def _gather_system_options(model, sys_cls=None, rank=0):
 
     system_options = {}
     for subsys in model.system_iter(include_self=True, recurse=True, typ=sys_cls):
-        system_options[subsys.pathname] = subsys.options
+        system_options[subsys.pathname] = {k: v['val'] for k, v in subsys.options._dict.items() if v['recordable']}
 
     if comm_size > 1:
         gathered = MPI.COMM_WORLD.gather(system_options, rank)
