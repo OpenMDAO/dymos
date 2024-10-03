@@ -806,8 +806,8 @@ It finds the pitch profile for a single-stage-to-orbit launch vehicle that minim
 required to reach orbit insertion under constant thrust.</p>
 <p><img alt="The free-body-diagram of the single-stage-to-orbit problem." src="../../_images/ssto_fbd.png" /></p>
 <p>The vehicle dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-0fe6d966-8ccd-490b-babe-119370d850ee">
-<span class="eqno">(84)<a class="headerlink" href="#equation-0fe6d966-8ccd-490b-babe-119370d850ee" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-e2a4e49d-3559-472e-9a88-81f78cc764a9">
+<span class="eqno">(84)<a class="headerlink" href="#equation-e2a4e49d-3559-472e-9a88-81f78cc764a9" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dx}{dt} &amp;= v_x \\
   \frac{dy}{dt} &amp;= v_y \\
   \frac{dv_x}{dt} &amp;= \frac{1}{m} (T \cos \theta - D \cos \gamma) \\
@@ -815,8 +815,8 @@ required to reach orbit insertion under constant thrust.</p>
   \frac{dm}{dt} &amp;= \frac{T}{g I_{sp}}
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-28f537b6-5d3c-4250-b225-6fa5e5867674">
-<span class="eqno">(85)<a class="headerlink" href="#equation-28f537b6-5d3c-4250-b225-6fa5e5867674" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-0d935676-92d9-46bd-88db-2cba4fed9e27">
+<span class="eqno">(85)<a class="headerlink" href="#equation-0d935676-92d9-46bd-88db-2cba4fed9e27" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_0 &amp;= 0 \\
   y_0 &amp;= 0 \\
   v_{x0} &amp;= 0 \\
@@ -824,8 +824,8 @@ required to reach orbit insertion under constant thrust.</p>
   m_0 &amp;= 117000 \rm{\,kg}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-cbc1dfa5-c110-4d00-8165-7117f8461cf8">
-<span class="eqno">(86)<a class="headerlink" href="#equation-cbc1dfa5-c110-4d00-8165-7117f8461cf8" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-b09ff671-15bd-432b-a4c9-7b53072fd883">
+<span class="eqno">(86)<a class="headerlink" href="#equation-b09ff671-15bd-432b-a4c9-7b53072fd883" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_f &amp;= \rm{free} \\
   y_f &amp;= 185 \rm{\,km} \\
   v_{xf} &amp;= V_{circ} \\
@@ -1111,35 +1111,36 @@ FWD solves: 5   REV solves: 0
 Total colors vs. total size: 5 vs 168  (97.02% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0248 sec
-Time to compute coloring:   0.0124 sec
-Memory to compute coloring:   0.1250 MB
-
-Coloring for &#39;traj.phases.phase0.rhs_col&#39; (class LaunchVehicleODE)
+Time to compute sparsity:   0.0256 sec
+Time to compute coloring:   0.0122 sec
+Memory to compute coloring:   0.2500 MB
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.phase0.rhs_col&#39; (class LaunchVehicleODE)
 
 Jacobian shape: (72, 84)  (2.98% nonzero)
 FWD solves: 5   REV solves: 0
 Total colors vs. total size: 5 vs 84  (94.05% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0122 sec
-Time to compute coloring:   0.0063 sec
+Time to compute sparsity:   0.0146 sec
+Time to compute coloring:   0.0067 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.08076979800000572 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.08290673100009371 seconds.
 Total jacobian shape: (74, 152) 
-
-
-Jacobian shape: (74, 152)  (5.38% nonzero)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (74, 152)  (5.38% nonzero)
 FWD solves: 12   REV solves: 0
 Total colors vs. total size: 12 vs 152  (92.11% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.0808 sec
-Time to compute coloring:   0.0549 sec
+Time to compute sparsity:   0.0829 sec
+Time to compute coloring:   0.0567 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-10-02 22:05:33
+Coloring created on: 2024-10-03 12:30:24
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1148,11 +1149,11 @@ Coloring created on: 2024-10-02 22:05:33
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    1.5714
-       User Objective Time :       0.0658
-       User Sensitivity Time :     0.9162
-       Interface Time :            0.1378
-       Opt Solver Time:            0.4516
+    Total Time:                    1.6438
+       User Objective Time :       0.0776
+       User Sensitivity Time :     0.9555
+       Interface Time :            0.1431
+       Opt Solver Time:            0.4676
     Calls to Objective Function :      51
     Calls to Sens Function :           48
 
@@ -1484,11 +1485,11 @@ Model viewer data has already been recorded for Driver.
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 53
-  runtime     : 1.8325E+00 s
+  runtime     : 1.9157E+00 s
   model_evals : 53
-  model_time  : 5.0789E-02 s
+  model_time  : 5.7155E-02 s
   deriv_evals : 49
-  deriv_time  : 7.2413E-01 s
+  deriv_time  : 7.5684E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>

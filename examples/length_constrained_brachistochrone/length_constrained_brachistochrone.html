@@ -783,8 +783,8 @@ Now, we seek to find the minimum time brachistochrone trajectory subject to a up
 <p>The most efficient way to approach this problem would be to treat the arc-length <span class="math notranslate nohighlight">\(S\)</span> as an integrated state variable.
 In this case, as is often the case in real-world MDO analyses, the implementation of our arc-length function is not integrated into our pseudospectral approach.
 Rather than rewrite an analysis tool to accommodate the pseudospectral approach, the arc-length analysis simply takes the result of the trajectory in its entirety and computes the arc-length constraint via the trapezoidal rule:\</p>
-<div class="amsmath math notranslate nohighlight" id="equation-2eb898f2-58d0-4084-8c26-384a4dff03b0">
-<span class="eqno">(61)<a class="headerlink" href="#equation-2eb898f2-58d0-4084-8c26-384a4dff03b0" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-2867fc34-8798-4461-97aa-db79e0d6e3de">
+<span class="eqno">(61)<a class="headerlink" href="#equation-2867fc34-8798-4461-97aa-db79e0d6e3de" title="Permalink to this equation">#</a></span>\[\begin{align}
     S &amp;= \frac{1}{2} \left( \sum_{i=1}^{N-1} \sqrt{1 + \frac{1}{\tan{\theta_{i-1}}}} + \sqrt{1 + \frac{1}{\tan{\theta_{i}}}} \right) \left(x_{i-1} - x_i \right)
 \end{align}\]</div>
 <p>The OpenMDAO component used to compute the arclength is defined as follows:</p>
@@ -1140,7 +1140,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.39553100600005564 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.3915926860000809 seconds.
 Total jacobian shape: (220, 296) 
 
 
@@ -1149,10 +1149,10 @@ FWD solves: 1   REV solves: 11
 Total colors vs. total size: 12 vs 220  (94.55% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.3955 sec
-Time to compute coloring:   0.1800 sec
+Time to compute sparsity:   0.3916 sec
+Time to compute coloring:   0.1855 sec
 Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-10-02 22:03:02
+Coloring created on: 2024-10-03 12:27:49
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
