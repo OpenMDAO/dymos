@@ -789,8 +789,8 @@ of a trajectory in which the <em>states</em> of the system evolve with time.  Th
 <span class="math notranslate nohighlight">\(\left(\bar{x}\right)\)</span> are typically governed by an ordinary differential equation (ODE) or
 a differential algebraic equation (DAE).  In Dymos we characterize all dynamics as an (ODE),
 although solving systems of DAEs is also possible.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-292fba6b-db7a-47cd-96bf-8a4e2bf0fef7">
-<span class="eqno">(1)<a class="headerlink" href="#equation-292fba6b-db7a-47cd-96bf-8a4e2bf0fef7" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-8904087d-cc96-4618-952c-9c3c2a78a33b">
+<span class="eqno">(1)<a class="headerlink" href="#equation-8904087d-cc96-4618-952c-9c3c2a78a33b" title="Permalink to this equation">#</a></span>\[\begin{align}
   \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d})
 \end{align}\]</div>
 </section>
@@ -809,8 +809,8 @@ In Dymos, we discretize these variables in time to convert a continuous-time opt
 <p>When optimizing problems there will always be constraints on the system.
 Some of these constraints can be characterized as bounds on our independent variables.
 For instance, fixing the initial conditions of a trajectory can be accomplished by bounding the initial states and time to the desired value.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-2b6c7b31-9342-439b-b810-22220345f0c4">
-<span class="eqno">(2)<a class="headerlink" href="#equation-2b6c7b31-9342-439b-b810-22220345f0c4" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-c20d3f2a-000e-4ff4-911f-8b46c5ca83c5">
+<span class="eqno">(2)<a class="headerlink" href="#equation-c20d3f2a-000e-4ff4-911f-8b46c5ca83c5" title="Permalink to this equation">#</a></span>\[\begin{align}
   \mathrm{Time:}&amp; \qquad {t}_{lb} \leq t \leq {t}_{ub} \\
   \mathrm{State \, Variables:}&amp; \qquad \bar{x}_{lb} \leq \bar{x} \leq \bar{x}_{ub} \\
   \mathrm{Dynamic \, Controls:}&amp; \qquad \bar{u}_{lb} \leq \bar{u} \leq \bar{u}_{ub} \\
@@ -818,8 +818,8 @@ For instance, fixing the initial conditions of a trajectory can be accomplished 
 \end{align}\]</div>
 <p>Other times we may want to constrain an output of our system at a specific point along the trajectory (boundary constraints) or along the entire trajectory (path constraints).
 These are so-called nonlinear constraints because they <em>may</em> be nonlinear functions of our independent variables.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-1d6eb231-6f6a-4413-9269-6f8330c33bfd">
-<span class="eqno">(3)<a class="headerlink" href="#equation-1d6eb231-6f6a-4413-9269-6f8330c33bfd" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-df488b18-747c-425d-9c74-1b5ef9c05837">
+<span class="eqno">(3)<a class="headerlink" href="#equation-df488b18-747c-425d-9c74-1b5ef9c05837" title="Permalink to this equation">#</a></span>\[\begin{align}
 \mathrm{Initial \, Boundary \, Constraints:}&amp; \qquad \bar{g}_{0,lb} \leq g_{0}(\bar{x}_0,t_0,\bar{u}_0, \bar{d}) \leq \bar{g}_{0,ub} \\
 \mathrm{Final \, Boundary \, Constraints:}&amp; \qquad \bar{g}_{f,lb} \leq g_{f}(\bar{x}_f,t_f,\bar{u}_f, \bar{d}) \leq \bar{g}_{f,ub} \\
 \mathrm{Path \, Constraints:}&amp; \qquad \bar{p}_{f,lb} \leq p_{f}(\bar{x},t,\bar{u},\bar{d}) \leq \bar{p}_{f,ub} \\
