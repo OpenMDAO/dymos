@@ -2,7 +2,10 @@ from .collocation_comp import CollocationComp
 from .state_interp_comp import StateInterpComp
 from .state_independents import StateIndependentsComp
 from .control_endpoint_defect_comp import ControlEndpointDefectComp
+from .gauss_lobatto_iter_group import GaussLobattoIterGroup
 from .gauss_lobatto_interleave_comp import GaussLobattoInterleaveComp
-from .birkhoff_collocation_comp import BirkhoffCollocationComp
+from .birkhoff_defect_comp import BirkhoffDefectComp
 from .birkhoff_iter_group import BirkhoffIterGroup
 from .birkhoff_boundary_group import BirkhoffBoundaryGroup
+from .radau_iter_group import RadauIterGroup
+# from .gauss_lobatto_iter_group import GaussLobattoIterGroup
