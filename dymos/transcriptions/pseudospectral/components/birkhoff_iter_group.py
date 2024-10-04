@@ -1,7 +1,7 @@
 import numpy as np
 import openmdao.api as om
 
-from .birkhoff_collocation_comp import BirkhoffCollocationComp
+from .birkhoff_collocation_comp import BirkhoffDefectComp
 from .birkhoff_state_resid_comp import BirkhoffStateResidComp
 
 from ...grid_data import GridData
@@ -53,7 +53,7 @@ class BirkhoffIterGroup(om.Group):
         self.add_subsystem('ode_all', subsys=ode_class(num_nodes=nn, **ode_init_kwargs))
 
         self.add_subsystem('collocation_comp',
-                           subsys=BirkhoffCollocationComp(grid_data=gd,
+                           subsys=BirkhoffDefectComp(grid_data=gd,
                                                           state_options=state_options,
                                                           time_units=time_options['units']),
                            promotes_inputs=['*'], promotes_outputs=['*'])
