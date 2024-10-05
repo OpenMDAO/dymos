@@ -1,8 +1,8 @@
 import numpy as np
 import openmdao.api as om
 
-from .birkhoff_collocation_comp import BirkhoffDefectComp
-from .birkhoff_state_resid_comp import BirkhoffStateResidComp
+from .birkhoff_defect_comp import BirkhoffDefectComp
+from .input_resids_comp import InputResidsComp
 
 from ...grid_data import GridData
 from ....phase.options import TimeOptionsDictionary
@@ -59,7 +59,7 @@ class BirkhoffIterGroup(om.Group):
                            promotes_inputs=['*'], promotes_outputs=['*'])
 
         if any([opts['solve_segments'] in ('forward', 'backward') for opts in state_options.values()]):
-            self.add_subsystem('states_balance_comp', subsys=BirkhoffStateResidComp(),
+            self.add_subsystem('states_balance_comp', subsys=InputResidsComp(),
                                promotes_inputs=['*'], promotes_outputs=['*'])
 
     def _configure_desvars(self, name, options):

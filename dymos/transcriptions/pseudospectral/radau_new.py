@@ -55,7 +55,8 @@ class RadauNew(TranscriptionBase):
         Set up the GridData object for the Transcription.
         """
         if self.options['compressed']:
-            raise ValueError('Option `compressed` is no longer supported. All transcriptions are now "uncompressed".')
+            om.issue_warning('Option `compressed` is no longer supported. All transcriptions are now "uncompressed".')
+            self.options['compressed'] = False
         self.grid_data = RadauGrid(num_segments=self.options['num_segments'],
                                    nodes_per_seg=self.options['nodes_per_seg'],
                                    segment_ends=self.options['segment_ends'],
