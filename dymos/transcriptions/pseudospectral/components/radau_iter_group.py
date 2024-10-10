@@ -184,15 +184,15 @@ class RadauIterGroup(om.Group):
         nin = gd.subset_num_nodes['state_input']
         ncn = gd.subset_num_nodes['col']
         ns = gd.num_segments
-        state_src_idxs = gd.input_maps['state_input_to_disc']
+        # state_src_idxs = gd.input_maps['state_input_to_disc']
         col_idxs = gd.subset_node_indices['col']
 
         state_options = self.options['state_options']
         states_resids_comp = self._get_subsystem('states_resids_comp')
 
         self.promotes('defects', inputs=('dt_dstau',),
-                        src_indices=om.slicer[col_idxs, ...],
-                        src_shape=(nn,))
+                      src_indices=om.slicer[col_idxs, ...],
+                      src_shape=(nn,))
 
         for name, options in state_options.items():
             units = options['units']
@@ -202,19 +202,18 @@ class RadauIterGroup(om.Group):
             # TODO: compressed transcription is not currently supported because promoting duplicate
             # indices currently has a bug in OpenMDAO <= 3.35.0
             for tgt in options['targets']:
-                self.promotes('ode_all', [(tgt, f'states:{name}')],
-                            #   src_indices=om.slicer[state_src_idxs, ...],
-                              src_shape=(nin,) + shape)
+                self.promotes('ode_all', [(tgt, f'states:{name}')])
+                              #   src_indices=om.slicer[state_src_idxs, ...],
+                            #   src_shape=(nin,) + shape)
             self.set_input_defaults(f'states:{name}', val=1.0, units=units, src_shape=(nin,) + shape)
 
-            self.promotes('defects', inputs=(f'states:{name}',),
-                          src_indices=om.slicer[state_src_idxs, ...])
+            self.promotes('defects', inputs=(f'states:{name}',))
 
             self._implicit_outputs = self._configure_desvars(name, options)
 
             if f'states:{name}' in self._implicit_outputs:
                 states_resids_comp.add_output(f'states:{name}',
-                                              shape=(nin,) + shape,
+                                              shape=(nn,) + shape,
                                               units=units)
 
                 states_resids_comp.add_input(f'initial_state_defects:{name}', shape=(1,) + shape, units=units)
@@ -245,7 +244,7 @@ class RadauIterGroup(om.Group):
 
             if var_type == 'ode':
                 self.connect(f'ode_all.{rate_source}', f'f_ode:{name}',
-                             src_indices=gd.subset_node_indices['col'])
+                             src_indices=om.slicer[gd.subset_node_indices['col'], ...])
 
     def _get_rate_source_path(self, state_name, nodes, phase):
         """

@@ -1,6 +1,8 @@
 import numpy as np
 import openmdao.api as om
 
+import scipy.sparse as sp
+
 from dymos._options import options as dymos_options
 from dymos.transcriptions.grid_data import GridData
 from dymos.utils.misc import get_rate_units
@@ -138,17 +140,18 @@ class RadauDefectComp(om.ExplicitComponent):
             else:
                 defect_ref = 1.0
 
-            if not np.isscalar(defect_ref):
-                defect_ref = np.asarray(defect_ref)
-                if defect_ref.shape == shape:
-                    defect_ref = np.tile(defect_ref.flatten(), num_col_nodes)
-                else:
-                    raise ValueError('array-valued scaler/ref must length equal to state-size')
+            if np.isscalar(defect_ref):
+                defect_ref = defect_ref * np.ones(shape)
+
+            if defect_ref.shape != shape:
+                raise ValueError('array-valued scaler/ref/defect_ref must be the same shape as the state')
+
+            rate_defect_ref = np.tile(defect_ref, (num_col_nodes, 1))
 
             if not options['solve_segments']:
                 self.add_constraint(name=var_names['rate_defect'],
                                     equals=0.0,
-                                    ref=defect_ref)
+                                    ref=rate_defect_ref)
 
                 self.add_constraint(name=var_names['initial_defect'],
                                     equals=0.0,
@@ -159,11 +162,18 @@ class RadauDefectComp(om.ExplicitComponent):
                                     ref=defect_ref)
 
                 if gd.num_segments > 1 and not gd.compressed:
+                    cnty_defect_ref = np.tile(np.asarray(defect_ref), (num_segs - 1, 1))
                     self.add_constraint(name=var_names['cnty_defect'],
                                         equals=0.0,
-                                        ref=defect_ref)
+                                        ref=cnty_defect_ref)
 
-        # Setup partials
+    def setup_partials(self):
+        gd: GridData = self.options['grid_data']
+        num_segs: int = gd.num_segments
+        num_nodes: int = gd.subset_num_nodes['all']
+        num_col_nodes: int = gd.subset_num_nodes['col']
+        state_options = self.options['state_options']
+
         num_col_nodes = self.options['grid_data'].subset_num_nodes['col']
         state_options = self.options['state_options']
 
@@ -186,10 +196,14 @@ class RadauDefectComp(om.ExplicitComponent):
 
             # The state rate defects wrt the state values at the discretization nodes
             # are given by the differentiation matrix.
-            r, c = self._D.nonzero()
+            sparse_D_of_size = sp.kron(sp.csr_matrix(self._D), sp.eye(size), format='coo')
+            r, c = sparse_D_of_size.nonzero()
+
             self.declare_partials(of=var_names['rate_defect'],
                                   wrt=var_names['val'],
-                                  rows=r, cols=c, val=self._D.data)
+                                  rows=r,
+                                  cols=c,
+                                  val=sparse_D_of_size.data)
 
             # The initial value defect is just an identity matrix at the "top left" corner of the jacobian.
             ar_size = np.arange(size, dtype=int)
@@ -202,8 +216,12 @@ class RadauDefectComp(om.ExplicitComponent):
                                   rows=ar_size, cols=ar_size, val=1.0)
 
             # The final value defect is an identity matrix at the "bottom right" corner of the jacobian.
-            r = np.arange(size, dtype=int)
-            c = np.arange(num_nodes - size, num_nodes, dtype=int)
+            # r = np.arange(size, dtype=int)
+            # c = np.arange(num_nodes - size, num_nodes, dtype=int)
+            row_vec_end_1 = np.zeros((1, num_nodes))
+            row_vec_end_1[:, -1] = -1.0
+            pattern = sp.kron(row_vec_end_1, sp.eye(size), format='coo')
+            r, c = pattern.nonzero()
             self.declare_partials(of=var_names['final_defect'],
                                   wrt=var_names['val'],
                                   rows=r, cols=c, val=-1.0)
@@ -213,11 +231,20 @@ class RadauDefectComp(om.ExplicitComponent):
                                   rows=ar_size, cols=ar_size, val=1.0)
 
             if gd.num_segments > 1 and not gd.compressed:
-                rs = np.repeat(np.arange(num_segs - 1, dtype=int), 2)
-                cs = gd.subset_node_indices['segment_ends'][1:-1]
-                val = np.tile([-1., 1.], num_segs-1)
+                idxs_se: int = gd.subset_node_indices['segment_ends']
+                seg_end_pattern = np.zeros((num_segs - 1, num_nodes), dtype=int)
+                for i_row in range(num_segs - 1):
+                    end_idx = idxs_se[1:-1][2 * i_row]
+                    start_idx = idxs_se[1:-1][2 * i_row + 1]
+                    seg_end_pattern[i_row, end_idx] = -1
+                    seg_end_pattern[i_row, start_idx] = 1
+
+                pattern = np.kron(seg_end_pattern, np.eye(size, dtype=int))
+
+                r, c = pattern.nonzero()
+
                 self.declare_partials(of=var_names['cnty_defect'],
-                                      wrt=var_names['val'], rows=rs, cols=cs, val=val)
+                                      wrt=var_names['val'], rows=r, cols=c, val=pattern[r, c])
 
     def compute(self, inputs, outputs):
         """
@@ -263,6 +290,8 @@ class RadauDefectComp(om.ExplicitComponent):
 
             if gd.num_segments > 1 and not gd.compressed:
                 outputs[var_names['cnty_defect']] = x[idxs_se[2::2], ...] - x[idxs_se[1:-2:2], ...]
+            else:
+                exit(0)
 
     def compute_partials(self, inputs, partials):
         """

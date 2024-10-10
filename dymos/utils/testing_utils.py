@@ -410,3 +410,79 @@ class set_env_vars(object):
                         os.environ[k] = v
 
         return wrap
+
+class PhaseStub():
+    """
+    A stand-in for the Phase during config_io for testing.
+    It just supports the classify_var method and returns "ode", the only value needed for unittests.
+    """
+    def __init__(self):
+        self.nonlinear_solver = None
+        self.linear_solver = None
+
+    def classify_var(self, name):
+        return 'ode'
+
+class SimpleODE(om.ExplicitComponent):
+    """
+    A simple ODE from https://math.okstate.edu/people/yqwang/teaching/math4513_fall11/Notes/rungekutta.pdf
+    """
+    def initialize(self):
+        self.options.declare('num_nodes', types=(int,))
+
+    def setup(self):
+        nn = self.options['num_nodes']
+        self.add_input('x', shape=(nn,), units='s**2')
+        self.add_input('t', shape=(nn,), units='s')
+        self.add_input('p', shape=(nn,), units='s**2')
+
+        self.add_output('x_dot', shape=(nn,), units='s')
+
+        ar = np.arange(nn, dtype=int)
+        self.declare_partials(of='x_dot', wrt='x', rows=ar, cols=ar, val=1.0)
+        self.declare_partials(of='x_dot', wrt='t', rows=ar, cols=ar)
+        self.declare_partials(of='x_dot', wrt='p', rows=ar, cols=ar, val=1.0)
+
+    def compute(self, inputs, outputs):
+        x = inputs['x']
+        t = inputs['t']
+        p = inputs['p']
+        outputs['x_dot'] = x - t**2 + p
+
+    def compute_partials(self, inputs, partials):
+        t = inputs['t']
+        partials['x_dot', 't'] = -2*t
+
+
+class SimpleVectorizedODE(om.ExplicitComponent):
+    """
+    A simple ODE from https://math.okstate.edu/people/yqwang/teaching/math4513_fall11/Notes/rungekutta.pdf
+    """
+    def initialize(self):
+        self.options.declare('num_nodes', types=(int,))
+
+    def setup(self):
+        nn = self.options['num_nodes']
+        self.add_input('z', shape=(nn, 2), units='s**2')
+        self.add_input('t', shape=(nn,), units='s')
+        self.add_input('p', shape=(nn,), units='s**2')
+
+        self.add_output('z_dot', shape=(nn, 2), units='s')
+
+        # ar = np.arange(nn, dtype=int)
+        # self.declare_partials(of='x_dot', wrt='x', rows=ar, cols=ar, val=1.0)
+        # self.declare_partials(of='x_dot', wrt='t', rows=ar, cols=ar)
+        # self.declare_partials(of='x_dot', wrt='p', rows=ar, cols=ar, val=1.0)
+
+        self.declare_coloring(method='cs')
+
+    def compute(self, inputs, outputs):
+        z = inputs['z']
+        t = inputs['t']
+        p = inputs['p']
+        outputs['z_dot'][:, 0] = z[:, 0] - t**2 + p
+        outputs['z_dot'][:, 1] = 10* t
+
+    # def compute_partials(self, inputs, partials):
+    #     t = inputs['t']
+    #     partials['x_dot', 't'] = -2*t

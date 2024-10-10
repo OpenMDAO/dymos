@@ -1,58 +1,103 @@
+"""InputResidsComp provides a simple implicit component with minimal boilerplate."""
+
 import numpy as np
 
-import openmdao.api as om
-
+from openmdao.core.implicitcomponent import ImplicitComponent
 from openmdao.utils.general_utils import ensure_compatible
 
-from dymos._options import options as dymos_options
-from dymos.utils.misc import om_version
 
+# TODO: Remove this component when the minimum supported OpenMDAO version is >3.35.0
 
-class InputResidsComp(om.ImplicitComponent):
+class InputResidsComp(ImplicitComponent):
     """
-    Class definition for the BirkhoffStateResidComp.
+    Class definition for the InputResidsComp.
 
-    Generates the residuals for any states that are solved for implicitly.
+    Uses all inputs as residuals while allowing individual outputs that are not necessarily
+    associated with a specific residual.
 
     Parameters
     ----------
     **kwargs : dict
         Dictionary of optional arguments.
+
+    Attributes
+    ----------
+    _refs : dict
+        Residual ref values that are cached during calls to the overloaded add_input method.
     """
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._no_check_partials = not dymos_options['include_check_partials']
-        self._io_pairs = []
-
-    def add_residual_from_input(self, name, **kwargs):
         """
-        Adds a residual whose value is given by resid_input.
+        Initialize the InputResidsComp.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Keyword arguments passed to the __init__ method of ImplicitComponent
+        """
+        self._refs = {}
+        super().__init__(**kwargs)
+
+    def add_input(self, name, val=1.0, shape=None, units=None, desc='', tags=None,
+                  shape_by_conn=False, copy_shape=None, compute_shape=None, distributed=None,
+                  ref=None):
+        """
+        Add an input to be used as a residual.
 
         Parameters
         ----------
         name : str
-            The name of the input providing the residuals for the given output.
-        **kwargs : dict
-            Additional keyword arguments for add_input and add_residual.
+            Name of the variable in this component's namespace.
+        val : float or list or tuple or ndarray or Iterable
+            The initial value of the variable being added in user-defined units.
+            Default is 1.0.
+        shape : int or tuple or list or None
+            Shape of this variable, only required if val is not an array. Default is None.
+        units : str or None
+            Units in which this input variable will be provided to the component
+            during execution. Default is None, which means it is unitless.
+        desc : str
+            Description of the variable.
+        tags : str or list of strs
+            User defined tags that can be used to filter what gets listed when calling
+            list_inputs and list_outputs.
+        shape_by_conn : bool
+            If True, shape this input to match its connected output.
+        copy_shape : str or None
+            If a str, that str is the name of a variable. Shape this input to match that of
+            the named variable.
+        compute_shape : function
+            A function taking a dict arg containing names and shapes of this component's outputs
+            and returning the shape of this input.
+        distributed : bool
+            If True, this variable is a distributed variable, so it can have different sizes/values
+            across MPI processes.
+        ref : float or ndarray or None
+            Scaling parameter. The value in the user-defined units of this residual
+            when the scaled value is 1. Default is 1.
         """
-        val = kwargs['val'] if 'val' in kwargs else 1.0
-        shape = kwargs['shape'] if 'shape' in kwargs else None
-        val, shape = ensure_compatible(name, value=val, shape=shape)
-        resid_name = 'resid_' + name
+        self._refs[name] = ref
+        super().add_input(name, val=val, shape=shape, units=units, desc=desc, tags=tags,
+                          shape_by_conn=shape_by_conn, copy_shape=copy_shape,
+                          compute_shape=compute_shape, distributed=distributed)
 
-        self._io_pairs.append((resid_name, name))
+        val, shape = ensure_compatible(name, val, shape)
 
-        size = np.prod(shape, dtype=int)
-        ar = np.arange(size, dtype=int)
+        self.add_residual(f'resid_{name}', shape=shape, units=units,
+                          ref=self._refs[name])
 
-        self.add_input(name, **kwargs)
-        self.add_residual(resid_name, **kwargs)
+    def setup_partials(self):
+        """
+        Delay calls to declare_partials for the component.
 
-        if om_version()[0] > (3, 31, 1):
+        This method is used because input/residual sizes
+        may not be known until final setup.
+        """
+        for name in self._var_rel_names['input']:
+            resid_name = 'resid_' + name
+            size = self._var_rel2meta[name]['size']
+            ar = np.arange(size, dtype=int)
             self.declare_partials(of=resid_name, wrt=name, rows=ar, cols=ar, val=1.0)
-        else:
-            self.declare_partials(of='*', wrt='*', method='fd')
 
     def apply_nonlinear(self, inputs, outputs, residuals):
         """
