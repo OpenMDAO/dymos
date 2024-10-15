@@ -116,7 +116,7 @@ class TestRadauIterGroup(unittest.TestCase):
 
                         radau = p.model._get_subsystem('radau')
 
-                        radau.nonlinear_solver = om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=2)
+                        radau.nonlinear_solver = om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=2, atol=1.0E-10, rtol=1.0E-10)
                         radau.nonlinear_solver.linesearch = om.ArmijoGoldsteinLS(bound_enforcement='vector')
                         radau.linear_solver = om.DirectSolver()
 
@@ -147,22 +147,16 @@ class TestRadauIterGroup(unittest.TestCase):
                         x_0 = p.get_val('radau.initial_states:z')
                         x_f = p.get_val('radau.final_states:z')
 
-                        # idxs = grid_data.subset_node_indices['state_input']
-                        # assert_near_equal(solution[idxs], x, tolerance=1.0E-5)
-                        # assert_near_equal(solution[np.newaxis, 0], x_0, tolerance=1.0E-7)
-                        # assert_near_equal(solution[np.newaxis, -1], x_f, tolerance=1.0E-7)
+                        idxs = grid_data.subset_node_indices['state_input']
+                        assert_near_equal(solution[idxs], x[np.newaxis, :, 0].T, tolerance=1.0E-5)
+                        assert_near_equal(solution[0], x_0[:, 0], tolerance=1.0E-5)
+                        assert_near_equal(solution[-1], x_f[:, 0], tolerance=1.0E-5)
 
-                        import matplotlib.pyplot as plt
-                        plt.switch_backend('MacOSX')
+                        print(x[:, 1])
 
-                        plt.plot(times, x, '-')
-                        plt.plot(times[0, ...], x_0, 'o')
-                        plt.plot(times[-1, ...], x_f, 'o')
-                        plt.show()
-
-
-                        # cpd = p.check_partials(method='fd', compact_print=False)#, out_stream=None)
-                        # assert_check_partials(cpd, atol=1.0E-5, rtol=1.0)
+                        with np.printoptions(linewidth=1024, edgeitems=1024):
+                            cpd = p.check_partials(method='cs', compact_print=False, show_only_incorrect=True)# out_stream=None)
+                        assert_check_partials(cpd, atol=1.0E-5, rtol=1.0)
 
 
 

@@ -97,7 +97,7 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', targets=['theta'],
-                          continuity=True, rate_continuity=True,
+                          continuity=False, rate_continuity=False,
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', targets=['g'], static_target=True, opt=False)

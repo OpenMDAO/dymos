@@ -7,3 +7,4 @@ from .birkhoff_defect_comp import BirkhoffDefectComp
 from .birkhoff_iter_group import BirkhoffIterGroup
 from .birkhoff_boundary_group import BirkhoffBoundaryGroup
 from .radau_iter_group import RadauIterGroup
+from .radau_bounary_group import RadauBoundaryGroup

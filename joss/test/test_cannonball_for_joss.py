@@ -254,11 +254,7 @@ class TestCannonballForJOSS(unittest.TestCase):
         fig.savefig('cannonball_hr.png', bbox_inches='tight')
         # End code for paper
 
-        p.list_driver_vars()
-
-        print(p.get_outputs_dir())
-
-        # assert_near_equal(x1[-1], 3064, tolerance=1.0E-2)
+        assert_near_equal(x1[-1], 3064, tolerance=1.0E-2)
 
 
 if __name__ == '__main__':

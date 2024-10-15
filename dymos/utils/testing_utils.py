@@ -469,20 +469,23 @@ class SimpleVectorizedODE(om.ExplicitComponent):
 
         self.add_output('z_dot', shape=(nn, 2), units='s')
 
-        # ar = np.arange(nn, dtype=int)
-        # self.declare_partials(of='x_dot', wrt='x', rows=ar, cols=ar, val=1.0)
-        # self.declare_partials(of='x_dot', wrt='t', rows=ar, cols=ar)
-        # self.declare_partials(of='x_dot', wrt='p', rows=ar, cols=ar, val=1.0)
-
-        self.declare_coloring(method='cs')
+        cs = np.repeat(np.arange(nn, dtype=int), 2)
+        ar2 = np.arange(2 * nn, dtype=int)
+        dzdot_dz_pattern = np.arange(2 * nn, step=2, dtype=int)
+        self.declare_partials(of='z_dot', wrt='z', rows=dzdot_dz_pattern, cols=dzdot_dz_pattern, val=1.0)
+        self.declare_partials(of='z_dot', wrt='t', rows=ar2, cols=cs)
+        dzdot_dp_rows = np.arange(2 * nn, step=2, dtype=int)
+        dzdot_dp_cols = np.arange(nn, dtype=int)
+        self.declare_partials(of='z_dot', wrt='p', rows=dzdot_dp_rows, cols=dzdot_dp_cols, val=1.0)
 
     def compute(self, inputs, outputs):
         z = inputs['z']
         t = inputs['t']
         p = inputs['p']
         outputs['z_dot'][:, 0] = z[:, 0] - t**2 + p
-        outputs['z_dot'][:, 1] = 10* t
+        outputs['z_dot'][:, 1] = 10 * t
 
-    # def compute_partials(self, inputs, partials):
-    #     t = inputs['t']
-    #     partials['x_dot', 't'] = -2*t
+    def compute_partials(self, inputs, partials):
+        t = inputs['t']
+        partials['z_dot', 't'][0::2] = -2*t
+        partials['z_dot', 't'][1::2] = 10
