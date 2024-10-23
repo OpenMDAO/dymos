@@ -31,7 +31,7 @@ jobs:
             SCIPY: '1.13'
             PETSc: '3.19'
             PYOPTSPARSE: 'v2.11.0'
-            OPENMDAO: 'dev'
+            OPENMDAO: 'latest'
             OPTIONAL: '[docs]'
             JAX: '0.4.28'
             PUBLISH_DOCS: 1
@@ -268,7 +268,6 @@ jobs:
           pip install ghp-import
           cd $HOME/work/dymos/dymos
           ghp-import -n -p -f docs/dymos_book/_build/html
-
 
       - name: Publish docs to openmdao.org
         if: |
