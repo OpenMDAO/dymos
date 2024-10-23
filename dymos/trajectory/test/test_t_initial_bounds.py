@@ -5,6 +5,7 @@ import openmdao.api as om
 import dymos as dm
 
 from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.assert_utils import assert_warning
 
 
 def make_phases(traj, time_option_kwargs):
@@ -115,12 +116,10 @@ class Test_t_initialBounds(unittest.TestCase):
 
         conns.append((pname, ['phase0']))
 
-        with self.assertRaises(Warning) as cm:
-            self.try_model('phase_link_cycle', kwargs, conns)
-
         msg = ("'traj' <class Trajectory>: The following cycles were found in the phase "
                "linkage graph: [['phase0', 'phase1', 'phase2']].")
-        self.assertEqual(cm.exception.args[0], msg)
+        with assert_warning(UserWarning, msg):
+            self.try_model('phase_link_cycle', kwargs, conns)
 
     def test_pair_fixed_t_initial_below(self):
         kwargs = {

@@ -986,8 +986,8 @@ class Trajectory(om.Group):
         sccs = get_sccs_topo(phase_graph)
         cycles = sorted([s for s in sccs if len(s) > 1], key=lambda x: len(x))
         if cycles:
-            raise Warning(f"{self.msginfo}: The following cycles were found in the phase "
-                          f"linkage graph: {[sorted(c) for c in cycles]}.")
+            om.issue_warning(f"{self.msginfo}: The following cycles were found in the phase "
+                             f"linkage graph: {[sorted(c) for c in cycles]}.", category=UserWarning)
 
         node_data = phase_graph.nodes(data=True)
 
