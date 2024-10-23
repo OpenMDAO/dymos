@@ -711,8 +711,9 @@ class Trajectory(om.Group):
             var_pair = ('*', '*')
             if var_pair in var_dict:
                 options = var_dict[var_pair]
+                time_name = phase_b.time_options['name']
                 self.add_linkage_constraint(phase_name_a, phase_name_b,
-                                            var_a='time', var_b='time',
+                                            var_a=time_name, var_b=time_name,
                                             loc_a=options['loc_a'], loc_b=options['loc_b'],
                                             mult_a=options['mult_a'], mult_b=options['mult_b'],
                                             connected=options['connected'])
