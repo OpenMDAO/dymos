@@ -115,7 +115,7 @@ class Test_t_initialBounds(unittest.TestCase):
 
         conns.append((pname, ['phase0']))
 
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(Warning) as cm:
             self.try_model('phase_link_cycle', kwargs, conns)
 
         msg = ("'traj' <class Trajectory>: The following cycles were found in the phase "
