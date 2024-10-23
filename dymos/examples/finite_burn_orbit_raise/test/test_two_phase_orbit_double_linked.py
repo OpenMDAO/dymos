@@ -34,7 +34,7 @@ class TestTwoPhaseOrbitDoubleLinked(unittest.TestCase):
 
         # First half of the orbit
         phase0 = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.GaussLobatto(num_segments=10, order=3, compressed=True))
+                          transcription=dm.GaussLobatto(num_segments=10, order=3, compressed=True))
 
         phase0 = traj.add_phase('phase0', phase0)
 
