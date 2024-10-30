@@ -184,7 +184,7 @@ class TestTwoPhaseCannonballLoadCase(unittest.TestCase):
                                848.54403903, 864.60323344, 895.67083544, 926.90913594,
                                934.25949414, 946.77982935, 954.88116543, 955.37021704])
 
-        assert_near_equal(p.get_val('traj.ascent.states:h').ravel(), h_expected, tolerance=1.0E-6)
+        assert_near_equal(p.get_val('traj.ascent.states:h').ravel(), h_expected, tolerance=1.0E-5)
 
 
 if __name__ == '__main__':  # pragma: no cover

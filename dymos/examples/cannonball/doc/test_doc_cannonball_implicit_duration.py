@@ -128,9 +128,9 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
                 GRAVITY = 9.80665  # m/s**2
 
-                rho = self.rho_interp.interpolate(inputs['h'])
+                rho = self.rho_interp.interpolate(h)
 
-                q = 0.5*rho*inputs['v']**2
+                q = 0.5*rho*v**2
                 qS = q * S
                 D = qS * CD
                 cgam = np.cos(gam)
