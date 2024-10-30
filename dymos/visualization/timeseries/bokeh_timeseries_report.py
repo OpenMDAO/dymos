@@ -290,8 +290,7 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
             sim_case = None
 
     for traj_path, traj_data in traj_and_phase_meta.items():
-        traj_name = traj_data['name']
-        data_dict[traj_data['name']] = {'param_data_by_phase': {},
+        data_dict[traj_path] = {'param_data_by_phase': {},
                                         'sol_data_by_phase': {},
                                         'sim_data_by_phase': {},
                                         'timeseries_units': {}}
@@ -299,11 +298,11 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
         for phase_path, phase_data in traj_data['phases'].items():
             phase_name = phase_data['name']
             phase_param_data = \
-                data_dict[traj_name]['param_data_by_phase'][phase_name] = \
+                data_dict[traj_path]['param_data_by_phase'][phase_name] = \
                 {'param': [], 'val': [], 'units': []}
 
-            phase_sol_data = data_dict[traj_data['name']]['sol_data_by_phase'][phase_name] = {}
-            phase_sim_data = data_dict[traj_data['name']]['sim_data_by_phase'][phase_name] = {}
+            phase_sol_data = data_dict[traj_path]['sol_data_by_phase'][phase_name] = {}
+            phase_sim_data = data_dict[traj_path]['sim_data_by_phase'][phase_name] = {}
 
             # param_outputs = {op: meta for op, meta in outputs.items()
             #                  if op.startswith(f'{phase_path}.param_comp.parameter_vals:')}
@@ -320,7 +319,7 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
                 phase_param_data['val'].append(source_case.get_val(param_path, units=units))
 
             # Find the "largest" unit used for any timeseries output across all phases
-            ts_units_dict = data_dict[traj_data['name']]['timeseries_units']
+            ts_units_dict = data_dict[traj_path]['timeseries_units']
             for abs_name in sorted(ts_outputs.keys(), key=str.casefold):
                 meta = ts_outputs[abs_name]
                 prom_name = meta['prom_name']
@@ -426,7 +425,6 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
             curdoc().theme = theme
 
         for traj_path, traj_data in source_data.items():
-            traj_name = traj_path.split('.')[-1]
             report_filename = f'{traj_path}_results_report.html'
             report_path = report_dir / report_filename
             if _NO_BOKEH:
@@ -452,7 +450,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                                               sizing_mode='stretch_both'))
 
             # Plot the timeseries
-            ts_units_dict = source_data[traj_name]['timeseries_units']
+            ts_units_dict = source_data[traj_path]['timeseries_units']
 
             figures = []
             x_range = None
@@ -479,8 +477,8 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                     x_range = fig.x_range
                 for i, phase_name in enumerate(phase_names):
                     color = colors[i % 20]
-                    sol_data = source_data[traj_name]['sol_data_by_phase'][phase_name]
-                    sim_data = source_data[traj_name]['sim_data_by_phase'][phase_name]
+                    sol_data = source_data[traj_path]['sol_data_by_phase'][phase_name]
+                    sim_data = source_data[traj_path]['sim_data_by_phase'][phase_name]
                     sol_source = ColumnDataSource(sol_data)
                     sim_source = ColumnDataSource(sim_data)
                     if x_name in sol_data and var_name in sol_data:
@@ -551,5 +549,5 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
 
             # Save
 
-            save(report_layout, filename=report_path, title=f'trajectory results for {traj_name}',
+            save(report_layout, filename=report_path, title=f'trajectory results for {traj_path}',
                  resources=bokeh_resources.INLINE)
