@@ -5,13 +5,12 @@ import warnings
 
 import numpy as np
 
-from scipy import interpolate
-
 import openmdao.api as om
 from openmdao.utils.mpi import MPI
 from openmdao.utils.om_warnings import issue_warning
 from openmdao.core.system import System
 from openmdao.recorders.case import Case
+from openmdao.components.interp_util.interp import InterpND
 
 import dymos as dm
 
@@ -1938,7 +1937,7 @@ class Phase(om.Group):
         self.set_time_val(initial, duration, units)
 
     def set_state_val(self, name, vals=None, time_vals=None,
-                      units=None, interpolation_kind='linear'):
+                      units=None, interpolation_kind='slinear'):
         """
         Set the necessary input values for state as appropriate for the specified transcription.
 
@@ -1955,12 +1954,8 @@ class Phase(om.Group):
             If None, use the units associated with the target.
             If provided, must be compatible with the target units.
         interpolation_kind : str
-            Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
-            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
-            interpolation of zeroth, first, second or third order) or as an
-            integer specifying the order of the spline interpolator to use.
-            Default is 'linear'.
+            Specifies the kind of interpolation, as per the OpenMDAO InterpND module.
+            Default is 'slinear'.
         """
         transcription = self.options['transcription']
         input_data_to_set = transcription._phase_set_state_val(self, name,
@@ -1972,7 +1967,7 @@ class Phase(om.Group):
             self.set_val(var, value, units=units)
 
     def set_control_val(self, name, vals=None, time_vals=None,
-                        units=None, interpolation_kind='linear'):
+                        units=None, interpolation_kind='slinear'):
         """
         Set the control values as appropriate.
 
@@ -1989,12 +1984,8 @@ class Phase(om.Group):
             If None, use the units associated with the target.
             If provided, must be compatible with the target units.
         interpolation_kind : str
-            Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
-            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
-            interpolation of zeroth, first, second or third order) or as an
-            integer specifying the order of the spline interpolator to use.
-            Default is 'linear'.
+            Specifies the kind of interpolation, as per the OpenMDAO InterpND module.
+            Default is 'slinear'.
         """
         control_options = self.control_options[name]
         if control_options['control_type'] == 'polynomial':
@@ -2010,7 +2001,7 @@ class Phase(om.Group):
         self.set_val(f'controls:{name}', val=val, units=units)
 
     def set_polynomial_control_val(self, name, vals=None, time_vals=None,
-                                   units=None, interpolation_kind='linear'):
+                                   units=None, interpolation_kind='slinear'):
         """
         Set the polynomial control values as appropriate.
 
@@ -2027,12 +2018,8 @@ class Phase(om.Group):
             If None, use the units associated with the target.
             If provided, must be compatible with the target units.
         interpolation_kind : str
-            Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
-            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
-            interpolation of zeroth, first, second or third order) or as an
-            integer specifying the order of the spline interpolator to use.
-            Default is 'linear'.
+            Specifies the kind of interpolation, as per the OpenMDAO InterpND module.
+            Default is 'slinear'.
         """
         om.issue_warning(f'{self.pathname}: The method `set_polynomial_control_val` is '
                          'deprecated and will be removed in Dymos 2.1.',
@@ -2350,7 +2337,7 @@ class Phase(om.Group):
                                   f"phase '{self.name}': {', '.join(invalid_options)}",
                                   RuntimeWarning)
 
-    def interpolate(self, xs=None, ys=None, nodes='all', kind='linear', axis=0):
+    def interpolate(self, xs=None, ys=None, nodes='all', kind='slinear', axis=0):
         """
         Return an array of values on interpolated to the given node subset of the phase.
 
@@ -2363,12 +2350,8 @@ class Phase(om.Group):
         nodes : str or None
             The name of the node subset.
         kind : str
-            Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
-            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
-            interpolation of zeroth, first, second or third order) or as an
-            integer specifying the order of the spline interpolator to use.
-            Default is 'linear'.
+            Specifies the kind of interpolation, as per the OpenMDAO InterpND module.
+            Default is 'slinear'.
         axis : int
             Specifies the axis along which interpolation should be performed.  Default is
             the first axis (0).
@@ -2410,14 +2393,13 @@ class Phase(om.Group):
         m = 2.0 / (_xs[-1] - _xs[0])
         b = 1.0 - (m * _xs[-1])
         taus = m * _xs + b
-        interpfunc = interpolate.interp1d(taus, ys, axis=axis, kind=kind,
-                                          bounds_error=False, fill_value='extrapolate')
+        interpfunc = InterpND(points=taus, values=ys, method=kind, extrapolate=True).interpolate
         res = np.atleast_2d(interpfunc(node_locations))
         if res.shape[0] == 1:
             res = res.T
         return res
 
-    def interp(self, name=None, ys=None, xs=None, nodes=None, kind='linear', axis=0):
+    def interp(self, name=None, ys=None, xs=None, nodes=None, kind='slinear', axis=0):
         """
         Interpolate values onto the given subset of nodes in the phase.
 
@@ -2438,12 +2420,8 @@ class Phase(om.Group):
         nodes : str or None
             The name of the node subset or None (default).
         kind : str
-            Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
-            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
-            interpolation of zeroth, first, second or third order) or as an
-            integer specifying the order of the spline interpolator to use.
-            Default is 'linear'.
+            Specifies the kind of interpolation, as per the OpenMDAO InterpND module.
+            Default is 'slinear'.
         axis : int
             Specifies the axis along which interpolation should be performed.  Default is
             the first axis (0).
@@ -2464,8 +2442,8 @@ class Phase(om.Group):
         if xs is None:
             if len(ys) != 2:
                 raise ValueError('xs may only be unspecified when len(ys)=2')
-            if kind != 'linear':
-                raise ValueError('kind must be linear when xs is unspecified.')
+            if kind != 'slinear':
+                raise ValueError('kind must be slinear when xs is unspecified.')
             xs = [-1, 1]
         elif len(xs) != np.prod(np.asarray(xs).shape):
             raise ValueError('xs must be viewable as a 1D array')
@@ -2500,8 +2478,7 @@ class Phase(om.Group):
         m = 2.0 / (_xs[-1] - _xs[0])
         b = 1.0 - (m * _xs[-1])
         taus = m * _xs + b
-        interpfunc = interpolate.interp1d(taus, ys, axis=axis, kind=kind,
-                                          bounds_error=False, fill_value='extrapolate')
+        interpfunc = InterpND(points=taus, values=ys, method=kind, extrapolate=True).interpolate
         res = np.atleast_2d(interpfunc(node_locations))
         if res.shape[0] == 1:
             res = res.T
