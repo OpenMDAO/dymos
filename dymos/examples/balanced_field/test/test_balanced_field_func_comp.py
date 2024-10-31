@@ -131,7 +131,7 @@ def wrap_ode_func(num_nodes, flight_mode, grad_method='jax', jax_jit=True):
     meta.declare_coloring('*', method=grad_method)
     meta.declare_partials(of='*', wrt='*', method=grad_method)
 
-    return om.ExplicitFuncComp(meta, use_jax=grad_method == 'jax', use_jit=jax_jit)
+    return om.ExplicitFuncComp(meta, derivs_method=grad_method, use_jit=jax_jit)
 
 
 @use_tempdirs
