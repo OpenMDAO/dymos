@@ -15,7 +15,6 @@ from dymos.utils.misc import om_version
 
 
 @use_tempdirs
-@require_pyoptsparse('IPOPT')
 class TestBalancedFieldLengthRestart(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')
@@ -89,6 +88,7 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
 @use_tempdirs
 class TestBalancedFieldLengthDefaultValues(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_default_vals_stick(self):
         """
         Make the balanced field problem without any set_val calls after setup.
