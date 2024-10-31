@@ -1,14 +1,16 @@
 import numpy as np
-from scipy.interpolate import interp1d
 
 import openmdao.api as om
+from openmdao.components.interp_util.interp import InterpND
+
 from dymos.models.atmosphere.atmos_1976 import USatm1976Data
 
 
 english_to_metric_rho = om.unit_conversion('slug/ft**3', 'kg/m**3')[0]
 english_to_metric_h = om.unit_conversion('ft', 'm')[0]
-rho_interp = interp1d(np.array(USatm1976Data.alt*english_to_metric_h, dtype=complex),
-                      np.array(USatm1976Data.rho*english_to_metric_rho, dtype=complex), kind='linear')
+rho_interp = InterpND(points=np.array(USatm1976Data.alt*english_to_metric_h),
+                      values=np.array(USatm1976Data.rho*english_to_metric_rho),
+                      method='slinear').interpolate
 
 
 class CannonballODE(om.ExplicitComponent):
@@ -56,11 +58,7 @@ class CannonballODE(om.ExplicitComponent):
 
         GRAVITY = 9.80665  # m/s**2
 
-        # handle complex-step gracefully from the interpolant
-        if np.iscomplexobj(h):
-            rho = rho_interp(inputs['h'])
-        else:
-            rho = rho_interp(inputs['h']).real
+        rho = rho_interp(h)
 
         q = 0.5*rho*inputs['v']**2
         qS = q * S
