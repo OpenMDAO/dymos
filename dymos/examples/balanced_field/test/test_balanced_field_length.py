@@ -15,6 +15,7 @@ from dymos.utils.misc import om_version
 
 
 @use_tempdirs
+@require_pyoptsparse('IPOPT')
 class TestBalancedFieldLengthRestart(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='IPOPT')

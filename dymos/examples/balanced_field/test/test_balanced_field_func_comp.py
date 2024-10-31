@@ -134,7 +134,6 @@ def wrap_ode_func(num_nodes, mode, grad_method='jax', jax_jit=True):
     meta.declare_coloring('*', method=grad_method)
     meta.declare_partials(of='*', wrt='*', method=grad_method)
 
-
     if om_version()[0] > (3, 35, 0):
         return om.ExplicitFuncComp(meta, derivs_method=grad_method, use_jit=jax_jit)
     else:
@@ -147,17 +146,18 @@ class TestBalancedFieldFuncComp(unittest.TestCase):
     @unittest.skipIf(jax is None, 'requires jax and jaxlib')
     @require_pyoptsparse('IPOPT')
     def test_balanced_field_func_comp_radau(self):
-        p =make_balanced_field_length_problem(ode_class=wrap_ode_func, tx=dm.Radau(num_segments=3))
+        p = make_balanced_field_length_problem(ode_class=wrap_ode_func,
+                                               tx=dm.Radau(num_segments=3))
 
         dm.run_problem(p, run_driver=True, simulate=True)
 
         assert_near_equal(p.get_val('traj.rto.states:r')[-1], 2197.7, tolerance=0.01)
 
-
     @unittest.skipIf(jax is None, 'requires jax and jaxlib')
     @require_pyoptsparse('IPOPT')
     def test_balanced_field_func_comp_gl(self):
-        p =make_balanced_field_length_problem(ode_class=wrap_ode_func, tx=dm.GaussLobatto(num_segments=3))
+        p = make_balanced_field_length_problem(ode_class=wrap_ode_func,
+                                               tx=dm.GaussLobatto(num_segments=3))
 
         dm.run_problem(p, run_driver=True, simulate=True)
 
