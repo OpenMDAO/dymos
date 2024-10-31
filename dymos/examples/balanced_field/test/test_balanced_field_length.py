@@ -21,14 +21,14 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
     @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"),
                          reason='Test requires OpenMDAO 3.23.0 or later.')
     def test_make_plots(self):
-        p = make_balanced_field_length_problem(ode_class=BalancedFieldODEComp)
+        p = make_balanced_field_length_problem(ode_class=BalancedFieldODEComp, tx=dm.Radau(num_segments=3))
         dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)
 
     @require_pyoptsparse(optimizer='IPOPT')
     @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"),
                          reason='Test requires OpenMDAO 3.23.0 or later.')
     def test_restart_from_sol(self):
-        p = make_balanced_field_length_problem(ode_class=BalancedFieldODEComp)
+        p = make_balanced_field_length_problem(ode_class=BalancedFieldODEComp, tx=dm.Radau(num_segments=3))
         dm.run_problem(p, run_driver=True, simulate=False)
 
         sol_db = 'dymos_solution.db'
@@ -60,7 +60,7 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
     @unittest.skipUnless(Version(openmdao.__version__) > Version("3.23"),
                          reason='Test requires OpenMDAO 3.23.0 or later.')
     def test_restart_from_sim(self):
-        p = make_balanced_field_length_problem(ode_class=BalancedFieldODEComp)
+        p = make_balanced_field_length_problem(ode_class=BalancedFieldODEComp, tx=dm.Radau(num_segments=3))
         dm.run_problem(p, run_driver=True, simulate=True)
 
         sol_db = 'dymos_solution.db'
@@ -92,7 +92,7 @@ class TestBalancedFieldLengthDefaultValues(unittest.TestCase):
         """
         Make the balanced field problem without any set_val calls after setup.
         """
-        p = make_balanced_field_length_problem(ode_class=BalancedFieldODEComp)
+        p = make_balanced_field_length_problem(ode_class=BalancedFieldODEComp, tx=dm.GaussLobatto(num_segments=3))
 
         p.run_model()
 

@@ -2,7 +2,7 @@ import openmdao.api as om
 import dymos as dm
 
 
-def make_balanced_field_length_problem(ode_class, set_vals=True):
+def make_balanced_field_length_problem(ode_class, tx):
     """
     Create a balanced field length problem and optionally set default values into it.
 
@@ -10,8 +10,8 @@ def make_balanced_field_length_problem(ode_class, set_vals=True):
     ----------
     ode_class : System class
         The Dymos ODE System class.
-    set_vals : bool, optional
-        If True, assign default values for the optimization variables.
+    tx_class : Transcription
+        Transcription to use.
 
     Returns
     -------
@@ -35,7 +35,7 @@ def make_balanced_field_length_problem(ode_class, set_vals=True):
     p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
 
     # First Phase: Brake release to V1 - both engines operable
-    br_to_v1 = dm.Phase(ode_class=ode_class, transcription=dm.Radau(num_segments=3),
+    br_to_v1 = dm.Phase(ode_class=ode_class, transcription=tx,
                         ode_init_kwargs={'mode': 'runway'})
     br_to_v1.set_time_options(fix_initial=True, duration_bounds=(1, 1000), duration_ref=10.0)
     br_to_v1.add_state('r', fix_initial=True, lower=0, ref=1000.0, defect_ref=1000.0)
@@ -44,7 +44,7 @@ def make_balanced_field_length_problem(ode_class, set_vals=True):
     br_to_v1.add_timeseries_output('*')
 
     # Second Phase: Rejected takeoff at V1 - no engines operable
-    rto = dm.Phase(ode_class=ode_class, transcription=dm.Radau(num_segments=3),
+    rto = dm.Phase(ode_class=ode_class, transcription=tx,
                     ode_init_kwargs={'mode': 'runway'})
     rto.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1.0)
     rto.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
@@ -53,7 +53,7 @@ def make_balanced_field_length_problem(ode_class, set_vals=True):
     rto.add_timeseries_output('*')
 
     # Third Phase: V1 to Vr - single engine operable
-    v1_to_vr = dm.Phase(ode_class=ode_class, transcription=dm.Radau(num_segments=3),
+    v1_to_vr = dm.Phase(ode_class=ode_class, transcription=tx,
                         ode_init_kwargs={'mode': 'runway'})
     v1_to_vr.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1.0)
     v1_to_vr.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
@@ -62,7 +62,7 @@ def make_balanced_field_length_problem(ode_class, set_vals=True):
     v1_to_vr.add_timeseries_output('*')
 
     # Fourth Phase: Rotate - single engine operable
-    rotate = dm.Phase(ode_class=ode_class, transcription=dm.Radau(num_segments=3),
+    rotate = dm.Phase(ode_class=ode_class, transcription=tx,
                         ode_init_kwargs={'mode': 'runway'})
     rotate.set_time_options(fix_initial=False, duration_bounds=(1.0, 5), duration_ref=1.0)
     rotate.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
@@ -72,7 +72,7 @@ def make_balanced_field_length_problem(ode_class, set_vals=True):
     rotate.add_timeseries_output('*')
 
     # Fifth Phase: Climb to target speed and altitude at end of runway.
-    climb = dm.Phase(ode_class=ode_class, transcription=dm.Radau(num_segments=5),
+    climb = dm.Phase(ode_class=ode_class, transcription=tx,
                         ode_init_kwargs={'mode': 'climb'})
     climb.set_time_options(fix_initial=False, duration_bounds=(1, 100), duration_ref=1.0)
     climb.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
