@@ -160,7 +160,9 @@ def _configure_constraint_introspection(phase):
         The phase object whose boundary and path constraints are to be introspected.
     """
     from ..transcriptions import Birkhoff
+    from ..transcriptions.pseudospectral.radau_new import RadauNew
     birkhoff = isinstance(phase.options['transcription'], Birkhoff)
+    radau_new = isinstance(phase.options['transcription'], RadauNew)
 
     for constraint_type, constraints in [('initial', phase._initial_boundary_constraints),
                                          ('final', phase._final_boundary_constraints),
@@ -194,7 +196,7 @@ def _configure_constraint_introspection(phase):
                 state_units = phase.state_options[var]['units']
                 con['shape'] = state_shape
                 con['units'] = state_units if con['units'] is None else con['units']
-                if birkhoff and constraint_type in ('initial', 'final'):
+                if (birkhoff or radau_new) and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'boundary_vals.{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{prefix}{var}'

@@ -3,44 +3,37 @@ import numpy as np
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
-from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
-from .components import BirkhoffIterGroup, BirkhoffBoundaryGroup
+from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp, RadauPSContinuityComp
+from .components import RadauIterGroup, RadauBoundaryGroup
 
-from ..grid_data import BirkhoffGrid
+from ..grid_data import RadauGrid
 from dymos.utils.misc import get_rate_units
 from dymos.utils.introspection import get_promoted_vars, get_source_metadata
 from dymos.utils.indexing import get_constraint_flat_idxs, get_src_indices_by_row
 
 
-class Birkhoff(TranscriptionBase):
+class RadauNew(TranscriptionBase):
     """
-        Birkhoff Pseudospectral Transcription.
+    Radau Pseudospectral Transcription.
 
-        Parameters
-        ----------
-        **kwargs : dict
-            Dictionary of optional arguments.
+    Parameters
+    ----------
+    **kwargs : dict
+        Dictionary of optional arguments.
 
-        References
-        ----------
-        I. M. Ross, "A Universeal Birkhoff Theory for Fast Trajectory Optimization"
-        https://arxiv.org/abs/2308.01400v2
-        """
+    """
     def __init__(self, **kwargs):
-        super(Birkhoff, self).__init__(**kwargs)
+        super(RadauNew, self).__init__(**kwargs)
         self._rhs_source = 'ode_iter_group.ode_all'
 
     def initialize(self):
         """
         Declare transcription options.
         """
-        self.options.declare('num_nodes', types=int, default=3,
-                             desc='The number of nodes in the grid')
-
-        self.options.declare('grid_type', values=('cgl', 'lgl'), default='cgl',
-                             desc='Specifies which type of grid is to be used. '
-                                  'Options are Chebyshev-Gauss-Lobatto ("cgl") '
-                                  'and Legendre-Gauss-Lobatto ("lgl")')
+        self.options.declare('grid', types=(RadauGrid, str),
+                             allow_none=True, default=None,
+                             desc='The grid distribution used to layout the control inputs and provide the default '
+                                  'output nodes. Use either "cgl" or "lgl".')
 
         self.options.declare(name='solve_segments', default=False,
                              values=(False, 'forward', 'backward'),
@@ -56,14 +49,20 @@ class Birkhoff(TranscriptionBase):
 
     def init_grid(self):
         """
-        Setup the GridData object for the Transcription.
+        Set up the GridData object for the Transcription.
         """
-        self.grid_data = BirkhoffGrid(num_nodes=self.options['num_nodes'],
-                                      grid_type=self.options['grid_type'])
+        if self.options['compressed']:
+            om.issue_warning('Option `compressed` is no longer supported. All transcriptions are now "uncompressed".')
+            self.options['compressed'] = False
+
+        self.grid_data = RadauGrid(num_segments=self.options['num_segments'],
+                                   nodes_per_seg=self.options['order'] + 1,
+                                   segment_ends=self.options['segment_ends'],
+                                   compressed=self.options['compressed'])
 
     def setup_time(self, phase):
         """
-        Setup the time component.
+        Set up the time component.
 
         Parameters
         ----------
@@ -72,7 +71,7 @@ class Birkhoff(TranscriptionBase):
         """
         grid_data = self.grid_data
 
-        super(Birkhoff, self).setup_time(phase)
+        super(RadauNew, self).setup_time(phase)
 
         time_comp = TimeComp(num_nodes=grid_data.num_nodes, node_ptau=grid_data.node_ptau,
                              node_dptau_dstau=grid_data.node_dptau_dstau,
@@ -95,7 +94,7 @@ class Birkhoff(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super(Birkhoff, self).configure_time(phase)
+        super(RadauNew, self).configure_time(phase)
         phase.time.configure_io()
         options = phase.time_options
         ode = phase._get_subsystem(self._rhs_source)
@@ -108,6 +107,8 @@ class Birkhoff(TranscriptionBase):
                 src_idxs = self.grid_data.subset_node_indices['all']
                 phase.connect(name, [f'ode_all.{t}' for t in targets], src_indices=src_idxs,
                               flat_src_indices=True)
+                src_idxs = om.slicer[[0, -1], ...]
+                phase.connect(name, [f'boundary_vals.{t}' for t in targets], src_indices=src_idxs)
 
         for name, targets in [('t_initial', options['t_initial_targets']),
                               ('t_duration', options['t_duration_targets'])]:
@@ -120,7 +121,6 @@ class Birkhoff(TranscriptionBase):
                     src_shape = None
                 else:
                     src_idxs = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                    endpoint_src_idxs = np.zeros(2, dtype=int)
                     flat_src_idxs = True
                     src_shape = (1,)
 
@@ -136,16 +136,19 @@ class Birkhoff(TranscriptionBase):
 
     def setup_states(self, phase):
         """
-        Setup the states for this transcription.
+        Set up the states for this transcription.
 
-        In the Birkhoff transcription, everything typically done in this
-        method is instead done by the BirkhoffIterGroup.
+        In the Radau2 transcription, everything typically done in this
+        method is instead done by the RadauIterGroup.
 
         Parameters
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        if self.options['compressed']:
+            raise ValueError('RadauNew does not support compressed transcription')
+
         self.any_solved_segs = False
         self.any_connected_opt_segs = False
         for options in phase.state_options.values():
@@ -198,14 +201,13 @@ class Birkhoff(TranscriptionBase):
 
     def setup_ode(self, phase):
         """
-        Setup the ode for this transcription.
+        Set up the ode for this transcription.
 
         Parameters
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-
         ODEClass = phase.options['ode_class']
         grid_data = self.grid_data
 
@@ -214,19 +216,19 @@ class Birkhoff(TranscriptionBase):
         fbcs = phase._final_boundary_constraints
 
         phase.add_subsystem('ode_iter_group',
-                            subsys=BirkhoffIterGroup(grid_data=grid_data, state_options=phase.state_options,
-                                                     time_options=phase.time_options,
-                                                     ode_class=ODEClass,
-                                                     ode_init_kwargs=ode_init_kwargs),
+                            subsys=RadauIterGroup(grid_data=grid_data, state_options=phase.state_options,
+                                                  time_options=phase.time_options,
+                                                  ode_class=ODEClass,
+                                                  ode_init_kwargs=ode_init_kwargs),
                             promotes=['*'])
 
         phase.add_subsystem('boundary_vals',
-                            subsys=BirkhoffBoundaryGroup(grid_data=grid_data,
-                                                         ode_class=ODEClass,
-                                                         ode_init_kwargs=ode_init_kwargs,
-                                                         initial_boundary_constraints=ibcs,
-                                                         final_boundary_constraints=fbcs,
-                                                         objectives=phase._objectives),
+                            subsys=RadauBoundaryGroup(grid_data=grid_data,
+                                                      ode_class=ODEClass,
+                                                      ode_init_kwargs=ode_init_kwargs,
+                                                      initial_boundary_constraints=ibcs,
+                                                      final_boundary_constraints=fbcs,
+                                                      objectives=phase._objectives),
                             promotes_inputs=['initial_states:*', 'final_states:*'])
 
     def configure_ode(self, phase):
@@ -243,14 +245,20 @@ class Birkhoff(TranscriptionBase):
 
     def setup_defects(self, phase):
         """
-        Create the continuity_comp to house the defects.
+        Pass setup_defects for this transcription.
 
         Parameters
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        if any(self._requires_continuity_constraints(phase)):
+            phase.add_subsystem('continuity_comp',
+                                RadauPSContinuityComp(grid_data=self.grid_data,
+                                                      # State continuity defects are in the RadauDefectComp.
+                                                      state_options={},
+                                                      control_options=phase.control_options,
+                                                      time_units=phase.time_options['units']))
 
     def configure_defects(self, phase):
         """
@@ -267,9 +275,47 @@ class Birkhoff(TranscriptionBase):
             if rate_source_type not in ('state', 'ode'):
                 phase.connect(rate_src_path, f'f_computed:{name}')
 
+        grid_data = self.grid_data
+
+        any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
+
+        if not any((any_state_cnty, any_control_cnty, any_control_rate_cnty)):
+            return
+
+        # Add the continuity constraint component if necessary
+        segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+
+        if any_control_rate_cnty:
+            phase.connect('t_duration_val', 'continuity_comp.t_duration')
+
+        phase.continuity_comp.configure_io()
+
+        for name, options in phase.control_options.items():
+            # The sub-indices of control_disc indices that are segment ends
+            segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+            src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
+
+            # enclose indices in tuple to ensure shaping of indices works
+            src_idxs = (src_idxs,)
+
+            if options['continuity']:
+                phase.connect(f'control_values:{name}',
+                              f'continuity_comp.controls:{name}',
+                              src_indices=src_idxs, flat_src_indices=True)
+
+            if options['rate_continuity']:
+                phase.connect(f'control_rates:{name}_rate',
+                              f'continuity_comp.control_rates:{name}_rate',
+                              src_indices=src_idxs, flat_src_indices=True)
+
+            if options['rate2_continuity']:
+                phase.connect(f'control_rates:{name}_rate2',
+                              f'continuity_comp.control_rates:{name}_rate2',
+                              src_indices=src_idxs, flat_src_indices=True)
+
     def setup_duration_balance(self, phase):
         """
-        Setup the implicit computation of the phase duration.
+        Set up the implicit computation of the phase duration.
 
         Parameters
         ----------
@@ -291,7 +337,7 @@ class Birkhoff(TranscriptionBase):
 
     def setup_solvers(self, phase):
         """
-        Setup the solvers.
+        Set up the solvers.
 
         Parameters
         ----------
@@ -346,7 +392,7 @@ class Birkhoff(TranscriptionBase):
 
     def setup_timeseries_outputs(self, phase):
         """
-        Setup the timeseries for this transcription.
+        Set up the timeseries for this transcription.
 
         Parameters
         ----------
@@ -560,7 +606,7 @@ class Birkhoff(TranscriptionBase):
 
     def _get_num_timeseries_nodes(self):
         """
-        Returns the number of nodes in the default timeseries for this transcription.
+        Return the number of nodes in the default timeseries for this transcription.
 
         Returns
         -------
@@ -679,23 +725,22 @@ class Birkhoff(TranscriptionBase):
             src_units = phase.state_options[var]['units']
             src_shape = phase.state_options[var]['shape']
 
-            if gd.transcription == 'radau-ps':
-                # Find the state_input indices which occur at segment endpoints, and repeat them twice
-                state_input_idxs = gd.subset_node_indices['state_input']
-                repeat_idxs = np.ones_like(state_input_idxs)
-                if self.options['compressed']:
-                    segment_end_idxs = gd.subset_node_indices['segment_ends'][1:-1]
-                    # Repeat nodes that are on segment bounds (but not the first or last nodes in the phase)
-                    nodes_to_repeat = list(set(state_input_idxs).intersection(set(segment_end_idxs)))
-                    # Now find these nodes in the state input indices
-                    idxs_of_ntr_in_state_inputs = np.where(np.isin(state_input_idxs, nodes_to_repeat))[0]
-                    # All state input nodes are used once, but nodes_to_repeat are used twice
-                    repeat_idxs[idxs_of_ntr_in_state_inputs] = 2
-                # Now we have a way of mapping the state input indices to all nodes
-                map_input_node_idxs_to_all = np.repeat(np.arange(gd.subset_num_nodes['state_input'],
-                                                                 dtype=int), repeats=repeat_idxs)
-                # Now select the subset of nodes we want to use.
-                node_idxs = map_input_node_idxs_to_all[gd.subset_node_indices['all']]
+            # Find the state_input indices which occur at segment endpoints, and repeat them twice
+            state_input_idxs = gd.subset_node_indices['state_input']
+            repeat_idxs = np.ones_like(state_input_idxs)
+            if self.options['compressed']:
+                segment_end_idxs = gd.subset_node_indices['segment_ends'][1:-1]
+                # Repeat nodes that are on segment bounds (but not the first or last nodes in the phase)
+                nodes_to_repeat = list(set(state_input_idxs).intersection(set(segment_end_idxs)))
+                # Now find these nodes in the state input indices
+                idxs_of_ntr_in_state_inputs = np.where(np.isin(state_input_idxs, nodes_to_repeat))[0]
+                # All state input nodes are used once, but nodes_to_repeat are used twice
+                repeat_idxs[idxs_of_ntr_in_state_inputs] = 2
+            # Now we have a way of mapping the state input indices to all nodes
+            map_input_node_idxs_to_all = np.repeat(np.arange(gd.subset_num_nodes['state_input'],
+                                                   dtype=int), repeats=repeat_idxs)
+            # Now select the subset of nodes we want to use.
+            node_idxs = map_input_node_idxs_to_all[gd.subset_node_indices['all']]
         elif var_type in ['indep_control', 'input_control']:
             path = f'control_values:{var}'
             src_units = phase.control_options[var]['units']
@@ -755,7 +800,7 @@ class Birkhoff(TranscriptionBase):
 
     def get_parameter_connections(self, name, phase):
         """
-        Returns info about a parameter's target connections in the phase.
+        Return info about a parameter's target connections in the phase.
 
         Parameters
         ----------
@@ -776,7 +821,6 @@ class Birkhoff(TranscriptionBase):
             for tgt in options['targets']:
                 if tgt in options['static_targets']:
                     src_idxs = np.squeeze(get_src_indices_by_row([0], options['shape']), axis=0)
-                    endpoint_src_idxs = om.slicer[:, ...]
                 else:
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
@@ -791,7 +835,7 @@ class Birkhoff(TranscriptionBase):
 
     def _requires_continuity_constraints(self, phase):
         """
-        Tests whether state and/or control and/or control rate continuity are required.
+        Test whether state and/or control and/or control rate continuity are required.
 
         Parameters
         ----------
@@ -806,6 +850,7 @@ class Birkhoff(TranscriptionBase):
             True if any control value continuity is required to be enforced.
         any_control_rate_continuity : bool
             True if any control rate continuity is required to be enforced.
+
         """
         num_seg = self.grid_data.num_segments
         compressed = self.grid_data.compressed
@@ -821,8 +866,7 @@ class Birkhoff(TranscriptionBase):
 
     def _phase_set_state_val(self, phase, name, vals, time_vals, interpolation_kind):
         """
-        Method to interpolate the provided input and return the variables that need to be set
-        along with their appropriate value.
+        Provide variable names and values when phase.set_state_vals is called.
 
         Parameters
         ----------
