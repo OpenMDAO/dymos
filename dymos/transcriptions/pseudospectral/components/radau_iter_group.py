@@ -184,7 +184,9 @@ class RadauIterGroup(om.Group):
         nin = gd.subset_num_nodes['state_input']
         ncn = gd.subset_num_nodes['col']
         ns = gd.num_segments
-        # state_src_idxs = gd.input_maps['state_input_to_disc']
+        state_src_idxs_input_to_disc = gd.input_maps['state_input_to_disc']
+        state_src_idxs_input_to_all = state_src_idxs_input_to_disc
+
         col_idxs = gd.subset_node_indices['col']
 
         state_options = self.options['state_options']
@@ -202,19 +204,17 @@ class RadauIterGroup(om.Group):
             # TODO: compressed transcription is not currently supported because promoting duplicate
             # indices currently has a bug in OpenMDAO <= 3.35.0
             for tgt in options['targets']:
-                self.promotes('ode_all', [(tgt, f'states:{name}')])
-                              #   src_indices=om.slicer[state_src_idxs, ...],
+                self.promotes('ode_all', [(tgt, f'states:{name}')],
+                              src_indices=om.slicer[state_src_idxs_input_to_all, ...])
                             #   src_shape=(nin,) + shape)
             self.set_input_defaults(f'states:{name}', val=1.0, units=units, src_shape=(nin,) + shape)
 
-            self.promotes('defects', inputs=(f'states:{name}',))
+            self.promotes('defects', inputs=(f'states:{name}',),
+                          src_indices=om.slicer[state_src_idxs_input_to_all, ...],)
 
             self._implicit_outputs = self._configure_desvars(name, options)
 
             if f'states:{name}' in self._implicit_outputs:
-                states_resids_comp.add_output(f'states:{name}',
-                                              shape=(nn,) + shape,
-                                              units=units)
 
                 states_resids_comp.add_input(f'initial_state_defects:{name}', shape=(1,) + shape, units=units)
                 states_resids_comp.add_input(f'final_state_defects:{name}', shape=(1,) + shape, units=units)
@@ -224,6 +224,17 @@ class RadauIterGroup(om.Group):
                     states_resids_comp.add_input(f'state_cnty_defects:{name}',
                                                  shape=(ns - 1,) + shape,
                                                  units=units)
+                    # For compressed transcription, resids does not provide values at overlapping
+                    # segment boundaries.
+                    states_resids_comp.add_output(f'states:{name}',
+                                                  shape=(nn,) + shape,
+                                                  units=units)
+                else:
+                    # For compressed transcirption, resids comp provides values at input nodes.
+                    nin = gd.subset_num_nodes['state_input']
+                    states_resids_comp.add_output(f'states:{name}',
+                                                  shape=(nin,) + shape,
+                                                  units=units)
 
             if f'initial_states:{name}' in self._implicit_outputs:
                 # states_resids_comp.add_input(f'initial_state_defects:{name}', shape=(1,) + shape, units=units)

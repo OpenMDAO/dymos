@@ -25,7 +25,8 @@ class TestRadauIterGroup(unittest.TestCase):
     def test_solve_segments(self):
         with dymos.options.temporary(include_check_partials=True):
             for direction in ['forward', 'backward']:
-                    with self.subTest(msg=f'{direction=}'):
+                for compressed in [True, False]:
+                    with self.subTest(msg=f'{direction=} {compressed=}'):
 
                         state_options = {'x': StateOptionsDictionary()}
 
@@ -38,7 +39,7 @@ class TestRadauIterGroup(unittest.TestCase):
                         state_options['x']['rate_source'] = 'x_dot'
 
                         time_options = TimeOptionsDictionary()
-                        grid_data = RadauGrid(num_segments=10, nodes_per_seg=4, compressed=False)
+                        grid_data = RadauGrid(num_segments=2, nodes_per_seg=8, compressed=compressed)
                         nn = grid_data.subset_num_nodes['all']
                         ode_class = SimpleODE
 
@@ -152,12 +153,9 @@ class TestRadauIterGroup(unittest.TestCase):
                         assert_near_equal(solution[0], x_0[:, 0], tolerance=1.0E-5)
                         assert_near_equal(solution[-1], x_f[:, 0], tolerance=1.0E-5)
 
-                        print(x[:, 1])
-
                         with np.printoptions(linewidth=1024, edgeitems=1024):
                             cpd = p.check_partials(method='cs', compact_print=False, show_only_incorrect=True)# out_stream=None)
                         assert_check_partials(cpd, atol=1.0E-5, rtol=1.0)
-
 
 
 if __name__ == '__main__':

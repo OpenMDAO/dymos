@@ -290,8 +290,6 @@ class RadauDefectComp(om.ExplicitComponent):
 
             if gd.num_segments > 1 and not gd.compressed:
                 outputs[var_names['cnty_defect']] = x[idxs_se[2::2], ...] - x[idxs_se[1:-2:2], ...]
-            else:
-                exit(0)
 
     def compute_partials(self, inputs, partials):
         """
