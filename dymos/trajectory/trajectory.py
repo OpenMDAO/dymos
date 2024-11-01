@@ -5,7 +5,6 @@ import itertools
 import sys
 
 from openmdao.utils.om_warnings import warn_deprecation
-from openmdao.utils.graph_utils import get_sccs_topo
 from openmdao.utils.units import unit_conversion
 
 import numpy as np
