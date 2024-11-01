@@ -5,7 +5,6 @@ import itertools
 import sys
 
 from openmdao.utils.om_warnings import warn_deprecation
-from openmdao.utils.graph_utils import get_sccs_topo
 from openmdao.utils.units import unit_conversion
 
 import numpy as np
@@ -711,8 +710,9 @@ class Trajectory(om.Group):
             var_pair = ('*', '*')
             if var_pair in var_dict:
                 options = var_dict[var_pair]
+                time_name = phase_b.time_options['name']
                 self.add_linkage_constraint(phase_name_a, phase_name_b,
-                                            var_a='time', var_b='time',
+                                            var_a=time_name, var_b=time_name,
                                             loc_a=options['loc_a'], loc_b=options['loc_b'],
                                             mult_a=options['mult_a'], mult_b=options['mult_b'],
                                             connected=options['connected'])
@@ -980,13 +980,6 @@ class Trajectory(om.Group):
             return new_min_t, new_max_t, errs
 
         phase_graph = self._phase_graph
-
-        # since we have a graph, do a quick check that we have no cycles
-        sccs = get_sccs_topo(phase_graph)
-        cycles = sorted([s for s in sccs if len(s) > 1], key=lambda x: len(x))
-        if cycles:
-            raise RuntimeError(f"{self.msginfo}: The following cycles were found in the phase "
-                               f"linkage graph: {[sorted(c) for c in cycles]}.")
 
         node_data = phase_graph.nodes(data=True)
 
