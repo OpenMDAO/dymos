@@ -33,6 +33,7 @@ all = [
     "dymos[docs]",
     "dymos[notebooks]",
     "dymos[test]",
+    "dymos[numba]",
 ]
 docs = [
     "bokeh",
@@ -62,6 +63,8 @@ test = [
     "playwright>=1.20",
     "pycodestyle",
     "testflo>=1.3.6",
+]
+numba = [
     "numba",
 ]
 
