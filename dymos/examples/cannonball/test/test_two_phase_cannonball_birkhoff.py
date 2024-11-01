@@ -3,9 +3,9 @@ import unittest
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import numpy as np
-from scipy.interpolate import interp1d
 
 import openmdao.api as om
+from openmdao.components.interp_util.interp import InterpND
 from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
@@ -83,16 +83,16 @@ class CannonballODE(om.ExplicitComponent):
         self.add_output('r_dot', shape=nn, units='m/s', tags=['dymos.state_rate_source:r'])
         self.add_output('ke', shape=nn, units='J')
 
-        # Ask OpenMDAO to compute the partial derivatives using complex-step
+        # Ask OpenMDAO to compute the partial derivatives using finite-difference
         # with a partial coloring algorithm for improved performance, and use
         # a graph coloring algorithm to automatically detect the sparsity pattern.
-        self.declare_coloring(wrt='*', method='cs')
+        self.declare_coloring(wrt='*', method='fd')
 
         alt_data = USatm1976Data.alt * om.unit_conversion('ft', 'm')[0]
         rho_data = USatm1976Data.rho * om.unit_conversion('slug/ft**3', 'kg/m**3')[0]
-        self.rho_interp = interp1d(np.array(alt_data, dtype=complex),
-                                   np.array(rho_data, dtype=complex),
-                                   kind='linear', bounds_error=False, fill_value='extrapolate')
+        self.rho_interp = InterpND(points=np.array(alt_data),
+                                   values=np.array(rho_data),
+                                   method='slinear', extrapolate=True)
 
     def compute(self, inputs, outputs):
 
@@ -105,11 +105,7 @@ class CannonballODE(om.ExplicitComponent):
 
         GRAVITY = 9.80665  # m/s**2
 
-        # handle complex-step gracefully from the interpolant
-        if np.iscomplexobj(h):
-            rho = self.rho_interp(inputs['h'])
-        else:
-            rho = self.rho_interp(inputs['h']).real
+        rho = self.rho_interp.interpolate(inputs['h'])
 
         q = 0.5 * rho * inputs['v'] ** 2
         qS = q * S
