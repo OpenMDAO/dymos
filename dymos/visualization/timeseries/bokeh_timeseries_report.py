@@ -291,9 +291,9 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
 
     for traj_path, traj_data in traj_and_phase_meta.items():
         data_dict[traj_path] = {'param_data_by_phase': {},
-                                        'sol_data_by_phase': {},
-                                        'sim_data_by_phase': {},
-                                        'timeseries_units': {}}
+                                'sol_data_by_phase': {},
+                                'sim_data_by_phase': {},
+                                'timeseries_units': {}}
 
         for phase_path, phase_data in traj_data['phases'].items():
             phase_name = phase_data['name']
