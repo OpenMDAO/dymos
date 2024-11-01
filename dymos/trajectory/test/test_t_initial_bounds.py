@@ -99,28 +99,6 @@ class Test_t_initialBounds(unittest.TestCase):
 
         dm.run_problem(prob, run_driver=False)
 
-    def test_phase_link_cycle(self):
-        nphases = 3
-
-        kwargs = {}
-        conns = []
-        for i in range(nphases):
-            pname = f'phase{i}'
-            kwargs[pname] = dct = {}
-            dct['fix_initial'] = True
-            dct['fix_duration'] = False
-            dct['initial_val'] = 5. * i if i < nphases - 1 else 5. * (i - 1)
-
-            if i > 0:
-                conns.append((f'phase{i-1}', [pname]))
-
-        conns.append((pname, ['phase0']))
-
-        msg = ("'traj' <class Trajectory>: The following cycles were found in the phase "
-               "linkage graph: [['phase0', 'phase1', 'phase2']].")
-        with assert_warning(UserWarning, msg):
-            self.try_model('phase_link_cycle', kwargs, conns)
-
     def test_pair_fixed_t_initial_below(self):
         kwargs = {
             'phase0': {

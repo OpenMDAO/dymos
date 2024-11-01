@@ -982,13 +982,6 @@ class Trajectory(om.Group):
 
         phase_graph = self._phase_graph
 
-        # since we have a graph, do a quick check that we have no cycles
-        sccs = get_sccs_topo(phase_graph)
-        cycles = sorted([s for s in sccs if len(s) > 1], key=lambda x: len(x))
-        if cycles:
-            om.issue_warning(f"{self.msginfo}: The following cycles were found in the phase "
-                             f"linkage graph: {[sorted(c) for c in cycles]}.", category=UserWarning)
-
         node_data = phase_graph.nodes(data=True)
 
         # only keep the part of the graph where 't' connects phases
