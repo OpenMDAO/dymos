@@ -919,7 +919,7 @@ Rather than forcing them to rewrite this code in the form of OpenMDAO components
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">openmdao.api</span> <span class="k">as</span> <span class="nn">om</span>
 <span class="kn">import</span> <span class="nn">openmdao.func_api</span> <span class="k">as</span> <span class="nn">omf</span>
-
+<span class="kn">from</span> <span class="nn">dymos.utils.misc</span> <span class="kn">import</span> <span class="n">om_version</span>
 <span class="k">def</span> <span class="nf">wrap_ode_func</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">flight_mode</span><span class="p">,</span> <span class="n">grad_method</span><span class="o">=</span><span class="s1">&#39;jax&#39;</span><span class="p">,</span> <span class="n">jax_jit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the metadata from omf needed to create a new ExplciitFuncComp.</span>
@@ -974,7 +974,10 @@ Rather than forcing them to rewrite this code in the form of OpenMDAO components
     <span class="n">meta</span><span class="o">.</span><span class="n">declare_coloring</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">grad_method</span><span class="p">)</span>
     <span class="n">meta</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">grad_method</span><span class="p">)</span>
     
-    <span class="k">return</span> <span class="n">om</span><span class="o">.</span><span class="n">ExplicitFuncComp</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">use_jax</span><span class="o">=</span><span class="n">grad_method</span> <span class="o">==</span> <span class="s1">&#39;jax&#39;</span><span class="p">,</span> <span class="n">use_jit</span><span class="o">=</span><span class="n">jax_jit</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">om_version</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">om</span><span class="o">.</span><span class="n">ExplicitFuncComp</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">derivs_method</span><span class="o">=</span><span class="n">grad_method</span><span class="p">,</span> <span class="n">use_jit</span><span class="o">=</span><span class="n">jax_jit</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">om</span><span class="o">.</span><span class="n">ExplicitFuncComp</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">use_jax</span><span class="o">=</span><span class="n">grad_method</span> <span class="o">==</span> <span class="s1">&#39;jax&#39;</span><span class="p">,</span> <span class="n">use_jit</span><span class="o">=</span><span class="n">jax_jit</span><span class="p">)</span>
     
     
 </pre></div>
@@ -1252,8 +1255,8 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.2311 sec
-Time to compute coloring:   0.0110 sec
+Time to compute sparsity:   0.2304 sec
+Time to compute coloring:   0.0106 sec
 Memory to compute coloring:   0.1250 MB
 </pre></div>
 </div>
@@ -1267,8 +1270,8 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1941 sec
-Time to compute coloring:   0.0119 sec
+Time to compute sparsity:   0.1967 sec
+Time to compute coloring:   0.0113 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
@@ -1282,8 +1285,8 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1943 sec
-Time to compute coloring:   0.0117 sec
+Time to compute sparsity:   0.1924 sec
+Time to compute coloring:   0.0119 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
@@ -1297,8 +1300,8 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1926 sec
-Time to compute coloring:   0.0120 sec
+Time to compute sparsity:   0.2986 sec
+Time to compute coloring:   0.0108 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
@@ -1312,12 +1315,12 @@ FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 111  (85.59% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.2830 sec
-Time to compute coloring:   0.0202 sec
+Time to compute sparsity:   0.2738 sec
+Time to compute coloring:   0.0197 sec
 Memory to compute coloring:   0.1250 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 3.3113266269999713 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 3.284827410000048 seconds.
 Total jacobian shape: (178, 166) 
 
 
@@ -1326,10 +1329,10 @@ FWD solves: 14   REV solves: 0
 Total colors vs. total size: 14 vs 166  (91.57% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   3.3113 sec
-Time to compute coloring:   0.0726 sec
+Time to compute sparsity:   3.2848 sec
+Time to compute coloring:   0.0685 sec
 Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-10-03 14:58:07
+Coloring created on: 2024-11-01 00:51:10
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1652: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.climb-&gt;path_constraint-&gt;gam&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
