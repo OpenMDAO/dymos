@@ -1396,9 +1396,9 @@ class TestInvalidLinkages(unittest.TestCase):
 
     def test_linkage_units(self):
         import numpy as np
-        from scipy.interpolate import interp1d
 
         import openmdao.api as om
+        from openmdao.components.interp_util.interp import InterpND
 
         import dymos as dm
         from dymos.models.atmosphere.atmos_1976 import USatm1976Data
@@ -1464,9 +1464,7 @@ class TestInvalidLinkages(unittest.TestCase):
 
                 alt_data = USatm1976Data.alt * om.unit_conversion('ft', 'm')[0]
                 rho_data = USatm1976Data.rho * om.unit_conversion('slug/ft**3', 'kg/m**3')[0]
-                self.rho_interp = interp1d(np.array(alt_data, dtype=complex),
-                                           np.array(rho_data, dtype=complex),
-                                           kind='linear')
+                self.rho_interp = InterpND('slinear', np.array(alt_data), np.array(rho_data)).interpolate
 
             def compute(self, inputs, outputs):
 
@@ -1660,9 +1658,9 @@ class TestInvalidLinkages(unittest.TestCase):
 
     def test_linkage_units_connected(self):
         import numpy as np
-        from scipy.interpolate import interp1d
 
         import openmdao.api as om
+        from openmdao.components.interp_util.interp import InterpND
 
         import dymos as dm
         from dymos.models.atmosphere.atmos_1976 import USatm1976Data
@@ -1728,9 +1726,7 @@ class TestInvalidLinkages(unittest.TestCase):
 
                 alt_data = USatm1976Data.alt * om.unit_conversion('ft', 'm')[0]
                 rho_data = USatm1976Data.rho * om.unit_conversion('slug/ft**3', 'kg/m**3')[0]
-                self.rho_interp = interp1d(np.array(alt_data, dtype=complex),
-                                           np.array(rho_data, dtype=complex),
-                                           kind='linear')
+                self.rho_interp = InterpND('slinear', np.array(alt_data), np.array(rho_data)).interpolate
 
             def compute(self, inputs, outputs):
 

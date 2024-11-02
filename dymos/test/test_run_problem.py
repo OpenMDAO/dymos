@@ -562,7 +562,7 @@ class TestRunProblem(unittest.TestCase):
     def test_restart_from_file(self):
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
         from dymos.run_problem import run_problem
-        from scipy.interpolate import interp1d
+        from openmdao.components.interp_util.interp import InterpND
         from numpy.testing import assert_almost_equal
 
         # Create the Dymos problem instance
@@ -602,9 +602,9 @@ class TestRunProblem(unittest.TestCase):
         us = s.get_val('traj.phase0.timeseries.u')[:, 0][nodup]
 
         # create interpolation functions so that values can be looked up at matching time points
-        fx1s = interp1d(ts, x1s, kind='cubic')
-        fx0s = interp1d(ts, x0s, kind='cubic')
-        fus = interp1d(ts, us, kind='cubic')
+        fx1s = InterpND('cubic', ts, x1s).interpolate
+        fx0s = InterpND('cubic', ts, x0s).interpolate
+        fus = InterpND('cubic', ts, us).interpolate
 
         assert_almost_equal(x1q, fx1s(tq), decimal=2)
         assert_almost_equal(x0q, fx0s(tq), decimal=2)
@@ -613,7 +613,7 @@ class TestRunProblem(unittest.TestCase):
     def test_restart_from_case(self):
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
         from dymos.run_problem import run_problem
-        from scipy.interpolate import interp1d
+        from openmdao.components.interp_util.interp import InterpND
         from numpy.testing import assert_almost_equal
 
         # Create the Dymos problem instance
@@ -653,9 +653,9 @@ class TestRunProblem(unittest.TestCase):
         us = s.get_val('traj.phase0.timeseries.u')[:, 0][nodup]
 
         # create interpolation functions so that values can be looked up at matching time points
-        fx1s = interp1d(ts, x1s, kind='cubic')
-        fx0s = interp1d(ts, x0s, kind='cubic')
-        fus = interp1d(ts, us, kind='cubic')
+        fx1s = InterpND('cubic', ts, x1s).interpolate
+        fx0s = InterpND('cubic', ts, x0s).interpolate
+        fus = InterpND('cubic', ts, us).interpolate
 
         assert_almost_equal(x1q, fx1s(tq), decimal=2)
         assert_almost_equal(x0q, fx0s(tq), decimal=2)
