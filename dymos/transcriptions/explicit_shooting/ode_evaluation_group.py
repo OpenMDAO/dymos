@@ -218,7 +218,6 @@ class ODEEvaluationGroup(om.Group):
             self.add_constraint(f'state_rate_collector.state_rates:{name}_rate')
 
     def _configure_params(self):
-        vec_size = self._vec_size
         ode_inputs = get_promoted_vars(self.ode, iotypes='input', metadata_keys=['shape', 'units', 'val', 'tags'])
 
         for name, options in self._parameter_options.items():
