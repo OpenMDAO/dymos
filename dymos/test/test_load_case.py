@@ -123,6 +123,7 @@ class TestLoadCase(unittest.TestCase):
                           case.get_val('phase0.controls:theta'))
 
     def test_load_case_lgl_to_radau(self):
+        import numpy as np
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
@@ -155,11 +156,15 @@ class TestLoadCase(unittest.TestCase):
         time_val = outputs['phase0.timeseries.timeseries_comp.time']['val']
         theta_val = outputs['phase0.timeseries.timeseries_comp.theta']['val']
 
+        time_val_uniq, idx = np.unique(time_val, return_index=True)
+        theta_val_uniq = theta_val[idx]
+
         assert_near_equal(q['phase0.timeseries.timeseries_comp.theta'],
-                          q.model.phase0.interp(xs=time_val, ys=theta_val, nodes='all'),
+                          q.model.phase0.interp(xs=time_val_uniq, ys=theta_val_uniq, nodes='all'),
                           tolerance=1.0E-3)
 
     def test_load_case_radau_to_lgl(self):
+        import numpy as np
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
@@ -192,11 +197,18 @@ class TestLoadCase(unittest.TestCase):
         time_q = q.get_val('phase0.timeseries.time')
         theta_q = q.get_val('phase0.timeseries.theta')
 
-        assert_near_equal(q.model.phase0.interp(xs=time_p, ys=theta_p, nodes='all'),
-                          q.model.phase0.interp(xs=time_q, ys=theta_q, nodes='all'),
+        time_p_unique, p_idx = np.unique(time_p, return_index=True)
+        theta_p_unique = theta_p[p_idx]
+
+        time_q_unique, q_idx = np.unique(time_q, return_index=True)
+        theta_q_unique = theta_q[q_idx]
+
+        assert_near_equal(q.model.phase0.interp(xs=time_p_unique, ys=theta_p_unique, nodes='all'),
+                          q.model.phase0.interp(xs=time_q_unique, ys=theta_q_unique, nodes='all'),
                           tolerance=1.0E-2)
 
     def test_load_case_radau_to_birkhoff(self):
+        import numpy as np
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
@@ -258,8 +270,14 @@ class TestLoadCase(unittest.TestCase):
         v0_q = q.get_val('phase0.initial_states:v')
         vf_q = q.get_val('phase0.final_states:v')
 
-        assert_near_equal(q.model.phase0.interp(xs=time_p, ys=theta_p, nodes='all'),
-                          q.model.phase0.interp(xs=time_q, ys=theta_q, nodes='all'),
+        time_p_unique, p_idx = np.unique(time_p, return_index=True)
+        theta_p_unique = theta_p[p_idx]
+
+        time_q_unique, q_idx = np.unique(time_q, return_index=True)
+        theta_q_unique = theta_q[q_idx]
+
+        assert_near_equal(q.model.phase0.interp(xs=time_p_unique, ys=theta_p_unique, nodes='all'),
+                          q.model.phase0.interp(xs=time_q_unique, ys=theta_q_unique, nodes='all'),
                           tolerance=1.0E-2)
 
         assert_near_equal(x_p[0, ...], x0_q, tolerance=1.0E-5)

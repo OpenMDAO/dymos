@@ -1989,7 +1989,6 @@ class Phase(om.Group):
             Specifies the kind of interpolation, as per the scipy.interpolate package.
             One of ('akima', 'pchip', or 'cubic_spline' ).
             Default is 'akima'.
-
         """
         control_options = self.control_options[name]
         if control_options['control_type'] == 'polynomial':
@@ -2025,7 +2024,6 @@ class Phase(om.Group):
             Specifies the kind of interpolation, as per the scipy.interpolate package.
             One of ('akima', 'pchip', or 'cubic_spline' ).
             Default is 'akima'.
-
         """
         om.issue_warning(f'{self.pathname}: The method `set_polynomial_control_val` is '
                          'deprecated and will be removed in Dymos 2.1.',
