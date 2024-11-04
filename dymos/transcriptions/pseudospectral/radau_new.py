@@ -111,7 +111,8 @@ class RadauNew(TranscriptionBase):
                 phase.connect(name, [f'boundary_vals.{t}' for t in targets], src_indices=src_idxs)
 
         for name, targets in [('t_initial', options['t_initial_targets']),
-                              ('t_duration', options['t_duration_targets'])]:
+                              ('t_duration', options['t_duration_targets']),
+                              ('t_final', options['t_final_targets'])]:
             for t in targets:
                 shape = ode_inputs[t]['shape']
 
