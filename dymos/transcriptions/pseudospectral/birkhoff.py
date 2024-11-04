@@ -108,11 +108,10 @@ class Birkhoff(TranscriptionBase):
                 src_idxs = self.grid_data.subset_node_indices['all']
                 phase.connect(name, [f'ode_all.{t}' for t in targets], src_indices=src_idxs,
                               flat_src_indices=True)
-                src_idxs = om.slicer[[0, -1], ...]
-                phase.connect(name, [f'boundary_vals.{t}' for t in targets], src_indices=src_idxs)
 
         for name, targets in [('t_initial', options['t_initial_targets']),
-                              ('t_duration', options['t_duration_targets'])]:
+                              ('t_duration', options['t_duration_targets']),
+                              ('t_final', options['t_final_targets'])]:
             for t in targets:
                 shape = ode_inputs[t]['shape']
 

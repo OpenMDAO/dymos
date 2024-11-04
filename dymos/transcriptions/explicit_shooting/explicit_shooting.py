@@ -220,7 +220,8 @@ class ExplicitShooting(TranscriptionBase):
                               flat_src_indices=True if dynamic else None)
 
         for name, tgts in [('t_initial', time_options['t_initial_targets']),
-                           ('t_duration', time_options['t_duration_targets'])]:
+                           ('t_duration', time_options['t_duration_targets']),
+                           ('t_final', time_options['t_final_targets'])]:
 
             targets = _get_targets_metadata(ode, name, user_targets=tgts)
             for t, meta in targets.items():

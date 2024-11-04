@@ -82,7 +82,8 @@ class GaussLobatto(PseudospectralBase):
                               src_indices=disc_src_idxs, flat_src_indices=True)
 
         for name, targets in [('t_initial', options['t_initial_targets']),
-                              ('t_duration', options['t_duration_targets'])]:
+                              ('t_duration', options['t_duration_targets']),
+                              ('t_final', options['t_final_targets'])]:
             for t in targets:
                 shape = ode_inputs[t]['shape']
                 if shape == (1,):
