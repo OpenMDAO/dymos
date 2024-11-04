@@ -705,7 +705,6 @@ title="Open an issue"
 <span class="kn">import</span> <span class="nn">sys</span>
 
 <span class="kn">from</span> <span class="nn">openmdao.utils.om_warnings</span> <span class="kn">import</span> <span class="n">warn_deprecation</span>
-<span class="kn">from</span> <span class="nn">openmdao.utils.graph_utils</span> <span class="kn">import</span> <span class="n">get_sccs_topo</span>
 <span class="kn">from</span> <span class="nn">openmdao.utils.units</span> <span class="kn">import</span> <span class="n">unit_conversion</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -1411,8 +1410,9 @@ title="Open an issue"
             <span class="n">var_pair</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">var_pair</span> <span class="ow">in</span> <span class="n">var_dict</span><span class="p">:</span>
                 <span class="n">options</span> <span class="o">=</span> <span class="n">var_dict</span><span class="p">[</span><span class="n">var_pair</span><span class="p">]</span>
+                <span class="n">time_name</span> <span class="o">=</span> <span class="n">phase_b</span><span class="o">.</span><span class="n">time_options</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_linkage_constraint</span><span class="p">(</span><span class="n">phase_name_a</span><span class="p">,</span> <span class="n">phase_name_b</span><span class="p">,</span>
-                                            <span class="n">var_a</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">var_b</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">,</span>
+                                            <span class="n">var_a</span><span class="o">=</span><span class="n">time_name</span><span class="p">,</span> <span class="n">var_b</span><span class="o">=</span><span class="n">time_name</span><span class="p">,</span>
                                             <span class="n">loc_a</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;loc_a&#39;</span><span class="p">],</span> <span class="n">loc_b</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;loc_b&#39;</span><span class="p">],</span>
                                             <span class="n">mult_a</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;mult_a&#39;</span><span class="p">],</span> <span class="n">mult_b</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;mult_b&#39;</span><span class="p">],</span>
                                             <span class="n">connected</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;connected&#39;</span><span class="p">])</span>
@@ -1680,13 +1680,6 @@ title="Open an issue"
             <span class="k">return</span> <span class="n">new_min_t</span><span class="p">,</span> <span class="n">new_max_t</span><span class="p">,</span> <span class="n">errs</span>
 
         <span class="n">phase_graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase_graph</span>
-
-        <span class="c1"># since we have a graph, do a quick check that we have no cycles</span>
-        <span class="n">sccs</span> <span class="o">=</span> <span class="n">get_sccs_topo</span><span class="p">(</span><span class="n">phase_graph</span><span class="p">)</span>
-        <span class="n">cycles</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sccs</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">cycles</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">msginfo</span><span class="si">}</span><span class="s2">: The following cycles were found in the phase &quot;</span>
-                               <span class="sa">f</span><span class="s2">&quot;linkage graph: </span><span class="si">{</span><span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">cycles</span><span class="p">]</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
         <span class="n">node_data</span> <span class="o">=</span> <span class="n">phase_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
