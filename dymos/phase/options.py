@@ -506,6 +506,9 @@ class TimeOptionsDictionary(om.OptionsDictionary):
         self.declare(name='t_duration_targets', allow_none=True, default=[],
                      desc='targets in the ODE to which the total duration of the phase is connected')
 
+        self.declare(name='t_final_targets', allow_none=True, default=[],
+                     desc='targets in the ODE to which the final time of the phase is connected')
+
         self.declare(name='t_duration_balance_options', default={},
                      desc='options dictionary for the duration residual')
 
