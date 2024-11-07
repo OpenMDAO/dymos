@@ -5,12 +5,12 @@ import warnings
 
 import numpy as np
 
-from scipy.interpolate import CubicSpline, PchipInterpolator, Akima1DInterpolator
 
 import openmdao.api as om
 from openmdao.utils.mpi import MPI
 from openmdao.utils.om_warnings import issue_warning
 from openmdao.core.system import System
+from openmdao.components.interp_util.interp import InterpND
 from openmdao.recorders.case import Case
 
 import dymos as dm
@@ -29,6 +29,41 @@ from ..utils.introspection import configure_time_introspection, _configure_const
     configure_timeseries_output_introspection, classify_var, configure_timeseries_expr_introspection
 from ..utils.misc import _unspecified, create_subprob, om_version
 from ..utils.lgl import lgl
+
+# from pprint import pprint
+
+class InterpXD:
+
+    def __init__(self, method="slinear", points=None, values=None):
+        self.interpfuncs = []
+        # print("----------------")
+        # print(f"{points=}")
+        # print("--")
+        # pprint(points)
+        # print("----------------")
+        # print(f"{values=}")
+        # print("--")
+        # pprint(np.atleast_1d(values))
+        v_shape = np.atleast_1d(values).shape
+        # print(f"{v_shape=}")
+        # print("----------------")
+        if len(v_shape) == 1:
+            self.interpfuncs.append(InterpND(method, points, values).interpolate)
+        else:
+            for v in values:
+                self.interpfuncs.append(InterpND(method, points, v).interpolate)
+
+    def interpolate(self, x):
+        res = []
+        for f in self.interpfuncs:
+            # print(f"{x=}")
+            res.append(f(x))
+
+        # pprint(res)
+        if len(res) == 1:
+            return np.atleast_2d(res[0])
+        else:
+            return np.vstack(res).T
 
 
 class Phase(om.Group):
@@ -2397,14 +2432,16 @@ class Phase(om.Group):
         b = 1.0 - (m * _xs[-1])
         taus = m * _xs + b
 
-        if kind == 'akima':
-            interpfunc = Akima1DInterpolator(taus, ys)
-        elif kind == 'pchip':
-            interpfunc = PchipInterpolator(taus, ys)
-        elif kind == 'cubic_spline':
-            interpfunc = CubicSpline(taus, ys)
-        else:
-            raise RuntimeError(f"Invalid kind '{kind}' specified for interpolation.")
+        # if kind == 'akima':
+        #     interpfunc = Akima1DInterpolator(taus, ys)
+        # elif kind == 'pchip':
+        #     interpfunc = PchipInterpolator(taus, ys)
+        # elif kind == 'cubic_spline':
+        #     interpfunc = CubicSpline(taus, ys)
+        # else:
+        #     raise RuntimeError(f"Invalid kind '{kind}' specified for interpolation.")
+
+        interpfunc = InterpXD('slinear', taus, ys).interpolate
 
         res = np.atleast_2d(interpfunc(node_locations))
         if res.shape[0] == 1:
@@ -2490,16 +2527,18 @@ class Phase(om.Group):
         b = 1.0 - (m * _xs[-1])
         taus = m * _xs + b
 
-        if kind == 'akima':
-            interpfunc = Akima1DInterpolator(taus, ys)
-        elif kind == 'pchip':
-            interpfunc = PchipInterpolator(taus, ys)
-        elif kind == 'cubic_spline':
-            interpfunc = CubicSpline(taus, ys)
-        else:
-            raise RuntimeError(f"Invalid kind '{kind}' specified for interpolation.")
+        # print(f"{taus=}")
+        # print(f"{ys=}")
+        # print(f"{axis=}")
+        # print(f"{ys[0]=}")
+        # print(f"{ys[1]=}")
+        # interpfunc0 = InterpND('slinear', taus, ys[0]).interpolate
+        # interpfunc1 = InterpND('slinear', taus, ys[1]).interpolate
 
-        res = np.atleast_2d(interpfunc(node_locations))
+        # res =  np.vstack((interpfunc0(node_locations), interpfunc1(node_locations))).T
+
+        interpfunc = InterpXD('slinear', taus, ys).interpolate
+        res = interpfunc(node_locations)
         if res.shape[0] == 1:
             res = res.T
         return res

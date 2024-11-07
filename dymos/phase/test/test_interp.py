@@ -29,7 +29,9 @@ class TestPhaseInterp(unittest.TestCase):
         gd = tx.grid_data
         state_input_nodes = gd.node_ptau[gd.subset_node_indices['state_input']]
         expected = np.atleast_2d((2 * state_input_nodes) ** 2).T
-        assert_near_equal(phase.interp('x', xs=[-2, 0, 2], ys=[4, 0, 4], kind='pchip'), expected)
+        actual = phase.interp('x', xs=[-2, 0, 2], ys=[4, 0, 4], kind='pchip')
+        print(f"{actual=}{actual.shape}\n{expected=}{expected.shape}")
+        assert_near_equal(actual, expected)
 
     def test_linear_control(self):
         tx = dm.GaussLobatto(num_segments=8, order=5, compressed=True)
