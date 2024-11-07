@@ -32,8 +32,30 @@ from ..utils.lgl import lgl
 
 # from pprint import pprint
 
-class InterpXD:
 
+class InterpXD:
+    """
+    Interpolation on a regular grid of arbitrary dimensions.
+
+    The data must be defined on a regular grid; the grid spacing however may be uneven. Several
+    interpolation methods are supported. These are defined in the child classes. Gradients are
+    provided for all interpolation methods. Gradients with respect to grid values are also
+    available optionally.
+
+    Parameters
+    ----------
+    method : str
+        Name of interpolation method.
+    points : ndarray or tuple of ndarray
+        The points defining the regular grid in n dimensions.
+        For 1D interpolation, this can be an ndarray of table locations.
+        For table interpolation, it can be a tuple or an ndarray. If it is a tuple, it should
+        contain one ndarray for each table dimension.
+        For spline evaluation, num_cp can be specified instead of points.
+    values : ndarray or tuple of ndarray or None
+        These must be specified for interpolation.
+        The data on the regular grid in n dimensions.
+    """
     def __init__(self, method="slinear", points=None, values=None):
         self.interpfuncs = []
         # print("----------------")
@@ -53,11 +75,29 @@ class InterpXD:
             for v in values:
                 self.interpfuncs.append(InterpND(method, points, v).interpolate)
 
-    def interpolate(self, x):
+    def interpolate(self, x, compute_derivative=False):
+        """
+        Interpolate at the sample coordinates.
+
+        Parameters
+        ----------
+        x : ndarray or tuple
+            Locations to interpolate.
+        compute_derivative : bool
+            Set to True to compute derivatives with respect to x.
+
+        Returns
+        -------
+        ndarray
+            Value of interpolant at all sample points.
+        ndarray
+            Value of derivative of interpolated output with respect to input x. (Only when
+            compute_derivative is True).
+        """
         res = []
         for f in self.interpfuncs:
             # print(f"{x=}")
-            res.append(f(x))
+            res.append(f(x, compute_derivative))
 
         # pprint(res)
         if len(res) == 1:
