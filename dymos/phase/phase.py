@@ -2439,10 +2439,8 @@ class Phase(om.Group):
             The name of the node subset, a set of nodes in phase tau space ([-1, 1] across the phase), or None (default).
         kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
-            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
-            interpolation of zeroth, first, second or third order) or as an
-            integer specifying the order of the spline interpolator to use.
+            One of ('linear', 'quadratic', 'cubic'). Any other value will result in
+            linear interpolation and is allowed for backward compatibility.
             Default is 'linear'.
         axis : int
             Specifies the axis along which interpolation should be performed.  Default is
@@ -2461,6 +2459,18 @@ class Phase(om.Group):
                 raise ValueError("nodes must be one of 'col', 'all', 'state_disc', "
                                 "'state_input', 'control_disc', 'control_input', 'segment_ends', or "
                                 "None.")
+
+        order_map = {'linear': 1,
+                     'quadratic': 2,
+                     'cubic': 3}
+
+        if isinstance(kind, str):
+            _kind = order_map.get(kind, 1)
+        elif isinstance(kind, int):
+            _kind = kind
+        else:
+            raise ValueError("kind must be an integer of the spline order or one of 'linear', 'quadratic', or 'cubic'. "
+                             " Any other string value will result in linear interpolation.")
 
         if xs is None:
             if len(ys) != 2:
@@ -2502,14 +2512,13 @@ class Phase(om.Group):
         _xs = np.asarray(xs).ravel()
         _xs, unique_idxs = np.unique(_xs, return_index=True)
         _ys = np.asarray(ys)
-        _ys = np.atleast_2d(_ys).T if len(_ys.shape) == 1 else ys
+        _ys = np.atleast_2d(_ys).T if len(_ys.shape) == 1 else _ys
 
         m = 2.0 / (_xs[-1] - _xs[0])
         b = 1.0 - (m * _xs[-1])
         taus = m * _xs + b
 
-        interpfunc = interpolate.interp1d(taus, _ys[unique_idxs, ...], axis=axis, kind=kind,
-                                          bounds_error=False, fill_value='extrapolate')
+        interpfunc = interpolate.make_interp_spline(taus, _ys[unique_idxs, ...], k=_kind)
         res = np.atleast_2d(interpfunc(node_locations))
         if res.shape[0] == 1:
             res = res.T
