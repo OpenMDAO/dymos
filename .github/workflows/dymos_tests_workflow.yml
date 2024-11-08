@@ -221,14 +221,12 @@ jobs:
         with:
           python-version: ${{ matrix.PY }}
           channels: conda-forge
+          conda-remove-defaults: true
 
       - name: Install Numpy/Scipy
         if: ${{ ! matrix.EXCLUDE }}
         shell: bash -l {0}
         run: |
-          echo "Make sure we are not using anaconda packages"
-          conda config --remove channels defaults
-
           echo "============================================================="
           echo "Install Numpy/Scipy"
           echo "============================================================="
