@@ -221,6 +221,7 @@ jobs:
         with:
           python-version: ${{ matrix.PY }}
           channels: conda-forge
+          conda-remove-defaults: true
 
       - name: Install Numpy/Scipy
         if: ${{ ! matrix.EXCLUDE }}

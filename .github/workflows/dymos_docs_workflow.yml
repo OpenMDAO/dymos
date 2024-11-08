@@ -84,6 +84,7 @@ jobs:
         with:
           python-version: ${{ matrix.PY }}
           channels: conda-forge
+          conda-remove-defaults: true
 
       - name: Install Numpy/Scipy
         shell: bash -l {0}
