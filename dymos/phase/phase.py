@@ -5,6 +5,7 @@ import warnings
 
 import numpy as np
 
+from scipy.interpolate import CubicSpline, PchipInterpolator, Akima1DInterpolator
 
 import openmdao.api as om
 from openmdao.utils.mpi import MPI
@@ -2013,7 +2014,7 @@ class Phase(om.Group):
         self.set_time_val(initial, duration, units)
 
     def set_state_val(self, name, vals=None, time_vals=None,
-                      units=None, interpolation_kind='akima'):
+                      units=None, interpolation_kind='linear'):
         """
         Set the necessary input values for state as appropriate for the specified transcription.
 
@@ -2031,8 +2032,8 @@ class Phase(om.Group):
             If provided, must be compatible with the target units.
         interpolation_kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('akima', 'pchip', or 'cubic_spline' ).
-            Default is 'akima'.
+            One of ('linear', 'akima', 'pchip', or 'cubic_spline').
+            Default is 'linear'.
         """
         transcription = self.options['transcription']
         input_data_to_set = transcription._phase_set_state_val(self, name,
@@ -2044,7 +2045,7 @@ class Phase(om.Group):
             self.set_val(var, value, units=units)
 
     def set_control_val(self, name, vals=None, time_vals=None,
-                        units=None, interpolation_kind='akima'):
+                        units=None, interpolation_kind='linear'):
         """
         Set the control values as appropriate.
 
@@ -2062,8 +2063,8 @@ class Phase(om.Group):
             If provided, must be compatible with the target units.
         interpolation_kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('akima', 'pchip', or 'cubic_spline' ).
-            Default is 'akima'.
+            One of ('linear', 'akima', 'pchip', or 'cubic_spline').
+            Default is 'linear'.
         """
         control_options = self.control_options[name]
         if control_options['control_type'] == 'polynomial':
@@ -2079,7 +2080,7 @@ class Phase(om.Group):
         self.set_val(f'controls:{name}', val=val, units=units)
 
     def set_polynomial_control_val(self, name, vals=None, time_vals=None,
-                                   units=None, interpolation_kind='akima'):
+                                   units=None, interpolation_kind='linear'):
         """
         Set the polynomial control values as appropriate.
 
@@ -2097,8 +2098,8 @@ class Phase(om.Group):
             If provided, must be compatible with the target units.
         interpolation_kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('akima', 'pchip', or 'cubic_spline' ).
-            Default is 'akima'.
+            One of ('linear', 'akima', 'pchip', or 'cubic_spline').
+            Default is 'linear'.
         """
         om.issue_warning(f'{self.pathname}: The method `set_polynomial_control_val` is '
                          'deprecated and will be removed in Dymos 2.1.',
@@ -2416,7 +2417,7 @@ class Phase(om.Group):
                                   f"phase '{self.name}': {', '.join(invalid_options)}",
                                   RuntimeWarning)
 
-    def interpolate(self, xs=None, ys=None, nodes='all', kind='cubic_spline', axis=0):
+    def interpolate(self, xs=None, ys=None, nodes='all', kind='linear', axis=0):
         """
         Return an array of values on interpolated to the given node subset of the phase.
 
@@ -2430,8 +2431,8 @@ class Phase(om.Group):
             The name of the node subset.
         kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('akima', 'pchip', or 'cubic_spline' ).
-            Default is 'cubic_spline'.
+            One of ('linear', 'akima', 'pchip', or 'cubic_spline').
+            Default is 'linear'.
         axis : int
             Specifies the axis along which interpolation should be performed.  Default is
             the first axis (0).
@@ -2455,6 +2456,8 @@ class Phase(om.Group):
         if xs is None:
             if len(ys) != 2:
                 raise ValueError('xs may only be unspecified when len(ys)=2')
+            # if kind != 'linear':
+            #     raise ValueError('kind must be linear when xs is unspecified.')
             xs = [-1, 1]
         elif len(xs) != np.prod(np.asarray(xs).shape):
             raise ValueError('xs must be viewable as a 1D array')
@@ -2472,23 +2475,23 @@ class Phase(om.Group):
         b = 1.0 - (m * _xs[-1])
         taus = m * _xs + b
 
-        # if kind == 'akima':
-        #     interpfunc = Akima1DInterpolator(taus, ys)
-        # elif kind == 'pchip':
-        #     interpfunc = PchipInterpolator(taus, ys)
-        # elif kind == 'cubic_spline':
-        #     interpfunc = CubicSpline(taus, ys)
-        # else:
-        #     raise RuntimeError(f"Invalid kind '{kind}' specified for interpolation.")
-
-        interpfunc = InterpXD('slinear', taus, ys).interpolate
+        if kind == 'linear':
+            interpfunc = InterpXD('slinear', taus, ys).interpolate
+        elif kind == 'akima':
+            interpfunc = Akima1DInterpolator(taus, ys)
+        elif kind == 'pchip':
+            interpfunc = PchipInterpolator(taus, ys)
+        elif kind == 'cubic_spline':
+            interpfunc = CubicSpline(taus, ys)
+        else:
+            raise RuntimeError(f"Invalid kind '{kind}' specified for interpolation.")
 
         res = np.atleast_2d(interpfunc(node_locations))
         if res.shape[0] == 1:
             res = res.T
         return res
 
-    def interp(self, name=None, ys=None, xs=None, nodes=None, kind='cubic_spline', axis=0):
+    def interp(self, name=None, ys=None, xs=None, nodes=None, kind='linear', axis=0):
         """
         Interpolate values onto the given subset of nodes in the phase.
 
@@ -2510,8 +2513,8 @@ class Phase(om.Group):
             The name of the node subset or None (default).
         kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('akima', 'pchip', or 'cubic_spline' ).
-            Default is 'cubic_spline'.
+            One of ('linear', 'akima', 'pchip', or 'cubic_spline').
+            Default is 'linear'.
         axis : int
             Specifies the axis along which interpolation should be performed.  Default is
             the first axis (0).
@@ -2532,6 +2535,8 @@ class Phase(om.Group):
         if xs is None:
             if len(ys) != 2:
                 raise ValueError('xs may only be unspecified when len(ys)=2')
+            # if kind != 'linear':
+            #     raise ValueError('kind must be linear when xs is unspecified.')
             xs = [-1, 1]
         elif len(xs) != np.prod(np.asarray(xs).shape):
             raise ValueError('xs must be viewable as a 1D array')
@@ -2572,12 +2577,18 @@ class Phase(om.Group):
         # print(f"{axis=}")
         # print(f"{ys[0]=}")
         # print(f"{ys[1]=}")
-        # interpfunc0 = InterpND('slinear', taus, ys[0]).interpolate
-        # interpfunc1 = InterpND('slinear', taus, ys[1]).interpolate
 
-        # res =  np.vstack((interpfunc0(node_locations), interpfunc1(node_locations))).T
+        if kind == 'linear':
+            interpfunc = InterpXD('slinear', taus, ys).interpolate
+        elif kind == 'akima':
+            interpfunc = Akima1DInterpolator(taus, ys)
+        elif kind == 'pchip':
+            interpfunc = PchipInterpolator(taus, ys)
+        elif kind == 'cubic_spline':
+            interpfunc = CubicSpline(taus, ys)
+        else:
+            raise RuntimeError(f"Invalid kind '{kind}' specified for interpolation.")
 
-        interpfunc = InterpXD('slinear', taus, ys).interpolate
         res = interpfunc(node_locations)
         if res.shape[0] == 1:
             res = res.T
