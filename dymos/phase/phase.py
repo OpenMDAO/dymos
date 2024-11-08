@@ -2455,10 +2455,10 @@ class Phase(om.Group):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
         if isinstance(nodes, str):
             if nodes not in ('col', 'all', 'state_disc', 'state_input', 'control_disc',
-                            'control_input', 'segment_ends', None):
+                             'control_input', 'segment_ends', None):
                 raise ValueError("nodes must be one of 'col', 'all', 'state_disc', "
-                                "'state_input', 'control_disc', 'control_input', 'segment_ends', or "
-                                "None.")
+                                 "'state_input', 'control_disc', 'control_input', 'segment_ends', or "
+                                 "None.")
 
         order_map = {'linear': 1,
                      'quadratic': 2,
@@ -2510,16 +2510,21 @@ class Phase(om.Group):
 
         # Affine transform xs into tau space [-1, 1]
         _xs = np.asarray(xs).ravel()
+        reversed_xs = _xs[0] > _xs[1]
         _xs, unique_idxs = np.unique(_xs, return_index=True)
+        if reversed_xs:
+            _xs = _xs[::-1]
+            unique_idxs = unique_idxs[::-1]
         _ys = np.asarray(ys)
         _ys = np.atleast_2d(_ys).T if len(_ys.shape) == 1 else _ys
 
-        m = 2.0 / (_xs[-1] - _xs[0])
-        b = 1.0 - (m * _xs[-1])
-        taus = m * _xs + b
+        dptau_dt = 2.0 / (_xs[-1] - _xs[0])
+        b = 1.0 - (dptau_dt * _xs[-1])
+        taus = dptau_dt * _xs + b
 
         interpfunc = interpolate.make_interp_spline(taus, _ys[unique_idxs, ...], k=_kind)
         res = np.atleast_2d(interpfunc(node_locations))
+
         if res.shape[0] == 1:
             res = res.T
         return res

@@ -178,17 +178,17 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
         sim_case1 = om.CaseReader(sim_db).get_case('final')
 
         # Run again without an actual optimizer
-        p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
-                                         compressed=False, optimizer=optimizer, run_driver=False,
-                                         show_output=False, restart=sol_db,
-                                         connected=True, solution_record_file='dymos_solution2.db',
-                                         simulation_record_file='dymos_simulation2.db')
+        p2 = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
+                                          compressed=False, optimizer=optimizer, run_driver=False,
+                                          show_output=False, restart=sol_db,
+                                          connected=True, solution_record_file='dymos_solution2.db',
+                                          simulation_record_file='dymos_simulation2.db')
 
         sol_db = 'dymos_solution2.db'
         sim_db = 'dymos_simulation2.db'
         if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+            sol_db = p2.get_outputs_dir() / sol_db
+            sim_db = p2.model.traj.sim_prob.get_outputs_dir() / sim_db
 
         case2 = om.CaseReader(sol_db).get_case('final')
         sim_case2 = om.CaseReader(sim_db).get_case('final')
