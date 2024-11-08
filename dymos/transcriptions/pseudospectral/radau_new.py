@@ -51,10 +51,6 @@ class RadauNew(TranscriptionBase):
         """
         Set up the GridData object for the Transcription.
         """
-        if self.options['compressed']:
-            om.issue_warning('Option `compressed` is no longer supported. All transcriptions are now "uncompressed".')
-            self.options['compressed'] = False
-
         self.grid_data = RadauGrid(num_segments=self.options['num_segments'],
                                    nodes_per_seg=self.options['order'] + 1,
                                    segment_ends=self.options['segment_ends'],
@@ -147,9 +143,6 @@ class RadauNew(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        if self.options['compressed']:
-            raise ValueError('RadauNew does not support compressed transcription')
-
         self.any_solved_segs = False
         self.any_connected_opt_segs = False
         for options in phase.state_options.values():

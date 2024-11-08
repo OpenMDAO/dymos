@@ -68,6 +68,9 @@ class ControlInterpComp(om.ExplicitComponent):
         self._output_val_names = {}
         self._output_rate_names = {}
         self._output_rate2_names = {}
+        self._output_cnty_defect_names = {}
+        self._output_rate_cnty_defect_names = {}
+        self._output_rate2_cnty_defect_names = {}
         self._matrices = {}
 
     def setup(self):
@@ -85,6 +88,8 @@ class ControlInterpComp(om.ExplicitComponent):
 
     def _configure_controls(self):
         gd = self.options['grid_data']
+        num_seg = gd.num_segments
+        segment_end_idxs = gd.subset_node_indices['segment_ends']
         ogd = self.options['output_grid_data'] or gd
         eval_nodes = ogd.node_ptau
         control_options = self.options['control_options']
@@ -176,10 +181,16 @@ class ControlInterpComp(om.ExplicitComponent):
                 self._output_val_names[name] = f'control_values:{name}'
                 self._output_rate_names[name] = f'control_rates:{name}_rate'
                 self._output_rate2_names[name] = f'control_rates:{name}_rate2'
+                self._output_cnty_defect_names[name] = f'cnty_defect_controls:{name}'
+                self._output_rate_cnty_defect_names[name] = f'cnty_defect_control_rates:{name}_rate'
+                self._output_rate2_cnty_defect_names[name] = f'cnty_defect_control_rates:{name}_rate2'
+
                 shape = options['shape']
                 num_control_input_nodes = gd.subset_num_nodes['control_input']
+                ncinps = gd.subset_num_nodes_per_segment['control_input']
                 input_shape = (num_control_input_nodes,) + shape
                 output_shape = (num_output_nodes,) + shape
+                cnty_output_shape = (num_seg - 1,) + shape
 
                 units = options['units']
                 rate_units = get_rate_units(units, time_units)
@@ -194,6 +205,13 @@ class ControlInterpComp(om.ExplicitComponent):
                 self.add_output(self._output_rate2_names[name], shape=output_shape,
                                 units=rate2_units)
 
+                self.add_output(self._output_cnty_defect_names[name], shape=cnty_output_shape, units=units)
+
+                self.add_output(self._output_rate_cnty_defect_names[name], shape=cnty_output_shape, units=rate_units)
+
+                self.add_output(self._output_rate2_cnty_defect_names[name], shape=cnty_output_shape,
+                                units=rate2_units)
+
                 size = np.prod(shape)
                 self.sizes[name] = size
                 sp_eye = sp.eye(size, format='csr')
@@ -204,6 +222,17 @@ class ControlInterpComp(om.ExplicitComponent):
                 J_val = sp.kron(self.L, sp_eye, format='csr')
                 rs, cs, data = sp.find(J_val)
                 self.declare_partials(of=self._output_val_names[name],
+                                      wrt=self._input_names[name],
+                                      rows=rs, cols=cs, val=data)
+
+                # The jacobian for continuity defects is similar to the jacobian of the inteprpolated values
+                J_cnty_def = -J_val[segment_end_idxs, ...][1:-1:2, ...].copy()
+                one_col_idxs = np.cumsum(np.asarray(ncinps[:-1]))
+                J_cnty_def[np.arange(num_seg -1, dtype=int), one_col_idxs] = 1.0
+
+                rs, cs, data = sp.find(J_cnty_def)
+
+                self.declare_partials(of=self._output_cnty_defect_names[name],
                                       wrt=self._input_names[name],
                                       rows=rs, cols=cs, val=data)
 
@@ -229,7 +258,31 @@ class ControlInterpComp(om.ExplicitComponent):
                                       wrt=self._input_names[name],
                                       rows=rs, cols=cs)
 
+                # # Similar with the continuity rate defects.
+                J_rate_cnty_def = sp.kron(self.D, sp_eye, format='csr')[segment_end_idxs, ...].copy()
+                J_rate_cnty_def = J_rate_cnty_def[1:-1]
+                J_rate_cnty_def[::2] *= -1
+                J_rate_cnty_def /= gd.node_dptau_dstau[segment_end_idxs, np.newaxis][1:-1]
+
+                # with np.printoptions(linewidth=10000):
+                #     print(J_rate_cnty_def.todense())
+                # rs, cs, data = sp.find(J_rate_cnty_def)
+                # print(rs)
+                # print(gd.subset_num_nodes_per_segment['control_input'])
+                # print(rs - [0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4])
+                # # compute the row repeats
+                # for i in range(num_seg):
+                # print(np.arange(num_seg, dtype=int))
+                # print(np.asarray(gd.subset_num_nodes_per_segment['control_input'], dtype=int) * 2)
+                # # print(cs)
+                # exit(0)
+
+                # self.declare_partials(of=self._output_rate_cnty_defect_names[name],
+                #                       wrt=self._input_names[name],
+                #                       rows=rs, cols=cs, val=data)
+
                 self.rate2_jacs[name] = sp.kron(self.D2, sp_eye, format='csr')
+
                 rs, cs = self.rate2_jacs[name].nonzero()
 
                 self.declare_partials(of=self._output_rate2_names[name],
@@ -327,7 +380,9 @@ class ControlInterpComp(om.ExplicitComponent):
         control_options = self.options['control_options']
         num_control_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
         num_output_nodes = ogd.num_nodes
+        seg_end_idxs = gd.subset_node_indices['segment_ends']
         dt_dptau = 0.5 * inputs['t_duration']
+        dptau_dstau = gd.node_dptau_dstau
 
         for name, options in control_options.items():
             if control_options[name]['control_type'] == 'polynomial':
@@ -348,8 +403,8 @@ class ControlInterpComp(om.ExplicitComponent):
                 u_flat = np.reshape(inputs[self._input_names[name]],
                                     (num_control_input_nodes, size))
 
-                a = self.D.dot(u_flat)
-                b = self.D2.dot(u_flat)
+                a = self.D.dot(u_flat)  # du/dstau
+                b = self.D2.dot(u_flat) # d2u/dstau2
 
                 val = np.reshape(self.L.dot(u_flat), (num_output_nodes,) + options['shape'])
 
@@ -362,6 +417,33 @@ class ControlInterpComp(om.ExplicitComponent):
                 outputs[self._output_val_names[name]] = val
                 outputs[self._output_rate_names[name]] = rate
                 outputs[self._output_rate2_names[name]] = rate2
+
+                if True:#options['continuity']:
+                    # output_name = self._output_val_names[name]
+                    cnty_output_name = self._output_cnty_defect_names[name]
+                    segment_end_values = val[seg_end_idxs, ...]
+                    end_vals = segment_end_values[1:-1:2, ...]
+                    start_vals = segment_end_values[2:-1:2, ...]
+                    outputs[cnty_output_name] = start_vals - end_vals
+
+                if True:#options['rate_continuity']:
+                    # output_name = self._output_rate_names[name]
+                    rate_in_ptau = a / dptau_dstau[:, np.newaxis]
+                    rate_in_ptau = np.reshape(rate_in_ptau, (num_output_nodes,) + options['shape'])
+
+                    cnty_output_name = self._output_rate_cnty_defect_names[name]
+                    segment_end_values = rate_in_ptau[seg_end_idxs, ...]
+                    end_vals = segment_end_values[1:-1:2, ...]
+                    start_vals = segment_end_values[2:-1:2, ...]
+                    outputs[cnty_output_name] = (start_vals - end_vals) #* dt_dptau
+
+                if True:#options['rate2_continuity']:
+                    # output_name  = self._output_rate2_names[name]
+                    cnty_output_name = self._output_rate2_cnty_defect_names[name]
+                    segment_end_values = rate2[seg_end_idxs, ...]
+                    end_vals = segment_end_values[1:-1:2, ...]
+                    start_vals = segment_end_values[2:-1:2, ...]
+                    outputs[cnty_output_name] = (start_vals - end_vals) #* dt_dptau ** 2
 
     def compute_partials(self, inputs, partials):
         """
