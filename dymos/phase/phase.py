@@ -2435,8 +2435,8 @@ class Phase(om.Group):
             Array of control/state/parameter values.
         xs :  ndarray or Sequence or None
             Array of integration variable values.
-        nodes : str or None
-            The name of the node subset or None (default).
+        nodes : str or Sequence or None
+            The name of the node subset, a set of nodes in phase tau space ([-1, 1] across the phase), or None (default).
         kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
             One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
@@ -2455,11 +2455,12 @@ class Phase(om.Group):
         """
         if not isinstance(ys, Iterable):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
-        if nodes not in ('col', 'all', 'state_disc', 'state_input', 'control_disc',
-                         'control_input', 'segment_ends', None):
-            raise ValueError("nodes must be one of 'col', 'all', 'state_disc', "
-                             "'state_input', 'control_disc', 'control_input', 'segment_ends', or "
-                             "None.")
+        if isinstance(nodes, str):
+            if nodes not in ('col', 'all', 'state_disc', 'state_input', 'control_disc',
+                            'control_input', 'segment_ends', None):
+                raise ValueError("nodes must be one of 'col', 'all', 'state_disc', "
+                                "'state_input', 'control_disc', 'control_input', 'segment_ends', or "
+                                "None.")
 
         if xs is None:
             if len(ys) != 2:
@@ -2492,15 +2493,22 @@ class Phase(om.Group):
                 raise ValueError('Could not find a state, control, or polynomial control named '
                                  f'{name} to be interpolated.\nPlease explicitly specify the '
                                  f'node subset onto which this value should be interpolated.')
-        else:
+        elif isinstance(nodes, str):
             node_locations = gd.node_ptau[gd.subset_node_indices[nodes]]
+        else:
+            node_locations = nodes
 
         # Affine transform xs into tau space [-1, 1]
         _xs = np.asarray(xs).ravel()
+        _xs, unique_idxs = np.unique(_xs, return_index=True)
+        _ys = np.asarray(ys)
+        _ys = np.atleast_2d(_ys).T if len(_ys.shape) == 1 else ys
+
         m = 2.0 / (_xs[-1] - _xs[0])
         b = 1.0 - (m * _xs[-1])
         taus = m * _xs + b
-        interpfunc = interpolate.interp1d(taus, ys, axis=axis, kind=kind,
+
+        interpfunc = interpolate.interp1d(taus, _ys[unique_idxs, ...], axis=axis, kind=kind,
                                           bounds_error=False, fill_value='extrapolate')
         res = np.atleast_2d(interpfunc(node_locations))
         if res.shape[0] == 1:
