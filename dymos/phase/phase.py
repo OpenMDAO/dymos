@@ -5,13 +5,12 @@ import warnings
 
 import numpy as np
 
-from scipy.interpolate import CubicSpline, PchipInterpolator, Akima1DInterpolator
+from scipy import interpolate
 
 import openmdao.api as om
 from openmdao.utils.mpi import MPI
 from openmdao.utils.om_warnings import issue_warning
 from openmdao.core.system import System
-from openmdao.components.interp_util.interp import InterpND
 from openmdao.recorders.case import Case
 
 import dymos as dm
@@ -30,81 +29,6 @@ from ..utils.introspection import configure_time_introspection, _configure_const
     configure_timeseries_output_introspection, classify_var, configure_timeseries_expr_introspection
 from ..utils.misc import _unspecified, create_subprob, om_version
 from ..utils.lgl import lgl
-
-# from pprint import pprint
-
-
-class InterpXD:
-    """
-    Interpolation on a regular grid of arbitrary dimensions.
-
-    The data must be defined on a regular grid; the grid spacing however may be uneven. Several
-    interpolation methods are supported. These are defined in the child classes. Gradients are
-    provided for all interpolation methods. Gradients with respect to grid values are also
-    available optionally.
-
-    Parameters
-    ----------
-    method : str
-        Name of interpolation method.
-    points : ndarray or tuple of ndarray
-        The points defining the regular grid in n dimensions.
-        For 1D interpolation, this can be an ndarray of table locations.
-        For table interpolation, it can be a tuple or an ndarray. If it is a tuple, it should
-        contain one ndarray for each table dimension.
-        For spline evaluation, num_cp can be specified instead of points.
-    values : ndarray or tuple of ndarray or None
-        These must be specified for interpolation.
-        The data on the regular grid in n dimensions.
-    """
-    def __init__(self, method="slinear", points=None, values=None):
-        self.interpfuncs = []
-        # print("----------------")
-        # print(f"{points=}")
-        # print("--")
-        # pprint(points)
-        # print("----------------")
-        # print(f"{values=}")
-        # print("--")
-        # pprint(np.atleast_1d(values))
-        v_shape = np.atleast_1d(values).shape
-        # print(f"{v_shape=}")
-        # print("----------------")
-        if len(v_shape) == 1:
-            self.interpfuncs.append(InterpND(method, points, values).interpolate)
-        else:
-            for v in values:
-                self.interpfuncs.append(InterpND(method, points, v).interpolate)
-
-    def interpolate(self, x, compute_derivative=False):
-        """
-        Interpolate at the sample coordinates.
-
-        Parameters
-        ----------
-        x : ndarray or tuple
-            Locations to interpolate.
-        compute_derivative : bool
-            Set to True to compute derivatives with respect to x.
-
-        Returns
-        -------
-        ndarray
-            Value of interpolant at all sample points.
-        ndarray
-            Value of derivative of interpolated output with respect to input x. (Only when
-            compute_derivative is True).
-        """
-        res = []
-        for f in self.interpfuncs:
-            # print(f"{x=}")
-            res.append(f(x, compute_derivative))
-
-        # pprint(res)
-        if len(res) == 1:
-            return np.atleast_2d(res[0])
-        else:
-            return np.vstack(res).T
 
 
 class Phase(om.Group):
@@ -2032,7 +1956,10 @@ class Phase(om.Group):
             If provided, must be compatible with the target units.
         interpolation_kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('linear', 'akima', 'pchip', or 'cubic_spline').
+            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
+            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
+            interpolation of zeroth, first, second or third order) or as an
+            integer specifying the order of the spline interpolator to use.
             Default is 'linear'.
         """
         transcription = self.options['transcription']
@@ -2063,7 +1990,10 @@ class Phase(om.Group):
             If provided, must be compatible with the target units.
         interpolation_kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('linear', 'akima', 'pchip', or 'cubic_spline').
+            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
+            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
+            interpolation of zeroth, first, second or third order) or as an
+            integer specifying the order of the spline interpolator to use.
             Default is 'linear'.
         """
         control_options = self.control_options[name]
@@ -2098,7 +2028,10 @@ class Phase(om.Group):
             If provided, must be compatible with the target units.
         interpolation_kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('linear', 'akima', 'pchip', or 'cubic_spline').
+            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
+            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
+            interpolation of zeroth, first, second or third order) or as an
+            integer specifying the order of the spline interpolator to use.
             Default is 'linear'.
         """
         om.issue_warning(f'{self.pathname}: The method `set_polynomial_control_val` is '
@@ -2431,7 +2364,10 @@ class Phase(om.Group):
             The name of the node subset.
         kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('linear', 'akima', 'pchip', or 'cubic_spline').
+            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
+            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
+            interpolation of zeroth, first, second or third order) or as an
+            integer specifying the order of the spline interpolator to use.
             Default is 'linear'.
         axis : int
             Specifies the axis along which interpolation should be performed.  Default is
@@ -2456,8 +2392,8 @@ class Phase(om.Group):
         if xs is None:
             if len(ys) != 2:
                 raise ValueError('xs may only be unspecified when len(ys)=2')
-            # if kind != 'linear':
-            #     raise ValueError('kind must be linear when xs is unspecified.')
+            if kind != 'linear':
+                raise ValueError('kind must be linear when xs is unspecified.')
             xs = [-1, 1]
         elif len(xs) != np.prod(np.asarray(xs).shape):
             raise ValueError('xs must be viewable as a 1D array')
@@ -2474,18 +2410,8 @@ class Phase(om.Group):
         m = 2.0 / (_xs[-1] - _xs[0])
         b = 1.0 - (m * _xs[-1])
         taus = m * _xs + b
-
-        if kind == 'linear':
-            interpfunc = InterpXD('slinear', taus, ys).interpolate
-        elif kind == 'akima':
-            interpfunc = Akima1DInterpolator(taus, ys)
-        elif kind == 'pchip':
-            interpfunc = PchipInterpolator(taus, ys)
-        elif kind == 'cubic_spline':
-            interpfunc = CubicSpline(taus, ys)
-        else:
-            raise RuntimeError(f"Invalid kind '{kind}' specified for interpolation.")
-
+        interpfunc = interpolate.interp1d(taus, ys, axis=axis, kind=kind,
+                                          bounds_error=False, fill_value='extrapolate')
         res = np.atleast_2d(interpfunc(node_locations))
         if res.shape[0] == 1:
             res = res.T
@@ -2509,11 +2435,12 @@ class Phase(om.Group):
             Array of control/state/parameter values.
         xs :  ndarray or Sequence or None
             Array of integration variable values.
-        nodes : str or None
-            The name of the node subset or None (default).
+        nodes : str or Sequence or None
+            The name of the node subset, a set of nodes in phase tau space ([-1, 1] across the phase), or None (default).
         kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
-            One of ('linear', 'akima', 'pchip', or 'cubic_spline').
+            One of ('linear', 'quadratic', 'cubic'). Any other value will result in
+            linear interpolation and is allowed for backward compatibility.
             Default is 'linear'.
         axis : int
             Specifies the axis along which interpolation should be performed.  Default is
@@ -2526,17 +2453,30 @@ class Phase(om.Group):
         """
         if not isinstance(ys, Iterable):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
-        if nodes not in ('col', 'all', 'state_disc', 'state_input', 'control_disc',
-                         'control_input', 'segment_ends', None):
-            raise ValueError("nodes must be one of 'col', 'all', 'state_disc', "
-                             "'state_input', 'control_disc', 'control_input', 'segment_ends', or "
-                             "None.")
+        if isinstance(nodes, str):
+            if nodes not in ('col', 'all', 'state_disc', 'state_input', 'control_disc',
+                            'control_input', 'segment_ends', None):
+                raise ValueError("nodes must be one of 'col', 'all', 'state_disc', "
+                                "'state_input', 'control_disc', 'control_input', 'segment_ends', or "
+                                "None.")
+
+        order_map = {'linear': 1,
+                     'quadratic': 2,
+                     'cubic': 3}
+
+        if isinstance(kind, str):
+            _kind = order_map.get(kind, 1)
+        elif isinstance(kind, int):
+            _kind = kind
+        else:
+            raise ValueError("kind must be an integer of the spline order or one of 'linear', 'quadratic', or 'cubic'. "
+                             " Any other string value will result in linear interpolation.")
 
         if xs is None:
             if len(ys) != 2:
                 raise ValueError('xs may only be unspecified when len(ys)=2')
-            # if kind != 'linear':
-            #     raise ValueError('kind must be linear when xs is unspecified.')
+            if kind != 'linear':
+                raise ValueError('kind must be linear when xs is unspecified.')
             xs = [-1, 1]
         elif len(xs) != np.prod(np.asarray(xs).shape):
             raise ValueError('xs must be viewable as a 1D array')
@@ -2563,33 +2503,23 @@ class Phase(om.Group):
                 raise ValueError('Could not find a state, control, or polynomial control named '
                                  f'{name} to be interpolated.\nPlease explicitly specify the '
                                  f'node subset onto which this value should be interpolated.')
-        else:
+        elif isinstance(nodes, str):
             node_locations = gd.node_ptau[gd.subset_node_indices[nodes]]
+        else:
+            node_locations = nodes
 
         # Affine transform xs into tau space [-1, 1]
         _xs = np.asarray(xs).ravel()
+        _xs, unique_idxs = np.unique(_xs, return_index=True)
+        _ys = np.asarray(ys)
+        _ys = np.atleast_2d(_ys).T if len(_ys.shape) == 1 else _ys
+
         m = 2.0 / (_xs[-1] - _xs[0])
         b = 1.0 - (m * _xs[-1])
         taus = m * _xs + b
 
-        # print(f"{taus=}")
-        # print(f"{ys=}")
-        # print(f"{axis=}")
-        # print(f"{ys[0]=}")
-        # print(f"{ys[1]=}")
-
-        if kind == 'linear':
-            interpfunc = InterpXD('slinear', taus, ys).interpolate
-        elif kind == 'akima':
-            interpfunc = Akima1DInterpolator(taus, ys)
-        elif kind == 'pchip':
-            interpfunc = PchipInterpolator(taus, ys)
-        elif kind == 'cubic_spline':
-            interpfunc = CubicSpline(taus, ys)
-        else:
-            raise RuntimeError(f"Invalid kind '{kind}' specified for interpolation.")
-
-        res = interpfunc(node_locations)
+        interpfunc = interpolate.make_interp_spline(taus, _ys[unique_idxs, ...], k=_kind)
+        res = np.atleast_2d(interpfunc(node_locations))
         if res.shape[0] == 1:
             res = res.T
         return res

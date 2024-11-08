@@ -29,9 +29,7 @@ class TestPhaseInterp(unittest.TestCase):
         gd = tx.grid_data
         state_input_nodes = gd.node_ptau[gd.subset_node_indices['state_input']]
         expected = np.atleast_2d((2 * state_input_nodes) ** 2).T
-        actual = phase.interp('x', xs=[-2, 0, 2], ys=[4, 0, 4], kind='quadratic')
-        print(f"{actual=}{actual.shape}\n{expected=}{expected.shape}")
-        assert_near_equal(actual, expected)
+        assert_near_equal(phase.interp('x', xs=[-2, 0, 2], ys=[4, 0, 4], kind='quadratic'), expected)
 
     def test_linear_control(self):
         tx = dm.GaussLobatto(num_segments=8, order=5, compressed=True)
@@ -61,7 +59,7 @@ class TestPhaseInterp(unittest.TestCase):
         input_nodes, _ = lgl(4)
         expected = np.atleast_2d((10 * input_nodes) ** 3).T
 
-        assert_near_equal(phase.interp('u', ys=ys, xs=xs, kind='cubic_spline'), expected)
+        assert_near_equal(phase.interp('u', ys=ys, xs=xs, kind='cubic'), expected)
 
     def test_invalid_var(self):
         tx = dm.GaussLobatto(num_segments=8, order=5, compressed=True)
@@ -131,6 +129,15 @@ class TestPhaseInterp(unittest.TestCase):
                    'interpolated variable or a node subset.'
 
         self.assertEqual(str(e.exception), expected)
+
+    def test_nodes_sequence(self):
+        tx = dm.GaussLobatto(num_segments=6, order=3, compressed=True)
+        phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
+
+        interp_vals = phase.interp(ys=[0, 5], nodes=np.linspace(-1, 1, 100))
+        check_vals = np.atleast_2d(np.linspace(0, 5, 100)).T
+
+        assert_near_equal(interp_vals, check_vals)
 
 
 if __name__ == '__main__':  # pragma: no cover
