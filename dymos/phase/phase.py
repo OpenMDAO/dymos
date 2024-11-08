@@ -2455,10 +2455,10 @@ class Phase(om.Group):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
         if isinstance(nodes, str):
             if nodes not in ('col', 'all', 'state_disc', 'state_input', 'control_disc',
-                            'control_input', 'segment_ends', None):
+                             'control_input', 'segment_ends', None):
                 raise ValueError("nodes must be one of 'col', 'all', 'state_disc', "
-                                "'state_input', 'control_disc', 'control_input', 'segment_ends', or "
-                                "None.")
+                                 "'state_input', 'control_disc', 'control_input', 'segment_ends', or "
+                                 "None.")
 
         order_map = {'linear': 1,
                      'quadratic': 2,
