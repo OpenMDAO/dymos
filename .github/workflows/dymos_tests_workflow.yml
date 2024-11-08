@@ -227,9 +227,6 @@ jobs:
         if: ${{ ! matrix.EXCLUDE }}
         shell: bash -l {0}
         run: |
-          echo "Make sure we are not using anaconda packages"
-          conda config --remove channels defaults
-
           echo "============================================================="
           echo "Install Numpy/Scipy"
           echo "============================================================="
