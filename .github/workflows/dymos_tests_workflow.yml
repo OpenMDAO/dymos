@@ -427,7 +427,7 @@ jobs:
           #   testflo dymos -n 2 --pre_announce --show_skipped --durations 20
           # fi
           python -c 'import multiprocessing as mp; print(mp.cpu_count())'
-          testflo dymos/examples/finite_burn_orbit_raise/test/test_ex_two_burn_orbit_raise_mpi.py:TestExampleTwoBurnOrbitRaiseMPI -n 2 --pre_announce -s
+          testflo dymos/examples/finite_burn_orbit_raise/test/test_ex_two_burn_orbit_raise_mpi.py -n 2 --pre_announce -s
 
       - name: Submit coverage
         if: github.event_name != 'workflow_dispatch'
