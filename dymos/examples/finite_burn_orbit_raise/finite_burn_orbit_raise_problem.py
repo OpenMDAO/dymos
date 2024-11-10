@@ -207,6 +207,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
+    p.driver.options['invalid_desvar_behavior'] = 'raise'
     p.driver.declare_coloring()
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = max_iter
