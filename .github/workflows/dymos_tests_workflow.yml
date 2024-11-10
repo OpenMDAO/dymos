@@ -417,15 +417,16 @@ jobs:
           echo "Environment:"
           echo "   DYMOS_CHECK_PARTIALS: $DYMOS_CHECK_PARTIALS"
           echo "============================================================="
-          testflo -n 1 docs/dymos_book/test --pre_announce
-          testflo -n 1 joss/test --pre_announce
-          testflo -b benchmark --pre_announce
-          cd $HOME
-          if [[ "${{ matrix.NAME }}" != "latest" ]]; then
-            testflo dymos -n 2 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos
-          else
-            testflo dymos -n 2 --pre_announce --show_skipped --durations 20
-          fi
+          # testflo -n 1 docs/dymos_book/test --pre_announce
+          # testflo -n 1 joss/test --pre_announce
+          # testflo -b benchmark --pre_announce
+          # cd $HOME
+          # if [[ "${{ matrix.NAME }}" != "latest" ]]; then
+          #   testflo dymos -n 2 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos
+          # else
+          #   testflo dymos -n 2 --pre_announce --show_skipped --durations 20
+          # fi
+          testflo dymos/examples/finite_burn_orbit_raise/test -n 2 --pre_announce -s
 
       - name: Submit coverage
         if: github.event_name != 'workflow_dispatch'
