@@ -120,7 +120,8 @@ jobs:
             PETSc: 3.21.0
             PYOPTSPARSE: 'v2.11.0'
             OPENMDAO: 'latest'
-            OPTIONAL: '[test]'
+            OPTIONAL: '[all]'
+            JAX: '0.4.28'
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.no_snopt }}
 
           # baseline versions except no MPI/PETSc
