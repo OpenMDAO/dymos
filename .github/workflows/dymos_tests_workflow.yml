@@ -60,6 +60,12 @@ on:
         required: false
         default: false
 
+      python313:
+        type: boolean
+        description: "Include 'python313' in test matrix"
+        required: false
+        default: false
+
       oldest:
         type: boolean
         description: "Include 'oldest' in test matrix"
@@ -135,8 +141,9 @@ jobs:
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.no_mpi }}
 
           # try latest versions
+          # sticking with Python 3.12 here, 3.13 requires NumPy 2.1 which does not work yet with pyoptsparse
           - NAME: latest
-            PY: 3
+            PY: '3.12'
             NUMPY: 1
             SCIPY: 1
             PETSc: 3.21.0
@@ -146,6 +153,19 @@ jobs:
             OPTIONAL: '[all]'
             JAX: 'latest'
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
+
+          # Python 3.13 (requires NumPy 2.1 which does not work yet with pyoptsparse)
+          - NAME: python313
+            PY: '3.13'
+            NUMPY: 2
+            SCIPY: 1
+            PETSc: 3
+            # PYOPTSPARSE: 'latest'
+            SNOPT: 7.7
+            OPENMDAO: 'dev'
+            OPTIONAL: '[test]'
+            JAX: 'latest'
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.python313 }}
 
           # oldest supported versions
           - NAME: oldest
@@ -238,9 +258,9 @@ jobs:
           if [[ "${{ matrix.OPENMPI }}" && "${{ matrix.MPI4PY }}" ]]; then
             conda install openmpi=${{ matrix.OPENMPI }} mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
           elif [[ "${{ matrix.MPI4PY }}" ]]; then
-            conda install mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
+            conda install mpich mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
           else
-            conda install mpi4py petsc4py=${{ matrix.PETSc }} -q -y
+            conda install mpich mpi4py petsc4py=${{ matrix.PETSc }} -q -y
           fi
           export OMPI_MCA_rmaps_base_oversubscribe=1
           export OMPI_MCA_btl=^openib

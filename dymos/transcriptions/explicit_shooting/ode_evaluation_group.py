@@ -218,7 +218,6 @@ class ODEEvaluationGroup(om.Group):
             self.add_constraint(f'state_rate_collector.state_rates:{name}_rate')
 
     def _configure_params(self):
-        vec_size = self._vec_size
         ode_inputs = get_promoted_vars(self.ode, iotypes='input', metadata_keys=['shape', 'units', 'val', 'tags'])
 
         for name, options in self._parameter_options.items():
@@ -242,13 +241,8 @@ class ODEEvaluationGroup(om.Group):
             # Promote targets from the ODE
             for tgt in targets:
                 if tgt in options['static_targets']:
-                    src_idxs = None
                     shape = None
-                else:
-                    src_rows = np.zeros(vec_size, dtype=int)
-                    src_idxs = om.slicer[src_rows, ...]
-
-                self.promotes('ode', inputs=[(tgt, var_name)], src_indices=src_idxs,
+                self.promotes('ode', inputs=[(tgt, var_name)],
                               src_shape=shape)
             if targets:
                 self.set_input_defaults(name=var_name,
