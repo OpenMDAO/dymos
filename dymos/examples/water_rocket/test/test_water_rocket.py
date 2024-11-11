@@ -30,8 +30,11 @@ class TestWaterRocketForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT', print_results=False)
-        p.driver.opt_settings['print_level'] = 0
+        p.driver.opt_settings['mu_init'] = 1e-3
         p.driver.opt_settings['max_iter'] = 500
+        p.driver.opt_settings['print_level'] = 0
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
         p.driver.opt_settings['mu_strategy'] = 'monotone'
         p.driver.declare_coloring(tol=1.0E-12)
 
@@ -70,8 +73,11 @@ class TestWaterRocketForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
+        p.driver.opt_settings['mu_init'] = 1e-3
+        p.driver.opt_settings['max_iter'] = 500
         p.driver.opt_settings['print_level'] = 0
-        p.driver.opt_settings['max_iter'] = 300
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
         p.driver.opt_settings['mu_strategy'] = 'monotone'
         p.driver.declare_coloring(tol=1.0E-12)
 
