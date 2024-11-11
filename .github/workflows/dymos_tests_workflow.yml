@@ -438,24 +438,15 @@ jobs:
           echo "Environment:"
           echo "   DYMOS_CHECK_PARTIALS: $DYMOS_CHECK_PARTIALS"
           echo "============================================================="
-          # testflo -n 1 docs/dymos_book/test --pre_announce
-          # testflo -n 1 joss/test --pre_announce
-          # testflo -b benchmark --pre_announce
-          # cd $HOME
-          # if [[ "${{ matrix.NAME }}" != "latest" ]]; then
-          #   testflo dymos -n 4 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos
-          # else
-          #   testflo dymos -n 4 --pre_announce --show_skipped --durations 20
-          # fi
-          python -c 'import multiprocessing as mp; print(mp.cpu_count())'
-          echo "Running multi phase restart test case standalone"
-          testflo dymos/examples/finite_burn_orbit_raise/test/test_multi_phase_restart.py:TestExampleTwoBurnOrbitRaiseConnected.test_ex_two_burn_orbit_raise_connected -n 4 --pre_announce -s
-          # echo "Running two burn orbit raise MPI standalone"
-          # testflo dymos/examples/finite_burn_orbit_raise/test/test_ex_two_burn_orbit_raise_mpi.py:TestExampleTwoBurnOrbitRaiseMPI.test_ex_two_burn_orbit_raise_mpi  -n 4 --pre_announce -s
-          echo "Running all orbit raise MPI tests"
-          testflo dymos/examples/finite_burn_orbit_raise/test/test_ex_two_burn_orbit_raise_mpi.py:TestExampleTwoBurnOrbitRaiseConnected -n 4 --pre_announce -s
-          echo "Running all orbit raise MPI and NON MPI tests"
-          testflo dymos/examples/finite_burn_orbit_raise/test -n 4 --pre_announce -s
+          testflo -n 1 docs/dymos_book/test --pre_announce
+          testflo -n 1 joss/test --pre_announce
+          testflo -b benchmark --pre_announce
+          cd $HOME
+          if [[ "${{ matrix.NAME }}" != "latest" ]]; then
+            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos
+          else
+            testflo dymos -n 4 --pre_announce --show_skipped --durations 20
+          fi
       - name: Submit coverage
         if: github.event_name != 'workflow_dispatch'
         continue-on-error: true
