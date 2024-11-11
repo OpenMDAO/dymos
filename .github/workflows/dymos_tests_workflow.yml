@@ -449,13 +449,13 @@ jobs:
           # fi
           python -c 'import multiprocessing as mp; print(mp.cpu_count())'
           echo "Running multi phase restart test case standalone"
-          testflo dymos/examples/finite_burn_orbit_raise/test/test_multi_phase_restart.py:TestExampleTwoBurnOrbitRaiseConnected.test_ex_two_burn_orbit_raise_connected -n 2 --pre_announce -s
-          echo "Running two burn orbit raise MPI standalone"
-          testflo dymos/examples/finite_burn_orbit_raise/test/test_ex_two_burn_orbit_raise_mpi.py:TestExampleTwoBurnOrbitRaiseMPI.test_ex_two_burn_orbit_raise_mpi  -n 2 --pre_announce -s
+          testflo dymos/examples/finite_burn_orbit_raise/test/test_multi_phase_restart.py:TestExampleTwoBurnOrbitRaiseConnected.test_ex_two_burn_orbit_raise_connected -n 4 --pre_announce -s
+          # echo "Running two burn orbit raise MPI standalone"
+          # testflo dymos/examples/finite_burn_orbit_raise/test/test_ex_two_burn_orbit_raise_mpi.py:TestExampleTwoBurnOrbitRaiseMPI.test_ex_two_burn_orbit_raise_mpi  -n 4 --pre_announce -s
           echo "Running all orbit raise MPI tests"
-          testflo dymos/examples/finite_burn_orbit_raise/test/test_ex_two_burn_orbit_raise_mpi.py:TestExampleTwoBurnOrbitRaiseMPI -n 2 --pre_announce -s
+          testflo dymos/examples/finite_burn_orbit_raise/test/test_ex_two_burn_orbit_raise_mpi.py:TestExampleTwoBurnOrbitRaiseConnected -n 4 --pre_announce -s
           echo "Running all orbit raise MPI and NON MPI tests"
-          testflo dymos/examples/finite_burn_orbit_raise/test -n 2 --pre_announce -s
+          testflo dymos/examples/finite_burn_orbit_raise/test -n 4 --pre_announce -s
       - name: Submit coverage
         if: github.event_name != 'workflow_dispatch'
         continue-on-error: true
