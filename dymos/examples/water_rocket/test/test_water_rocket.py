@@ -18,7 +18,7 @@ from dymos.examples.water_rocket.phases import (new_water_rocket_trajectory,
 
 
 @require_pyoptsparse(optimizer='IPOPT')
-@use_tempdirs
+# @use_tempdirs
 class TestWaterRocketForDocs(unittest.TestCase):
 
     @unittest.skipIf(mpl is None, "This test requires matplotlib")
@@ -30,11 +30,8 @@ class TestWaterRocketForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT', print_results=False)
-        p.driver.opt_settings['mu_init'] = 1e-3
+        p.driver.opt_settings['print_level'] = 5
         p.driver.opt_settings['max_iter'] = 500
-        p.driver.opt_settings['print_level'] = 0
-        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
-        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
         p.driver.opt_settings['mu_strategy'] = 'monotone'
         p.driver.declare_coloring(tol=1.0E-12)
 
@@ -44,7 +41,8 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.setup()
         set_sane_initial_guesses(phases)
 
-        dm.run_problem(p, run_driver=True, simulate=True)
+        dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)
+        print(p.get_outputs_dir())
 
         summary = summarize_results(p)
         for key, entry in summary.items():
@@ -57,7 +55,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         plot_trajectory(p, exp_out)
         plot_states(p, exp_out)
 
-        # plt.show()
+        plt.show()
 
         # Check results (tolerance is relative unless value is zero)
         assert_near_equal(summary['Launch angle'].value, 85, 0.01)
@@ -73,11 +71,8 @@ class TestWaterRocketForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
-        p.driver.opt_settings['mu_init'] = 1e-3
-        p.driver.opt_settings['max_iter'] = 500
-        p.driver.opt_settings['print_level'] = 0
-        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
-        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['max_iter'] = 300
         p.driver.opt_settings['mu_strategy'] = 'monotone'
         p.driver.declare_coloring(tol=1.0E-12)
 

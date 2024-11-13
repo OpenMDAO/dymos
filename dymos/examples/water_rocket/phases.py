@@ -94,7 +94,7 @@ def new_descent_phase(transcription):
 
 
 def new_water_rocket_trajectory(objective):
-    tx_prop = dm.Radau(num_segments=50, order=3, compressed=True)
+    tx_prop = dm.Radau(num_segments=10, order=3, compressed=True)
     tx_bal = dm.Radau(num_segments=10, order=3, compressed=True)
     tx_desc = dm.Radau(num_segments=10, order=3, compressed=True)
     traj = dm.Trajectory()

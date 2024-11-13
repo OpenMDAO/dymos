@@ -1912,7 +1912,6 @@ class Phase(om.Group):
         units : str or None
             Units of the time. If none are specified, the default units are used.
         """
-        print(f'Setting times {self.pathname=} {initial=} {duration=}')
         if units is None:
             units = self.time_options['units']
         if initial is not None:
