@@ -51,7 +51,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     burn1.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='TU')
     burn1.add_state('r', fix_initial=True, fix_final=False, defect_scaler=1.0,
                     rate_source='r_dot', units='DU')
-    burn1.add_state('theta', fix_initial=True, fix_final=False, defect_scaler=1.0,
+    burn1.add_state('theta', fix_initial=True, fix_final=False, defect_scaler=1.0E-3,
                     rate_source='theta_dot', units='rad')
     burn1.add_state('vr', fix_initial=True, fix_final=False, defect_scaler=1.0,
                     rate_source='vr_dot', units='DU/TU')
@@ -61,7 +61,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
                     rate_source='at_dot', units='DU/TU**2')
     burn1.add_state('deltav', fix_initial=True, fix_final=False,
                     rate_source='deltav_dot', units='DU/TU')
-    burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', scaler=0.01,
+    burn1.add_control('u1', rate_continuity=False, rate2_continuity=False, units='deg', scaler=0.01,
                       rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
                       lower=-30, upper=30)
     # Second Phase (Coast)
@@ -70,7 +70,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 50), duration_ref=50, units='TU')
     coast.add_state('r', fix_initial=False, fix_final=False, defect_scaler=1.0,
                     rate_source='r_dot', units='DU')
-    coast.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=1.0,
+    coast.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=1.0E-3,
                     rate_source='theta_dot', units='rad')
     coast.add_state('vr', fix_initial=False, fix_final=False, defect_scaler=1.0,
                     rate_source='vr_dot', units='DU/TU')
@@ -94,11 +94,11 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
 
         burn2.set_time_options(initial_bounds=(1.0, 60), duration_bounds=(-10.0, -0.5),
                                initial_ref=10, units='TU')
-        burn2.add_state('r', fix_initial=True, fix_final=False, defect_scaler=1.0,
+        burn2.add_state('r', fix_initial=True, fix_final=False, defect_scaler=1.0E-2,
                         rate_source='r_dot', units='DU')
-        burn2.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=1.0,
+        burn2.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=1000.0,
                         rate_source='theta_dot', units='rad')
-        burn2.add_state('vr', fix_initial=True, fix_final=False, defect_scaler=1.0,
+        burn2.add_state('vr', fix_initial=True, fix_final=False, defect_scaler=1.0E-2,
                         rate_source='vr_dot', units='DU/TU')
         burn2.add_state('vt', fix_initial=True, fix_final=False, defect_scaler=1.0,
                         rate_source='vt_dot', units='DU/TU')
@@ -109,16 +109,16 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
 
         burn2.add_objective('deltav', loc='initial', scaler=100.0)
 
-        burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
+        burn2.add_control('u1', rate_continuity=False, rate2_continuity=False, units='deg',
                           scaler=0.01, lower=-180, upper=180)
     else:
 
         burn2.set_time_options(initial_bounds=(0.5, 50), duration_bounds=(.5, 10), initial_ref=10, units='TU')
-        burn2.add_state('r', fix_initial=False, fix_final=True, defect_scaler=1.0,
+        burn2.add_state('r', fix_initial=False, fix_final=True, defect_scaler=1.0E-2,
                         rate_source='r_dot', targets=['r'], units='DU')
-        burn2.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=1.0,
+        burn2.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=1000.0,
                         rate_source='theta_dot', targets=['theta'], units='rad')
-        burn2.add_state('vr', fix_initial=False, fix_final=True, defect_scaler=1.0,
+        burn2.add_state('vr', fix_initial=False, fix_final=True, defect_scaler=1.0E-2,
                         rate_source='vr_dot', targets=['vr'], units='DU/TU')
         burn2.add_state('vt', fix_initial=False, fix_final=True, defect_scaler=1.0,
                         rate_source='vt_dot', targets=['vt'], units='DU/TU')
@@ -129,7 +129,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
 
         burn2.add_objective('deltav', loc='final', scaler=100.0)
 
-        burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
+        burn2.add_control('u1', rate_continuity=False, rate2_continuity=False, units='deg',
                           scaler=0.01, lower=-180, upper=180, targets=['u1'])
 
     burn1.add_timeseries_output('pos_x')
@@ -227,8 +227,6 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
         p.driver.opt_settings['mu_strategy'] = 'monotone'
         p.driver.opt_settings['derivative_test'] = 'first-order'
-        if show_output:
-            p.driver.opt_settings['print_level'] = 0
 
     traj = make_traj(transcription=transcription, transcription_order=transcription_order,
                      compressed=compressed, connected=connected,
@@ -239,14 +237,18 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     # Needed to move the direct solver down into the phases for use with MPI.
     #  - After moving down, used fewer iterations (about 30 less)
 
-    p.setup(check=True)
+    p.setup(check=False)
 
     # Set Initial Guesses
     traj.set_parameter_val('c', val=1.5, units='DU/TU')
 
-    burn1 = p.model.traj.phases.burn1
-    burn2 = p.model.traj.phases.burn2
-    coast = p.model.traj.phases.coast
+    # burn1 = p.model.traj.phases.burn1
+    # burn2 = p.model.traj.phases.burn2
+    # coast = p.model.traj.phases.coast
+
+    burn1 = p.model._get_subsystem('traj.phases.burn1')
+    burn2 = p.model._get_subsystem('traj.phases.burn2')
+    coast = p.model._get_subsystem('traj.phases.coast')
 
     if burn1 in p.model.traj.phases._subsystems_myproc:
         burn1.set_time_val(initial=0.0, duration=2.25)
@@ -287,6 +289,11 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
             burn2.set_state_val('accel', [0.1, 0.0])
             burn2.set_state_val('deltav', [0.1, 0.2])
             burn2.set_control_val('u1', [0, 0])
+
+    p.final_setup()
+    if burn2 in p.model.traj.phases._subsystems_myproc:
+        print(burn2.get_val('t_initial'))
+        print(burn2.get_val('t_duration'))
 
     if run_driver or simulate:
         dm.run_problem(p, run_driver=run_driver, simulate=simulate, restart=restart, make_plots=True,

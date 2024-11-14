@@ -44,7 +44,6 @@ class TestWaterRocketForDocs(unittest.TestCase):
         set_sane_initial_guesses(phases)
 
         dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)
-        print(p.get_outputs_dir())
 
         summary = summarize_results(p)
         for key, entry in summary.items():
