@@ -120,7 +120,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
                 self.rho_interp = InterpND(points=np.array(alt_data),
                                            values=np.array(rho_data),
-                                           method='slinear')
+                                           method='slinear', extrapolate=True)
 
             def compute(self, inputs, outputs):
 
