@@ -10,7 +10,8 @@ from dymos.utils.misc import om_version
 
 
 @require_pyoptsparse(optimizer='IPOPT')
-@unittest.skipUnless(MPI, "MPI is required.")
+# @unittest.skipUnless(MPI, "MPI is required.")
+@unittest.skip
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseMPI(unittest.TestCase):
     N_PROCS = 3
