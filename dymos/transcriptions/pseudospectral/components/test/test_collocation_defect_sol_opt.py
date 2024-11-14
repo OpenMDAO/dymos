@@ -185,22 +185,21 @@ class TestCollocationCompSolOpt(unittest.TestCase):
         np.set_printoptions(linewidth=1024, edgeitems=1e1000)
 
         p = self.make_prob('radau-ps', n_segs=2, order=5, compressed=False)
-        cpd = p.check_partials(compact_print=True, method='fd')
+        cpd = p.check_partials(compact_print=True, method='fd', out_stream=None)
         del cpd['state_indep']
         assert_check_partials(cpd)
 
         p = self.make_prob('radau-ps', n_segs=2, order=5, compressed=True)
-        cpd = p.check_partials(compact_print=True, method='fd')
-        del cpd['state_indep']
+        cpd = p.check_partials(compact_print=True, method='fd', out_stream=None)
         assert_check_partials(cpd)
 
         p = self.make_prob('gauss-lobatto', n_segs=3, order=5, compressed=False)
-        cpd = p.check_partials(compact_print=True, method='fd')
+        cpd = p.check_partials(compact_print=True, method='fd', out_stream=None)
         del cpd['state_indep']
         assert_check_partials(cpd)
 
         p = self.make_prob('gauss-lobatto', n_segs=4, order=3, compressed=True)
-        cpd = p.check_partials(compact_print=True, method='fd')
+        cpd = p.check_partials(compact_print=True, method='fd', out_stream=None)
         del cpd['state_indep']
         assert_check_partials(cpd)
 

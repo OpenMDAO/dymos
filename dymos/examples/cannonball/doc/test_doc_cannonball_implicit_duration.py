@@ -113,6 +113,16 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
                 alt_data = USatm1976Data.alt * om.unit_conversion('ft', 'm')[0]
                 rho_data = USatm1976Data.rho * om.unit_conversion('slug/ft**3', 'kg/m**3')[0]
+
+                # Pad alt_data and rho_data to protect against solvers searching outside the valid range
+                alt_data = np.concatenate(([-1E6], alt_data))
+                rho_data = np.concatenate(([2.0], rho_data))
+
+                print(alt_data)
+                print(rho_data)
+                exit(0)
+
+
                 self.rho_interp = InterpND(points=np.array(alt_data),
                                            values=np.array(rho_data),
                                            method='slinear')
