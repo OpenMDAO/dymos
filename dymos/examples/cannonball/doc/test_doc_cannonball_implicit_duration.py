@@ -118,11 +118,6 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                 alt_data = np.concatenate(([-1E6], alt_data))
                 rho_data = np.concatenate(([2.0], rho_data))
 
-                print(alt_data)
-                print(rho_data)
-                exit(0)
-
-
                 self.rho_interp = InterpND(points=np.array(alt_data),
                                            values=np.array(rho_data),
                                            method='slinear')
