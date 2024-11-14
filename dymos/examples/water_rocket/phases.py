@@ -16,7 +16,7 @@ def new_propelled_ascent_phase(transcription):
     propelled_ascent.add_state('r', units='m', rate_source='eom.r_dot',
                                fix_initial=True, fix_final=False, ref=100.0, defect_ref=100.0)
     propelled_ascent.add_state('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
-                               fix_initial=True, fix_final=False, ref=100.0, defect_ref=100.0)
+                               fix_initial=True, fix_final=False, ref=10.0, defect_ref=10.0)
     propelled_ascent.add_state('gam', units='deg', rate_source='eom.gam_dot', targets=['eom.gam'],
                                fix_initial=False, fix_final=False, lower=0, upper=85.0, ref=90)
     propelled_ascent.add_state('v', units='m/s', rate_source='eom.v_dot', targets=['dynamic_pressure.v', 'eom.v'],
@@ -27,7 +27,7 @@ def new_propelled_ascent_phase(transcription):
                                lower=1.02)
     propelled_ascent.add_state('V_w', units='L', rate_source='water_engine.Vdot',
                                targets=['water_engine.V_w', 'mass_adder.V_w'],
-                               fix_initial=False, fix_final=True, ref=10, defect_ref=10,
+                               fix_initial=False, fix_final=True, ref=10., defect_ref=0.1,
                                lower=0)
 
     propelled_ascent.add_parameter(
@@ -94,7 +94,7 @@ def new_descent_phase(transcription):
 
 
 def new_water_rocket_trajectory(objective):
-    tx_prop = dm.Radau(num_segments=10, order=3, compressed=True)
+    tx_prop = dm.Radau(num_segments=20, order=3, compressed=True)
     tx_bal = dm.Radau(num_segments=10, order=3, compressed=True)
     tx_desc = dm.Radau(num_segments=10, order=3, compressed=True)
     traj = dm.Trajectory()
@@ -112,7 +112,7 @@ def new_water_rocket_trajectory(objective):
     if objective == 'height':
         ballistic_ascent.add_objective('h', loc='final', ref=-1.0)
     elif objective == 'range':
-        descent.add_objective('r', loc='final', ref=-100.0)
+        descent.add_objective('r', loc='final', ref=-1.0)
     else:
         raise ValueError(f"objective='{objective}' is not defined. Try using 'height' or 'range'")
 
