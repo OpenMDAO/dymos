@@ -25,7 +25,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_two_phase_cannonball_for_docs(self):
         import openmdao.api as om
-        from openmdao.components.interp_util.interp import InterpND
+        from scipy.interpolate import make_interp_spline
         from openmdao.utils.assert_utils import assert_near_equal
 
         import dymos as dm
@@ -114,13 +114,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                 alt_data = USatm1976Data.alt * om.unit_conversion('ft', 'm')[0]
                 rho_data = USatm1976Data.rho * om.unit_conversion('slug/ft**3', 'kg/m**3')[0]
 
-                # Pad alt_data and rho_data to protect against solvers searching outside the valid range
-                alt_data = np.concatenate(([-1E6], alt_data))
-                rho_data = np.concatenate(([2.0], rho_data))
-
-                self.rho_interp = InterpND(points=np.array(alt_data),
-                                           values=np.array(rho_data),
-                                           method='slinear', extrapolate=True)
+                # self.rho_interp = InterpND(points=np.array(alt_data),
+                #                            values=np.array(rho_data),
+                #                            method='slinear', extrapolate=True)
+                self.rho_interp = make_interp_spline(alt_data, rho_data, k=1)
 
             def compute(self, inputs, outputs):
 
@@ -133,7 +130,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
                 GRAVITY = 9.80665  # m/s**2
 
-                rho = self.rho_interp.interpolate(h)
+                rho = self.rho_interp(h)
 
                 q = 0.5*rho*v**2
                 qS = q * S
