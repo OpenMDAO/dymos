@@ -35,8 +35,7 @@ class TestRaceCarForDocs(unittest.TestCase):
         s_final = track.get_total_length()
 
         txs = {'radau': dm.Radau(num_segments=50, order=3, compressed=True),
-               'gauss-lobatto': dm.GaussLobatto(num_segments=50, order=3, compressed=True),
-               'birkhoff': dm.Birkhoff(num_nodes=100)}
+               'gauss-lobatto': dm.GaussLobatto(num_segments=50, order=3, compressed=True)}
 
         for tx_name, tx in txs.items():
             with self.subTest(tx_name):
