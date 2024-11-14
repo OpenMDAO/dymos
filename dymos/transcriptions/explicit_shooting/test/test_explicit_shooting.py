@@ -226,10 +226,14 @@ class TestExplicitShooting(unittest.TestCase):
                 assert_near_equal(t[-1, ...], 1.8016, tolerance=1.0E-2)
 
                 with np.printoptions(linewidth=1024):
-                    cpd = prob.check_partials(compact_print=True, method='cs', excludes=['traj0.phases.phase0.integrator'], out_stream=None)
+                    cpd = prob.check_partials(compact_print=True, method='cs',
+                                              excludes=['traj0.phases.phase0.integrator'],
+                                              out_stream=None)
                     assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
-                    cpd = prob.check_partials(compact_print=True, method='fd', includes=['traj0.phases.phase0.integrator'], out_stream=None)
+                    cpd = prob.check_partials(compact_print=True, method='fd',
+                                              includes=['traj0.phases.phase0.integrator'],
+                                              out_stream=None)
                     assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
         dymos_options['include_check_partials'] = False
