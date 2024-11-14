@@ -18,7 +18,7 @@ from dymos.examples.water_rocket.phases import (new_water_rocket_trajectory,
 
 
 @require_pyoptsparse(optimizer='IPOPT')
-# @use_tempdirs
+@use_tempdirs
 class TestWaterRocketForDocs(unittest.TestCase):
 
     @unittest.skipIf(mpl is None, "This test requires matplotlib")
@@ -30,7 +30,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT', print_results=False)
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 0
         p.driver.opt_settings['max_iter'] = 1000
         p.driver.opt_settings['mu_strategy'] = 'adaptive'
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
@@ -72,7 +72,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 0
         p.driver.opt_settings['max_iter'] = 1000
         p.driver.opt_settings['mu_strategy'] = 'adaptive'
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
