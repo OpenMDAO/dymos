@@ -160,8 +160,6 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.driver.opt_settings['mu_init'] = 0.01
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
 
-        p.set_solver_print(level=0, depth=99)
-
         p.model.add_subsystem('size_comp', CannonballSizeComp(),
                               promotes_inputs=['radius', 'dens'])
         p.model.set_input_defaults('dens', val=7.87, units='g/cm**3')
@@ -202,8 +200,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         # In this problem, the default ArmijoGoldsteinLS has issues with extrapolating
         # the states and causes the optimization to fail.
         # Using the default linesearch or BoundsEnforceLS work better here.
-        phase.nonlinear_solver = om.NewtonSolver(solve_subsystems=True, iprint=2)
-        phase.nonlinear_solver.linesearch = None
+        phase.nonlinear_solver = om.NewtonSolver(iprint=2, solve_subsystems=True,
+                                                 maxiter=100, stall_limit=3)
+        phase.nonlinear_solver.linesearch = om.BoundsEnforceLS()
+        phase.linear_solver = om.DirectSolver()
 
         phase.add_objective('r', loc='final', scaler=-1.0)
 
