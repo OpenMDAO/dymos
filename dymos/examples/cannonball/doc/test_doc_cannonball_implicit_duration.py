@@ -113,10 +113,6 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
                 alt_data = USatm1976Data.alt * om.unit_conversion('ft', 'm')[0]
                 rho_data = USatm1976Data.rho * om.unit_conversion('slug/ft**3', 'kg/m**3')[0]
-
-                # self.rho_interp = InterpND(points=np.array(alt_data),
-                #                            values=np.array(rho_data),
-                #                            method='slinear', extrapolate=True)
                 self.rho_interp = make_interp_spline(alt_data, rho_data, k=1)
 
             def compute(self, inputs, outputs):
@@ -150,7 +146,6 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
-        # p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 
         p.model.add_subsystem('size_comp', CannonballSizeComp(),
