@@ -242,10 +242,6 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     # Set Initial Guesses
     traj.set_parameter_val('c', val=1.5, units='DU/TU')
 
-    # burn1 = p.model.traj.phases.burn1
-    # burn2 = p.model.traj.phases.burn2
-    # coast = p.model.traj.phases.coast
-
     burn1 = p.model._get_subsystem('traj.phases.burn1')
     burn2 = p.model._get_subsystem('traj.phases.burn2')
     coast = p.model._get_subsystem('traj.phases.coast')

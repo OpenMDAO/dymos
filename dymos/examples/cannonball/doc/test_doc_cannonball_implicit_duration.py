@@ -153,13 +153,6 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         # p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 
-        # p.driver.opt_settings['derivative_test'] = 'first-order'
-        # p.driver.opt_settings['mu_strategy'] = 'monotone'
-        # p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
-        # p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
-        # p.driver.opt_settings['mu_init'] = 0.01
-        # p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
-
         p.model.add_subsystem('size_comp', CannonballSizeComp(),
                               promotes_inputs=['radius', 'dens'])
         p.model.set_input_defaults('dens', val=7.87, units='g/cm**3')
