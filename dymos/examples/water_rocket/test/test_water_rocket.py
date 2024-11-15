@@ -31,8 +31,10 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT', print_results=False)
         p.driver.opt_settings['print_level'] = 0
-        p.driver.opt_settings['max_iter'] = 500
-        p.driver.opt_settings['mu_strategy'] = 'monotone'
+        p.driver.opt_settings['max_iter'] = 1000
+        p.driver.opt_settings['mu_strategy'] = 'adaptive'
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
         p.driver.declare_coloring(tol=1.0E-12)
 
         # Finish Problem Setup
@@ -41,7 +43,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.setup()
         set_sane_initial_guesses(phases)
 
-        dm.run_problem(p, run_driver=True, simulate=True)
+        dm.run_problem(p, run_driver=True, simulate=True, make_plots=True)
 
         summary = summarize_results(p)
         for key, entry in summary.items():
@@ -54,7 +56,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         plot_trajectory(p, exp_out)
         plot_states(p, exp_out)
 
-        # plt.show()
+        plt.show()
 
         # Check results (tolerance is relative unless value is zero)
         assert_near_equal(summary['Launch angle'].value, 85, 0.01)
@@ -71,8 +73,10 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
         p.driver.opt_settings['print_level'] = 0
-        p.driver.opt_settings['max_iter'] = 300
-        p.driver.opt_settings['mu_strategy'] = 'monotone'
+        p.driver.opt_settings['max_iter'] = 1000
+        p.driver.opt_settings['mu_strategy'] = 'adaptive'
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
+        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
         p.driver.declare_coloring(tol=1.0E-12)
 
         # Finish Problem Setup

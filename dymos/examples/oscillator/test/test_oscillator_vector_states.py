@@ -7,7 +7,7 @@ import dymos as dm
 import numpy as np
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestDocOscillator(unittest.TestCase):
 
     def test_matrix_param(self):
