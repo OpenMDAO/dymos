@@ -10,8 +10,7 @@ from dymos.utils.misc import om_version
 
 
 @require_pyoptsparse(optimizer='IPOPT')
-# @unittest.skipUnless(MPI, "MPI is required.")
-@unittest.skip
+@unittest.skipUnless(MPI, "MPI is required.")
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseMPI(unittest.TestCase):
     N_PROCS = 3
@@ -21,7 +20,7 @@ class TestExampleTwoBurnOrbitRaiseMPI(unittest.TestCase):
 
         CONNECTED = False
 
-        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+        p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
                                          compressed=False, optimizer=optimizer, simulate=True,
                                          connected=CONNECTED, show_output=False)
 
@@ -46,7 +45,7 @@ class TestExampleTwoBurnOrbitRaiseMPI(unittest.TestCase):
 
         CONNECTED = True
 
-        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+        p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
                                          compressed=False, optimizer=optimizer, simulate=True,
                                          connected=CONNECTED, show_output=False)
 
