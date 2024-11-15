@@ -553,6 +553,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../../features/phases/constraints.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../features/phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../features/phases/timeseries.html">Timeseries Outputs</a></li>
+
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
@@ -3050,73 +3051,6 @@ title="Open an issue"
                                   <span class="sa">f</span><span class="s2">&quot;phase &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">invalid_options</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                                   <span class="ne">RuntimeWarning</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return an array of values on interpolated to the given node subset of the phase.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        xs :  ndarray or Sequence or None</span>
-<span class="sd">            Array of integration variable values.</span>
-<span class="sd">        ys :  ndarray or Sequence or None</span>
-<span class="sd">            Array of control/state/parameter values.</span>
-<span class="sd">        nodes : str or None</span>
-<span class="sd">            The name of the node subset.</span>
-<span class="sd">        kind : str</span>
-<span class="sd">            Specifies the kind of interpolation, as per the scipy.interpolate package.</span>
-<span class="sd">            One of (&#39;linear&#39;, &#39;nearest&#39;, &#39;zero&#39;, &#39;slinear&#39;, &#39;quadratic&#39;, &#39;cubic&#39;</span>
-<span class="sd">            where &#39;zero&#39;, &#39;slinear&#39;, &#39;quadratic&#39; and &#39;cubic&#39; refer to a spline</span>
-<span class="sd">            interpolation of zeroth, first, second or third order) or as an</span>
-<span class="sd">            integer specifying the order of the spline interpolator to use.</span>
-<span class="sd">            Default is &#39;linear&#39;.</span>
-<span class="sd">        axis : int</span>
-<span class="sd">            Specifies the axis along which interpolation should be performed.  Default is</span>
-<span class="sd">            the first axis (0).</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        np.array</span>
-<span class="sd">            The values of y interpolated at nodes of the specified type.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">om</span><span class="o">.</span><span class="n">issue_warning</span><span class="p">(</span><span class="s1">&#39;phase.interpolate has been deprecated and will be removed from Dymos &#39;</span>
-                         <span class="s1">&#39;2.0.0. Use phase.interp instead, which uses a different order for the &#39;</span>
-                         <span class="s1">&#39;arguments but is more terse and can interpolate polynomial control &#39;</span>
-                         <span class="s1">&#39;values.&#39;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">OMDeprecationWarning</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;ys must be provided as an Iterable of length at least 2.&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">nodes</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;col&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="s1">&#39;state_disc&#39;</span><span class="p">,</span> <span class="s1">&#39;state_input&#39;</span><span class="p">,</span> <span class="s1">&#39;control_disc&#39;</span><span class="p">,</span>
-                         <span class="s1">&#39;control_input&#39;</span><span class="p">,</span> <span class="s1">&#39;segment_ends&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;nodes must be one of &#39;col&#39;, &#39;all&#39;, &#39;state_disc&#39;, &quot;</span>
-                             <span class="s2">&quot;&#39;state_input&#39;, &#39;control_disc&#39;, &#39;control_input&#39;, or &#39;segment_ends&#39;&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">xs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;xs may only be unspecified when len(ys)=2&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">kind</span> <span class="o">!=</span> <span class="s1">&#39;linear&#39;</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;kind must be linear when xs is unspecified.&#39;</span><span class="p">)</span>
-            <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;xs must be viewable as a 1D array&#39;</span><span class="p">)</span>
-
-        <span class="n">gd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;transcription&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">grid_data</span>
-
-        <span class="k">if</span> <span class="n">gd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;interpolate cannot be called until the associated &#39;</span>
-                               <span class="s1">&#39;problem has been setup&#39;</span><span class="p">)</span>
-
-        <span class="n">node_locations</span> <span class="o">=</span> <span class="n">gd</span><span class="o">.</span><span class="n">node_ptau</span><span class="p">[</span><span class="n">gd</span><span class="o">.</span><span class="n">subset_node_indices</span><span class="p">[</span><span class="n">nodes</span><span class="p">]]</span>
-        <span class="c1"># Affine transform xs into tau space [-1, 1]</span>
-        <span class="n">_xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">_xs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">_xs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">b</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">m</span> <span class="o">*</span> <span class="n">_xs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">taus</span> <span class="o">=</span> <span class="n">m</span> <span class="o">*</span> <span class="n">_xs</span> <span class="o">+</span> <span class="n">b</span>
-        <span class="n">interpfunc</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="n">taus</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span>
-                                          <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">)</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">interpfunc</span><span class="p">(</span><span class="n">node_locations</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">T</span>
-        <span class="k">return</span> <span class="n">res</span>
-
 <div class="viewcode-block" id="Phase.interp"><a class="viewcode-back" href="../../../api/phase_api.html#dymos.Phase.interp">[docs]</a>    <span class="k">def</span> <span class="nf">interp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Interpolate values onto the given subset of nodes in the phase.</span>
@@ -3135,14 +3069,12 @@ title="Open an issue"
 <span class="sd">            Array of control/state/parameter values.</span>
 <span class="sd">        xs :  ndarray or Sequence or None</span>
 <span class="sd">            Array of integration variable values.</span>
-<span class="sd">        nodes : str or None</span>
-<span class="sd">            The name of the node subset or None (default).</span>
+<span class="sd">        nodes : str or Sequence or None</span>
+<span class="sd">            The name of the node subset, a set of nodes in phase tau space ([-1, 1] across the phase), or None (default).</span>
 <span class="sd">        kind : str</span>
 <span class="sd">            Specifies the kind of interpolation, as per the scipy.interpolate package.</span>
-<span class="sd">            One of (&#39;linear&#39;, &#39;nearest&#39;, &#39;zero&#39;, &#39;slinear&#39;, &#39;quadratic&#39;, &#39;cubic&#39;</span>
-<span class="sd">            where &#39;zero&#39;, &#39;slinear&#39;, &#39;quadratic&#39; and &#39;cubic&#39; refer to a spline</span>
-<span class="sd">            interpolation of zeroth, first, second or third order) or as an</span>
-<span class="sd">            integer specifying the order of the spline interpolator to use.</span>
+<span class="sd">            One of (&#39;linear&#39;, &#39;quadratic&#39;, &#39;cubic&#39;). Any other value will result in</span>
+<span class="sd">            linear interpolation and is allowed for backward compatibility.</span>
 <span class="sd">            Default is &#39;linear&#39;.</span>
 <span class="sd">        axis : int</span>
 <span class="sd">            Specifies the axis along which interpolation should be performed.  Default is</span>
@@ -3155,11 +3087,24 @@ title="Open an issue"
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;ys must be provided as an Iterable of length at least 2.&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">nodes</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;col&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="s1">&#39;state_disc&#39;</span><span class="p">,</span> <span class="s1">&#39;state_input&#39;</span><span class="p">,</span> <span class="s1">&#39;control_disc&#39;</span><span class="p">,</span>
-                         <span class="s1">&#39;control_input&#39;</span><span class="p">,</span> <span class="s1">&#39;segment_ends&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;nodes must be one of &#39;col&#39;, &#39;all&#39;, &#39;state_disc&#39;, &quot;</span>
-                             <span class="s2">&quot;&#39;state_input&#39;, &#39;control_disc&#39;, &#39;control_input&#39;, &#39;segment_ends&#39;, or &quot;</span>
-                             <span class="s2">&quot;None.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">nodes</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;col&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="s1">&#39;state_disc&#39;</span><span class="p">,</span> <span class="s1">&#39;state_input&#39;</span><span class="p">,</span> <span class="s1">&#39;control_disc&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;control_input&#39;</span><span class="p">,</span> <span class="s1">&#39;segment_ends&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;nodes must be one of &#39;col&#39;, &#39;all&#39;, &#39;state_disc&#39;, &quot;</span>
+                                 <span class="s2">&quot;&#39;state_input&#39;, &#39;control_disc&#39;, &#39;control_input&#39;, &#39;segment_ends&#39;, or &quot;</span>
+                                 <span class="s2">&quot;None.&quot;</span><span class="p">)</span>
+
+        <span class="n">order_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;linear&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                     <span class="s1">&#39;quadratic&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                     <span class="s1">&#39;cubic&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">_kind</span> <span class="o">=</span> <span class="n">order_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">_kind</span> <span class="o">=</span> <span class="n">kind</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;kind must be an integer of the spline order or one of &#39;linear&#39;, &#39;quadratic&#39;, or &#39;cubic&#39;. &quot;</span>
+                             <span class="s2">&quot; Any other string value will result in linear interpolation.&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">xs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
@@ -3192,17 +3137,28 @@ title="Open an issue"
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Could not find a state, control, or polynomial control named &#39;</span>
                                  <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> to be interpolated.</span><span class="se">\n</span><span class="s1">Please explicitly specify the &#39;</span>
                                  <span class="sa">f</span><span class="s1">&#39;node subset onto which this value should be interpolated.&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">node_locations</span> <span class="o">=</span> <span class="n">gd</span><span class="o">.</span><span class="n">node_ptau</span><span class="p">[</span><span class="n">gd</span><span class="o">.</span><span class="n">subset_node_indices</span><span class="p">[</span><span class="n">nodes</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">node_locations</span> <span class="o">=</span> <span class="n">nodes</span>
 
         <span class="c1"># Affine transform xs into tau space [-1, 1]</span>
         <span class="n">_xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">_xs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">_xs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">b</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">m</span> <span class="o">*</span> <span class="n">_xs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">taus</span> <span class="o">=</span> <span class="n">m</span> <span class="o">*</span> <span class="n">_xs</span> <span class="o">+</span> <span class="n">b</span>
-        <span class="n">interpfunc</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="n">taus</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span>
-                                          <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">)</span>
+        <span class="n">reversed_xs</span> <span class="o">=</span> <span class="n">_xs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">_xs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">_xs</span><span class="p">,</span> <span class="n">unique_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">_xs</span><span class="p">,</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">reversed_xs</span><span class="p">:</span>
+            <span class="n">_xs</span> <span class="o">=</span> <span class="n">_xs</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">unique_idxs</span> <span class="o">=</span> <span class="n">unique_idxs</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">_ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span>
+        <span class="n">_ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">_ys</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_ys</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">_ys</span>
+
+        <span class="n">dptau_dt</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">_xs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">_xs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">dptau_dt</span> <span class="o">*</span> <span class="n">_xs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">taus</span> <span class="o">=</span> <span class="n">dptau_dt</span> <span class="o">*</span> <span class="n">_xs</span> <span class="o">+</span> <span class="n">b</span>
+
+        <span class="n">interpfunc</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">make_interp_spline</span><span class="p">(</span><span class="n">taus</span><span class="p">,</span> <span class="n">_ys</span><span class="p">[</span><span class="n">unique_idxs</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">k</span><span class="o">=</span><span class="n">_kind</span><span class="p">)</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">interpfunc</span><span class="p">(</span><span class="n">node_locations</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">T</span>
         <span class="k">return</span> <span class="n">res</span></div>

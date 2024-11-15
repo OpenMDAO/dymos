@@ -562,6 +562,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../phases/constraints.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../phases/timeseries.html">Timeseries Outputs</a></li>
+
 </ul>
 </li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Organizing Phases into Trajectories</a></li>
@@ -890,8 +891,8 @@ In order to enforce continuity among certain variables across phases, the user m
 There are two methods in dymos which provide this functionality.
 The <code class="docutils literal notranslate"><span class="pre">add_linkage_constraint</span></code> method provides a very general way of coupling two phases together.
 It does so by generating a constraint of the following form:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-6fe27319-07bc-4bf5-9220-437f9d768d89">
-<span class="eqno">(106)<a class="headerlink" href="#equation-6fe27319-07bc-4bf5-9220-437f9d768d89" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-40354482-795b-4df3-a948-91e5e8ab891f">
+<span class="eqno">(106)<a class="headerlink" href="#equation-40354482-795b-4df3-a948-91e5e8ab891f" title="Permalink to this equation">#</a></span>\[\begin{align}
     c = \mathrm{sign}_a \mathrm{var}_a + \mathrm{sign}_b \mathrm{var}_b
 \end{align}\]</div>
 <p>Method <code class="docutils literal notranslate"><span class="pre">add_linkage_constraint</span></code> lets the user specify the variables and phases to be compared for this constraint, as well as the location of the variable in each phase (either ‘initial’ or ‘final’)

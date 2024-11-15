@@ -562,6 +562,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/constraints.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/timeseries.html">Timeseries Outputs</a></li>
+
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
@@ -1117,7 +1118,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.12230988900000739 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.12531907900006445 seconds.
 Total jacobian shape: (303, 398) 
 </pre></div>
 </div>
@@ -1126,10 +1127,10 @@ FWD solves: 10   REV solves: 0
 Total colors vs. total size: 10 vs 398  (97.49% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1223 sec
-Time to compute coloring:   0.2673 sec
-Memory to compute coloring:   0.3750 MB
-Coloring created on: 2024-11-06 01:26:37
+Time to compute sparsity:   0.1253 sec
+Time to compute coloring:   0.2642 sec
+Memory to compute coloring:   0.5000 MB
+Coloring created on: 2024-11-15 17:23:14
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1138,11 +1139,11 @@ Coloring created on: 2024-11-06 01:26:37
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    1.9700
-       User Objective Time :       0.0086
-       User Sensitivity Time :     0.9872
-       Interface Time :            0.0345
-       Opt Solver Time:            0.9396
+    Total Time:                    1.9603
+       User Objective Time :       0.0092
+       User Sensitivity Time :     0.9990
+       Interface Time :            0.0340
+       Opt Solver Time:            0.9180
     Calls to Objective Function :       6
     Calls to Sens Function :            5
 
@@ -1978,11 +1979,11 @@ Model viewer data has already been recorded for Driver.
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 8
-  runtime     : 2.4483E+00 s
+  runtime     : 2.4396E+00 s
   model_evals : 8
-  model_time  : 7.5729E-03 s
+  model_time  : 8.2162E-03 s
   deriv_evals : 6
-  deriv_time  : 7.6354E-02 s
+  deriv_time  : 7.7753E-02 s
   exit_status : SUCCESS
 </pre></div>
 </div>

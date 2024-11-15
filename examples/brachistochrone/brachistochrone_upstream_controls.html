@@ -556,6 +556,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/constraints.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/timeseries.html">Timeseries Outputs</a></li>
+
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
@@ -1105,7 +1106,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.06682627300000377 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.0670476270000222 seconds.
 Total jacobian shape: (31, 50) 
 
 
@@ -1114,10 +1115,10 @@ FWD solves: 1   REV solves: 6
 Total colors vs. total size: 7 vs 31  (77.42% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0668 sec
-Time to compute coloring:   0.0184 sec
-Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-11-06 01:21:13
+Time to compute sparsity:   0.0670 sec
+Time to compute coloring:   0.0189 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2024-11-15 17:17:47
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/scipy/optimize/_slsqp_py.py:437: RuntimeWarning: Values in x were outside bounds during a minimize step, clipping to bounds
@@ -1144,7 +1145,7 @@ Done simulating trajectory traj
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1137: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:theta_rate, ode_eval.control_interp.control_rates:theta_rate2, ode_eval.control_interp.control_values:theta] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
-<img alt="../../_images/dea4204bf342ef77f5fdef43d6e40b7d9fdc9233e85193803cbf8c1ff61c6492.png" src="../../_images/dea4204bf342ef77f5fdef43d6e40b7d9fdc9233e85193803cbf8c1ff61c6492.png" />
+<img alt="../../_images/d4741179e097dc8d61d313215ecaf96cc1b2a0de267e28f4fda0ee4cc9345ec8.png" src="../../_images/d4741179e097dc8d61d313215ecaf96cc1b2a0de267e28f4fda0ee4cc9345ec8.png" />
 </div>
 </div>
 </section>

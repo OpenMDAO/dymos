@@ -560,6 +560,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../features/phases/constraints.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../features/phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../features/phases/timeseries.html">Timeseries Outputs</a></li>
+
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
@@ -2313,13 +2314,11 @@ will result in an error.</p>
 </dd>
 <dt><strong>xs</strong><span class="classifier">ndarray or Sequence or None</span></dt><dd><p>Array of integration variable values.</p>
 </dd>
-<dt><strong>nodes</strong><span class="classifier">str or None</span></dt><dd><p>The name of the node subset or None (default).</p>
+<dt><strong>nodes</strong><span class="classifier">str or Sequence or None</span></dt><dd><p>The name of the node subset, a set of nodes in phase tau space ([-1, 1] across the phase), or None (default).</p>
 </dd>
 <dt><strong>kind</strong><span class="classifier">str</span></dt><dd><p>Specifies the kind of interpolation, as per the scipy.interpolate package.
-One of (‘linear’, ‘nearest’, ‘zero’, ‘slinear’, ‘quadratic’, ‘cubic’
-where ‘zero’, ‘slinear’, ‘quadratic’ and ‘cubic’ refer to a spline
-interpolation of zeroth, first, second or third order) or as an
-integer specifying the order of the spline interpolator to use.
+One of (‘linear’, ‘quadratic’, ‘cubic’). Any other value will result in
+linear interpolation and is allowed for backward compatibility.
 Default is ‘linear’.</p>
 </dd>
 <dt><strong>axis</strong><span class="classifier">int</span></dt><dd><p>Specifies the axis along which interpolation should be performed.  Default is

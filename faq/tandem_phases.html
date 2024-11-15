@@ -562,6 +562,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../features/phases/constraints.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../features/phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../features/phases/timeseries.html">Timeseries Outputs</a></li>
+
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
@@ -803,8 +804,8 @@ This is one application of the interpolating timeseries component.</p>
 This is a trivial solution which should find a straight line from the starting point to the ending point.</p>
 <p>There are two phases involved, the first utilizes the standard ODE for the brachistochrone problem.
 The second integrates the arclength (𝑆) of the wire using the equation:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-d278ae78-9cc5-4709-95e2-4f0dbd3b9da7">
-<span class="eqno">(107)<a class="headerlink" href="#equation-d278ae78-9cc5-4709-95e2-4f0dbd3b9da7" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-74b2da79-ba73-4675-acaa-e44d016f2342">
+<span class="eqno">(107)<a class="headerlink" href="#equation-74b2da79-ba73-4675-acaa-e44d016f2342" title="Permalink to this equation">#</a></span>\[\begin{align}
     S = \int v \sin \theta  \sqrt{1 + \frac{1}{\tan^2 \theta}} dt
 \end{align}\]</div>
 <section id="the-ode-for-the-wire-arclength">
@@ -1262,7 +1263,7 @@ INFO: checking out_of_order
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/recorders/sqlite_recorder.py:231: UserWarning:The existing case recorder file, /home/runner/work/dymos/dymos/docs/dymos_book/faq/problem_out/dymos_solution.db, is being overwritten.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.152910788999975 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.16277276300002086 seconds.
 Total jacobian shape: (222, 287) 
 </pre></div>
 </div>
@@ -1271,10 +1272,10 @@ FWD solves: 29   REV solves: 0
 Total colors vs. total size: 29 vs 287  (89.90% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1529 sec
-Time to compute coloring:   0.2363 sec
-Memory to compute coloring:   6.8320 MB
-Coloring created on: 2024-11-06 01:27:54
+Time to compute sparsity:   0.1628 sec
+Time to compute coloring:   0.2436 sec
+Memory to compute coloring:   5.0781 MB
+Coloring created on: 2024-11-15 17:24:14
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1283,11 +1284,11 @@ Coloring created on: 2024-11-06 01:27:54
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    9.2659
-       User Objective Time :       0.2388
-       User Sensitivity Time :     2.1935
-       Interface Time :            0.5629
-       Opt Solver Time:            6.2707
+    Total Time:                    9.4048
+       User Objective Time :       0.2584
+       User Sensitivity Time :     2.2677
+       Interface Time :            0.5833
+       Opt Solver Time:            6.2953
     Calls to Objective Function :     134
     Calls to Sens Function :          103
 
