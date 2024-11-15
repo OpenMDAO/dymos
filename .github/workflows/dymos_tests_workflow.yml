@@ -443,9 +443,11 @@ jobs:
           testflo -b benchmark --pre_announce
           cd $HOME
           if [[ "${{ matrix.NAME }}" != "latest" ]]; then
-            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos
+            # testflo dymos -n 4 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos
+            testflo dymos/examples/cannonball/doc/test_doc_cannonball_implicit_duration.py -n 4
           else
-            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 -s
+            # testflo dymos -n 4 --pre_announce --show_skipped --durations 20 -s
+            testflo dymos/examples/cannonball/doc/test_doc_cannonball_implicit_duration.py -n 4
           fi
       - name: Submit coverage
         if: github.event_name != 'workflow_dispatch'

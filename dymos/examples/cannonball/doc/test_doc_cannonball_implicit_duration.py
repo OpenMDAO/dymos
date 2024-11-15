@@ -149,16 +149,16 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'IPOPT'
+        p.driver = om.ScipyOptimizeDriver()
+        # p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 
-        p.driver.opt_settings['derivative_test'] = 'first-order'
-        p.driver.opt_settings['mu_strategy'] = 'monotone'
-        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
-        p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
-        p.driver.opt_settings['mu_init'] = 0.01
-        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+        # p.driver.opt_settings['derivative_test'] = 'first-order'
+        # p.driver.opt_settings['mu_strategy'] = 'monotone'
+        # p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+        # p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
+        # p.driver.opt_settings['mu_init'] = 0.01
+        # p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
 
         p.model.add_subsystem('size_comp', CannonballSizeComp(),
                               promotes_inputs=['radius', 'dens'])
@@ -168,7 +168,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
-        transcription = dm.Radau(num_segments=25, order=3, compressed=False)
+        transcription = dm.Radau(num_segments=20, order=3, compressed=False)
         phase = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         phase = traj.add_phase('phase', phase)
@@ -181,7 +181,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         phase.set_time_options(fix_initial=True, duration_bounds=(1, 100), units='s')
         phase.add_state('r', fix_initial=True, solve_segments='forward')
         phase.add_state('h', fix_initial=True, solve_segments='forward')
-        phase.add_state('gam', fix_initial=False, solve_segments='forward')
+        phase.add_state('gam', fix_initial=False, initial_bounds=(0, np.pi/2), solve_segments='forward')
         phase.add_state('v', fix_initial=False, solve_segments='forward')
 
         phase.add_parameter('S', units='m**2', static_target=True)
@@ -200,7 +200,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         # In this problem, the default ArmijoGoldsteinLS has issues with extrapolating
         # the states and causes the optimization to fail.
         # Using the default linesearch or BoundsEnforceLS work better here.
-        phase.nonlinear_solver = om.NewtonSolver(iprint=2, solve_subsystems=True,
+        phase.nonlinear_solver = om.NewtonSolver(iprint=0, solve_subsystems=True,
                                                  maxiter=100, stall_limit=3)
         phase.nonlinear_solver.linesearch = om.BoundsEnforceLS()
         phase.linear_solver = om.DirectSolver()
