@@ -130,6 +130,15 @@ class TestPhaseInterp(unittest.TestCase):
 
         self.assertEqual(str(e.exception), expected)
 
+    def test_nodes_sequence(self):
+        tx = dm.GaussLobatto(num_segments=6, order=3, compressed=True)
+        phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
+
+        interp_vals = phase.interp(ys=[0, 5], nodes=np.linspace(-1, 1, 100))
+        check_vals = np.atleast_2d(np.linspace(0, 5, 100)).T
+
+        assert_near_equal(interp_vals, check_vals)
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

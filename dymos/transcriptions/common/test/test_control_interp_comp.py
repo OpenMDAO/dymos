@@ -164,7 +164,7 @@ class TestControlRateComp(unittest.TestCase):
                                     np.atleast_2d(b_rate2_expected).T)
 
                 np.set_printoptions(linewidth=1024)
-                cpd = p.check_partials(compact_print=False, method='cs')
+                cpd = p.check_partials(compact_print=False, method='cs', out_stream=None)
                 assert_check_partials(cpd)
 
     def test_control_interp_vector(self, transcription='gauss-lobatto', compressed=True):
@@ -263,7 +263,7 @@ class TestControlRateComp(unittest.TestCase):
                                     a2_rate2_expected)
 
                 np.set_printoptions(linewidth=1024)
-                cpd = p.check_partials(compact_print=True, method='cs')
+                cpd = p.check_partials(compact_print=True, method='cs', out_stream=None)
 
                 assert_check_partials(cpd)
 
@@ -362,7 +362,7 @@ class TestControlRateComp(unittest.TestCase):
                                     a2_rate2_expected)
 
                 np.set_printoptions(linewidth=1024)
-                cpd = p.check_partials(compact_print=True, method='cs')
+                cpd = p.check_partials(compact_print=True, method='cs', out_stream=None)
 
                 assert_check_partials(cpd)
 
@@ -474,7 +474,7 @@ class TestControlRateComp(unittest.TestCase):
                                     a3_rate2_expected)
 
                 with np.printoptions(linewidth=100000, edgeitems=100000):
-                    cpd = p.check_partials(compact_print=True, method='cs')
+                    cpd = p.check_partials(compact_print=True, method='cs', out_stream=None)
 
                 assert_check_partials(cpd)
 

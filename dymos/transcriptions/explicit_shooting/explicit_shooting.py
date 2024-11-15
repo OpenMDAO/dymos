@@ -284,10 +284,6 @@ class ExplicitShooting(TranscriptionBase):
                                      ref0=options['ref0'],
                                      ref=options['ref'])
 
-    def _get_ode(self, phase):
-        ode = phase._get_subsystem('ode')
-        return ode
-
     def setup_ode(self, phase):
         """
         Setup the ode for this transcription.

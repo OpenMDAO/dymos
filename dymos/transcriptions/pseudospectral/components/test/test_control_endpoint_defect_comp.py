@@ -62,7 +62,7 @@ class TestControlEndpointDefectComp(unittest.TestCase):
                           tolerance=1.0E-9)
 
     def test_partials(self):
-        cpd = self.p.check_partials(compact_print=False, method='cs')
+        cpd = self.p.check_partials(compact_print=False, method='cs', out_stream=None)
         assert_check_partials(cpd)
 
 
