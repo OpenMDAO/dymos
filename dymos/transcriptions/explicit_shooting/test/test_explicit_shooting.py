@@ -111,7 +111,7 @@ class TestExplicitShooting(unittest.TestCase):
         prob.run_model()
 
         with np.printoptions(linewidth=1024):
-            cpd = prob.check_partials(compact_print=True)
+            cpd = prob.check_partials(compact_print=True, out_stream=None)
 
         assert_check_partials(cpd, rtol=1.0E-5)
 
@@ -157,7 +157,7 @@ class TestExplicitShooting(unittest.TestCase):
         assert_near_equal(y_f[-1, ...], 0.1691691, tolerance=1.0E-5)
 
         with np.printoptions(linewidth=1024):
-            cpd = prob.check_partials(compact_print=True, method='fd')
+            cpd = prob.check_partials(compact_print=True, method='fd', out_stream=None)
             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
         dymos_options['include_check_partials'] = False
@@ -226,10 +226,14 @@ class TestExplicitShooting(unittest.TestCase):
                 assert_near_equal(t[-1, ...], 1.8016, tolerance=1.0E-2)
 
                 with np.printoptions(linewidth=1024):
-                    cpd = prob.check_partials(compact_print=True, method='cs', excludes=['traj0.phases.phase0.integrator'])
+                    cpd = prob.check_partials(compact_print=True, method='cs',
+                                              excludes=['traj0.phases.phase0.integrator'],
+                                              out_stream=None)
                     assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
-                    cpd = prob.check_partials(compact_print=True, method='fd', includes=['traj0.phases.phase0.integrator'])
+                    cpd = prob.check_partials(compact_print=True, method='fd',
+                                              includes=['traj0.phases.phase0.integrator'],
+                                              out_stream=None)
                     assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
         dymos_options['include_check_partials'] = False
@@ -373,11 +377,11 @@ class TestExplicitShooting(unittest.TestCase):
                         assert_near_equal(t[-1, ...], 1.807379, tolerance=1.0E-5)
 
                         with np.printoptions(linewidth=1024):
-                            cpd = prob.check_partials(compact_print=True, method='cs',
+                            cpd = prob.check_partials(compact_print=True, method='cs', out_stream=None,
                                                       excludes=['traj0.phases.phase0.integrator'])
                             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
-                            cpd = prob.check_partials(compact_print=True, method='fd',
+                            cpd = prob.check_partials(compact_print=True, method='fd', out_stream=None,
                                                       includes=['traj0.phases.phase0.integrator'])
                             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 

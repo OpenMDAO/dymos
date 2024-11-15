@@ -3,8 +3,9 @@ import warnings
 
 import numpy as np
 
+from scipy.interpolate import interp1d
+
 import openmdao.api as om
-from openmdao.components.interp_util.interp import InterpND
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
@@ -198,14 +199,11 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         p.model.list_outputs()
 
-        # need unique (monotonically increasing) times for interpolation
-        t_sim_u, t_idx = np.unique(t_sim, return_index=True)
-
         for state_name, rate_name in (('x', 'xdot'), ('y', 'ydot'), ('v', 'vdot')):
             rate_sol = p.get_val(f'phase0.timeseries.{rate_name}')
-            rate_sim = exp_out.get_val(f'phase0.timeseries.{rate_name}')[t_idx]
-            rate_t_sim = InterpND('slinear', t_sim_u.ravel(), rate_sim.ravel()).interpolate
-            assert_near_equal(rate_t_sim(t_sol), rate_sol.ravel(), tolerance=1.0E-3)
+            rate_sim = exp_out.get_val(f'phase0.timeseries.{rate_name}')
+            rate_t_sim = interp1d(t_sim.ravel(), rate_sim.ravel())
+            assert_near_equal(rate_t_sim(t_sol), rate_sol, tolerance=1.0E-3)
 
     def test_timeseries_radau_smaller_timeseries(self):
         self.test_timeseries_radau(test_smaller_timeseries=True)

@@ -126,7 +126,8 @@ jobs:
             PETSc: 3.21.0
             PYOPTSPARSE: 'v2.11.0'
             OPENMDAO: 'latest'
-            OPTIONAL: '[test]'
+            OPTIONAL: '[all]'
+            JAX: '0.4.28'
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.no_snopt }}
 
           # baseline versions except no MPI/PETSc
@@ -149,7 +150,7 @@ jobs:
             PYOPTSPARSE: 'latest'
             SNOPT: 7.7
             OPENMDAO: 'dev'
-            OPTIONAL: '[test]'
+            OPTIONAL: '[all]'
             JAX: 'latest'
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
@@ -440,11 +441,10 @@ jobs:
           testflo -b benchmark --pre_announce
           cd $HOME
           if [[ "${{ matrix.NAME }}" != "latest" ]]; then
-            testflo dymos -n 2 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos
+            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos
           else
-            testflo dymos -n 2 --pre_announce --show_skipped --durations 20
+            testflo dymos -n 4 --pre_announce --show_skipped --durations 20
           fi
-
       - name: Submit coverage
         if: github.event_name != 'workflow_dispatch'
         continue-on-error: true

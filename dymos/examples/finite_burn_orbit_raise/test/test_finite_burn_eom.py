@@ -78,7 +78,7 @@ class TestFiniteBurnEOM(unittest.TestCase):
         assert_near_equal(p['at_dot'], p['accel']**2 / p['c'])
 
     def test_partials(self):
-        cpd = self.p.check_partials(compact_print=False)
+        cpd = self.p.check_partials(compact_print=False, out_stream=None)
         assert_check_partials(cpd, atol=1.0E-5, rtol=2.0)
 
 
