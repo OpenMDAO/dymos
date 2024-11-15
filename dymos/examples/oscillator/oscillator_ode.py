@@ -36,3 +36,37 @@ class OscillatorODE(om.ExplicitComponent):
         f_damper = -c * v
 
         outputs['v_dot'] = (f_spring + f_damper) / m
+
+
+class OscillatorVectorODE(om.ExplicitComponent):
+    """
+    A Dymos ODE for a damped harmonic oscillator with vectorized states.
+    """
+
+    def initialize(self):
+        self.options.declare('num_nodes', types=int)
+        self.options.declare('static_params', types=bool)
+
+    def setup(self):
+        nn = self.options['num_nodes']
+        static = self.options['static_params']
+
+        # Inputs
+        self.add_input('x', val=np.ones((nn, 2)))
+        if static:
+            self.add_input('A', val=np.ones((2, 2)))
+        else:
+            self.add_input('A', val=np.ones((nn, 2, 2)))
+
+        # Output
+        self.add_output('x_dot', val=np.zeros((nn, 2)))
+
+        self.declare_partials(of='*', wrt='*', method='fd')
+
+    def compute(self, inputs, outputs):
+        A = inputs['A']
+        x = inputs['x']
+
+        static = self.options['static_params']
+        ein_sequence = 'jk, ik->ij' if static else 'ijk, ik->ij'
+        outputs['x_dot'] = np.einsum(ein_sequence, A, x)

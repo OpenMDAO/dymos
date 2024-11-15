@@ -34,6 +34,9 @@ class WaterEngine(om.Group):
                            subsys=_WaterThrust(num_nodes=nn),
                            promotes=['rho_w', 'A_out', 'F'])
 
+        self.set_input_defaults('A_out', val=np.pi*13e-3**2/4*np.ones(nn))
+        self.set_input_defaults('p', val=6.5e5*np.ones(nn))
+
         self.connect('water_exhaust_speed.v_out', 'water_flow_rate.v_out')
         self.connect('water_exhaust_speed.v_out', 'water_thrust.v_out')
 
@@ -187,5 +190,4 @@ if __name__ == '__main__':
     p = om.Problem()
     p.model = WaterEngine(num_nodes=1)
     p.setup()
-    p.check_config(checks=['unconnected_inputs'], out_file=None)
     p.final_setup()

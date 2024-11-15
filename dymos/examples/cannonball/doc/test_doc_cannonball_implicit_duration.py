@@ -25,7 +25,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_two_phase_cannonball_for_docs(self):
         import openmdao.api as om
-        from openmdao.components.interp_util.interp import InterpND
+        from scipy.interpolate import make_interp_spline
         from openmdao.utils.assert_utils import assert_near_equal
 
         import dymos as dm
@@ -113,9 +113,11 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
                 alt_data = USatm1976Data.alt * om.unit_conversion('ft', 'm')[0]
                 rho_data = USatm1976Data.rho * om.unit_conversion('slug/ft**3', 'kg/m**3')[0]
-                self.rho_interp = InterpND(points=np.array(alt_data),
-                                           values=np.array(rho_data),
-                                           method='slinear')
+
+                # self.rho_interp = InterpND(points=np.array(alt_data),
+                #                            values=np.array(rho_data),
+                #                            method='slinear', extrapolate=True)
+                self.rho_interp = make_interp_spline(alt_data, rho_data, k=1)
 
             def compute(self, inputs, outputs):
 
@@ -128,7 +130,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
                 GRAVITY = 9.80665  # m/s**2
 
-                rho = self.rho_interp.interpolate(h)
+                rho = self.rho_interp(h)
 
                 q = 0.5*rho*v**2
                 qS = q * S
@@ -147,18 +149,9 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'IPOPT'
+        p.driver = om.ScipyOptimizeDriver()
+        # p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
-
-        p.driver.opt_settings['derivative_test'] = 'first-order'
-        p.driver.opt_settings['mu_strategy'] = 'monotone'
-        p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
-        p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
-        p.driver.opt_settings['mu_init'] = 0.01
-        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
-
-        p.set_solver_print(level=0, depth=99)
 
         p.model.add_subsystem('size_comp', CannonballSizeComp(),
                               promotes_inputs=['radius', 'dens'])
@@ -168,7 +161,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
-        transcription = dm.Radau(num_segments=25, order=3, compressed=False)
+        transcription = dm.Radau(num_segments=20, order=3, compressed=False)
         phase = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         phase = traj.add_phase('phase', phase)
@@ -181,7 +174,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         phase.set_time_options(fix_initial=True, duration_bounds=(1, 100), units='s')
         phase.add_state('r', fix_initial=True, solve_segments='forward')
         phase.add_state('h', fix_initial=True, solve_segments='forward')
-        phase.add_state('gam', fix_initial=False, solve_segments='forward')
+        phase.add_state('gam', fix_initial=False, initial_bounds=(0, np.pi/2), solve_segments='forward')
         phase.add_state('v', fix_initial=False, solve_segments='forward')
 
         phase.add_parameter('S', units='m**2', static_target=True)
@@ -200,8 +193,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         # In this problem, the default ArmijoGoldsteinLS has issues with extrapolating
         # the states and causes the optimization to fail.
         # Using the default linesearch or BoundsEnforceLS work better here.
-        phase.nonlinear_solver = om.NewtonSolver(solve_subsystems=True, iprint=2)
-        phase.nonlinear_solver.linesearch = None
+        phase.nonlinear_solver = om.NewtonSolver(iprint=0, solve_subsystems=True,
+                                                 maxiter=100, stall_limit=3)
+        phase.nonlinear_solver.linesearch = om.BoundsEnforceLS()
+        phase.linear_solver = om.DirectSolver()
 
         phase.add_objective('r', loc='final', scaler=-1.0)
 
