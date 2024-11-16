@@ -88,7 +88,6 @@ class TestRadauIterGroup(unittest.TestCase):
                         cpd = p.check_partials(method='cs', compact_print=False, out_stream=None)
                         assert_check_partials(cpd)
 
-
     def test_solve_segments_vector_states(self):
         with dymos.options.temporary(include_check_partials=True):
             for direction in ['forward', 'backward']:

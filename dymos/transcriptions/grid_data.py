@@ -491,6 +491,16 @@ class GridData(object):
         else:
             return False
 
+    def __str__(self):
+        s = (f'{self.__class__.__name__}(num_seg={self.num_segments}, '
+             f'num_nodes={self.num_nodes}, '
+             f'compressed={self.compressed})\n')
+        s += f'  order = {self.transcription_order}\n'
+        s += f'  segment_ends = {self.segment_ends}\n'
+        s += '  num_nodes_per_segment:\n'
+        s += '\n'.join([f'    {subset_name} = {nnps}' for subset_name, nnps in sorted(self.subset_num_nodes_per_segment.items())])
+        return s
+
     def is_aligned_with(self, other, tol=1.0E-12):
         """
         Check that the segment distribution in GridData object `other` matches that of this GridData object.

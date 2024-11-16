@@ -3,7 +3,7 @@ import numpy as np
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
-from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp, RadauPSContinuityComp
+from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp, RadauPSContinuityComp, ControlComp
 from .components import RadauIterGroup, RadauBoundaryGroup
 
 from ..grid_data import RadauGrid
@@ -155,6 +155,31 @@ class RadauNew(TranscriptionBase):
             elif options['input_initial']:
                 self.any_connected_opt_segs = True
 
+    def setup_controls(self, phase):
+        """
+        Setup the control group.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        phase._check_control_options()
+
+        if phase.control_options:
+            gd = self.grid_data
+            control_options = phase.control_options
+            time_units = phase.time_options['units']
+
+            phase.add_subsystem('control_comp',
+                                subsys=ControlComp(time_units=time_units,
+                                                   grid_data=gd,
+                                                   control_options=control_options),
+                                promotes_inputs=['*controls*'],
+                                promotes_outputs=['control_values:*', 'control_rates:*'])
+
+            phase.connect('t_duration_val', 'control_comp.t_duration')
+
     def configure_controls(self, phase):
         """
         Configure the inputs/outputs for the controls.
@@ -167,11 +192,9 @@ class RadauNew(TranscriptionBase):
         super().configure_controls(phase)
 
         if phase.control_options:
-            phase.control_group.configure_io()
-            phase.promotes('control_group',
-                           any=['*controls:*', '*control_values:*', '*control_rates:*'])
+            phase._get_subsystem('control_comp').configure_io()
 
-            phase.connect('dt_dstau', 'control_group.dt_dstau')
+            phase.connect('dt_dstau', 'control_comp.dt_dstau')
 
         for name, options in phase.control_options.items():
             if options['targets']:
@@ -263,13 +286,14 @@ class RadauNew(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        grid_data = self.grid_data
+
         for name, options in phase.state_options.items():
             rate_source_type = phase.classify_var(options['rate_source'])
             rate_src_path = self._get_rate_source_path(name, phase)
             if rate_source_type not in ('state', 'ode'):
-                phase.connect(rate_src_path, f'f_computed:{name}')
-
-        grid_data = self.grid_data
+                phase.connect(rate_src_path, f'f_ode:{name}',
+                              src_indices=grid_data.subset_node_indices['col'])
 
         any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
 
