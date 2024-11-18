@@ -3,7 +3,7 @@ import numpy as np
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
-from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp, RadauPSContinuityComp, ControlComp
+from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp, ControlComp
 from .components import RadauIterGroup, RadauBoundaryGroup
 
 from ..grid_data import RadauGrid
@@ -269,13 +269,14 @@ class RadauNew(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        if any(self._requires_continuity_constraints(phase)):
-            phase.add_subsystem('continuity_comp',
-                                RadauPSContinuityComp(grid_data=self.grid_data,
-                                                      # State continuity defects are in the RadauDefectComp.
-                                                      state_options={},
-                                                      control_options=phase.control_options,
-                                                      time_units=phase.time_options['units']))
+        pass
+        # if any(self._requires_continuity_constraints(phase)):
+        #     phase.add_subsystem('continuity_comp',
+        #                         RadauPSContinuityComp(grid_data=self.grid_data,
+        #                                               # State continuity defects are in the RadauDefectComp.
+        #                                               state_options={},
+        #                                               control_options=phase.control_options,
+        #                                               time_units=phase.time_options['units']))
 
     def configure_defects(self, phase):
         """
@@ -295,41 +296,41 @@ class RadauNew(TranscriptionBase):
                 phase.connect(rate_src_path, f'f_ode:{name}',
                               src_indices=grid_data.subset_node_indices['col'])
 
-        any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
+        # any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
 
-        if not any((any_state_cnty, any_control_cnty, any_control_rate_cnty)):
-            return
+        # if not any((any_state_cnty, any_control_cnty, any_control_rate_cnty)):
+        #     return
 
-        # Add the continuity constraint component if necessary
-        segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+        # # Add the continuity constraint component if necessary
+        # segment_end_idxs = grid_data.subset_node_indices['segment_ends']
 
-        if any_control_rate_cnty:
-            phase.connect('t_duration_val', 'continuity_comp.t_duration')
+        # if any_control_rate_cnty:
+        #     phase.connect('t_duration_val', 'continuity_comp.t_duration')
 
-        phase.continuity_comp.configure_io()
+        # phase.continuity_comp.configure_io()
 
-        for name, options in phase.control_options.items():
-            # The sub-indices of control_disc indices that are segment ends
-            segment_end_idxs = grid_data.subset_node_indices['segment_ends']
-            src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
+        # for name, options in phase.control_options.items():
+        #     # The sub-indices of control_disc indices that are segment ends
+        #     segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+        #     src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
 
-            # enclose indices in tuple to ensure shaping of indices works
-            src_idxs = (src_idxs,)
+        #     # enclose indices in tuple to ensure shaping of indices works
+        #     src_idxs = (src_idxs,)
 
-            if options['continuity']:
-                phase.connect(f'control_values:{name}',
-                              f'continuity_comp.controls:{name}',
-                              src_indices=src_idxs, flat_src_indices=True)
+        #     if options['continuity']:
+        #         phase.connect(f'control_values:{name}',
+        #                       f'continuity_comp.controls:{name}',
+        #                       src_indices=src_idxs, flat_src_indices=True)
 
-            if options['rate_continuity']:
-                phase.connect(f'control_rates:{name}_rate',
-                              f'continuity_comp.control_rates:{name}_rate',
-                              src_indices=src_idxs, flat_src_indices=True)
+        #     if options['rate_continuity']:
+        #         phase.connect(f'control_rates:{name}_rate',
+        #                       f'continuity_comp.control_rates:{name}_rate',
+        #                       src_indices=src_idxs, flat_src_indices=True)
 
-            if options['rate2_continuity']:
-                phase.connect(f'control_rates:{name}_rate2',
-                              f'continuity_comp.control_rates:{name}_rate2',
-                              src_indices=src_idxs, flat_src_indices=True)
+        #     if options['rate2_continuity']:
+        #         phase.connect(f'control_rates:{name}_rate2',
+        #                       f'continuity_comp.control_rates:{name}_rate2',
+        #                       src_indices=src_idxs, flat_src_indices=True)
 
     def setup_duration_balance(self, phase):
         """
@@ -845,6 +846,7 @@ class RadauNew(TranscriptionBase):
             for tgt in options['targets']:
                 if tgt in options['static_targets']:
                     src_idxs = np.squeeze(get_src_indices_by_row([0], options['shape']), axis=0)
+                    endpoint_src_idxs = om.slicer[:, ...]
                 else:
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
