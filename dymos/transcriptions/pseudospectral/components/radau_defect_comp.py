@@ -10,11 +10,17 @@ from dymos.utils.misc import get_rate_units
 
 class RadauDefectComp(om.ExplicitComponent):
     """
-    Class definiton for the Collocationcomp.
+    Class definiton for the RadauDefectComp.
 
-    CollocationComp computes the generalized defect of a segment for implicit collocation.
+    RadauDefectComp computes the generalized defect of a segment for implicit collocation.
     The defect is the interpolated state derivative at the collocation nodes minus
     the computed state derivative at the collocation nodes.
+
+    In addition to specifying the initial and final state values at the endpoints via the
+    polynomial-interpolated `states:{state_name}`, the initial and final state values are
+    also specified via `initial_states:{state_name}` and `final_states:{state_name}`.
+    These difference in these initial and final values are then computed as
+    `initial_state_defects:{state_name}` and `final_state_defects:{state_name}`.
 
     Parameters
     ----------

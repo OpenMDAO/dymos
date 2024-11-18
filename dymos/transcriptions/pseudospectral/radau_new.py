@@ -393,6 +393,9 @@ class RadauNew(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        gd = self.grid_data
+        nsin = gd.subset_num_nodes['state_input']
+        state_options = phase.state_options
         for timeseries_name, timeseries_options in phase._timeseries.items():
             timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
             ts_inputs_to_promote = []
@@ -402,11 +405,14 @@ class RadauNew(TranscriptionBase):
                 if src.startswith('states:'):
                     state_name = src.split(':')[-1]
                     ts_inputs_to_promote.append((input_name, f'states:{state_name}'))
+                    src_shape = (nsin,) + state_options[state_name]['shape']
+                    phase.promotes(timeseries_name,
+                                   inputs=[(input_name, f'states:{state_name}')],
+                                   src_shape=src_shape, src_indices=src_idxs)
                 else:
                     phase.connect(src_name=src,
                                   tgt_name=f'{timeseries_name}.{input_name}',
                                   src_indices=src_idxs)
-            phase.promotes(timeseries_name, inputs=ts_inputs_to_promote)
 
     def setup_timeseries_outputs(self, phase):
         """

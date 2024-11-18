@@ -225,7 +225,7 @@ class ControlComp(om.ExplicitComponent):
                                       rows=rs, cols=cs, val=data)
 
                 # The jacobian for continuity defects is similar to the jacobian of the inteprpolated values
-                if gd.num_segments > 1 and not gd.compressed:
+                if options['continuity'] and gd.num_segments > 1 and not gd.compressed:
                     J_cnty_def = -J_val[segment_end_idxs, ...][1:-1:2, ...]
                     J_cnty_def = J_cnty_def.tolil(copy=True)
                     one_col_idxs = np.cumsum(np.asarray(ncinps[:-1]))
@@ -260,7 +260,7 @@ class ControlComp(om.ExplicitComponent):
                                       rows=rs, cols=cs)
 
                 # Similar with the continuity rate defects.
-                if gd.num_segments > 1 and not gd.compressed:
+                if options['rate_continuity'] and gd.num_segments > 1 and not gd.compressed:
                     J_rate_cnty_def = sp.kron(self.D, sp_eye, format='lil')[segment_end_idxs, ...]
                     J_rate_cnty_def = J_rate_cnty_def[1:-1]
                     J_rate_cnty_def[::2] *= -1
@@ -287,7 +287,7 @@ class ControlComp(om.ExplicitComponent):
                                       rows=rs, cols=cs)
 
                 # Similar with the continuity rate defects.
-                if gd.num_segments > 1 and not gd.compressed:
+                if options['rate2_continuity'] and gd.num_segments > 1 and not gd.compressed:
                     J_rate2_cnty_def = sp.kron(self.D2, sp_eye, format='lil')[segment_end_idxs, ...]
                     J_rate2_cnty_def = J_rate2_cnty_def[1:-1]
                     J_rate2_cnty_def[::2] *= -1
@@ -434,7 +434,7 @@ class ControlComp(om.ExplicitComponent):
                 outputs[self._output_rate_names[name]] = rate
                 outputs[self._output_rate2_names[name]] = rate2
 
-                if True: #options['continuity'] and gd.num_segments > 1 and not gd.compressed:
+                if options['continuity'] and gd.num_segments > 1 and not gd.compressed:
                     # output_name = self._output_val_names[name]
                     cnty_output_name = self._output_cnty_defect_names[name]
                     segment_end_values = val[seg_end_idxs, ...]
@@ -442,7 +442,7 @@ class ControlComp(om.ExplicitComponent):
                     start_vals = segment_end_values[2:-1:2, ...]
                     outputs[cnty_output_name] = start_vals - end_vals
 
-                if True: #options['rate_continuity'] and gd.num_segments > 1 and not gd.compressed:
+                if options['rate_continuity'] and gd.num_segments > 1 and not gd.compressed:
                     # output_name = self._output_rate_names[name]
                     rate_in_ptau = a / dptau_dstau[:, np.newaxis]
                     rate_in_ptau = np.reshape(rate_in_ptau, (num_output_nodes,) + options['shape'])
@@ -453,7 +453,7 @@ class ControlComp(om.ExplicitComponent):
                     start_vals = segment_end_values[2:-1:2, ...]
                     outputs[cnty_output_name] = (start_vals - end_vals) #* dt_dptau
 
-                if True: #options['rate2_continuity'] and gd.num_segments > 1 and not gd.compressed:
+                if options['rate2_continuity'] and gd.num_segments > 1 and not gd.compressed:
                     # output_name  = self._output_rate2_names[name]
                     cnty_output_name = self._output_rate2_cnty_defect_names[name]
                     segment_end_values = rate2[seg_end_idxs, ...]
