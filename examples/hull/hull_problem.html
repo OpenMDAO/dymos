@@ -828,27 +828,27 @@ title="Print to PDF"
 <p>This system has one state variables, the position (<span class="math notranslate nohighlight">\(x\)</span>) of the sliding block.</p>
 <p>This system has a single control variable (<span class="math notranslate nohighlight">\(u\)</span>), the velocity of the block.</p>
 <p>The dynamics of the system are governed by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-e4d1155c-4801-48e3-8462-159670db74ca">
-<span class="eqno">(48)<a class="headerlink" href="#equation-e4d1155c-4801-48e3-8462-159670db74ca" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-c612240e-89c0-41bb-b6d5-5d08ac236f80">
+<span class="eqno">(48)<a class="headerlink" href="#equation-c612240e-89c0-41bb-b6d5-5d08ac236f80" title="Permalink to this equation">#</a></span>\[\begin{align}
   \dot{x} &amp;= u
 \end{align}\]</div>
 </section>
 <section id="problem-definition">
 <h2>Problem Definition<a class="headerlink" href="#problem-definition" title="Permalink to this heading">#</a></h2>
 <p>We seek to minimize the control effort required and minimize the displacement from the origin.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-b5d60217-3d9b-48aa-bbb5-4950d5fcb71e">
-<span class="eqno">(49)<a class="headerlink" href="#equation-b5d60217-3d9b-48aa-bbb5-4950d5fcb71e" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-39b6fefb-9bb2-4575-b5a2-c90ce5951c5c">
+<span class="eqno">(49)<a class="headerlink" href="#equation-39b6fefb-9bb2-4575-b5a2-c90ce5951c5c" title="Permalink to this equation">#</a></span>\[\begin{align}
     \mathrm{Minimize} \, J &amp;= 2.5x_f^2 \, + \, 0.5 \int_0^1 u^2 dt
 \end{align}\]</div>
 <p>Subject to the initial conditions</p>
-<div class="amsmath math notranslate nohighlight" id="equation-77dfe5a8-041f-4ed9-a924-29a1983de7b6">
-<span class="eqno">(50)<a class="headerlink" href="#equation-77dfe5a8-041f-4ed9-a924-29a1983de7b6" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-4127e36a-c763-4fe3-a83a-12ad6c675ee8">
+<span class="eqno">(50)<a class="headerlink" href="#equation-4127e36a-c763-4fe3-a83a-12ad6c675ee8" title="Permalink to this equation">#</a></span>\[\begin{align}
     t_0 &amp;= 0.0 \\
     x_0 &amp;= 1.5
 \end{align}\]</div>
 <p>and the terminal constraints</p>
-<div class="amsmath math notranslate nohighlight" id="equation-e71581bf-cf66-45f9-976f-81dff69bc8db">
-<span class="eqno">(51)<a class="headerlink" href="#equation-e71581bf-cf66-45f9-976f-81dff69bc8db" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-aa88a6e3-437c-43d5-bc65-54e96da6ec0d">
+<span class="eqno">(51)<a class="headerlink" href="#equation-aa88a6e3-437c-43d5-bc65-54e96da6ec0d" title="Permalink to this equation">#</a></span>\[\begin{align}
     t_f &amp;= 10.0
 \end{align}\]</div>
 </section>
@@ -857,8 +857,8 @@ title="Print to PDF"
 <p>In classic optimal control, the objective is often broken into the terminal component (the Mayer term) and the integral component (the Lagrange term).
 Dymos does not distinguish between the two.
 In this case, since the objective <span class="math notranslate nohighlight">\(J\)</span> consists of both a terminal cost and an integrated cost (Bolza form), we add a term to the ODE to account for the integrated quantity</p>
-<div class="amsmath math notranslate nohighlight" id="equation-c3c531ce-2d2d-4ab2-a19f-085f449cf74b">
-<span class="eqno">(52)<a class="headerlink" href="#equation-c3c531ce-2d2d-4ab2-a19f-085f449cf74b" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-ee79fcb1-0d9c-49c4-aeea-e563e139eed6">
+<span class="eqno">(52)<a class="headerlink" href="#equation-ee79fcb1-0d9c-49c4-aeea-e563e139eed6" title="Permalink to this equation">#</a></span>\[\begin{align}
   \dot{x_L} &amp;= L \\
   L &amp;= 0.5 u^2
 \end{align}\]</div>
@@ -996,7 +996,7 @@ The rate source and units for the states are obtained from the tags in the ODE c
         None
 </pre></div>
 </div>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;openmdao.core.problem.Problem at 0x7f3a8fa307d0&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;openmdao.core.problem.Problem at 0x7f0b31930810&gt;
 </pre></div>
 </div>
 </div>
@@ -1040,7 +1040,7 @@ This will attempt to repeatedly solve the problem and change the number of segme
 Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.2052976020000301 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.20237125599999217 seconds.
 Total jacobian shape: (191, 216) 
 
 
@@ -1049,10 +1049,10 @@ FWD solves: 7   REV solves: 0
 Total colors vs. total size: 7 vs 216  (96.76% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.2053 sec
-Time to compute coloring:   0.0679 sec
-Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-11-15 17:20:07
+Time to compute sparsity:   0.2024 sec
+Time to compute coloring:   0.0683 sec
+Memory to compute coloring:   0.3750 MB
+Coloring created on: 2024-11-18 20:32:09
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1061,11 +1061,11 @@ Coloring created on: 2024-11-15 17:20:07
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    2.7297
-       User Objective Time :       0.0720
-       User Sensitivity Time :     0.8376
-       Interface Time :            0.2017
-       Opt Solver Time:            1.6184
+    Total Time:                    2.7527
+       User Objective Time :       0.0627
+       User Sensitivity Time :     0.8172
+       Interface Time :            0.1971
+       Opt Solver Time:            1.6757
     Calls to Objective Function :      66
     Calls to Sens Function :           65
 
@@ -1507,11 +1507,11 @@ Model viewer data has already been recorded for Driver.
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 67
-  runtime     : 3.0739E+00 s
+  runtime     : 3.0898E+00 s
   model_evals : 67
-  model_time  : 4.5906E-02 s
+  model_time  : 4.0275E-02 s
   deriv_evals : 65
-  deriv_time  : 3.0650E-01 s
+  deriv_time  : 2.9943E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>

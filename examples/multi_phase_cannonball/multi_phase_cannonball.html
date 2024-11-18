@@ -840,24 +840,24 @@ the system at an event in the trajectory. Here, we have the first phase
 (ascent) terminate when the flight path angle reaches zero (apogee). The
 descent phase follows until the cannonball impacts the ground.</p>
 <p>The dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-28023dab-5957-447d-9c92-1eed79e6a46a">
-<span class="eqno">(75)<a class="headerlink" href="#equation-28023dab-5957-447d-9c92-1eed79e6a46a" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-029c7b3c-a306-46c2-ad67-cd3629829d93">
+<span class="eqno">(75)<a class="headerlink" href="#equation-029c7b3c-a306-46c2-ad67-cd3629829d93" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dv}{dt} &amp;= \frac{D}{m} - g \sin \gamma \\
   \frac{d\gamma}{dt} &amp;= - \frac{g \cos \gamma}{v} \\
   \frac{dh}{dt} &amp;= v \sin \gamma \\
   \frac{dr}{dt} &amp;= v \cos \gamma \\
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-59fbeec9-6ae5-4b18-865d-8b51469a1e1a">
-<span class="eqno">(76)<a class="headerlink" href="#equation-59fbeec9-6ae5-4b18-865d-8b51469a1e1a" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-0bb7ffb9-9523-4ca7-bee6-77593536ac39">
+<span class="eqno">(76)<a class="headerlink" href="#equation-0bb7ffb9-9523-4ca7-bee6-77593536ac39" title="Permalink to this equation">#</a></span>\[\begin{align}
   r_0 &amp;= 0 \rm{\,m} \\
   h_0 &amp;= 100 \rm{\,m} \\
   v_0 &amp;= \rm{free} \\
   \gamma_0 &amp;= \rm{free}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-6ae33d9b-529f-4af6-a089-61f3b42a7333">
-<span class="eqno">(77)<a class="headerlink" href="#equation-6ae33d9b-529f-4af6-a089-61f3b42a7333" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-4bcd5ab2-183e-4800-8cfb-9992085a1ff6">
+<span class="eqno">(77)<a class="headerlink" href="#equation-4bcd5ab2-183e-4800-8cfb-9992085a1ff6" title="Permalink to this equation">#</a></span>\[\begin{align}
   h_f &amp;= 0 \rm{\,m}
 \end{align}\]</div>
 </section>
@@ -870,8 +870,8 @@ energy and that our cannonball is made of solid iron. The volume (and
 mass) of the cannonball is proportional to its radius cubed, while the
 cross-sectional area is proportional to its radius squared. If we
 increase the size of the cannonball, the ballistic coefficient</p>
-<div class="amsmath math notranslate nohighlight" id="equation-9d082d34-35c3-4898-971e-7392ec66d83d">
-<span class="eqno">(78)<a class="headerlink" href="#equation-9d082d34-35c3-4898-971e-7392ec66d83d" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-ccc68218-2227-43b3-bf5d-ecb296fefa5f">
+<span class="eqno">(78)<a class="headerlink" href="#equation-ccc68218-2227-43b3-bf5d-ecb296fefa5f" title="Permalink to this equation">#</a></span>\[\begin{align}
   BC &amp;= \frac{m}{C_D A}
 \end{align}\]</div>
 <p>will increase, meaning the cannonball overcome air resistance more
@@ -893,10 +893,10 @@ that provides the maximum range cannonball.</p>
 <div class="cell tag_output_scroll docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="kn">import</span> <span class="nn">openmdao.api</span> <span class="k">as</span> <span class="nn">om</span>
+<span class="kn">from</span> <span class="nn">openmdao.components.interp_util.interp</span> <span class="kn">import</span> <span class="n">InterpND</span>
 
 <span class="kn">import</span> <span class="nn">dymos</span> <span class="k">as</span> <span class="nn">dm</span>
 <span class="kn">from</span> <span class="nn">dymos.models.atmosphere.atmos_1976</span> <span class="kn">import</span> <span class="n">USatm1976Data</span>
@@ -990,9 +990,9 @@ By calling the <code class="docutils literal notranslate"><span class="pre">decl
 
         <span class="n">alt_data</span> <span class="o">=</span> <span class="n">USatm1976Data</span><span class="o">.</span><span class="n">alt</span> <span class="o">*</span> <span class="n">om</span><span class="o">.</span><span class="n">unit_conversion</span><span class="p">(</span><span class="s1">&#39;ft&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">rho_data</span> <span class="o">=</span> <span class="n">USatm1976Data</span><span class="o">.</span><span class="n">rho</span> <span class="o">*</span> <span class="n">om</span><span class="o">.</span><span class="n">unit_conversion</span><span class="p">(</span><span class="s1">&#39;slug/ft**3&#39;</span><span class="p">,</span> <span class="s1">&#39;kg/m**3&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rho_interp</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">alt_data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span>
-                                   <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rho_data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span>
-                                   <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho_interp</span> <span class="o">=</span> <span class="n">InterpND</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">alt_data</span><span class="p">),</span>
+                                   <span class="n">values</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rho_data</span><span class="p">),</span>
+                                   <span class="n">method</span><span class="o">=</span><span class="s1">&#39;slinear&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">interpolate</span>
 
     <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
 
@@ -1169,19 +1169,20 @@ FWD solves: 6   REV solves: 0
 Total colors vs. total size: 6 vs 63  (90.48% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0172 sec
-Time to compute coloring:   0.0071 sec
+Time to compute sparsity:   0.0440 sec
+Time to compute coloring:   0.0087 sec
 Memory to compute coloring:   0.3750 MB
-
-Coloring for &#39;traj.phases.descent.rhs_disc&#39; (class CannonballODE)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.descent.rhs_disc&#39; (class CannonballODE)
 
 Jacobian shape: (50, 33)  (8.48% nonzero)
 FWD solves: 6   REV solves: 0
 Total colors vs. total size: 6 vs 33  (81.82% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0090 sec
-Time to compute coloring:   0.0036 sec
+Time to compute sparsity:   0.0168 sec
+Time to compute coloring:   0.0038 sec
 Memory to compute coloring:   0.0000 MB
 
 Coloring for &#39;traj.phases.descent.rhs_col&#39; (class CannonballODE)
@@ -1191,12 +1192,10 @@ FWD solves: 6   REV solves: 0
 Total colors vs. total size: 6 vs 18  (66.67% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0051 sec
-Time to compute coloring:   0.0020 sec
+Time to compute sparsity:   0.0069 sec
+Time to compute coloring:   0.0022 sec
 Memory to compute coloring:   0.0000 MB
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.10764397299999473 seconds.
+Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.15268522600001688 seconds.
 Total jacobian shape: (87, 88) 
 
 
@@ -1205,10 +1204,10 @@ FWD solves: 30   REV solves: 0
 Total colors vs. total size: 30 vs 88  (65.91% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.1076 sec
-Time to compute coloring:   0.0541 sec
+Time to compute sparsity:   0.1527 sec
+Time to compute coloring:   0.0545 sec
 Memory to compute coloring:   0.3750 MB
-Coloring created on: 2024-11-15 17:21:45
+Coloring created on: 2024-11-18 20:33:44
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1217,11 +1216,11 @@ Coloring created on: 2024-11-15 17:21:45
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    1.7705
-       User Objective Time :       0.2026
-       User Sensitivity Time :     1.1991
-       Interface Time :            0.2084
-       Opt Solver Time:            0.1603
+    Total Time:                    1.9817
+       User Objective Time :       0.2343
+       User Sensitivity Time :     1.3774
+       Interface Time :            0.2070
+       Opt Solver Time:            0.1630
     Calls to Objective Function :     118
     Calls to Sens Function :           89
 
@@ -1428,11 +1427,11 @@ Model viewer data has already been recorded for Driver.
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 119
-  runtime     : 2.0256E+00 s
+  runtime     : 2.2825E+00 s
   model_evals : 119
-  model_time  : 1.6098E-01 s
+  model_time  : 1.9249E-01 s
   deriv_evals : 89
-  deriv_time  : 8.8216E-01 s
+  deriv_time  : 1.0493E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>

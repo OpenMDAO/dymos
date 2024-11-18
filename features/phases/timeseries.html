@@ -1120,7 +1120,7 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.07020806399998492 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.07026734800001577 seconds.
 Total jacobian shape: (200, 145) 
 </pre></div>
 </div>
@@ -1129,10 +1129,10 @@ FWD solves: 17   REV solves: 0
 Total colors vs. total size: 17 vs 145  (88.28% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0702 sec
-Time to compute coloring:   0.0872 sec
+Time to compute sparsity:   0.0703 sec
+Time to compute coloring:   0.0880 sec
 Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-11-15 17:25:22
+Coloring created on: 2024-11-18 20:37:27
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1652: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
@@ -1147,11 +1147,11 @@ Optimization Problem -- Optimization using pyOpt_sparse
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    3.0915
-       User Objective Time :       1.2013
-       User Sensitivity Time :     1.0758
-       Interface Time :            0.3712
-       Opt Solver Time:            0.4432
+    Total Time:                    3.2225
+       User Objective Time :       1.2297
+       User Sensitivity Time :     1.1505
+       Interface Time :            0.3760
+       Opt Solver Time:            0.4663
     Calls to Objective Function :     174
     Calls to Sens Function :          104
 
@@ -1521,11 +1521,11 @@ Optimization Problem -- Optimization using pyOpt_sparse
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 175
-  runtime     : 3.3708E+00 s
+  runtime     : 3.5056E+00 s
   model_evals : 175
-  model_time  : 1.1445E+00 s
+  model_time  : 1.1631E+00 s
   deriv_evals : 104
-  deriv_time  : 5.9019E-01 s
+  deriv_time  : 6.4029E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>

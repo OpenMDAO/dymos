@@ -953,8 +953,8 @@ The design of a water rocket is somewhat constrained by the soda bottle used as 
 This means that the volume available for water and air is fixed, the initial launch pressure is limited by the bottle’s strength (since the pressure is directly related to the energy available for the rocket, it is easy to see that it should be as high as possible) and the nozzle throat area is also fixed.
 Given these manufacturing constraints, the design variables we are left with are the empty mass (it can be easily changed through adding ballast), the water volume at the launch, and the launch angle.
 With this considerations in mind, a natural formulation for the water rocket problem is</p>
-<div class="amsmath math notranslate nohighlight" id="equation-763acf00-b9ed-4f56-987f-c083b2fb1d6f">
-<span class="eqno">(89)<a class="headerlink" href="#equation-763acf00-b9ed-4f56-987f-c083b2fb1d6f" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-33248945-bf25-4ea0-a141-f8b7b755410d">
+<span class="eqno">(89)<a class="headerlink" href="#equation-33248945-bf25-4ea0-a141-f8b7b755410d" title="Permalink to this equation">#</a></span>\[\begin{align}
     \text{maximize}   &amp;\quad \text{range or height} \\
     \text{w.r.t.}     &amp;\quad \text{empty mass, initial water volume, launch angle, trajectory} \\
     \text{subject to} &amp;\quad \text{flight dynamics} \\
@@ -1500,8 +1500,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">_MassAdder</span></code> component calculates the rocket’s instantaneous mass by
 summing the water mass with the rockets empty mass, i.e.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-14766aaa-515d-4df5-87b1-8493a6ac8242">
-<span class="eqno">(90)<a class="headerlink" href="#equation-14766aaa-515d-4df5-87b1-8493a6ac8242" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-a468c4da-b949-4e14-81c8-203a15afe0a4">
+<span class="eqno">(90)<a class="headerlink" href="#equation-a468c4da-b949-4e14-81c8-203a15afe0a4" title="Permalink to this equation">#</a></span>\[\begin{align}
     m = m_\text{empty}+\rho_w V_w
 \end{align}\]</div>
 <div class="cell tag_remove-input docutils container">
@@ -2515,7 +2515,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.5211587740000141 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.5248068600000124 seconds.
 Total jacobian shape: (611, 613) 
 </pre></div>
 </div>
@@ -2524,10 +2524,10 @@ FWD solves: 20   REV solves: 0
 Total colors vs. total size: 20 vs 613  (96.74% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.5212 sec
-Time to compute coloring:   0.5240 sec
+Time to compute sparsity:   0.5248 sec
+Time to compute coloring:   0.4997 sec
 Memory to compute coloring:  -2.3594 MB
-Coloring created on: 2024-11-15 17:23:41
+Coloring created on: 2024-11-18 20:35:43
 
 List of user-set options:
 
@@ -2688,9 +2688,6 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
   40 -5.8186149e+01 1.16e-01 2.40e+01  -3.6 2.38e+00    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  41 -5.4658405e+01 2.08e-01 1.21e+01  -3.4 4.39e+00    -  1.00e+00 7.99e-01H  1
 </pre></div>
 </div>
@@ -2719,7 +2716,9 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
-  50 -5.3387976e+01 6.19e-07 5.85e-04 -11.0 8.07e-04    -  1.00e+00 1.00e+00h  1
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  50 -5.3387976e+01 6.19e-07 5.85e-04 -11.0 8.07e-04    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  51 -5.3387999e+01 5.29e-07 1.46e-04 -11.0 2.36e-05    -  1.00e+00 1.00e+00h  1
@@ -2741,9 +2740,7 @@ Number of Iterations....: 55
                                    (scaled)                 (unscaled)
 Objective...............:  -5.3387978188776636e+01   -5.3387978188776636e+01
 Dual infeasibility......:   1.4473441256289685e-09    1.4473441256289685e-09
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Constraint violation....:   4.0101794038606282e-09    4.0101794038606282e-09
+Constraint violation....:   4.0101794038606282e-09    4.0101794038606282e-09
 Variable bound violation:   9.9994695856864269e-09    9.9994695856864269e-09
 Complementarity.........:   1.0000140512049957e-11    1.0000140512049957e-11
 Overall NLP error.......:   4.0101794038606282e-09    4.0101794038606282e-09
@@ -2756,7 +2753,7 @@ Number of inequality constraint evaluations          = 0
 Number of equality constraint Jacobian evaluations   = 56
 Number of inequality constraint Jacobian evaluations = 0
 Number of Lagrangian Hessian evaluations             = 0
-Total seconds in IPOPT                               = 4.414
+Total seconds in IPOPT                               = 4.529
 
 EXIT: Optimal Solution Found.
 </pre></div>
@@ -2872,7 +2869,7 @@ Maximum velocity: 46.1508 m/s
 Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem6&#39; was computed 3 times, taking 0.5121679659999927 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem6&#39; was computed 3 times, taking 0.525104307000106 seconds.
 Total jacobian shape: (611, 613) 
 </pre></div>
 </div>
@@ -2881,10 +2878,10 @@ FWD solves: 20   REV solves: 0
 Total colors vs. total size: 20 vs 613  (96.74% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.5122 sec
-Time to compute coloring:   0.5325 sec
+Time to compute sparsity:   0.5251 sec
+Time to compute coloring:   0.5067 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-11-15 17:23:51
+Coloring created on: 2024-11-18 20:35:53
 
 List of user-set options:
 
@@ -2983,9 +2980,6 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
   20 -8.6314901e+01 5.24e-02 2.10e+01  -5.2 5.93e+00    -  1.00e+00 1.00e+00f  1
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  21 -8.2646845e+01 4.62e-02 1.80e+01  -5.9 3.67e+00    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
@@ -3017,6 +3011,9 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
   30 -8.5098262e+01 2.31e-03 2.82e+00 -11.0 1.68e-01    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  31 -8.5259944e+01 2.74e-03 9.03e-02 -11.0 1.62e-01    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
@@ -3045,7 +3042,9 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
-  40 -8.5134365e+01 6.23e-04 4.43e-02 -11.0 3.84e-02    -  1.00e+00 1.00e+00h  1
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  40 -8.5134365e+01 6.23e-04 4.43e-02 -11.0 3.84e-02    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  41 -8.5090245e+01 8.13e-05 4.48e-02 -11.0 4.41e-02    -  1.00e+00 1.00e+00h  1
@@ -3100,7 +3099,7 @@ Number of inequality constraint evaluations          = 0
 Number of equality constraint Jacobian evaluations   = 52
 Number of inequality constraint Jacobian evaluations = 0
 Number of Lagrangian Hessian evaluations             = 0
-Total seconds in IPOPT                               = 4.104
+Total seconds in IPOPT                               = 4.214
 
 EXIT: Optimal Solution Found.
 
@@ -3111,11 +3110,11 @@ Optimization Problem -- Optimization using pyOpt_sparse
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    4.1048
-       User Objective Time :       0.1597
-       User Sensitivity Time :     3.0539
-       Interface Time :            0.5021
-       Opt Solver Time:            0.3891
+    Total Time:                    4.2157
+       User Objective Time :       0.1756
+       User Sensitivity Time :     3.1195
+       Interface Time :            0.5099
+       Opt Solver Time:            0.4106
     Calls to Objective Function :      57
     Calls to Sens Function :           53
 
