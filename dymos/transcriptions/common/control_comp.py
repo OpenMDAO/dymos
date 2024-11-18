@@ -6,6 +6,7 @@ import openmdao.api as om
 
 from ..grid_data import GridData
 from ...utils.misc import get_rate_units
+from ...utils.constants import INF_BOUND
 from ...utils.lgl import lgl
 from ...utils.lagrange import lagrange_matrices
 from ..._options import options as dymos_options
@@ -204,12 +205,29 @@ class ControlComp(om.ExplicitComponent):
                                 units=rate2_units)
 
                 if gd.num_segments > 1 and not gd.compressed:
-                    self.add_output(self._output_cnty_defect_names[name], shape=cnty_output_shape, units=units)
+                    if options['continuity']:
+                        self.add_output(self._output_cnty_defect_names[name],
+                                        shape=cnty_output_shape, units=units)
+                        self.add_constraint(name=self._output_cnty_defect_names[name],
+                                            scaler=options['continuity_scaler'],
+                                            ref=options['continuity_ref'],
+                                            equals=0.0, linear=True)
 
-                    self.add_output(self._output_rate_cnty_defect_names[name], shape=cnty_output_shape, units=rate_units)
+                    if options['rate_continuity']:
+                        self.add_output(self._output_rate_cnty_defect_names[name],
+                                        shape=cnty_output_shape, units=rate_units)
+                        self.add_constraint(name=self._output_rate_cnty_defect_names[name],
+                                            scaler=options['rate_continuity_scaler'],
+                                            ref=options['rate_continuity_ref'],
+                                            equals=0.0, linear=True)
 
-                    self.add_output(self._output_rate2_cnty_defect_names[name], shape=cnty_output_shape,
-                                    units=rate2_units)
+                    if options['rate2_continuity']:
+                        self.add_output(self._output_rate2_cnty_defect_names[name],
+                                        shape=cnty_output_shape, units=rate2_units)
+                        self.add_constraint(name=self._output_rate2_cnty_defect_names[name],
+                                            scaler=options['rate2_continuity_scaler'],
+                                            ref=options['rate2_continuity_ref'],
+                                            equals=0.0, linear=True)
 
                 size = np.prod(shape)
                 self.sizes[name] = size
@@ -267,10 +285,6 @@ class ControlComp(om.ExplicitComponent):
                     J_rate_cnty_def /= gd.node_dptau_dstau[segment_end_idxs, np.newaxis][1:-1]
                     # This gives twice as many rows as we want. Each odd-index row needs to
                     # have its elements moved to the row before it.
-
-                    with np.printoptions(linewidth=10000):
-                        print(name)
-                        print(J_rate_cnty_def.todense())
                     rs, cs, data = sp.find(J_rate_cnty_def)
                     rs = rs // 2
 
@@ -294,16 +308,35 @@ class ControlComp(om.ExplicitComponent):
                     J_rate2_cnty_def /= gd.node_dptau_dstau[segment_end_idxs, np.newaxis][1:-1]
                     # This gives twice as many rows as we want. Each odd-index row needs to
                     # have its elements moved to the row before it.
-
-                    with np.printoptions(linewidth=10000):
-                        print(name)
-                        print(J_rate2_cnty_def.todense())
                     rs, cs, data = sp.find(J_rate2_cnty_def)
                     rs = rs // 2
 
                     self.declare_partials(of=self._output_rate2_cnty_defect_names[name],
                                           wrt=self._input_names[name],
                                           rows=rs, cols=cs, val=data)
+
+            if options['opt']:
+                desvar_indices = np.arange(num_control_input_nodes, dtype=int)
+                if options['fix_initial']:
+                    desvar_indices = desvar_indices[1:]
+                if options['fix_final']:
+                    desvar_indices = desvar_indices[:-1]
+                if not(options['fix_initial'] or options['fix_final']):
+                    desvar_indices = None
+
+                lb = -INF_BOUND if options['lower'] is None else options['lower']
+                ub = INF_BOUND if options['upper'] is None else options['upper']
+
+                self.add_design_var(f'controls:{name}',
+                                    lower=lb,
+                                    upper=ub,
+                                    ref=options['ref'],
+                                    ref0=options['ref0'],
+                                    adder=options['adder'],
+                                    scaler=options['scaler'],
+                                    indices=desvar_indices,
+                                    flat_indices=True)
+
 
     def configure_io(self):
         """
