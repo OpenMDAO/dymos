@@ -5,7 +5,7 @@ from packaging.version import Version
 
 import numpy as np
 
-from scipy.interpolate import interp1d
+from scipy.interpolate import Akima1DInterpolator
 
 import openmdao.api as om
 import openmdao.utils.assert_utils as _om_assert_utils
@@ -273,7 +273,7 @@ def assert_timeseries_near_equal(t_ref, x_ref, t_check, x_check, abs_tolerance=N
     x_to_interp = x_ref_data_flattened[idxs_unique_ref, ...]
     t_check = t_check.ravel()
 
-    interp = interp1d(x=t_ref_unique, y=x_to_interp, kind='slinear', axis=0)
+    interp = Akima1DInterpolator(t_ref_unique, x_to_interp)
 
     # only want t_check in the overlapping range of t_begin and t_end
     t_check_in_range_condition = np.logical_and(t_check >= t_begin, t_check <= t_end)

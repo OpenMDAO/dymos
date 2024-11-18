@@ -283,7 +283,7 @@ class TestReentry(unittest.TestCase):
         sol = om.CaseReader(sol_db).get_case('final')
         sim = om.CaseReader(sim_db).get_case('final')
 
-        from scipy.interpolate import interp1d
+        from openmdao.components.interp_util.interp import InterpND
 
         t_sol = sol.get_val('traj.phase0.timeseries.time')
         beta_sol = sol.get_val('traj.phase0.timeseries.beta', units='deg')
@@ -291,8 +291,12 @@ class TestReentry(unittest.TestCase):
         t_sim = sim.get_val('traj.phase0.timeseries.time')
         beta_sim = sim.get_val('traj.phase0.timeseries.beta', units='deg')
 
-        sol_interp = interp1d(t_sol.ravel(), beta_sol.ravel())
-        sim_interp = interp1d(t_sim.ravel(), beta_sim.ravel())
+        # need unique (monotonically increasing) times for interpolation
+        t_sol_u, t_sol_idx = np.unique(t_sol, return_index=True)
+        t_sim_u, t_sim_idx = np.unique(t_sim, return_index=True)
+
+        sol_interp = InterpND('slinear', t_sol_u.ravel(), beta_sol[t_sol_idx].ravel()).interpolate
+        sim_interp = InterpND('slinear', t_sim_u.ravel(), beta_sim[t_sim_idx].ravel()).interpolate
 
         t = np.linspace(0, t_sol.ravel()[-1], 1000)
 

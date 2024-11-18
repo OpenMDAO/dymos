@@ -2,9 +2,9 @@ import os
 import unittest
 
 import numpy as np
-from scipy.interpolate import interp1d
 
 import openmdao.api as om
+from openmdao.components.interp_util.interp import InterpND
 from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
@@ -150,17 +150,20 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         theta_dot_sim = sim_out.get_val('phase0.timeseries.theta_dot')
         time_sim = sim_out.get_val('phase0.timeseries.time')
 
-        x_interp = interp1d(time_sim[:, 0], x_sim[:, 0])
-        y_interp = interp1d(time_sim[:, 0], y_sim[:, 0])
-        v_interp = interp1d(time_sim[:, 0], v_sim[:, 0])
-        theta_interp = interp1d(time_sim[:, 0], theta_sim[:, 0])
-        theta_dot_interp = interp1d(time_sim[:, 0], theta_dot_sim[:, 0])
+        # need unique (monotonically increasing) times for interpolation
+        times, idxs = np.unique(time_sim[:, 0], return_index=True)
 
-        assert_near_equal(x_interp(time_sol), x_sol, tolerance=1.0E-4)
-        assert_near_equal(y_interp(time_sol), y_sol, tolerance=1.0E-4)
-        assert_near_equal(v_interp(time_sol), v_sol, tolerance=1.0E-4)
-        assert_near_equal(theta_interp(time_sol), theta_sol, tolerance=1.0E-4)
-        assert_near_equal(theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-4)
+        x_interp = InterpND('slinear', times, x_sim[:, 0][idxs]).interpolate
+        y_interp = InterpND('slinear', times, y_sim[:, 0][idxs]).interpolate
+        v_interp = InterpND('slinear', times, v_sim[:, 0][idxs]).interpolate
+        theta_interp = InterpND('slinear', times, theta_sim[:, 0][idxs]).interpolate
+        theta_dot_interp = InterpND('slinear', times, theta_dot_sim[:, 0][idxs]).interpolate
+
+        assert_near_equal(x_interp(time_sol), x_sol[:, 0], tolerance=1.0E-4)
+        assert_near_equal(y_interp(time_sol), y_sol[:, 0], tolerance=1.0E-4)
+        assert_near_equal(v_interp(time_sol), v_sol[:, 0], tolerance=1.0E-4)
+        assert_near_equal(theta_interp(time_sol), theta_sol[:, 0], tolerance=1.0E-4)
+        assert_near_equal(theta_dot_interp(time_sol), theta_dot_sol[:, 0], tolerance=1.0E-4)
 
     def test_brachistochrone_integrated_control_radau_ps(self):
         import openmdao.api as om
@@ -233,17 +236,20 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         theta_dot_sim = sim_case.get_val('traj.phase0.timeseries.theta_dot')
         time_sim = sim_case.get_val('traj.phase0.timeseries.time')
 
-        x_interp = interp1d(time_sim[:, 0], x_sim[:, 0])
-        y_interp = interp1d(time_sim[:, 0], y_sim[:, 0])
-        v_interp = interp1d(time_sim[:, 0], v_sim[:, 0])
-        theta_interp = interp1d(time_sim[:, 0], theta_sim[:, 0])
-        theta_dot_interp = interp1d(time_sim[:, 0], theta_dot_sim[:, 0])
+        # need unique (monotonically increasing) times for interpolation
+        times, idxs = np.unique(time_sim[:, 0], return_index=True)
 
-        assert_near_equal(x_interp(time_sol), x_sol, tolerance=1.0E-4)
-        assert_near_equal(y_interp(time_sol), y_sol, tolerance=1.0E-4)
-        assert_near_equal(v_interp(time_sol), v_sol, tolerance=1.0E-4)
-        assert_near_equal(theta_interp(time_sol), theta_sol, tolerance=1.0E-4)
-        assert_near_equal(theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-4)
+        x_interp = InterpND('slinear', times, x_sim[:, 0][idxs]).interpolate
+        y_interp = InterpND('slinear', times, y_sim[:, 0][idxs]).interpolate
+        v_interp = InterpND('slinear', times, v_sim[:, 0][idxs]).interpolate
+        theta_interp = InterpND('slinear', times, theta_sim[:, 0][idxs]).interpolate
+        theta_dot_interp = InterpND('slinear', times, theta_dot_sim[:, 0][idxs]).interpolate
+
+        assert_near_equal(x_interp(time_sol), x_sol[:, 0], tolerance=1.0E-4)
+        assert_near_equal(y_interp(time_sol), y_sol[:, 0], tolerance=1.0E-4)
+        assert_near_equal(v_interp(time_sol), v_sol[:, 0], tolerance=1.0E-4)
+        assert_near_equal(theta_interp(time_sol), theta_sol[:, 0], tolerance=1.0E-4)
+        assert_near_equal(theta_dot_interp(time_sol), theta_dot_sol[:, 0], tolerance=1.0E-4)
 
 
 if __name__ == '__main__':  # pragma: no cover
