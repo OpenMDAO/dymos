@@ -16,11 +16,11 @@ class TestCannonballForJOSS(unittest.TestCase):
     def test_results(self):
         # begin code for paper
         import numpy as np
-        from scipy.interpolate import interp1d
         import matplotlib
         import matplotlib.pyplot as plt
 
         import openmdao.api as om
+        from openmdao.components.interp_util.interp import InterpND
 
         import dymos as dm
         from dymos.models.atmosphere.atmos_1976 import USatm1976Data as USatm1976Data
@@ -28,9 +28,9 @@ class TestCannonballForJOSS(unittest.TestCase):
         # CREATE an atmosphere interpolant
         english_to_metric_rho = om.unit_conversion('slug/ft**3', 'kg/m**3')[0]
         english_to_metric_alt = om.unit_conversion('ft', 'm')[0]
-        rho_interp = interp1d(np.array(USatm1976Data.alt * english_to_metric_alt, dtype=complex),
-                              np.array(USatm1976Data.rho * english_to_metric_rho, dtype=complex),
-                              kind='linear')
+        rho_interp = InterpND('slinear',
+                              USatm1976Data.alt * english_to_metric_alt,
+                              USatm1976Data.rho * english_to_metric_rho)
 
         class CannonballSize(om.ExplicitComponent):
             """
@@ -102,9 +102,9 @@ class TestCannonballForJOSS(unittest.TestCase):
 
                 # handle complex-step gracefully from the interpolant
                 if np.iscomplexobj(alt):
-                    rho = rho_interp(inputs['alt'])
+                    rho = rho_interp.interpolate(inputs['alt'])
                 else:
-                    rho = rho_interp(inputs['alt']).real
+                    rho = rho_interp.interpolate(inputs['alt']).real
 
                 q = 0.5 * rho * inputs['v'] ** 2
                 qS = q * S
