@@ -9,7 +9,9 @@ except ImportError:
 
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
-
+from dymos.utils.misc import om_version
+from dymos.utils.testing_utils import assert_timeseries_near_equal
+from dymos.utils.misc import _unspecified
 
 class BrachistochroneRateTargetODE(om.ExplicitComponent):
     #
@@ -37,9 +39,11 @@ class BrachistochroneRateTargetODE(om.ExplicitComponent):
         self.options.declare('static_gravity', types=(bool,), default=False,
                              desc='If True, treat gravity as a static (scalar) input, rather than '
                                   'having different values at each node.')
+        self.options.declare('control_name', values=('theta', 'int_theta_rate'), default='int_theta_rate')
 
     def setup(self):
         nn = self.options['num_nodes']
+        control_name = self.options['control_name']
         g_default_val = 9.80665 if self.options['static_gravity'] else 9.80665 * np.ones(nn)
 
         # Inputs
@@ -49,7 +53,7 @@ class BrachistochroneRateTargetODE(om.ExplicitComponent):
 
         # Note, kind of strange for this to be named theta_rate, but this is just a demonstration that
         # we can connect to a control rate source in dymos.
-        self.add_input('theta_rate', val=np.ones(nn), desc='angle of wire', units='rad')
+        self.add_input(control_name, val=np.ones(nn), desc='angle of wire', units='rad')
 
         self.add_output('xdot', val=np.zeros(nn), desc='velocity component in x', units='m/s')
 
@@ -63,16 +67,16 @@ class BrachistochroneRateTargetODE(om.ExplicitComponent):
 
         # Setup partials
         arange = np.arange(self.options['num_nodes'])
-        self.declare_partials(of='vdot', wrt='theta_rate', rows=arange, cols=arange)
+        self.declare_partials(of='vdot', wrt=control_name, rows=arange, cols=arange)
 
         self.declare_partials(of='xdot', wrt='v', rows=arange, cols=arange)
-        self.declare_partials(of='xdot', wrt='theta_rate', rows=arange, cols=arange)
+        self.declare_partials(of='xdot', wrt=control_name, rows=arange, cols=arange)
 
         self.declare_partials(of='ydot', wrt='v', rows=arange, cols=arange)
-        self.declare_partials(of='ydot', wrt='theta_rate', rows=arange, cols=arange)
+        self.declare_partials(of='ydot', wrt=control_name, rows=arange, cols=arange)
 
         self.declare_partials(of='check', wrt='v', rows=arange, cols=arange)
-        self.declare_partials(of='check', wrt='theta_rate', rows=arange, cols=arange)
+        self.declare_partials(of='check', wrt=control_name, rows=arange, cols=arange)
 
         if self.options['static_gravity']:
             c = np.zeros(self.options['num_nodes'])
@@ -81,7 +85,8 @@ class BrachistochroneRateTargetODE(om.ExplicitComponent):
             self.declare_partials(of='vdot', wrt='g', rows=arange, cols=arange)
 
     def compute(self, inputs, outputs):
-        theta = inputs['theta_rate']
+        u_name = self.options['control_name']
+        theta = inputs[u_name]
         cos_theta = np.cos(theta)
         sin_theta = np.sin(theta)
         g = inputs['g']
@@ -93,407 +98,129 @@ class BrachistochroneRateTargetODE(om.ExplicitComponent):
         outputs['check'] = v / sin_theta
 
     def compute_partials(self, inputs, partials):
-        theta = inputs['theta_rate']
+        u_name = self.options['control_name']
+        theta = inputs[u_name]
         cos_theta = np.cos(theta)
         sin_theta = np.sin(theta)
         g = inputs['g']
         v = inputs['v']
 
         partials['vdot', 'g'] = cos_theta
-        partials['vdot', 'theta_rate'] = -g * sin_theta
+        partials['vdot', u_name] = -g * sin_theta
 
         partials['xdot', 'v'] = sin_theta
-        partials['xdot', 'theta_rate'] = v * cos_theta
+        partials['xdot', u_name] = v * cos_theta
 
         partials['ydot', 'v'] = -cos_theta
-        partials['ydot', 'theta_rate'] = v * sin_theta
+        partials['ydot', u_name] = v * sin_theta
 
         partials['check', 'v'] = 1 / sin_theta
-        partials['check', 'theta_rate'] = -v * cos_theta / sin_theta ** 2
+        partials['check', u_name] = -v * cos_theta / sin_theta ** 2
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestBrachistochroneControlRateTargets(unittest.TestCase):
 
-    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
-    def test_brachistochrone_control_rate_targets_gauss_lobatto(self):
-        import matplotlib.pyplot as plt
-        plt.switch_backend('Agg')
+    def test_brachistochrone_control_rate_targets(self):
+
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
 
-        p = om.Problem(model=om.Group())
-        p.driver = om.ScipyOptimizeDriver()
-        p.driver.declare_coloring()
+        transcriptions = {'gauss-lobatto': dm.GaussLobatto(num_segments=10),}
+                         # 'radau': dm.Radau(num_segments=10),
+                         # 'birkhoff': dm.Birkhoff(num_nodes=30)}
 
-        phase = dm.Phase(ode_class=BrachistochroneRateTargetODE,
-                         transcription=dm.GaussLobatto(num_segments=10))
+        for tx_name, tx in transcriptions.items():
+            for control_target_method in ('implicit', 'explicit'):
+                for control_type in ('full', 'polynomial'):
 
-        p.model.add_subsystem('phase0', phase)
+                    with self.subTest(f'{tx_name=} {control_target_method=} {control_type=}'):
 
-        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+                        p = om.Problem(model=om.Group())
+                        p.driver = om.pyOptSparseDriver(optimizer='SLSQP', print_results=False)
+                        p.driver.declare_coloring()
 
-        phase.add_state('x', rate_source='xdot',
-                        units='m',
-                        fix_initial=True, fix_final=True, solve_segments=False)
+                        traj = dm.Trajectory()
 
-        phase.add_state('y', rate_source='ydot',
-                        units='m',
-                        fix_initial=True, fix_final=True, solve_segments=False)
+                        ode_kwargs = {'control_name': 'int_theta_rate' if control_target_method == 'implicit' else 'theta'}
 
-        phase.add_state('v', rate_source='vdot',
-                        units='m/s',
-                        fix_initial=True, fix_final=False, solve_segments=False)
+                        phase = dm.Phase(ode_class=BrachistochroneRateTargetODE,
+                                        ode_init_kwargs=ode_kwargs,
+                                        transcription=tx)
 
-        phase.add_control('theta', lower=0.01, upper=179.9, fix_initial=True)
+                        traj.add_phase('phase0', phase)
 
-        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
+                        p.model.add_subsystem('traj0', traj)
 
-        # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=10)
+                        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        p.model.linear_solver = om.DirectSolver()
+                        phase.add_state('x', rate_source='xdot',
+                                        units='m',
+                                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        p.setup()
+                        phase.add_state('y', rate_source='ydot',
+                                        units='m',
+                                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.set_time_val(initial=0.0, duration=2.0)
+                        phase.add_state('v', rate_source='vdot',
+                                        units='m/s',
+                                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.set_state_val('x', [0, 10])
-        phase.set_state_val('y', [10, 5])
-        phase.set_state_val('v', [0, 9.9])
-        phase.set_control_val('theta', [0, 100])
+                        # our control is the time integral of theta.  We pass its rate to the ODE and it should implicitly find it since
+                        # it is named `int_theta_rate` in the ODE.
+                        phase.add_control('int_theta', lower=0.0, upper=None, fix_initial=True,
+                                        rate_targets=_unspecified if control_target_method == 'implicit' else ['theta'],
+                                        control_type=control_type, order=7)
 
-        # Solve for the optimal trajectory
-        p.run_driver()
+                        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        # Test the results
-        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+                        # Minimize time at the end of the phase
+                        phase.add_objective('time', loc='final', scaler=10)
 
-        # Generate the explicitly simulated trajectory
-        exp_out = phase.simulate()
+                        p.model.linear_solver = om.DirectSolver()
 
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
+                        p.setup()
 
-        x_imp = p.get_val('phase0.timeseries.x')
-        y_imp = p.get_val('phase0.timeseries.y')
+                        phase.set_time_val(initial=0.0, duration=2.0)
 
-        x_exp = exp_out.get_val('phase0.timeseries.x')
-        y_exp = exp_out.get_val('phase0.timeseries.y')
+                        phase.set_state_val('x', [0, 10])
+                        phase.set_state_val('y', [10, 5])
+                        phase.set_state_val('v', [0, 9.9])
+                        phase.set_control_val('int_theta', [0, 100], units='deg*s')
 
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
+                        phase.timeseries_options['include_control_rates'] = True
 
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
+                        p.run_model()
 
-        fig, ax = plt.subplots()
+                        # Solve for the optimal trajectory
+                        dm.run_problem(p, simulate=True, make_plots=True, simulate_kwargs={'reports': True})
 
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.theta_rate')
-        t_exp = exp_out.get_val('phase0.timeseries.time')
-        theta_exp = exp_out.get_val('phase0.timeseries.theta_rate')
+                        sol_db = 'dymos_solution.db'
+                        sim_db = 'dymos_simulation.db'
+                        if om_version()[0] > (3, 34, 2):
+                            sol_db = p.get_outputs_dir() / sol_db
+                            sim_db = traj.sim_prob.get_outputs_dir() / sim_db
 
-        io_meta = p.model.phase0.timeseries.timeseries_comp.get_io_metadata(
-            iotypes=('input', 'output'), get_remote=True)
-        self.assertEqual(io_meta['theta']['units'], 'rad*s')
+                        sol_case = om.CaseReader(sol_db).get_case('final')
+                        sim_case = om.CaseReader(sim_db).get_case('final')
 
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-        ax.plot(t_exp, theta_exp, 'b-', label='simulated')
+                        t_sol = sol_case.get_val('traj0.phase0.timeseries.time')
+                        x_sol = sol_case.get_val('traj0.phase0.timeseries.x')
+                        y_sol = sol_case.get_val('traj0.phase0.timeseries.y')
+                        v_sol = sol_case.get_val('traj0.phase0.timeseries.v')
+                        theta_sol = sol_case.get_val('traj0.phase0.timeseries.int_theta_rate')
 
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
+                        t_sim = sim_case.get_val('traj0.phase0.timeseries.time')
+                        x_sim = sim_case.get_val('traj0.phase0.timeseries.x')
+                        y_sim = sim_case.get_val('traj0.phase0.timeseries.y')
+                        v_sim = sim_case.get_val('traj0.phase0.timeseries.v')
+                        theta_sim = sim_case.get_val('traj0.phase0.timeseries.int_theta_rate')
 
-        plt.show()
-
-    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
-    def test_brachistochrone_control_rate_targets_radau(self):
-        import matplotlib.pyplot as plt
-        plt.switch_backend('Agg')
-        import matplotlib.pyplot as plt
-        import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
-        import dymos as dm
-
-        p = om.Problem(model=om.Group())
-        p.driver = om.ScipyOptimizeDriver()
-        p.driver.declare_coloring()
-
-        phase = dm.Phase(ode_class=BrachistochroneRateTargetODE,
-                         transcription=dm.Radau(num_segments=10))
-
-        p.model.add_subsystem('phase0', phase)
-
-        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
-
-        phase.add_state('x', rate_source='xdot',
-                        units='m',
-                        fix_initial=True, fix_final=True, solve_segments=False)
-
-        phase.add_state('y', rate_source='ydot',
-                        units='m',
-                        fix_initial=True, fix_final=True, solve_segments=False)
-
-        phase.add_state('v', rate_source='vdot',
-                        units='m/s',
-                        fix_initial=True, fix_final=False, solve_segments=False)
-
-        phase.add_control('theta', units='deg*s', lower=0.01, upper=179.9, fix_initial=True)
-
-        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
-
-        # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=10)
-
-        p.model.linear_solver = om.DirectSolver()
-
-        p.setup()
-
-        phase.set_time_val(initial=0.0, duration=2.0)
-
-        phase.set_state_val('x', [0, 10])
-        phase.set_state_val('y', [10, 5])
-        phase.set_state_val('v', [0, 9.9])
-        phase.set_control_val('theta', [0, 100])
-
-        # Solve for the optimal trajectory
-        p.run_driver()
-
-        # Test the results
-        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
-
-        # Generate the explicitly simulated trajectory
-        exp_out = phase.simulate()
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.x')
-        y_imp = p.get_val('phase0.timeseries.y')
-
-        x_exp = exp_out.get_val('phase0.timeseries.x')
-        y_exp = exp_out.get_val('phase0.timeseries.y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.theta_rate')
-        t_exp = exp_out.get_val('phase0.timeseries.time')
-        theta_exp = exp_out.get_val('phase0.timeseries.theta_rate')
-
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-        ax.plot(t_exp, theta_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        plt.show()
-
-
-@use_tempdirs
-class TestBrachistochroneExplicitControlRateTargets(unittest.TestCase):
-
-    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
-    def test_brachistochrone_control_rate_targets_gauss_lobatto(self):
-        import matplotlib.pyplot as plt
-        plt.switch_backend('Agg')
-        import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
-        import dymos as dm
-
-        p = om.Problem(model=om.Group())
-        p.driver = om.ScipyOptimizeDriver()
-        p.driver.declare_coloring()
-
-        phase = dm.Phase(ode_class=BrachistochroneRateTargetODE,
-                         transcription=dm.GaussLobatto(num_segments=10))
-
-        p.model.add_subsystem('phase0', phase)
-
-        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
-
-        phase.add_state('x', rate_source='xdot',
-                        units='m',
-                        fix_initial=True, fix_final=True, solve_segments=False)
-
-        phase.add_state('y', rate_source='ydot',
-                        units='m',
-                        fix_initial=True, fix_final=True, solve_segments=False)
-
-        phase.add_state('v', rate_source='vdot',
-                        units='m/s',
-                        fix_initial=True, fix_final=False, solve_segments=False)
-
-        phase.add_control('theta', units='deg*s', lower=0.01, upper=179.9, fix_initial=True,
-                          rate_targets=['theta_rate'])
-
-        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
-
-        # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=10)
-
-        p.model.linear_solver = om.DirectSolver()
-
-        p.setup()
-
-        phase.set_time_val(initial=0.0, duration=2.0)
-
-        phase.set_state_val('x', [0, 10])
-        phase.set_state_val('y', [10, 5])
-        phase.set_state_val('v', [0, 9.9])
-        phase.set_control_val('theta', [0, 100])
-
-        # Solve for the optimal trajectory
-        p.run_driver()
-
-        # Test the results
-        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
-
-        # Generate the explicitly simulated trajectory
-        exp_out = phase.simulate()
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.x')
-        y_imp = p.get_val('phase0.timeseries.y')
-
-        x_exp = exp_out.get_val('phase0.timeseries.x')
-        y_exp = exp_out.get_val('phase0.timeseries.y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.theta_rate')
-        t_exp = exp_out.get_val('phase0.timeseries.time')
-        theta_exp = exp_out.get_val('phase0.timeseries.theta_rate')
-
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-        ax.plot(t_exp, theta_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        plt.show()
-
-    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
-    def test_brachistochrone_control_rate_targets_radau(self):
-        import matplotlib.pyplot as plt
-        plt.switch_backend('Agg')
-        import matplotlib.pyplot as plt
-        import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
-        import dymos as dm
-
-        p = om.Problem(model=om.Group())
-        p.driver = om.ScipyOptimizeDriver()
-        p.driver.declare_coloring()
-
-        phase = dm.Phase(ode_class=BrachistochroneRateTargetODE,
-                         transcription=dm.Radau(num_segments=10))
-
-        p.model.add_subsystem('phase0', phase)
-
-        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
-
-        phase.add_state('x', rate_source='xdot',
-                        units='m',
-                        fix_initial=True, fix_final=True, solve_segments=False)
-
-        phase.add_state('y', rate_source='ydot',
-                        units='m',
-                        fix_initial=True, fix_final=True, solve_segments=False)
-
-        phase.add_state('v', rate_source='vdot',
-                        units='m/s',
-                        fix_initial=True, fix_final=False, solve_segments=False)
-
-        phase.add_control('theta', units='deg*s', lower=0.01, upper=179.9, fix_initial=True,
-                          rate_targets=['theta_rate'])
-
-        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
-
-        # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=10)
-
-        p.model.linear_solver = om.DirectSolver()
-
-        p.setup()
-
-        phase.set_time_val(initial=0.0, duration=2.0)
-
-        phase.set_state_val('x', [0, 10])
-        phase.set_state_val('y', [10, 5])
-        phase.set_state_val('v', [0, 9.9])
-        phase.set_control_val('theta', [0, 100])
-
-        # Solve for the optimal trajectory
-        p.run_driver()
-
-        # Test the results
-        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
-
-        # Generate the explicitly simulated trajectory
-        exp_out = phase.simulate()
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.x')
-        y_imp = p.get_val('phase0.timeseries.y')
-
-        x_exp = exp_out.get_val('phase0.timeseries.x')
-        y_exp = exp_out.get_val('phase0.timeseries.y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.theta_rate')
-        t_exp = exp_out.get_val('phase0.timeseries.time')
-        theta_exp = exp_out.get_val('phase0.timeseries.theta_rate')
-
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-        ax.plot(t_exp, theta_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        plt.show()
+                        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, rel_tolerance=5.0E-3, abs_tolerance=0.01)
+                        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=5.0E-3, abs_tolerance=0.01)
+                        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rel_tolerance=5.0E-3, abs_tolerance=0.01)
+                        assert_timeseries_near_equal(t_sol, theta_sol, t_sim, theta_sim, rel_tolerance=5.0E-3, abs_tolerance=0.01)
 
 
 @use_tempdirs
