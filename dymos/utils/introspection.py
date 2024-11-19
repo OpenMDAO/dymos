@@ -228,7 +228,7 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = control_shape
                 con['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con['units'] is None else con['units']
-                if birkhoff and constraint_type in ('initial', 'final'):
+                if (birkhoff or radau_new) and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'boundary_vals.{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{prefix}{var}'
@@ -241,7 +241,7 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = control_shape
                 con['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con['units'] is None else con['units']
-                if birkhoff and constraint_type in ('initial', 'final'):
+                if (birkhoff or radau_new) and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'boundary_vals.{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{prefix}{var}'
@@ -260,7 +260,7 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = meta['shape']
                 con['units'] = meta['units']
 
-                if birkhoff and constraint_type in ('initial', 'final'):
+                if (birkhoff or radau_new) and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'boundary_vals.{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{con["constraint_name"]}'
