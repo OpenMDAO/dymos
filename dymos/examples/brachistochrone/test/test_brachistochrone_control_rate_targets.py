@@ -13,6 +13,7 @@ from dymos.utils.misc import om_version
 from dymos.utils.testing_utils import assert_timeseries_near_equal
 from dymos.utils.misc import _unspecified
 
+
 class BrachistochroneRateTargetODE(om.ExplicitComponent):
     #
     # The following dictionaries provide a way of 'tagging' the Brachistochrone ODE with
@@ -146,8 +147,8 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
                         ode_kwargs = {'control_name': 'int_theta_rate' if control_target_method == 'implicit' else 'theta'}
 
                         phase = dm.Phase(ode_class=BrachistochroneRateTargetODE,
-                                        ode_init_kwargs=ode_kwargs,
-                                        transcription=tx)
+                                         ode_init_kwargs=ode_kwargs,
+                                         transcription=tx)
 
                         traj.add_phase('phase0', phase)
 
@@ -167,11 +168,9 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
                                         units='m/s',
                                         fix_initial=True, fix_final=False, solve_segments=False)
 
-                        # our control is the time integral of theta.  We pass its rate to the ODE and it should implicitly find it since
-                        # it is named `int_theta_rate` in the ODE.
                         phase.add_control('int_theta', lower=0.0, upper=None, fix_initial=True,
-                                        rate_targets=_unspecified if control_target_method == 'implicit' else ['theta'],
-                                        control_type=control_type, order=7)
+                                          rate_targets=_unspecified if control_target_method == 'implicit' else ['theta'],
+                                          control_type=control_type, order=7)
 
                         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -221,7 +220,6 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
                         assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, rel_tolerance=5.0E-3, abs_tolerance=0.01)
                         assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, rel_tolerance=5.0E-3, abs_tolerance=0.01)
                         assert_timeseries_near_equal(t_sol, theta_sol, t_sim, theta_sim, rel_tolerance=5.0E-3, abs_tolerance=0.01)
-
 
 
 if __name__ == '__main__':  # pragma: no cover
