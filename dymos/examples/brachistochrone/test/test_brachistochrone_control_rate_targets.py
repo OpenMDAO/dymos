@@ -139,7 +139,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
                     with self.subTest(f'{tx_name=} {control_target_method=} {control_type=}'):
 
                         p = om.Problem(model=om.Group())
-                        p.driver = om.pyOptSparseDriver(optimizer='SLSQP', print_results=False)
+                        p.driver = om.ScipyOptimizeDriver()
                         p.driver.declare_coloring()
 
                         traj = dm.Trajectory()
