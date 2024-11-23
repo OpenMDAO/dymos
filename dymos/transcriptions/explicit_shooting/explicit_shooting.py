@@ -355,7 +355,8 @@ class ExplicitShooting(TranscriptionBase):
 
             phase.add_subsystem('control_group',
                                 subsys=control_group,
-                                promotes=['dt_dstau', '*controls:*', '*control_values:*', '*control_rates:*'])
+                                promotes=[('t_duration', 't_duration_val'), 'dt_dstau',
+                                          '*controls:*', '*control_values:*', '*control_rates:*'])
 
             control_prefix = 'controls:' if phase.timeseries_options['use_prefix'] else ''
             control_rate_prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
