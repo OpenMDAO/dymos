@@ -254,7 +254,7 @@ class Phase(om.Group):
         targets : str or Sequence of str
             The path to the targets of the state variable in the ODE system.  If given
             this will override the value given by the @declare_state decorator on the ODE.
-            In the future, if left _unspecified (the default), the phase variable will try to connect to an ODE input
+            If left _unspecified (the default), the phase variable will try to connect to an ODE input
             of the same name. Set targets to None to prevent this.
         val :  ndarray
             The default value of the state at the state discretization nodes of the phase.
@@ -353,7 +353,7 @@ class Phase(om.Group):
         targets : str or Sequence of str
             The path to the targets of the state variable in the ODE system.  If given
             this will override the value given by the @declare_state decorator on the ODE.
-            In the future, if left _unspecified (the default), the phase variable will try to connect to an ODE input
+            If left _unspecified (the default), the phase variable will try to connect to an ODE input
             of the same name. Set targets to None to prevent this.
         val :  ndarray
             The default value of the state at the state discretization nodes of the phase.
@@ -556,7 +556,7 @@ class Phase(om.Group):
             This option is invalid if opt=False.
         targets : Sequence of str or None
             Targets in the ODE to which this control is connected.
-            In the future, if left _unspecified (the default), the phase control will try to connect to an ODE input
+            If left _unspecified (the default), the phase control will try to connect to an ODE input
             of the same name. Set targets to None to prevent this.
         rate_targets : Sequence of str or None
             The targets in the ODE to which the control rate is connected.
@@ -677,7 +677,7 @@ class Phase(om.Group):
             This option is invalid if opt=False.
         targets : Sequence of str or None
             Targets in the ODE to which this control is connected.
-            In the future, if left _unspecified (the default), the phase control will try to connect to an ODE input
+            If left _unspecified (the default), the phase control will try to connect to an ODE input
             of the same name. Set targets to None to prevent this.
         rate_targets : Sequence of str or None
             The targets in the ODE to which the control rate is connected.
@@ -1077,7 +1077,7 @@ class Phase(om.Group):
             The unit-reference value of the parameter for the optimizer.
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
-            In the future, if left _unspecified (the default), the phase parameter will try to connect to an ODE input
+            If left _unspecified (the default), the phase parameter will try to connect to an ODE input
             of the same name. Set targets to None to prevent this.
         shape : Sequence of int
             The shape of the parameter.
@@ -1147,7 +1147,7 @@ class Phase(om.Group):
             The unit-reference value of the parameter for the optimizer.
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
-            In the future, if left _unspecified (the default), the phase parameter will try to connect to an ODE input
+            If left _unspecified (the default), the phase parameter will try to connect to an ODE input
             of the same name. Set targets to None to prevent this.
         shape : Sequence of int
             The shape of the parameter.

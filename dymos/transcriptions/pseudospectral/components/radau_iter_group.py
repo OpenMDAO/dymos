@@ -1,16 +1,16 @@
 import numpy as np
 import openmdao.api as om
 
-from .birkhoff_defect_comp import BirkhoffDefectComp
 from .input_resids_comp import InputResidsComp
+from .radau_defect_comp import RadauDefectComp
 
-from ...grid_data import GridData
-from ....phase.options import TimeOptionsDictionary
+from dymos.transcriptions.grid_data import GridData
+from dymos.phase.options import TimeOptionsDictionary
 
 
-class BirkhoffIterGroup(om.Group):
+class RadauIterGroup(om.Group):
     """
-    Class definition for the BirkhoffIterGroup.
+    Class definition for the RadauIterGroup.
 
     This group allows for iteration of the state variables and initial _or_ final value of the state
     depending on the direction of the solve.
@@ -25,9 +25,7 @@ class BirkhoffIterGroup(om.Group):
         self._implicit_outputs = set()
 
     def initialize(self):
-        """
-        Declare group options.
-        """
+        """Declare group options."""
         self.options.declare('state_options', types=dict,
                              desc='Dictionary of options for the states.')
         self.options.declare('time_options', types=TimeOptionsDictionary,
@@ -41,7 +39,7 @@ class BirkhoffIterGroup(om.Group):
 
     def setup(self):
         """
-        Define the structure of the control group.
+        Define the structure of the RadauIterGroup.
         """
         gd = self.options['grid_data']
         nn = gd.subset_num_nodes['all']
@@ -52,14 +50,14 @@ class BirkhoffIterGroup(om.Group):
 
         self.add_subsystem('ode_all', subsys=ode_class(num_nodes=nn, **ode_init_kwargs))
 
-        self.add_subsystem('collocation_comp',
-                           subsys=BirkhoffDefectComp(grid_data=gd,
-                                                          state_options=state_options,
-                                                          time_units=time_options['units']),
+        self.add_subsystem('defects',
+                           subsys=RadauDefectComp(grid_data=gd,
+                                                  state_options=state_options,
+                                                  time_units=time_options['units']),
                            promotes_inputs=['*'], promotes_outputs=['*'])
 
         if any([opts['solve_segments'] in ('forward', 'backward') for opts in state_options.values()]):
-            self.add_subsystem('states_balance_comp', subsys=InputResidsComp(),
+            self.add_subsystem('states_resids_comp', subsys=InputResidsComp(),
                                promotes_inputs=['*'], promotes_outputs=['*'])
 
     def _configure_desvars(self, name, options):
@@ -102,29 +100,25 @@ class BirkhoffIterGroup(om.Group):
             ref0 = np.asarray(ref0)
             if ref0.shape == shape:
                 ref0_state = np.tile(ref0.flatten(), num_nodes)
-                # ref0_seg_ends = np.tile(ref0.flatten(), 2)
             else:
                 raise ValueError('array-valued scaler/ref must length equal to state-size')
         else:
             ref0_state = ref0
-            # ref0_seg_ends = ref0
         if not np.isscalar(ref) and ref is not None:
             ref = np.asarray(ref)
             if ref.shape == shape:
                 ref_state = np.tile(ref.flatten(), num_nodes)
-                # ref_seg_ends = np.tile(ref.flatten(), 2)
             else:
                 raise ValueError('array-valued scaler/ref must length equal to state-size')
         else:
             ref_state = ref
-            # ref_seg_ends = ref
 
-        free_vars = {state_name, state_rate_name, initial_state_name, final_state_name}
+        free_vars = {state_name, initial_state_name, final_state_name}
 
         if solve_segs == 'forward':
-            implicit_outputs = {state_name, state_rate_name, final_state_name}
+            implicit_outputs = {state_name, final_state_name}
         elif solve_segs == 'backward':
-            implicit_outputs = {state_name, state_rate_name, initial_state_name}
+            implicit_outputs = {state_name, initial_state_name}
         else:
             implicit_outputs = set()
 
@@ -182,52 +176,73 @@ class BirkhoffIterGroup(om.Group):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        collocation_comp = self._get_subsystem('collocation_comp')
-        collocation_comp.configure_io(phase)
+        defect_comp = self._get_subsystem('defects')
+        defect_comp.configure_io(phase)
 
         gd = self.options['grid_data']
         nn = gd.subset_num_nodes['all']
+        nin = gd.subset_num_nodes['state_input']
+        ncn = gd.subset_num_nodes['col']
         ns = gd.num_segments
+        state_src_idxs_input_to_disc = gd.input_maps['state_input_to_disc']
+        state_src_idxs_input_to_all = state_src_idxs_input_to_disc
+
+        col_idxs = gd.subset_node_indices['col']
 
         state_options = self.options['state_options']
-        states_balance_comp = self._get_subsystem('states_balance_comp')
+        states_resids_comp = self._get_subsystem('states_resids_comp')
+
+        self.promotes('defects', inputs=('dt_dstau',),
+                      src_indices=om.slicer[col_idxs, ...],
+                      src_shape=(nn,))
 
         for name, options in state_options.items():
             units = options['units']
             rate_source = options['rate_source']
             shape = options['shape']
 
+            # TODO: compressed transcription is not currently supported because promoting duplicate
+            # indices currently has a bug in OpenMDAO <= 3.35.0
             for tgt in options['targets']:
-                self.promotes('ode_all', [(tgt, f'states:{name}')])
-                self.set_input_defaults(f'states:{name}', val=1.0, units=units, src_shape=(nn,) + shape)
+                self.promotes('ode_all', [(tgt, f'states:{name}')],
+                              src_indices=om.slicer[state_src_idxs_input_to_all, ...])
+                            #   src_shape=(nin,) + shape)
+            self.set_input_defaults(f'states:{name}', val=1.0, units=units, src_shape=(nin,) + shape)
+
+            self.promotes('defects', inputs=(f'states:{name}',),
+                          src_indices=om.slicer[state_src_idxs_input_to_all, ...],)
 
             self._implicit_outputs = self._configure_desvars(name, options)
 
             if f'states:{name}' in self._implicit_outputs:
-                states_balance_comp.add_output(f'states:{name}',
-                                               shape=(nn,) + shape,
-                                               units=units)
 
-                states_balance_comp.add_input(f'state_defects:{name}',
-                                              shape=(nn+ns,) + shape,
-                                              units=units)
+                states_resids_comp.add_input(f'initial_state_defects:{name}', shape=(1,) + shape, units=units)
+                states_resids_comp.add_input(f'final_state_defects:{name}', shape=(1,) + shape, units=units)
+                states_resids_comp.add_input(f'state_rate_defects:{name}', shape=(ncn,) + shape, units=units)
 
-                if ns > 1:
-                    states_balance_comp.add_input(f'state_cnty_defects:{name}',
-                                                  shape=(ns - 1,) + shape,
+                if ns > 1 and not gd.compressed:
+                    states_resids_comp.add_input(f'state_cnty_defects:{name}',
+                                                 shape=(ns - 1,) + shape,
+                                                 units=units)
+                    # For compressed transcription, resids does not provide values at overlapping
+                    # segment boundaries.
+                    states_resids_comp.add_output(f'states:{name}',
+                                                  shape=(nn,) + shape,
+                                                  units=units)
+                else:
+                    # For compressed transcirption, resids comp provides values at input nodes.
+                    nin = gd.subset_num_nodes['state_input']
+                    states_resids_comp.add_output(f'states:{name}',
+                                                  shape=(nin,) + shape,
                                                   units=units)
 
-            if f'state_rates:{name}' in self._implicit_outputs:
-                states_balance_comp.add_output(f'state_rates:{name}', shape=(nn,) + shape, units=units)
-                states_balance_comp.add_input(f'state_rate_defects:{name}',
-                                              shape=(nn,) + shape,
-                                              units=units)
-
             if f'initial_states:{name}' in self._implicit_outputs:
-                states_balance_comp.add_output(f'initial_states:{name}', shape=(1,) + shape, units=units)
+                # states_resids_comp.add_input(f'initial_state_defects:{name}', shape=(1,) + shape, units=units)
+                states_resids_comp.add_output(f'initial_states:{name}', shape=(1,) + shape, units=units)
 
             if f'final_states:{name}' in self._implicit_outputs:
-                states_balance_comp.add_output(f'final_states:{name}', shape=(1,) + shape, units=units)
+                # states_resids_comp.add_input(f'final_state_defects:{name}', shape=(1,) + shape, units=units)
+                states_resids_comp.add_output(f'final_states:{name}', shape=(1,) + shape, units=units)
 
             try:
                 rate_source_var = options['rate_source']
@@ -239,7 +254,8 @@ class BirkhoffIterGroup(om.Group):
             var_type = phase.classify_var(rate_source_var)
 
             if var_type == 'ode':
-                self.connect(f'ode_all.{rate_source}', f'f_computed:{name}')
+                self.connect(f'ode_all.{rate_source}', f'f_ode:{name}',
+                             src_indices=om.slicer[gd.subset_node_indices['col'], ...])
 
     def _get_rate_source_path(self, state_name, nodes, phase):
         """
@@ -260,6 +276,7 @@ class BirkhoffIterGroup(om.Group):
             Path to the rate source.
         ndarray
             Array of source indices.
+
         """
         gd = self.grid_data
         try:
@@ -283,7 +300,7 @@ class BirkhoffIterGroup(om.Group):
             # Find the state_input indices which occur at segment endpoints, and repeat them twice
             state_input_idxs = gd.subset_node_indices['state_input']
             repeat_idxs = np.ones_like(state_input_idxs)
-            if self.options['compressed']:
+            if gd.compressed:
                 segment_end_idxs = gd.subset_node_indices['segment_ends'][1:-1]
                 # Repeat nodes that are on segment bounds (but not the first or last nodes in the phase)
                 nodes_to_repeat = list(set(state_input_idxs).intersection(segment_end_idxs))

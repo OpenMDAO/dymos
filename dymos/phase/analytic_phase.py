@@ -124,7 +124,7 @@ class AnalyticPhase(Phase):
             This option is invalid if opt=False.
         targets : Sequence of str or None
             Targets in the ODE to which this control is connected.
-            In the future, if left _unspecified (the default), the phase control will try to connect to an ODE input
+            If left _unspecified (the default), the phase control will try to connect to an ODE input
             of the same name. Set targets to None to prevent this.
         rate_targets : Sequence of str or None
             The targets in the ODE to which the control rate is connected.
@@ -212,7 +212,7 @@ class AnalyticPhase(Phase):
             This option is invalid if opt=False.
         targets : Sequence of str or None
             Targets in the ODE to which this control is connected.
-            In the future, if left _unspecified (the default), the phase control will try to connect to an ODE input
+            If left _unspecified (the default), the phase control will try to connect to an ODE input
             of the same name. Set targets to None to prevent this.
         rate_targets : Sequence of str or None
             The targets in the ODE to which the control rate is connected.
