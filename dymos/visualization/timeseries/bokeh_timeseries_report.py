@@ -501,7 +501,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                                 # Bokeh ColumnDataSource doesn't allow special characters in keys,
                                 # but we want the y_axis label to show the indices of the columns
                                 # being plotted as 'varname[i,j,k]'.
-                                sources[f'{var_name}[{str_idxs}]'] = s = f'{var_name}_{str_idxs.replace(",","_")}'
+                                sources[f'{var_name}[{str_idxs}]'] = s = f'{var_name}_{str_idxs.replace(",", "_")}'
                                 sol_data_column = sol_data[var_name][:, *idxs]
                                 sol_data[s] = sol_data_column
                                 sim_data_column = sim_data[var_name][:, *idxs]
