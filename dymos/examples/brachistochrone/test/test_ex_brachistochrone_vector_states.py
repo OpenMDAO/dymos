@@ -15,7 +15,7 @@ bokeh_available = importlib.util.find_spec('bokeh') is not None
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
     def assert_results(self, p):
