@@ -1,7 +1,10 @@
 from collections import ChainMap
 import datetime
+import itertools
 from pathlib import Path
 import os.path
+
+import numpy as np
 
 from dymos.trajectory.trajectory import Trajectory
 from dymos.phase.phase import Phase
@@ -9,8 +12,9 @@ from dymos.phase.phase import Phase
 try:
     from bokeh.io import save
     from bokeh.layouts import column, grid, row
-    from bokeh.models import Legend, DataTable, Div, ColumnDataSource, TableColumn, \
-        TabPanel, Tabs, CheckboxButtonGroup, CustomJS, MultiChoice
+    from bokeh.models import Legend, DataRange1d, DataTable, Div, \
+        ColumnDataSource, TableColumn, TabPanel, Tabs, \
+        CheckboxButtonGroup, CustomJS, MultiChoice
     from bokeh.plotting import figure, curdoc
     import bokeh.palettes as bp
     import bokeh.resources as bokeh_resources
@@ -306,8 +310,6 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
             phase_sol_data = data_dict[traj_path]['sol_data_by_phase'][phase_name] = {}
             phase_sim_data = data_dict[traj_path]['sim_data_by_phase'][phase_name] = {}
 
-            # param_outputs = {op: meta for op, meta in outputs.items()
-            #                  if op.startswith(f'{phase_path}.param_comp.parameter_vals:')}
             ts_outputs = {op: meta for op, meta in outputs.items()
                           if op.startswith(f'{phase_path}.timeseries.')}
 
@@ -342,9 +344,11 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
                 var_name = prom_name.split('.')[-1]
 
                 if sol_case:
-                    phase_sol_data[var_name] = sol_case.get_val(prom_name, units=ts_units_dict[var_name])
+                    data = sol_case.get_val(prom_name, units=ts_units_dict[var_name])
+                    phase_sol_data[var_name] = data
                 if sim_case:
-                    phase_sim_data[var_name] = sim_case.get_val(prom_name, units=ts_units_dict[var_name])
+                    data = sim_case.get_val(prom_name, units=ts_units_dict[var_name])
+                    phase_sim_data[var_name] = data
 
     return data_dict
 
@@ -381,6 +385,25 @@ def _gather_system_options(model, options, sys_cls=None, rank=0,):
             system_options.update(dict(ChainMap(*gathered)))
 
     return system_options
+
+def _new_figure(x_name, y_name, x_units, y_units, margin, x_range=None):
+    fig_kwargs = {'x_range': x_range} if x_range is not None else {}
+
+    tool_tips = [(f'{x_name}', f'@{x_name}'), (f'{y_name}', f'@{y_name}')]
+
+    fig = figure(tools='pan,box_zoom,xwheel_zoom,hover,undo,reset,save',
+                    tooltips=tool_tips,
+                    x_axis_label=f'{x_name} ({x_units})',
+                    y_axis_label=f'{y_name} ({y_units})',
+                    toolbar_location='above',
+                    sizing_mode='stretch_both',
+                    min_height=250, max_height=300,
+                    margin=margin,
+                    **fig_kwargs)
+    fig.xaxis.axis_label_text_font_size = '10pt'
+    fig.yaxis.axis_label_text_font_size = '10pt'
+    fig.toolbar.autohide = True
+    return fig
 
 
 def make_timeseries_report(prob, solution_record_file=None, simulation_record_file=None,
@@ -454,55 +477,79 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
             # Plot the timeseries
             ts_units_dict = source_data[traj_path]['timeseries_units']
 
-            figures = []
+            figures = {}
+            legend_data_per_figure = {}
             x_range = None
 
+            # var_name is the actual dymos variable name, without any index information.
+            # var_name_with_idxs is the variable name with index information.
+
             for var_name in sorted(ts_units_dict.keys(), key=str.casefold):
-                fig_kwargs = {'x_range': x_range} if x_range is not None else {}
-
-                tool_tips = [(f'{x_name}', f'@{x_name}'), (f'{var_name}', f'@{var_name}')]
-
-                fig = figure(tools='pan,box_zoom,xwheel_zoom,hover,undo,reset,save',
-                             tooltips=tool_tips,
-                             x_axis_label=f'{x_name} ({ts_units_dict[x_name]})',
-                             y_axis_label=f'{var_name} ({ts_units_dict[var_name]})',
-                             toolbar_location='above',
-                             sizing_mode='stretch_both',
-                             min_height=250, max_height=300,
-                             margin=margin,
-                             **fig_kwargs)
-                fig.xaxis.axis_label_text_font_size = '10pt'
-                fig.yaxis.axis_label_text_font_size = '10pt'
-                fig.toolbar.autohide = True
-                legend_data = []
-                if x_range is None:
-                    x_range = fig.x_range
                 for i, phase_name in enumerate(phase_names):
                     color = colors[i % 20]
                     sol_data = source_data[traj_path]['sol_data_by_phase'][phase_name]
                     sim_data = source_data[traj_path]['sim_data_by_phase'][phase_name]
-                    sol_source = ColumnDataSource(sol_data)
-                    sim_source = ColumnDataSource(sim_data)
-                    if x_name in sol_data and var_name in sol_data:
-                        legend_items = []
-                        if sol_data:
-                            sol_plot = fig.scatter(x='time', y=var_name, source=sol_source,
-                                                   color=color, size=5)
-                            sol_plot.tags.extend(['sol', f'phase:{phase_name}'])
-                            legend_items.append(sol_plot)
-                        if sim_data:
-                            sim_plot = fig.line(x='time', y=var_name, source=sim_source, color=color)
-                            sim_plot.tags.extend(['sim', f'phase:{phase_name}'])
-                            legend_items.append(sim_plot)
-                        legend_data.append((phase_name, legend_items))
 
-                legend = Legend(items=legend_data, location='center', label_text_font_size='8pt')
+                    if x_name in sol_data and var_name in sol_data:
+                        shape = sol_data[var_name].shape[1:]
+                        indices = list(itertools.product(*(range(dim) for dim in shape)))
+                        if np.prod(shape) > 1:
+                            sources = {}
+                            for idxs in indices:
+                                str_idxs = ','.join([str(i) for i in idxs])
+                                # Bokeh ColumnDataSource doesn't allow special characters in keys,
+                                # but we want the y_axis label to show the indices of the columns
+                                # being plotted as 'varname[i,j,k]'.
+                                sources[f'{var_name}[{str_idxs}]'] = s = f'{var_name}_{str_idxs.replace(",","_")}'
+                                sol_data_column = sol_data[var_name][:, *idxs]
+                                sol_data[s] = sol_data_column
+                                sim_data_column = sim_data[var_name][:, *idxs]
+                                sim_data[s] = sim_data_column
+                        else:
+                            sources = {var_name: var_name}
+                        sol_source = ColumnDataSource(sol_data)
+                        sim_source = ColumnDataSource(sim_data)
+
+                        for var_name_with_idxs, _source in sources.items():
+                            legend_items = []
+
+                            if var_name_with_idxs in figures:
+                                fig = figures[var_name_with_idxs]
+                                fig_legend_data = legend_data_per_figure[var_name_with_idxs]
+                            else:
+                                fig = _new_figure(x_name=x_name, y_name=var_name_with_idxs,
+                                                  x_units=ts_units_dict[x_name],
+                                                  y_units=ts_units_dict[var_name],
+                                                  margin=margin,
+                                                  x_range=x_range)
+                                figures[var_name_with_idxs] = fig
+                                fig_legend_data = legend_data_per_figure[var_name_with_idxs] = []
+                            if sol_data:
+                                sol_plot = fig.scatter(x='time', y=_source, source=sol_source,
+                                                      color=color, size=5)
+                                sol_plot.tags.extend(['sol', f'phase:{phase_name}'])
+                                legend_items.append(sol_plot)
+                            if sim_data:
+                                sim_plot = fig.line(x='time', y=_source, source=sim_source, color=color)
+                                sim_plot.tags.extend(['sim', f'phase:{phase_name}'])
+                                legend_items.append(sim_plot)
+                            fig_legend_data.append((phase_name, legend_items))
+                            if x_range is None:
+                                x_range = fig.x_range
+                            fig.y_range = DataRange1d(min_interval=1.0E-12)
+
+                            figures[var_name_with_idxs] = fig
+
+            # Add the legend data to each figure
+            for var_name_with_idxs, fig in figures.items():
+                legend_data = legend_data_per_figure[var_name_with_idxs]
+                legend = Legend(items=legend_data, location='center', label_text_font_size='8pt',
+                                            orientation='vertical')
                 fig.add_layout(legend, 'right')
-                figures.append(fig)
 
             # Since we're putting figures in two columns, make sure we have an even number of things to put in the layout.
             if len(figures) % 2 == 1:
-                figures.append(None)
+                figures['__NONE__'] = None
 
             param_panels = [TabPanel(child=table, title=f'{phase_names[i]} parameters')
                             for i, table in enumerate(param_tables)]
@@ -522,7 +569,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
             phase_select_row = row(children=[Div(text='Plot phases:'), phase_select],
                                    sizing_mode='stretch_width')
 
-            figures_grid = grid(children=figures, ncols=ncols, sizing_mode='stretch_both')
+            figures_grid = grid(children=list(figures.values()), ncols=ncols, sizing_mode='stretch_both')
 
             ts_layout = column(children=[sol_sim_row, phase_select_row, figures_grid],
                                sizing_mode='stretch_both')

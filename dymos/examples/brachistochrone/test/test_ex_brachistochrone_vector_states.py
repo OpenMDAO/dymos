@@ -1,16 +1,21 @@
+import importlib
+import pathlib
 import unittest
 from numpy.testing import assert_almost_equal
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, set_env_vars_context
 
+import dymos as dm
 import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
-from dymos.utils.testing_utils import assert_check_partials
+from dymos.utils.testing_utils import assert_check_partials, _get_reports_dir
+
+bokeh_available = importlib.util.find_spec('bokeh') is not None
 
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
     def assert_results(self, p):
@@ -45,7 +50,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
     def assert_partials(self, p):
         with printoptions(linewidth=1024, edgeitems=100):
-            cpd = p.check_partials(method='cs', compact_print=True)
+            cpd = p.check_partials(method='cs', compact_print=True, out_stream=None)
         assert_check_partials(cpd)
 
     def test_ex_brachistochrone_vs_radau_compressed(self):
@@ -96,6 +101,36 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
         self.assert_results(p)
         self.assert_partials(p)
+
+    @unittest.skipIf(not bokeh_available, 'bokeh unavailable')
+    def test_bokeh_plots(self):
+
+        with set_env_vars_context(OPENMDAO_REPORTS='1'):
+            with dm.options.temporary(plots='bokeh'):
+                p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
+                                                                   compressed=False,
+                                                                   force_alloc_complex=True,
+                                                                   run_driver=True,
+                                                                   simulate=True,
+                                                                   make_plots=True)
+                self.assert_results(p)
+                self.assert_partials(p)
+
+                html_file = pathlib.Path(_get_reports_dir(p)) / 'traj0_results_report.html'
+                self.assertTrue(html_file.exists(), msg=f'{html_file} does not exist!')
+
+                with open(html_file) as f:
+                    html_data = f.read()
+
+                expected_labels = ['"axis_label":"pos[0] (m)"',
+                                   '"axis_label":"pos[1] (m)"',
+                                   '"axis_label":"v (m/s)"',
+                                   '"axis_label":"theta (deg)"']
+
+                for label in expected_labels:
+                    self.assertIn(label, html_data)
+
+                self.assertNotIn('"axis_label":"pos (m)"', html_data)
 
 
 if __name__ == "__main__":

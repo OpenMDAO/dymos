@@ -7,7 +7,8 @@ from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
                              grid_type='lgl', compressed=True, optimizer='SLSQP',
                              dynamic_simul_derivs=True, force_alloc_complex=False,
-                             solve_segments=False, run_driver=True):
+                             solve_segments=False, run_driver=True, simulate=False,
+                             make_plots=False):
     p = om.Problem(model=om.Group())
 
     if optimizer == 'SNOPT':
@@ -78,9 +79,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     phase.set_state_val('v', [0, 9.9])
     phase.set_control_val('theta', [5, 100])
     phase.set_parameter_val('g', 9.80665)
-    p.run_model()
-    if run_driver:
-        p.run_driver()
+
+    dm.run_problem(p,
+                   run_driver=run_driver,
+                   simulate=simulate,
+                   make_plots=make_plots)
 
     return p
 
