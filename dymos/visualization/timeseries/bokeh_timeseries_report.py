@@ -525,12 +525,12 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                                 figures[var_name_with_idxs] = fig
                                 fig_legend_data = legend_data_per_figure[var_name_with_idxs] = []
                             if sol_data:
-                                sol_plot = fig.scatter(x='time', y=_source, source=sol_source,
+                                sol_plot = fig.scatter(x=x_name, y=_source, source=sol_source,
                                                       color=color, size=5)
                                 sol_plot.tags.extend(['sol', f'phase:{phase_name}'])
                                 legend_items.append(sol_plot)
                             if sim_data:
-                                sim_plot = fig.line(x='time', y=_source, source=sim_source, color=color)
+                                sim_plot = fig.line(x=x_name, y=_source, source=sim_source, color=color)
                                 sim_plot.tags.extend(['sim', f'phase:{phase_name}'])
                                 legend_items.append(sim_plot)
                             fig_legend_data.append((phase_name, legend_items))
