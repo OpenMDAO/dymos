@@ -386,20 +386,21 @@ def _gather_system_options(model, options, sys_cls=None, rank=0,):
 
     return system_options
 
+
 def _new_figure(x_name, y_name, x_units, y_units, margin, x_range=None):
     fig_kwargs = {'x_range': x_range} if x_range is not None else {}
 
     tool_tips = [(f'{x_name}', f'@{x_name}'), (f'{y_name}', f'@{y_name}')]
 
     fig = figure(tools='pan,box_zoom,xwheel_zoom,hover,undo,reset,save',
-                    tooltips=tool_tips,
-                    x_axis_label=f'{x_name} ({x_units})',
-                    y_axis_label=f'{y_name} ({y_units})',
-                    toolbar_location='above',
-                    sizing_mode='stretch_both',
-                    min_height=250, max_height=300,
-                    margin=margin,
-                    **fig_kwargs)
+                 tooltips=tool_tips,
+                 x_axis_label=f'{x_name} ({x_units})',
+                 y_axis_label=f'{y_name} ({y_units})',
+                 toolbar_location='above',
+                 sizing_mode='stretch_both',
+                 min_height=250, max_height=300,
+                 margin=margin,
+                 **fig_kwargs)
     fig.xaxis.axis_label_text_font_size = '10pt'
     fig.yaxis.axis_label_text_font_size = '10pt'
     fig.toolbar.autohide = True
@@ -526,7 +527,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                                 fig_legend_data = legend_data_per_figure[var_name_with_idxs] = []
                             if sol_data:
                                 sol_plot = fig.scatter(x=x_name, y=_source, source=sol_source,
-                                                      color=color, size=5)
+                                                       color=color, size=5)
                                 sol_plot.tags.extend(['sol', f'phase:{phase_name}'])
                                 legend_items.append(sol_plot)
                             if sim_data:
@@ -544,7 +545,7 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
             for var_name_with_idxs, fig in figures.items():
                 legend_data = legend_data_per_figure[var_name_with_idxs]
                 legend = Legend(items=legend_data, location='center', label_text_font_size='8pt',
-                                            orientation='vertical')
+                                orientation='vertical')
                 fig.add_layout(legend, 'right')
 
             # Since we're putting figures in two columns, make sure we have an even number of things to put in the layout.
