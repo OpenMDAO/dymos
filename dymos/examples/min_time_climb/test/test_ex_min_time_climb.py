@@ -341,7 +341,7 @@ class TestMinTimeClimbWithReports(TestMinTimeClimb):
             self.assertIn(label, html_data)
 
     @require_pyoptsparse(optimizer='IPOPT')
-    @skipIf(not bokeh_available, 'bokeh is not available')
+    @unittest.skipIf(not bokeh_available, 'bokeh is not available')
     def test_results_gauss_lobatto_renamed_time(self):
         with set_env_vars_context(OPENMDAO_REPORTS='1'):
             with dm.options.temporary(plots='bokeh'):
@@ -363,7 +363,7 @@ class TestMinTimeClimbWithReports(TestMinTimeClimb):
                 self._test_traj_results_report(p)
 
     @require_pyoptsparse(optimizer='IPOPT')
-    @skipIf(not bokeh_available, 'bokeh is not available')
+    @unittest.skipIf(not bokeh_available, 'bokeh is not available')
     def test_results_radau_renamed_time(self):
         with set_env_vars_context(OPENMDAO_REPORTS='1'):
             with dm.options.temporary(plots='bokeh'):
