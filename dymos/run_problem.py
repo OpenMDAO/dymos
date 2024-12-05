@@ -122,7 +122,6 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
                 sims[subsys.pathname] = sim_prob
 
     if make_plots:
-
         if om_version()[0] > (3, 34, 2):
             outputs_dir = problem.get_outputs_dir()
             if os.sep in str(solution_record_file):

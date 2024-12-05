@@ -1,10 +1,19 @@
 import importlib
+import os
 import pathlib
 import unittest
 from numpy.testing import assert_almost_equal
 
+import sys
+
+try:
+    sys.modules.pop('bokeh')
+except:
+    pass
+
 from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
 from openmdao.utils.testing_utils import use_tempdirs, set_env_vars_context
+from openmdao.utils.tests.test_hooks import hooks_active
 
 import dymos as dm
 import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
@@ -17,6 +26,14 @@ OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 
 @use_tempdirs
 class TestBrachistochroneVectorStatesExample(unittest.TestCase):
+
+    def setUp(self):
+        self.testflo_running = os.environ.pop('TESTFLO_RUNNING', None)
+
+    def tearDown(self):
+        # restore what was there before running the test
+        if self.testflo_running is not None:
+            os.environ['TESTFLO_RUNNING'] = self.testflo_running
 
     def assert_results(self, p):
         t_initial = p.get_val('traj0.phase0.timeseries.time')[0]
@@ -103,8 +120,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         self.assert_partials(p)
 
     @unittest.skipIf(not bokeh_available, 'bokeh unavailable')
+    @hooks_active
     def test_bokeh_plots(self):
-
         with set_env_vars_context(OPENMDAO_REPORTS='1'):
             with dm.options.temporary(plots='bokeh'):
                 p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
@@ -113,6 +130,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
                                                                    run_driver=True,
                                                                    simulate=True,
                                                                    make_plots=True)
+
                 self.assert_results(p)
                 self.assert_partials(p)
 

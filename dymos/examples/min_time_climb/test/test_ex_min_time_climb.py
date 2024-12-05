@@ -1,3 +1,4 @@
+import os
 import unittest
 import numpy as np
 from numpy.polynomial import Polynomial as P
@@ -15,7 +16,7 @@ from dymos.utils.introspection import get_promoted_vars
 import dymos as dm
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 from dymos.utils.misc import om_version
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse, set_env_vars_context
 
 
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
@@ -293,37 +294,19 @@ class TestMinTimeClimb(unittest.TestCase):
 
         self._test_timeseries_units(p)
 
-    @require_pyoptsparse(optimizer='IPOPT')
-    def test_results_gauss_lobatto_renamed_time(self):
-        NUM_SEG = 12
-        ORDER = 3
-        p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
-                           transcription='gauss-lobatto', add_rate=True, time_name='t')
 
-        self._test_results(p, time_name='t')
+@use_tempdirs
+class TestMinTimeClimbWithReports(TestMinTimeClimb):
 
-        self._test_wilcard_outputs(p)
+    def setUp(self):
+        self.testflo_running = os.environ.pop('TESTFLO_RUNNING', None)
 
-        self._test_timeseries_units(p)
+    def tearDown(self):
+        # restore what was there before running the test
+        if self.testflo_running is not None:
+            os.environ['TESTFLO_RUNNING'] = self.testflo_running
 
-        self._test_mach_rate(p, time_name='t')
-
-    @require_pyoptsparse(optimizer='IPOPT')
-    def test_results_radau_renamed_time(self):
-        NUM_SEG = 15
-        ORDER = 3
-        p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
-                           transcription='radau-ps', add_rate=True, time_name='t', force_alloc_complex=True,
-                           make_plots=True)
-
-        self._test_results(p, time_name='t')
-
-        self._test_wilcard_outputs(p)
-
-        self._test_timeseries_units(p)
-
-        self._test_mach_rate(p, plot=False, time_name='t')
-
+    def _test_traj_results_report(self, p):
         html_file = _get_reports_dir(p) / 'traj_results_report.html'
         self.assertTrue(html_file.exists(), msg=f'{html_file} does not exist!')
 
@@ -352,6 +335,47 @@ class TestMinTimeClimb(unittest.TestCase):
 
         for label in expected_labels:
             self.assertIn(label, html_data)
+
+    @require_pyoptsparse(optimizer='IPOPT')
+    def test_results_gauss_lobatto_renamed_time(self):
+        with set_env_vars_context(OPENMDAO_REPORTS='1'):
+            with dm.options.temporary(plots='bokeh'):
+                NUM_SEG = 12
+                ORDER = 3
+                p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
+                                   force_alloc_complex=True,
+                                   transcription='gauss-lobatto', add_rate=True, time_name='t',
+                                   make_plots=True)
+
+                self._test_results(p, time_name='t')
+
+                self._test_wilcard_outputs(p)
+
+                self._test_timeseries_units(p)
+
+                self._test_mach_rate(p, time_name='t')
+
+                self._test_traj_results_report(p)
+
+    @require_pyoptsparse(optimizer='IPOPT')
+    def test_results_radau_renamed_time(self):
+        with set_env_vars_context(OPENMDAO_REPORTS='1'):
+            with dm.options.temporary(plots='bokeh'):
+                NUM_SEG = 15
+                ORDER = 3
+                p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
+                                   transcription='radau-ps', add_rate=True, time_name='t',
+                                   force_alloc_complex=True, make_plots=True)
+
+                self._test_results(p, time_name='t')
+
+                self._test_wilcard_outputs(p)
+
+                self._test_timeseries_units(p)
+
+                self._test_mach_rate(p, plot=False, time_name='t')
+
+                self._test_traj_results_report(p)
 
 
 if __name__ == '__main__':  # pragma: no cover

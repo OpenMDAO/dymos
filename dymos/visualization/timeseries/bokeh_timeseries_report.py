@@ -502,9 +502,9 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                                 # but we want the y_axis label to show the indices of the columns
                                 # being plotted as 'varname[i,j,k]'.
                                 sources[f'{var_name}[{str_idxs}]'] = s = f'{var_name}_{str_idxs.replace(",", "_")}'
-                                sol_data_column = sol_data[var_name][:, *idxs]
+                                sol_data_column = sol_data[var_name][(slice(None), *idxs)]
                                 sol_data[s] = sol_data_column
-                                sim_data_column = sim_data[var_name][:, *idxs]
+                                sim_data_column = sim_data[var_name][(slice(None), *idxs)]
                                 sim_data[s] = sim_data_column
                         else:
                             sources = {var_name: var_name}
@@ -598,6 +598,5 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                                                          phase_select=phase_select)))
 
             # Save
-
             save(report_layout, filename=report_path, title=f'trajectory results for {traj_path}',
                  resources=bokeh_resources.INLINE)
