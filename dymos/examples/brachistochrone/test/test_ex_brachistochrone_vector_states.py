@@ -6,11 +6,6 @@ from numpy.testing import assert_almost_equal
 
 import sys
 
-try:
-    sys.modules.pop('bokeh')
-except:
-    pass
-
 from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
 from openmdao.utils.testing_utils import use_tempdirs, set_env_vars_context
 from openmdao.utils.tests.test_hooks import hooks_active
