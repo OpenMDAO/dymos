@@ -1,3 +1,5 @@
+import importlib
+import os
 import unittest
 import numpy as np
 from numpy.polynomial import Polynomial as P
@@ -9,18 +11,21 @@ except ImportError:
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from dymos.utils.testing_utils import assert_timeseries_near_equal
+from dymos.utils.testing_utils import assert_timeseries_near_equal, _get_reports_dir
 from dymos.utils.introspection import get_promoted_vars
 
 import dymos as dm
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 from dymos.utils.misc import om_version
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse, set_env_vars_context
+
+
+bokeh_available = importlib.util.find_spec('bokeh') is not None
 
 
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                    transcription_order=3, force_alloc_complex=False, add_rate=False, time_name='time',
-                   simulate=True, path_constraints=True):
+                   simulate=True, path_constraints=True, make_plots=False):
 
     p = om.Problem(model=om.Group())
 
@@ -139,7 +144,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         with np.printoptions(linewidth=1024, edgeitems=1024):
             p.check_partials(compact_print=False, method='cs', show_only_incorrect=True, out_stream=f)
 
-    dm.run_problem(p, simulate=simulate, make_plots=False)
+    dm.run_problem(p, simulate=simulate, make_plots=make_plots, plot_kwargs={'x_name': time_name})
 
     return p
 
@@ -293,35 +298,90 @@ class TestMinTimeClimb(unittest.TestCase):
 
         self._test_timeseries_units(p)
 
+
+@use_tempdirs
+class TestMinTimeClimbWithReports(TestMinTimeClimb):
+
+    def setUp(self):
+        self.testflo_running = os.environ.pop('TESTFLO_RUNNING', None)
+
+    def tearDown(self):
+        # restore what was there before running the test
+        if self.testflo_running is not None:
+            os.environ['TESTFLO_RUNNING'] = self.testflo_running
+
+    def _test_traj_results_report(self, p):
+        html_file = _get_reports_dir(p) / 'traj_results_report.html'
+        self.assertTrue(html_file.exists(), msg=f'{html_file} does not exist!')
+
+        with open(html_file) as f:
+            html_data = f.read()
+
+        expected_labels = ['"axis_label":"alpha (deg)"',
+                           '"axis_label":"t (s)"',
+                           '"axis_label":"CD (None)"',
+                           '"axis_label":"CD0 (None)"',
+                           '"axis_label":"CL (None)"',
+                           '"axis_label":"CLa (None)"',
+                           '"axis_label":"f_drag (N)"',
+                           '"axis_label":"f_lift (lbf)"',
+                           '"axis_label":"gam (rad)"',
+                           '"axis_label":"h (m)"',
+                           '"axis_label":"kappa (None)"',
+                           '"axis_label":"m (kg)"',
+                           '"axis_label":"m_dot (kg/s)"',
+                           '"axis_label":"mach (None)"',
+                           '"axis_label":"mach_rate (None)"',
+                           '"axis_label":"q (N/m**2)"',
+                           '"axis_label":"r (m)"',
+                           '"axis_label":"thrust (lbf)"',
+                           '"axis_label":"v (m/s)"']
+
+        for label in expected_labels:
+            self.assertIn(label, html_data)
+
     @require_pyoptsparse(optimizer='IPOPT')
+    @unittest.skipIf(not bokeh_available, 'bokeh is not available')
     def test_results_gauss_lobatto_renamed_time(self):
-        NUM_SEG = 12
-        ORDER = 3
-        p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
-                           transcription='gauss-lobatto', add_rate=True, time_name='t')
+        with set_env_vars_context(OPENMDAO_REPORTS='1'):
+            with dm.options.temporary(plots='bokeh'):
+                NUM_SEG = 12
+                ORDER = 3
+                p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
+                                   force_alloc_complex=True,
+                                   transcription='gauss-lobatto', add_rate=True, time_name='t',
+                                   make_plots=True)
 
-        self._test_results(p, time_name='t')
+                self._test_results(p, time_name='t')
 
-        self._test_wilcard_outputs(p)
+                self._test_wilcard_outputs(p)
 
-        self._test_timeseries_units(p)
+                self._test_timeseries_units(p)
 
-        self._test_mach_rate(p, time_name='t')
+                self._test_mach_rate(p, time_name='t')
+
+                self._test_traj_results_report(p)
 
     @require_pyoptsparse(optimizer='IPOPT')
+    @unittest.skipIf(not bokeh_available, 'bokeh is not available')
     def test_results_radau_renamed_time(self):
-        NUM_SEG = 15
-        ORDER = 3
-        p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
-                           transcription='radau-ps', add_rate=True, time_name='t', force_alloc_complex=True)
+        with set_env_vars_context(OPENMDAO_REPORTS='1'):
+            with dm.options.temporary(plots='bokeh'):
+                NUM_SEG = 15
+                ORDER = 3
+                p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
+                                   transcription='radau-ps', add_rate=True, time_name='t',
+                                   force_alloc_complex=True, make_plots=True)
 
-        self._test_results(p, time_name='t')
+                self._test_results(p, time_name='t')
 
-        self._test_wilcard_outputs(p)
+                self._test_wilcard_outputs(p)
 
-        self._test_timeseries_units(p)
+                self._test_timeseries_units(p)
 
-        self._test_mach_rate(p, plot=False, time_name='t')
+                self._test_mach_rate(p, plot=False, time_name='t')
+
+                self._test_traj_results_report(p)
 
 
 if __name__ == '__main__':  # pragma: no cover

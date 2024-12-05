@@ -13,7 +13,6 @@ from openmdao.utils.testing_utils import require_pyoptsparse
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.testing_utils import use_tempdirs, set_env_vars_context
 
-
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_orbit_raise_problem import two_burn_orbit_raise_problem
 from dymos.utils.testing_utils import _get_reports_dir

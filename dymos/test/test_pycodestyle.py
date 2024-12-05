@@ -1,4 +1,6 @@
 import os
+import pathlib
+import subprocess
 import sys
 import unittest
 
@@ -33,6 +35,33 @@ def _discover_python_files(path):
     return python_files
 
 
+def _get_tracked_python_files(git_root):
+    """
+    Given a git root directory
+
+    Parameters
+    ----------
+    git_root : str or Path
+        The root directory of the git repository.
+
+    Returns
+    -------
+    set
+        Python files in the given git directory that a tracked by git.
+    """
+    _git_root = str(git_root)
+    file_list = _discover_python_files(_git_root)
+    untracked_set = set(
+        subprocess.run(
+            ['git', 'ls-files', _git_root, '--exclude-standard', '--others'],
+            stdout=subprocess.PIPE,
+            text=True
+        ).stdout.splitlines()
+    )
+    untracked_set = {str(pathlib.Path(f).absolute()) for f in untracked_set if f.endswith('.py')}
+    return set(file_list) - untracked_set
+
+
 @unittest.skipIf(pycodestyle is None, "This test requires pycodestyle")
 class TestPyCodeStyle(unittest.TestCase):
 
@@ -46,6 +75,8 @@ class TestPyCodeStyle(unittest.TestCase):
         """
         dymos_path = os.path.split(dymos.__file__)[0]
         pyfiles = _discover_python_files(dymos_path)
+
+        files_to_check = _get_tracked_python_files(dymos_path)
 
         style = pycodestyle.StyleGuide(ignore=['E226',  # missing whitespace around arithmetic operator
                                                'E241',  # multiple spaces after ','
@@ -65,7 +96,7 @@ class TestPyCodeStyle(unittest.TestCase):
         try:
             sys.stdout = buff_out = StringIO()
             sys.stdout = buff_err = StringIO()
-            report = style.check_files(pyfiles)
+            report = style.check_files(files_to_check)
         finally:
             sys.stdout = save_out
             sys.stderr = save_err
