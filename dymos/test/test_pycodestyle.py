@@ -41,22 +41,19 @@ def _get_tracked_python_files(git_root):
 
     Parameters
     ----------
-    git_root : _type_
-        _description_
-    file_list : _type_
-        _description_
-    suffix : str, optional
-        _description_, by default '.py'
+    git_root : str or Path
+        The root directory of the git repository.
 
     Returns
     -------
-    _type_
-        _description_
+    set
+        Python files in the given git directory that a tracked by git.
     """
-    file_list = _discover_python_files(git_root)
+    _git_root = str(git_root)
+    file_list = _discover_python_files(_git_root)
     untracked_set = set(
         subprocess.run(
-            ['git', 'ls-files', git_root, '--exclude-standard', '--others'],
+            ['git', 'ls-files', _git_root, '--exclude-standard', '--others'],
             stdout=subprocess.PIPE,
             text=True
         ).stdout.splitlines()
