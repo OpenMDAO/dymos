@@ -19,7 +19,7 @@ from dymos.utils.testing_utils import PhaseStub, SimpleODE, SimpleVectorizedODE
 RadauIterGroup = GroupWrapperConfig(RadauIterGroup, [PhaseStub()])
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestRadauIterGroup(unittest.TestCase):
 
     def test_solve_segments(self):

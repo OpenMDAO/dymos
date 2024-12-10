@@ -11,7 +11,7 @@ from dymos.utils.testing_utils import assert_check_partials
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
     def assert_results(self, p):

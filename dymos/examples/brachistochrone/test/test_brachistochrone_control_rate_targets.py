@@ -138,7 +138,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
 
                     with self.subTest(f'{tx_name=} {control_target_method=} {control_type=}'):
 
-                        p = om.Problem(model=om.Group())
+                        p = om.Problem(model=om.Group(), reports=True)
                         p.driver = om.ScipyOptimizeDriver()
                         p.driver.declare_coloring()
 
@@ -170,7 +170,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
 
                         phase.add_control('int_theta', lower=0.0, upper=None, fix_initial=True,
                                           rate_targets=_unspecified if control_target_method == 'implicit' else ['theta'],
-                                          control_type=control_type, order=7)
+                                          control_type=control_type, order=7, continuity=True)
 
                         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -187,7 +187,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
 
                         phase.set_state_val('x', [0, 10])
                         phase.set_state_val('y', [10, 5])
-                        phase.set_state_val('v', [0, 9.9])
+                        phase.set_state_val('v', [0.001, 9.9])
                         phase.set_control_val('int_theta', [0, 100], units='deg*s')
 
                         p.run_model()

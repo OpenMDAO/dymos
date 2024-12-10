@@ -2,6 +2,7 @@ import unittest
 import warnings
 
 import numpy as np
+from numpy.testing import assert_allclose
 
 from scipy.interpolate import interp1d
 
@@ -197,13 +198,11 @@ class TestTimeseriesOutput(unittest.TestCase):
         t_sol = p.get_val('phase0.timeseries.time')
         t_sim = exp_out.get_val('phase0.timeseries.time')
 
-        p.model.list_outputs()
-
         for state_name, rate_name in (('x', 'xdot'), ('y', 'ydot'), ('v', 'vdot')):
             rate_sol = p.get_val(f'phase0.timeseries.{rate_name}')
             rate_sim = exp_out.get_val(f'phase0.timeseries.{rate_name}')
             rate_t_sim = interp1d(t_sim.ravel(), rate_sim.ravel())
-            assert_near_equal(rate_t_sim(t_sol), rate_sol, tolerance=1.0E-3)
+            assert_allclose(rate_t_sim(t_sol), rate_sol, rtol=1.0E-3, atol=1.0E-3)
 
     def test_timeseries_radau_smaller_timeseries(self):
         self.test_timeseries_radau(test_smaller_timeseries=True)

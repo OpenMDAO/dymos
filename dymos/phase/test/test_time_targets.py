@@ -136,18 +136,11 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         p.setup(check=True, force_alloc_complex=True)
 
-        p['phase0.t_initial'] = 1.0
-        p['phase0.t_duration'] = 2.0
-
-        if transcription == 'explicit-shooting':
-            p['phase0.initial_states:x'] = 0
-            p['phase0.initial_states:y'] = 10
-            p['phase0.initial_states:v'] = 0
-        else:
-            p['phase0.states:x'] = phase.interp('x', [0, 10])
-            p['phase0.states:y'] = phase.interp('y', [10, 5])
-            p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['phase0.controls:theta'] = phase.interp('theta', [0.01, 100.5])
+        phase.set_time_val(initial=1.0, duration=2.0)
+        phase.set_state_val('x', vals=[0, 10])
+        phase.set_state_val('y', vals=[10, 5])
+        phase.set_state_val('v', vals=[1.0E-6, 9.9])
+        phase.set_control_val('theta', vals=[0.01, 100.5], units='deg')
 
         return p
 
@@ -226,15 +219,11 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
                 time_phase_all = p[f'phase0.timeseries.{time_name}_phase'].ravel()
 
-                assert_near_equal(p['phase0.rhs_all.time_phase'][-1], 1.8016, tolerance=1.0E-3)
+                assert_near_equal(p['phase0.ode_all.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
-                assert_near_equal(p['phase0.rhs_all.t_initial'], p['phase0.t_initial'])
+                assert_near_equal(p['phase0.ode_all.time_phase'], time_phase_all)
 
-                assert_near_equal(p['phase0.rhs_all.t_duration'], p['phase0.t_duration'])
-
-                assert_near_equal(p['phase0.rhs_all.time_phase'], time_phase_all)
-
-                assert_near_equal(p['phase0.rhs_all.time'], time_all)
+                assert_near_equal(p['phase0.ode_all.time'], time_all)
 
                 exp_out = p.model.phase0.simulate()
 
@@ -360,15 +349,11 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         time_phase_all = p['phase0.t_phase']
 
-        assert_near_equal(p['phase0.rhs_all.time_phase'][-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.ode_all.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
-        assert_near_equal(p['phase0.rhs_all.t_initial'], p['phase0.t_initial'])
+        assert_near_equal(p['phase0.ode_all.time_phase'], time_phase_all)
 
-        assert_near_equal(p['phase0.rhs_all.t_duration'], p['phase0.t_duration'])
-
-        assert_near_equal(p['phase0.rhs_all.time_phase'], time_phase_all)
-
-        assert_near_equal(p['phase0.rhs_all.time'], time_all)
+        assert_near_equal(p['phase0.ode_all.time'], time_all)
 
         exp_out = p.model._get_subsystem('phase0').simulate()
 

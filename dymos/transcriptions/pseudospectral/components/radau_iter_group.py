@@ -201,12 +201,10 @@ class RadauIterGroup(om.Group):
             rate_source = options['rate_source']
             shape = options['shape']
 
-            # TODO: compressed transcription is not currently supported because promoting duplicate
-            # indices currently has a bug in OpenMDAO <= 3.35.0
             for tgt in options['targets']:
                 self.promotes('ode_all', [(tgt, f'states:{name}')],
                               src_indices=om.slicer[state_src_idxs_input_to_all, ...])
-                            #   src_shape=(nin,) + shape)
+
             self.set_input_defaults(f'states:{name}', val=1.0, units=units, src_shape=(nin,) + shape)
 
             self.promotes('defects', inputs=(f'states:{name}',),

@@ -120,8 +120,8 @@ class RadauNew(TranscriptionBase):
                     flat_src_idxs = True
                     src_shape = (1,)
 
-                phase.promotes('ode_all', inputs=[(t, name)], src_indices=src_idxs,
-                               flat_src_indices=flat_src_idxs, src_shape=src_shape)
+                phase.ode_iter_group.promotes('ode_all', any=[(t, name)], src_indices=src_idxs,
+                                              flat_src_indices=flat_src_idxs, src_shape=src_shape)
 
                 phase.promotes('boundary_vals', inputs=[(t, name)], src_indices=endpoint_src_idxs,
                                flat_src_indices=flat_src_idxs, src_shape=src_shape)
