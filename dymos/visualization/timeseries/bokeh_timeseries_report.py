@@ -286,7 +286,9 @@ def _load_data_sources(traj_and_phase_meta=None, solution_record_file=None, simu
     if sim_outputs is not None and sol_outputs is not None:
         if not set(sim_outputs.keys()).issubset(sol_outputs.keys()):
             om.issue_warning('Simulation file does not contain the same outputs as the solution '
-                             'file. Skipping plotting of simulation timeseries data.')
+                             'file. Skipping plotting of simulation timeseries data.\nThe following '
+                             'outputs are in the simulation results but not in the solution results:\n'
+                             f'{set(sim_outputs.keys()) - set(sol_outputs.keys())}')
             sim_case = None
 
     for traj_path, traj_data in traj_and_phase_meta.items():
