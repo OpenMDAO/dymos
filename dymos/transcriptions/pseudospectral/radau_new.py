@@ -32,8 +32,7 @@ class RadauNew(TranscriptionBase):
         """
         self.options.declare('grid', types=(RadauGrid, str),
                              allow_none=True, default=None,
-                             desc='The grid distribution used to layout the control inputs and provide the default '
-                                  'output nodes. Use either "cgl" or "lgl".')
+                             desc='The grid distribution used to layout the control input and interpolation nodes.')
 
         self.options.declare(name='solve_segments', default=False,
                              values=(False, 'forward', 'backward'),
@@ -174,6 +173,7 @@ class RadauNew(TranscriptionBase):
             phase.add_subsystem('control_comp',
                                 subsys=ControlComp(time_units=time_units,
                                                    grid_data=gd,
+                                                   compressed=False,
                                                    control_options=control_options),
                                 promotes_inputs=['*controls*'],
                                 promotes_outputs=['control_values:*', 'control_rates:*'])

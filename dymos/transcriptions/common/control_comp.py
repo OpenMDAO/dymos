@@ -58,6 +58,11 @@ class ControlComp(om.ExplicitComponent):
         self.options.declare(
             'time_units', default=None, allow_none=True, types=str,
             desc='Units of time')
+        self.options.declare('compressed', types=bool, default=False,
+                             desc='Specifies whether the controls are giving in a compressed '
+                             'transcription (values are specified once at segment boundaries), '
+                             'or not (each end of the boundary can have a unique value). Controls '
+                             'in the Radau transcription are never compressed.')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info for the control inputs.')
         self.options.declare('output_grid_data', types=GridData, allow_none=True, default=None,
                              desc='GridData object for the output grid. If None, use the same grid_data as the inputs.')
@@ -78,6 +83,8 @@ class ControlComp(om.ExplicitComponent):
         """
         gd = self.options['grid_data']
         ogd = self.options['output_grid_data'] or gd
+        if self.options['output_grid_data'] is None:
+            self.options['output_grid_data'] = ogd
 
         if not gd.is_aligned_with(ogd):
             raise RuntimeError(f'{self.pathname}: The input grid and the output grid must have the same number of '
@@ -87,9 +94,9 @@ class ControlComp(om.ExplicitComponent):
 
     def _configure_controls(self):
         gd = self.options['grid_data']
+        ogd = self.options['output_grid_data'] or gd
         num_seg = gd.num_segments
         segment_end_idxs = gd.subset_node_indices['segment_ends']
-        ogd = self.options['output_grid_data'] or gd
         eval_nodes = ogd.node_ptau
         control_options = self.options['control_options']
         num_output_nodes = ogd.num_nodes
@@ -204,7 +211,7 @@ class ControlComp(om.ExplicitComponent):
                 self.add_output(self._output_rate2_names[name], shape=output_shape,
                                 units=rate2_units)
 
-                if gd.num_segments > 1 and not gd.compressed:
+                if gd.num_segments > 1 and not self.options['compressed']:
                     if options['continuity']:
                         self.add_output(self._output_cnty_defect_names[name],
                                         shape=cnty_output_shape, units=units)
@@ -243,7 +250,7 @@ class ControlComp(om.ExplicitComponent):
                                       rows=rs, cols=cs, val=data)
 
                 # The jacobian for continuity defects is similar to the jacobian of the inteprpolated values
-                if options['continuity'] and gd.num_segments > 1 and not gd.compressed:
+                if options['continuity'] and gd.num_segments > 1 and not self.options['compressed']:
                     J_cnty_def = -J_val[segment_end_idxs, ...][1:-1:2, ...]
                     J_cnty_def = J_cnty_def.tolil(copy=True)
                     one_col_idxs = np.cumsum(np.asarray(ncinps[:-1]))
@@ -278,7 +285,7 @@ class ControlComp(om.ExplicitComponent):
                                       rows=rs, cols=cs)
 
                 # Similar with the continuity rate defects.
-                if options['rate_continuity'] and gd.num_segments > 1 and not gd.compressed:
+                if options['rate_continuity'] and gd.num_segments > 1 and not self.options['compressed']:
                     J_rate_cnty_def = sp.kron(self.D, sp_eye, format='lil')[segment_end_idxs, ...]
                     J_rate_cnty_def = J_rate_cnty_def[1:-1]
                     J_rate_cnty_def[::2] *= -1
@@ -301,7 +308,7 @@ class ControlComp(om.ExplicitComponent):
                                       rows=rs, cols=cs)
 
                 # Similar with the continuity rate defects.
-                if options['rate2_continuity'] and gd.num_segments > 1 and not gd.compressed:
+                if options['rate2_continuity'] and gd.num_segments > 1 and not self.options['compressed']:
                     J_rate2_cnty_def = sp.kron(self.D2, sp_eye, format='lil')[segment_end_idxs, ...]
                     J_rate2_cnty_def = J_rate2_cnty_def[1:-1]
                     J_rate2_cnty_def[::2] *= -1
@@ -467,7 +474,7 @@ class ControlComp(om.ExplicitComponent):
                 outputs[self._output_rate_names[name]] = rate
                 outputs[self._output_rate2_names[name]] = rate2
 
-                if options['continuity'] and gd.num_segments > 1 and not gd.compressed:
+                if options['continuity'] and gd.num_segments > 1 and not self.options['compressed']:
                     # output_name = self._output_val_names[name]
                     cnty_output_name = self._output_cnty_defect_names[name]
                     segment_end_values = val[seg_end_idxs, ...]
@@ -475,7 +482,7 @@ class ControlComp(om.ExplicitComponent):
                     start_vals = segment_end_values[2:-1:2, ...]
                     outputs[cnty_output_name] = start_vals - end_vals
 
-                if options['rate_continuity'] and gd.num_segments > 1 and not gd.compressed:
+                if options['rate_continuity'] and gd.num_segments > 1 and not self.options['compressed']:
                     # output_name = self._output_rate_names[name]
                     rate_in_ptau = a / dptau_dstau[:, np.newaxis]
                     rate_in_ptau = np.reshape(rate_in_ptau, (num_output_nodes,) + options['shape'])
@@ -484,9 +491,9 @@ class ControlComp(om.ExplicitComponent):
                     segment_end_values = rate_in_ptau[seg_end_idxs, ...]
                     end_vals = segment_end_values[1:-1:2, ...]
                     start_vals = segment_end_values[2:-1:2, ...]
-                    outputs[cnty_output_name] = (start_vals - end_vals) #* dt_dptau
+                    outputs[cnty_output_name] = (start_vals - end_vals)
 
-                if options['rate2_continuity'] and gd.num_segments > 1 and not gd.compressed:
+                if options['rate2_continuity'] and gd.num_segments > 1 and not self.options['compressed']:
                     # output_name  = self._output_rate2_names[name]
                     cnty_output_name = self._output_rate2_cnty_defect_names[name]
                     segment_end_values = rate2[seg_end_idxs, ...]
