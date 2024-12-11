@@ -1,5 +1,6 @@
 import os
 import unittest
+
 from numpy.testing import assert_almost_equal
 
 import dymos.examples.brachistochrone.test.ex_brachistochrone as ex_brachistochrone
@@ -9,7 +10,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT', fallback=True)
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestBrachistochroneExample(unittest.TestCase):
 
     @classmethod

@@ -5,9 +5,9 @@ from ...grid_data import GridData
 from dymos._options import options as dymos_options
 
 
-class BirkhoffBoundaryMuxComp(om.ExplicitComponent):
+class RadauBoundaryMuxComp(om.ExplicitComponent):
     """
-    Class definition of the BirtkhoffBoundaryMuxComp.
+    Class definition of the RadauBoundaryMuxComp.
 
     This component takes the initial and final values of states
     and muxes them into a single output.
@@ -78,20 +78,13 @@ class BirkhoffBoundaryMuxComp(om.ExplicitComponent):
             outputs[io_names['boundary']][1] = inputs[io_names['final']]
 
 
-class BirkhoffBoundaryGroup(om.Group):
+class RadauBoundaryGroup(om.Group):
     """
-    Class definition for the BirkhoffBoundaryGroup.
+    Class definition for the RadauBoundaryGroup.
 
     This group accepts values for initial and final times, states, controls, and parameters
     and evaluates the ODE with those in order to compute the boundary values and
     objectives.
-
-    Note that in the Birkhoff transcription, the initial and final state values are
-    decoupled from the initial and final states in the interpolating polynomial.
-
-    Dymos uses the Birkhoff LGL or CGL approaches so that the control values are provided
-    at the endpoints of the phase without the need for extrapolation (unlike the classical
-    Radau approach in Dymos)
 
     Parameters
     ----------
@@ -130,7 +123,7 @@ class BirkhoffBoundaryGroup(om.Group):
         fbcs = self.options['final_boundary_constraints']
         objs = [meta for meta in self.options['objectives'].values()]
 
-        self.add_subsystem('boundary_mux', subsys=BirkhoffBoundaryMuxComp(),
+        self.add_subsystem('boundary_mux', subsys=RadauBoundaryMuxComp(),
                            promotes_inputs=['*'], promotes_outputs=['*'])
 
         self.add_subsystem('boundary_ode', subsys=ode_class(num_nodes=2, **ode_init_kwargs),

@@ -1,10 +1,10 @@
 import unittest
 
 import numpy as np
-from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 
 from dymos.transcriptions.grid_data import GridData
 from dymos.transcriptions.common import TimeComp
@@ -35,24 +35,19 @@ class TestTimeComp(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem(name='ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
-
-        ivc.add_output('t_initial', val=0.0, units='s')
-        ivc.add_output('t_duration', val=100.0, units='s')
-
         p.model.add_subsystem('time',
                               TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
                                        node_dptau_dstau=gd.node_dptau_dstau, units='s'))
 
-        p.model.connect('t_initial', 'time.t_initial')
-        p.model.connect('t_duration', 'time.t_duration')
+        p.setup(check=False, force_alloc_complex=True)
 
-        p.setup(check=True, force_alloc_complex=True)
+        p.set_val('time.t_initial', 0.0, units='s')
+        p.set_val('time.t_duration', 100.0, units='s')
 
         p.run_model()
 
         # Affine transform the nodes [0, 100]
-        dt_dptau = (p['t_duration'] - p['t_initial']) / 2.0
+        dt_dptau = (p['time.t_duration'] - p['time.t_initial']) / 2.0
 
         nodes = []
 
@@ -78,8 +73,12 @@ class TestTimeComp(unittest.TestCase):
 
             nodes.extend(nodes_time.tolist())
 
-        assert_almost_equal(p['time.t'], nodes)
-        assert_almost_equal(p['time.dt_dstau'], dt_dstau_per_node)
+        assert_near_equal(p['time.t'], nodes)
+        assert_near_equal(p['time.dt_dstau'], dt_dstau_per_node)
+        assert_near_equal(p.get_val('time.t_final'), 100.0)
+
+        cpd = p.check_partials(out_stream=None)
+        assert_check_partials(cpd)
 
     def test_results_radau(self):
 
@@ -90,24 +89,19 @@ class TestTimeComp(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem(name='ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
-
-        ivc.add_output('t_initial', val=0.0, units='s')
-        ivc.add_output('t_duration', val=100.0, units='s')
-
         p.model.add_subsystem('time',
                               TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
                                        node_dptau_dstau=gd.node_dptau_dstau, units='s'))
 
-        p.model.connect('t_initial', 'time.t_initial')
-        p.model.connect('t_duration', 'time.t_duration')
+        p.setup(check=False, force_alloc_complex=True)
 
-        p.setup(check=True, force_alloc_complex=True)
+        p.set_val('time.t_initial', 0.0, units='s')
+        p.set_val('time.t_duration', 100.0, units='s')
 
         p.run_model()
 
         # Affine transform the nodes [0, 100]
-        dt_dptau = (p['t_duration'] - p['t_initial']) / 2.0
+        dt_dptau = (p['time.t_duration'] - p['time.t_initial']) / 2.0
 
         nodes = []
 
@@ -133,8 +127,12 @@ class TestTimeComp(unittest.TestCase):
 
             nodes.extend(nodes_time.tolist())
 
-        assert_almost_equal(p['time.t'], nodes, decimal=4)
-        assert_almost_equal(p['time.dt_dstau'], dt_dstau_per_node)
+        assert_near_equal(p['time.t'], nodes, tolerance=1.0E-4)
+        assert_near_equal(p['time.dt_dstau'], dt_dstau_per_node)
+        assert_near_equal(p.get_val('time.t_final'), 100.0)
+
+        cpd = p.check_partials(out_stream=None)
+        assert_check_partials(cpd)
 
 
 if __name__ == "__main__":
