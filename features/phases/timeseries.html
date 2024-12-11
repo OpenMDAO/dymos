@@ -1096,9 +1096,7 @@ INFO: checking out_of_order
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order
+INFO: checking out_of_order
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system
@@ -1122,19 +1120,19 @@ INFO: checking out_of_order
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.06968544199992266 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.07141910799987272 seconds.
 Total jacobian shape: (200, 145) 
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (200, 145)  (4.20% nonzero)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (200, 145)  (4.18% nonzero)
 FWD solves: 17   REV solves: 0
 Total colors vs. total size: 17 vs 145  (88.28% improvement)
 
 Sparsity computed using tolerance: 1e-25
-Time to compute sparsity:   0.0697 sec
-Time to compute coloring:   0.0879 sec
-Memory to compute coloring:   0.1250 MB
-Coloring created on: 2024-11-23 14:42:09
+Time to compute sparsity:   0.0714 sec
+Time to compute coloring:   0.0899 sec
+Memory to compute coloring:   0.2500 MB
+Coloring created on: 2024-12-11 19:28:37
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1652: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
@@ -1149,11 +1147,11 @@ Optimization Problem -- Optimization using pyOpt_sparse
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    4.0751
-       User Objective Time :       1.7282
-       User Sensitivity Time :     1.2677
-       Interface Time :            0.4887
-       Opt Solver Time:            0.5905
+    Total Time:                    4.1612
+       User Objective Time :       1.7566
+       User Sensitivity Time :     1.3128
+       Interface Time :            0.4962
+       Opt Solver Time:            0.5957
     Calls to Objective Function :     257
     Calls to Sens Function :          138
 
@@ -1523,11 +1521,11 @@ Optimization Problem -- Optimization using pyOpt_sparse
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 258
-  runtime     : 4.3597E+00 s
+  runtime     : 4.4406E+00 s
   model_evals : 258
-  model_time  : 1.6416E+00 s
+  model_time  : 1.6677E+00 s
   deriv_evals : 138
-  deriv_time  : 7.8748E-01 s
+  deriv_time  : 8.1570E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -1560,7 +1558,7 @@ Remember that the timeseries provides values at the nodes only. The fitting poly
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/ed047fcb8471f6de82031ea1f52fa6a8e9d3bd0c307f9dfa386c4e83b9e34dbf.png" src="../../_images/ed047fcb8471f6de82031ea1f52fa6a8e9d3bd0c307f9dfa386c4e83b9e34dbf.png" />
+<img alt="../../_images/dfae122eb0ac7d8ec2276a8e9141932155c5bcb116114ec1751f1b754f9a07a8.png" src="../../_images/dfae122eb0ac7d8ec2276a8e9141932155c5bcb116114ec1751f1b754f9a07a8.png" />
 </div>
 </div>
 <p>Both the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> method and the <code class="docutils literal notranslate"><span class="pre">interp</span></code> method can provide more dense output. The difference is that simulate is effectively finding a different solution for the states, by starting from the initial values and propagating the ODE forward in time using the interpolated control splines as inputs. The <code class="docutils literal notranslate"><span class="pre">interp</span></code> method is making some assumptions about the interpolation (for instance, cubic interpolation in this case), so it may not be a perfectly accurate representation of the underlying interpolating polynomials.</p>

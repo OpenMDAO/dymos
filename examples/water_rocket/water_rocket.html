@@ -953,8 +953,8 @@ The design of a water rocket is somewhat constrained by the soda bottle used as 
 This means that the volume available for water and air is fixed, the initial launch pressure is limited by the bottle’s strength (since the pressure is directly related to the energy available for the rocket, it is easy to see that it should be as high as possible) and the nozzle throat area is also fixed.
 Given these manufacturing constraints, the design variables we are left with are the empty mass (it can be easily changed through adding ballast), the water volume at the launch, and the launch angle.
 With this considerations in mind, a natural formulation for the water rocket problem is</p>
-<div class="amsmath math notranslate nohighlight" id="equation-4549c7c1-33f9-4ed3-8128-397dce547a47">
-<span class="eqno">(89)<a class="headerlink" href="#equation-4549c7c1-33f9-4ed3-8128-397dce547a47" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-d18dd101-bd3b-4d6e-9e88-a929c96a0c62">
+<span class="eqno">(89)<a class="headerlink" href="#equation-d18dd101-bd3b-4d6e-9e88-a929c96a0c62" title="Permalink to this equation">#</a></span>\[\begin{align}
     \text{maximize}   &amp;\quad \text{range or height} \\
     \text{w.r.t.}     &amp;\quad \text{empty mass, initial water volume, launch angle, trajectory} \\
     \text{subject to} &amp;\quad \text{flight dynamics} \\
@@ -1500,8 +1500,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">_MassAdder</span></code> component calculates the rocket’s instantaneous mass by
 summing the water mass with the rockets empty mass, i.e.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-c902499b-130d-4872-979d-50e0e51573a2">
-<span class="eqno">(90)<a class="headerlink" href="#equation-c902499b-130d-4872-979d-50e0e51573a2" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-c25a9215-395f-4824-a415-fe8b5952dcb6">
+<span class="eqno">(90)<a class="headerlink" href="#equation-c25a9215-395f-4824-a415-fe8b5952dcb6" title="Permalink to this equation">#</a></span>\[\begin{align}
     m = m_\text{empty}+\rho_w V_w
 \end{align}\]</div>
 <div class="cell tag_remove-input docutils container">
@@ -2512,12 +2512,10 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
+Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.5205013879999569 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.5247597500000438 seconds.
 Total jacobian shape: (611, 613) 
 </pre></div>
 </div>
@@ -2526,10 +2524,10 @@ FWD solves: 20   REV solves: 0
 Total colors vs. total size: 20 vs 613  (96.74% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.5205 sec
-Time to compute coloring:   0.4957 sec
+Time to compute sparsity:   0.5248 sec
+Time to compute coloring:   0.4954 sec
 Memory to compute coloring:  -2.3594 MB
-Coloring created on: 2024-11-23 14:40:31
+Coloring created on: 2024-12-11 19:26:56
 
 List of user-set options:
 
@@ -2734,8 +2732,9 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  55 -5.3387978e+01 4.01e-09 1.45e-09 -11.0 1.50e-06    -  1.00e+00 1.00e+00h  1
-
-Number of Iterations....: 55
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Number of Iterations....: 55
 
                                    (scaled)                 (unscaled)
 Objective...............:  -5.3387978188776636e+01   -5.3387978188776636e+01
@@ -2753,7 +2752,7 @@ Number of inequality constraint evaluations          = 0
 Number of equality constraint Jacobian evaluations   = 56
 Number of inequality constraint Jacobian evaluations = 0
 Number of Lagrangian Hessian evaluations             = 0
-Total seconds in IPOPT                               = 4.326
+Total seconds in IPOPT                               = 4.302
 
 EXIT: Optimal Solution Found.
 </pre></div>
@@ -2783,7 +2782,7 @@ Maximum velocity: 46.1508 m/s
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/43aab484fa832c5defb49f0fdc8f076c07168d932dd2f6a7c21552b60ac6ecec.png" src="../../_images/43aab484fa832c5defb49f0fdc8f076c07168d932dd2f6a7c21552b60ac6ecec.png" />
+<img alt="../../_images/0ebf7b609d6087720800e84e79952a3327bfe285c485b5309be0c25ffcd37dec.png" src="../../_images/0ebf7b609d6087720800e84e79952a3327bfe285c485b5309be0c25ffcd37dec.png" />
 </div>
 </div>
 </section>
@@ -2798,7 +2797,7 @@ Maximum velocity: 46.1508 m/s
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/31f97a4b27f830a5ae11e5e96f43b3511a317570d932b54d53123905fbe835e9.png" src="../../_images/31f97a4b27f830a5ae11e5e96f43b3511a317570d932b54d53123905fbe835e9.png" />
+<img alt="../../_images/c8811d47cdd876c20cea653ecc0e26d50980d0c64e148b8402753c408e79bd59.png" src="../../_images/c8811d47cdd876c20cea653ecc0e26d50980d0c64e148b8402753c408e79bd59.png" />
 </div>
 </div>
 </section>
@@ -2811,7 +2810,7 @@ Maximum velocity: 46.1508 m/s
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/84fc513e29818b8f656e5064aa936ae7aa0c6d72736a3d0498b86d267534cb05.png" src="../../_images/84fc513e29818b8f656e5064aa936ae7aa0c6d72736a3d0498b86d267534cb05.png" />
+<img alt="../../_images/22a170a4ef30e9dbd49f1c88de044fb3a720eab76605618e45cbfc62814c13a1.png" src="../../_images/22a170a4ef30e9dbd49f1c88de044fb3a720eab76605618e45cbfc62814c13a1.png" />
 </div>
 </div>
 </section>
@@ -2869,7 +2868,7 @@ Maximum velocity: 46.1508 m/s
 Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem6&#39; was computed 3 times, taking 0.5133492010000964 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem6&#39; was computed 3 times, taking 0.5112949559999151 seconds.
 Total jacobian shape: (611, 613) 
 </pre></div>
 </div>
@@ -2878,10 +2877,10 @@ FWD solves: 20   REV solves: 0
 Total colors vs. total size: 20 vs 613  (96.74% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.5133 sec
-Time to compute coloring:   0.4943 sec
+Time to compute sparsity:   0.5113 sec
+Time to compute coloring:   0.4980 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-11-23 14:40:40
+Coloring created on: 2024-12-11 19:27:05
 
 List of user-set options:
 
@@ -2977,7 +2976,9 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
-  20 -8.6314901e+01 5.24e-02 2.10e+01  -5.2 5.93e+00    -  1.00e+00 1.00e+00f  1
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  20 -8.6314901e+01 5.24e-02 2.10e+01  -5.2 5.93e+00    -  1.00e+00 1.00e+00f  1
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  21 -8.2646845e+01 4.62e-02 1.80e+01  -5.9 3.67e+00    -  1.00e+00 1.00e+00h  1
@@ -3051,6 +3052,9 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  43 -8.5096574e+01 2.08e-06 5.55e-04 -11.0 7.08e-04    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  44 -8.5096743e+01 6.21e-07 6.17e-03 -11.0 8.92e-04    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
@@ -3074,9 +3078,8 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  51 -8.5096712e+01 3.79e-09 8.57e-09 -11.0 2.83e-06    -  1.00e+00 1.00e+00h  1
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Number of Iterations....: 51
+
+Number of Iterations....: 51
 
                                    (scaled)                 (unscaled)
 Objective...............:  -8.5096711553691733e+01   -8.5096711553691733e+01
@@ -3094,7 +3097,7 @@ Number of inequality constraint evaluations          = 0
 Number of equality constraint Jacobian evaluations   = 52
 Number of inequality constraint Jacobian evaluations = 0
 Number of Lagrangian Hessian evaluations             = 0
-Total seconds in IPOPT                               = 3.978
+Total seconds in IPOPT                               = 4.100
 
 EXIT: Optimal Solution Found.
 
@@ -3105,11 +3108,11 @@ Optimization Problem -- Optimization using pyOpt_sparse
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    3.9794
-       User Objective Time :       0.1592
-       User Sensitivity Time :     2.9475
-       Interface Time :            0.4896
-       Opt Solver Time:            0.3831
+    Total Time:                    4.1014
+       User Objective Time :       0.1720
+       User Sensitivity Time :     3.0254
+       Interface Time :            0.4979
+       Opt Solver Time:            0.4061
     Calls to Objective Function :      57
     Calls to Sens Function :           53
 
@@ -4379,7 +4382,7 @@ Maximum velocity: 41.3029 m/s
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/b44bcb0bf7ae306b3d8658045b9759acfdae90f5024ff6762a453b1e07368611.png" src="../../_images/b44bcb0bf7ae306b3d8658045b9759acfdae90f5024ff6762a453b1e07368611.png" />
+<img alt="../../_images/80ae1a20d5c964f169068b5ac042e31c74b989b4cd0fd8052a7af1fc249b5dd9.png" src="../../_images/80ae1a20d5c964f169068b5ac042e31c74b989b4cd0fd8052a7af1fc249b5dd9.png" />
 </div>
 </div>
 </section>
@@ -4392,7 +4395,7 @@ Maximum velocity: 41.3029 m/s
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/44a2eccdec90050480af038babe2a098f47aa772b7e97b633ad00e653809afc0.png" src="../../_images/44a2eccdec90050480af038babe2a098f47aa772b7e97b633ad00e653809afc0.png" />
+<img alt="../../_images/17548d56c990910b1246a6c98249186c85a91ca7f6990d0db6d72b5353214892.png" src="../../_images/17548d56c990910b1246a6c98249186c85a91ca7f6990d0db6d72b5353214892.png" />
 </div>
 </div>
 </section>
@@ -4405,7 +4408,7 @@ Maximum velocity: 41.3029 m/s
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/1aff5441e8bfda8c98911f68654f1a476b56826fbed887118f098a929617cb10.png" src="../../_images/1aff5441e8bfda8c98911f68654f1a476b56826fbed887118f098a929617cb10.png" />
+<img alt="../../_images/0139ab9f5aa8a252e021c52f1fc5690bd9f0b3e9f97ee941eae05298ac6e5712.png" src="../../_images/0139ab9f5aa8a252e021c52f1fc5690bd9f0b3e9f97ee941eae05298ac6e5712.png" />
 </div>
 </div>
 </section>
