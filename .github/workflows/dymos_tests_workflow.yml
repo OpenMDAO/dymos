@@ -77,7 +77,7 @@ run-name:  ${{ inputs.run_name }}
 jobs:
 
   test_ubuntu:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     timeout-minutes: 90
 
