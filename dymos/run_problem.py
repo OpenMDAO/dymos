@@ -122,7 +122,6 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
                 sims[subsys.pathname] = sim_prob
 
     if make_plots:
-
         if om_version()[0] > (3, 34, 2):
             outputs_dir = problem.get_outputs_dir()
             if os.sep in str(solution_record_file):
@@ -142,13 +141,15 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
             _sol_record_file = solution_record_file
             _sim_record_file = None if not simulate else simulation_record_file
 
+        _plot_kwargs = plot_kwargs if plot_kwargs is not None else {}
+
         if dymos_options['plots'] == 'bokeh':
             from dymos.visualization.timeseries.bokeh_timeseries_report import make_timeseries_report
             make_timeseries_report(prob=problem,
                                    solution_record_file=_sol_record_file,
-                                   simulation_record_file=_sim_record_file)
+                                   simulation_record_file=_sim_record_file,
+                                   **_plot_kwargs)
         else:
-            _plot_kwargs = plot_kwargs if plot_kwargs is not None else {}
             plots_dir = problem.get_reports_dir() / 'plots'
             timeseries_plots(_sol_record_file,
                              simulation_record_file=_sim_record_file,
