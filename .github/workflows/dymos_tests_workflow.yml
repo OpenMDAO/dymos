@@ -241,7 +241,11 @@ jobs:
           echo "Install jax"
           echo "============================================================="
           if [[ "${{ matrix.JAX }}" == "latest" ]]; then
-            python -m pip install jaxlib || true
+            {
+              python -m pip install jaxlib
+            } || {
+              echo "Failed to install jaxlib..."
+            }
             python -m pip install jax
           else
             python -m pip install jaxlib==${{ matrix.JAX }} jax==${{ matrix.JAX }}
