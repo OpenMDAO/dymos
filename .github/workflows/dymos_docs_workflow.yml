@@ -15,7 +15,7 @@ on:
 jobs:
 
   test_ubuntu:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     timeout-minutes: 90
 
@@ -102,7 +102,11 @@ jobs:
           echo "Install jax"
           echo "============================================================="
           if [[ "${{ matrix.JAX }}" == "latest" ]]; then
-            python -m pip install jaxlib jax
+            {
+              python -m pip install jaxlib
+            } || {
+              echo "Failed to install jaxlib..."
+            }
           else
             python -m pip install jaxlib==${{ matrix.JAX }} jax==${{ matrix.JAX }}
           fi
