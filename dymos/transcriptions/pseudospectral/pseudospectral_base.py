@@ -466,6 +466,8 @@ class PseudospectralBase(TranscriptionBase):
             duration_balance_comp = phase._get_subsystem('t_duration_balance_comp')
             configure_duration_balance_introspection(phase)
             options = phase.time_options['t_duration_balance_options']
+            lower, upper = phase.time_options['duration_bounds']
+            duration_val = phase.time_options['duration_val']
 
             if options['mult_val'] is None:
                 use_mult = False
@@ -476,9 +478,9 @@ class PseudospectralBase(TranscriptionBase):
 
             src_idx = [-1] if options['index'] is None else [[-1]]+options['index']
 
-            duration_balance_comp.add_balance('t_duration', val=options['val'],
+            duration_balance_comp.add_balance('t_duration', val=duration_val, lower=lower, upper=upper,
                                               eq_units=options['units'], units=phase.time_options['units'],
-                                              use_mult=use_mult, mult_val=mult_val)
+                                              rhs_val=options['val'], use_mult=use_mult, mult_val=mult_val)
 
             phase.connect('t_duration_balance_comp.t_duration', 't_duration')
 

@@ -5,6 +5,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
+from dymos.utils.misc import om_version
 
 import dymos as dm
 
@@ -30,7 +31,6 @@ class BrachistochroneVectorStatesODE(om.ExplicitComponent):
         self.declare_partials(of='vdot', wrt='g', rows=arange, cols=arange)
         self.declare_partials(of='vdot', wrt='theta', rows=arange, cols=arange)
 
-        self.declare_partials('*', '*', method='cs')
         self.declare_coloring(wrt='*', method='cs', show_sparsity=False)
 
     def compute(self, inputs, outputs):
@@ -50,6 +50,8 @@ class BrachistochroneVectorStatesODE(om.ExplicitComponent):
 @use_tempdirs
 class TestAddBoundaryConstraint(unittest.TestCase):
 
+    @unittest.skipIf(om_version()[0] >= (3, 36, 1) and om_version()[0] < (3, 37, 0),
+                     reason='Test is broken in OpenMDAO 3.37.0 interim development.')
     @require_pyoptsparse(optimizer='SLSQP')
     def test_simple_no_exception(self):
         p = om.Problem(model=om.Group())
