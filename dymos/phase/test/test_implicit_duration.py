@@ -203,3 +203,7 @@ class TestImplicitDuration(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.4735192, tolerance=1E-6)
         assert_near_equal(p.get_val('traj.phase.timeseries.h')[-1], 0.0, tolerance=1E-6)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -42,7 +42,7 @@ parts:
     - file: examples/water_rocket/water_rocket
     - file: examples/cart_pole/cart_pole
     - file: examples/brachistochrone/brachistochrone_tandem_phases
-    - file: examples/cannonball_implicit_duration/cannonball_implicit_duration
+    - file: examples/implicit_duration/brachistochrone_implicit_duration
 - caption: Feature Reference
   chapters:
   - file: features/phases/phases_list
