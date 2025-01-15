@@ -107,6 +107,7 @@ jobs:
             } || {
               echo "Failed to install jaxlib..."
             }
+            python -m pip install jax
           else
             python -m pip install jaxlib==${{ matrix.JAX }} jax==${{ matrix.JAX }}
           fi
