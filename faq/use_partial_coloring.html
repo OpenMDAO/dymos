@@ -548,7 +548,7 @@ const thebe_selector_output = ".output, .cell_output"
 
 <li class="toctree-l2"><a class="reference internal" href="../examples/cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/cannonball_implicit_duration/cannonball_implicit_duration.html">Cannonball Implicit Duration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/implicit_duration/brachistochrone_implicit_duration.html">Implicit Duration</a></li>
 </ul>
 </li>
 </ul>
@@ -810,9 +810,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 .output_html .hll { background-color: #ffffcc }
 .output_html { background: #f8f8f8; }
 .output_html .c { color: #3D7B7B; font-style: italic } /* Comment */
-.output_html .err { border: 1px solid #FF0000 } /* Error */
+.output_html .err { border: 1px solid #F00 } /* Error */
 .output_html .k { color: #008000; font-weight: bold } /* Keyword */
-.output_html .o { color: #666666 } /* Operator */
+.output_html .o { color: #666 } /* Operator */
 .output_html .ch { color: #3D7B7B; font-style: italic } /* Comment.Hashbang */
 .output_html .cm { color: #3D7B7B; font-style: italic } /* Comment.Multiline */
 .output_html .cp { color: #9C6500 } /* Comment.Preproc */
@@ -829,34 +829,34 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 .output_html .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
 .output_html .gs { font-weight: bold } /* Generic.Strong */
 .output_html .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
-.output_html .gt { color: #0044DD } /* Generic.Traceback */
+.output_html .gt { color: #04D } /* Generic.Traceback */
 .output_html .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
 .output_html .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
 .output_html .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
 .output_html .kp { color: #008000 } /* Keyword.Pseudo */
 .output_html .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
 .output_html .kt { color: #B00040 } /* Keyword.Type */
-.output_html .m { color: #666666 } /* Literal.Number */
+.output_html .m { color: #666 } /* Literal.Number */
 .output_html .s { color: #BA2121 } /* Literal.String */
 .output_html .na { color: #687822 } /* Name.Attribute */
 .output_html .nb { color: #008000 } /* Name.Builtin */
-.output_html .nc { color: #0000FF; font-weight: bold } /* Name.Class */
-.output_html .no { color: #880000 } /* Name.Constant */
-.output_html .nd { color: #AA22FF } /* Name.Decorator */
+.output_html .nc { color: #00F; font-weight: bold } /* Name.Class */
+.output_html .no { color: #800 } /* Name.Constant */
+.output_html .nd { color: #A2F } /* Name.Decorator */
 .output_html .ni { color: #717171; font-weight: bold } /* Name.Entity */
 .output_html .ne { color: #CB3F38; font-weight: bold } /* Name.Exception */
-.output_html .nf { color: #0000FF } /* Name.Function */
+.output_html .nf { color: #00F } /* Name.Function */
 .output_html .nl { color: #767600 } /* Name.Label */
-.output_html .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.output_html .nn { color: #00F; font-weight: bold } /* Name.Namespace */
 .output_html .nt { color: #008000; font-weight: bold } /* Name.Tag */
 .output_html .nv { color: #19177C } /* Name.Variable */
-.output_html .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
-.output_html .w { color: #bbbbbb } /* Text.Whitespace */
-.output_html .mb { color: #666666 } /* Literal.Number.Bin */
-.output_html .mf { color: #666666 } /* Literal.Number.Float */
-.output_html .mh { color: #666666 } /* Literal.Number.Hex */
-.output_html .mi { color: #666666 } /* Literal.Number.Integer */
-.output_html .mo { color: #666666 } /* Literal.Number.Oct */
+.output_html .ow { color: #A2F; font-weight: bold } /* Operator.Word */
+.output_html .w { color: #BBB } /* Text.Whitespace */
+.output_html .mb { color: #666 } /* Literal.Number.Bin */
+.output_html .mf { color: #666 } /* Literal.Number.Float */
+.output_html .mh { color: #666 } /* Literal.Number.Hex */
+.output_html .mi { color: #666 } /* Literal.Number.Integer */
+.output_html .mo { color: #666 } /* Literal.Number.Oct */
 .output_html .sa { color: #BA2121 } /* Literal.String.Affix */
 .output_html .sb { color: #BA2121 } /* Literal.String.Backtick */
 .output_html .sc { color: #BA2121 } /* Literal.String.Char */
@@ -871,17 +871,17 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 .output_html .s1 { color: #BA2121 } /* Literal.String.Single */
 .output_html .ss { color: #19177C } /* Literal.String.Symbol */
 .output_html .bp { color: #008000 } /* Name.Builtin.Pseudo */
-.output_html .fm { color: #0000FF } /* Name.Function.Magic */
+.output_html .fm { color: #00F } /* Name.Function.Magic */
 .output_html .vc { color: #19177C } /* Name.Variable.Class */
 .output_html .vg { color: #19177C } /* Name.Variable.Global */
 .output_html .vi { color: #19177C } /* Name.Variable.Instance */
 .output_html .vm { color: #19177C } /* Name.Variable.Magic */
-.output_html .il { color: #666666 } /* Literal.Number.Integer.Long */</style><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DynamicPressureCompFD</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">ExplicitComponent</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+.output_html .il { color: #666 } /* Literal.Number.Integer.Long */</style><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">DynamicPressureCompFD</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">ExplicitComponent</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;partial_coloring&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">nn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;atmospheric density&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/m**3&#39;</span><span class="p">)</span>
@@ -896,7 +896,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
             <span class="bp">self</span><span class="o">.</span><span class="n">declare_coloring</span><span class="p">(</span><span class="n">wrt</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;*&#39;</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;cs&#39;</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.0E-6</span><span class="p">,</span> <span class="n">num_full_jacs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                                   <span class="n">show_summary</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_sparsity</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">min_improve_pct</span><span class="o">=</span><span class="mf">10.</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
         <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;rho&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
 </pre></div>
 </div></div>
@@ -937,7 +937,7 @@ Print the sparsity of the partial derivative jacobian.  This will display someth
 Display the sparsity pattern in standard output to provide a visual indication whether or not it is working.
 Here, this outputs the jacobian of <code class="docutils literal notranslate"><span class="pre">rho</span></code> with two diagonal bands - one for each of the two inputs.</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Approx</span> <span class="n">coloring</span> <span class="k">for</span> <span class="s1">&#39;traj.phases.phase0.rhs_col.aero.q_comp&#39;</span> <span class="p">(</span><span class="k">class</span> <span class="nc">DynamicPressureCompFD</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Approx</span> <span class="n">coloring</span> <span class="k">for</span> <span class="s1">&#39;traj.phases.phase0.rhs_col.aero.q_comp&#39;</span> <span class="p">(</span><span class="k">class</span><span class="w"> </span><span class="nc">DynamicPressureCompFD</span><span class="p">)</span>
 <span class="n">f</span><span class="o">.............................</span><span class="n">f</span><span class="o">.............................</span> <span class="mi">0</span>  <span class="n">q</span>
 <span class="o">.</span><span class="n">f</span><span class="o">.............................</span><span class="n">f</span><span class="o">............................</span> <span class="mi">1</span>  <span class="n">q</span>
 <span class="o">..</span><span class="n">f</span><span class="o">.............................</span><span class="n">f</span><span class="o">...........................</span> <span class="mi">2</span>  <span class="n">q</span>
@@ -991,9 +991,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 .output_html .hll { background-color: #ffffcc }
 .output_html { background: #f8f8f8; }
 .output_html .c { color: #3D7B7B; font-style: italic } /* Comment */
-.output_html .err { border: 1px solid #FF0000 } /* Error */
+.output_html .err { border: 1px solid #F00 } /* Error */
 .output_html .k { color: #008000; font-weight: bold } /* Keyword */
-.output_html .o { color: #666666 } /* Operator */
+.output_html .o { color: #666 } /* Operator */
 .output_html .ch { color: #3D7B7B; font-style: italic } /* Comment.Hashbang */
 .output_html .cm { color: #3D7B7B; font-style: italic } /* Comment.Multiline */
 .output_html .cp { color: #9C6500 } /* Comment.Preproc */
@@ -1010,34 +1010,34 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 .output_html .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
 .output_html .gs { font-weight: bold } /* Generic.Strong */
 .output_html .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
-.output_html .gt { color: #0044DD } /* Generic.Traceback */
+.output_html .gt { color: #04D } /* Generic.Traceback */
 .output_html .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
 .output_html .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
 .output_html .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
 .output_html .kp { color: #008000 } /* Keyword.Pseudo */
 .output_html .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
 .output_html .kt { color: #B00040 } /* Keyword.Type */
-.output_html .m { color: #666666 } /* Literal.Number */
+.output_html .m { color: #666 } /* Literal.Number */
 .output_html .s { color: #BA2121 } /* Literal.String */
 .output_html .na { color: #687822 } /* Name.Attribute */
 .output_html .nb { color: #008000 } /* Name.Builtin */
-.output_html .nc { color: #0000FF; font-weight: bold } /* Name.Class */
-.output_html .no { color: #880000 } /* Name.Constant */
-.output_html .nd { color: #AA22FF } /* Name.Decorator */
+.output_html .nc { color: #00F; font-weight: bold } /* Name.Class */
+.output_html .no { color: #800 } /* Name.Constant */
+.output_html .nd { color: #A2F } /* Name.Decorator */
 .output_html .ni { color: #717171; font-weight: bold } /* Name.Entity */
 .output_html .ne { color: #CB3F38; font-weight: bold } /* Name.Exception */
-.output_html .nf { color: #0000FF } /* Name.Function */
+.output_html .nf { color: #00F } /* Name.Function */
 .output_html .nl { color: #767600 } /* Name.Label */
-.output_html .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.output_html .nn { color: #00F; font-weight: bold } /* Name.Namespace */
 .output_html .nt { color: #008000; font-weight: bold } /* Name.Tag */
 .output_html .nv { color: #19177C } /* Name.Variable */
-.output_html .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
-.output_html .w { color: #bbbbbb } /* Text.Whitespace */
-.output_html .mb { color: #666666 } /* Literal.Number.Bin */
-.output_html .mf { color: #666666 } /* Literal.Number.Float */
-.output_html .mh { color: #666666 } /* Literal.Number.Hex */
-.output_html .mi { color: #666666 } /* Literal.Number.Integer */
-.output_html .mo { color: #666666 } /* Literal.Number.Oct */
+.output_html .ow { color: #A2F; font-weight: bold } /* Operator.Word */
+.output_html .w { color: #BBB } /* Text.Whitespace */
+.output_html .mb { color: #666 } /* Literal.Number.Bin */
+.output_html .mf { color: #666 } /* Literal.Number.Float */
+.output_html .mh { color: #666 } /* Literal.Number.Hex */
+.output_html .mi { color: #666 } /* Literal.Number.Integer */
+.output_html .mo { color: #666 } /* Literal.Number.Oct */
 .output_html .sa { color: #BA2121 } /* Literal.String.Affix */
 .output_html .sb { color: #BA2121 } /* Literal.String.Backtick */
 .output_html .sc { color: #BA2121 } /* Literal.String.Char */
@@ -1052,20 +1052,20 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 .output_html .s1 { color: #BA2121 } /* Literal.String.Single */
 .output_html .ss { color: #19177C } /* Literal.String.Symbol */
 .output_html .bp { color: #008000 } /* Name.Builtin.Pseudo */
-.output_html .fm { color: #0000FF } /* Name.Function.Magic */
+.output_html .fm { color: #00F } /* Name.Function.Magic */
 .output_html .vc { color: #19177C } /* Name.Variable.Class */
 .output_html .vg { color: #19177C } /* Name.Variable.Global */
 .output_html .vi { color: #19177C } /* Name.Variable.Instance */
 .output_html .vm { color: #19177C } /* Name.Variable.Magic */
-.output_html .il { color: #666666 } /* Literal.Number.Integer.Long */</style><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MinTimeClimbODE</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+.output_html .il { color: #666 } /* Literal.Number.Integer.Long */</style><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MinTimeClimbODE</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;fd&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;If True, use fd for partials&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;partial_coloring&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                              <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;If True and fd is True, color the approximated partials&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">nn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;atmos&#39;</span><span class="p">,</span>
@@ -1100,14 +1100,14 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span> 
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">shutil</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span> 
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 
-<span class="kn">import</span> <span class="nn">openmdao.api</span> <span class="k">as</span> <span class="nn">om</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">om</span>
 
-<span class="kn">import</span> <span class="nn">dymos</span> <span class="k">as</span> <span class="nn">dm</span>
-<span class="kn">from</span> <span class="nn">dymos.examples.min_time_climb.doc.min_time_climb_ode_partial_coloring</span> <span class="kn">import</span> <span class="n">MinTimeClimbODE</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dymos</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.examples.min_time_climb.doc.min_time_climb_ode_partial_coloring</span><span class="w"> </span><span class="kn">import</span> <span class="n">MinTimeClimbODE</span>
 
 
 <span class="k">for</span> <span class="n">fd</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
@@ -1230,7 +1230,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
         <span class="c1"># In practice, use the command line interface to view these files instead:</span>
         <span class="c1"># `openmdao view_coloring coloring_files/total_coloring.pkl --view`</span>
         <span class="c1">#</span>
-        <span class="kn">from</span> <span class="nn">openmdao</span> <span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">om_version</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">openmdao</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">om_version</span>
         <span class="n">om_version_tup</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">((</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">om_version</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)))</span>
 
         <span class="c1"># Handle the output directory behavior change as of OpenMAO 3.34.3-dev</span>
@@ -1264,47 +1264,42 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 --------------------------------------------------------------------------------
 --- Analytic derivatives in component ------------------------------------------
 -------------------------------------------------------------------------------- 
-
-Model viewer data has already been recorded for Driver.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/recorders/sqlite_recorder.py:231: UserWarning:The existing case recorder file, /home/runner/work/dymos/dymos/docs/dymos_book/faq/problem_out/dymos_solution.db, is being overwritten.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/recorders/sqlite_recorder.py:230: UserWarning:The existing case recorder file, /home/runner/work/dymos/dymos/docs/dymos_book/faq/problem_out/dymos_solution.db, is being overwritten.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.2556796100000156 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem&#39; was computed 3 times, taking 0.25461929699986285 seconds.
 Total jacobian shape: (361, 212) 
-
-
-Jacobian shape: (361, 212)  (3.44% nonzero)
-FWD solves: 13   REV solves: 0
-Total colors vs. total size: 13 vs 212  (93.87% improvement)
-
-Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.2557 sec
-Time to compute coloring:   0.1938 sec
-Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-12-11 19:27:44
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1652: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/utils/coloring.py:1323: OMDeprecationWarning:display is deprecated. Use display_bokeh for rich html displays of coloringor display_txt for a text-based display.
-</pre></div>
-</div>
-<img alt="../_images/a6d449d6176acfbb9e0e4b6f993a35af3b4e335d057738e6199dbd0bfbfd3662.png" src="../_images/a6d449d6176acfbb9e0e4b6f993a35af3b4e335d057738e6199dbd0bfbfd3662.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (361, 212)  (3.44% nonzero)
 FWD solves: 13   REV solves: 0
 Total colors vs. total size: 13 vs 212  (93.87% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.2557 sec
-Time to compute coloring:   0.1938 sec
+Time to compute sparsity:   0.2546 sec
+Time to compute coloring:   0.3588 sec
 Memory to compute coloring:   0.2500 MB
-Coloring created on: 2024-12-11 19:27:44
+Coloring created on: 2025-01-15 21:18:10
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1728: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/utils/coloring.py:1340: OMDeprecationWarning:display is deprecated. Use display_bokeh for rich html displays of coloringor display_txt for a text-based display.
+</pre></div>
+</div>
+<img alt="../_images/d6e993b98405c90cd704115070dff08638a2a4e604824f603165c1dbb32369a8.png" src="../_images/d6e993b98405c90cd704115070dff08638a2a4e604824f603165c1dbb32369a8.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (361, 212)  (3.44% nonzero)
+FWD solves: 13   REV solves: 0
+Total colors vs. total size: 13 vs 212  (93.87% improvement)
+
+Sparsity computed using tolerance: 1e-12
+Time to compute sparsity:   0.2546 sec
+Time to compute coloring:   0.3588 sec
+Memory to compute coloring:   0.2500 MB
+Coloring created on: 2025-01-15 21:18:10
 
 --- Constraint Report [traj] ---
     --- phase0 ---
@@ -1319,38 +1314,37 @@ Coloring created on: 2024-12-11 19:27:44
 -------------------------------------------------------------------------------- 
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
-Model viewer data has already been recorded for Driver.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem2&#39; was computed 3 times, taking 0.2887589389999903 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem2&#39; was computed 3 times, taking 0.2832833089998985 seconds.
 Total jacobian shape: (361, 212) 
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (361, 212)  (23.30% nonzero)
-FWD solves: 154   REV solves: 0
-Total colors vs. total size: 154 vs 212  (27.36% improvement)
+FWD solves: 67   REV solves: 62
+Total colors vs. total size: 129 vs 212  (39.15% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.2888 sec
-Time to compute coloring:   0.9150 sec
-Memory to compute coloring:  14.4219 MB
-Coloring created on: 2024-12-11 19:27:52
+Time to compute sparsity:   0.2833 sec
+Time to compute coloring:   1.1561 sec
+Memory to compute coloring:  19.3867 MB
+Coloring created on: 2025-01-15 21:18:25
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1652: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1728: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
 </pre></div>
 </div>
-<img alt="../_images/7bb952db3ff223436a7bbf2cddb11849ce13d3ebca3c475aae3e50104773fc66.png" src="../_images/7bb952db3ff223436a7bbf2cddb11849ce13d3ebca3c475aae3e50104773fc66.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 550x550 with 0 Axes&gt;
+</pre></div>
+</div>
+<img alt="../_images/f89248989d5c3cf9373a70be381068a6b383bf2f53dd3069ad09750096e66ee7.png" src="../_images/f89248989d5c3cf9373a70be381068a6b383bf2f53dd3069ad09750096e66ee7.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (361, 212)  (23.30% nonzero)
-FWD solves: 154   REV solves: 0
-Total colors vs. total size: 154 vs 212  (27.36% improvement)
+FWD solves: 67   REV solves: 62
+Total colors vs. total size: 129 vs 212  (39.15% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.2888 sec
-Time to compute coloring:   0.9150 sec
-Memory to compute coloring:  14.4219 MB
-Coloring created on: 2024-12-11 19:27:52
+Time to compute sparsity:   0.2833 sec
+Time to compute coloring:   1.1561 sec
+Memory to compute coloring:  19.3867 MB
+Coloring created on: 2025-01-15 21:18:25
 
 --- Constraint Report [traj] ---
     --- phase0 ---
@@ -1365,10 +1359,6 @@ Coloring created on: 2024-12-11 19:27:52
 -------------------------------------------------------------------------------- 
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Model viewer data has already been recorded for Driver.
-Model viewer data has already been recorded for Driver.
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.phase0.rhs_disc.aero.q_comp&#39; (class DynamicPressureCompFD)
 
 Jacobian shape: (60, 120)  (1.67% nonzero)
@@ -1377,7 +1367,7 @@ Total colors vs. total size: 2 vs 120  (98.33% improvement)
 
 Sparsity computed using tolerance: 1e-06
 Time to compute sparsity:   0.0064 sec
-Time to compute coloring:   0.0074 sec
+Time to compute coloring:   0.0072 sec
 Memory to compute coloring:   0.0000 MB
 
 Coloring for &#39;traj.phases.phase0.rhs_col.aero.q_comp&#39; (class DynamicPressureCompFD)
@@ -1388,38 +1378,41 @@ Total colors vs. total size: 2 vs 60  (96.67% improvement)
 
 Sparsity computed using tolerance: 1e-06
 Time to compute sparsity:   0.0035 sec
-Time to compute coloring:   0.0038 sec
+Time to compute coloring:   0.0037 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem3&#39; was computed 3 times, taking 0.29938863300003504 seconds.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Full total jacobian for problem &#39;problem3&#39; was computed 3 times, taking 0.2953441469999234 seconds.
 Total jacobian shape: (361, 212) 
-
-
-Jacobian shape: (361, 212)  (3.44% nonzero)
-FWD solves: 13   REV solves: 0
-Total colors vs. total size: 13 vs 212  (93.87% improvement)
-
-Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.2994 sec
-Time to compute coloring:   0.1938 sec
-Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-12-11 19:28:08
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1652: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
-</pre></div>
-</div>
-<img alt="../_images/a6d449d6176acfbb9e0e4b6f993a35af3b4e335d057738e6199dbd0bfbfd3662.png" src="../_images/a6d449d6176acfbb9e0e4b6f993a35af3b4e335d057738e6199dbd0bfbfd3662.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (361, 212)  (3.44% nonzero)
 FWD solves: 13   REV solves: 0
 Total colors vs. total size: 13 vs 212  (93.87% improvement)
 
 Sparsity computed using tolerance: 1e-12
-Time to compute sparsity:   0.2994 sec
-Time to compute coloring:   0.1938 sec
+Time to compute sparsity:   0.2953 sec
+Time to compute coloring:   0.3577 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2024-12-11 19:28:08
+Coloring created on: 2025-01-15 21:18:41
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1728: DerivativesWarning:Constraints or objectives [(&#39;traj.phases.phase0-&gt;path_constraint-&gt;h&#39;, inds=[(0, 0)]), (&#39;traj.phases.phase0-&gt;path_constraint-&gt;mach&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 550x550 with 0 Axes&gt;
+</pre></div>
+</div>
+<img alt="../_images/d6e993b98405c90cd704115070dff08638a2a4e604824f603165c1dbb32369a8.png" src="../_images/d6e993b98405c90cd704115070dff08638a2a4e604824f603165c1dbb32369a8.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (361, 212)  (3.44% nonzero)
+FWD solves: 13   REV solves: 0
+Total colors vs. total size: 13 vs 212  (93.87% improvement)
+
+Sparsity computed using tolerance: 1e-12
+Time to compute sparsity:   0.2953 sec
+Time to compute coloring:   0.3577 sec
+Memory to compute coloring:   0.0000 MB
+Coloring created on: 2025-01-15 21:18:41
 </pre></div>
 </div>
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 550x550 with 0 Axes&gt;

@@ -539,7 +539,7 @@ const thebe_selector_output = ".output, .cell_output"
 
 <li class="toctree-l2"><a class="reference internal" href="../../examples/cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../examples/cannonball_implicit_duration/cannonball_implicit_duration.html">Cannonball Implicit Duration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/implicit_duration/brachistochrone_implicit_duration.html">Implicit Duration</a></li>
 </ul>
 </li>
 </ul>
@@ -699,21 +699,21 @@ title="Open an issue"
             <article class="bd-article" role="main">
               
   <h1>Source code for dymos.run_problem</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">pathlib</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">openmdao.api</span> <span class="k">as</span> <span class="nn">om</span>
-<span class="kn">from</span> <span class="nn">openmdao.recorders.case</span> <span class="kn">import</span> <span class="n">Case</span>
-<span class="kn">from</span> <span class="nn">._options</span> <span class="kn">import</span> <span class="n">options</span> <span class="k">as</span> <span class="n">dymos_options</span>
-<span class="kn">from</span> <span class="nn">dymos.trajectory.trajectory</span> <span class="kn">import</span> <span class="n">Trajectory</span>
-<span class="kn">from</span> <span class="nn">dymos.utils.misc</span> <span class="kn">import</span> <span class="n">om_version</span>
-<span class="kn">from</span> <span class="nn">dymos.visualization.timeseries_plots</span> <span class="kn">import</span> <span class="n">timeseries_plots</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">om</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openmdao.recorders.case</span><span class="w"> </span><span class="kn">import</span> <span class="n">Case</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._options</span><span class="w"> </span><span class="kn">import</span> <span class="n">options</span> <span class="k">as</span> <span class="n">dymos_options</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.trajectory.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">Trajectory</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">om_version</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.visualization.timeseries_plots</span><span class="w"> </span><span class="kn">import</span> <span class="n">timeseries_plots</span>
 
-<span class="kn">from</span> <span class="nn">.grid_refinement.refinement</span> <span class="kn">import</span> <span class="n">_refine_iter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.grid_refinement.refinement</span><span class="w"> </span><span class="kn">import</span> <span class="n">_refine_iter</span>
 
 
-<div class="viewcode-block" id="run_problem"><a class="viewcode-back" href="../../api/run_problem_function.html#dymos.run_problem">[docs]</a><span class="k">def</span> <span class="nf">run_problem</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">refine_method</span><span class="o">=</span><span class="s1">&#39;hp&#39;</span><span class="p">,</span> <span class="n">refine_iteration_limit</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">run_driver</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<div class="viewcode-block" id="run_problem"><a class="viewcode-back" href="../../api/run_problem_function.html#dymos.run_problem">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">run_problem</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">refine_method</span><span class="o">=</span><span class="s1">&#39;hp&#39;</span><span class="p">,</span> <span class="n">refine_iteration_limit</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">run_driver</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="n">simulate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">restart</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">solution_record_file</span><span class="o">=</span><span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">,</span>
                 <span class="n">simulation_record_file</span><span class="o">=</span><span class="s1">&#39;dymos_simulation.db&#39;</span><span class="p">,</span>
@@ -786,7 +786,7 @@ title="Open an issue"
 
     <span class="k">if</span> <span class="n">restart</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">om_version</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">27</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
-            <span class="kn">from</span> <span class="nn">dymos.load_case</span> <span class="kn">import</span> <span class="n">load_case</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">dymos.load_case</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_case</span>
             <span class="n">load_case</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">case</span><span class="p">,</span> <span class="n">deprecation_warning</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">problem</span><span class="o">.</span><span class="n">load_case</span><span class="p">(</span><span class="n">case</span><span class="p">)</span>
@@ -845,7 +845,7 @@ title="Open an issue"
         <span class="n">_plot_kwargs</span> <span class="o">=</span> <span class="n">plot_kwargs</span> <span class="k">if</span> <span class="n">plot_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="n">dymos_options</span><span class="p">[</span><span class="s1">&#39;plots&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;bokeh&#39;</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">dymos.visualization.timeseries.bokeh_timeseries_report</span> <span class="kn">import</span> <span class="n">make_timeseries_report</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">dymos.visualization.timeseries.bokeh_timeseries_report</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_timeseries_report</span>
             <span class="n">make_timeseries_report</span><span class="p">(</span><span class="n">prob</span><span class="o">=</span><span class="n">problem</span><span class="p">,</span>
                                    <span class="n">solution_record_file</span><span class="o">=</span><span class="n">_sol_record_file</span><span class="p">,</span>
                                    <span class="n">simulation_record_file</span><span class="o">=</span><span class="n">_sim_record_file</span><span class="p">,</span>
