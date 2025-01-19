@@ -291,46 +291,10 @@ class RadauNew(TranscriptionBase):
 
         for name, options in phase.state_options.items():
             rate_source_type = phase.classify_var(options['rate_source'])
-            rate_src_path = self._get_rate_source_path(name, phase)
-            if rate_source_type not in ('state', 'ode'):
+            if rate_source_type not in ('state'):
+                rate_src_path = self._get_rate_source_path(name, phase)
                 phase.connect(rate_src_path, f'f_ode:{name}',
                               src_indices=grid_data.subset_node_indices['col'])
-
-        # any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
-
-        # if not any((any_state_cnty, any_control_cnty, any_control_rate_cnty)):
-        #     return
-
-        # # Add the continuity constraint component if necessary
-        # segment_end_idxs = grid_data.subset_node_indices['segment_ends']
-
-        # if any_control_rate_cnty:
-        #     phase.connect('t_duration_val', 'continuity_comp.t_duration')
-
-        # phase.continuity_comp.configure_io()
-
-        # for name, options in phase.control_options.items():
-        #     # The sub-indices of control_disc indices that are segment ends
-        #     segment_end_idxs = grid_data.subset_node_indices['segment_ends']
-        #     src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
-
-        #     # enclose indices in tuple to ensure shaping of indices works
-        #     src_idxs = (src_idxs,)
-
-        #     if options['continuity']:
-        #         phase.connect(f'control_values:{name}',
-        #                       f'continuity_comp.controls:{name}',
-        #                       src_indices=src_idxs, flat_src_indices=True)
-
-        #     if options['rate_continuity']:
-        #         phase.connect(f'control_rates:{name}_rate',
-        #                       f'continuity_comp.control_rates:{name}_rate',
-        #                       src_indices=src_idxs, flat_src_indices=True)
-
-        #     if options['rate2_continuity']:
-        #         phase.connect(f'control_rates:{name}_rate2',
-        #                       f'continuity_comp.control_rates:{name}_rate2',
-        #                       src_indices=src_idxs, flat_src_indices=True)
 
     def setup_duration_balance(self, phase):
         """

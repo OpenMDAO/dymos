@@ -58,6 +58,7 @@ class RadauDefectComp(om.ExplicitComponent):
         num_segs: int = gd.num_segments
         num_nodes: int = gd.subset_num_nodes['all']
         num_col_nodes: int = gd.subset_num_nodes['col']
+        col_node_idxs = gd.subset_node_indices['col']
         time_units: str = self.options['time_units']
         state_options = self.options['state_options']
 
@@ -81,11 +82,10 @@ class RadauDefectComp(om.ExplicitComponent):
                 'final_defect': f'final_state_defects:{state_name}'
             }
 
+        self._rate_src_idxs = {}
         for state_name, options in state_options.items():
             shape = options['shape']
             units = options['units']
-
-            rate_units = get_rate_units(units, time_units)
 
             var_names = self.var_names[state_name]
 
@@ -104,11 +104,21 @@ class RadauDefectComp(om.ExplicitComponent):
                            units=units,
                            desc='state value at all nodes within the phase')
 
-            self.add_input(
-                name=var_names['f_ode'],
-                shape=(num_col_nodes,) + shape,
-                desc=f'Computed derivative of state {state_name} at the collocation nodes',
-                units=rate_units)
+            rate_source_type = phase.classify_var(options['rate_source'])
+            if rate_source_type != 'state':
+                # If the rate source type is one of the other states, we don't input it.
+                rate_units = get_rate_units(units, time_units)
+                self._rate_src_idxs[state_name] = om.slicer[...]
+                self.add_input(
+                    name=var_names['f_ode'],
+                    shape=(num_col_nodes,) + shape,
+                    desc=f'Computed derivative of state {state_name} at the collocation nodes',
+                    units=rate_units)
+            else:
+                # Instead, set the rate source var name to be the name of the state values of the
+                # state serving as the rate source.
+                self._rate_src_idxs[state_name] = om.slicer[col_node_idxs, ...]
+                var_names['f_ode'] = self.var_names[options['rate_source']]['val']
 
             self.add_output(
                 name=var_names['initial_defect'],
@@ -178,9 +188,7 @@ class RadauDefectComp(om.ExplicitComponent):
         num_segs: int = gd.num_segments
         num_nodes: int = gd.subset_num_nodes['all']
         num_col_nodes: int = gd.subset_num_nodes['col']
-        state_options = self.options['state_options']
-
-        num_col_nodes = self.options['grid_data'].subset_num_nodes['col']
+        col_node_idxs = gd.subset_node_indices['col']
         state_options = self.options['state_options']
 
         for state_name, options in state_options.items():
@@ -191,9 +199,18 @@ class RadauDefectComp(om.ExplicitComponent):
 
             var_names = self.var_names[state_name]
 
-            self.declare_partials(of=var_names['rate_defect'],
-                                  wrt=var_names['f_ode'],
-                                  rows=r, cols=r, val=-1.0)
+            if options['rate_source'] in state_options:
+                # When the rate source is a state, the columns in the
+                # rate defect jacobian are the indices of all nodes
+                # that are collocation nodes.
+                c = np.arange(num_nodes * size).reshape((num_nodes, size))[col_node_idxs, ...].ravel()
+                self.declare_partials(of=var_names['rate_defect'],
+                                      wrt=var_names['f_ode'],
+                                      rows=r, cols=c, val=-1.0)
+            else:
+                self.declare_partials(of=var_names['rate_defect'],
+                                    wrt=var_names['f_ode'],
+                                    rows=r, cols=r, val=-1.0)
 
             c = np.repeat(np.arange(num_col_nodes), size)
             self.declare_partials(of=var_names['rate_defect'],
@@ -276,8 +293,9 @@ class RadauDefectComp(om.ExplicitComponent):
             shape = state_options['shape']
             size = np.prod(shape)
             var_names = self.var_names[state_name]
+            rate_src_idxs = self._rate_src_idxs[state_name]
 
-            f_ode = inputs[var_names['f_ode']]
+            f_ode = inputs[var_names['f_ode']][rate_src_idxs]
             x = inputs[var_names['val']]
             x_0 = inputs[var_names['initial_val']]
             x_f = inputs[var_names['final_val']]
@@ -312,7 +330,8 @@ class RadauDefectComp(om.ExplicitComponent):
         for state_name, options in self.options['state_options'].items():
             size = np.prod(options['shape'])
             var_names = self.var_names[state_name]
-            f_ode = inputs[var_names['f_ode']]
+            rate_src_idxs = self._rate_src_idxs[state_name]
+            f_ode = inputs[var_names['f_ode']][rate_src_idxs]
 
             partials[var_names['rate_defect'], var_names['f_ode']] = -np.repeat(dt_dstau, size)
             partials[var_names['rate_defect'], 'dt_dstau'] = -f_ode.ravel()
