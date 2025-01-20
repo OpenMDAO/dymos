@@ -8,7 +8,7 @@ from .components import RadauIterGroup, RadauBoundaryGroup
 
 from ..grid_data import RadauGrid
 from dymos.utils.misc import get_rate_units
-from dymos.utils.introspection import get_promoted_vars, get_source_metadata
+from dymos.utils.introspection import get_promoted_vars, get_source_metadata, configure_duration_balance_introspection
 from dymos.utils.indexing import get_constraint_flat_idxs, get_src_indices_by_row
 
 
@@ -21,10 +21,31 @@ class RadauNew(TranscriptionBase):
     **kwargs : dict
         Dictionary of optional arguments.
 
+    Attributes
+    ----------
+    _rhs_source : str
+        The path providing an ODE for the phase that can be interrogated
+        for shape and unit information.
+    _ode_nonlinear_solver : om.NonlinearSolver or None
+        A nonlinear solver to be applied to the internal ode_iter_group
+        if solve_segments is used.
+        If None or om.NonlinearRunOnce, the residuals imposed by
+        solve_segments must be converged by an outer solver.
+    _ode_linear_solver : om.NonlinearSolver or None
+        A nonlinear solver to be applied to the internal ode_iter_group
+        if solve_segments is used.
+        If None or om.LinearRunOnce, the residuals imposed by
+        solve_segments must be converged by an outer solver.
+
     """
     def __init__(self, **kwargs):
         super(RadauNew, self).__init__(**kwargs)
         self._rhs_source = 'ode_iter_group.ode_all'
+        self._ode_nonlinear_solver = om.NewtonSolver(iprint=0,
+                                                     solve_subsystems = True,
+                                                     maxiter=100,
+                                                     stall_limit=3)
+        self._ode_linear_solver = om.DirectSolver(iprint=0)
 
     def initialize(self):
         """
@@ -270,13 +291,6 @@ class RadauNew(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         pass
-        # if any(self._requires_continuity_constraints(phase)):
-        #     phase.add_subsystem('continuity_comp',
-        #                         RadauPSContinuityComp(grid_data=self.grid_data,
-        #                                               # State continuity defects are in the RadauDefectComp.
-        #                                               state_options={},
-        #                                               control_options=phase.control_options,
-        #                                               time_units=phase.time_options['units']))
 
     def configure_defects(self, phase):
         """
@@ -288,13 +302,19 @@ class RadauNew(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         grid_data = self.grid_data
+        col_idxs = grid_data.subset_node_indices['col']
 
         for name, options in phase.state_options.items():
             rate_source_type = phase.classify_var(options['rate_source'])
+            if rate_source_type == 'parameter':
+                src_idxs = om.slicer[np.zeros_like(col_idxs), ...]
+            else:
+                src_idxs = om.slicer[col_idxs, ...]
             if rate_source_type not in ('state'):
+                # Do not need to connect state rates whose value comes from another state.
                 rate_src_path = self._get_rate_source_path(name, phase)
                 phase.connect(rate_src_path, f'f_ode:{name}',
-                              src_indices=grid_data.subset_node_indices['col'])
+                              src_indices=src_idxs)
 
     def setup_duration_balance(self, phase):
         """
@@ -305,7 +325,9 @@ class RadauNew(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        if self._implicit_duration:
+            duration_balance_comp = om.BalanceComp()
+            phase.add_subsystem('t_duration_balance_comp', duration_balance_comp)
 
     def configure_duration_balance(self, phase):
         """
@@ -316,7 +338,30 @@ class RadauNew(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        pass
+        if self._implicit_duration:
+            duration_balance_comp = phase._get_subsystem('t_duration_balance_comp')
+            configure_duration_balance_introspection(phase)
+            options = phase.time_options['t_duration_balance_options']
+            lower, upper = phase.time_options['duration_bounds']
+            duration_val = phase.time_options['duration_val']
+
+            if options['mult_val'] is None:
+                use_mult = False
+                mult_val = 1.0
+            else:
+                use_mult = True
+                mult_val = options['mult_val']
+
+            src_idx = [-1] if options['index'] is None else [[-1]]+options['index']
+
+            duration_balance_comp.add_balance('t_duration', val=duration_val, lower=lower, upper=upper,
+                                              eq_units=options['units'], units=phase.time_options['units'],
+                                              rhs_val=options['val'], use_mult=use_mult, mult_val=mult_val)
+
+            phase.connect('t_duration_balance_comp.t_duration', 't_duration')
+
+            phase.connect(options['var_path'], 't_duration_balance_comp.lhs:t_duration',
+                          src_indices=src_idx)
 
     def setup_solvers(self, phase):
         """
@@ -342,7 +387,11 @@ class RadauNew(TranscriptionBase):
             and whether a solver is required.
         """
         ode_iter_group = phase._get_subsystem('ode_iter_group')
-        req_solvers = {'implicit outputs': ode_iter_group._implicit_outputs}
+        req_solvers = {'implicit outputs': False}
+
+        if self.any_solved_segs:
+            ode_iter_group.nonlinear_solver = self._ode_nonlinear_solver
+            ode_iter_group.linear_solver = self._ode_linear_solver
 
         if requires_solvers is not None:
             req_solvers.update(requires_solvers)

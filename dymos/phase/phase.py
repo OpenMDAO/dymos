@@ -58,6 +58,14 @@ class Phase(om.Group):
     sim_prob : Problem or None
         The OpenMDAO problem used for trajectory simulation.
         This is None unless the simulate method has been called.
+    refine_options : GridRefinementOptionsDictionary
+        Options used in grid refinement.
+    simulate_options : SimulateOptionsDictionary
+        Options used in simulation.
+    timeseries_options : PhaseTimeseriesOptionsDictionary
+        Options used for the timeseries variables.
+    sim_prob : Problem or None
+        The OpenMDAO problelm used to execute simulation.
     """
     def __init__(self, from_phase=None, **kwargs):
         _kwargs = kwargs.copy()
@@ -223,6 +231,22 @@ class Phase(om.Group):
     @property
     def control_options(self):
         return self.options['control_options']
+
+    @property
+    def ode_nonlinear_solver(self):
+        getattr(self.options['transcription'], '_ode_nonlinear_solver', default=None)
+
+    @ode_nonlinear_solver.setter
+    def ode_nonlinear_solver(self, solver):
+        self.options['transcription']._ode_nonlinear_solver = solver
+
+    @property
+    def ode_linear_solver(self):
+        getattr(self.options['transcription'], '_ode_linear_solver', default=None)
+
+    @ode_linear_solver.setter
+    def ode_linear_solver(self, solver):
+        self.options['transcription']._ode_linear_solver = solver
 
     def add_state(self, name, units=_unspecified, shape=_unspecified,
                   rate_source=_unspecified, targets=_unspecified,
