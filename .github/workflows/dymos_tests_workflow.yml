@@ -177,7 +177,7 @@ jobs:
             PETSc: 3.13
             PYOPTSPARSE: 'v2.9.0'
             SNOPT: 7.2
-            OPENMDAO: 3.28.0
+            OPENMDAO: 3.36.0
             MATPLOTLIB: 3.5
             OPTIONAL: '[test]'
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.oldest }}
