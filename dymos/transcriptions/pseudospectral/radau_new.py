@@ -26,26 +26,11 @@ class RadauNew(TranscriptionBase):
     _rhs_source : str
         The path providing an ODE for the phase that can be interrogated
         for shape and unit information.
-    _ode_nonlinear_solver : om.NonlinearSolver or None
-        A nonlinear solver to be applied to the internal ode_iter_group
-        if solve_segments is used.
-        If None or om.NonlinearRunOnce, the residuals imposed by
-        solve_segments must be converged by an outer solver.
-    _ode_linear_solver : om.NonlinearSolver or None
-        A nonlinear solver to be applied to the internal ode_iter_group
-        if solve_segments is used.
-        If None or om.LinearRunOnce, the residuals imposed by
-        solve_segments must be converged by an outer solver.
 
     """
     def __init__(self, **kwargs):
         super(RadauNew, self).__init__(**kwargs)
         self._rhs_source = 'ode_iter_group.ode_all'
-        self._ode_nonlinear_solver = om.NewtonSolver(iprint=0,
-                                                     solve_subsystems = True,
-                                                     maxiter=100,
-                                                     stall_limit=3)
-        self._ode_linear_solver = om.DirectSolver(iprint=0)
 
     def initialize(self):
         """
@@ -261,8 +246,7 @@ class RadauNew(TranscriptionBase):
                             promotes=['*'])
 
         phase.add_subsystem('boundary_vals',
-                            subsys=RadauBoundaryGroup(grid_data=grid_data,
-                                                      ode_class=ODEClass,
+                            subsys=RadauBoundaryGroup(ode_class=ODEClass,
                                                       ode_init_kwargs=ode_init_kwargs,
                                                       initial_boundary_constraints=ibcs,
                                                       final_boundary_constraints=fbcs,
@@ -390,8 +374,8 @@ class RadauNew(TranscriptionBase):
         req_solvers = {'implicit outputs': False}
 
         if self.any_solved_segs:
-            ode_iter_group.nonlinear_solver = self._ode_nonlinear_solver
-            ode_iter_group.linear_solver = self._ode_linear_solver
+            ode_iter_group.nonlinear_solver = phase.ode_nonlinear_solver
+            ode_iter_group.linear_solver = phase.ode_linear_solver
 
         if requires_solvers is not None:
             req_solvers.update(requires_solvers)
@@ -400,7 +384,7 @@ class RadauNew(TranscriptionBase):
 
     def configure_timeseries_outputs(self, phase):
         """
-        Create connections from time series to all post-introspection sources.
+        Create connections post-introspection sources to timeseries.
 
         Parameters
         ----------

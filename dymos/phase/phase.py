@@ -66,6 +66,16 @@ class Phase(om.Group):
         Options used for the timeseries variables.
     sim_prob : Problem or None
         The OpenMDAO problelm used to execute simulation.
+    ode_nonlinear_solver : om.NonlinearSolver or None
+        A nonlinear solver to be applied to the internal ode_iter_group
+        if solve_segments is used.
+        If None or om.NonlinearRunOnce, the residuals imposed by
+        solve_segments must be converged by an outer solver.
+    ode_linear_solver : om.NonlinearSolver or None
+        A nonlinear solver to be applied to the internal ode_iter_group
+        if solve_segments is used.
+        If None or om.LinearRunOnce, the residuals imposed by
+        solve_segments must be converged by an outer solver.
     """
     def __init__(self, from_phase=None, **kwargs):
         _kwargs = kwargs.copy()
@@ -92,6 +102,13 @@ class Phase(om.Group):
                                            'outputs': {}}}
         self._objectives = {}
         self.sim_prob = None
+
+        # Solvers used when using solve_segments
+        self.ode_nonlinear_solver = om.NewtonSolver(iprint=0,
+                                                    solve_subsystems = True,
+                                                    maxiter=100,
+                                                    stall_limit=3)
+        self.ode_linear_solver = om.DirectSolver(iprint=0)
 
         super(Phase, self).__init__(**_kwargs)
 
@@ -231,22 +248,6 @@ class Phase(om.Group):
     @property
     def control_options(self):
         return self.options['control_options']
-
-    @property
-    def ode_nonlinear_solver(self):
-        getattr(self.options['transcription'], '_ode_nonlinear_solver', default=None)
-
-    @ode_nonlinear_solver.setter
-    def ode_nonlinear_solver(self, solver):
-        self.options['transcription']._ode_nonlinear_solver = solver
-
-    @property
-    def ode_linear_solver(self):
-        getattr(self.options['transcription'], '_ode_linear_solver', default=None)
-
-    @ode_linear_solver.setter
-    def ode_linear_solver(self, solver):
-        self.options['transcription']._ode_linear_solver = solver
 
     def add_state(self, name, units=_unspecified, shape=_unspecified,
                   rate_source=_unspecified, targets=_unspecified,

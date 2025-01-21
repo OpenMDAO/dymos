@@ -239,8 +239,6 @@ class RadauDefectComp(om.ExplicitComponent):
                                   rows=ar_size, cols=ar_size, val=1.0)
 
             # The final value defect is an identity matrix at the "bottom right" corner of the jacobian.
-            # r = np.arange(size, dtype=int)
-            # c = np.arange(num_nodes - size, num_nodes, dtype=int)
             row_vec_end_1 = np.zeros((1, num_nodes))
             row_vec_end_1[:, -1] = -1.0
             pattern = sp.kron(row_vec_end_1, sp.eye(size), format='coo')

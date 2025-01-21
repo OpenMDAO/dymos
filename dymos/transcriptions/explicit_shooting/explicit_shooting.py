@@ -541,7 +541,7 @@ class ExplicitShooting(TranscriptionBase):
 
     def configure_timeseries_outputs(self, phase):
         """
-        Create connections from time series to all post-introspection sources.
+        Create connections post-introspection sources to timeseries.
 
         Parameters
         ----------
