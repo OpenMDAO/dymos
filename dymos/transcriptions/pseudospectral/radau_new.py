@@ -167,6 +167,7 @@ class RadauNew(TranscriptionBase):
         self.any_connected_opt_segs = False
         for options in phase.state_options.values():
             # Transcription solve_segments overrides state solve_segments if its not set
+            print(options['solve_segments'])
             if options['solve_segments'] is None:
                 options['solve_segments'] = self.options['solve_segments']
 

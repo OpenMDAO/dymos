@@ -822,6 +822,7 @@ def configure_timeseries_expr_introspection(phase):
         The phase object whose timeseries outputs are to be introspected.
     """
     transcription = phase.options['transcription']
+
     num_output_nodes = transcription._get_num_timeseries_nodes()
     var_names_regex = re.compile(r'([_a-zA-Z]\w*[ ]*\(?:?[.]?)')
 
@@ -918,8 +919,21 @@ def configure_timeseries_expr_introspection(phase):
                     if phase.timeseries_ec_vars[ts_name][var]['added_to_ec']:
                         continue
                     else:
-                        phase.connect(src_name=options['src'], tgt_name=f'{ts_name}.timeseries_exec_comp.{var}',
-                                      src_indices=options['src_idxs'])
+                        src = options['src']
+                        if src.startswith('states:'):
+                            src_state_name = src.split(":", maxsplit=1)[-1]
+                            timeseries_system = phase._get_subsystem(ts_name)
+                            timeseries_system.promotes('timeseries_exec_comp',
+                                                       inputs=[(var, f'input_values:{src_state_name}')])
+                        elif src.startswith('controls:'):
+                            src_control_name = src.split(":", maxsplit=1)[-1]
+                            timeseries_system = phase._get_subsystem(ts_name)
+                            timeseries_system.promotes('timeseries_exec_comp',
+                                                       inputs=[(var, f'input_values:{src_control_name}')])
+                        else:
+                            phase.connect(src_name=options['src'],
+                                          tgt_name=f'{ts_name}.timeseries_exec_comp.{var}',
+                                          src_indices=options['src_idxs'])
 
                     phase.timeseries_ec_vars[ts_name][var]['added_to_ec'] = True
 

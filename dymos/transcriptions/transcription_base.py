@@ -32,9 +32,7 @@ class TranscriptionBase(object):
                              allow_none=True, desc='Locations of segment ends or None for equally '
                              'spaced segments')
         self.options.declare('order', default=3, types=(int, Sequence, np.ndarray),
-                             desc='Order of the state transcription.',
-                             deprecation='order is deprecated. Use nodes_per_seg to specify the number of '
-                             'nodes in each segment.')
+                             desc='Order of the state transcription.')
         self.options.declare('compressed', default=True, types=bool,
                              desc='Use compressed transcription, meaning state and control values'
                                   'at segment boundaries are not duplicated on input.  This '
