@@ -10,7 +10,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT', fallback=True)
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestBrachistochroneExample(unittest.TestCase):
 
     @classmethod
