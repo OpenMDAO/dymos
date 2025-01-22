@@ -741,7 +741,7 @@ class TestIntegratePolynomialControl(unittest.TestCase):
 @use_tempdirs
 class TestIntegrateTimeParamAndState(unittest.TestCase):
 
-    def _test_transcription(self, transcription=dm.GaussLobatto, time_name='time'):
+    def _test_transcription(self, transcription, time_name='time'):
         #
         # Define the OpenMDAO problem
         #
@@ -758,8 +758,7 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
         # Define a Dymos Phase object with GaussLobatto Transcription
         #
         phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=transcription(num_segments=10, order=3,
-                                                     solve_segments='forward'))
+                         transcription=transcription)
 
         traj.add_phase(name='phase0', phase=phase)
 
@@ -861,8 +860,11 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
         assert_timeseries_near_equal(time_sol, int_int_one_sol, time_sim, int_int_one_sim, rel_tolerance=1.0E-12)
 
     def test_integrated_times_params_and_states(self):
-        for tx in (dm.GaussLobatto, dm.Radau):
-            tx_name = 'GaussLobatto' if tx is dm.GaussLobatto else 'Radau'
+        txs = {'GaussLobatto': dm.GaussLobatto(num_segments=10, order=3,
+                                               solve_segments='forward'),
+               'Radau': dm.Radau(num_segments=10, order=3, solve_segments='forward'),
+               'Birkhoff': dm.Birkhoff(num_nodes=30, solve_segments='forward')}
+        for tx_name, tx in txs.items():
             for time_name in ('time', 'elapsed_time'):
                 with self.subTest(msg=f'{tx_name}: time_name=\'{time_name}\''):
                     self._test_transcription(transcription=tx, time_name=time_name)

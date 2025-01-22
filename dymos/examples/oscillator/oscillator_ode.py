@@ -59,7 +59,7 @@ class OscillatorVectorODE(om.ExplicitComponent):
             self.add_input('A', val=np.ones((nn, 2, 2)))
 
         # Output
-        self.add_output('x_dot', val=np.zeros((nn, 2)))
+        self.add_output('x_dot', val=np.zeros((nn, 2)), units='1/s')
 
         self.declare_partials(of='*', wrt='*', method='fd')
 

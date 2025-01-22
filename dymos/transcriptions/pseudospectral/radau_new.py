@@ -288,17 +288,15 @@ class RadauNew(TranscriptionBase):
         grid_data = self.grid_data
         col_idxs = grid_data.subset_node_indices['col']
 
-        for name, options in phase.state_options.items():
-            rate_source_type = phase.classify_var(options['rate_source'])
-            if rate_source_type == 'parameter':
+        for name in phase.state_options:
+            rate_src_path = self._get_rate_source_path(state_name=name,phase=phase)
+            if rate_src_path.startswith('parameter_vals:'):
                 src_idxs = om.slicer[np.zeros_like(col_idxs), ...]
             else:
                 src_idxs = om.slicer[col_idxs, ...]
-            if rate_source_type not in ('state'):
-                # Do not need to connect state rates whose value comes from another state.
-                rate_src_path = self._get_rate_source_path(name, phase)
-                phase.connect(rate_src_path, f'f_ode:{name}',
-                              src_indices=src_idxs)
+
+            if not rate_src_path.startswith('states:'):
+                phase.connect(rate_src_path, f'f_ode:{name}', src_indices=src_idxs)
 
     def setup_duration_balance(self, phase):
         """
@@ -847,9 +845,11 @@ class RadauNew(TranscriptionBase):
                 else:
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-                    endpoint_src_idxs = om.slicer[[0, -1], ...]
+                    endpoint_src_idxs_raw = np.zeros(2, dtype=int)
+                    endpoint_src_idxs = get_src_indices_by_row(endpoint_src_idxs_raw, options['shape'])
                     if options['shape'] == (1,):
                         src_idxs = src_idxs.ravel()
+                        endpoint_src_idxs = endpoint_src_idxs.ravel()
 
                 connection_info.append((f'ode_all.{tgt}', (src_idxs,)))
                 connection_info.append((f'boundary_vals.{tgt}', (endpoint_src_idxs,)))
