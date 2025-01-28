@@ -11,7 +11,6 @@ from dymos.utils.misc import om_version
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 
-
 @use_tempdirs
 @require_pyoptsparse(optimizer='IPOPT')
 class TestAircraftCruise(unittest.TestCase):

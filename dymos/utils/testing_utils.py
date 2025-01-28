@@ -1,5 +1,4 @@
 import io
-import os
 
 from packaging.version import Version
 
@@ -361,59 +360,10 @@ def _get_reports_dir(prob):
     return get_reports_dir(prob)
 
 
-# This duplicates OpenMDAO code and is needed for older versions of OpenMDAO (<= 3.19).
-# Once support is dropped for < 3.19 we can get rid of this and use the version from OpenMDAO.
-class set_env_vars(object):
-    """
-    Decorate a function to temporarily set some environment variables.
-
-    Parameters
-    ----------
-    **envs : dict
-        Keyword args corresponding to environment variables to set.
-
-    Attributes
-    ----------
-    envs : dict
-        Saved mapping of environment var name to value.
-    """
-
-    def __init__(self, **envs):
-        """
-        Initialize attributes.
-        """
-        self.envs = envs
-
-    def __call__(self, fnc):
-        """
-        Apply the decorator.
-
-        Parameters
-        ----------
-        fnc : function
-            The function being wrapped.
-        """
-        def wrap(*args, **kwargs):
-            saved = {}
-            try:
-                for k, v in self.envs.items():
-                    saved[k] = os.environ.get(k)
-                    os.environ[k] = v  # will raise exception if v is not a string
-
-                return fnc(*args, **kwargs)
-            finally:
-                # put environment back as it was
-                for k, v in saved.items():
-                    if v is None:
-                        del os.environ[k]
-                    else:
-                        os.environ[k] = v
-
-        return wrap
-
 class PhaseStub():
     """
     A stand-in for the Phase during config_io for testing.
+
     It just supports the classify_var method and returns "ode", the only value needed for unittests.
     """
     def __init__(self):
@@ -421,6 +371,19 @@ class PhaseStub():
         self.linear_solver = None
 
     def classify_var(self, name):
+        """
+        A stand-in for classify_var that always sets the variable type to name.
+
+        Parameters
+        ----------
+        name : str
+            The name of the variable to classify.
+
+        Returns
+        -------
+        str
+            The variable classification.
+        """
         return 'ode'
 
 class SimpleODE(om.ExplicitComponent):
@@ -428,9 +391,15 @@ class SimpleODE(om.ExplicitComponent):
     A simple ODE from https://math.okstate.edu/people/yqwang/teaching/math4513_fall11/Notes/rungekutta.pdf
     """
     def initialize(self):
+        """
+        Declare options for SimpleODE.
+        """
         self.options.declare('num_nodes', types=(int,))
 
     def setup(self):
+        """
+        Add inputs and outputs to SimpleODE.
+        """
         nn = self.options['num_nodes']
         self.add_input('x', shape=(nn,), units='s**2')
         self.add_input('t', shape=(nn,), units='s')
@@ -444,12 +413,32 @@ class SimpleODE(om.ExplicitComponent):
         self.declare_partials(of='x_dot', wrt='p', rows=ar, cols=ar, val=1.0)
 
     def compute(self, inputs, outputs):
+        """
+        Compute the outputs of SimpleVectorizedODE.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Vector of inputs.
+        outputs : Vector
+            Vector of outputs.
+        """
         x = inputs['x']
         t = inputs['t']
         p = inputs['p']
         outputs['x_dot'] = x - t**2 + p
 
     def compute_partials(self, inputs, partials):
+        """
+        Compute the partials of SimpleVectorizedODE.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Vector of inputs.
+        partials : Dictionary
+            Vector of partials.
+        """
         t = inputs['t']
         partials['x_dot', 't'] = -2*t
 
@@ -459,9 +448,15 @@ class SimpleVectorizedODE(om.ExplicitComponent):
     A simple ODE from https://math.okstate.edu/people/yqwang/teaching/math4513_fall11/Notes/rungekutta.pdf
     """
     def initialize(self):
+        """
+        Declare options for SimpleVectorizedODE.
+        """
         self.options.declare('num_nodes', types=(int,))
 
     def setup(self):
+        """
+        Add inputs and outputs to SimpleVectorizedODE.
+        """
         nn = self.options['num_nodes']
         self.add_input('z', shape=(nn, 2), units='s**2')
         self.add_input('t', shape=(nn,), units='s')
@@ -479,6 +474,16 @@ class SimpleVectorizedODE(om.ExplicitComponent):
         self.declare_partials(of='z_dot', wrt='p', rows=dzdot_dp_rows, cols=dzdot_dp_cols, val=1.0)
 
     def compute(self, inputs, outputs):
+        """
+        Compute the outputs of SimpleVectorizedODE.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Vector of inputs.
+        outputs : Vector
+            Vector of outputs.
+        """
         z = inputs['z']
         t = inputs['t']
         p = inputs['p']
@@ -486,6 +491,16 @@ class SimpleVectorizedODE(om.ExplicitComponent):
         outputs['z_dot'][:, 1] = 10 * t
 
     def compute_partials(self, inputs, partials):
+        """
+        Compute the partials of SimpleVectorizedODE.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Vector of inputs.
+        partials : Dictionary
+            Vector of partials.
+        """
         t = inputs['t']
         partials['z_dot', 't'][0::2] = -2*t
         partials['z_dot', 't'][1::2] = 10

@@ -33,17 +33,14 @@ class RadauDefectComp(om.ExplicitComponent):
 
     def initialize(self):
         """Declare component options."""
-        self.options.declare(
-            'grid_data', types=GridData,
-            desc='Container object for grid info')
+        self.options.declare('grid_data', types=GridData,
+                             desc='Container object for grid info')
 
-        self.options.declare(
-            'state_options', types=dict,
-            desc='Dictionary of state names/options for the phase')
+        self.options.declare('state_options', types=dict,
+                             desc='Dictionary of state names/options for the phase')
 
-        self.options.declare(
-            'time_units', default=None, allow_none=True, types=str,
-            desc='Units of time')
+        self.options.declare('time_units', default=None, allow_none=True,
+                             types=str, desc='Units of time')
 
     def configure_io(self, phase):
         """
@@ -184,6 +181,9 @@ class RadauDefectComp(om.ExplicitComponent):
                                         ref=cnty_defect_ref)
 
     def setup_partials(self):
+        """
+        Set up partials after final setup has been run.
+        """
         gd: GridData = self.options['grid_data']
         num_segs: int = gd.num_segments
         num_nodes: int = gd.subset_num_nodes['all']
@@ -209,8 +209,8 @@ class RadauDefectComp(om.ExplicitComponent):
                                       rows=r, cols=c, val=-1.0)
             else:
                 self.declare_partials(of=var_names['rate_defect'],
-                                    wrt=var_names['f_ode'],
-                                    rows=r, cols=r, val=-1.0)
+                                      wrt=var_names['f_ode'],
+                                      rows=r, cols=r, val=-1.0)
 
             c = np.repeat(np.arange(num_col_nodes), size)
             self.declare_partials(of=var_names['rate_defect'],

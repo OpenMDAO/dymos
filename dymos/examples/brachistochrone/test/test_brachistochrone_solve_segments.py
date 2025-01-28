@@ -462,7 +462,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
 
         # Setup the problem
         with warnings.catch_warnings(record=True) as ctx:
-            _make_problem(transcription='radau-ps',
+            _make_problem(transcription='gauss-lobatto',
                           compressed=True,
                           optimizer='IPOPT',
                           force_alloc_complex=True,

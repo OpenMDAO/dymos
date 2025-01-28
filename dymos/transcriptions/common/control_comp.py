@@ -254,13 +254,13 @@ class ControlComp(om.ExplicitComponent):
                     J_cnty_def = -J_val[segment_end_idxs, ...][1:-1:2, ...]
                     J_cnty_def = J_cnty_def.tolil(copy=True)
                     one_col_idxs = np.cumsum(np.asarray(ncinps[:-1]))
-                    J_cnty_def[np.arange(num_seg -1, dtype=int), one_col_idxs] = 1.0
+                    J_cnty_def[np.arange(num_seg - 1, dtype=int), one_col_idxs] = 1.0
 
                     rs, cs, data = sp.find(J_cnty_def)
 
                     self.declare_partials(of=self._output_cnty_defect_names[name],
-                                        wrt=self._input_names[name],
-                                        rows=rs, cols=cs, val=data)
+                                          wrt=self._input_names[name],
+                                          rows=rs, cols=cs, val=data)
 
                 # The partials of the output rate and second derivative wrt dt_dstau
                 rs = np.arange(num_output_nodes * size, dtype=int)
@@ -296,8 +296,8 @@ class ControlComp(om.ExplicitComponent):
                     rs = rs // 2
 
                     self.declare_partials(of=self._output_rate_cnty_defect_names[name],
-                                        wrt=self._input_names[name],
-                                        rows=rs, cols=cs, val=data)
+                                          wrt=self._input_names[name],
+                                          rows=rs, cols=cs, val=data)
 
                 self.rate2_jacs[name] = sp.kron(self.D2, sp_eye, format='csr')
 
@@ -328,7 +328,7 @@ class ControlComp(om.ExplicitComponent):
                     desvar_indices = desvar_indices[1:]
                 if options['fix_final']:
                     desvar_indices = desvar_indices[:-1]
-                if not(options['fix_initial'] or options['fix_final']):
+                if not (options['fix_initial'] or options['fix_final']):
                     desvar_indices = None
 
                 lb = -INF_BOUND if options['lower'] is None else options['lower']
@@ -343,7 +343,6 @@ class ControlComp(om.ExplicitComponent):
                                     scaler=options['scaler'],
                                     indices=desvar_indices,
                                     flat_indices=True)
-
 
     def configure_io(self):
         """
@@ -460,7 +459,7 @@ class ControlComp(om.ExplicitComponent):
                                     (num_control_input_nodes, size))
 
                 a = self.D.dot(u_flat)  # du/dstau
-                b = self.D2.dot(u_flat) # d2u/dstau2
+                b = self.D2.dot(u_flat)  # d2u/dstau2
 
                 val = np.reshape(self.L.dot(u_flat), (num_output_nodes,) + options['shape'])
 

@@ -54,8 +54,8 @@ class BirkhoffIterGroup(om.Group):
 
         self.add_subsystem('collocation_comp',
                            subsys=BirkhoffDefectComp(grid_data=gd,
-                                                          state_options=state_options,
-                                                          time_units=time_options['units']),
+                                                     state_options=state_options,
+                                                     time_units=time_options['units']),
                            promotes_inputs=['*'], promotes_outputs=['*'])
 
         if any([opts['solve_segments'] in ('forward', 'backward') for opts in state_options.values()]):

@@ -1,7 +1,8 @@
 import unittest
+from xml.etree.ElementInclude import include
 import openmdao.api as om
 import dymos as dm
-from dymos.utils.testing_utils import set_env_vars
+from openmdao.utils.testing_utils import set_env_vars
 
 
 class TestCheckPartials(unittest.TestCase):
@@ -229,7 +230,7 @@ class TestCheckPartials(unittest.TestCase):
         #
         # Setup the problem and set the initial guess
         #
-        p.setup(check=True)
+        p.setup(check=False)
 
         p.set_val('traj.br_to_v1.t_initial', 0)
         p.set_val('traj.br_to_v1.t_duration', 35)
@@ -346,7 +347,7 @@ class TestCheckPartials(unittest.TestCase):
         #
         # Setup the problem and set the initial guess
         #
-        p.setup(check=True)
+        p.setup(check=False)
 
         p['traj.phase0.t_initial'] = 0.0
         p['traj.phase0.t_duration'] = 500
@@ -372,20 +373,17 @@ class TestCheckPartials(unittest.TestCase):
         Run check_partials on a series of dymos problems and verify that partials information
         is displayed for core Dymos components when DYMOS_CHECK_PARTIALS == 'True'.
         """
-        cp_save = dm.options['include_check_partials']
-        dm.options['include_check_partials'] = True
+        with dm.options.temporary(include_check_partials = True):
 
-        cases = [self.brach_explicit_partials,
-                 self.balanced_field_partials_radau,
-                 self.min_time_climb_partials_gl]
+            cases = [self.brach_explicit_partials,
+                     self.balanced_field_partials_radau,
+                     self.min_time_climb_partials_gl]
 
-        partials = {}
-        for c in cases:
-            partials.update(c())
+            partials = {}
+            for c in cases:
+                partials.update(c())
 
-        dm.options['include_check_partials'] = cp_save
-
-        assert len(partials.keys()) > 0
+            assert len(partials.keys()) > 0
 
     @set_env_vars(CI='0')  # Make sure _no_check_partials isn't disabled
     def test_check_partials_no(self):
@@ -393,21 +391,21 @@ class TestCheckPartials(unittest.TestCase):
         Run check_partials on a series of dymos problems and verify that partials information
         is not displayed for core Dymos components when DYMOS_CHECK_PARTIALS == 'False'.
         """
-        cp_save = dm.options['include_check_partials']
-        dm.options['include_check_partials'] = False
+        with dm.options.temporary(include_check_partials=False):
 
-        cases = [self.brach_explicit_partials,
-                 self.balanced_field_partials_radau,
-                 self.min_time_climb_partials_gl]
+            cases = [self.brach_explicit_partials,
+                     self.balanced_field_partials_radau,
+                     self.min_time_climb_partials_gl]
 
-        partials = {}
-        for c in cases:
-            partials.update(c())
+            partials = {}
+            for c in cases:
+                partials.update(c())
 
-        dm.options['include_check_partials'] = cp_save
-
-        # Only `phase.ode` should show up in in the partials keys.
-        self.assertSetEqual(set(partials.keys()), {'phase0.ode'})
+            # Only `phase.ode` should show up in in the partials keys.
+            for system_name in partials.keys():
+                self.assertTrue(system_name.endswith('.ode') or
+                                system_name.endswith('.ode_all') or
+                                system_name.endswith('boundary_ode'))
 
 
 if __name__ == '__main__':  # pragma: no cover

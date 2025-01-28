@@ -2,11 +2,17 @@ import importlib
 import os
 import pathlib
 import unittest
-from numpy.testing import assert_almost_equal
 
 import sys
 
-import dymos
+import numpy as np
+from numpy.testing import assert_almost_equal
+
+from openmdao.utils.testing_utils import use_tempdirs, set_env_vars_context
+from openmdao.utils.general_utils import set_pyoptsparse_opt
+from openmdao.utils.tests.test_hooks import hooks_active
+
+import dymos as dm
 import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
 from dymos.utils.testing_utils import assert_check_partials, _get_reports_dir
 
@@ -57,9 +63,9 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
     def assert_partials(self, p):
-        with printoptions(linewidth=1024, edgeitems=100):
+        with np.printoptions(linewidth=1024, edgeitems=100):
             cpd = p.check_partials(method='cs', compact_print=True,
-                                   show_only_incorrect=True)#, out_stream=None)
+                                   show_only_incorrect=True, out_stream=None)
         assert_check_partials(cpd)
         # p.check_totals(method='cs', compact_print=False)
 
@@ -74,7 +80,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
     def test_ex_brachistochrone_vs_radau_uncompressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
-        with dymos.options.temporary(include_check_partials=True):
+        with dm.options.temporary(include_check_partials=True):
             p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
                                                                num_segments=3,
                                                                transcription_order=3,
@@ -89,7 +95,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
     def test_ex_brachistochrone_vs_gl_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
-        with dymos.options.temporary(include_check_partials=True):
+        with dm.options.temporary(include_check_partials=True):
             p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
                                                             compressed=True,
                                                             force_alloc_complex=True,

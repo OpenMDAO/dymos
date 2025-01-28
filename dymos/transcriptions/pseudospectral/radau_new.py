@@ -26,7 +26,6 @@ class RadauNew(TranscriptionBase):
     _rhs_source : str
         The path providing an ODE for the phase that can be interrogated
         for shape and unit information.
-
     """
     def __init__(self, **kwargs):
         super(RadauNew, self).__init__(**kwargs)
@@ -57,7 +56,7 @@ class RadauNew(TranscriptionBase):
         Set up the GridData object for the Transcription.
         """
         self.grid_data = RadauGrid(num_segments=self.options['num_segments'],
-                                   nodes_per_seg=self.options['order'] + 1,
+                                   nodes_per_seg=np.asarray(self.options['order']) + 1,
                                    segment_ends=self.options['segment_ends'],
                                    compressed=self.options['compressed'])
 
@@ -289,7 +288,7 @@ class RadauNew(TranscriptionBase):
         col_idxs = grid_data.subset_node_indices['col']
 
         for name in phase.state_options:
-            rate_src_path = self._get_rate_source_path(state_name=name,phase=phase)
+            rate_src_path = self._get_rate_source_path(state_name=name, phase=phase)
             if rate_src_path.startswith('parameter_vals:'):
                 src_idxs = om.slicer[np.zeros_like(col_idxs), ...]
             else:

@@ -85,6 +85,15 @@ class RadauIterGroup(om.Group):
         input_final = options['input_final']
         shape = options['shape']
 
+        if not isinstance(fix_initial, bool):
+            raise ValueError(f'Option fix_initial for state {name} must be True or False. '
+                             f'If fixing some indices of a non-scalar state, use initial '
+                             f'boundary constraints.')
+        if not isinstance(fix_final, bool):
+            raise ValueError(f'Option fix_final for state {name} must be True or False. '
+                             f'If fixing some indices of a non-scalar state, use '
+                             f'final boundary constraints.')
+
         if solve_segs == 'forward' and fix_final:
             raise ValueError(f"Option fix_final on state {name} may not "
                              f"be used with `solve_segments='forward'`.\n Use "

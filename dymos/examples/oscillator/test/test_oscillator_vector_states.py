@@ -26,7 +26,7 @@ class TestDocOscillator(unittest.TestCase):
                     prob.driver.options["optimizer"] = 'SLSQP'
 
                     phase = dm.Phase(ode_class=OscillatorVectorODE, transcription=tx,
-                                    ode_init_kwargs={'static_params': static_params})
+                                     ode_init_kwargs={'static_params': static_params})
 
                     phase.set_time_options(fix_initial=True, duration_bounds=(1, 2), duration_ref=1)
                     phase.add_state("x", fix_initial=True, rate_source="x_dot")
