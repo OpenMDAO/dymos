@@ -1,5 +1,6 @@
 import numpy as np
 import openmdao.api as om
+from openmdao.utils.general_utils import determine_adder_scaler
 
 from .input_resids_comp import InputResidsComp
 from .radau_defect_comp import RadauDefectComp
@@ -227,6 +228,19 @@ class RadauIterGroup(om.Group):
                 states_resids_comp.add_input(f'final_state_defects:{name}', shape=(1,) + shape, units=units)
                 states_resids_comp.add_input(f'state_rate_defects:{name}', shape=(ncn,) + shape, units=units)
 
+                if options['defect_ref'] is not None:
+                    defect_ref = options['defect_ref']
+                else:
+                    if options['defect_scaler'] is None:
+                        defect_ref = 1.0
+                    else:
+                        defect_ref = 1. / options['defect_scaler']
+
+                adder, scaler = determine_adder_scaler(options['ref0'], options['ref'],
+                                                       options['adder'], options['scaler'])
+                ref0 = -adder
+                ref = (1.0 / scaler) - adder
+
                 if ns > 1 and not gd.compressed:
                     states_resids_comp.add_input(f'state_cnty_defects:{name}',
                                                  shape=(ns - 1,) + shape,
@@ -237,8 +251,9 @@ class RadauIterGroup(om.Group):
                                                   shape=(nn,) + shape,
                                                   lower=options['lower'],
                                                   upper=options['upper'],
-                                                  ref=options['ref'],
-                                                  res_ref=options['defect_ref'],
+                                                  ref0=ref0,
+                                                  ref=ref,
+                                                  res_ref=defect_ref,
                                                   units=units)
                 else:
                     # For compressed transcirption, resids comp provides values at input nodes.
@@ -247,8 +262,9 @@ class RadauIterGroup(om.Group):
                                                   shape=(nin,) + shape,
                                                   lower=options['lower'],
                                                   upper=options['upper'],
-                                                  ref=options['ref'],
-                                                  res_ref=options['defect_ref'],
+                                                  ref0=ref0,
+                                                  ref=ref,
+                                                  res_ref=defect_ref,
                                                   units=units)
 
             if options['initial_bounds'] is None:
@@ -266,14 +282,16 @@ class RadauIterGroup(om.Group):
             if f'initial_states:{name}' in self._implicit_outputs:
                 states_resids_comp.add_output(f'initial_states:{name}', shape=(1,) + shape, units=units,
                                               lower=initial_lb, upper=initial_ub,
-                                              ref=options['ref'],
-                                              res_ref=options['defect_ref'],)
+                                              ref0=ref0,
+                                              ref=ref,
+                                              res_ref=defect_ref,)
 
             if f'final_states:{name}' in self._implicit_outputs:
                 states_resids_comp.add_output(f'final_states:{name}', shape=(1,) + shape, units=units,
                                               lower=final_lb, upper=final_ub,
-                                              ref=options['ref'],
-                                              res_ref=options['defect_ref'],)
+                                              ref0=ref0,
+                                              ref=ref,
+                                              res_ref=defect_ref,)
 
             try:
                 rate_source_var = options['rate_source']
