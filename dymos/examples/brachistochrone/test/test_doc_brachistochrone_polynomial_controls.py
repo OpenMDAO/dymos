@@ -271,532 +271,121 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase):
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
-    def test_brachistochrone_polynomial_control_gauss_lobatto(self):
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
+    def test_brachistochrone_polynomial_control_boundary_constrained(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = om.Problem(model=om.Group())
-        p.driver = om.ScipyOptimizeDriver()
-        p.driver.declare_coloring()
+        transcriptions = {'GaussLobatto': dm.GaussLobatto(num_segments=10),
+                          'Radau': dm.Radau(num_segments=10),
+                          'Birkhoff': dm.Birkhoff(num_nodes=30)}
 
-        phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=dm.GaussLobatto(num_segments=10))
+        for tx_name, tx in transcriptions.items():
+            with self.subTest(f'{tx_name=}'):
+                p = om.Problem(model=om.Group())
+                p.driver = om.ScipyOptimizeDriver()
+                p.driver.declare_coloring()
 
-        p.model.add_subsystem('phase0', phase)
+                phase = dm.Phase(ode_class=BrachistochroneODE,
+                                transcription=dm.GaussLobatto(num_segments=10))
 
-        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+                p.model.add_subsystem('phase0', phase)
 
-        phase.add_state('x', fix_initial=True, fix_final=True)
+                phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('y', fix_initial=True, fix_final=True)
+                phase.add_state('x', fix_initial=True, fix_final=True)
 
-        phase.add_state('v', fix_initial=True, fix_final=False)
+                phase.add_state('y', fix_initial=True, fix_final=True)
 
-        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
+                phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
+                phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
-        phase.add_boundary_constraint('theta', loc='initial', lower=0, upper=1.0)
-        phase.add_boundary_constraint('theta', loc='final', lower=100, upper=105.)
+                phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=10)
+                phase.add_boundary_constraint('theta', loc='initial', lower=0, upper=1.0)
+                phase.add_boundary_constraint('theta', loc='final', lower=100, upper=105.)
 
-        p.model.linear_solver = om.DirectSolver()
+                # Minimize time at the end of the phase
+                phase.add_objective('time', loc='final', scaler=10)
 
-        p.setup()
+                p.model.linear_solver = om.DirectSolver()
 
-        phase.set_time_val(initial=0.0, duration=2.0)
+                p.setup()
 
-        phase.set_state_val('x', [0, 10])
-        phase.set_state_val('y', [10, 5])
-        phase.set_state_val('v', [0, 9.9])
-        phase.set_control_val('theta', [5, 100])
+                phase.set_time_val(initial=0.0, duration=2.0)
 
-        # Solve for the optimal trajectory
-        p.run_driver()
+                phase.set_state_val('x', [0, 10])
+                phase.set_state_val('y', [10, 5])
+                phase.set_state_val('v', [0, 9.9])
+                phase.set_control_val('theta', [5, 100])
 
-        # Test the results
-        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+                # Solve for the optimal trajectory
+                dm.run_problem(p, simulate=True)
 
-        # Generate the explicitly simulated trajectory
-        exp_out = phase.simulate()
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.x')
-        y_imp = p.get_val('phase0.timeseries.y')
-
-        x_exp = exp_out.get_val('phase0.timeseries.x')
-        y_exp = exp_out.get_val('phase0.timeseries.y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.theta')
-
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        plt.show()
-
-    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
-    def test_brachistochrone_polynomial_control_radau(self):
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
-        import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
-        import dymos as dm
-        from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-
-        p = om.Problem(model=om.Group())
-        p.driver = om.ScipyOptimizeDriver()
-        p.driver.declare_coloring()
-
-        phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=dm.Radau(num_segments=10))
-
-        p.model.add_subsystem('phase0', phase)
-
-        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
-
-        phase.add_state('x', fix_initial=True, fix_final=True)
-
-        phase.add_state('y', fix_initial=True, fix_final=True)
-
-        phase.add_state('v', fix_initial=True, fix_final=False)
-
-        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
-
-        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
-
-        phase.add_boundary_constraint('theta', loc='initial', lower=0, upper=1.0)
-        phase.add_boundary_constraint('theta', loc='final', lower=100, upper=105.)
-
-        # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=10)
-
-        p.model.linear_solver = om.DirectSolver()
-
-        p.setup()
-
-        phase.set_time_val(initial=0.0, duration=2.0)
-
-        phase.set_state_val('x', [0, 10])
-        phase.set_state_val('y', [10, 5])
-        phase.set_state_val('v', [0, 9.9])
-        phase.set_control_val('theta', [5, 100])
-
-        # Solve for the optimal trajectory
-        p.run_driver()
-
-        # Test the results
-        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
-
-        # Generate the explicitly simulated trajectory
-        exp_out = phase.simulate()
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.x')
-        y_imp = p.get_val('phase0.timeseries.y')
-
-        x_exp = exp_out.get_val('phase0.timeseries.x')
-        y_exp = exp_out.get_val('phase0.timeseries.y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.theta')
-
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        plt.show()
-
-    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
-    def test_brachistochrone_polynomial_control_birkhoff(self):
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
-        import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
-        import dymos as dm
-        from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-
-        p = om.Problem(model=om.Group())
-        p.driver = om.ScipyOptimizeDriver()
-        p.driver.declare_coloring()
-
-        phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=dm.Birkhoff(num_nodes=15))
-
-        p.model.add_subsystem('phase0', phase)
-
-        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
-
-        phase.add_state('x', fix_initial=True, fix_final=True)
-
-        phase.add_state('y', fix_initial=True, fix_final=True)
-
-        phase.add_state('v', fix_initial=True, fix_final=False)
-
-        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
-
-        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
-
-        phase.add_boundary_constraint('theta', loc='initial', lower=0, upper=1.0)
-        phase.add_boundary_constraint('theta', loc='final', upper=105.0)
-
-        # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=10)
-
-        p.model.linear_solver = om.DirectSolver()
-
-        p.setup()
-
-        phase.set_time_val(initial=0.0, duration=2.0)
-
-        phase.set_state_val('x', [0, 10])
-        phase.set_state_val('y', [10, 5])
-        phase.set_state_val('v', [0, 9.9])
-        phase.set_control_val('theta', [5, 100])
-
-        # Solve for the optimal trajectory
-        p.run_driver()
-
-        # Test the results
-        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
-
-        # Generate the explicitly simulated trajectory
-        exp_out = phase.simulate()
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.x')
-        y_imp = p.get_val('phase0.timeseries.y')
-
-        x_exp = exp_out.get_val('phase0.timeseries.x')
-        y_exp = exp_out.get_val('phase0.timeseries.y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.theta')
-
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        plt.show()
+                # Test the results
+                assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
 
 @use_tempdirs
 class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
-    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
-    def test_brachistochrone_polynomial_control_gauss_lobatto(self):
-        import matplotlib.pyplot as plt
-        plt.switch_backend('Agg')
+    def test_brachistochrone_polynomial_control(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = om.Problem(model=om.Group())
-        p.driver = om.ScipyOptimizeDriver()
-        p.driver.declare_coloring()
+        transcriptions = {'GaussLobatto': dm.GaussLobatto(num_segments=10),
+                          'Radau': dm.Radau(num_segments=10),
+                          'Birkhoff': dm.Birkhoff(num_nodes=30)}
 
-        phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=dm.GaussLobatto(num_segments=10))
+        for tx_name, tx in transcriptions.items():
+            with self.subTest(f'{tx_name=}'):
 
-        p.model.add_subsystem('phase0', phase)
+                p = om.Problem(model=om.Group())
+                p.driver = om.ScipyOptimizeDriver()
+                p.driver.declare_coloring()
 
-        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+                phase = dm.Phase(ode_class=BrachistochroneODE,
+                                transcription=dm.GaussLobatto(num_segments=10))
 
-        phase.add_state('x', fix_initial=True, fix_final=True)
+                p.model.add_subsystem('phase0', phase)
 
-        phase.add_state('y', fix_initial=True, fix_final=True)
+                phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('v', fix_initial=True, fix_final=False)
+                phase.add_state('x', fix_initial=True, fix_final=True)
 
-        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
+                phase.add_state('y', fix_initial=True, fix_final=True)
 
-        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
+                phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_path_constraint('theta', lower=0, upper=120)
+                phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
 
-        # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=10)
+                phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        p.model.linear_solver = om.DirectSolver()
+                phase.add_path_constraint('theta', lower=0, upper=120)
 
-        p.setup()
+                # Minimize time at the end of the phase
+                phase.add_objective('time', loc='final', scaler=10)
 
-        phase.set_time_val(initial=0.0, duration=2.0)
+                p.model.linear_solver = om.DirectSolver()
 
-        phase.set_state_val('x', [0, 10])
-        phase.set_state_val('y', [10, 5])
-        phase.set_state_val('v', [0, 9.9])
-        phase.set_control_val('theta', [5, 100])
+                p.setup()
 
-        # Solve for the optimal trajectory
-        p.run_driver()
+                phase.set_time_val(initial=0.0, duration=2.0)
 
-        # Test the results
-        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+                phase.set_state_val('x', [0, 10])
+                phase.set_state_val('y', [10, 5])
+                phase.set_state_val('v', [0, 9.9])
+                phase.set_control_val('theta', [5, 100])
 
-        # Generate the explicitly simulated trajectory
-        exp_out = phase.simulate()
+                # Solve for the optimal trajectory
+                dm.run_problem(p, simulate=True)
 
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.x')
-        y_imp = p.get_val('phase0.timeseries.y')
-
-        x_exp = exp_out.get_val('phase0.timeseries.x')
-        y_exp = exp_out.get_val('phase0.timeseries.y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.theta')
-
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        plt.show()
-
-    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
-    def test_brachistochrone_polynomial_control_radau(self):
-        import matplotlib.pyplot as plt
-        plt.switch_backend('Agg')
-        import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
-        import dymos as dm
-        from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-
-        p = om.Problem(model=om.Group())
-        p.driver = om.ScipyOptimizeDriver()
-        p.driver.declare_coloring()
-
-        phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=dm.Radau(num_segments=10))
-
-        p.model.add_subsystem('phase0', phase)
-
-        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
-
-        phase.add_state('x', fix_initial=True, fix_final=True)
-
-        phase.add_state('y', fix_initial=True, fix_final=True)
-
-        phase.add_state('v', fix_initial=True, fix_final=False)
-
-        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
-
-        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
-
-        phase.add_path_constraint('theta', lower=1, upper=120)
-
-        # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=10)
-
-        p.model.linear_solver = om.DirectSolver()
-
-        p.setup()
-
-        phase.set_time_val(initial=0.0, duration=2.0)
-
-        phase.set_state_val('x', [0, 10])
-        phase.set_state_val('y', [10, 5])
-        phase.set_state_val('v', [0, 9.9])
-        phase.set_control_val('theta', [5, 100])
-
-        # Solve for the optimal trajectory
-        p.run_driver()
-
-        # Test the results
-        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
-
-        # Generate the explicitly simulated trajectory
-        exp_out = phase.simulate()
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.x')
-        y_imp = p.get_val('phase0.timeseries.y')
-
-        x_exp = exp_out.get_val('phase0.timeseries.x')
-        y_exp = exp_out.get_val('phase0.timeseries.y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.theta')
-
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        plt.show()
-
-    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
-    def test_brachistochrone_polynomial_control_birkhoff(self):
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
-        import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
-        import dymos as dm
-        from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-
-        p = om.Problem(model=om.Group())
-        p.driver = om.ScipyOptimizeDriver()
-        p.driver.declare_coloring()
-
-        phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=dm.Birkhoff(num_nodes=15))
-
-        p.model.add_subsystem('phase0', phase)
-
-        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
-
-        phase.add_state('x', fix_initial=True, fix_final=True)
-
-        phase.add_state('y', fix_initial=True, fix_final=True)
-
-        phase.add_state('v', fix_initial=True, fix_final=False)
-
-        phase.add_control('theta', order=1, units='deg', lower=0.01, upper=179.9, control_type='polynomial')
-
-        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
-
-        phase.add_path_constraint('theta', lower=1, upper=120)
-
-        # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=10)
-
-        p.model.linear_solver = om.DirectSolver()
-
-        p.setup()
-
-        phase.set_time_val(initial=0.0, duration=2.0)
-
-        phase.set_state_val('x', [0, 10])
-        phase.set_state_val('y', [10, 5])
-        phase.set_state_val('v', [0, 9.9])
-        phase.set_control_val('theta', [5, 100])
-
-        # Solve for the optimal trajectory
-        p.run_driver()
-
-        # Test the results
-        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
-
-        # Generate the explicitly simulated trajectory
-        exp_out = phase.simulate()
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.x')
-        y_imp = p.get_val('phase0.timeseries.y')
-
-        x_exp = exp_out.get_val('phase0.timeseries.x')
-        y_exp = exp_out.get_val('phase0.timeseries.y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='solution')
-        ax.plot(x_exp, y_exp, 'b-', label='simulated')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-
-        t_imp = p.get_val('phase0.timeseries.time')
-        theta_imp = p.get_val('phase0.timeseries.theta')
-
-        ax.plot(t_imp, theta_imp, 'ro', label='solution')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel(r'$\theta$ (deg)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        plt.show()
-
+                # Test the results
+                assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
 @use_tempdirs
 class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase):

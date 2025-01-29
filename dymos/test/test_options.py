@@ -1,9 +1,9 @@
 import unittest
 
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, set_env_vars
 import dymos as dm
 from dymos.examples.brachistochrone.test.ex_brachistochrone import brachistochrone_min_time
-from dymos.utils.testing_utils import set_env_vars
+
 
 
 @use_tempdirs
@@ -15,7 +15,8 @@ class TestOptions(unittest.TestCase):
         p = brachistochrone_min_time(transcription='radau-ps', compressed=False,
                                      run_driver=False, force_alloc_complex=True)
         cpd = p.check_partials(out_stream=None)
-        self.assertSetEqual(set(cpd.keys()), {'traj0.phases.phase0.rhs_all'})
+        self.assertSetEqual(set(cpd.keys()), {'traj0.phases.phase0.ode_iter_group.ode_all',
+                                              'traj0.phases.phase0.boundary_vals.boundary_ode'})
 
     @set_env_vars(CI='0')
     def test_include_check_partials_false_gl(self):

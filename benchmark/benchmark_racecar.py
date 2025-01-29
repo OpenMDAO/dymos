@@ -140,22 +140,22 @@ def _run_racecar_problem(transcription, timeseries=False, make_plots=False):
     # Now that the OpenMDAO problem is setup, we can set the values of the states.
 
     # States
-    # non-zero velocity in order to protect against 1/0 errors.
-    p.set_val('traj.phase0.states:V', phase.interp('V', [20, 20]), units='m/s')
-    p.set_val('traj.phase0.states:lambda', phase.interp('lambda', [0.0, 0.0]), units='rad')
-    # all other states start at 0
-    p.set_val('traj.phase0.states:omega', phase.interp('omega', [0.0, 0.0]), units='rad/s')
-    p.set_val('traj.phase0.states:alpha', phase.interp('alpha', [0.0, 0.0]), units='rad')
-    p.set_val('traj.phase0.states:ax', phase.interp('ax', [0.0, 0.0]), units='m/s**2')
-    p.set_val('traj.phase0.states:ay', phase.interp('ay', [0.0, 0.0]), units='m/s**2')
-    p.set_val('traj.phase0.states:n', phase.interp('n', [0.0, 0.0]), units='m')
+    # Nonzero velocity to avoid division by zero errors
+    phase.set_state_val('V', 20.0, units='m/s')
+    # All other states start at 0
+    phase.set_state_val('lambda', 0.0, units='rad')
+    phase.set_state_val('omega', 0.0, units='rad/s')
+    phase.set_state_val('alpha', 0.0, units='rad')
+    phase.set_state_val('ax', 0.0, units='m/s**2')
+    phase.set_state_val('ay', 0.0, units='m/s**2')
+    phase.set_state_val('n', 0.0, units='m')
     # initial guess for what the final time should be
-    p.set_val('traj.phase0.states:t', phase.interp('t', [0.0, 100.0]), units='s')
+    phase.set_state_val('t', [0.0, 100.0], units='s')
 
     # Controls
-    p.set_val('traj.phase0.controls:delta', phase.interp('delta', [0.0, 0.0]), units='rad')
-    p.set_val('traj.phase0.controls:thrust', phase.interp('thrust', [0.1, 0.1]), units=None)
     # a small amount of thrust can speed up convergence
+    phase.set_control_val('delta', 0.0, units='rad')
+    phase.set_control_val('thrust', 0.1, units=None)
 
     dm.run_problem(p, run_driver=True, simulate=False, make_plots=make_plots)
     print('Optimization finished')
@@ -183,4 +183,4 @@ class BenchmarkRacecar(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    _run_racecar_problem(dm.GaussLobatto, timeseries=False, make_plots=True)
+    _run_racecar_problem(dm.Radau, timeseries=False, make_plots=True)

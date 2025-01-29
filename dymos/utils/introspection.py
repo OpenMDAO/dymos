@@ -160,7 +160,9 @@ def _configure_constraint_introspection(phase):
         The phase object whose boundary and path constraints are to be introspected.
     """
     from ..transcriptions import Birkhoff
+    from ..transcriptions.pseudospectral.radau_new import RadauNew
     birkhoff = isinstance(phase.options['transcription'], Birkhoff)
+    radau_new = isinstance(phase.options['transcription'], RadauNew)
 
     for constraint_type, constraints in [('initial', phase._initial_boundary_constraints),
                                          ('final', phase._final_boundary_constraints),
@@ -194,7 +196,7 @@ def _configure_constraint_introspection(phase):
                 state_units = phase.state_options[var]['units']
                 con['shape'] = state_shape
                 con['units'] = state_units if con['units'] is None else con['units']
-                if birkhoff and constraint_type in ('initial', 'final'):
+                if (birkhoff or radau_new) and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'boundary_vals.{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{prefix}{var}'
@@ -258,7 +260,7 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = meta['shape']
                 con['units'] = meta['units']
 
-                if birkhoff and constraint_type in ('initial', 'final'):
+                if (birkhoff or radau_new) and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'boundary_vals.{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{con["constraint_name"]}'
@@ -820,6 +822,7 @@ def configure_timeseries_expr_introspection(phase):
         The phase object whose timeseries outputs are to be introspected.
     """
     transcription = phase.options['transcription']
+
     num_output_nodes = transcription._get_num_timeseries_nodes()
     var_names_regex = re.compile(r'([_a-zA-Z]\w*[ ]*\(?:?[.]?)')
 
@@ -916,8 +919,21 @@ def configure_timeseries_expr_introspection(phase):
                     if phase.timeseries_ec_vars[ts_name][var]['added_to_ec']:
                         continue
                     else:
-                        phase.connect(src_name=options['src'], tgt_name=f'{ts_name}.timeseries_exec_comp.{var}',
-                                      src_indices=options['src_idxs'])
+                        src = options['src']
+                        if src.startswith('states:'):
+                            src_state_name = src.split(":", maxsplit=1)[-1]
+                            timeseries_system = phase._get_subsystem(ts_name)
+                            timeseries_system.promotes('timeseries_exec_comp',
+                                                       inputs=[(var, f'input_values:{src_state_name}')])
+                        elif src.startswith('controls:'):
+                            src_control_name = src.split(":", maxsplit=1)[-1]
+                            timeseries_system = phase._get_subsystem(ts_name)
+                            timeseries_system.promotes('timeseries_exec_comp',
+                                                       inputs=[(var, f'input_values:{src_control_name}')])
+                        else:
+                            phase.connect(src_name=options['src'],
+                                          tgt_name=f'{ts_name}.timeseries_exec_comp.{var}',
+                                          src_indices=options['src_idxs'])
 
                     phase.timeseries_ec_vars[ts_name][var]['added_to_ec'] = True
 
