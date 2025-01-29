@@ -231,25 +231,49 @@ class RadauIterGroup(om.Group):
                     states_resids_comp.add_input(f'state_cnty_defects:{name}',
                                                  shape=(ns - 1,) + shape,
                                                  units=units)
-                    # For compressed transcription, resids does not provide values at overlapping
+                    # For noncompressed transcription, resids provides values at overlapping
                     # segment boundaries.
                     states_resids_comp.add_output(f'states:{name}',
                                                   shape=(nn,) + shape,
+                                                  lower=options['lower'],
+                                                  upper=options['upper'],
+                                                  ref=options['ref'],
+                                                  res_ref=options['defect_ref'],
                                                   units=units)
                 else:
                     # For compressed transcirption, resids comp provides values at input nodes.
                     nin = gd.subset_num_nodes['state_input']
                     states_resids_comp.add_output(f'states:{name}',
                                                   shape=(nin,) + shape,
+                                                  lower=options['lower'],
+                                                  upper=options['upper'],
+                                                  ref=options['ref'],
+                                                  res_ref=options['defect_ref'],
                                                   units=units)
 
+            if options['initial_bounds'] is None:
+                initial_lb = options['lower']
+                initial_ub = options['upper']
+            else:
+                initial_lb, initial_ub = options['initial_bounds']
+
+            if options['final_bounds'] is None:
+                final_lb = options['lower']
+                final_ub = options['upper']
+            else:
+                final_lb, final_ub = options['final_bounds']
+
             if f'initial_states:{name}' in self._implicit_outputs:
-                # states_resids_comp.add_input(f'initial_state_defects:{name}', shape=(1,) + shape, units=units)
-                states_resids_comp.add_output(f'initial_states:{name}', shape=(1,) + shape, units=units)
+                states_resids_comp.add_output(f'initial_states:{name}', shape=(1,) + shape, units=units,
+                                              lower=initial_lb, upper=initial_ub,
+                                              ref=options['ref'],
+                                              res_ref=options['defect_ref'],)
 
             if f'final_states:{name}' in self._implicit_outputs:
-                # states_resids_comp.add_input(f'final_state_defects:{name}', shape=(1,) + shape, units=units)
-                states_resids_comp.add_output(f'final_states:{name}', shape=(1,) + shape, units=units)
+                states_resids_comp.add_output(f'final_states:{name}', shape=(1,) + shape, units=units,
+                                              lower=final_lb, upper=final_ub,
+                                              ref=options['ref'],
+                                              res_ref=options['defect_ref'],)
 
             try:
                 rate_source_var = options['rate_source']

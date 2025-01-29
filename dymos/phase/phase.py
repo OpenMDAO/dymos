@@ -108,6 +108,7 @@ class Phase(om.Group):
                                                     solve_subsystems = True,
                                                     maxiter=100,
                                                     stall_limit=3)
+        self.ode_nonlinear_solver.linesearch = None
         self.ode_linear_solver = om.DirectSolver(iprint=0)
 
         super(Phase, self).__init__(**_kwargs)

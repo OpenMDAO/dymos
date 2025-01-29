@@ -34,11 +34,11 @@ def setup_surrogates_all(model_name='CRM'):
                     count += 1
 
     interpND_CL = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr),
-                           values=interp_CL)
+                           values=interp_CL, extrapolate=True)
     interpND_CD = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr),
-                           values=interp_CD)
+                           values=interp_CD, extrapolate=True)
     interpND_CM = InterpND(method='lagrange3', points=(M_surr, a_surr, h_surr, e_surr),
-                           values=interp_CM)
+                           values=interp_CM, extrapolate=True)
 
     nums = {
         'M': M_num,
