@@ -7,7 +7,7 @@ import openmdao.api as om
 from dymos.utils.testing_utils import assert_check_partials
 
 import dymos as dm
-from dymos.transcriptions.pseudospectral.components.birkhoff_collocation_comp import BirkhoffCollocationComp
+from dymos.transcriptions.pseudospectral.components.birkhoff_defect_comp import BirkhoffDefectComp
 from dymos.transcriptions.grid_data import BirkhoffGrid
 
 # Modify class so we can run it standalone.
@@ -23,7 +23,7 @@ class _PhaseStub():
         return None
 
 
-CollocationComp = CompWrapperConfig(BirkhoffCollocationComp, [_PhaseStub()])
+CollocationComp = CompWrapperConfig(BirkhoffDefectComp, [_PhaseStub()])
 
 
 class TestCollocationComp(unittest.TestCase):

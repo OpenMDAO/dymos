@@ -108,11 +108,10 @@ class Birkhoff(TranscriptionBase):
                 src_idxs = self.grid_data.subset_node_indices['all']
                 phase.connect(name, [f'ode_all.{t}' for t in targets], src_indices=src_idxs,
                               flat_src_indices=True)
-                src_idxs = om.slicer[[0, -1], ...]
-                phase.connect(name, [f'boundary_vals.{t}' for t in targets], src_indices=src_idxs)
 
         for name, targets in [('t_initial', options['t_initial_targets']),
-                              ('t_duration', options['t_duration_targets'])]:
+                              ('t_duration', options['t_duration_targets']),
+                              ('t_final', options['t_final_targets'])]:
             for t in targets:
                 shape = ode_inputs[t]['shape']
 
@@ -256,18 +255,24 @@ class Birkhoff(TranscriptionBase):
 
     def configure_defects(self, phase):
         """
-        Configure the continuity_comp and connect the collocation constraints.
+        Connect the collocation constraints.
 
         Parameters
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        num_nodes = self.grid_data.subset_num_nodes['all']
         for name, options in phase.state_options.items():
             rate_source_type = phase.classify_var(options['rate_source'])
             rate_src_path = self._get_rate_source_path(name, phase)
+            if rate_src_path.startswith('parameter_vals:'):
+                src_idxs = om.slicer[np.zeros(num_nodes, dtype=int), ...]
+            else:
+                src_idxs = None
+
             if rate_source_type not in ('state', 'ode'):
-                phase.connect(rate_src_path, f'f_computed:{name}')
+                phase.connect(rate_src_path, f'f_computed:{name}', src_indices=src_idxs)
 
     def setup_duration_balance(self, phase):
         """
@@ -782,9 +787,11 @@ class Birkhoff(TranscriptionBase):
                 else:
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-                    endpoint_src_idxs = om.slicer[[0, -1], ...]
+                    endpoint_src_idxs_raw = np.zeros(2, dtype=int)
+                    endpoint_src_idxs = get_src_indices_by_row(endpoint_src_idxs_raw, options['shape'])
                     if options['shape'] == (1,):
                         src_idxs = src_idxs.ravel()
+                        endpoint_src_idxs = endpoint_src_idxs.ravel()
 
                 connection_info.append((f'ode_all.{tgt}', (src_idxs,)))
                 connection_info.append((f'boundary_vals.{tgt}', (endpoint_src_idxs,)))
