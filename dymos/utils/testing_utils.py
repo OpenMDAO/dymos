@@ -386,11 +386,17 @@ class PhaseStub():
         """
         return 'ode'
 
+
 class SimpleODE(om.ExplicitComponent):
     """
     A simple ODE for testing purposes.
 
     Source: https://math.okstate.edu/people/yqwang/teaching/math4513_fall11/Notes/rungekutta.pdf
+
+    Parameters
+    ----------
+    **kwargs : dict of keyword arguments
+        Keyword arguments that will be mapped into the Component options.
     """
     def initialize(self):
         """
@@ -447,7 +453,14 @@ class SimpleODE(om.ExplicitComponent):
 
 class SimpleVectorizedODE(om.ExplicitComponent):
     """
-    A simple ODE from https://math.okstate.edu/people/yqwang/teaching/math4513_fall11/Notes/rungekutta.pdf
+    A simple vector-valued ODE.
+
+    Source: https://math.okstate.edu/people/yqwang/teaching/math4513_fall11/Notes/rungekutta.pdf
+
+    Parameters
+    ----------
+    **kwargs : dict of keyword arguments
+        Keyword arguments that will be mapped into the Component options.
     """
     def initialize(self):
         """
