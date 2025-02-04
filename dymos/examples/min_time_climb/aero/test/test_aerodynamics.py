@@ -4,6 +4,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
+from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.examples.min_time_climb.aero import AeroGroup
 
@@ -31,7 +32,7 @@ class TestAeroGroup(unittest.TestCase):
         self.prob.model.connect('alpha', 'aero.alpha')
         self.prob.model.connect('sos', 'aero.sos')
 
-        self.prob.setup()
+        self.prob.setup(force_alloc_complex=True)
 
     def test_aero_values(self):
 
@@ -52,16 +53,8 @@ class TestAeroGroup(unittest.TestCase):
         assert_almost_equal(self.prob['aero.f_drag'], drag_expected, decimal=7)
 
     def testAeroDerivs(self):
-        cpd = self.prob.check_partials(compact_print=True)
-
-        for comp in cpd:
-            for (var, wrt) in cpd[comp]:
-                np.testing.assert_almost_equal(actual=cpd[comp][var, wrt]['J_fwd'],
-                                               desired=cpd[comp][var, wrt]['J_fd'],
-                                               decimal=5,
-                                               err_msg='Possible error in partials of component '
-                                                       '{0} for {1} wrt {2}'.format(comp, var, wrt))
-
+        cpd = self.prob.check_partials(compact_print=True, out_stream=None)
+        assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

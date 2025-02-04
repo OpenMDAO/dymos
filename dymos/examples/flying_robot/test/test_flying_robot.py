@@ -14,7 +14,8 @@ def flying_robot_direct_collocation(transcription='gauss-lobatto', compressed=Tr
 
     p = om.Problem(model=om.Group())
     p.driver = om.pyOptSparseDriver()
-    p.driver.options['optimizer'] = 'SLSQP'
+    p.driver.options['optimizer'] = 'IPOPT'
+    p.driver.opt_settings['print_level'] = 5
     p.driver.declare_coloring()
 
     if transcription == 'gauss-lobatto':
@@ -56,7 +57,7 @@ def flying_robot_direct_collocation(transcription='gauss-lobatto', compressed=Tr
     return p
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestFlyingRobot(unittest.TestCase):
 
     @classmethod
@@ -96,6 +97,8 @@ class TestFlyingRobot(unittest.TestCase):
 
     def test_flying_robot_birkhoff(self):
         p = flying_robot_direct_collocation('birkhoff')
+        from openmdao.visualization.xdsm_viewer import create_xdsm
+        create_xdsm(p)
         self._assert_results(p)
 
 
