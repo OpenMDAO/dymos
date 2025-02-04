@@ -53,8 +53,9 @@ class TestAeroGroup(unittest.TestCase):
         assert_almost_equal(self.prob['aero.f_drag'], drag_expected, decimal=7)
 
     def testAeroDerivs(self):
-        cpd = self.prob.check_partials(compact_print=True, out_stream=None)
+        cpd = self.prob.check_partials(compact_print=True, method='cs', out_stream=None)
         assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()
