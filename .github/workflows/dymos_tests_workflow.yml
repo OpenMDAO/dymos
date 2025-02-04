@@ -159,8 +159,7 @@ jobs:
             PY: '3.13'
             NUMPY: 2
             SCIPY: 1
-            # Petsc 3.22 failing on github actions
-            PETSc: 3.21.0
+            PETSc: 3.22.0
             # PYOPTSPARSE: 'latest'
             SNOPT: 7.7
             OPENMDAO: 'dev'
