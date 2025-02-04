@@ -38,12 +38,12 @@ jobs:
 
           # make sure the latest versions of things don't break the docs
           # sticking with Python 3.12 for now, 3.13 requires NumPy 2.1 which does not work yet with PETSc/pyoptsparse
-          # Pin PETSc back to 3.22.0
+          # Pin PETSc back to 3.22.2
           - NAME: latest
             PY: '3.12'
             NUMPY: 1
             SCIPY: 1
-            PETSc: 3.22.0
+            PETSc: 3.22.2
             PYOPTSPARSE: 'latest'
             SNOPT: 7.7
             OPENMDAO: 'dev'
