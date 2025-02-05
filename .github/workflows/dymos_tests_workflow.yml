@@ -170,8 +170,8 @@ jobs:
           # oldest supported versions
           - NAME: oldest
             PY: 3.9
-            NUMPY: 1.26
-            SCIPY: 1.7
+            NUMPY: 1.25
+            SCIPY: 1.9
             OPENMPI: '4.0'
             MPI4PY: '3.0'
             PETSc: 3.13
