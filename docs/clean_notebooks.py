@@ -31,7 +31,7 @@ def _clear_notebook_outputs(path=os.getcwd(), dry_run=True):
             notebooks.extend(pathlib.Path(dirpath).glob('*.ipynb'))
         if not notebooks:
             print(f'{bcolors.FAIL}No notebooks found.{bcolors.ENDC}')
-            return
+            return 0
     elif path.endswith('.ipynb'):
         notebooks.append(path)
     else:
@@ -74,5 +74,5 @@ if __name__ == '__main__':
                         help='Print notebooks with outputs but do not clean them.')
     args = parser.parse_args()
     num_cleaned = _clear_notebook_outputs(path=args.path, dry_run=args.dryrun)
-    if num_cleaned >0 and  args.dryrun:
+    if num_cleaned > 0 and  args.dryrun:
         exit(1)

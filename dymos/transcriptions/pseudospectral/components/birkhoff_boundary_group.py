@@ -80,7 +80,7 @@ class BirkhoffBoundaryMuxComp(om.ExplicitComponent):
 
 class BirkhoffBoundaryGroup(om.Group):
     """
-    Class definition for the BirkhoffBoundaryEvalGroup.
+    Class definition for the BirkhoffBoundaryGroup.
 
     This group accepts values for initial and final times, states, controls, and parameters
     and evaluates the ODE with those in order to compute the boundary values and
