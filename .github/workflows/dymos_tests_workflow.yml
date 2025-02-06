@@ -175,7 +175,7 @@ jobs:
             OPENMPI: '4.0'
             MPI4PY: '3.0'
             PETSc: 3.13
-            PYOPTSPARSE: 'v2.9.0'
+            PYOPTSPARSE: 'v2.10.2'
             SNOPT: 7.2
             OPENMDAO: 3.36.0
             MATPLOTLIB: 3.5
