@@ -12,11 +12,11 @@ from dymos.utils.cgl import cgl
 from dymos.utils.birkhoff import birkhoff_matrix
 
 
-class BirkhoffCollocationComp(om.ExplicitComponent):
+class BirkhoffDefectComp(om.ExplicitComponent):
     """
-    Class definition for the BirkhoffCollocationComp.
+    Class definition for the BirkhoffDefectComp.
 
-    BirkhoffCollocationComp computes the generalized defects of a segment for implicit collocation.
+    BirkhoffDefectComp computes the generalized defects of a segment for implicit collocation.
     There are four defects to be evaluated; state, state rate, initial state, and final state.
     The state defect is the difference between the state value design variables and the state rate
     design variables.
