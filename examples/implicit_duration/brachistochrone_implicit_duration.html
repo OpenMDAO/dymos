@@ -861,7 +861,7 @@ For instance, we leave the duration of the bead’s trajectory as a design varia
         <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;ydot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">ar</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;ydot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">ar</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">g</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_primal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">g</span><span class="p">):</span>
         <span class="n">sin_theta</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
         <span class="n">cos_theta</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
 
@@ -943,17 +943,6 @@ This ensures that the equations of motion are satisfied to the extent possible a
         None
 
 
-traj.phases.phase0.rhs_all:
-def compute_primal(self, v, theta, g):
-    sin_theta = jnp.sin(theta)
-    cos_theta = jnp.cos(theta)
-    vdot = g * cos_theta
-    xdot = v * sin_theta
-    ydot = -v * cos_theta
-    return (xdot, ydot, vdot)
-    return (xdot, ydot, vdot)
-
-
 ==================
 traj.phases.phase0
 ==================
@@ -992,8 +981,8 @@ NL: Newton Converged
 <p>We can utilize the <code class="docutils literal notranslate"><span class="pre">set_implicit_duration</span></code> method on <code class="docutils literal notranslate"><span class="pre">Phase</span></code> to turn <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> into an implicit output and provide it with a residual.</p>
 <p>In our case, we set <code class="docutils literal notranslate"><span class="pre">phase.set_duration_balance('x',</span> <span class="pre">10.0)</span></code></p>
 <p>This specifies that we want <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> to be associated with the following residual:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-3a6c3a2f-20f3-49c2-acd9-5fc99e9c309f">
-<span class="eqno">(96)<a class="headerlink" href="#equation-3a6c3a2f-20f3-49c2-acd9-5fc99e9c309f" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-478f0d67-4068-41b9-9cf0-417488d3a064">
+<span class="eqno">(96)<a class="headerlink" href="#equation-478f0d67-4068-41b9-9cf0-417488d3a064" title="Permalink to this equation">#</a></span>\[\begin{align}
   \mathcal{R}(t_d) = x - 10 = 0
 \end{align}\]</div>
 <p>Note that we limit the angle <span class="math notranslate nohighlight">\(\theta\)</span> to be between 0 and 180, the bead must move to the right and we can just terminate the propagation when x=10.</p>
@@ -1062,21 +1051,12 @@ NL: Newton Converged
         None
 
 
-traj.phases.phase0.rhs_all:
-def compute_primal(self, v, theta, g):
-    sin_theta = jnp.sin(theta)
-    cos_theta = jnp.cos(theta)
-    vdot = g * cos_theta
-    xdot = v * sin_theta
-    ydot = -v * cos_theta
-    return (xdot, ydot, vdot)
-    return (xdot, ydot, vdot)
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>==================
+==================
 traj.phases.phase0
 ==================
-NL: Newton Converged in 4 iterations
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>NL: Newton Converged in 4 iterations
 </pre></div>
 </div>
 </div>
@@ -1120,8 +1100,8 @@ We can use this information to pose the brachistochrone as a boundary value prob
 That means that <code class="docutils literal notranslate"><span class="pre">theta_rate</span></code> is a parameter as far as dymos is concerned.
 We then make <code class="docutils literal notranslate"><span class="pre">theta</span></code> a state variable whose rate is provided by the <code class="docutils literal notranslate"><span class="pre">theta_rate</span></code> parameter.
 We’ll set the initial value of <code class="docutils literal notranslate"><span class="pre">theta</span></code> to zero degrees, since we know that is approximately correct for this problem.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-af562c4b-e6f4-4fa0-a52a-3ff534c98d23">
-<span class="eqno">(97)<a class="headerlink" href="#equation-af562c4b-e6f4-4fa0-a52a-3ff534c98d23" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-ee3cd738-cf96-45c4-801c-e53162944924">
+<span class="eqno">(97)<a class="headerlink" href="#equation-ee3cd738-cf96-45c4-801c-e53162944924" title="Permalink to this equation">#</a></span>\[\begin{align}
   \mathcal{R}(\dot{\theta}) &amp;= y_f - 5
 \end{align}\]</div>
 <p>Dymos currently doesn’t support making parameters implicit outputs, so we’re going to do this the manual OpenMDAO way.</p>
@@ -1205,17 +1185,6 @@ We’ll set the initial value of <code class="docutils literal notranslate"><spa
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>--- Constraint Report [traj] ---
     --- phase0 ---
         None
-
-
-traj.phases.phase0.rhs_all:
-def compute_primal(self, v, theta, g):
-    sin_theta = jnp.sin(theta)
-    cos_theta = jnp.cos(theta)
-    vdot = g * cos_theta
-    xdot = v * sin_theta
-    ydot = -v * cos_theta
-    return (xdot, ydot, vdot)
-    return (xdot, ydot, vdot)
 </pre></div>
 </div>
 </div>
