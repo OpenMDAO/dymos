@@ -121,9 +121,9 @@ class LorenzAttractorODE(om.JaxExplicitComponent):
         return x_dot, y_dot, z_dot
 
 @use_tempdirs
-class TestBirkhoffIterGroup(unittest.TestCase):
+class TestBirkhoffPicardIterGroup(unittest.TestCase):
 
-    def test_birkhoff_solve_segments(self):
+    def test_birkhoff_picard_solve_segments(self):
         for direction in ['backward', 'backward']:
             for grid_type in ['lgl', 'cgl']:
                 for nl_solver in ['newton', 'nlbgs']:

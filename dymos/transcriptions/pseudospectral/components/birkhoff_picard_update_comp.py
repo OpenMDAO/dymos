@@ -8,6 +8,7 @@ from dymos.utils.misc import get_rate_units
 from dymos._options import options as dymos_options
 from dymos.utils.lgl import lgl
 from dymos.utils.cgl import cgl
+from dymos.utils.lgr import lgr
 from dymos.utils.birkhoff import birkhoff_matrix
 
 
@@ -68,6 +69,8 @@ class PicardUpdateComp(om.ExplicitComponent):
                 tau_i, w_i = lgl(nnps_i)
             elif gd.grid_type == 'cgl':
                 tau_i, w_i = cgl(nnps_i)
+            elif gd.grid_type == 'lgr':
+                tau_i, w_i = lgr(nnps_i, include_endpoint=True)
             else:
                 raise ValueError('invalid grid type')
 
@@ -79,7 +82,6 @@ class PicardUpdateComp(om.ExplicitComponent):
 
         self.add_input('dt_dstau', units=self.options['time_units'], shape=(num_nodes,))
 
-        # self.add_input('dt_dstau', units=time_units, shape=(gd.subset_num_nodes['col'],))
         self.var_names = var_names = {}
         for state_name, options in state_options.items():
             var_names[state_name] = {
@@ -152,7 +154,6 @@ class PicardUpdateComp(om.ExplicitComponent):
                                       wrt='dt_dstau',
                                       rows=rs, cols=cs)
 
-
             elif options['solve_segments'] == 'backward':
                 self.add_input(
                     name=var_names['state_final_value'],
@@ -195,11 +196,6 @@ class PicardUpdateComp(om.ExplicitComponent):
                 units=units
             )
 
-
-
-
-
-
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """
         Compute component outputs.
@@ -220,8 +216,8 @@ class PicardUpdateComp(om.ExplicitComponent):
         for state_name, options in self.options['state_options'].items():
             var_names = self.var_names[state_name]
 
-            # Multiplication by B results in the integral in tau space,
-            # so we need to convert f from being dx/dt to dx/dtau.
+            # Multiplication by B results in the integral in segment tau space,
+            # so we need to convert f from being dx/dt to dx/dstau.
             f = np.einsum('i...,i...->i...', inputs[var_names['f_computed']], dt_dstau)
 
             if options['solve_segments'] == 'forward':
@@ -253,22 +249,16 @@ class PicardUpdateComp(om.ExplicitComponent):
             f_t = inputs[var_names['f_computed']]
 
             if options['solve_segments'] == 'forward':
-                # x = x_a + np.einsum('ij,jk...->ik...', self._B, f)
                 partials[x_name, f_name] = (self._B * dt_dstau.T)[1:, ...].ravel()
                 partials[x_b_name, f_name] = partials[x_name, f_name][-num_nodes:]
                 partials[x_name, 'dt_dstau'] = (self._B * f_t.T)[1:, ...].ravel()
                 partials[x_b_name, 'dt_dstau'] = partials[x_name, 'dt_dstau'][-num_nodes:]
 
             elif options['solve_segments'] == 'backward':
-                # x = x_b - np.einsum('ij,jk...->ik...', self._B[::-1, ...], f[::-1, ...])
                 B_flip = self._B[::-1, ...]
                 dt_dstau_flip = dt_dstau[::-1, ...]
 
                 partials[x_name, f_name] = -(B_flip * dt_dstau_flip.T)[:-1, ::-1].ravel()
-
-                # B_flip = self._B[::-1, :-1]
-                # partials[x_name, f_name] = -(B_flip * dt_dstau[:-1].T).ravel()
-
                 partials[x_a_name, f_name] = partials[x_name, f_name][:num_nodes]
-                partials[x_name, 'dt_dstau'] = -(self._B[::-1, ...] * f_t[::-1, ...].T)[:-1, ::-1].ravel()
+                partials[x_name, 'dt_dstau'] = -(B_flip * f_t[::-1, ...].T)[:-1, ::-1].ravel()
                 partials[x_a_name, 'dt_dstau'] = partials[x_name, 'dt_dstau'][:num_nodes]
