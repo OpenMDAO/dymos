@@ -673,6 +673,7 @@ class GaussLobattoGrid(GridData):
         to the appropriate indices.
     """
     def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
+        self.grid_type = 'lgl'
         super().__init__(num_segments=num_segments, transcription='gauss-lobatto',
                          transcription_order=np.asarray(nodes_per_seg, dtype=int),
                          segment_ends=segment_ends, compressed=compressed)
@@ -715,6 +716,7 @@ class RadauGrid(GridData):
         to the appropriate indices.
     """
     def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
+        self.grid_type = 'lgr'
         super().__init__(num_segments=num_segments, transcription='radau-ps',
                          transcription_order=np.asarray(nodes_per_seg, dtype=int) - 1,
                          segment_ends=segment_ends, compressed=compressed)
