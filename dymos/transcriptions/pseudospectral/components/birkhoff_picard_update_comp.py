@@ -56,7 +56,7 @@ class PicardUpdateComp(om.ExplicitComponent):
             The phase object that contains this collocation comp.
         """
         gd = self.options['grid_data']
-        num_nodes = gd.subset_num_nodes['col']
+        num_nodes = gd.subset_num_nodes['all']
         num_segs = gd.num_segments
         time_units = self.options['time_units']
         state_options = self.options['state_options']
@@ -86,14 +86,16 @@ class PicardUpdateComp(om.ExplicitComponent):
         for state_name, options in state_options.items():
             var_names[state_name] = {
                 'f_computed': f'state_rates:{state_name}',
-                'current_state': f'state_val:{state_name}',
-                'state_initial_value': f'initial_states:{state_name}',
-                'state_final_value': f'final_states:{state_name}',
-                'next_state': f'states:{state_name}'
+                'x_0': f'seg_initial_states:{state_name}',
+                'x_f': f'seg_final_states:{state_name}',
+                'x_a': f'initial_states:{state_name}',
+                'x_b': f'final_states:{state_name}',
+                'x_hat': f'states:{state_name}'
             }
 
         for state_name, options in state_options.items():
             shape = options['shape']
+            size = np.prod(shape)
             units = options['units']
 
             rate_units = get_rate_units(units, time_units)
@@ -111,90 +113,79 @@ class PicardUpdateComp(om.ExplicitComponent):
                     desc=f'Computed derivative of state {state_name} at the polynomial nodes',
                     units=rate_units)
 
-            self.add_input(
-                name=var_names['current_state'],
+            self.add_output(
+                name=var_names['x_hat'],
                 shape=(num_nodes,) + shape,
-                desc=f'Value of the state {state_name} at the polynomial nodes',
                 units=units
             )
 
             if options['solve_segments'] == 'forward':
                 self.add_input(
-                    name=var_names['state_initial_value'],
-                    shape=(1,) + shape,
-                    desc=f'Desired initial value of state {state_name}',
+                    name=var_names['x_0'],
+                    shape=(num_nodes,) + shape,
+                    desc=f'Initial value of state {state_name} in each segment',
                     units=units
                 )
                 self.add_output(
-                    name=var_names['state_final_value'],
+                    name=var_names['x_b'],
                     shape=(1,) + shape,
-                    desc=f'Estimated final value of state {state_name}',
+                    desc=f'Final value of state {state_name} in the phase',
                     units=units
                 )
-                self.declare_partials(of=var_names['state_final_value'],
-                                      wrt='dt_dstau')
-                self.declare_partials(of=var_names['state_final_value'],
-                                      wrt=var_names['state_initial_value'],
-                                      val=1.0)
-                self.declare_partials(of=var_names['state_final_value'],
-                                      wrt=var_names['f_computed'])
-                self.declare_partials(of=var_names['next_state'],
-                                      wrt=var_names['state_initial_value'],
-                                      val=1.0)
-
                 # The first row of these matrices are zero.
                 rs = np.repeat(np.arange(1, num_nodes, dtype=int), num_nodes)
                 cs = np.tile(np.arange(num_nodes, dtype=int), num_nodes - 1)
-
-                self.declare_partials(of=var_names['next_state'],
-                                      wrt=var_names['f_computed'],
-                                      rows=rs, cols=cs)
-
-                self.declare_partials(of=var_names['next_state'],
-                                      wrt='dt_dstau',
-                                      rows=rs, cols=cs)
+                self.declare_partials(of=var_names['x_hat'],
+                                        wrt='dt_dstau',
+                                        rows=rs, cols=cs)
+                self.declare_partials(of=var_names['x_hat'],
+                        wrt=var_names['f_computed'],
+                        rows=rs, cols=cs)
+                self.declare_partials(of=var_names['x_b'],
+                                      wrt='dt_dstau')
+                self.declare_partials(of=var_names['x_b'],
+                                      wrt=var_names['f_computed'])
+                ar = np.arange(num_nodes * size, dtype=int)
+                self.declare_partials(of=var_names['x_hat'],
+                                      wrt=var_names['x_0'],
+                                      rows=ar, cols=ar, val=1.0)
+                ar = np.arange(size, dtype=int)
+                self.declare_partials(of=var_names['x_b'],
+                        wrt=var_names['x_0'],
+                        rows=ar, cols=(num_nodes - 1) * size + ar, val=1.0)
 
             elif options['solve_segments'] == 'backward':
                 self.add_input(
-                    name=var_names['state_final_value'],
-                    shape=(1,) + shape,
-                    desc=f'Estimated final value of state {state_name}',
+                    name=var_names['x_f'],
+                    shape=(num_nodes,) + shape,
+                    desc=f'Final value of state {state_name} in each segment',
                     units=units
                 )
                 self.add_output(
-                    name=var_names['state_initial_value'],
-                    shape=(1,) + shape,
-                    desc=f'Desired initial value of state {state_name}',
+                    name=var_names['x_a'],
+                    shape=(num_nodes,) + shape,
+                    desc=f'Initial value of state {state_name} in the phase',
                     units=units
                 )
-                self.declare_partials(of=var_names['state_initial_value'],
-                                      wrt='dt_dstau')
-                self.declare_partials(of=var_names['state_initial_value'],
-                                      wrt=var_names['state_final_value'],
-                                      val=1.0)
-                self.declare_partials(of=var_names['state_initial_value'],
-                                      wrt=var_names['f_computed'])
-                self.declare_partials(of=var_names['next_state'],
-                                      wrt=var_names['state_final_value'],
-                                      val=1.0)
-
-                # The last row of these matrices are zero.
-                rs = np.repeat(np.arange(0, num_nodes-1, dtype=int), num_nodes)
+                rs = np.repeat(np.arange(num_nodes - 1, dtype=int), num_nodes)
                 cs = np.tile(np.arange(num_nodes, dtype=int), num_nodes - 1)
-
-                self.declare_partials(of=var_names['next_state'],
-                                      wrt=var_names['f_computed'],
-                                      rows=rs, cols=cs)
-
-                self.declare_partials(of=var_names['next_state'],
-                                      wrt='dt_dstau',
-                                      rows=rs, cols=cs)
-
-            self.add_output(
-                name=var_names['next_state'],
-                shape=(num_nodes,) + shape,
-                units=units
-            )
+                self.declare_partials(of=var_names['x_hat'],
+                                        wrt='dt_dstau',
+                                        rows=rs, cols=cs)
+                self.declare_partials(of=var_names['x_hat'],
+                        wrt=var_names['f_computed'],
+                        rows=rs, cols=cs)
+                self.declare_partials(of=var_names['x_a'],
+                                      wrt='dt_dstau')
+                self.declare_partials(of=var_names['x_a'],
+                                      wrt=var_names['f_computed'])
+                ar = np.arange(num_nodes * size, dtype=int)
+                self.declare_partials(of=var_names['x_hat'],
+                                      wrt=var_names['x_f'],
+                                      rows=ar, cols=ar, val=1.0)
+                self.declare_partials(of=var_names['x_a'], wrt=var_names['x_f'],
+                                      rows=ar, cols=np.zeros(num_nodes, dtype=int),
+                                      val=1.0)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """
@@ -221,14 +212,14 @@ class PicardUpdateComp(om.ExplicitComponent):
             f = np.einsum('i...,i...->i...', inputs[var_names['f_computed']], dt_dstau)
 
             if options['solve_segments'] == 'forward':
-                x_a = inputs[var_names['state_initial_value']]
-                outputs[var_names['next_state']] = x_a + np.einsum('ij,jk...->ik...', self._B, f)
-                outputs[var_names['state_final_value']][...] = outputs[var_names['next_state']][-1, ...]
+                x_0 = inputs[var_names['x_0']]
+                outputs[var_names['x_hat']] = x_0 + np.einsum('ij,jk...->ik...', self._B, f)
+                outputs[var_names['x_b']][...] = outputs[var_names['x_hat']][-1, ...]
 
             elif options['solve_segments'] == 'backward':
-                x_b = inputs[var_names['state_final_value']]
-                outputs[var_names['next_state']] = x_b - np.einsum('ij,jk...->ik...', self._B[::-1, ...], f[::-1, ...])
-                outputs[var_names['state_initial_value']][...] = outputs[var_names['next_state']][0, ...]
+                x_f = inputs[var_names['x_f']]
+                outputs[var_names['x_hat']] = x_f - np.einsum('ij,jk...->ik...', self._B[::-1, ...], f[::-1, ...])
+                outputs[var_names['x_a']][...] = outputs[var_names['x_hat']][0, ...]
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
         gd = self.options['grid_data']
@@ -239,9 +230,9 @@ class PicardUpdateComp(om.ExplicitComponent):
         for state_name, options in self.options['state_options'].items():
             var_names = self.var_names[state_name]
 
-            x_a_name = var_names['state_initial_value']
-            x_b_name = var_names['state_final_value']
-            x_name = var_names['next_state']
+            x_a_name = var_names['x_a']
+            x_b_name = var_names['x_b']
+            x_name = var_names['x_hat']
             f_name = var_names['f_computed']
 
             # Multiplication by B results in the integral in tau space,
@@ -259,6 +250,6 @@ class PicardUpdateComp(om.ExplicitComponent):
                 dt_dstau_flip = dt_dstau[::-1, ...]
 
                 partials[x_name, f_name] = -(B_flip * dt_dstau_flip.T)[:-1, ::-1].ravel()
-                partials[x_a_name, f_name] = partials[x_name, f_name][:num_nodes]
+                partials[x_a_name, f_name] = np.tile(partials[x_name, f_name][:num_nodes], num_nodes)
                 partials[x_name, 'dt_dstau'] = -(B_flip * f_t[::-1, ...].T)[:-1, ::-1].ravel()
-                partials[x_a_name, 'dt_dstau'] = partials[x_name, 'dt_dstau'][:num_nodes]
+                partials[x_a_name, 'dt_dstau'] = np.tile(partials[x_name, 'dt_dstau'][:num_nodes], num_nodes)

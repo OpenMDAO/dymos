@@ -57,7 +57,7 @@ class StatesComp(ExplicitComponent):
             The phase object that contains this collocation comp.
         """
         gd = self.options['grid_data']
-        num_nodes = gd.subset_num_nodes['col']
+        num_nodes = gd.subset_num_nodes['all']
         state_options = self.options['state_options']
 
         self.var_names = var_names = {}
