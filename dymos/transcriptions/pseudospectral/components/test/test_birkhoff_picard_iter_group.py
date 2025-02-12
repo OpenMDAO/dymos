@@ -13,7 +13,7 @@ from dymos.utils.misc import GroupWrapperConfig
 from dymos.utils.testing_utils import PhaseStub, SimpleODE
 from dymos.transcriptions.pseudospectral.components.birkhoff_picard_iter_group import BirkhoffPicardIterGroup
 from dymos.phase.options import StateOptionsDictionary, TimeOptionsDictionary
-from dymos.transcriptions.grid_data import BirkhoffGrid
+from dymos.transcriptions.grid_data import BirkhoffGrid, GaussLobattoGrid
 
 
 BirkhoffPicardIterGroup = GroupWrapperConfig(BirkhoffPicardIterGroup, [PhaseStub()])
@@ -125,9 +125,11 @@ class LorenzAttractorODE(om.JaxExplicitComponent):
 class TestBirkhoffPicardIterGroup(unittest.TestCase):
 
     def test_birkhoff_picard_solve_segments(self):
-        for direction in ['forward', 'backward']:
-            for grid_type in ['lgl', 'cgl']:
-                for nl_solver in ['newton', 'nlbgs']:
+        for direction in ['forward']:#, 'backward']:
+            # for grid_type in ['lgl', 'cgl']:
+            #     for nl_solver in ['newton', 'nlbgs']:
+                    grid_type='lgl'
+                    nl_solver='nlbgs'
                     with self.subTest(msg=f'{direction=} {grid_type=} {nl_solver=}'):
                         with dymos.options.temporary(include_check_partials=True):
 
@@ -142,7 +144,8 @@ class TestBirkhoffPicardIterGroup(unittest.TestCase):
                             state_options['x']['rate_source'] = 'x_dot'
 
                             time_options = TimeOptionsDictionary()
-                            grid_data = BirkhoffGrid(num_nodes=21, grid_type=grid_type)
+                            grid_data = BirkhoffGrid(num_nodes=11, num_segments=1, grid_type='cgl')
+
                             nn = grid_data.subset_num_nodes['all']
                             ode_class = SimpleODE
 

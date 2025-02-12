@@ -6,9 +6,6 @@ import openmdao.api as om
 from dymos.transcriptions.grid_data import GridData
 from dymos.utils.misc import get_rate_units
 from dymos._options import options as dymos_options
-from dymos.utils.lgl import lgl
-from dymos.utils.cgl import cgl
-from dymos.utils.lgr import lgr
 from dymos.utils.birkhoff import birkhoff_matrix
 
 
@@ -63,22 +60,17 @@ class PicardUpdateComp(om.ExplicitComponent):
 
         B_blocks = []
 
+        start_idx = 0
         for i in range(num_segs):
             nnps_i = gd.subset_num_nodes_per_segment['all'][i]
-            if gd.grid_type == 'lgl':
-                tau_i, w_i = lgl(nnps_i)
-            elif gd.grid_type == 'cgl':
-                tau_i, w_i = cgl(nnps_i)
-            elif gd.grid_type == 'lgr':
-                tau_i, w_i = lgr(nnps_i, include_endpoint=True)
-            else:
-                raise ValueError('invalid grid type')
+            tau_i = gd.node_stau[start_idx: start_idx + nnps_i]
+            w_i = gd.node_weight[start_idx: start_idx + nnps_i]
 
             B_i = birkhoff_matrix(tau_i, w_i, grid_type=gd.grid_type)
-
             B_blocks.append(B_i)
+            start_idx += nnps_i
 
-        self._B = scipy.linalg.block_diag(*B_blocks)
+        self._B = scipy.sparse.block_diag(B_blocks, format='csr')
 
         self.add_input('dt_dstau', units=self.options['time_units'], shape=(num_nodes,))
 
@@ -203,6 +195,7 @@ class PicardUpdateComp(om.ExplicitComponent):
             If not None, dict containing discrete output values.
         """
         dt_dstau = np.atleast_2d(inputs['dt_dstau']).T
+        nn = self.options['grid_data'].num_nodes
 
         for state_name, options in self.options['state_options'].items():
             var_names = self.var_names[state_name]
@@ -210,20 +203,23 @@ class PicardUpdateComp(om.ExplicitComponent):
             # Multiplication by B results in the integral in segment tau space,
             # so we need to convert f from being dx/dt to dx/dstau.
             f = np.einsum('i...,i...->i...', inputs[var_names['f_computed']], dt_dstau)
+            f_flat = f.reshape(nn, -1)
 
             if options['solve_segments'] == 'forward':
                 x_0 = inputs[var_names['x_0']]
-                outputs[var_names['x_hat']] = x_0 + np.einsum('ij,jk...->ik...', self._B, f)
+                # outputs[var_names['x_hat']] = x_0 + np.einsum('ij,jk...->ik...', self._B, f)
+                outputs[var_names['x_hat']] = x_0 + (self._B @ f_flat).reshape(f.shape)
                 outputs[var_names['x_b']][...] = outputs[var_names['x_hat']][-1, ...]
 
             elif options['solve_segments'] == 'backward':
                 x_f = inputs[var_names['x_f']]
-                outputs[var_names['x_hat']] = x_f - np.einsum('ij,jk...->ik...', self._B[::-1, ...], f[::-1, ...])
+                # outputs[var_names['x_hat']] = x_f - np.einsum('ij,jk...->ik...', self._B[::-1, ...], f[::-1, ...])
+                outputs[var_names['x_hat']] = x_f - (self._B[::-1, ...] @ f_flat[::-1, ...]).reshape(f.shape)
                 outputs[var_names['x_a']][...] = outputs[var_names['x_hat']][0, ...]
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
         gd = self.options['grid_data']
-        num_nodes = gd.subset_num_nodes['col']
+        num_nodes = gd.subset_num_nodes['all']
 
         dt_dstau = np.atleast_2d(inputs['dt_dstau']).T
 

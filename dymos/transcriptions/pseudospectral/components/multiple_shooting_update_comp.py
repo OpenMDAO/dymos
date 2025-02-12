@@ -220,8 +220,8 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
 
             elif options['solve_segments'] == 'backward':
                 x_b = inputs[var_names['x_b']]
-                outputs[var_names['x_0']] = (self._M_bkwd @ x_flat).reshape(x.shape)
-                outputs[var_names['x_0']][-gd.subset_num_nodes_per_segment['all'][-1]:] = x_b
+                outputs[var_names['x_f']] = (self._M_bkwd @ x_flat).reshape(x.shape)
+                outputs[var_names['x_f']][-gd.subset_num_nodes_per_segment['all'][-1]:] = x_b
 
             else:
                 raise ValueError(f'{self.msginfo}: Invalid direction of integration: {options["solve_segments"]}')

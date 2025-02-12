@@ -14,7 +14,7 @@ from dymos.utils.testing_utils import PhaseStub, SimpleODE
 from dymos.transcriptions.common.time_comp import TimeComp
 from dymos.transcriptions.pseudospectral.components.multiple_shooting_iter_group import MultipleShootingIterGroup
 from dymos.phase.options import StateOptionsDictionary, TimeOptionsDictionary
-from dymos.transcriptions.grid_data import BirkhoffGrid, GaussLobattoGrid, RadauGrid
+from dymos.transcriptions.grid_data import BirkhoffGrid, GaussLobattoGrid, RadauGrid, ChebyshevGaussLobattoGrid
 
 
 MultipleShootingIterGroup = GroupWrapperConfig(MultipleShootingIterGroup, [PhaseStub()])
@@ -126,7 +126,7 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
 
     def test_multiple_shooting_iter_group(self):
         for direction in ['forward']:
-            for grid_type in ['lgl']:
+            for grid_type in [GaussLobattoGrid, ChebyshevGaussLobattoGrid]:
                 for nl_solver in ['nlbgs']:
                     with self.subTest(msg=grid_type):
                         with dymos.options.temporary(include_check_partials=True):
@@ -142,9 +142,8 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
                             state_options['x']['rate_source'] = 'x_dot'
 
                             time_options = TimeOptionsDictionary()
-                            # grid_data = BirkhoffGrid(num_nodes=11, grid_type=grid_type)
-                            grid_data = GaussLobattoGrid(nodes_per_seg=11, num_segments=5)
-                            nn = grid_data.subset_num_nodes['all']
+                            grid_data = grid_type(nodes_per_seg=9, num_segments=2)
+                            # grid_data = ChebyshevGaussLobattoGrid(nodes_per_seg=9, num_segments=2)
                             ode_class = SimpleODE
 
                             p = om.Problem()
