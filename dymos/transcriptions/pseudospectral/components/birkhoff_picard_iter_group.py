@@ -52,8 +52,8 @@ class BirkhoffPicardIterGroup(om.Group):
                            subsys=StatesComp(grid_data=gd, state_options=state_options),
                            promotes_inputs=['*'], promotes_outputs=['*'])
 
-        self.add_subsystem('ode_all', subsys=ode_class(num_nodes=nn, **ode_init_kwargs),)
-                        #    promotes_inputs=['*'], promotes_outputs=['*'])
+        self.add_subsystem('ode_all', subsys=ode_class(num_nodes=nn, **ode_init_kwargs),
+                           promotes_inputs=['*'], promotes_outputs=['*'])
 
         self.add_subsystem('picard_update_comp',
                            subsys=PicardUpdateComp(grid_data=gd,
@@ -77,19 +77,13 @@ class BirkhoffPicardIterGroup(om.Group):
         picard_update_comp = self._get_subsystem('picard_update_comp')
         picard_update_comp.configure_io(phase)
 
-        gd = self.options['grid_data']
-        nn = gd.subset_num_nodes['all']
-
         state_options = self.options['state_options']
 
         for name, options in state_options.items():
-            units = options['units']
             rate_source = options['rate_source']
-            shape = options['shape']
 
             for tgt in options['targets']:
-                self.promotes('ode_all', [(tgt, f'state_val:{name}')])
-                self.set_input_defaults(f'state_val:{name}', val=1.0, units=units, src_shape=(nn,) + shape)
+                self.connect(f'state_val:{name}', tgt)
 
             try:
                 rate_source_var = options['rate_source']
@@ -101,4 +95,4 @@ class BirkhoffPicardIterGroup(om.Group):
             var_type = phase.classify_var(rate_source_var)
 
             if var_type == 'ode':
-                self.connect(f'ode_all.{rate_source}', f'state_rates:{name}')
+                self.connect(f'{rate_source}', f'state_rates:{name}')

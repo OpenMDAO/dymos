@@ -12,7 +12,6 @@ from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.misc import GroupWrapperConfig
 from dymos.utils.testing_utils import PhaseStub, SimpleODE
 from dymos.transcriptions.common.time_comp import TimeComp
-from dymos.transcriptions.pseudospectral.components.birkoff_picard_iter_group import BirkhoffPicardIterGroup
 from dymos.transcriptions.pseudospectral.components.multiple_shooting_iter_group import MultipleShootingIterGroup
 from dymos.phase.options import StateOptionsDictionary, TimeOptionsDictionary
 from dymos.transcriptions.grid_data import BirkhoffGrid, GaussLobattoGrid, RadauGrid
@@ -161,7 +160,7 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
                                                                                   ode_nonlinear_solver=om.NonlinearBlockGS(maxiter=201, use_aitken=True),
                                                                                   ode_linear_solver = om.DirectSolver()))
 
-                            p.model.connect('time.t', 'ms.ode_all.t')
+                            p.model.connect('time.t', 'ms.t')
                             p.model.connect('time.dt_dstau', 'ms.dt_dstau')
 
                             ms = p.model._get_subsystem('ms')
@@ -183,8 +182,8 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
                             else:
                                 p.set_val('ms.seg_final_states:x', solution(2.0))
                                 p.set_val('ms.final_states:x', solution(2.0))
-                            p.set_val('ms.ode_all.t', times)
-                            p.set_val('ms.ode_all.p', 1.0)
+                            p.set_val('ms.t', times)
+                            p.set_val('ms.p', 1.0)
 
                             p.final_setup()
 
