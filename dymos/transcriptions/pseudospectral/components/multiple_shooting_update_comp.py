@@ -97,8 +97,8 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
         num_nodes_last_seg = gd.subset_num_nodes_per_segment['all'][-1]
 
         for iseg in range(gd.num_segments - 1):
-            rows_i = np.arange(seg_end_nodes[iseg], seg_end_nodes[iseg + 1], dtype=int)
-            cols_i = seg_end_nodes[iseg] * np.ones(nodes_per_seg[iseg])
+            rows_i = np.arange(seg_start_nodes[iseg], seg_start_nodes[iseg] + nodes_per_seg[iseg], dtype=int)
+            cols_i = seg_start_nodes[iseg+1] * np.ones(nodes_per_seg[iseg])
             data_i = np.ones(nodes_per_seg[iseg])
 
             rows = np.concatenate((rows, rows_i))
@@ -121,8 +121,6 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
             shape = options['shape']
             units = options['units']
             size = np.prod(shape)
-
-            ar_size = np.arange(size, dtype=int)
 
             rate_units = get_rate_units(units, time_units)
             var_names = self._var_names[state_name]
@@ -149,16 +147,19 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
                     units=units
                 )
 
+                ar_size_x_nn0 = np.arange(num_nodes_first_seg * size, dtype=int)
                 self.declare_partials(of=var_names['x_0'],
                                       wrt=var_names['x_a'],
-                                      rows=ar_size, cols=ar_size, val=1.0)
+                                      rows=ar_size_x_nn0,
+                                      cols=np.zeros_like(ar_size_x_nn0),
+                                      val=1.0)
 
-                rs, cs = self._M_fwd.nonzero()
-                self.declare_partials(of=var_names['x_0'],
-                                      wrt=var_names['x'],
-                                      rows=rs[num_nodes_first_seg:],
-                                      cols=cs[num_nodes_first_seg:],
-                                      val=self._M_fwd.data[num_nodes_first_seg:])
+                if num_segs > 1:
+                    rs, cs = self._M_fwd.nonzero()
+                    self.declare_partials(of=var_names['x_0'],
+                                        wrt=var_names['x'],
+                                        rows=rs, cols=cs,
+                                        val=self._M_fwd.data)
 
             elif options['solve_segments'] == 'backward':
 
@@ -177,17 +178,20 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
                     units=units
                 )
 
+                ar_size_x_nnf = np.arange(num_nodes_last_seg * size, dtype=int)
+                rs = size * (num_nodes - num_nodes_last_seg) + ar_size_x_nnf
                 self.declare_partials(of=var_names['x_f'],
                                       wrt=var_names['x_b'],
-                                      rows=ar_size + (num_segs - 1) * size,
-                                      cols=ar_size)
+                                      rows=rs,
+                                      cols=np.zeros(num_nodes_last_seg * size),
+                                      val=1.0)
 
-                rs, cs = self._M_bkwd.nonzero()
-                self.declare_partials(of=var_names['x_f'],
-                                      wrt=var_names['x'],
-                                      rows=rs[:-num_nodes_last_seg],
-                                      cols=cs[:-num_nodes_last_seg],
-                                      val=self._M_fwd.data[:-num_nodes_last_seg])
+                if num_segs > 1:
+                    rs, cs = self._M_bkwd.nonzero()
+                    self.declare_partials(of=var_names['x_f'],
+                                          wrt=var_names['x'],
+                                          rows=rs, cols=cs,
+                                          val=self._M_bkwd)
 
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):

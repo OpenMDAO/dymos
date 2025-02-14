@@ -236,9 +236,9 @@ class PicardUpdateComp(om.ExplicitComponent):
             f_t = inputs[var_names['f_computed']]
 
             if options['solve_segments'] == 'forward':
-                partials[x_name, f_name] = (self._B * dt_dstau.T)[1:, ...].ravel()
+                partials[x_name, f_name] = (self._B.multiply(dt_dstau.T)).todense()[1:, ...].ravel()
                 partials[x_b_name, f_name] = partials[x_name, f_name][-num_nodes:]
-                partials[x_name, 'dt_dstau'] = (self._B * f_t.T)[1:, ...].ravel()
+                partials[x_name, 'dt_dstau'] = (self._B.multiply(f_t.T)).todense()[1:, ...].ravel()
                 partials[x_b_name, 'dt_dstau'] = partials[x_name, 'dt_dstau'][-num_nodes:]
 
             elif options['solve_segments'] == 'backward':

@@ -127,7 +127,7 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
     def test_multiple_shooting_iter_group(self):
         for direction in ['forward']:
             for grid_type in [GaussLobattoGrid, ChebyshevGaussLobattoGrid]:
-                for nl_solver in ['nlbgs']:
+                for nl_solver in [om.NonlinearBlockGS(use_aitken=True), om.NewtonSolver(solve_subsystems=True)]:
                     with self.subTest(msg=grid_type):
                         with dymos.options.temporary(include_check_partials=True):
 
@@ -164,7 +164,12 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
 
                             ms = p.model._get_subsystem('ms')
 
+                            ms.nonlinear_solver = nl_solver
+                            ms.linear_solver = om.DirectSolver()
+
                             p.setup(force_alloc_complex=True)
+
+
 
                             # Instead of using the TimeComp just transform the node segment taus onto [0, 2]
                             times = (grid_data.node_stau + 1) * 1.0
@@ -201,8 +206,8 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
                             # assert_near_equal(solution[np.newaxis, 0], p.get_val('ms.initial_states:x'), tolerance=1.0E-9)
                             # assert_near_equal(solution[np.newaxis, -1], p.get_val('ms.final_states:x'), tolerance=1.0E-9)
 
-                            # cpd = p.check_partials(method='fd', compact_print=False, out_stream=None)
-                            # assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
+                            cpd = p.check_partials(method='fd', compact_print=False, out_stream=None)
+                            assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
     # @unittest.skip('This test is a demonstation of the inability of Birkhoff-Picard '
     #                'iteration to solve highly nonlinear systems.')
