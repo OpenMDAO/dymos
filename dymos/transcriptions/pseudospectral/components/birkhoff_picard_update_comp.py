@@ -137,6 +137,7 @@ class PicardUpdateComp(om.ExplicitComponent):
                                       wrt='dt_dstau')
                 self.declare_partials(of=var_names['x_b'],
                                       wrt=var_names['f_computed'])
+
                 ar = np.arange(num_nodes * size, dtype=int)
                 self.declare_partials(of=var_names['x_hat'],
                                       wrt=var_names['x_0'],
@@ -160,13 +161,12 @@ class PicardUpdateComp(om.ExplicitComponent):
                     units=units
                 )
                 rs = np.repeat(np.arange(num_nodes - 1, dtype=int), num_nodes)
+                rs = [0] + rs.tolist()
                 cs = np.tile(np.arange(num_nodes, dtype=int), num_nodes - 1)
-                self.declare_partials(of=var_names['x_hat'],
-                                        wrt='dt_dstau',
-                                        rows=rs, cols=cs)
-                self.declare_partials(of=var_names['x_hat'],
-                        wrt=var_names['f_computed'],
-                        rows=rs, cols=cs)
+                self.declare_partials(of=var_names['x_hat'], wrt='dt_dstau',
+                                      rows=rs, cols=cs)
+                self.declare_partials(of=var_names['x_hat'], wrt=var_names['f_computed'],
+                                      rows=rs, cols=cs)
                 self.declare_partials(of=var_names['x_a'],
                                       wrt='dt_dstau')
                 self.declare_partials(of=var_names['x_a'],

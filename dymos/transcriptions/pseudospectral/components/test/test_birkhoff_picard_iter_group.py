@@ -138,6 +138,7 @@ class TestBirkhoffPicardIterGroup(unittest.TestCase):
                             state_options['x']['shape'] = (1,)
                             state_options['x']['units'] = 's**2'
                             state_options['x']['targets'] = ['x']
+
                             state_options['x']['initial_bounds'] = (None, None)
                             state_options['x']['final_bounds'] = (None, None)
                             state_options['x']['solve_segments'] = direction
@@ -193,7 +194,7 @@ class TestBirkhoffPicardIterGroup(unittest.TestCase):
                             # assert_near_equal(solution[np.newaxis, 0].ravel(), p.get_val('birkhoff.seg_initial_states:x')[0].ravel(), tolerance=1.0E-9)
                             # assert_near_equal(solution[np.newaxis, -1].ravel(), p.get_val('birkhoff.seg_final_states:x')[-1].ravel(), tolerance=1.0E-9)
 
-                            cpd = p.check_partials(method='fd', compact_print=False, show_only_incorrect=True, out_stream=None)
+                            cpd = p.check_partials(method='cs', compact_print=True, show_only_incorrect=False)#, out_stream=None)
                             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
     @unittest.skip('This test is a demonstation of the inability of Birkhoff-Picard '
