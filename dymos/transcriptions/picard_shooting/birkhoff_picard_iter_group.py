@@ -3,7 +3,7 @@ import openmdao.api as om
 from .birkhoff_picard_update_comp import PicardUpdateComp
 from .states_comp import StatesComp
 
-from ...grid_data import GridData
+from ..grid_data import GridData
 
 
 class BirkhoffPicardIterGroup(om.Group):

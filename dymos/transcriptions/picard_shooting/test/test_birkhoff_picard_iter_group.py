@@ -11,7 +11,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.utils.misc import GroupWrapperConfig
 from dymos.utils.testing_utils import PhaseStub, SimpleODE
-from dymos.transcriptions.pseudospectral.components.birkhoff_picard_iter_group import BirkhoffPicardIterGroup
+from dymos.transcriptions.picard_shooting.birkhoff_picard_iter_group import BirkhoffPicardIterGroup
 from dymos.phase.options import StateOptionsDictionary, TimeOptionsDictionary
 from dymos.transcriptions.grid_data import BirkhoffGrid, GaussLobattoGrid
 

@@ -12,7 +12,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.misc import GroupWrapperConfig
 from dymos.utils.testing_utils import PhaseStub, SimpleODE
 from dymos.transcriptions.common.time_comp import TimeComp
-from dymos.transcriptions.pseudospectral.components.multiple_shooting_iter_group import MultipleShootingIterGroup
+from dymos.transcriptions.picard_shooting.multiple_shooting_iter_group import MultipleShootingIterGroup
 from dymos.phase.options import StateOptionsDictionary, TimeOptionsDictionary
 from dymos.transcriptions.grid_data import BirkhoffGrid, GaussLobattoGrid, RadauGrid, ChebyshevGaussLobattoGrid
 
@@ -143,7 +143,6 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
 
                             time_options = TimeOptionsDictionary()
                             grid_data = grid_type(nodes_per_seg=9, num_segments=2)
-                            # grid_data = ChebyshevGaussLobattoGrid(nodes_per_seg=9, num_segments=2)
                             ode_class = SimpleODE
 
                             p = om.Problem()
@@ -203,108 +202,11 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
 
                             assert_near_equal(solution(t), x.ravel(), tolerance=1.0E-9)
                             assert_near_equal(dsolution_dt(t), x_dot.ravel(), tolerance=1.0E-9)
-                            # assert_near_equal(solution[np.newaxis, 0], p.get_val('ms.initial_states:x'), tolerance=1.0E-9)
-                            # assert_near_equal(solution[np.newaxis, -1], p.get_val('ms.final_states:x'), tolerance=1.0E-9)
+                            assert_near_equal(solution(0), p.get_val('ms.initial_states:x').ravel(), tolerance=1.0E-9)
+                            assert_near_equal(solution(t[-1]), p.get_val('ms.final_states:x').ravel(), tolerance=1.0E-9)
 
                             cpd = p.check_partials(method='fd', compact_print=False, out_stream=None)
                             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
-
-    # @unittest.skip('This test is a demonstation of the inability of Birkhoff-Picard '
-    #                'iteration to solve highly nonlinear systems.')
-    # def test_birkhoff_solve_segments_lorenz(self):
-    #     for direction in ['forward']:
-    #         for grid_type in ['lgl']:
-    #             with self.subTest(msg=grid_type):
-    #                 with dymos.options.temporary(include_check_partials=True):
-
-    #                     state_options = {'x': StateOptionsDictionary(),
-    #                                      'y': StateOptionsDictionary(),
-    #                                      'z': StateOptionsDictionary()}
-
-    #                     state_options['x']['shape'] = (1,)
-    #                     state_options['x']['units'] = None
-    #                     state_options['x']['targets'] = ['x']
-    #                     state_options['x']['initial_bounds'] = (None, None)
-    #                     state_options['x']['final_bounds'] = (None, None)
-    #                     state_options['x']['solve_segments'] = direction
-    #                     state_options['x']['rate_source'] = 'x_dot'
-
-    #                     state_options['y']['shape'] = (1,)
-    #                     state_options['y']['units'] = None
-    #                     state_options['y']['targets'] = ['y']
-    #                     state_options['y']['initial_bounds'] = (None, None)
-    #                     state_options['y']['final_bounds'] = (None, None)
-    #                     state_options['y']['solve_segments'] = direction
-    #                     state_options['y']['rate_source'] = 'y_dot'
-
-    #                     state_options['z']['shape'] = (1,)
-    #                     state_options['z']['units'] = None
-    #                     state_options['z']['targets'] = ['z']
-    #                     state_options['z']['initial_bounds'] = (None, None)
-    #                     state_options['z']['final_bounds'] = (None, None)
-    #                     state_options['z']['solve_segments'] = direction
-    #                     state_options['z']['rate_source'] = 'z_dot'
-
-    #                     time_options = TimeOptionsDictionary()
-    #                     grid_data = BirkhoffGrid(num_nodes=300, grid_type=grid_type)
-    #                     nn = grid_data.subset_num_nodes['all']
-    #                     ode_class = LorenzAttractorODE
-
-    #                     p = om.Problem()
-    #                     p.model.add_subsystem('birkhoff', BirkhoffPicardIterGroup(state_options=state_options,
-    #                                                                               time_options=time_options,
-    #                                                                               grid_data=grid_data,
-    #                                                                               ode_class=ode_class))
-
-    #                     birkhoff = p.model._get_subsystem('birkhoff')
-
-    #                     birkhoff.nonlinear_solver = om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=0)
-    #                     birkhoff.nonlinear_solver = om.NonlinearBlockGS(maxiter=500, use_aitken=True, iprint=0)
-    #                     birkhoff.linear_solver = om.DirectSolver()
-
-    #                     p.setup(force_alloc_complex=True)
-
-    #                     # Instead of using the TimeComp just transform the node segment taus onto [0, 100]
-    #                     times = (grid_data.node_stau + 1) * 0.3
-    #                     dt_dstau = (times[-1] / 2.0) * np.ones(nn)
-
-    #                     if direction == 'forward':
-    #                         p.set_val('birkhoff.initial_states:x', 0.0)
-    #                         p.set_val('birkhoff.initial_states:y', 1.0)
-    #                         p.set_val('birkhoff.initial_states:z', 1.05)
-
-    #                         p.set_val('birkhoff.states:x', 0.0)
-    #                         p.set_val('birkhoff.states:y', 1.0)
-    #                         p.set_val('birkhoff.states:z', 1.05)
-    #                     else:
-    #                         raise ValueError('not set up for backwards prop yet')
-    #                         # p.set_val('birkhoff.final_states:x', solution[-1])
-    #                     p.set_val('birkhoff.dt_dstau', dt_dstau)
-    #                     p.set_val('birkhoff.ode_all.s', 10.0)
-    #                     p.set_val('birkhoff.ode_all.r', 28.0)
-    #                     p.set_val('birkhoff.ode_all.b', 2.667)
-
-    #                     p.final_setup()
-    #                     p.run_model()
-
-    #                 p.model.list_vars()
-
-    #                 x = p.get_val('birkhoff.states:x')
-    #                 y = p.get_val('birkhoff.states:y')
-    #                 z = p.get_val('birkhoff.states:z')
-
-    #                 import matplotlib.pyplot as plt
-    #                 ax = plt.figure().add_subplot(projection='3d')
-    #                 ax.plot(x, y, z, '-')
-    #                 plt.show()
-
-    #                 # assert_near_equal(solution, p.get_val('birkhoff.states:x'), tolerance=1.0E-9)
-    #                 # assert_near_equal(dsolution_dt.ravel(), p.get_val('birkhoff.state_rates:x'), tolerance=1.0E-9)
-    #                 # assert_near_equal(solution[np.newaxis, 0], p.get_val('birkhoff.initial_states:x'), tolerance=1.0E-9)
-    #                 # assert_near_equal(solution[np.newaxis, -1], p.get_val('birkhoff.final_states:x'), tolerance=1.0E-9)
-
-    #                 # cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
-    #                 # assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
 import openmdao.api as om
 
-from ...grid_data import GridData
+from ..grid_data import GridData
 from .birkhoff_picard_iter_group import BirkhoffPicardIterGroup
 from .multiple_shooting_update_comp import MultipleShootingUpdateComp
 
