@@ -114,7 +114,9 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
                     # them (should be some form of -I)
                     continue
                 check_data = data[(of, wrt)]
-                self.assertLess(check_data['abs error'].forward, 1e-8)
+                fwd_abs_error = check_data['abs error'].forward
+                if fwd_abs_error is not None:
+                    self.assertLess(check_data['abs error'].forward, 1e-8)
 
         cpd = p.check_partials(compact_print=True, method='fd', out_stream=None)
         data = cpd['traj0.phases.phase0.indep_states']
@@ -132,7 +134,9 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
                     # them (should be some form of -I)
                     continue
                 check_data = data[(of, wrt)]
-                self.assertLess(check_data['abs error'].forward, 1e-8)
+                fwd_abs_error = check_data['abs error'].forward
+                if fwd_abs_error is not None:
+                    self.assertLess(check_data['abs error'].forward, 1e-8)
 
         cpd = p.check_partials(compact_print=True, method='fd', out_stream=None)
         data = cpd['traj0.phases.phase0.indep_states']

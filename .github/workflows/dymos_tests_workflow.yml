@@ -159,7 +159,7 @@ jobs:
             PY: '3.13'
             NUMPY: 2
             SCIPY: 1
-            PETSc: 3
+            PETSc: 3.22.2
             # PYOPTSPARSE: 'latest'
             SNOPT: 7.7
             OPENMDAO: 'dev'
@@ -170,12 +170,12 @@ jobs:
           # oldest supported versions
           - NAME: oldest
             PY: 3.9
-            NUMPY: 1.22
-            SCIPY: 1.7
+            NUMPY: 1.25
+            SCIPY: 1.9
             OPENMPI: '4.0'
             MPI4PY: '3.0'
             PETSc: 3.13
-            PYOPTSPARSE: 'v2.9.0'
+            PYOPTSPARSE: 'v2.10.2'
             SNOPT: 7.2
             OPENMDAO: 3.36.0
             MATPLOTLIB: 3.5

@@ -5,7 +5,6 @@ import dymos as dm
 from dymos.examples.brachistochrone.test.ex_brachistochrone import brachistochrone_min_time
 
 
-
 @use_tempdirs
 class TestOptions(unittest.TestCase):
 
