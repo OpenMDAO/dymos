@@ -35,7 +35,7 @@ class _D(om.ExplicitComponent):
     ode_options = None
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestPhaseBase(unittest.TestCase):
 
     def test_invalid_ode_wrong_class(self):
@@ -254,14 +254,12 @@ class TestPhaseBase(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
-
-        p['phase0.states:x'] = phase.interp('x', [0, 10])
-        p['phase0.states:y'] = phase.interp('y', [10, 5])
-        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
-        p['phase0.parameters:g'] = 9.80665
+        phase.set_time_val(initial=0.0, duration=2.0)
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
+        phase.set_control_val('theta', [5, 100])
+        phase.set_parameter_val('g', 9.80665)
 
         p.run_driver()
 
@@ -291,7 +289,7 @@ class TestPhaseBase(unittest.TestCase):
                           rate_continuity_scaler=1.0,
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
 
-        phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
+        phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665, lower=0.01)
 
         # Minimize time at the end of the phase
         phase.add_objective('g')
@@ -300,16 +298,14 @@ class TestPhaseBase(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
+        phase.set_time_val(initial=0.0, duration=2.0)
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
+        phase.set_control_val('theta', [5, 100])
+        phase.set_parameter_val('g', 9.80665)
 
-        p['phase0.states:x'] = phase.interp('x', [0, 10])
-        p['phase0.states:y'] = phase.interp('y', [10, 5])
-        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
-        p['phase0.parameters:g'] = 9.80665
-
-        p.run_driver()
+        dm.run_problem(p)
 
         assert_near_equal(p['phase0.t_duration'], 10, tolerance=1.0E-3)
 
@@ -347,14 +343,12 @@ class TestPhaseBase(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
-
-        p['phase0.states:x'] = phase.interp('x', [0, 10])
-        p['phase0.states:y'] = phase.interp('y', [10, 5])
-        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
-        p['phase0.parameters:g'] = 8
+        phase.set_time_val(initial=0.0, duration=2.0)
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
+        phase.set_control_val('theta', [5, 100])
+        phase.set_parameter_val('g', 8.0)
 
         p.run_driver()
 
@@ -397,14 +391,12 @@ class TestPhaseBase(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
-
-        p['phase0.states:x'] = phase.interp('x', [0, 10])
-        p['phase0.states:y'] = phase.interp('y', [10, 5])
-        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
-        p['phase0.parameters:g'] = 8
+        phase.set_time_val(initial=0.0, duration=2.0)
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
+        phase.set_control_val('theta', [5, 100])
+        phase.set_parameter_val('g', 8.0)
 
         failed = p.run_driver()
 
@@ -447,14 +439,12 @@ class TestPhaseBase(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
-
-        p['phase0.states:x'] = phase.interp('x', [0, 10])
-        p['phase0.states:y'] = phase.interp('y', [10, 5])
-        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
-        p['phase0.parameters:g'] = 8
+        phase.set_time_val(initial=0.0, duration=2.0)
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
+        phase.set_control_val('theta', [5, 100])
+        phase.set_parameter_val('g', 8.0)
 
         failed = p.run_driver()
 
@@ -571,19 +561,12 @@ class TestPhaseBase(unittest.TestCase):
                 p.model.linear_solver = om.DirectSolver()
                 p.setup(check=True)
 
-                p['phase0.t_initial'] = 0.0
-                p['phase0.t_duration'] = 2.0
-
-                if txname == 'explicit-shooting':
-                    p['phase0.initial_states:x'] = 0
-                    p['phase0.initial_states:y'] = 10
-                    p['phase0.initial_states:v'] = 0
-                else:
-                    p['phase0.states:x'] = phase.interp('x', [0, 10])
-                    p['phase0.states:y'] = phase.interp('y', [10, 5])
-                    p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-                p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
-                p['phase0.parameters:g'] = 5
+                phase.set_time_val(initial=0.0, duration=2.0)
+                phase.set_state_val('x', [0, 10])
+                phase.set_state_val('y', [10, 5])
+                phase.set_state_val('v', [0, 9.9])
+                phase.set_control_val('theta', [5, 100])
+                phase.set_parameter_val('g', 5)
 
                 p.run_driver()
 
@@ -644,19 +627,12 @@ class TestPhaseBase(unittest.TestCase):
                 p.model.linear_solver = om.DirectSolver()
                 p.setup(check=True)
 
-                p['phase0.t_initial'] = 0.0
-                p['phase0.t_duration'] = 2.0
-
-                if txname == 'explicit-shooting':
-                    p['phase0.initial_states:x'] = 0
-                    p['phase0.initial_states:y'] = 10
-                    p['phase0.initial_states:v'] = 0
-                else:
-                    p['phase0.states:x'] = phase.interp('x', [0, 10])
-                    p['phase0.states:y'] = phase.interp('y', [10, 5])
-                    p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-                p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
-                p['phase0.parameters:g'] = 5
+                phase.set_time_val(initial=0.0, duration=2.0)
+                phase.set_state_val('x', [0, 10])
+                phase.set_state_val('y', [10, 5])
+                phase.set_state_val('v', [0, 9.9])
+                phase.set_control_val('theta', [5, 100])
+                phase.set_parameter_val('g', 5)
 
                 p.run_driver()
 
@@ -716,19 +692,12 @@ class TestPhaseBase(unittest.TestCase):
                 p.model.linear_solver = om.DirectSolver()
                 p.setup(check=True)
 
-                p['phase0.t_initial'] = 0.0
-                p['phase0.t_duration'] = 2.0
-
-                if txname == 'explicit-shooting':
-                    p['phase0.initial_states:x'] = 0
-                    p['phase0.initial_states:y'] = 10
-                    p['phase0.initial_states:v'] = 0
-                else:
-                    p['phase0.states:x'] = phase.interp('x', [0, 10])
-                    p['phase0.states:y'] = phase.interp('y', [10, 5])
-                    p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-                p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
-                p['phase0.parameters:g'] = 5
+                phase.set_time_val(initial=0.0, duration=2.0)
+                phase.set_state_val('x', [0, 10])
+                phase.set_state_val('y', [10, 5])
+                phase.set_state_val('v', [0, 9.9])
+                phase.set_control_val('theta', [5, 100])
+                phase.set_parameter_val('g', 5)
 
                 p.run_driver()
 
