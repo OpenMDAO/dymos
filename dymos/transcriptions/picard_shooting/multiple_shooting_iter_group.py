@@ -78,8 +78,6 @@ class MultipleShootingIterGroup(om.Group):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-
-
         segment_prop_group = self._get_subsystem('segment_prop_group')
         segment_prop_group.configure_io(phase)
 

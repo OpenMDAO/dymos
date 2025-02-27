@@ -77,7 +77,7 @@ class PicardUpdateComp(om.ExplicitComponent):
         self.var_names = var_names = {}
         for state_name, options in state_options.items():
             var_names[state_name] = {
-                'f_computed': f'state_rates:{state_name}',
+                'f_computed': f'f_computed:{state_name}',
                 'x_0': f'seg_initial_states:{state_name}',
                 'x_f': f'seg_final_states:{state_name}',
                 'x_a': f'initial_states:{state_name}',

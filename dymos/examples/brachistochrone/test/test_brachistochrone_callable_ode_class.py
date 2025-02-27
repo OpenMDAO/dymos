@@ -8,7 +8,7 @@ import dymos as dm
 from dymos.utils.misc import om_version
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestBrachExecCompODE(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')
@@ -33,6 +33,9 @@ class TestBrachExecCompODE(unittest.TestCase):
         elif transcription == 'birkhoff':
             t = dm.Birkhoff(num_nodes=transcription_order+1,
                             grid_type='cgl')
+        elif transcription.startswith('picard'):
+            grid_type = transcription.split('-')[-1]
+            t = dm.PicardShooting(nodes_per_seg=4, num_segments=8, grid_type=grid_type)
 
         def ode(num_nodes):
             return om.ExecComp(['vdot = g * cos(theta)',
@@ -80,12 +83,14 @@ class TestBrachExecCompODE(unittest.TestCase):
         p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
         phase.set_time_val(initial=0.0, duration=2.0)
 
-        phase.set_state_val('x', [0, 10])
-        phase.set_state_val('y', [10, 5])
-        phase.set_state_val('v', [0, 9.9])
+        om.n2(p)
 
-        phase.set_control_val('theta', [5, 100])
-        phase.set_parameter_val('g', 9.80665)
+        # phase.set_state_val('x', [0, 10])
+        # phase.set_state_val('y', [10, 5])
+        # phase.set_state_val('v', [0, 9.9])
+
+        # phase.set_control_val('theta', [5, 100])
+        # phase.set_parameter_val('g', 9.80665)
 
         dm.run_problem(p, run_driver=run_driver, simulate=True)
 
@@ -141,6 +146,10 @@ class TestBrachExecCompODE(unittest.TestCase):
     def test_ex_brachistochrone_birkhoff_uncompressed(self):
         p = self._make_problem(transcription='birkhoff', transcription_order=10)
         self.run_asserts(p)
+
+    def test_ex_brachistochrone_picard_shooting(self):
+        p = self._make_problem(transcription='picard-lgl', run_driver=False, compressed=False)
+        # self.run_asserts(p)
 
 
 @use_tempdirs

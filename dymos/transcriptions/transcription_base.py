@@ -223,7 +223,7 @@ class TranscriptionBase(object):
                                          adder=options['adder'],
                                          ref0=options['ref0'],
                                          ref=options['ref'])
-
+    
                 for tgts, src_idxs in self.get_parameter_connections(name, phase):
                     phase.connect(f'parameter_vals:{name}', tgts, src_indices=src_idxs,
                                   flat_src_indices=True)
@@ -629,6 +629,9 @@ class TranscriptionBase(object):
             The OpenMDAO system which serves as the ODE for the given Phase.
 
         """
+        ode = phase._get_subsystem(self._rhs_source)
+        if ode is None:
+            raise AttributeError(f'Phase ODE subsystem {self._rhs_source} not found.')
         return phase._get_subsystem(self._rhs_source)
 
     def get_parameter_connections(self, name, phase):

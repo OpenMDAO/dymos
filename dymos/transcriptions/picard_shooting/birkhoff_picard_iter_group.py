@@ -49,18 +49,14 @@ class BirkhoffPicardIterGroup(om.Group):
         ode_init_kwargs = self.options['ode_init_kwargs']
 
         self.add_subsystem('states_comp',
-                           subsys=StatesComp(grid_data=gd, state_options=state_options),
-                           promotes_inputs=['*'], promotes_outputs=['*'])
+                           subsys=StatesComp(grid_data=gd, state_options=state_options))
 
-        self.add_subsystem('ode_all', subsys=ode_class(num_nodes=nn, **ode_init_kwargs),
-                           promotes_inputs=['*'], promotes_outputs=['*'])
+        self.add_subsystem('ode_all', subsys=ode_class(num_nodes=nn, **ode_init_kwargs))
 
         self.add_subsystem('picard_update_comp',
                            subsys=PicardUpdateComp(grid_data=gd,
                                                    state_options=state_options,
-                                                   time_units=time_units),
-                            promotes_inputs=['*'], promotes_outputs=['*'])
-
+                                                   time_units=time_units))
 
     def configure_io(self, phase):
         """
@@ -74,6 +70,8 @@ class BirkhoffPicardIterGroup(om.Group):
         states_comp = self._get_subsystem('states_comp')
         states_comp.configure_io(phase)
 
+        self.promotes('states_comp', inputs=['*'], outputs=['*'])
+
         picard_update_comp = self._get_subsystem('picard_update_comp')
         picard_update_comp.configure_io(phase)
 
@@ -83,7 +81,7 @@ class BirkhoffPicardIterGroup(om.Group):
             rate_source = options['rate_source']
 
             for tgt in options['targets']:
-                self.connect(f'state_val:{name}', tgt)
+                self.connect(f'state_val:{name}', f'ode_all.{tgt}')
 
             try:
                 rate_source_var = options['rate_source']
@@ -95,4 +93,12 @@ class BirkhoffPicardIterGroup(om.Group):
             var_type = phase.classify_var(rate_source_var)
 
             if var_type == 'ode':
-                self.connect(f'{rate_source}', f'state_rates:{name}')
+                self.connect(f'{rate_source}', f'picard_update_comp.f_computed:{name}')
+
+            promotes = [f'states:{name}']
+            if options['solve_segments'] == 'forward':
+                promotes += [f'final_states:{name}']
+            else:
+                promotes += [f'initial_states:{name}']
+
+            self.promotes('picard_update_comp', any=promotes)
