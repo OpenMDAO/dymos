@@ -174,8 +174,7 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
                                                                                   ode_class=ode_class,
                                                                                   ode_nonlinear_solver=om.NonlinearBlockGS(maxiter=201, use_aitken=True),
                                                                                   ode_linear_solver = om.DirectSolver()),
-                                                                                  promotes=['*'])
-
+                                                  promotes=['ode_all*'])
                             p.model.connect('time.t', 'ode_all.t')
                             # p.model.connect('time.dt_dstau', 'picard_update_comp.dt_dstau')
 
@@ -185,8 +184,6 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
                             ms.linear_solver = om.DirectSolver()
 
                             p.setup(force_alloc_complex=True)
-
-                            om.n2(p)
 
                             # Instead of using the TimeComp just transform the node segment taus onto [0, 2]
                             times = (grid_data.node_stau + 1) * 1.0
@@ -203,8 +200,8 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
                             else:
                                 p.set_val('ms.seg_final_states:x', solution(2.0))
                                 p.set_val('ms.final_states:x', solution(2.0))
-                            p.set_val('ms.ode_all.t', times)
-                            p.set_val('ms.ode_all.p', 1.0)
+                            p.set_val('ode_all.t', times)
+                            p.set_val('ode_all.p', 1.0)
 
                             p.final_setup()
 
@@ -216,7 +213,11 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
 
                             t = p.get_val('time.t')
                             x = p.get_val('ms.states:x')
-                            x_dot = p.get_val('ms.f_computed:x')
+                            x_dot = p.get_val('ode_all.x_dot')
+
+                            import matplotlib.pyplot as plt
+                            plt.plot(t, x)
+                            plt.show()
 
                             assert_near_equal(solution(t), x.ravel(), tolerance=1.0E-9)
                             assert_near_equal(dsolution_dt(t), x_dot.ravel(), tolerance=1.0E-9)
@@ -226,7 +227,7 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
                             cpd = p.check_partials(method='fd', compact_print=False, out_stream=None)
                             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
-                            p.model.list_vars()
+                            p.model.list_vars(print_arrays=True)
 
 
 if __name__ == '__main__':

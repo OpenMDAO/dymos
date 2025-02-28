@@ -60,6 +60,8 @@ class PicardUpdateComp(om.ExplicitComponent):
 
         B_blocks = []
 
+        self._seg_repeats = gd.subset_num_nodes_per_segment['all']
+
         start_idx = 0
         for i in range(num_segs):
             nnps_i = gd.subset_num_nodes_per_segment['all'][i]

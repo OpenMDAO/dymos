@@ -78,8 +78,18 @@ class MultipleShootingIterGroup(om.Group):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        state_options = self.options['state_options']
+
         segment_prop_group = self._get_subsystem('segment_prop_group')
         segment_prop_group.configure_io(phase)
 
         ms_update_comp = self._get_subsystem('ms_update_comp')
         ms_update_comp.configure_io(phase)
+
+        for state_name, options in state_options.items():
+            if options['solve_segments'] == 'forward':
+                self.connect(f'seg_initial_states:{state_name}',
+                             f'picard_update_comp.seg_initial_states:{state_name}')
+            else:
+                self.connect(f'seg_final_states:{state_name}',
+                             f'picard_update_comp.seg_final_states:{state_name}')
