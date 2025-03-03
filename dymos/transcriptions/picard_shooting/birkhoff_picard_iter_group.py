@@ -57,7 +57,7 @@ class BirkhoffPicardIterGroup(om.Group):
                            subsys=PicardUpdateComp(grid_data=gd,
                                                    state_options=state_options,
                                                    time_units=time_units))
-
+        
     def configure_io(self, phase):
         """
         I/O creation is delayed until configure so that we can determine shape and units for the states.

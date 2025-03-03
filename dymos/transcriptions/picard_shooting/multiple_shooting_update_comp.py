@@ -69,43 +69,23 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
         num_segs = gd.num_segments
         time_units = self.options['time_units']
         state_options = self.options['state_options']
-        nodes_per_seg = gd.subset_num_nodes_per_segment['all']
 
         # Construct the forward and backward mapping matrices
-        rows = np.empty(0, dtype=int)
-        cols = np.empty(0, dtype=int)
-        data = np.empty(0, dtype=int)
         seg_start_nodes = gd.subset_node_indices['segment_ends'][::2]
         seg_end_nodes = gd.subset_node_indices['segment_ends'][1::2]
 
+        M_fwd = sp.lil_array((num_segs, num_nodes), dtype=int)
         for iseg in range(1, gd.num_segments):
-            rows_i = np.arange(seg_start_nodes[iseg], seg_start_nodes[iseg] + nodes_per_seg[iseg], dtype=int)
-            cols_i = seg_end_nodes[iseg-1] * np.ones(nodes_per_seg[iseg])
-            data_i = np.ones(nodes_per_seg[iseg])
+            # The ith row of M_fwd contains in the column pertaining to first node in the (i-1)th segment
+            M_fwd[iseg, seg_end_nodes[iseg-1]] = 1
 
-            rows = np.concatenate((rows, rows_i))
-            cols = np.concatenate((cols, cols_i))
-            data = np.concatenate((data, data_i))
+        M_bkwd = sp.lil_array((num_segs, num_nodes), dtype=int)
+        for iseg in range(gd.num_segments-1):
+            # The ith row of M_bkwd contains in the column pertaining to first node in the (i+1)th segment
+            M_bkwd[iseg, seg_start_nodes[iseg+1]] = 1
 
-        self._M_fwd = sp.coo_array((data, (rows, cols)), shape=(num_nodes, num_nodes)).tocsr()
-
-        rows = np.empty(0, dtype=int)
-        cols = np.empty(0, dtype=int)
-        data = np.empty(0, dtype=int)
-        seg_end_nodes = gd.subset_node_indices['segment_ends'][1::2]
-        num_nodes_first_seg = gd.subset_num_nodes_per_segment['all'][0]
-        num_nodes_last_seg = gd.subset_num_nodes_per_segment['all'][-1]
-
-        for iseg in range(gd.num_segments - 1):
-            rows_i = np.arange(seg_start_nodes[iseg], seg_start_nodes[iseg] + nodes_per_seg[iseg], dtype=int)
-            cols_i = seg_start_nodes[iseg+1] * np.ones(nodes_per_seg[iseg])
-            data_i = np.ones(nodes_per_seg[iseg])
-
-            rows = np.concatenate((rows, rows_i))
-            cols = np.concatenate((cols, cols_i))
-            data = np.concatenate((data, data_i))
-
-        self._M_bkwd = sp.coo_array((data, (rows, cols)), shape=(num_nodes, num_nodes)).tocsr()
+        self._M_fwd = {}
+        self._M_bkwd = {}
 
         self._var_names = var_names = {}
         for state_name, options in state_options.items():
@@ -132,6 +112,7 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
                 units=rate_units)
 
             if options['solve_segments'] == 'forward':
+                self._M_fwd[state_name] = sp.kron(M_fwd, sp.eye(size, dtype=int))
 
                 self.add_input(
                     name=var_names['x_a'],
@@ -141,13 +122,13 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
                 )
                 self.add_output(
                     name=var_names['x_0'],
-                    shape=(num_nodes,) + shape,
+                    shape=(num_segs,) + shape,
                     val=0.0,
                     desc=f'Given initial value of state {state_name} in each segment.',
                     units=units
                 )
 
-                ar_size_x_nn0 = np.arange(num_nodes_first_seg * size, dtype=int)
+                ar_size_x_nn0 = np.arange(size, dtype=int)
                 self.declare_partials(of=var_names['x_0'],
                                       wrt=var_names['x_a'],
                                       rows=ar_size_x_nn0,
@@ -155,13 +136,14 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
                                       val=1.0)
 
                 if num_segs > 1:
-                    rs, cs = self._M_fwd.nonzero()
+                    rs, cs = self._M_fwd[state_name].nonzero()
                     self.declare_partials(of=var_names['x_0'],
                                         wrt=var_names['x'],
                                         rows=rs, cols=cs,
-                                        val=self._M_fwd.data)
+                                        val=self._M_fwd[state_name].data.ravel())
 
             elif options['solve_segments'] == 'backward':
+                self._M_bkwd[state_name] = sp.kron(M_bkwd, sp.eye(size, dtype=int))
 
                 self.add_input(
                     name=var_names['x_b'],
@@ -172,26 +154,25 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
 
                 self.add_output(
                     name=var_names['x_f'],
-                    shape=(num_nodes,) + shape,
+                    shape=(num_segs,) + shape,
                     val=0.0,
                     desc=f'Given final value of state {state_name} in each segment.',
                     units=units
                 )
 
-                ar_size_x_nnf = np.arange(num_nodes_last_seg * size, dtype=int)
-                rs = size * (num_nodes - num_nodes_last_seg) + ar_size_x_nnf
+                ar_size_x_nnf = (num_segs - 1) * size + np.arange(size, dtype=int)
                 self.declare_partials(of=var_names['x_f'],
                                       wrt=var_names['x_b'],
-                                      rows=rs,
-                                      cols=np.zeros(num_nodes_last_seg * size),
+                                      rows=ar_size_x_nnf,
+                                      cols=np.zeros_like(ar_size_x_nnf),
                                       val=1.0)
 
                 if num_segs > 1:
-                    rs, cs = self._M_bkwd.nonzero()
+                    rs, cs = self._M_bkwd[state_name].nonzero()
                     self.declare_partials(of=var_names['x_f'],
                                           wrt=var_names['x'],
                                           rows=rs, cols=cs,
-                                          val=self._M_bkwd)
+                                          val=self._M_bkwd[state_name].data.ravel())
 
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
@@ -218,14 +199,19 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
             x_flat = x.reshape(nn, -1)
 
             if options['solve_segments'] == 'forward':
+                M_fwd = self._M_fwd[state_name]
                 x_a = inputs[var_names['x_a']]
-                outputs[var_names['x_0']] = (self._M_fwd @ x_flat).reshape(x.shape)
-                outputs[var_names['x_0']][:gd.subset_num_nodes_per_segment['all'][0]] = x_a
+                outputs[var_names['x_0']] = M_fwd @ x_flat
+                outputs[var_names['x_0']][0, ...] = x_a[0, ...]
+                # print(x_flat)
+                # print(x_a)
+                # print(outputs[var_names['x_0']])
 
             elif options['solve_segments'] == 'backward':
+                M_bkwd = self._M_bkwd[state_name]
                 x_b = inputs[var_names['x_b']]
-                outputs[var_names['x_f']] = (self._M_bkwd @ x_flat).reshape(x.shape)
-                outputs[var_names['x_f']][-gd.subset_num_nodes_per_segment['all'][-1]:] = x_b
+                outputs[var_names['x_f']] = M_bkwd @ x_flat
+                outputs[var_names['x_f']][-1, ...] = x_b
 
             else:
                 raise ValueError(f'{self.msginfo}: Invalid direction of integration: {options["solve_segments"]}')

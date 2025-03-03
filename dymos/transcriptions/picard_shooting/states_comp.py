@@ -91,7 +91,6 @@ class StatesComp(ExplicitComponent):
                                   wrt=var_names['next_state'],
                                   rows=ar, cols=ar, val=1.0)
 
-
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """
         Mux the inputs into the appropriate outputs.

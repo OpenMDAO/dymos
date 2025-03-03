@@ -9,13 +9,12 @@ import dymos
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
 
-from dymos.transcriptions.common import timeseries_output_comp
 from dymos.utils.misc import GroupWrapperConfig
 from dymos.utils.testing_utils import PhaseStub, SimpleODE
 from dymos.transcriptions.common.time_comp import TimeComp
 from dymos.transcriptions.picard_shooting.multiple_shooting_iter_group import MultipleShootingIterGroup
 from dymos.phase.options import StateOptionsDictionary, TimeOptionsDictionary
-from dymos.transcriptions.grid_data import BirkhoffGrid, GaussLobattoGrid, RadauGrid, ChebyshevGaussLobattoGrid
+from dymos.transcriptions.grid_data import GaussLobattoGrid, ChebyshevGaussLobattoGrid
 
 
 TimeComp = GroupWrapperConfig(TimeComp, [])
@@ -123,111 +122,104 @@ class LorenzAttractorODE(om.JaxExplicitComponent):
         z_dot = x * y - b * z
         return x_dot, y_dot, z_dot
 
-# @use_tempdirs
+@use_tempdirs
 class TestMultipleShootingIterGroup(unittest.TestCase):
 
     def test_multiple_shooting_iter_group(self):
-        for direction in ['forward']:
-            for grid_type in [GaussLobattoGrid]:#, ChebyshevGaussLobattoGrid]:
-                for nl_solver in [om.NonlinearBlockGS(use_aitken=True)]:#, om.NewtonSolver(solve_subsystems=True)]:
-                    with self.subTest(msg=grid_type):
-                        with dymos.options.temporary(include_check_partials=True):
+        for direction in ['forward', 'backward']:
+            for grid_type in [GaussLobattoGrid, ChebyshevGaussLobattoGrid]:
+                for num_seg, nodes_per_seg in [(1, 21), (3, 11)]:
+                    grid_data = grid_type(nodes_per_seg=nodes_per_seg, num_segments=num_seg)
+                    for nl_solver in [om.NonlinearBlockGS(use_aitken=True, maxiter=100, iprint=0),
+                                      om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=0)]:
+                        with self.subTest(msg=f'{direction=} grid={grid_data}'):
+                            with dymos.options.temporary(include_check_partials=True):
 
-                            state_options = {'x': StateOptionsDictionary()}
+                                state_options = {'x': StateOptionsDictionary()}
 
-                            state_options['x']['shape'] = (1,)
-                            state_options['x']['units'] = 's**2'
-                            state_options['x']['targets'] = ['x']
-                            state_options['x']['initial_bounds'] = (None, None)
-                            state_options['x']['final_bounds'] = (None, None)
-                            state_options['x']['solve_segments'] = direction
-                            state_options['x']['rate_source'] = 'ode_all.x_dot'
+                                state_options['x']['shape'] = (1,)
+                                state_options['x']['units'] = 's**2'
+                                state_options['x']['targets'] = ['x']
+                                state_options['x']['initial_bounds'] = (None, None)
+                                state_options['x']['final_bounds'] = (None, None)
+                                state_options['x']['solve_segments'] = direction
+                                state_options['x']['rate_source'] = 'ode_all.x_dot'
 
-                            time_options = TimeOptionsDictionary()
-                            grid_data = grid_type(nodes_per_seg=21, num_segments=1)
-                            ode_class = SimpleODE
+                                time_options = TimeOptionsDictionary()
+                                ode_class = SimpleODE
 
-                            p = om.Problem()
+                                p = om.Problem()
 
-                            class PhaseStub(om.Group):
+                                class PhaseStub(om.Group):
 
-                                def setup(self):
-                                    self.state_options = state_options
-                                    self.time_options = time_options
-                                
-                                def classify_var(self, var):
-                                    return 'ode'
+                                    def setup(self):
+                                        self.state_options = state_options
+                                        self.time_options = time_options
+                                    
+                                    def classify_var(self, var):
+                                        return 'ode'
 
-                                def configure(self):
-                                    self._get_subsystem('ms').configure_io(self)
-                                    self._get_subsystem('time').configure_io()
+                                    def configure(self):
+                                        self._get_subsystem('ms').configure_io(self)
+                                        self._get_subsystem('time').configure_io()
 
-                            p.model = PhaseStub()
-                                
-                            p.model.add_subsystem('time', TimeComp(num_nodes=grid_data.num_nodes,
-                                                                   node_ptau=grid_data.node_ptau,
-                                                                   node_dptau_dstau=grid_data.node_dptau_dstau))
+                                p.model = PhaseStub()
+                                    
+                                p.model.add_subsystem('time', TimeComp(num_nodes=grid_data.num_nodes,
+                                                                    node_ptau=grid_data.node_ptau,
+                                                                    node_dptau_dstau=grid_data.node_dptau_dstau,
+                                                                    units='s'))
 
-                            p.model.add_subsystem('ms', MultipleShootingIterGroup(state_options=state_options,
-                                                                                  time_units=time_options['units'],
-                                                                                  grid_data=grid_data,
-                                                                                  ode_class=ode_class,
-                                                                                  ode_nonlinear_solver=om.NonlinearBlockGS(maxiter=201, use_aitken=True),
-                                                                                  ode_linear_solver = om.DirectSolver()),
-                                                  promotes=['ode_all*'])
-                            p.model.connect('time.t', 'ode_all.t')
-                            # p.model.connect('time.dt_dstau', 'picard_update_comp.dt_dstau')
+                                p.model.add_subsystem('ms', MultipleShootingIterGroup(state_options=state_options,
+                                                                                      time_units=time_options['units'],
+                                                                                      grid_data=grid_data,
+                                                                                      ode_class=ode_class,
+                                                                                      ms_nonlinear_solver=nl_solver),
+                                                    promotes=['ode_all*'])
+                                p.model.connect('time.t', 'ode_all.t')
+                                p.model.connect('time.dt_dstau', 'ms.picard_update_comp.dt_dstau')
 
-                            ms = p.model._get_subsystem('ms')
+                                ms = p.model._get_subsystem('ms')
 
-                            ms.nonlinear_solver = nl_solver
-                            ms.linear_solver = om.DirectSolver()
+                                ms.nonlinear_solver = nl_solver
+                                ms.linear_solver = om.DirectSolver()
 
-                            p.setup(force_alloc_complex=True)
+                                p.setup(force_alloc_complex=True)
 
-                            # Instead of using the TimeComp just transform the node segment taus onto [0, 2]
-                            times = (grid_data.node_stau + 1) * 1.0
+                                p.set_val('time.t_initial', 0.0)
+                                p.set_val('time.t_duration', 2.0)
 
-                            p.set_val('time.t_initial', 0.0)
-                            p.set_val('time.t_duration', 2.0)
+                                solution = lambda t: t**2 + 2 * t + 1 - 0.5 * np.exp(t)
+                                dsolution_dt = lambda t: 2 * t + 2 - 0.5 * np.exp(t)
 
-                            solution = lambda t: t**2 + 2 * t + 1 - 0.5 * np.exp(t)
-                            dsolution_dt = lambda t: 2 * t + 2 - 0.5 * np.exp(t)
+                                if direction == 'forward':
+                                    p.set_val('ms.seg_initial_states:x', 0.5)
+                                    p.set_val('ms.initial_states:x', 0.5)
+                                else:
+                                    p.set_val('ms.seg_final_states:x', solution(2.0))
+                                    p.set_val('ms.final_states:x', solution(2.0))
 
-                            if direction == 'forward':
-                                p.set_val('ms.seg_initial_states:x', 0.5)
-                                p.set_val('ms.initial_states:x', 0.5)
-                            else:
-                                p.set_val('ms.seg_final_states:x', solution(2.0))
-                                p.set_val('ms.final_states:x', solution(2.0))
-                            p.set_val('ode_all.t', times)
-                            p.set_val('ode_all.p', 1.0)
+                                p.set_val('ode_all.p', 1.0)
 
-                            p.final_setup()
+                                p.final_setup()
 
-                            t_start = time.perf_counter()
-                            p.run_model()
-                            t_end = time.perf_counter()
+                                t_start = time.perf_counter()
+                                p.run_model()
+                                t_end = time.perf_counter()
 
-                            print(f"Elapsed time: {t_end-t_start:.4f} seconds")
+                                # print(f"Elapsed time: {t_end-t_start:.4f} seconds")
 
-                            t = p.get_val('time.t')
-                            x = p.get_val('ms.states:x')
-                            x_dot = p.get_val('ode_all.x_dot')
+                                t = p.get_val('time.t')
+                                x = p.get_val('ms.states:x')
+                                x_dot = p.get_val('ode_all.x_dot')
 
-                            import matplotlib.pyplot as plt
-                            plt.plot(t, x)
-                            plt.show()
+                                assert_near_equal(solution(t), x.ravel(), tolerance=1.0E-9)
+                                assert_near_equal(dsolution_dt(t), x_dot.ravel(), tolerance=1.0E-9)
+                                assert_near_equal(solution(0), p.get_val('ms.initial_states:x').ravel(), tolerance=1.0E-9)
+                                assert_near_equal(solution(t[-1]), p.get_val('ms.final_states:x').ravel(), tolerance=1.0E-9)
 
-                            assert_near_equal(solution(t), x.ravel(), tolerance=1.0E-9)
-                            assert_near_equal(dsolution_dt(t), x_dot.ravel(), tolerance=1.0E-9)
-                            assert_near_equal(solution(0), p.get_val('ms.initial_states:x').ravel(), tolerance=1.0E-9)
-                            assert_near_equal(solution(t[-1]), p.get_val('ms.final_states:x').ravel(), tolerance=1.0E-9)
-
-                            cpd = p.check_partials(method='fd', compact_print=False, out_stream=None)
-                            assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
-
-                            p.model.list_vars(print_arrays=True)
+                                cpd = p.check_partials(method='fd', compact_print=False, out_stream=None)
+                                assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
 
 if __name__ == '__main__':

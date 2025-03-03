@@ -563,6 +563,9 @@ class GridData(object):
                 np.all(self.num_steps_per_segment == other.num_steps_per_segment)
         else:
             return False
+        
+    def __repr__(self):
+        return f'{self.__class__.__name__}(num_seg={self.num_segments}, order={self.transcription_order}) at <{id(self)}>'
 
     def is_aligned_with(self, other, tol=1.0E-12):
         """

@@ -1,5 +1,6 @@
 import numpy as np
 import scipy
+import scipy.sparse as sp
 
 import openmdao.api as om
 
@@ -116,7 +117,7 @@ class PicardUpdateComp(om.ExplicitComponent):
             if options['solve_segments'] == 'forward':
                 self.add_input(
                     name=var_names['x_0'],
-                    shape=(num_nodes,) + shape,
+                    shape=(num_segs,) + shape,
                     desc=f'Initial value of state {state_name} in each segment',
                     units=units
                 )
@@ -130,8 +131,8 @@ class PicardUpdateComp(om.ExplicitComponent):
                 rs = np.repeat(np.arange(1, num_nodes, dtype=int), num_nodes)
                 cs = np.tile(np.arange(num_nodes, dtype=int), num_nodes - 1)
                 self.declare_partials(of=var_names['x_hat'],
-                                        wrt='dt_dstau',
-                                        rows=rs, cols=cs)
+                                      wrt='dt_dstau',
+                                      rows=rs, cols=cs)
                 self.declare_partials(of=var_names['x_hat'],
                         wrt=var_names['f_computed'],
                         rows=rs, cols=cs)
@@ -140,30 +141,33 @@ class PicardUpdateComp(om.ExplicitComponent):
                 self.declare_partials(of=var_names['x_b'],
                                       wrt=var_names['f_computed'])
 
-                ar = np.arange(num_nodes * size, dtype=int)
+                rs = np.arange(num_nodes, dtype=int)
+                cs = np.repeat(np.arange(num_segs, dtype=int), self._seg_repeats)
                 self.declare_partials(of=var_names['x_hat'],
                                       wrt=var_names['x_0'],
-                                      rows=ar, cols=ar, val=1.0)
-                ar = np.arange(size, dtype=int)
+                                      rows=rs, cols=cs, val=1.0)
+                template = sp.lil_array((1, num_segs), dtype=int)
+                template[0, -1] = 1
+                template = sp.kron(template.tocsr(), sp.eye(size, dtype=int))
+                rs, cs = template.nonzero()
                 self.declare_partials(of=var_names['x_b'],
                         wrt=var_names['x_0'],
-                        rows=ar, cols=(num_nodes - 1) * size + ar, val=1.0)
+                        rows=rs, cols=cs, val=1.0)
 
             elif options['solve_segments'] == 'backward':
                 self.add_input(
                     name=var_names['x_f'],
-                    shape=(num_nodes,) + shape,
+                    shape=(num_segs,) + shape,
                     desc=f'Final value of state {state_name} in each segment',
                     units=units
                 )
                 self.add_output(
                     name=var_names['x_a'],
-                    shape=(num_nodes,) + shape,
+                    shape=(1,) + shape,
                     desc=f'Initial value of state {state_name} in the phase',
                     units=units
                 )
                 rs = np.repeat(np.arange(num_nodes - 1, dtype=int), num_nodes)
-                rs = [0] + rs.tolist()
                 cs = np.tile(np.arange(num_nodes, dtype=int), num_nodes - 1)
                 self.declare_partials(of=var_names['x_hat'], wrt='dt_dstau',
                                       rows=rs, cols=cs)
@@ -173,13 +177,17 @@ class PicardUpdateComp(om.ExplicitComponent):
                                       wrt='dt_dstau')
                 self.declare_partials(of=var_names['x_a'],
                                       wrt=var_names['f_computed'])
-                ar = np.arange(num_nodes * size, dtype=int)
+                rs = np.arange(num_nodes, dtype=int)
+                cs = np.repeat(np.arange(num_segs, dtype=int), self._seg_repeats)
                 self.declare_partials(of=var_names['x_hat'],
                                       wrt=var_names['x_f'],
-                                      rows=ar, cols=ar, val=1.0)
+                                      rows=rs, cols=cs, val=1.0)
+                template = sp.lil_array((1, num_segs), dtype=int)
+                template[0, 0] = 1
+                template = sp.kron(template.tocsr(), sp.eye(size, dtype=int))
+                rs, cs = template.nonzero()
                 self.declare_partials(of=var_names['x_a'], wrt=var_names['x_f'],
-                                      rows=ar, cols=np.zeros(num_nodes, dtype=int),
-                                      val=1.0)
+                                      rows=rs, cols=cs, val=1.0)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """
@@ -209,14 +217,14 @@ class PicardUpdateComp(om.ExplicitComponent):
 
             if options['solve_segments'] == 'forward':
                 x_0 = inputs[var_names['x_0']]
-                # outputs[var_names['x_hat']] = x_0 + np.einsum('ij,jk...->ik...', self._B, f)
-                outputs[var_names['x_hat']] = x_0 + (self._B @ f_flat).reshape(f.shape)
+                x_0_repeated = np.repeat(x_0, self._seg_repeats, axis=0)
+                outputs[var_names['x_hat']] = x_0_repeated + (self._B @ f_flat).reshape(f.shape)
                 outputs[var_names['x_b']][...] = outputs[var_names['x_hat']][-1, ...]
 
             elif options['solve_segments'] == 'backward':
                 x_f = inputs[var_names['x_f']]
-                # outputs[var_names['x_hat']] = x_f - np.einsum('ij,jk...->ik...', self._B[::-1, ...], f[::-1, ...])
-                outputs[var_names['x_hat']] = x_f - (self._B[::-1, ...] @ f_flat[::-1, ...]).reshape(f.shape)
+                x_f_repeated = np.repeat(x_f, self._seg_repeats, axis=0)
+                outputs[var_names['x_hat']] = x_f_repeated - (self._B[::-1, ...] @ f_flat[::-1, ...]).reshape(f.shape)
                 outputs[var_names['x_a']][...] = outputs[var_names['x_hat']][0, ...]
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
@@ -247,7 +255,7 @@ class PicardUpdateComp(om.ExplicitComponent):
                 B_flip = self._B[::-1, ...]
                 dt_dstau_flip = dt_dstau[::-1, ...]
 
-                partials[x_name, f_name] = -(B_flip * dt_dstau_flip.T)[:-1, ::-1].ravel()
-                partials[x_a_name, f_name] = np.tile(partials[x_name, f_name][:num_nodes], num_nodes)
-                partials[x_name, 'dt_dstau'] = -(B_flip * f_t[::-1, ...].T)[:-1, ::-1].ravel()
-                partials[x_a_name, 'dt_dstau'] = np.tile(partials[x_name, 'dt_dstau'][:num_nodes], num_nodes)
+                partials[x_name, f_name] = -(B_flip.multiply(dt_dstau_flip.T)).todense()[:-1, ::-1].ravel()
+                partials[x_a_name, f_name] = partials[x_name, f_name][:num_nodes]
+                partials[x_name, 'dt_dstau'] = -(B_flip.multiply(f_t[::-1, ...].T)).todense()[:-1, ::-1].ravel()
+                partials[x_a_name, 'dt_dstau'] = partials[x_name, 'dt_dstau'][:num_nodes]

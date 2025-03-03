@@ -35,9 +35,13 @@ class MultipleShootingIterGroup(om.Group):
                              recordable=False)
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
-        self.options.declare('ode_nonlinear_solver', default=om.NonlinearBlockGS(maxiter=100, use_aitken=True),
+        self.options.declare('ode_nonlinear_solver', default=om.NonlinearBlockGS(maxiter=100, use_aitken=True, iprint=0),
                              desc='Nonlinear solver used to resolve Picard iteration.')
         self.options.declare('ode_linear_solver', default=om.DirectSolver(),
+                             desc='Linear solver used to linearize the picard iteration subsystem.')
+        self.options.declare('ms_nonlinear_solver', default=om.NonlinearBlockGS(maxiter=100, use_aitken=True, iprint=0),
+                             desc='Nonlinear solver used to resolve Picard iteration.')
+        self.options.declare('ms_linear_solver', default=om.DirectSolver(),
                              desc='Linear solver used to linearize the picard iteration subsystem.')
 
     def setup(self):
@@ -61,8 +65,8 @@ class MultipleShootingIterGroup(om.Group):
         seg_prop_group.nonlinear_solver = self.options['ode_nonlinear_solver']
         seg_prop_group.linear_solver = self.options['ode_linear_solver']
 
-        self.nonlinear_solver = om.NonlinearBlockGS(maxiter=100, use_aitken=True)
-        self.linear_solver = om.DirectSolver()
+        self.nonlinear_solver = self.options['ms_nonlinear_solver']
+        self.linear_solver = self.options['ms_linear_solver']
 
         self.add_subsystem('ms_update_comp',
                            MultipleShootingUpdateComp(grid_data=gd,

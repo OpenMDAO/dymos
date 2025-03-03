@@ -125,11 +125,9 @@ class LorenzAttractorODE(om.JaxExplicitComponent):
 class TestBirkhoffPicardIterGroup(unittest.TestCase):
 
     def test_birkhoff_picard_solve_segments(self):
-        for direction in ['forward']:#, 'backward']:
-            # for grid_type in ['lgl', 'cgl']:
-            #     for nl_solver in ['newton', 'nlbgs']:
-                    grid_type='lgl'
-                    nl_solver='nlbgs'
+        for direction in ['forward', 'backward']:
+            for grid_type in ['lgl', 'cgl']:
+                for nl_solver in ['newton', 'nlbgs']:
                     with self.subTest(msg=f'{direction=} {grid_type=} {nl_solver=}'):
                         with dymos.options.temporary(include_check_partials=True):
 
@@ -194,10 +192,9 @@ class TestBirkhoffPicardIterGroup(unittest.TestCase):
                             assert_near_equal(solution, p.get_val('birkhoff.states:x'), tolerance=1.0E-9)
                             assert_near_equal(dsolution_dt.ravel(), p.get_val('birkhoff.picard_update_comp.f_computed:x').ravel(), tolerance=1.0E-9)
 
-                            cpd = p.check_partials(method='cs', compact_print=True, show_only_incorrect=False)#, out_stream=None)
+                            cpd = p.check_partials(method='cs', compact_print=True, show_only_incorrect=True, out_stream=None)
                             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
-                            p.model.list_vars()
 
     @unittest.skip('This test is a demonstation of the inability of Birkhoff-Picard '
                    'iteration to solve highly nonlinear systems.')
