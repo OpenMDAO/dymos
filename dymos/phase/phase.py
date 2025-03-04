@@ -21,7 +21,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     TimeseriesOutputOptionsDictionary, PhaseTimeseriesOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
-from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid, BirkhoffGrid
+from ..transcriptions.grid_data import ChebyshevGaussLobattoGrid, GaussLobattoGrid, RadauGrid, UniformGrid, BirkhoffGrid
 from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
@@ -2528,7 +2528,9 @@ class Phase(om.Group):
             grid = RadauGrid(num_segments=num_seg, nodes_per_seg=seg_order + 1, segment_ends=seg_ends,
                              compressed=compressed)
         elif isinstance(self_tx.grid_data, GaussLobattoGrid) or \
-                isinstance(self_tx.grid_data, RadauGrid) or isinstance(self_tx.grid_data, BirkhoffGrid):
+                isinstance(self_tx.grid_data, RadauGrid) or \
+                    isinstance(self_tx.grid_data, BirkhoffGrid) or \
+                        isinstance(self_tx.grid_data, ChebyshevGaussLobattoGrid):
             grid = self_tx.grid_data
         else:
             raise RuntimeError(f'Unexpected grid class for {self_tx.grid_data}. Only phases with GaussLobatto '

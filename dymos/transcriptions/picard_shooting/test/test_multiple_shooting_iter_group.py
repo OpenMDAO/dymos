@@ -175,7 +175,7 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
                                                                                       grid_data=grid_data,
                                                                                       ode_class=ode_class,
                                                                                       ms_nonlinear_solver=nl_solver),
-                                                    promotes=['ode_all*'])
+                                                      promotes=['ode_all*'])
                                 p.model.connect('time.t', 'ode_all.t')
                                 p.model.connect('time.dt_dstau', 'ms.picard_update_comp.dt_dstau')
 

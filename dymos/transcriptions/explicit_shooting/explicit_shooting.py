@@ -8,7 +8,7 @@ from openmdao.utils.om_warnings import warn_deprecation
 from ..common.timeseries_output_comp import TimeseriesOutputComp
 from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
 from ..transcription_base import TranscriptionBase
-from ..grid_data import BirkhoffGrid, GaussLobattoGrid, RadauGrid, UniformGrid
+from ..grid_data import BirkhoffGrid, GaussLobattoGrid, RadauGrid, UniformGrid, ChebyshevGaussLobattoGrid
 from .ode_integration_comp import ODEIntegrationComp
 from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.indexing import get_src_indices_by_row
@@ -60,10 +60,12 @@ class ExplicitShooting(TranscriptionBase):
                                   'setting this option to False should result in faster execution.')
         self.options.declare('subprob_reports', default=False,
                              desc='Controls the reports made when running the subproblems for ExplicitShooting')
-        self.options.declare('grid', types=(GaussLobattoGrid, RadauGrid, BirkhoffGrid, str), allow_none=True, default=None,
+        self.options.declare('grid', types=(GaussLobattoGrid, ChebyshevGaussLobattoGrid,
+                                            RadauGrid, BirkhoffGrid, str), allow_none=True, default=None,
                              desc='The grid distribution used to layout the control inputs and provide the default '
                                   'output nodes.')
-        self.options.declare('output_grid', types=(GaussLobattoGrid, RadauGrid, UniformGrid, BirkhoffGrid), allow_none=True,
+        self.options.declare('output_grid', types=(GaussLobattoGrid, ChebyshevGaussLobattoGrid, RadauGrid,
+                                                   UniformGrid, BirkhoffGrid), allow_none=True,
                              default=None,
                              desc='The grid distribution determining the location of the output nodes. The default '
                                   'value of None will result in the use of the grid for outputs. This is useful '

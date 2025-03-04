@@ -93,7 +93,7 @@ class BirkhoffPicardIterGroup(om.Group):
             var_type = phase.classify_var(rate_source_var)
 
             if var_type == 'ode':
-                self.connect(f'{rate_source}', f'picard_update_comp.f_computed:{name}')
+                self.connect(f'ode_all.{rate_source}', f'picard_update_comp.f_computed:{name}')
 
             promotes = [f'states:{name}']
             if options['solve_segments'] == 'forward':
