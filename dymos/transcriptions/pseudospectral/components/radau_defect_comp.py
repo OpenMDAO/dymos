@@ -3,6 +3,8 @@ import openmdao.api as om
 
 import scipy.sparse as sp
 
+from openmdao.utils.units import unit_conversion
+
 from dymos._options import options as dymos_options
 from dymos.transcriptions.grid_data import GridData
 from dymos.utils.misc import get_rate_units
@@ -30,6 +32,10 @@ class RadauDefectComp(om.ExplicitComponent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._no_check_partials = not dymos_options['include_check_partials']
+
+        # When a state has another state as its rate source, we have to explicitly convert
+        # from the units of that other state to the units being expected by the current state.
+        self._rate_unit_conversion = {}
 
     def initialize(self):
         """Declare component options."""
@@ -83,6 +89,7 @@ class RadauDefectComp(om.ExplicitComponent):
         for state_name, options in state_options.items():
             shape = options['shape']
             units = options['units']
+            rate_units = get_rate_units(units, time_units)
 
             var_names = self.var_names[state_name]
 
@@ -104,18 +111,21 @@ class RadauDefectComp(om.ExplicitComponent):
             rate_source_type = phase.classify_var(options['rate_source'])
             if rate_source_type != 'state':
                 # If the rate source type is one of the other states, we don't input it.
-                rate_units = get_rate_units(units, time_units)
                 self._rate_src_idxs[state_name] = om.slicer[...]
                 self.add_input(
                     name=var_names['f_ode'],
                     shape=(num_col_nodes,) + shape,
                     desc=f'Computed derivative of state {state_name} at the collocation nodes',
                     units=rate_units)
+                self._rate_unit_conversion[state_name] = 1.0
             else:
                 # Instead, set the rate source var name to be the name of the state values of the
                 # state serving as the rate source.
                 self._rate_src_idxs[state_name] = om.slicer[col_node_idxs, ...]
-                var_names['f_ode'] = self.var_names[options['rate_source']]['val']
+                rate_src_state = options['rate_source']
+                rate_src_units = state_options[rate_src_state]['units']
+                var_names['f_ode'] = self.var_names[rate_src_state]['val']
+                self._rate_unit_conversion[state_name] = unit_conversion(rate_src_units, rate_units)[0]
 
             self.add_output(
                 name=var_names['initial_defect'],
@@ -194,6 +204,7 @@ class RadauDefectComp(om.ExplicitComponent):
         for state_name, options in state_options.items():
             shape = options['shape']
             size = np.prod(shape)
+            rate_unit_conv = self._rate_unit_conversion[state_name]
 
             r = np.arange(num_col_nodes * size)
 
@@ -206,7 +217,7 @@ class RadauDefectComp(om.ExplicitComponent):
                 c = np.arange(num_nodes * size).reshape((num_nodes, size))[col_node_idxs, ...].ravel()
                 self.declare_partials(of=var_names['rate_defect'],
                                       wrt=var_names['f_ode'],
-                                      rows=r, cols=c, val=-1.0)
+                                      rows=r, cols=c, val=-1.0 * rate_unit_conv)
             else:
                 self.declare_partials(of=var_names['rate_defect'],
                                       wrt=var_names['f_ode'],
@@ -292,8 +303,9 @@ class RadauDefectComp(om.ExplicitComponent):
             size = np.prod(shape)
             var_names = self.var_names[state_name]
             rate_src_idxs = self._rate_src_idxs[state_name]
+            rate_unit_conv = self._rate_unit_conversion[state_name]
 
-            f_ode = inputs[var_names['f_ode']][rate_src_idxs]
+            f_ode = inputs[var_names['f_ode']][rate_src_idxs] * rate_unit_conv
             x = inputs[var_names['val']]
             x_0 = inputs[var_names['initial_val']]
             x_f = inputs[var_names['final_val']]
@@ -329,7 +341,8 @@ class RadauDefectComp(om.ExplicitComponent):
             size = np.prod(options['shape'])
             var_names = self.var_names[state_name]
             rate_src_idxs = self._rate_src_idxs[state_name]
-            f_ode = inputs[var_names['f_ode']][rate_src_idxs]
+            rate_unit_conv = self._rate_unit_conversion[state_name]
+            f_ode = inputs[var_names['f_ode']][rate_src_idxs] * rate_unit_conv
 
-            partials[var_names['rate_defect'], var_names['f_ode']] = -np.repeat(dt_dstau, size)
+            partials[var_names['rate_defect'], var_names['f_ode']] = -np.repeat(dt_dstau, size) * rate_unit_conv
             partials[var_names['rate_defect'], 'dt_dstau'] = -f_ode.ravel()
