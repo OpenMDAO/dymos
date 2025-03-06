@@ -24,7 +24,7 @@ class MyODE(om.ExplicitComponent):
         pass
 
 
-class TestControlGroup(unittest.TestCase):
+class TestControlInterpComp(unittest.TestCase):
 
     def test_poly_con_bug(self):
         prob = om.Problem()

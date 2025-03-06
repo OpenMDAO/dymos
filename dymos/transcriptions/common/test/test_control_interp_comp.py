@@ -8,7 +8,7 @@ from dymos.utils.testing_utils import assert_check_partials
 
 import dymos as dm
 from dymos.transcriptions.common import TimeComp
-from dymos.transcriptions.common.control_group import ControlInterpComp
+from dymos.transcriptions.common import ControlInterpComp
 from dymos.transcriptions.grid_data import GridData
 
 # Modify class so we can run it standalone.
