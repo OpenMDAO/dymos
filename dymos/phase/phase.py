@@ -194,6 +194,8 @@ class Phase(om.Group):
                              desc='Options for each parameter in this phase.')
         self.options.declare('control_options', types=dict, default={},
                              desc='Options for each control in this phase.')
+        self.options.declare('boundary_balance_options', types=dict, default={},
+                             desc='Options specifying boundary conditions to be satisfied with a solver.')
 
     @property
     def time_options(self):
@@ -223,6 +225,10 @@ class Phase(om.Group):
     @property
     def control_options(self):
         return self.options['control_options']
+
+    @property
+    def boundary_balance_options(self):
+        return self.options['boundary_balance_options']
 
     def add_state(self, name, units=_unspecified, shape=_unspecified,
                   rate_source=_unspecified, targets=_unspecified,
@@ -2064,6 +2070,49 @@ class Phase(om.Group):
             units = self.parameter_options[name]['units']
         self.set_val(f'parameters:{name}', val=val, units=units)
 
+    def add_boundary_balance(self, param, name, tgt_val=0.0, loc='final', index=0, **kwargs):
+        """
+        Turn param into an implicit output in the phase when using shooting methods.
+        
+        This capability requires the variable specified by `name` to be dependent upon the given `param` name, and
+        thus won't work with purely implicit transcriptions.
+        The transcription must be one of ExplicitShooting, PicardShooting, Analytic, or Pseudospectral with `solve_segments=True`.
+         
+        Param will be output by a BalanceComp at the end of the phase. with a residual defined by `name - val` at either
+        the initial or final point in the phase (specified by 'loc').
+
+        Param is the name of the implicit variable within the phase. Typically one of 't_initial', 't_duration',
+        'initial_states:{state_name}', 'final_states:{state_name}', or 'parameters:{param_name}'.
+
+        Parameters
+        ----------
+        param : str
+            The dymos phase variable whose value is being set to satisfy the residual.
+        name : str
+            The state or time-dependent phase output that provides the residual value for param.
+        tgt_val : float or array-like, optional.
+            The target value for `name`. Default is 0.0
+        loc : str, optional.
+            Whether the value given by name is being evaluated at the 'initial' or 'final'
+            point in the phase. Default is 'final'.
+        index : int or slice, optional.
+            If the variable given by name is an array at each point in time, C-order index into
+            that variable at the intiial or final time. Default is 0.
+        **kwargs : dict
+            Additional keyword arguments forwarded to the `add_balance` call of an OpenMDAO
+            BalanceComp used to define the residual.
+        """
+        bbos = self.boundary_balance_options
+        if param in bbos:
+            name = bbos[param]['name']
+            tgt_val = bbos[param]['tgt_val']
+            loc = bbos[param]['loc']
+            raise ValueError(f'Phase variable {param} is already an implicit output for a boundary balance\n'
+                             f'R({param}) = {name}[{loc}] - {tgt_val} = 0')
+        
+        bbos[param] = {'param': param, 'name': name, 'tgt_val': tgt_val, 'loc': loc, 'index': index}
+        bbos[param].update(kwargs)
+
     def set_duration_balance(self, name, val=0.0, index=None, units=None, mult_val=None, normalize=False):
         """
         Adds a condition for the duration of the phase. This is satisfied using a nonlinear solver.
@@ -2199,6 +2248,7 @@ class Phase(om.Group):
 
         transcription.setup_timeseries_outputs(self)
 
+        transcription.setup_boundary_balance(self)
         transcription.setup_duration_balance(self)
 
         transcription.setup_defects(self)
@@ -2242,6 +2292,7 @@ class Phase(om.Group):
         configure_timeseries_expr_introspection(self)
 
         transcription.configure_boundary_constraints(self)
+        transcription.configure_boundary_balance(self)
 
         transcription.configure_path_constraints(self)
 

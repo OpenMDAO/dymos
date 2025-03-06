@@ -41,7 +41,8 @@ def classify_var(var, time_options, state_options, parameter_options, control_op
     -------
     str
         The classification of the given variable, which is one of
-        't', 't_phase', 'state', 'input_control', 'indep_control', 'control_rate',
+        't', 't_phase', 'state', 
+        'input_control', 'indep_control', 'control_rate',
         'control_rate2', 'parameter', or 'ode'.
     """
     time_name = time_options['name']
@@ -53,6 +54,10 @@ def classify_var(var, time_options, state_options, parameter_options, control_op
         om.issue_warning('time_phase is deprecated. Please use `t_phase` to obtain the change in the integration '
                          'variable within the current phase.', category=om.OMDeprecationWarning)
         return 't_phase'
+    elif var.startswith('initial_states:'):
+        return 'state'
+    elif var.startswith('final_states:'):
+        return 'state'
     elif var in state_options:
         return 'state'
     elif var in control_options:
@@ -1046,6 +1051,177 @@ def configure_duration_balance_introspection(phase):
     if options['shape'] != (1,) and options['index'] is None:
         raise ValueError(f'Specified variable for the duration balance has shape {options["shape"]} and'
                          f' has no index specified. The balance may only have shape (1,) or a single index')
+
+def _configure_boundary_balance_introspection(phase):
+    """
+    Modify duration balance options in-place using introspection of the phase and its ODE.
+
+    Parameters
+    ----------
+    phase : Phase
+        The phase object whose boundary and path constraints are to be introspected.
+    """
+    time_units = phase.time_options['units']
+
+    for param_name, options in phase.boundary_balance_options.items():
+        resid_name = options['name']
+        resid_units = options.get('eq_units', None)
+        resid_shape = options.get('shape', None)
+
+        # Determine the path to the variable which we will be constraining
+        resid_type = phase.classify_var(resid_name)
+
+        if param_name in ['t_initial', 't_duration']:
+            param_units = time_units
+        elif (pname := param_name.split(':')[-1]) in phase.parameter_options:
+            param_units = phase.parameter_options[pname]['units']
+        elif param_name.startswith('initial_states:') or param_name.startswith('final_states'):
+            state_name = ':'.join(param_name.split(':')[1:])
+            param_units = phase.state_options[state_name]['units']
+        else:
+            raise ValueError(f'{phase.msginfo}: For boundary balance, param must be one of t_initial, t_duration, '
+                             'parameter:{{name}}, initial_states:{{name}}, or final_states:{{name}}')
+
+        if options.get('units', _unspecified) is _unspecified:
+            options['units'] = param_units
+
+        if resid_type in ['t', 't_phase']:
+            options['eq_units'] = time_units
+        elif resid_type == 'state':
+            if resid_name.startswith('initial_states:') or resid_name.startswith('final_states:'):
+                state_name = ':'.join(resid_name.split(':')[1:])
+            else:
+                state_name = resid_name
+            options['eq_units'] = phase.state_options[state_name]['units']
+        elif resid_type == 'parameter':
+            options['eq_units'] = phase.parameter[resid_name]['units']
+        elif resid_type in ['input_control', 'indep_control']:
+            options['eq_units'] = phase.control_options[resid_name]['units']
+        elif resid_type == 'control_rate':
+            control_units = phase.state_options[resid_name]['units']
+            options['eq_units'] = get_rate_units(control_units, time_units, deriv=1)
+        elif resid_type == 'control_rate2':
+            options['eq_units'] = get_rate_units(control_units, time_units, deriv=2)
+        elif resid_type == 'ode':
+            # Failed to find variable, assume it is in the ODE. This requires introspection.
+            ode = phase.options['transcription']._get_ode(phase)
+            meta = get_source_metadata(ode, src=resid_name, user_units=resid_units, user_shape=resid_shape)
+            options['eq_units'] = meta['units']
+        else:
+            raise ValueError(f'{phase.msginfo}: Unable to find boundary balance name {resid_name}')
+
+def _configure_constraint_introspection(phase):
+    """
+    Modify constraint options in-place using introspection of the phase and its ODE.
+
+    Parameters
+    ----------
+    phase : Phase
+        The phase object whose boundary and path constraints are to be introspected.
+    """
+    from ..transcriptions import Birkhoff
+    birkhoff = isinstance(phase.options['transcription'], Birkhoff)
+
+    for constraint_type, constraints in [('initial', phase._initial_boundary_constraints),
+                                         ('final', phase._final_boundary_constraints),
+                                         ('path', phase._path_constraints)]:
+
+        time_units = phase.time_options['units']
+        time_name = phase.time_options['name']
+
+        for con in constraints:
+            # Determine the path to the variable which we will be constraining
+            var = con['constraint_name'] if con['is_expr'] else con['name']
+            var_type = phase.classify_var(var)
+
+            if var != con['constraint_name'] is not None and var_type != 'ode':
+                om.issue_warning(f"Option 'constraint_name' on {constraint_type} constraint {var} is only "
+                                 f"valid for ODE outputs. The option is being ignored.", om.UnusedOptionWarning)
+
+            if var_type == 't':
+                con['shape'] = (1,)
+                con['units'] = time_units if con['units'] is None else con['units']
+                con['constraint_path'] = f'timeseries.{time_name}'
+
+            elif var_type == 't_phase':
+                con['shape'] = (1,)
+                con['units'] = time_units if con['units'] is None else con['units']
+                con['constraint_path'] = f'timeseries.{time_name}_phase'
+
+            elif var_type == 'state':
+                prefix = 'states:' if phase.timeseries_options['use_prefix'] else ''
+                state_shape = phase.state_options[var]['shape']
+                state_units = phase.state_options[var]['units']
+                con['shape'] = state_shape
+                con['units'] = state_units if con['units'] is None else con['units']
+                if birkhoff and constraint_type in ('initial', 'final'):
+                    con['constraint_path'] = f'boundary_vals.{var}'
+                else:
+                    con['constraint_path'] = f'timeseries.{prefix}{var}'
+
+            elif var_type == 'parameter':
+                param_shape = phase.parameter_options[var]['shape']
+                param_units = phase.parameter_options[var]['units']
+                con['shape'] = param_shape
+                con['units'] = param_units if con['units'] is None else con['units']
+                con['constraint_path'] = f'parameter_vals:{var}'
+
+            elif var_type in ['indep_control', 'input_control']:
+                prefix = 'controls:' if phase.timeseries_options['use_prefix'] else ''
+                control_shape = phase.control_options[var]['shape']
+                control_units = phase.control_options[var]['units']
+
+                con['shape'] = control_shape
+                con['units'] = control_units if con['units'] is None else con['units']
+                if birkhoff and constraint_type in ('initial', 'final'):
+                    con['constraint_path'] = f'boundary_vals.{var}'
+                else:
+                    con['constraint_path'] = f'timeseries.{prefix}{var}'
+
+            elif var_type == 'control_rate':
+                prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
+                control_name = var[:-5]
+                control_shape = phase.control_options[control_name]['shape']
+                control_units = phase.control_options[control_name]['units']
+                con['shape'] = control_shape
+                con['units'] = get_rate_units(control_units, time_units, deriv=1) \
+                    if con['units'] is None else con['units']
+                if birkhoff and constraint_type in ('initial', 'final'):
+                    con['constraint_path'] = f'boundary_vals.{var}'
+                else:
+                    con['constraint_path'] = f'timeseries.{prefix}{var}'
+
+            elif var_type == 'control_rate2':
+                prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
+                control_name = var[:-6]
+                control_shape = phase.control_options[control_name]['shape']
+                control_units = phase.control_options[control_name]['units']
+                con['shape'] = control_shape
+                con['units'] = get_rate_units(control_units, time_units, deriv=2) \
+                    if con['units'] is None else con['units']
+                if birkhoff and constraint_type in ('initial', 'final'):
+                    con['constraint_path'] = f'boundary_vals.{var}'
+                else:
+                    con['constraint_path'] = f'timeseries.{prefix}{var}'
+
+            elif var_type == 'timeseries_exec_comp_output':
+                con['shape'] = (1,)
+                con['units'] = None
+                con['constraint_path'] = f'timeseries.timeseries_exec_comp.{var}'
+
+            else:
+                # Failed to find variable, assume it is in the ODE. This requires introspection.
+                ode = phase.options['transcription']._get_ode(phase)
+
+                meta = get_source_metadata(ode, src=var, user_units=con['units'], user_shape=con['shape'])
+
+                con['shape'] = meta['shape']
+                con['units'] = meta['units']
+
+                if birkhoff and constraint_type in ('initial', 'final'):
+                    con['constraint_path'] = f'boundary_vals.{var}'
+                else:
+                    con['constraint_path'] = f'timeseries.{con["constraint_name"]}'
 
 
 def _get_targets_metadata(ode, name, user_targets=_unspecified):
