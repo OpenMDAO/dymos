@@ -257,3 +257,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         assert_near_equal(2114.387, sol_r_f_rto, tolerance=0.01)
         assert_near_equal(2114.387, sim_r_f_climb, tolerance=0.01)
         assert_near_equal(2114.387, sim_r_f_rto, tolerance=0.01)
+
+
+if __name__ == '__main__':
+    unittest.main()

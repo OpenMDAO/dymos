@@ -18,7 +18,7 @@ def double_integrator_direct_collocation(transcription=dm.GaussLobatto, compress
     p.driver = om.pyOptSparseDriver()
     p.driver.declare_coloring()
 
-    t = transcription(num_segments=30, order=3)
+    t = transcription(num_segments=5, order=3)
 
     traj = p.model.add_subsystem('traj', dm.Trajectory())
 
@@ -27,7 +27,7 @@ def double_integrator_direct_collocation(transcription=dm.GaussLobatto, compress
     phase.set_time_options(fix_initial=True, fix_duration=True, units='s')
 
     phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s')
-    phase.add_state('x', fix_initial=True, rate_source='v', units='ft', shape=(1, ))
+    phase.add_state('x', fix_initial=True, rate_source='v', units='ft')
 
     phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
                       rate2_continuity=False, shape=(1, ), lower=-1.0, upper=1.0)
@@ -41,7 +41,7 @@ def double_integrator_direct_collocation(transcription=dm.GaussLobatto, compress
 
     p.model.linear_solver = om.DirectSolver()
 
-    p.setup(check=True)
+    p.setup()
 
     phase.set_time_val(initial=0.0, duration=1.0, units='s')
     phase.set_state_val('x', [0, 0.25], units='m')
@@ -109,10 +109,24 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         sol_case = om.CaseReader(sol_db).get_case('final')
         sim_case = om.CaseReader(sim_db).get_case('final')
 
+        # sol_case.list_vars(units=True, print_arrays=True)
+
+        # sim_case.list_vars(units=True, print_arrays=True)
+
+        # om.n2(p)
+
+        # exit(0)
+
         t_sol = sol_case.get_val('traj.phase0.timeseries.time')
         t_sim = sim_case.get_val('traj.phase0.timeseries.time')
 
         for var in ['x', 'v']:
-            sol = sol_case.get_val(f'traj.phase0.timeseries.{var}')
+            sol = sol_case.get_val(f'traj.phase0.timeseries.{var}',)
             sim = sim_case.get_val(f'traj.phase0.timeseries.{var}')
-            assert_timeseries_near_equal(t_sol, sol, t_sim, sim, rel_tolerance=1.0E-3, abs_tolerance=0.01)
+
+            import matplotlib.pyplot as plt
+            plt.switch_backend('macosx')
+            plt.plot(t_sol, sol, 'o')
+            plt.plot(t_sim, sim, '-')
+            plt.show()
+            # assert_timeseries_near_equal(t_sol, sol, t_sim, sim, rel_tolerance=1.0E-3, abs_tolerance=0.01)

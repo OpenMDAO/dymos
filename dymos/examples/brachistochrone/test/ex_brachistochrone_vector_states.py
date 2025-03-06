@@ -51,7 +51,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     # can't fix final position if you're solving the segments
 
     phase.add_state('pos', fix_initial=True, fix_final=fix_final,
-                    solve_segments=solve_segments, ref=[1, 1])
+                    solve_segments=solve_segments)
     #
     phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=solve_segments)
     #
@@ -67,8 +67,8 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', scaler=10)
 
-    p.model.linear_solver = om.DirectSolver()
-    p.setup(check=True, force_alloc_complex=force_alloc_complex)
+    p.model.linear_solver = om.DirectSolver(assemble_jac=False)
+    p.setup(check=False, force_alloc_complex=force_alloc_complex)
 
     phase.set_time_val(initial=0.0, duration=1.8016)
 

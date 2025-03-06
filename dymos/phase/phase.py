@@ -22,7 +22,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid, BirkhoffGrid
-from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
+from ..transcriptions import ExplicitShooting, GaussLobatto, Radau, RadauDeprecated
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
@@ -58,6 +58,24 @@ class Phase(om.Group):
     sim_prob : Problem or None
         The OpenMDAO problem used for trajectory simulation.
         This is None unless the simulate method has been called.
+    refine_options : GridRefinementOptionsDictionary
+        Options used in grid refinement.
+    simulate_options : SimulateOptionsDictionary
+        Options used in simulation.
+    timeseries_options : PhaseTimeseriesOptionsDictionary
+        Options used for the timeseries variables.
+    sim_prob : Problem or None
+        The OpenMDAO problelm used to execute simulation.
+    ode_nonlinear_solver : om.NonlinearSolver or None
+        A nonlinear solver to be applied to the internal ode_iter_group
+        if solve_segments is used.
+        If None or om.NonlinearRunOnce, the residuals imposed by
+        solve_segments must be converged by an outer solver.
+    ode_linear_solver : om.NonlinearSolver or None
+        A nonlinear solver to be applied to the internal ode_iter_group
+        if solve_segments is used.
+        If None or om.LinearRunOnce, the residuals imposed by
+        solve_segments must be converged by an outer solver.
     """
     def __init__(self, from_phase=None, **kwargs):
         _kwargs = kwargs.copy()
@@ -84,6 +102,14 @@ class Phase(om.Group):
                                            'outputs': {}}}
         self._objectives = {}
         self.sim_prob = None
+
+        # Solvers used when using solve_segments
+        self.ode_nonlinear_solver = om.NewtonSolver(iprint=0,
+                                                    solve_subsystems = True,
+                                                    maxiter=100,
+                                                    stall_limit=3)
+        self.ode_nonlinear_solver.linesearch = None
+        self.ode_linear_solver = om.DirectSolver(iprint=0)
 
         super(Phase, self).__init__(**_kwargs)
 
@@ -254,7 +280,7 @@ class Phase(om.Group):
         targets : str or Sequence of str
             The path to the targets of the state variable in the ODE system.  If given
             this will override the value given by the @declare_state decorator on the ODE.
-            In the future, if left _unspecified (the default), the phase variable will try to connect to an ODE input
+            If left _unspecified (the default), the phase variable will try to connect to an ODE input
             of the same name. Set targets to None to prevent this.
         val :  ndarray
             The default value of the state at the state discretization nodes of the phase.
@@ -353,7 +379,7 @@ class Phase(om.Group):
         targets : str or Sequence of str
             The path to the targets of the state variable in the ODE system.  If given
             this will override the value given by the @declare_state decorator on the ODE.
-            In the future, if left _unspecified (the default), the phase variable will try to connect to an ODE input
+            If left _unspecified (the default), the phase variable will try to connect to an ODE input
             of the same name. Set targets to None to prevent this.
         val :  ndarray
             The default value of the state at the state discretization nodes of the phase.
@@ -556,7 +582,7 @@ class Phase(om.Group):
             This option is invalid if opt=False.
         targets : Sequence of str or None
             Targets in the ODE to which this control is connected.
-            In the future, if left _unspecified (the default), the phase control will try to connect to an ODE input
+            If left _unspecified (the default), the phase control will try to connect to an ODE input
             of the same name. Set targets to None to prevent this.
         rate_targets : Sequence of str or None
             The targets in the ODE to which the control rate is connected.
@@ -677,7 +703,7 @@ class Phase(om.Group):
             This option is invalid if opt=False.
         targets : Sequence of str or None
             Targets in the ODE to which this control is connected.
-            In the future, if left _unspecified (the default), the phase control will try to connect to an ODE input
+            If left _unspecified (the default), the phase control will try to connect to an ODE input
             of the same name. Set targets to None to prevent this.
         rate_targets : Sequence of str or None
             The targets in the ODE to which the control rate is connected.
@@ -1077,7 +1103,7 @@ class Phase(om.Group):
             The unit-reference value of the parameter for the optimizer.
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
-            In the future, if left _unspecified (the default), the phase parameter will try to connect to an ODE input
+            If left _unspecified (the default), the phase parameter will try to connect to an ODE input
             of the same name. Set targets to None to prevent this.
         shape : Sequence of int
             The shape of the parameter.
@@ -1147,7 +1173,7 @@ class Phase(om.Group):
             The unit-reference value of the parameter for the optimizer.
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
-            In the future, if left _unspecified (the default), the phase parameter will try to connect to an ODE input
+            If left _unspecified (the default), the phase parameter will try to connect to an ODE input
             of the same name. Set targets to None to prevent this.
         shape : Sequence of int
             The shape of the parameter.
@@ -2524,7 +2550,7 @@ class Phase(om.Group):
         if isinstance(self_tx, GaussLobatto):
             grid = GaussLobattoGrid(num_segments=num_seg, nodes_per_seg=seg_order, segment_ends=seg_ends,
                                     compressed=compressed)
-        elif isinstance(self_tx, Radau):
+        elif isinstance(self_tx, (Radau, RadauDeprecated)):
             grid = RadauGrid(num_segments=num_seg, nodes_per_seg=seg_order + 1, segment_ends=seg_ends,
                              compressed=compressed)
         elif isinstance(self_tx.grid_data, GaussLobattoGrid) or \

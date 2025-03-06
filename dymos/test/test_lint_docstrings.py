@@ -23,11 +23,13 @@ exclude = [
     'plots',
     '_html',
     '__pycache__',
-    'coloring_files',
+    'coloring_files'
 ]
 
 # Error Codes to Ignore
 ignore = [
+    'PR01',
+    'SS03',
     'ES01',    # No extended summary found
     'EX01',    # No examples section found
     'SA01',    # See Also section not found

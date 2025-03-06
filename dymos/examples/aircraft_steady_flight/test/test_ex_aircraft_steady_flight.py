@@ -110,13 +110,12 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
     p['assumptions.S'] = 427.8
     p['assumptions.mass_empty'] = 0.15E6
     p['assumptions.mass_payload'] = 84.02869 * 400
-
-    dm.run_problem(p, simulate=False, make_plots=True)
+    dm.run_problem(p, run_driver=True, simulate=False, make_plots=True)
 
     return p
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestExSteadyAircraftFlight(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')
@@ -139,14 +138,14 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase0.timeseries.range', units='NM')[-1],
                           726.85, tolerance=2.0E-2)
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_ex_aircraft_steady_flight_solve_radau(self):
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)
 
         tx = dm.Radau(num_segments=num_seg, segment_ends=seg_ends, order=3, compressed=False,
                       solve_segments='forward')
-        p = ex_aircraft_steady_flight(transcription=tx, optimizer='SLSQP',
+        p = ex_aircraft_steady_flight(transcription=tx, optimizer='IPOPT',
                                       use_boundary_constraints=True)
         assert_near_equal(p.get_val('traj.phase0.timeseries.range', units='NM')[-1],
                           726.85, tolerance=1.0E-2)

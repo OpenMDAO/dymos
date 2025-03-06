@@ -287,9 +287,6 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
             burn2.set_control_val('u1', [0, 0])
 
     p.final_setup()
-    if burn2 in p.model.traj.phases._subsystems_myproc:
-        print(burn2.get_val('t_initial'))
-        print(burn2.get_val('t_duration'))
 
     if run_driver or simulate:
         dm.run_problem(p, run_driver=run_driver, simulate=simulate, restart=restart, make_plots=True,

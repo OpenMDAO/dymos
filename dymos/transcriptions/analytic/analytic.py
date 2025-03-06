@@ -85,7 +85,8 @@ class Analytic(TranscriptionBase):
                               flat_src_indices=True if dynamic else None)
 
         for name, targets in [('t_initial', options['t_initial_targets']),
-                              ('t_duration', options['t_duration_targets'])]:
+                              ('t_duration', options['t_duration_targets']),
+                              ('t_final', options['t_final_targets'])]:
             for t in targets:
                 shape = ode_inputs[t]['shape']
 

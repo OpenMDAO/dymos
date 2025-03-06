@@ -77,10 +77,12 @@ class TestSimulateShapedParams(unittest.TestCase):
 
         p.setup(mode='auto', check=['unconnected_inputs'], force_alloc_complex=True)
 
-        p.set_val('hop0.main_phase.t_initial', 0.0)
-        p.set_val('hop0.main_phase.t_duration', 10)
+        main_phase.set_time_val(initial=0.0, duration=10.0)
+        # TODO: set_control_val doesn't support indices yet.
+        # main_phase.set_control_val('Thrust', -3400, indices=om.slicer[:, 0])
+        main_phase.set_state_val('impulse', [0, 0])
+
         p.set_val('hop0.main_phase.controls:Thrust', val=-3400, indices=om.slicer[:, 0])
-        p.set_val('hop0.main_phase.states:impulse',  main_phase.interp('impulse', [0, 0]))
 
         p.run_driver()
 
@@ -121,10 +123,12 @@ class TestSimulateShapedParams(unittest.TestCase):
 
         p.setup(mode='auto', check=['unconnected_inputs'], force_alloc_complex=True)
 
-        p.set_val('hop0.main_phase.t_initial', 0.0)
-        p.set_val('hop0.main_phase.t_duration', 10)
+        main_phase.set_time_val(initial=0.0, duration=10.0)
+        # TODO: set_control_val doesn't support indices yet.
+        # main_phase.set_control_val('Thrust', -3400, indices=om.slicer[:, 0])
+        main_phase.set_state_val('impulse', [0, 0])
+
         p.set_val('hop0.main_phase.controls:Thrust', val=-3400, indices=om.slicer[:, 0])
-        p.set_val('hop0.main_phase.states:impulse',  main_phase.interp('impulse', [0, 0]))
 
         p.run_driver()
 
