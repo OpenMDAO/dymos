@@ -70,7 +70,7 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_parameter('g', units='m/s**2')
-        phase.add_parameter('theta_rate', units='rad/s')
+        phase.add_parameter('theta_rate', units='deg/s')
 
         phase.add_timeseries_output('theta', units='deg')
 
@@ -82,17 +82,6 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         phase.nonlinear_solver.debug_print = True
         phase.linear_solver = om.DirectSolver()
 
-        bal = om.BalanceComp()
-        bal = p.model.add_subsystem('theta_rate_balance', bal)
-        bal.add_balance('parameters:theta_rate', lhs_name='y_final', rhs_val=5.0, lower=0.1, upper=10, units='rad/s', eq_units='m')
-        p.model.connect('theta_rate_balance.parameters:theta_rate', 'traj0.phase0.parameters:theta_rate')
-        p.model.connect('traj0.phase0.final_states:y', 'theta_rate_balance.y_final')
-
-        p.model.nonlinear_solver = om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=0, atol=1.0E-3, rtol=1.0E-3)
-        p.model.nonlinear_solver.linesearch = om.ArmijoGoldsteinLS()
-        p.model.nonlinear_solver.debug_print = True
-        p.model.linear_solver = om.DirectSolver()
-
         p.set_solver_print(0)
 
         p.setup()
@@ -101,13 +90,13 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
 
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
-        phase.set_state_val('v', [1.0E-6, 9.9])
+        phase.set_state_val('v', [1.0E-2, 9.9])
 
         phase.set_parameter_val('theta_rate',  100/1.8016)
         phase.set_parameter_val('g', 9.80665)
 
         p.final_setup()
-        om.n2(p)
+        # om.n2(p)
 
         return p
 
@@ -147,7 +136,7 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         self.assertNotIn('traj0.phase0.timeseries.theta_rate', outputs)
 
     def test_picard_cgl(self):
-        tx = dm.PicardShooting(num_segments=1, nodes_per_seg=11, grid_type='cgl')
+        tx = dm.PicardShooting(num_segments=1, nodes_per_seg=21, grid_type='cgl')
         p = self.make_problem(tx=tx)
 
         # p.final_setup()
@@ -171,12 +160,10 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         v = p.get_val('traj0.phase0.timeseries.v')
         theta = p.get_val('traj0.phase0.timeseries.theta')
 
-        print(y[-1, ...])
+        axes[0].plot(x, y, 'o')
+        axes[1].plot(t, theta, 'o')
 
-        # axes[0].plot(x, y)
-        # axes[1].plot(t, theta)
-
-        # plt.show()
+        plt.show()
 
 
         # plt.switch_backend('macosx')
