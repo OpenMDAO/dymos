@@ -211,23 +211,20 @@ class Birkhoff(TranscriptionBase):
         grid_data = self.grid_data
 
         ode_init_kwargs = phase.options['ode_init_kwargs']
-        ibcs = phase._initial_boundary_constraints
-        fbcs = phase._final_boundary_constraints
 
         phase.add_subsystem('ode_iter_group',
                             subsys=BirkhoffIterGroup(grid_data=grid_data, state_options=phase.state_options,
                                                      time_options=phase.time_options,
                                                      ode_class=ODEClass,
-                                                     ode_init_kwargs=ode_init_kwargs),
+                                                     ode_init_kwargs=ode_init_kwargs,
+                                                     ode_exprs=phase._ode_exprs),
                             promotes=['*'])
 
         phase.add_subsystem('boundary_vals',
                             subsys=BirkhoffBoundaryGroup(grid_data=grid_data,
                                                          ode_class=ODEClass,
                                                          ode_init_kwargs=ode_init_kwargs,
-                                                         initial_boundary_constraints=ibcs,
-                                                         final_boundary_constraints=fbcs,
-                                                         objectives=phase._objectives),
+                                                         ode_exprs=phase._ode_exprs),
                             promotes_inputs=['initial_states:*', 'final_states:*'])
 
     def configure_ode(self, phase):

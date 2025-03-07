@@ -618,6 +618,23 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         assert_near_equal(z_computed, z_ts, tolerance=1e-12)
         assert_near_equal(f_computed, f_ts, tolerance=1e-12)
 
+    def test_timeseries_expr_birkhoff(self):
+        tx = dm.Birkhoff(num_nodes=21)
+        p = self.make_problem_brachistochrone(transcription=tx)
+        p.run_driver()
+        x = p.get_val('phase0.timeseries.x')
+        y = p.get_val('phase0.timeseries.y')
+        theta = p.get_val('phase0.timeseries.theta')
+        g = p.get_val('phase0.timeseries.g')
+
+        z_computed = x * y + x**2
+        f_computed = 3 * g * np.cos(theta) ** 2
+
+        z_ts = p.get_val('phase0.timeseries.z')
+        f_ts = p.get_val('phase0.timeseries.f')
+        assert_near_equal(z_computed, z_ts, tolerance=1e-12)
+        assert_near_equal(f_computed, f_ts, tolerance=1e-12)
+
     def test_timeseries_expr_gl_polynomial_control(self):
         tx = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
         p = self.make_problem_brachistochrone(transcription=tx, polynomial_control=True)

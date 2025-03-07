@@ -5,6 +5,7 @@ from .birkhoff_defect_comp import BirkhoffDefectComp
 
 from ...grid_data import GridData
 from ....phase.options import TimeOptionsDictionary
+from ....utils.ode_utils import make_ode
 
 
 class BirkhoffIterGroup(om.Group):
@@ -37,6 +38,8 @@ class BirkhoffIterGroup(om.Group):
                              recordable=False)
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
+        self.options.declare('ode_exprs', types=dict, default={},
+                             desc='ODE Expresions from the Phase')
 
     def setup(self):
         """
@@ -49,7 +52,12 @@ class BirkhoffIterGroup(om.Group):
         ode_class = self.options['ode_class']
         ode_init_kwargs = self.options['ode_init_kwargs']
 
-        self.add_subsystem('ode_all', subsys=ode_class(num_nodes=nn, **ode_init_kwargs))
+        ode = make_ode(ode_class=ode_class,
+                       num_nodes=nn,
+                       ode_init_kwargs=ode_init_kwargs,
+                       ode_exprs=self.options['ode_exprs'])
+
+        self.add_subsystem('ode_all', subsys=ode)
 
         self.add_subsystem('collocation_comp',
                            subsys=BirkhoffDefectComp(grid_data=gd,
