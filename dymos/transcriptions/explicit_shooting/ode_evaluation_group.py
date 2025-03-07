@@ -14,6 +14,7 @@ from ...utils.introspection import configure_controls_introspection, \
     configure_states_discovery, configure_states_introspection, _get_targets_metadata, \
     _get_common_metadata, get_promoted_vars
 from ...utils.misc import get_rate_units, _unspecified, _none_or_unspecified
+from ...utils.ode_utils import make_ode
 
 
 class ODEEvaluationGroup(om.Group):
@@ -44,12 +45,14 @@ class ODEEvaluationGroup(om.Group):
         The number of points at which the ODE is simultaneously evaluated.
     control_interp : str
         The control interpolation technique to be used. Must be either 'vandermonde' or 'barycentric'.
+    ode_exprs : dict
+        A dictionary of ODE expressions.
     **kwargs : dict
         Additional keyword arguments passed to Group.
     """
 
     def __init__(self, ode_class, input_grid_data, time_options, state_options, parameter_options, control_options,
-                 ode_init_kwargs=None, compute_derivs=True, vec_size=1,
+                 ode_init_kwargs=None, compute_derivs=True, vec_size=1, ode_exprs=None,
                  control_interp='vandermonde', **kwargs):
         super().__init__(**kwargs)
 
@@ -68,6 +71,7 @@ class ODEEvaluationGroup(om.Group):
         self._compute_derivs = compute_derivs
         self._vec_size = vec_size
         self._ode_init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
+        self._ode_exprs = {} if ode_exprs is None else ode_exprs
         self._control_interp = control_interp
 
     def set_segment_index(self, seg_idx):
@@ -130,7 +134,13 @@ class ODEEvaluationGroup(om.Group):
                                                                                      compute_derivs=self._compute_derivs),
                                                         promotes_inputs=['ptau', 'stau', 'dstau_dt', 't_duration'])
 
-        self.add_subsystem('ode', self._ode_class(num_nodes=self._vec_size, **self._ode_init_kwargs))
+
+        ode = make_ode(ode_class=self._ode_class,
+                       num_nodes=self._vec_size,
+                       ode_init_kwargs=self._ode_init_kwargs,
+                       ode_exprs=self._ode_exprs)
+
+        self.add_subsystem('ode', ode)
 
         self.add_subsystem('state_rate_collector',
                            StateRateCollectorComp(state_options=self._state_options,

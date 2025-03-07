@@ -14,6 +14,7 @@ from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.indexing import get_src_indices_by_row
 from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets, _get_targets_metadata
 from ...utils.constants import INF_BOUND
+from ...utils.ode_utils import make_ode
 from ..common import TimeComp, TimeseriesOutputGroup, ControlGroup, ParameterComp
 
 
@@ -308,10 +309,16 @@ class ExplicitShooting(TranscriptionBase):
                                    ode_init_kwargs=phase.options['ode_init_kwargs'],
                                    standalone_mode=False,
                                    reports=self.options['subprob_reports'],
-                                   control_interp=self.options['control_interp'])
+                                   control_interp=self.options['control_interp'],
+                                   ode_exprs=phase._ode_exprs)
         phase.add_subsystem('integrator', integ)
-        phase.add_subsystem('ode', phase.options['ode_class'](num_nodes=self._output_grid_data.num_nodes,
-                                                              **phase.options['ode_init_kwargs']))
+
+        ode = make_ode(ode_class=phase.options['ode_class'],
+                       num_nodes=self._output_grid_data.num_nodes,
+                       ode_exprs=phase._ode_exprs,
+                       ode_init_kwargs=phase.options['ode_init_kwargs'])
+
+        phase.add_subsystem('ode', ode)
 
     def configure_ode(self, phase):
         """

@@ -85,6 +85,9 @@ class Phase(om.Group):
         self._objectives = {}
         self.sim_prob = None
 
+        # Expressions to be computed along with the ODE.
+        self._ode_exprs = {}
+
         super(Phase, self).__init__(**_kwargs)
 
     def duplicate(self, transcription=None, boundary_constraints=False, path_constraints=False, objectives=False,
@@ -1517,13 +1520,24 @@ class Phase(om.Group):
 
         else:
             expr = True if '=' in name else False
-            self._add_timeseries_output(name, output_name=output_name,
-                                        units=units,
-                                        shape=shape,
-                                        timeseries=timeseries,
-                                        rate=False,
-                                        expr=expr,
-                                        expr_kwargs=kwargs)
+            if '=' in name:
+                output = name.split('=')[0]
+                _kwargs = {k: v for k, v in kwargs.items()}
+                if units is not _unspecified:
+                    if output not in _kwargs:
+                        _kwargs[output] = {'units': units}
+                self.add_ode_expr(name, add_timeseries=False, **_kwargs)
+                self._add_timeseries_output(output, output_name=output_name,
+                                            units=units,
+                                            shape=shape,
+                                            timeseries=timeseries,
+                                            rate=False)
+            else:
+                self._add_timeseries_output(name, output_name=output_name,
+                                            units=units,
+                                            shape=shape,
+                                            timeseries=timeseries,
+                                            rate=False)
 
     def add_timeseries_rate_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                                    timeseries='timeseries'):
@@ -1735,6 +1749,46 @@ class Phase(om.Group):
         self._objectives[obj_name] = obj_dict
         if is_expr and obj_name not in self._timeseries['timeseries']['outputs']:
             self.add_timeseries_output(name, output_name=obj_name, units=units, shape=shape)
+
+    def add_ode_expr(self, expr, add_timeseries=True, **kwargs):
+        """
+        Adds an expression to be computed immediately after the user-given ODE.
+
+        Internally, dymos will wrap the user-given ODE in a group along with
+        an ExecComp that evalutes the expressions given.
+
+        Unlike standard OpenMDAO ExecComp expressions, those specified here
+        may use the ODE-relative path of variables (if they are not promoted
+        to the top of the ODE).
+
+        This function may be called more than one time with the same expression. In that case, any
+        new info from kwargs will be updated.
+
+        Parameters
+        ----------
+        expr : str
+            The expression to be computed.
+        add_timeseries : bool
+            If True, add the output of the expression to the timeseries.
+        kwargs : dict
+            Any arguments to be forwarded to the ExecComp when the expression in added.
+        """
+        if expr in self._ode_exprs:
+            self._ode_exprs[expr].update(kwargs)
+        else:
+            self._ode_exprs[expr] = kwargs
+        
+        output_name = expr.split('=')[0]
+        if add_timeseries and output_name not in self._timeseries['timeseries']['outputs']:
+            output = expr.split('=')[0]
+            if 'units' in kwargs:
+                units = kwargs['units']
+            elif output in kwargs:
+                units = kwargs[output]['units']
+            else:
+                units = None
+            self.add_timeseries_output(output_name, units=units)
+
 
     def set_time_options(self, units=_unspecified, fix_initial=_unspecified,
                          fix_duration=_unspecified, input_initial=_unspecified,
@@ -2580,6 +2634,8 @@ class Phase(om.Group):
         sim_phase.refine_options = deepcopy(self.refine_options)
         sim_phase.simulate_options = deepcopy(self.simulate_options)
         sim_phase.timeseries_options = deepcopy(self.timeseries_options)
+
+        sim_phase._ode_exprs = deepcopy(self._ode_exprs)
 
         return sim_phase
 
