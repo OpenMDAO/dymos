@@ -92,8 +92,8 @@ class TestControlRateComp(unittest.TestCase):
 
                 p = om.Problem(model=om.Group())
 
-                controls = {'a': {'units': 'm', 'shape': (1,), 'dynamic': True},
-                            'b': {'units': 'm', 'shape': (1,), 'dynamic': True}}
+                controls = {'a': {'units': 'm', 'shape': (1,), 'dynamic': True, 'opt': False},
+                            'b': {'units': 'm', 'shape': (1,), 'dynamic': True, 'opt': False}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
@@ -183,7 +183,7 @@ class TestControlRateComp(unittest.TestCase):
 
                 p = om.Problem(model=om.Group())
 
-                controls = {'a': {'units': 'm', 'shape': (3,), 'dynamic': True}}
+                controls = {'a': {'units': 'm', 'shape': (3,), 'dynamic': True, 'opt': False}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
@@ -283,7 +283,7 @@ class TestControlRateComp(unittest.TestCase):
 
                 p = om.Problem(model=om.Group())
 
-                controls = {'a': {'units': 'm', 'shape': (3, 1), 'dynamic': True}}
+                controls = {'a': {'units': 'm', 'shape': (3, 1), 'dynamic': True, 'opt': False}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
@@ -382,7 +382,7 @@ class TestControlRateComp(unittest.TestCase):
 
                 p = om.Problem(model=om.Group())
 
-                controls = {'a': {'units': 'm', 'shape': (2, 2), 'dynamic': True}}
+                controls = {'a': {'units': 'm', 'shape': (2, 2), 'dynamic': True, 'opt': False}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])

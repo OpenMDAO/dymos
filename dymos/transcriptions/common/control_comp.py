@@ -235,7 +235,7 @@ class ControlInterpComp(om.ExplicitComponent):
                 self.declare_partials(of=self._output_rate2_names[name],
                                       wrt=self._input_names[name],
                                       rows=rs, cols=cs)
-    
+
     def _configure_desvars(self):
         control_options = self.options['control_options']
         gd = self.options['grid_data']
