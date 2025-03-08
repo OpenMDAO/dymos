@@ -972,7 +972,7 @@ NL: Newton Converged
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/bb1223d80ba7e6b80ea7d954d84dbac5ab07544e30a4617891ec8f8b72ebfc1a.png" src="../../_images/bb1223d80ba7e6b80ea7d954d84dbac5ab07544e30a4617891ec8f8b72ebfc1a.png" />
+<img alt="../../_images/0de5bda3ca4856c8e3ea572ff48c879779b47b154c07713e03752e080a1c2407.png" src="../../_images/0de5bda3ca4856c8e3ea572ff48c879779b47b154c07713e03752e080a1c2407.png" />
 </div>
 </div>
 </section>
@@ -981,8 +981,8 @@ NL: Newton Converged
 <p>We can utilize the <code class="docutils literal notranslate"><span class="pre">set_implicit_duration</span></code> method on <code class="docutils literal notranslate"><span class="pre">Phase</span></code> to turn <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> into an implicit output and provide it with a residual.</p>
 <p>In our case, we set <code class="docutils literal notranslate"><span class="pre">phase.set_duration_balance('x',</span> <span class="pre">10.0)</span></code></p>
 <p>This specifies that we want <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> to be associated with the following residual:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-6a4e396e-5a87-4b92-87c5-827cd7caae10">
-<span class="eqno">(96)<a class="headerlink" href="#equation-6a4e396e-5a87-4b92-87c5-827cd7caae10" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-a474717b-b8b5-4d18-b275-ffe2d202e86b">
+<span class="eqno">(96)<a class="headerlink" href="#equation-a474717b-b8b5-4d18-b275-ffe2d202e86b" title="Permalink to this equation">#</a></span>\[\begin{align}
   \mathcal{R}(t_d) = x - 10 = 0
 \end{align}\]</div>
 <p>Note that we limit the angle <span class="math notranslate nohighlight">\(\theta\)</span> to be between 0 and 180, the bead must move to the right and we can just terminate the propagation when x=10.</p>
@@ -1049,9 +1049,9 @@ NL: Newton Converged
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>--- Constraint Report [traj] ---
     --- phase0 ---
         None
-
-
-==================
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>==================
 traj.phases.phase0
 ==================
 </pre></div>
@@ -1083,10 +1083,12 @@ traj.phases.phase0
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/49a5d1bd7d6c67ebb19a5946e71c02e8a74d95ec61f162cd923c02c48b9ce0cf.png" src="../../_images/49a5d1bd7d6c67ebb19a5946e71c02e8a74d95ec61f162cd923c02c48b9ce0cf.png" />
+<img alt="../../_images/e7a0119c610e444e417b7560a4a4ead610aa003ef46368472c71fad5e5962704.png" src="../../_images/e7a0119c610e444e417b7560a4a4ead610aa003ef46368472c71fad5e5962704.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>final time [1.77967375]
 final y [3.59263414]
-final theta [90.]
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>final theta [90.]
 </pre></div>
 </div>
 </div>
@@ -1100,8 +1102,8 @@ We can use this information to pose the brachistochrone as a boundary value prob
 That means that <code class="docutils literal notranslate"><span class="pre">theta_rate</span></code> is a parameter as far as dymos is concerned.
 We then make <code class="docutils literal notranslate"><span class="pre">theta</span></code> a state variable whose rate is provided by the <code class="docutils literal notranslate"><span class="pre">theta_rate</span></code> parameter.
 We’ll set the initial value of <code class="docutils literal notranslate"><span class="pre">theta</span></code> to zero degrees, since we know that is approximately correct for this problem.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-fb788e65-5c8b-4b70-b1d2-f15bfe3cb7bc">
-<span class="eqno">(97)<a class="headerlink" href="#equation-fb788e65-5c8b-4b70-b1d2-f15bfe3cb7bc" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-e94b8263-1cfa-4ff8-9bcb-4143fae10608">
+<span class="eqno">(97)<a class="headerlink" href="#equation-e94b8263-1cfa-4ff8-9bcb-4143fae10608" title="Permalink to this equation">#</a></span>\[\begin{align}
   \mathcal{R}(\dot{\theta}) &amp;= y_f - 5
 \end{align}\]</div>
 <p>Dymos currently doesn’t support making parameters implicit outputs, so we’re going to do this the manual OpenMDAO way.</p>
@@ -1211,7 +1213,7 @@ We’ll set the initial value of <code class="docutils literal notranslate"><spa
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/3c3e4c4e73ca3456d33ffb87de590808cd6fc796506253cb9b8d0260a48e83ab.png" src="../../_images/3c3e4c4e73ca3456d33ffb87de590808cd6fc796506253cb9b8d0260a48e83ab.png" />
+<img alt="../../_images/25258f7876f2bf6150897539c75fc3a3090043a16cc99b25e7088a3275995af0.png" src="../../_images/25258f7876f2bf6150897539c75fc3a3090043a16cc99b25e7088a3275995af0.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>final time [1.80160313]
 final y [5.]
 final theta [100.50736083]

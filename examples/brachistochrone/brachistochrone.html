@@ -852,7 +852,7 @@ A to B in the shortest possible time.</em></p>
 without friction along the wire moves from point A to point B in minimum time.</p>
 <div class="cell tag_remove-input docutils container">
 <div class="cell_output docutils container">
-<img alt="../../_images/71d078f97cbc4ecb63a62f703ef44be0301447756f35f234ee7449ab84c450b1.png" src="../../_images/71d078f97cbc4ecb63a62f703ef44be0301447756f35f234ee7449ab84c450b1.png" />
+<img alt="../../_images/012fb0869ed7a9036cb0fb55108f35212d108d22776c549cf3ba1b95b1b19870.png" src="../../_images/012fb0869ed7a9036cb0fb55108f35212d108d22776c549cf3ba1b95b1b19870.png" />
 </div>
 </div>
 <section id="state-variables">
@@ -867,8 +867,8 @@ without friction along the wire moves from point A to point B in minimum time.</
 <section id="system-dynamics">
 <h2>System dynamics<a class="headerlink" href="#system-dynamics" title="Permalink to this heading">#</a></h2>
 <p>From the free-body diagram above, the evolution of the state variables is given by the following ordinary differential equations (ODE).</p>
-<div class="amsmath math notranslate nohighlight" id="equation-9c4f09ce-c149-4580-b07c-ca8207781073">
-<span class="eqno">(13)<a class="headerlink" href="#equation-9c4f09ce-c149-4580-b07c-ca8207781073" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-bb25206b-aff8-447c-8997-85760aaf4ee0">
+<span class="eqno">(13)<a class="headerlink" href="#equation-bb25206b-aff8-447c-8997-85760aaf4ee0" title="Permalink to this equation">#</a></span>\[\begin{align}
     \frac{d x}{d t} &amp;= v \sin(\theta) \\
     \frac{d y}{d t} &amp;= -v \cos(\theta) \\
     \frac{d v}{d t} &amp;= g \cos(\theta)
@@ -886,8 +886,8 @@ without friction along the wire moves from point A to point B in minimum time.</
 <p>In this case, starting point <strong>A</strong> is given as <em>(0, 10)</em>.
 The point moving along the curve will begin there with zero initial velocity.</p>
 <p>The initial conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-8c73c818-dd9e-48de-994f-a0fe68c4cece">
-<span class="eqno">(14)<a class="headerlink" href="#equation-8c73c818-dd9e-48de-994f-a0fe68c4cece" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-857edbba-69f0-463a-9901-7dedad8f785f">
+<span class="eqno">(14)<a class="headerlink" href="#equation-857edbba-69f0-463a-9901-7dedad8f785f" title="Permalink to this equation">#</a></span>\[\begin{align}
     x_0 &amp;= 0 \\
     y_0 &amp;= 10 \\
     v_0 &amp;= 0
@@ -895,8 +895,8 @@ The point moving along the curve will begin there with zero initial velocity.</p
 <p>The end point <strong>B</strong> is given as <em>(10, 5)</em>.
 The point will end there, but the velocity at that point is not constrained.</p>
 <p>The final conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-2f5c1ee0-4d01-4504-97b4-1b20248155cd">
-<span class="eqno">(15)<a class="headerlink" href="#equation-2f5c1ee0-4d01-4504-97b4-1b20248155cd" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-84ad33bd-26b9-455f-a33a-2aad5096c1b5">
+<span class="eqno">(15)<a class="headerlink" href="#equation-84ad33bd-26b9-455f-a33a-2aad5096c1b5" title="Permalink to this equation">#</a></span>\[\begin{align}
     x_f &amp;= 10 \\
     y_f &amp;= 5 \\
     v_f &amp;= \mathrm{free}
@@ -1062,27 +1062,27 @@ Component: BrachistochroneODE &#39;ode&#39;
 +===============+================+=============+=============+=============+=============+=============+=============+============+
 | check         | g              |  0.0000e+00 | -0.0000e+00 |  0.0000e+00 |  0.0000e+00 |  0.0000e+00 |         nan |            |
 +---------------+----------------+-------------+-------------+-------------+-------------+-------------+-------------+------------+
-| check         | theta          |  1.1734e+02 |  1.1734e+02 |  1.4211e-14 |  1.0067e+01 |  1.0067e+01 |  1.7645e-16 |            |
+| check         | theta          | -1.1246e+01 | -1.1246e+01 |  1.7764e-15 |  2.0415e+00 |  2.0415e+00 |  2.1753e-16 |            |
 +---------------+----------------+-------------+-------------+-------------+-------------+-------------+-------------+------------+
-| check         | v              | -1.0034e+00 | -1.0034e+00 |  2.2204e-16 | -1.0034e+00 | -1.0034e+00 |  2.2130e-16 |            |
+| check         | v              | -1.0578e+00 | -1.0578e+00 |  2.2204e-16 | -1.0578e+00 | -1.0578e+00 |  2.0992e-16 |            |
 +---------------+----------------+-------------+-------------+-------------+-------------+-------------+-------------+------------+
-| vdot          | g              | -8.2506e-01 | -8.2506e-01 |  1.1102e-16 | -8.2506e-01 | -8.2506e-01 |  1.3456e-16 |            |
+| vdot          | g              |  3.2596e-01 |  3.2596e-01 |  0.0000e+00 |  3.2596e-01 |  3.2596e-01 |  0.0000e+00 |            |
 +---------------+----------------+-------------+-------------+-------------+-------------+-------------+-------------+------------+
-| vdot          | theta          |  9.7738e+00 |  9.7738e+00 |  1.7764e-15 | -2.4318e+00 | -2.4318e+00 |  1.8262e-16 |            |
+| vdot          | theta          |  9.2711e+00 |  9.2711e+00 |  1.7764e-15 | -1.1298e+00 | -1.1298e+00 |  1.9654e-16 |            |
 +---------------+----------------+-------------+-------------+-------------+-------------+-------------+-------------+------------+
 | vdot          | v              |  0.0000e+00 |  0.0000e+00 |  0.0000e+00 |  0.0000e+00 |  0.0000e+00 |         nan |            |
 +---------------+----------------+-------------+-------------+-------------+-------------+-------------+-------------+------------+
-| xdot          | g              |  0.0000e+00 | -0.0000e+00 |  0.0000e+00 |  0.0000e+00 |  0.0000e+00 |         nan |            |
+| xdot          | g              |  0.0000e+00 |  0.0000e+00 |  0.0000e+00 |  0.0000e+00 |  0.0000e+00 |         nan |            |
 +---------------+----------------+-------------+-------------+-------------+-------------+-------------+-------------+------------+
-| xdot          | theta          | -7.8066e+00 | -7.8066e+00 |  8.8818e-16 | -2.9464e-01 | -2.9464e-01 |  1.8840e-16 |            |
+| xdot          | theta          |  2.3087e-01 |  2.3087e-01 |  2.7756e-17 |  2.3087e-01 |  2.3087e-01 |  1.2022e-16 |            |
 +---------------+----------------+-------------+-------------+-------------+-------------+-------------+-------------+------------+
-| xdot          | v              | -5.6505e-01 | -5.6505e-01 |  0.0000e+00 | -5.6505e-01 | -5.6505e-01 |  0.0000e+00 |            |
+| xdot          | v              |  1.1520e-01 |  1.1520e-01 |  1.3878e-17 |  1.1520e-01 |  1.1520e-01 |  1.2046e-16 |            |
 +---------------+----------------+-------------+-------------+-------------+-------------+-------------+-------------+------------+
-| ydot          | g              |  0.0000e+00 |  0.0000e+00 |  0.0000e+00 |  0.0000e+00 |  0.0000e+00 |         nan |            |
+| ydot          | g              |  0.0000e+00 | -0.0000e+00 |  0.0000e+00 |  0.0000e+00 |  0.0000e+00 |         nan |            |
 +---------------+----------------+-------------+-------------+-------------+-------------+-------------+-------------+------------+
-| ydot          | theta          | -5.4586e+00 | -5.4586e+00 |  8.8818e-16 | -5.4586e+00 | -5.4586e+00 |  1.6271e-16 |            |
+| ydot          | theta          | -6.6907e+00 | -6.6907e+00 |  8.8818e-16 |  1.9492e-01 |  1.9492e-01 |  1.4240e-16 |            |
 +---------------+----------------+-------------+-------------+-------------+-------------+-------------+-------------+------------+
-| ydot          | v              |  8.2506e-01 |  8.2506e-01 |  1.1102e-16 |  8.2506e-01 |  8.2506e-01 |  1.3456e-16 |            |
+| ydot          | v              | -3.2596e-01 | -3.2596e-01 |  0.0000e+00 | -3.2596e-01 | -3.2596e-01 |  0.0000e+00 |            |
 +---------------+----------------+-------------+-------------+-------------+-------------+-------------+-------------+------------+
 
 
@@ -1092,7 +1092,7 @@ Sub Jacobian with Largest Relative Error: BrachistochroneODE &#39;ode&#39;
 +---------------+----------------+-------------+-------------+-------------+-------------+-------------+------------+
 | &#39;of&#39; variable | &#39;wrt&#39; variable | a(calc val) |   a(fd val) |  a(calc-fd) | r(calc val) |   r(fd val) | r(calc-fd) |
 +===============+================+=============+=============+=============+=============+=============+============+
-| check         | v              | -1.0034e+00 | -1.0034e+00 |  2.2204e-16 | -1.0034e+00 | -1.0034e+00 |  2.213e-16 |
+| check         | theta          | -1.1246e+01 | -1.1246e+01 |  1.7764e-15 |  2.0415e+00 |  2.0415e+00 |  2.175e-16 |
 +---------------+----------------+-------------+-------------+-------------+-------------+-------------+------------+
 </pre></div>
 </div>
@@ -1185,10 +1185,10 @@ Total colors vs. total size: 8 vs 50  (84.00% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem2&#39; was computed 3 times.
-Time to compute sparsity:   0.0212 sec
-Time to compute coloring:   0.0432 sec
+Time to compute sparsity:   0.0216 sec
+Time to compute coloring:   0.0438 sec
 Memory to compute coloring:   0.1250 MB
-Coloring created on: 2025-02-24 19:46:40
+Coloring created on: 2025-03-08 18:22:21
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -1229,7 +1229,7 @@ Done simulating trajectory traj
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1166: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:theta_rate, ode_eval.control_interp.control_rates:theta_rate2, ode_eval.control_interp.control_values:theta] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
-<img alt="../../_images/b444e5c2cb26b1df83bb6ea5306e9902bfedea215701759baa5801f83b9a5fa5.png" src="../../_images/b444e5c2cb26b1df83bb6ea5306e9902bfedea215701759baa5801f83b9a5fa5.png" />
+<img alt="../../_images/1a36ac0b3cff9716a55dfd1108aacd5032c76d528c9fc828c6f462257e1b8752.png" src="../../_images/1a36ac0b3cff9716a55dfd1108aacd5032c76d528c9fc828c6f462257e1b8752.png" />
 </div>
 </div>
 </section>
@@ -1370,7 +1370,7 @@ Optimization Complete
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/6a58314cf1a5e2856c3c4ae93385b943e735890be48e5da75577a1d217434ff6.png" src="../../_images/6a58314cf1a5e2856c3c4ae93385b943e735890be48e5da75577a1d217434ff6.png" />
+<img alt="../../_images/f242bed920991bc5b0eb35967730512a001781d05a47483599423406193316cb.png" src="../../_images/f242bed920991bc5b0eb35967730512a001781d05a47483599423406193316cb.png" />
 </div>
 </div>
 </section>

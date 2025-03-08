@@ -3333,7 +3333,7 @@ title="Open an issue"
 
         <span class="c1"># Assign control values</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">options</span> <span class="ow">in</span> <span class="n">phs</span><span class="o">.</span><span class="n">control_options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">ip</span> <span class="o">=</span> <span class="n">ip_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;control_group.control_interp_comp.controls:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
+            <span class="n">ip</span> <span class="o">=</span> <span class="n">ip_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;control_comp.controls:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
             <span class="n">prob</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">self_path</span><span class="si">}</span><span class="s1">controls:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">][</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">ip</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">]</span>
 
         <span class="c1"># Assign parameter values</span>
