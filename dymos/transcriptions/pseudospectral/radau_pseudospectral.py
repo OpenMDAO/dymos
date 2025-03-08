@@ -125,7 +125,7 @@ class Radau(PseudospectralBase):
         ode_sys = make_ode(ode_class=phase.options['ode_class'],
                            num_nodes=grid_data.subset_num_nodes['all'],
                            ode_init_kwargs=phase.options['ode_init_kwargs'],
-                           ode_exprs = phase._ode_exprs)
+                           calc_exprs = phase._calc_exprs)
 
         phase.add_subsystem('rhs_all',
                             subsys=ode_sys)

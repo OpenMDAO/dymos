@@ -38,7 +38,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
         If True, assume this component is being run as its own system. As part of the Dymos
         ShootingPhase, this system needs to be setup during the Phase configure process and setting this
         to False will enable that behavior.
-    ode_exprs : dict
+    calc_exprs : dict
         ODE Expressions provided by the controlling phase.
     **kwargs : dict
         Additional keyword arguments passed to Group.
@@ -49,7 +49,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
     theta:  U+03B8
     """
     def __init__(self, input_grid_data, time_options, state_options, parameter_options=None, control_options=None,
-                 output_grid_data=None, reports=False, standalone_mode=True, ode_exprs=None, **kwargs):
+                 output_grid_data=None, reports=False, standalone_mode=True, calc_exprs=None, **kwargs):
         super().__init__(**kwargs)
         self.time_options = time_options
         self.state_options = state_options
@@ -77,7 +77,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
         self._no_check_partials = not dymos_options['include_check_partials']
         self._num_control_input_nodes = input_grid_data.subset_num_nodes['control_input']
 
-        self._ode_exprs = {} if ode_exprs is None else ode_exprs
+        self._calc_exprs = {} if calc_exprs is None else calc_exprs
 
     def initialize(self):
         """
@@ -113,7 +113,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
                                                  input_grid_data=self._input_grid_data,
                                                  compute_derivs=self.options['propagate_derivs'],
                                                  control_interp=self.options['control_interp'],
-                                                 ode_exprs=self._ode_exprs),
+                                                 calc_exprs=self._calc_exprs),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 

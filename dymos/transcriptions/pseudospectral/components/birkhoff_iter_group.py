@@ -38,7 +38,7 @@ class BirkhoffIterGroup(om.Group):
                              recordable=False)
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
-        self.options.declare('ode_exprs', types=dict, default={},
+        self.options.declare('calc_exprs', types=dict, default={},
                              desc='ODE Expresions from the Phase')
 
     def setup(self):
@@ -55,7 +55,7 @@ class BirkhoffIterGroup(om.Group):
         ode = make_ode(ode_class=ode_class,
                        num_nodes=nn,
                        ode_init_kwargs=ode_init_kwargs,
-                       ode_exprs=self.options['ode_exprs'])
+                       calc_exprs=self.options['calc_exprs'])
 
         self.add_subsystem('ode_all', subsys=ode)
 

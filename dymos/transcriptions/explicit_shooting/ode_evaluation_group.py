@@ -45,14 +45,14 @@ class ODEEvaluationGroup(om.Group):
         The number of points at which the ODE is simultaneously evaluated.
     control_interp : str
         The control interpolation technique to be used. Must be either 'vandermonde' or 'barycentric'.
-    ode_exprs : dict
+    calc_exprs : dict
         A dictionary of ODE expressions.
     **kwargs : dict
         Additional keyword arguments passed to Group.
     """
 
     def __init__(self, ode_class, input_grid_data, time_options, state_options, parameter_options, control_options,
-                 ode_init_kwargs=None, compute_derivs=True, vec_size=1, ode_exprs=None,
+                 ode_init_kwargs=None, compute_derivs=True, vec_size=1, calc_exprs=None,
                  control_interp='vandermonde', **kwargs):
         super().__init__(**kwargs)
 
@@ -71,7 +71,7 @@ class ODEEvaluationGroup(om.Group):
         self._compute_derivs = compute_derivs
         self._vec_size = vec_size
         self._ode_init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
-        self._ode_exprs = {} if ode_exprs is None else ode_exprs
+        self._calc_exprs = {} if calc_exprs is None else calc_exprs
         self._control_interp = control_interp
 
     def set_segment_index(self, seg_idx):
@@ -138,7 +138,7 @@ class ODEEvaluationGroup(om.Group):
         ode = make_ode(ode_class=self._ode_class,
                        num_nodes=self._vec_size,
                        ode_init_kwargs=self._ode_init_kwargs,
-                       ode_exprs=self._ode_exprs)
+                       calc_exprs=self._calc_exprs)
 
         self.add_subsystem('ode', ode)
 

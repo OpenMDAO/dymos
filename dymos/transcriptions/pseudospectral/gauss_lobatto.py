@@ -190,11 +190,11 @@ class GaussLobatto(PseudospectralBase):
         rhs_disc = make_ode(ode_class=ode_class,
                             num_nodes=grid_data.subset_num_nodes['state_disc'],
                             ode_init_kwargs=phase.options['ode_init_kwargs'],
-                            ode_exprs=phase._ode_exprs)
+                            calc_exprs=phase._calc_exprs)
         rhs_col = make_ode(ode_class=ode_class,
                             num_nodes=grid_data.subset_num_nodes['col'],
                             ode_init_kwargs=phase.options['ode_init_kwargs'],
-                            ode_exprs=phase._ode_exprs)
+                            calc_exprs=phase._calc_exprs)
 
         phase.add_subsystem('rhs_disc', rhs_disc)
 

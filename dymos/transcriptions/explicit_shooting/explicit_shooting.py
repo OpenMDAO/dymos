@@ -310,12 +310,12 @@ class ExplicitShooting(TranscriptionBase):
                                    standalone_mode=False,
                                    reports=self.options['subprob_reports'],
                                    control_interp=self.options['control_interp'],
-                                   ode_exprs=phase._ode_exprs)
+                                   calc_exprs=phase._calc_exprs)
         phase.add_subsystem('integrator', integ)
 
         ode = make_ode(ode_class=phase.options['ode_class'],
                        num_nodes=self._output_grid_data.num_nodes,
-                       ode_exprs=phase._ode_exprs,
+                       calc_exprs=phase._calc_exprs,
                        ode_init_kwargs=phase.options['ode_init_kwargs'])
 
         phase.add_subsystem('ode', ode)

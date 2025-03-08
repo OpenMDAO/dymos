@@ -86,7 +86,7 @@ class Phase(om.Group):
         self.sim_prob = None
 
         # Expressions to be computed along with the ODE.
-        self._ode_exprs = {}
+        self._calc_exprs = {}
 
         super(Phase, self).__init__(**_kwargs)
 
@@ -1526,7 +1526,7 @@ class Phase(om.Group):
                 if units is not _unspecified:
                     if output not in _kwargs:
                         _kwargs[output] = {'units': units}
-                self.add_ode_expr(name, add_timeseries=False, **_kwargs)
+                self.add_calc_expr(name, add_timeseries=False, **_kwargs)
                 self._add_timeseries_output(output, output_name=output_name,
                                             units=units,
                                             shape=shape,
@@ -1750,7 +1750,7 @@ class Phase(om.Group):
         if is_expr and obj_name not in self._timeseries['timeseries']['outputs']:
             self.add_timeseries_output(name, output_name=obj_name, units=units, shape=shape)
 
-    def add_ode_expr(self, expr, add_timeseries=True, **kwargs):
+    def add_calc_expr(self, expr, add_timeseries=True, **kwargs):
         """
         Adds an expression to be computed immediately after the user-given ODE.
 
@@ -1773,10 +1773,10 @@ class Phase(om.Group):
         kwargs : dict
             Any arguments to be forwarded to the ExecComp when the expression in added.
         """
-        if expr in self._ode_exprs:
-            self._ode_exprs[expr].update(kwargs)
+        if expr in self._calc_exprs:
+            self._calc_exprs[expr].update(kwargs)
         else:
-            self._ode_exprs[expr] = kwargs
+            self._calc_exprs[expr] = kwargs
         
         output_name = expr.split('=')[0]
         if add_timeseries and output_name not in self._timeseries['timeseries']['outputs']:
@@ -2635,7 +2635,7 @@ class Phase(om.Group):
         sim_phase.simulate_options = deepcopy(self.simulate_options)
         sim_phase.timeseries_options = deepcopy(self.timeseries_options)
 
-        sim_phase._ode_exprs = deepcopy(self._ode_exprs)
+        sim_phase._calc_exprs = deepcopy(self._calc_exprs)
 
         return sim_phase
 
