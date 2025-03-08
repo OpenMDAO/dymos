@@ -91,7 +91,7 @@ class ExprParser():
     def __init__(self):
         self._unique_int = 0
     
-    def parse(self, full_path):
+    def parse(self, full_path, idx_str):
         """
         Extract the legal name and any indexer given by the full path representation.
 
@@ -107,25 +107,19 @@ class ExprParser():
             The string containing the OpenMDAO-legal name for the variable
             in the ExecComp expression, as well as any indices specified.
         """
-        idx_str = None
         is_ode_rel = False
-        if '[' in full_path:
-            path_no_idxs, idx_str = full_path.split('[')
-            idx_str = '[' + idx_str
-        else:
-            path_no_idxs = full_path
-        if '.' in path_no_idxs:
+        if '.' in full_path:
             # the path is ODE relative
-            last_path = path_no_idxs.split('.')[-1]
+            last_path = full_path.split('.')[-1]
             is_ode_rel = True
         else:
             # its a top-level variable or phase variable
-            last_path = path_no_idxs
+            last_path = full_path
         legal_name = last_path.split(':')[-1]
         if is_ode_rel:
             legal_name += str(self._unique_int)
             self._unique_int += 1
-        return legal_name, path_no_idxs, _parse_index_string(idx_str)
+        return legal_name, _parse_index_string(idx_str)
 
 
 def _extract_vars(equation):
@@ -223,6 +217,14 @@ def make_ode(ode_class, num_nodes, ode_init_kwargs=None, ode_exprs=None):
 
         seen_kwargs = set()
 
+        # This regex finds variables and any indices that follow them.
+        # 1 - leading underscore or letter (one)
+        # 2 - alphanumeric, underscore, period, or colon (zero or more)
+        # 3 - end of word is not followed by opening parentheses
+        # 4 - optional index specification in brackets
+        var_rgx = re.compile(r'([_a-zA-Z][\w.:]*\b(?!\()(\[[\d:.,-]+\])*)')
+        #                       11111111122222223333333344444444444444444
+
         for expr, expr_kwargs in ode_exprs.items():
             common_units = _UNDEFINED
             common_shape = _UNDEFINED
@@ -249,15 +251,15 @@ def make_ode(ode_class, num_nodes, ode_init_kwargs=None, ode_exprs=None):
                 if not is_undefined(common_units):
                     _expr_kwargs[output_var]['units'] = common_units
 
-            for input_var in _extract_vars(rhs):
-                exec_var_name, rel_path, src_idxs = parser.parse(input_var)
-                expr = expr.replace(input_var, exec_var_name)
+            for rel_path, idx_str in re.findall(var_rgx, rhs):
+                exec_var_name, src_idxs = parser.parse(rel_path, idx_str)
+                expr = expr.replace(rel_path, exec_var_name)
                 if '.' in rel_path:
                     ode_group.connect(rel_path, exec_var_name, src_indices=src_idxs)
                 
                 # Only provide kwargs for things that we havent already done so.
                 if exec_var_name not in seen_kwargs:
-                    _expr_kwargs[exec_var_name] = expr_kwargs.get(input_var, {})
+                    _expr_kwargs[exec_var_name] = expr_kwargs.get(rel_path, {})
                     if 'shape' not in _expr_kwargs[exec_var_name]:
                         if not is_undefined(common_shape):
                             _expr_kwargs[exec_var_name]['shape'] = (num_nodes,) + common_shape

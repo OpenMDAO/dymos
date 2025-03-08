@@ -442,9 +442,6 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         phase.add_timeseries_output('z=x*y + x**2', units='m**2')
         phase.add_timeseries_output('f=3*g*cos(theta)**2', units='deg**2')
 
-        phase.add_ode_expr('z2=x*y + x**2', units='m**2')
-        phase.add_ode_expr('f2=3*g*cos(theta)**2', units='deg**2')
-
         p.model.options['assembled_jac_type'] = 'csc'
         p.model.linear_solver = om.DirectSolver()
         p.setup()
@@ -728,7 +725,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         assert_near_equal(f_ts[-1], f_sim[-1], tolerance=1e-3)
 
 
-class TestTimeseriesMinTimeClimb(unittest.TestCase):
+class TestTimeseriesExprMinTimeClimb(unittest.TestCase):
 
     def test_timeseries_expr_radau(self):
         p = min_time_climb(transcription_class=dm.Radau, num_seg=12, transcription_order=3, timeseries_expr=True)
