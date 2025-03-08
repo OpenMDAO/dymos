@@ -96,7 +96,27 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
 
         assert_near_equal(y, expected_y)
 
-        p.check_partials(compact_print=True, method='cs')
+        p.check_partials(compact_print=True, method='cs', out_stream=None)
+
+    def test_simple_ivp_system(self):
+
+        p = om.Problem()
+        p.model.add_subsystem('simple_ivp_solution', SimpleIVPSolution(num_nodes=100), promotes=['*'])
+        p.setup(force_alloc_complex=True)
+
+        p.set_val('t', np.linspace(0, 2, 100))
+        p.set_val('y0', 0.5)
+
+        p.run_model()
+
+        t = p.get_val('t')
+        y = p.get_val('y')
+
+        expected_y = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
+
+        assert_near_equal(y, expected_y)
+
+        p.check_partials(compact_print=True, method='cs', out_stream=None)
 
     def test_simple_ivp(self):
 
@@ -125,6 +145,38 @@ class TestAnalyticPhaseSimpleResults(unittest.TestCase):
         expected = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
 
         assert_near_equal(y, expected)
+
+    def test_simple_ivp_calc_expr(self):
+
+        p = om.Problem()
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+
+        phase = dm.AnalyticPhase(ode_class=SimpleIVPSolution, num_nodes=10)
+
+        phase.add_calc_expr('y2 = y**2')
+
+        traj.add_phase('phase', phase)
+
+        phase.set_time_options(units='s', targets=['t'], fix_initial=True, fix_duration=True)
+        phase.add_state('y')
+        phase.add_parameter('y0', opt=False)
+
+        p.setup()
+
+        p.set_val('traj.phase.t_initial', 0.0, units='s')
+        p.set_val('traj.phase.t_duration', 2.0, units='s')
+        p.set_val('traj.phase.parameters:y0', 0.5, units='unitless')
+
+        p.run_model()
+
+        t = p.get_val('traj.phase.timeseries.time', units='s')
+        y = p.get_val('traj.phase.timeseries.y', units='unitless')
+        y2 = p.get_val('traj.phase.timeseries.y2')
+
+        expected = t ** 2 + 2 * t + 1 - 0.5 * np.exp(t)
+
+        assert_near_equal(y, expected)
+        assert_near_equal(y2, y*y)
 
     def test_simple_bvp(self):
 

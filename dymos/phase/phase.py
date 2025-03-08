@@ -1778,8 +1778,9 @@ class Phase(om.Group):
         else:
             self._calc_exprs[expr] = kwargs
         
-        output_name = expr.split('=')[0]
+        output_name = expr.split('=')[0].strip()
         if add_timeseries and output_name not in self._timeseries['timeseries']['outputs']:
+            print('adding to timeseries', output_name)
             output = expr.split('=')[0]
             if 'units' in kwargs:
                 units = kwargs['units']

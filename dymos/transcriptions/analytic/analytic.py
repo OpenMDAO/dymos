@@ -5,6 +5,7 @@ from ..transcription_base import TranscriptionBase
 from ...utils.introspection import configure_analytic_states_introspection, get_promoted_vars, \
     get_source_metadata, configure_analytic_states_discovery
 from ...utils.indexing import get_src_indices_by_row
+from ...utils.ode_utils import make_ode
 from ..grid_data import GridData
 from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
 
@@ -206,13 +207,14 @@ class Analytic(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        ODEClass = phase.options['ode_class']
         grid_data = self.grid_data
 
-        kwargs = phase.options['ode_init_kwargs']
-        phase.add_subsystem('rhs',
-                            subsys=ODEClass(num_nodes=grid_data.subset_num_nodes['all'],
-                                            **kwargs))
+        rhs = make_ode(ode_class=phase.options['ode_class'],
+                       num_nodes=grid_data.subset_num_nodes['all'],
+                       ode_init_kwargs=phase.options['ode_init_kwargs'],
+                       calc_exprs=phase._calc_exprs)
+
+        phase.add_subsystem('rhs', rhs)
 
     def configure_ode(self, phase):
         """
