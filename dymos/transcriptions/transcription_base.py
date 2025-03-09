@@ -4,7 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 
-from .common import ControlGroup, ParameterComp
+from .common import ControlInterpComp, ParameterComp
 from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_states_introspection, get_promoted_vars, \
@@ -141,14 +141,14 @@ class TranscriptionBase(object):
         phase._check_control_options()
 
         if phase.control_options:
-            control_group = ControlGroup(control_options=phase.control_options,
-                                         time_units=phase.time_options['units'],
-                                         grid_data=self.grid_data)
+            control_comp = ControlInterpComp(control_options=phase.control_options,
+                                             time_units=phase.time_options['units'],
+                                             grid_data=self.grid_data)
 
-            phase.add_subsystem('control_group',
-                                subsys=control_group)
+            phase.add_subsystem('control_comp',
+                                subsys=control_comp)
 
-            phase.connect('t_duration_val', 'control_group.t_duration')
+            phase.connect('t_duration_val', 'control_comp.t_duration')
 
     def configure_controls(self, phase):
         """

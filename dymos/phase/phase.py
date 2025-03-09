@@ -2643,7 +2643,7 @@ class Phase(om.Group):
 
         # Assign control values
         for name, options in phs.control_options.items():
-            ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
+            ip = ip_dict[f'control_comp.controls:{name}']
             prob[f'{self_path}controls:{name}'][...] = ip['val']
 
         # Assign parameter values
