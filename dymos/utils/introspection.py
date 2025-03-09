@@ -67,12 +67,6 @@ def classify_var(var, time_options, state_options, parameter_options, control_op
     elif var.endswith('_rate2'):
         if var[:-6] in control_options:
             return 'control_rate2'
-    elif timeseries_options is not None:
-        for timeseries in timeseries_options:
-            if var in timeseries_options[timeseries]['outputs']:
-                if timeseries_options[timeseries]['outputs'][var]['is_expr']:
-                    return 'timeseries_exec_comp_output'
-
     return 'ode'
 
 
@@ -170,7 +164,7 @@ def _configure_constraint_introspection(phase):
 
         for con in constraints:
             # Determine the path to the variable which we will be constraining
-            var = con['constraint_name'] if con['is_expr'] else con['name']
+            var = con['name']
             var_type = phase.classify_var(var)
 
             if var != con['constraint_name'] is not None and var_type != 'ode':

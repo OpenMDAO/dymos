@@ -399,7 +399,7 @@ class Birkhoff(TranscriptionBase):
         con_name = constraint_kwargs.pop('constraint_name')
 
         # Determine the path to the variable which we will be constraining
-        var = con_name if options['is_expr'] else options['name']
+        var = options['name']
         var_type = phase.classify_var(var)
 
         # These are the flat indices at a single point in time used
@@ -446,7 +446,6 @@ class Birkhoff(TranscriptionBase):
         con_path = constraint_kwargs.pop('constraint_path')
         constraint_kwargs.pop('shape')
         constraint_kwargs['flat_indices'] = True
-        constraint_kwargs.pop('is_expr')
 
         return con_path, constraint_kwargs
 

@@ -1479,7 +1479,6 @@ class Phase(om.Group):
         """
         if type(name) is list:
             for i, name_i in enumerate(name):
-                is_expr = True if '=' in name_i else False
                 if type(units) is dict:  # accept dict for units when using array of name
                     unit = units.get(name_i, None)
                 elif type(units) is list:  # allow matching list for units
@@ -1487,37 +1486,40 @@ class Phase(om.Group):
                 else:
                     unit = units
 
-                oname = self._add_timeseries_output(name_i, output_name=output_name,
-                                                    units=unit,
-                                                    shape=shape,
-                                                    timeseries=timeseries,
-                                                    rate=False,
-                                                    expr=is_expr)
+                if '=' in name_i:
+                    output_i = name.split('=')[0].strip()
+                    self.add_calc_expr(name, add_timeseries=True, units=unit, shape=shape, **kwargs)
+                    oname = self._add_timeseries_output(output_i,
+                                                        units=unit,
+                                                        shape=shape,
+                                                        timeseries=timeseries,
+                                                        rate=False)
+                else:
+                    oname = self._add_timeseries_output(name_i, output_name=output_name,
+                                                        units=unit,
+                                                        shape=shape,
+                                                        timeseries=timeseries,
+                                                        rate=False)
 
                 # Handle specific units for wildcard names.
                 if oname is not None and '*' in name_i:
                     self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
 
         else:
-            is_expr = True if '=' in name else False
-            if is_expr:
+            if '=' in name: 
                 output = name.split('=')[0].strip()
                 _kwargs = {k: v for k, v in kwargs.items()}
                 if units is not _unspecified:
                     if output not in _kwargs:
                         _kwargs[output] = {'units': units}
                 self.add_calc_expr(name, add_timeseries=False, **_kwargs)
-                self._add_timeseries_output(output, output_name=output_name,
-                                            units=units,
-                                            shape=shape,
-                                            timeseries=timeseries,
-                                            rate=False)
             else:
-                self._add_timeseries_output(name, output_name=output_name,
-                                            units=units,
-                                            shape=shape,
-                                            timeseries=timeseries,
-                                            rate=False)
+                output = name
+            self._add_timeseries_output(output, output_name=output_name,
+                                        units=units,
+                                        shape=shape,
+                                        timeseries=timeseries,
+                                        rate=False)
 
     def add_timeseries_rate_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                                    timeseries='timeseries'):
@@ -2119,19 +2121,12 @@ class Phase(om.Group):
                    'mult_val': mult_val,
                    'normalize': normalize}
 
-        expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
         if '=' in name:
-            is_expr = True
-        elif '=' not in name and any(opr in name for opr in expr_operators):
-            raise ValueError(f'The expression provided `{name}` has invalid format. '
-                             'Expression may be a single variable or an equation '
-                             'of the form `constraint_name = func(vars)`')
+            balance_name = name.split('=')[0].strip()
+            self.add_calc_expr(name)
         else:
-            is_expr = False
+            balance_name = name
 
-        balance_name = name.split('=')[0].strip() if is_expr else name
-
-        options['is_expr'] = is_expr
         options['balance_name'] = balance_name
 
         self.time_options['t_duration_balance_options'] = options
