@@ -385,6 +385,7 @@ def min_time_climb(num_seg=3, transcription_class=dm.Radau, transcription_order=
     return p
 
 
+@use_tempdirs
 class TestDuplicateTimeseriesGlobName(unittest.TestCase):
 
     def test_duplicate_timeseries_glob_name_radau(self):
@@ -406,6 +407,7 @@ class TestDuplicateTimeseriesGlobName(unittest.TestCase):
         self.assertEqual(str(e.exception), msg)
 
 
+@use_tempdirs
 class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
     @staticmethod
@@ -725,6 +727,7 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         assert_near_equal(f_ts[-1], f_sim[-1], tolerance=1e-3)
 
 
+@use_tempdirs
 class TestTimeseriesExprMinTimeClimb(unittest.TestCase):
 
     def test_timeseries_expr_radau(self):

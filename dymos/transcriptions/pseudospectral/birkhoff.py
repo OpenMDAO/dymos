@@ -3,7 +3,7 @@ import numpy as np
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
-from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
+from ..common import TimeComp, TimeseriesOutputComp
 from .components import BirkhoffIterGroup, BirkhoffBoundaryGroup
 
 from ..grid_data import BirkhoffGrid
@@ -334,7 +334,7 @@ class Birkhoff(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         for timeseries_name, timeseries_options in phase._timeseries.items():
-            timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
+            timeseries_comp = phase._get_subsystem(timeseries_name)
             ts_inputs_to_promote = []
             for input_name, src, src_idxs in timeseries_comp._configure_io(timeseries_options):
                 # If the src was added, promote it if it was a state,
@@ -360,12 +360,6 @@ class Birkhoff(TranscriptionBase):
         gd = self.grid_data
 
         for name, options in phase._timeseries.items():
-            has_expr = False
-            for _, output_options in options['outputs'].items():
-                if output_options['is_expr']:
-                    has_expr = True
-                    break
-
             if options['transcription'] is None:
                 ogd = None
             else:
@@ -375,8 +369,7 @@ class Birkhoff(TranscriptionBase):
                                                    output_grid_data=ogd,
                                                    output_subset=options['subset'],
                                                    time_units=phase.time_options['units'])
-            timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
-            phase.add_subsystem(name, subsys=timeseries_group)
+            phase.add_subsystem(name, subsys=timeseries_comp)
 
             phase.connect('dt_dstau', f'{name}.dt_dstau', flat_src_indices=True)
 

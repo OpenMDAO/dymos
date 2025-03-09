@@ -411,7 +411,7 @@ class TranscriptionBase(object):
             The phase object to which this transcription instance applies.
         """
         for timeseries_name, timeseries_options in phase._timeseries.items():
-            timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
+            timeseries_comp = phase._get_subsystem(timeseries_name)
 
             for input_name, src, src_idxs in timeseries_comp._configure_io(timeseries_options):
                 phase.connect(src_name=src,

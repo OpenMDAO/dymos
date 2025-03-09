@@ -26,7 +26,7 @@ from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
-    configure_timeseries_output_introspection, classify_var, configure_timeseries_expr_introspection
+    configure_timeseries_output_introspection, classify_var
 from ..utils.misc import _unspecified, create_subprob, om_version
 from ..utils.lgl import lgl
 
@@ -1499,7 +1499,7 @@ class Phase(om.Group):
         """
         if type(name) is list:
             for i, name_i in enumerate(name):
-                expr = True if '=' in name_i else False
+                is_expr = True if '=' in name_i else False
                 if type(units) is dict:  # accept dict for units when using array of name
                     unit = units.get(name_i, None)
                 elif type(units) is list:  # allow matching list for units
@@ -1512,16 +1512,16 @@ class Phase(om.Group):
                                                     shape=shape,
                                                     timeseries=timeseries,
                                                     rate=False,
-                                                    expr=expr)
+                                                    expr=is_expr)
 
                 # Handle specific units for wildcard names.
                 if oname is not None and '*' in name_i:
                     self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
 
         else:
-            expr = True if '=' in name else False
-            if '=' in name:
-                output = name.split('=')[0]
+            is_expr = True if '=' in name else False
+            if is_expr:
+                output = name.split('=')[0].strip()
                 _kwargs = {k: v for k, v in kwargs.items()}
                 if units is not _unspecified:
                     if output not in _kwargs:
@@ -1595,7 +1595,7 @@ class Phase(om.Group):
                                         rate=True)
 
     def _add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
-                               timeseries='timeseries', rate=False, expr=False, expr_kwargs=None):
+                               timeseries='timeseries', rate=False):
         r"""
         Add a single variable or rate to the timeseries outputs of the phase.
 
@@ -1625,11 +1625,6 @@ class Phase(om.Group):
         rate : bool
             If True, add the rate of change of the named variable to the timeseries outputs of the
             phase.  The rate variable will be named f'{name}_rate'.  Defaults to False.
-        expr : bool
-            True if the given name is an expression for an ExecComp.
-        expr_kwargs : dict
-            Keyword arguments for the expression.
-
 
         Returns
         -------
@@ -1640,9 +1635,7 @@ class Phase(om.Group):
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
         if output_name is None:
-            if expr:
-                output_name = name.split('=')[0].strip()
-            elif '*' in name:
+            if '*' in name:
                 output_name = name
             elif output_name is None:
                 output_name = name.rpartition('.')[-1]
@@ -1658,8 +1651,6 @@ class Phase(om.Group):
             ts_output['units'] = units
             ts_output['shape'] = shape
             ts_output['is_rate'] = rate
-            ts_output['is_expr'] = expr
-            ts_output['expr_kwargs'] = expr_kwargs
 
             self._timeseries[timeseries]['outputs'][output_name] = ts_output
 
@@ -2293,8 +2284,6 @@ class Phase(om.Group):
         transcription.configure_defects(self)
 
         _configure_constraint_introspection(self)
-
-        configure_timeseries_expr_introspection(self)
 
         transcription.configure_boundary_constraints(self)
 

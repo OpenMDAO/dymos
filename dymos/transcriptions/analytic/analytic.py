@@ -7,7 +7,7 @@ from ...utils.introspection import configure_analytic_states_introspection, get_
 from ...utils.indexing import get_src_indices_by_row
 from ...utils.ode_utils import make_ode
 from ..grid_data import GridData
-from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
+from ..common import TimeComp, TimeseriesOutputComp
 
 
 class Analytic(TranscriptionBase):
@@ -294,11 +294,6 @@ class Analytic(TranscriptionBase):
         gd = self.grid_data
 
         for name, options in phase._timeseries.items():
-            has_expr = False
-            for _, output_options in options['outputs'].items():
-                if output_options['is_expr']:
-                    has_expr = True
-                    break
             if options['transcription'] is None:
                 ogd = None
             else:
@@ -309,8 +304,7 @@ class Analytic(TranscriptionBase):
                                                    output_subset=options['subset'],
                                                    time_units=phase.time_options['units'])
 
-            timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
-            phase.add_subsystem(name, subsys=timeseries_group)
+            phase.add_subsystem(name, subsys=timeseries_comp)
 
             phase.connect('dt_dstau', f'{name}.dt_dstau', flat_src_indices=True)
 
