@@ -1294,18 +1294,9 @@ class Phase(om.Group):
             raise ValueError(f'Invalid boundary constraint location "{loc}". Must be '
                              '"initial" or "final".')
 
-        expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
         if '=' in name:
-            is_expr = True
-        elif '=' not in name and any(opr in name for opr in expr_operators):
-            raise ValueError(f'The expression provided `{name}` has invalid format. '
-                             'Expression may be a single variable or an equation '
-                             'of the form `constraint_name = func(vars)`')
-        else:
-            is_expr = False
-
-        if is_expr:
             constraint_name = name.split('=')[0].strip()
+            self.add_calc_expr(name)
         elif constraint_name is None:
             constraint_name = name.rpartition('.')[-1]
 
@@ -1342,7 +1333,6 @@ class Phase(om.Group):
         bc['linear'] = linear
         bc['units'] = units
         bc['flat_indices'] = flat_indices
-        bc['is_expr'] = is_expr
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
@@ -1407,18 +1397,9 @@ class Phase(om.Group):
             If True, treat indices as flattened C-ordered indices of elements to constrain at each given point in time.
             Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.
         """
-        expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
         if '=' in name:
-            is_expr = True
-        elif '=' not in name and any(opr in name for opr in expr_operators):
-            raise ValueError(f'The expression provided `{name}` has invalid format. '
-                             'Expression may be a single variable or an equation '
-                             'of the form `constraint_name = func(vars)`')
-        else:
-            is_expr = False
-
-        if is_expr:
             constraint_name = name.split('=')[0].strip()
+            self.add_calc_expr(name)
         elif constraint_name is None:
             constraint_name = name.rpartition('.')[-1]
 
@@ -1454,7 +1435,6 @@ class Phase(om.Group):
         pc['linear'] = linear
         pc['units'] = units
         pc['flat_indices'] = flat_indices
-        pc['is_expr'] = is_expr
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
@@ -1714,17 +1694,11 @@ class Phase(om.Group):
             If specified, this design var will be grouped for parallel derivative
             calculations with other variables sharing the same parallel_deriv_color.
         """
-        expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
         if '=' in name:
-            is_expr = True
-        elif '=' not in name and any(opr in name for opr in expr_operators):
-            raise ValueError(f'The expression provided `{name}` has invalid format. '
-                             'Expression may be a single variable or an equation '
-                             'of the form `constraint_name = func(vars)`')
+            obj_name = name.split('=')[0].strip()
+            self.add_calc_expr(name)
         else:
-            is_expr = False
-
-        obj_name = name.split('=')[0].strip() if is_expr else name
+            obj_name = name
 
         obj_dict = {'name': name,
                     'loc': loc,
@@ -1735,11 +1709,8 @@ class Phase(om.Group):
                     'ref0': ref0,
                     'adder': adder,
                     'scaler': scaler,
-                    'parallel_deriv_color': parallel_deriv_color,
-                    'is_expr': is_expr}
+                    'parallel_deriv_color': parallel_deriv_color}
         self._objectives[obj_name] = obj_dict
-        if is_expr and obj_name not in self._timeseries['timeseries']['outputs']:
-            self.add_timeseries_output(name, output_name=obj_name, units=units, shape=shape)
 
     def add_calc_expr(self, expr, add_timeseries=True, **kwargs):
         """
@@ -1771,8 +1742,7 @@ class Phase(om.Group):
         
         output_name = expr.split('=')[0].strip()
         if add_timeseries and output_name not in self._timeseries['timeseries']['outputs']:
-            print('adding to timeseries', output_name)
-            output = expr.split('=')[0]
+            output = expr.split('=')[0].strip()
             if 'units' in kwargs:
                 units = kwargs['units']
             elif output in kwargs:
