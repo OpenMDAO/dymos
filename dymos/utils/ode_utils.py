@@ -126,41 +126,33 @@ class ExprParser():
         return legal_name, _parse_index_string(idx_str)
 
 
-def make_ode(ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None):
-    """
-    Instantiate the ODE system, optionally including an ExecComp.
+class ODEGroup(om.Group):
 
-    Parameters
-    ----------
-    ode_class : System class
-        The ODE class provided to the dymos phase.
-    num_nodes : int
-        The number of nodes at which the ODE is instantiated.
-    ode_init_kwargs : dict or None
-        Additional arguments we need to instantiate the ODE.
-    calc_exprs : dict
-        A dictionary keyed by exec comp expresions whose associated values
-        are the metadata associated with the expression.
+    def __init__(self, ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None):
+        super().__init__()
+        self._ode_class = ode_class
+        self._ode_init_kwargs = ode_init_kwargs or {}
+        self._calc_exprs = calc_exprs or {}
+        self._num_nodes = num_nodes
+    
+    def setup(self):
+        ode_class = self._ode_class
+        ode_init_kwargs = self._ode_init_kwargs
+        num_nodes = self._num_nodes
 
-    Returns
-    -------
-    ode : System
-        The instantiation of ode_class.  If `calc_exprs` were given, it
-        returns a group that wraps the instantiated ode_class, as well
-        as an exec comp used to evaluate the expressions.
-    """
-    _kwargs = ode_init_kwargs or {}
-    ode = ode_class(num_nodes=num_nodes, **_kwargs)
-    if not calc_exprs:
-        return ode
-    else:
-        ode_group = om.Group()
-        ode_group.add_subsystem('user_ode', ode, promotes=['*'])
+        ode = ode_class(num_nodes=num_nodes, **ode_init_kwargs)
+
+        self.add_subsystem('user_ode', ode, promotes=['*'])
         ec = om.ExecComp()
-        ode_group.add_subsystem('exec_comp', ec, promotes=['*'])
-        parser = ExprParser()
+        self.add_subsystem('exec_comp', ec, promotes=['*'])
+
+    def configure(self):
+        num_nodes = self._num_nodes
+        calc_exprs = self._calc_exprs
 
         seen_kwargs = set()
+        parser = ExprParser()
+        ec = self._get_subsystem('exec_comp')
 
         for expr, expr_kwargs in calc_exprs.items():
             common_units = _UNDEFINED
@@ -192,7 +184,7 @@ def make_ode(ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None):
                 exec_var_name, src_idxs = parser.parse(rel_path, idx_str)
                 expr = expr.replace(rel_path, exec_var_name)
                 if '.' in rel_path:
-                    ode_group.connect(rel_path, exec_var_name, src_indices=src_idxs)
+                    self.connect(rel_path, exec_var_name, src_indices=src_idxs)
                 
                 # Only provide kwargs for things that we havent already done so.
                 if exec_var_name not in seen_kwargs:
@@ -207,4 +199,38 @@ def make_ode(ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None):
 
             seen_kwargs |= _expr_kwargs.keys()
             ec.add_expr(expr, **_expr_kwargs)
+
+
+
+def _make_ode_system(ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None):
+    """
+    Instantiate the ODE system, optionally including an ExecComp.
+
+    Parameters
+    ----------
+    ode_class : System class
+        The ODE class provided to the dymos phase.
+    num_nodes : int
+        The number of nodes at which the ODE is instantiated.
+    ode_init_kwargs : dict or None
+        Additional arguments we need to instantiate the ODE.
+    calc_exprs : dict
+        A dictionary keyed by exec comp expresions whose associated values
+        are the metadata associated with the expression.
+
+    Returns
+    -------
+    ode : System
+        The instantiation of ode_class.  If `calc_exprs` were given, it
+        returns a group that wraps the instantiated ode_class, as well
+        as an exec comp used to evaluate the expressions.
+    """
+    _kwargs = ode_init_kwargs or {}
+    if not calc_exprs:
+        return ode_class(num_nodes=num_nodes, **_kwargs)
+    else:
+        ode_group = ODEGroup(ode_class,
+                             num_nodes=num_nodes,
+                             ode_init_kwargs=ode_init_kwargs,
+                             calc_exprs=calc_exprs)
         return ode_group

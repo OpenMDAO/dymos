@@ -14,7 +14,7 @@ from ...utils.indexing import get_src_indices_by_row
 from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets, _get_targets_metadata
 from ...utils.constants import INF_BOUND
 
-from ...utils.ode_utils import make_ode
+from ...utils.ode_utils import _make_ode_system
 from ..common import TimeComp, TimeseriesOutputComp, ControlInterpComp, ParameterComp
 
 
@@ -314,7 +314,7 @@ class ExplicitShooting(TranscriptionBase):
                                    calc_exprs=phase._calc_exprs)
         phase.add_subsystem('integrator', integ)
 
-        ode = make_ode(ode_class=phase.options['ode_class'],
+        ode = _make_ode_system(ode_class=phase.options['ode_class'],
                        num_nodes=self._output_grid_data.num_nodes,
                        calc_exprs=phase._calc_exprs,
                        ode_init_kwargs=phase.options['ode_init_kwargs'])

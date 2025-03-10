@@ -8,7 +8,7 @@ from ..common import GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units
 from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
-from ...utils.ode_utils import make_ode
+from ...utils.ode_utils import _make_ode_system
 from ..grid_data import GridData, make_subset_map
 
 
@@ -187,11 +187,11 @@ class GaussLobatto(PseudospectralBase):
         grid_data = self.grid_data
         ode_class = phase.options['ode_class']
         
-        rhs_disc = make_ode(ode_class=ode_class,
+        rhs_disc = _make_ode_system(ode_class=ode_class,
                             num_nodes=grid_data.subset_num_nodes['state_disc'],
                             ode_init_kwargs=phase.options['ode_init_kwargs'],
                             calc_exprs=phase._calc_exprs)
-        rhs_col = make_ode(ode_class=ode_class,
+        rhs_col = _make_ode_system(ode_class=ode_class,
                             num_nodes=grid_data.subset_num_nodes['col'],
                             ode_init_kwargs=phase.options['ode_init_kwargs'],
                             calc_exprs=phase._calc_exprs)

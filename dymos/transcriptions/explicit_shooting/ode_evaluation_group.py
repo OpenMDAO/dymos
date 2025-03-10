@@ -14,7 +14,7 @@ from ...utils.introspection import configure_controls_introspection, \
     configure_states_discovery, configure_states_introspection, _get_targets_metadata, \
     _get_common_metadata, get_promoted_vars
 from ...utils.misc import get_rate_units, _unspecified, _none_or_unspecified
-from ...utils.ode_utils import make_ode
+from ...utils.ode_utils import _make_ode_system
 
 
 class ODEEvaluationGroup(om.Group):
@@ -135,7 +135,7 @@ class ODEEvaluationGroup(om.Group):
                                                         promotes_inputs=['ptau', 'stau', 'dstau_dt', 't_duration'])
 
 
-        ode = make_ode(ode_class=self._ode_class,
+        ode = _make_ode_system(ode_class=self._ode_class,
                        num_nodes=self._vec_size,
                        ode_init_kwargs=self._ode_init_kwargs,
                        calc_exprs=self._calc_exprs)

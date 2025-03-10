@@ -6,7 +6,7 @@ from ..common import RadauPSContinuityComp
 from ...utils.misc import get_rate_units
 from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
-from ...utils.ode_utils import make_ode
+from ...utils.ode_utils import _make_ode_system
 from ..grid_data import GridData
 
 
@@ -122,7 +122,7 @@ class Radau(PseudospectralBase):
 
         grid_data = self.grid_data
 
-        ode_sys = make_ode(ode_class=phase.options['ode_class'],
+        ode_sys = _make_ode_system(ode_class=phase.options['ode_class'],
                            num_nodes=grid_data.subset_num_nodes['all'],
                            ode_init_kwargs=phase.options['ode_init_kwargs'],
                            calc_exprs = phase._calc_exprs)

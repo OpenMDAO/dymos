@@ -5,7 +5,7 @@ from ..transcription_base import TranscriptionBase
 from ...utils.introspection import configure_analytic_states_introspection, get_promoted_vars, \
     get_source_metadata, configure_analytic_states_discovery
 from ...utils.indexing import get_src_indices_by_row
-from ...utils.ode_utils import make_ode
+from ...utils.ode_utils import _make_ode_system
 from ..grid_data import GridData
 from ..common import TimeComp, TimeseriesOutputComp
 
@@ -209,7 +209,7 @@ class Analytic(TranscriptionBase):
         """
         grid_data = self.grid_data
 
-        rhs = make_ode(ode_class=phase.options['ode_class'],
+        rhs = _make_ode_system(ode_class=phase.options['ode_class'],
                        num_nodes=grid_data.subset_num_nodes['all'],
                        ode_init_kwargs=phase.options['ode_init_kwargs'],
                        calc_exprs=phase._calc_exprs)

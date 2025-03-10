@@ -2,7 +2,7 @@ import numpy as np
 import openmdao.api as om
 
 from ...grid_data import GridData
-from ....utils.ode_utils import make_ode
+from ....utils.ode_utils import _make_ode_system
 from dymos._options import options as dymos_options
 
 
@@ -127,17 +127,13 @@ class BirkhoffBoundaryGroup(om.Group):
         self.add_subsystem('boundary_mux', subsys=BirkhoffBoundaryMuxComp(),
                            promotes_inputs=['*'], promotes_outputs=['*'])
         
-        ode = make_ode(ode_class=ode_class,
+        ode = _make_ode_system(ode_class=ode_class,
                        num_nodes=2,
                        ode_init_kwargs=ode_init_kwargs,
                        calc_exprs=self.options['calc_exprs'])
 
         self.add_subsystem('boundary_ode', ode,
                            promotes_inputs=['*'], promotes_outputs=['*'])
-
-        # if any([response['is_expr'] for response in ibcs + fbcs + objs]):
-        #     self.add_subsystem('boundary_constraint_exec_comp', subsys=om.ExecComp(),
-        #                        promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure_io(self, phase):
         """

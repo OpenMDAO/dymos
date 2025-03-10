@@ -850,7 +850,7 @@ def configure_duration_balance_introspection(phase):
     options = phase.time_options['t_duration_balance_options']
 
     # Determine the path to the variable which we will be constraining
-    var = options['balance_name'] if options['is_expr'] else options['name']
+    var = options['name']
     var_type = phase.classify_var(var)
 
     if var != options['balance_name'] is not None and var_type != 'ode':

@@ -5,7 +5,7 @@ from .birkhoff_defect_comp import BirkhoffDefectComp
 
 from ...grid_data import GridData
 from ....phase.options import TimeOptionsDictionary
-from ....utils.ode_utils import make_ode
+from ....utils.ode_utils import _make_ode_system
 
 
 class BirkhoffIterGroup(om.Group):
@@ -52,7 +52,7 @@ class BirkhoffIterGroup(om.Group):
         ode_class = self.options['ode_class']
         ode_init_kwargs = self.options['ode_init_kwargs']
 
-        ode = make_ode(ode_class=ode_class,
+        ode = _make_ode_system(ode_class=ode_class,
                        num_nodes=nn,
                        ode_init_kwargs=ode_init_kwargs,
                        calc_exprs=self.options['calc_exprs'])
