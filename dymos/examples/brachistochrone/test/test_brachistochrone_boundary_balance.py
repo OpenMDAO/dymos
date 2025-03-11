@@ -23,9 +23,9 @@ class GuidedBrachistochroneODE(om.JaxExplicitComponent):
 
         # static parameters
         self.add_input('v', desc='speed of the bead on the wire', shape=(nn,), units='m/s')
-        self.add_input('g', desc='gravitational acceleration', units='m/s**2')
+        self.add_input('g', desc='gravitational acceleration', shape=(1,), units='m/s**2')
         self.add_input('time_phase', desc='phase elapsed time', shape=(nn,), units='s')
-        self.add_input('theta_rate', desc='guidance parameter', units='rad/s')
+        self.add_input('theta_rate', desc='guidance parameter', shape=(1,), units='rad/s')
 
         self.add_output('xdot', desc='velocity component in x', shape=(nn,), units='m/s',
                         tags=['dymos.state_rate_source:x', 'dymos.state_units:m'])
