@@ -6,6 +6,7 @@ import importlib
 import inspect
 import os
 import re
+import sys
 import unittest
 
 try:
@@ -118,7 +119,11 @@ class DocstringLintTestCase(unittest.TestCase):
                                         msg = f"{error_tuple[0]}: {error_tuple[1]}"
                                         failures[full_method_path].append(msg)
 
-                    tree = ast.parse(inspect.getsource(mod))
+                    try:
+                        tree = ast.parse(inspect.getsource(mod))
+                    except:
+                        print(f'Error reading file {module_name}', file=sys.stderr)
+                        raise
 
                     if hasattr(tree, 'body'):
                         funcs = [node.name for node in tree.body if isinstance(node, ast.FunctionDef)]
