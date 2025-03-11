@@ -188,7 +188,8 @@ class ODEGroup(om.Group):
                 
                 # Only provide kwargs for things that we havent already done so.
                 if exec_var_name not in seen_kwargs:
-                    _expr_kwargs[exec_var_name] = expr_kwargs.get(rel_path, {})
+                    # Use deepcopy so we don't accidentally permanently set the shape here when we assign it.
+                    _expr_kwargs[exec_var_name] = deepcopy(expr_kwargs.get(rel_path, {}))
                     if 'shape' not in _expr_kwargs[exec_var_name]:
                         if not is_undefined(common_shape):
                             _expr_kwargs[exec_var_name]['shape'] = (num_nodes,) + common_shape
@@ -199,7 +200,6 @@ class ODEGroup(om.Group):
 
             seen_kwargs |= _expr_kwargs.keys()
             ec.add_expr(expr, **_expr_kwargs)
-
 
 
 def _make_ode_system(ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None):
