@@ -50,6 +50,19 @@ class PicardShooting(TranscriptionBase):
                              desc='The default solve direction for states in this phase.'
                              'This value may be overridden by setting the solve_segments option of states')
 
+        self.options.declare('ode_nonlinear_solver', default=om.NonlinearBlockGS(maxiter=100, use_aitken=True, iprint=0),
+                             desc='Nonlinear solver used to resolve Picard iteration on each segment.')
+        
+        self.options.declare('ode_linear_solver', default=om.DirectSolver(),
+                             desc='Linear solver used to linearize the Picard iteration subsystem on each segment.')
+        
+        self.options.declare('ms_nonlinear_solver', default=om.NonlinearBlockGS(maxiter=100, use_aitken=True, iprint=0),
+                             desc='Nonlinear solver used to resolve Picard iteration differences between segments.')
+        
+        self.options.declare('ms_linear_solver', default=om.DirectSolver(),
+                             desc='Linear solver used to linearize the Picard iteration subsystem between segments.')
+
+
     def init_grid(self):
         """
         Setup the GridData object for the Transcription.
@@ -80,7 +93,9 @@ class PicardShooting(TranscriptionBase):
                              initial_val=phase.time_options['initial_val'],
                              duration_val=phase.time_options['duration_val'])
 
-        phase.add_subsystem('time', time_comp, promotes_inputs=['*'], promotes_outputs=['*'])
+        phase.add_subsystem('time', time_comp,
+                            promotes_inputs=[('t_initial', 't_initial_val'), ('t_duration', 't_duration_val')],
+                            promotes_outputs=['*'])
 
     def configure_time(self, phase):
         """
@@ -231,6 +246,10 @@ class PicardShooting(TranscriptionBase):
 
         ODEClass = phase.options['ode_class']
         grid_data = self.grid_data
+        ode_nonlinear_solver = self.options['ode_nonlinear_solver']
+        ode_linear_solver = self.options['ode_linear_solver']
+        ms_nonlinear_solver = self.options['ms_nonlinear_solver']
+        ms_linear_solver = self.options['ms_linear_solver']
 
         ode_init_kwargs = phase.options['ode_init_kwargs']
         # ibcs = phase._initial_boundary_constraints
@@ -241,7 +260,11 @@ class PicardShooting(TranscriptionBase):
                                                              state_options=phase.state_options,
                                                              time_units=phase.time_options['units'],
                                                              ode_class=ODEClass,
-                                                             ode_init_kwargs=ode_init_kwargs),
+                                                             ode_init_kwargs=ode_init_kwargs,
+                                                             ode_nonlinear_solver=ode_nonlinear_solver,
+                                                             ode_linear_solver=ode_linear_solver,
+                                                             ms_nonlinear_solver=ms_nonlinear_solver,
+                                                             ms_linear_solver = ms_linear_solver),
                             promotes_inputs=['*'], promotes_outputs=['*'])
 
         # phase.add_subsystem('boundary_vals',
@@ -309,8 +332,8 @@ class PicardShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         if phase.boundary_balance_options:
-            duration_balance_comp = om.BalanceComp()
-            phase.add_subsystem('parameter_balance_comp', duration_balance_comp, promotes_outputs=['*'])
+            boundary_balance_comp = om.BalanceComp()
+            phase.add_subsystem('boundary_balance_comp', boundary_balance_comp, promotes_outputs=['*'])
     
     def configure_boundary_balance(self, phase):
         """
@@ -321,7 +344,7 @@ class PicardShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        param_balance_comp = phase._get_subsystem('parameter_balance_comp')
+        param_balance_comp = phase._get_subsystem('boundary_balance_comp')
 
         _configure_boundary_balance_introspection(phase)
 
@@ -358,7 +381,7 @@ class PicardShooting(TranscriptionBase):
             param_balance_comp.add_balance(name=param, **bal_kwargs)
 
             # Done via promotion
-            # phase.connect('parameter_balance_comp.t_duration', 't_duration')
+            # phase.connect('boundary_balance_comp.t_duration', 't_duration')
 
             var_type = phase.classify_var(name)
             if var_type == 'ode':
@@ -366,9 +389,9 @@ class PicardShooting(TranscriptionBase):
                     self.add_timeseries_output(name, output_name=output_name, units=bal_kwargs.get('eq_units', _unspecified))
   
             if var_type == 'state' and name.startswith('initial_states:') or name.startswith('final_states:'):
-                phase.promotes('parameter_balance_comp', inputs=[output_name])
+                phase.promotes('boundary_balance_comp', inputs=[output_name])
             else:
-                phase.connect(f'timeseries.{output_name}', f'parameter_balance_comp.{output_name}',
+                phase.connect(f'timeseries.{output_name}', f'boundary_balance_comp.{output_name}',
                             src_indices=src_idxs)
 
 
