@@ -840,24 +840,24 @@ the system at an event in the trajectory. Here, we have the first phase
 (ascent) terminate when the flight path angle reaches zero (apogee). The
 descent phase follows until the cannonball impacts the ground.</p>
 <p>The dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-3693a0e4-b589-470f-b5a1-b61484946a71">
-<span class="eqno">(75)<a class="headerlink" href="#equation-3693a0e4-b589-470f-b5a1-b61484946a71" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-ba9b0317-a4bc-42d4-827a-0eba97ae39e7">
+<span class="eqno">(75)<a class="headerlink" href="#equation-ba9b0317-a4bc-42d4-827a-0eba97ae39e7" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dv}{dt} &amp;= \frac{D}{m} - g \sin \gamma \\
   \frac{d\gamma}{dt} &amp;= - \frac{g \cos \gamma}{v} \\
   \frac{dh}{dt} &amp;= v \sin \gamma \\
   \frac{dr}{dt} &amp;= v \cos \gamma \\
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-93b59d7a-954e-4408-8c53-56f11d26865f">
-<span class="eqno">(76)<a class="headerlink" href="#equation-93b59d7a-954e-4408-8c53-56f11d26865f" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-dd680fcf-61af-43e5-822c-8846c36630cf">
+<span class="eqno">(76)<a class="headerlink" href="#equation-dd680fcf-61af-43e5-822c-8846c36630cf" title="Permalink to this equation">#</a></span>\[\begin{align}
   r_0 &amp;= 0 \rm{\,m} \\
   h_0 &amp;= 100 \rm{\,m} \\
   v_0 &amp;= \rm{free} \\
   \gamma_0 &amp;= \rm{free}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-8dac08ae-1506-4f7f-8879-9e8734296542">
-<span class="eqno">(77)<a class="headerlink" href="#equation-8dac08ae-1506-4f7f-8879-9e8734296542" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-63471d0e-8cee-4b84-8a59-22c8ea8d799b">
+<span class="eqno">(77)<a class="headerlink" href="#equation-63471d0e-8cee-4b84-8a59-22c8ea8d799b" title="Permalink to this equation">#</a></span>\[\begin{align}
   h_f &amp;= 0 \rm{\,m}
 \end{align}\]</div>
 </section>
@@ -870,8 +870,8 @@ energy and that our cannonball is made of solid iron. The volume (and
 mass) of the cannonball is proportional to its radius cubed, while the
 cross-sectional area is proportional to its radius squared. If we
 increase the size of the cannonball, the ballistic coefficient</p>
-<div class="amsmath math notranslate nohighlight" id="equation-53056958-66b1-4851-ab3a-754ed2823b40">
-<span class="eqno">(78)<a class="headerlink" href="#equation-53056958-66b1-4851-ab3a-754ed2823b40" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-32c02d3d-814b-4bde-b94a-79512fcd1c3d">
+<span class="eqno">(78)<a class="headerlink" href="#equation-32c02d3d-814b-4bde-b94a-79512fcd1c3d" title="Permalink to this equation">#</a></span>\[\begin{align}
   BC &amp;= \frac{m}{C_D A}
 \end{align}\]</div>
 <p>will increase, meaning the cannonball overcome air resistance more
@@ -1149,14 +1149,7 @@ account.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>--- Constraint Report [traj] ---
-    --- ascent ---
-        [initial] 0.0000e+00 &lt;= ke &lt;= 4.0000e+05  [J]
-    --- descent ---
-        None
-
-
-&#39;rhs_checking&#39; is disabled for &#39;DirectSolver in &lt;model&gt; &lt;class Group&gt;&#39; but that solver has redundant adjoint solves. If it is expensive to compute derivatives for this solver, turning on &#39;rhs_checking&#39; may improve performance.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&#39;rhs_checking&#39; is disabled for &#39;DirectSolver in &lt;model&gt; &lt;class Group&gt;&#39; but that solver has redundant adjoint solves. If it is expensive to compute derivatives for this solver, turning on &#39;rhs_checking&#39; may improve performance.
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.ascent.rhs_all&#39; (class CannonballODE)
@@ -1167,8 +1160,8 @@ Total colors vs. total size: 6 vs 63  (90.48% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for CannonballODE &#39;traj.phases.ascent.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0283 sec
-Time to compute coloring:   0.0072 sec
+Time to compute sparsity:   0.0281 sec
+Time to compute coloring:   0.0073 sec
 Memory to compute coloring:   0.3750 MB
 
 Coloring for &#39;traj.phases.descent.rhs_disc&#39; (class CannonballODE)
@@ -1180,7 +1173,7 @@ Total colors vs. total size: 6 vs 33  (81.82% improvement)
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for CannonballODE &#39;traj.phases.descent.rhs_disc&#39; was computed 3 times.
 Time to compute sparsity:   0.0116 sec
-Time to compute coloring:   0.0037 sec
+Time to compute coloring:   0.0038 sec
 Memory to compute coloring:   0.0000 MB
 
 Coloring for &#39;traj.phases.descent.rhs_col&#39; (class CannonballODE)
@@ -1191,7 +1184,7 @@ Total colors vs. total size: 6 vs 18  (66.67% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for CannonballODE &#39;traj.phases.descent.rhs_col&#39; was computed 3 times.
-Time to compute sparsity:   0.0062 sec
+Time to compute sparsity:   0.0063 sec
 Time to compute coloring:   0.0022 sec
 Memory to compute coloring:   0.0000 MB
 
@@ -1201,10 +1194,10 @@ Total colors vs. total size: 30 vs 88  (65.91% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.1247 sec
-Time to compute coloring:   0.0956 sec
+Time to compute sparsity:   0.1273 sec
+Time to compute coloring:   0.0960 sec
 Memory to compute coloring:   0.5000 MB
-Coloring created on: 2025-03-08 18:27:49
+Coloring created on: 2025-03-11 20:34:14
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1213,11 +1206,11 @@ Coloring created on: 2025-03-08 18:27:49
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    1.9779
-       User Objective Time :       0.2224
-       User Sensitivity Time :     1.2981
-       Interface Time :            0.2979
-       Opt Solver Time:            0.1594
+    Total Time:                    2.0692
+       User Objective Time :       0.2413
+       User Sensitivity Time :     1.3538
+       Interface Time :            0.3104
+       Opt Solver Time:            0.1638
     Calls to Objective Function :     118
     Calls to Sens Function :           89
 
@@ -1414,18 +1407,20 @@ Coloring created on: 2025-03-08 18:27:49
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
-Done simulating trajectory traj
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
 </pre></div>
 </div>
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Problem: problem
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 119
-  runtime     : 2.3001E+00 s
+  runtime     : 2.3996E+00 s
   model_evals : 119
-  model_time  : 1.8389E-01 s
+  model_time  : 1.9573E-01 s
   deriv_evals : 89
-  deriv_time  : 1.0257E+00 s
+  deriv_time  : 1.0649E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>
