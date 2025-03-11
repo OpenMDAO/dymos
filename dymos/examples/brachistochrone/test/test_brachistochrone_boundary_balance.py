@@ -38,8 +38,9 @@ class GuidedBrachistochroneODE(om.JaxExplicitComponent):
 
         self.add_output('theta', desc='wire angle', shape=(nn,), val=2, units='rad')
 
+        self.declare_coloring(method='jax')
+
     def compute_primal(self, v, g, time_phase, theta_rate):
-        jax.debug.print('theta rate value is {k}', k=theta_rate)
         theta = time_phase * theta_rate
 
         sin_theta = jnp.sin(theta)
@@ -75,14 +76,13 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         phase.add_timeseries_output('theta', units='deg')
 
         phase.add_boundary_balance(param='t_duration', name='x', tgt_val=10.0, loc='final', lower=0.1, upper=5.0)
-        # phase.add_boundary_balance(param='parameters:theta_rate', name='y', tgt_val=5.0, loc='final', lower=0.1, upper=10.0, res_ref=1.0)
+        phase.add_boundary_balance(param='parameters:theta_rate', name='y', tgt_val=5.0, loc='final', lower=0.1, upper=100.0, res_ref=1.0)
         
-        phase.nonlinear_solver = om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=0, atol=1.0E-3, rtol=1.0E-3)
-        phase.nonlinear_solver.linesearch = om.ArmijoGoldsteinLS()
-        phase.nonlinear_solver.debug_print = True
+        phase.nonlinear_solver = om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=0, atol=1.0E-6, rtol=1.0E-6)
+        phase.nonlinear_solver.linesearch = om.BoundsEnforceLS()
         phase.linear_solver = om.DirectSolver()
 
-        p.set_solver_print(0)
+        p.set_solver_print(2)
 
         p.setup()
 
@@ -92,7 +92,7 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         phase.set_state_val('y', [10, 5])
         phase.set_state_val('v', [1.0E-2, 9.9])
 
-        phase.set_parameter_val('theta_rate',  100/1.8016)
+        phase.set_parameter_val('theta_rate',  20.0)
         phase.set_parameter_val('g', 9.80665)
 
         p.final_setup()

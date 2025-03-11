@@ -2107,7 +2107,7 @@ class Phase(om.Group):
             name = bbos[param]['name']
             tgt_val = bbos[param]['tgt_val']
             loc = bbos[param]['loc']
-            raise ValueError(f'Phase variable {param} is already an implicit output for a boundary balance\n'
+            raise ValueError(f'Phase variable {param} is already an implicit output for a boundary balance.\n'
                              f'R({param}) = {name}[{loc}] - {tgt_val} = 0')
         
         bbos[param] = {'param': param, 'name': name, 'tgt_val': tgt_val, 'loc': loc, 'index': index}
