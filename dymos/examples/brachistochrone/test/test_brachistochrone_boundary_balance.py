@@ -1,8 +1,13 @@
 import os
 import unittest
 from numpy.testing import assert_almost_equal
-import jax
-import jax.numpy as jnp
+
+try:
+    import jax
+    import jax.numpy as jnp
+except ImportError as e:
+    jax = None
+    jnp = None
 
 import openmdao.api as om
 import dymos as dm
@@ -55,6 +60,7 @@ class GuidedBrachistochroneODE(om.JaxExplicitComponent):
         return xdot, ydot, vdot, theta
 
 
+@unittest.skipIf(jax is None, 'Test Requires Jax')
 @unittest.skipIf(om_version()[0] <= (3, 37, 0), 'Requires OpenMDAO version later than 3.37.0')
 @use_tempdirs
 class TestBrachistochroneBoundaryBalance(unittest.TestCase):
