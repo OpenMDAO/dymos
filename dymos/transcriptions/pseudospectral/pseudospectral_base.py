@@ -6,7 +6,7 @@ from ..common import TimeComp, TimeseriesOutputGroup
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp
 from ..common.timeseries_output_comp import TimeseriesOutputComp
 from ...utils.misc import CoerceDesvar, get_rate_units, reshape_val
-from ...utils.introspection import get_promoted_vars, get_source_metadata, configure_duration_balance_introspection
+from ...utils.introspection import get_promoted_vars, get_source_metadata
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 
@@ -437,55 +437,6 @@ class PseudospectralBase(TranscriptionBase):
                 phase.connect(f'control_rates:{name}_rate2',
                               f'continuity_comp.control_rates:{name}_rate2',
                               src_indices=src_idxs, flat_src_indices=True)
-
-    def setup_duration_balance(self, phase):
-        """
-        Setup the implicit computation of the phase duration.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-
-        if self._implicit_duration:
-            duration_balance_comp = om.BalanceComp()
-            phase.add_subsystem('t_duration_balance_comp', duration_balance_comp)
-
-    def configure_duration_balance(self, phase):
-        """
-        Configure the implicit computation of the phase duration.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-
-        if self._implicit_duration:
-            duration_balance_comp = phase._get_subsystem('t_duration_balance_comp')
-            configure_duration_balance_introspection(phase)
-            options = phase.time_options['t_duration_balance_options']
-            lower, upper = phase.time_options['duration_bounds']
-            duration_val = phase.time_options['duration_val']
-
-            if options['mult_val'] is None:
-                use_mult = False
-                mult_val = 1.0
-            else:
-                use_mult = True
-                mult_val = options['mult_val']
-
-            src_idx = [-1] if options['index'] is None else [[-1]]+options['index']
-
-            duration_balance_comp.add_balance('t_duration', val=duration_val, lower=lower, upper=upper,
-                                              eq_units=options['units'], units=phase.time_options['units'],
-                                              rhs_val=options['val'], use_mult=use_mult, mult_val=mult_val)
-
-            phase.connect('t_duration_balance_comp.t_duration', 't_duration')
-
-            phase.connect(options['var_path'], 't_duration_balance_comp.lhs:t_duration',
-                          src_indices=src_idx)
 
     def setup_solvers(self, phase):
         """

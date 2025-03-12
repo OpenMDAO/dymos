@@ -23,7 +23,7 @@ class TranscriptionBase(object):
     """
     def __init__(self, **kwargs):
 
-        self._implicit_duration = False
+        self._implicit_params = False
         self.grid_data = None
 
         self.options = om.OptionsDictionary()
@@ -80,8 +80,8 @@ class TranscriptionBase(object):
         # Warn about invalid options
         phase.check_time_options()
 
-        if phase.time_options['t_duration_balance_options']:
-            self._implicit_duration = True
+        if phase.boundary_balance_options:
+            self._implicit_params = True
 
         phase.add_subsystem('param_comp', subsys=ParameterComp(time_options=time_options),
                             promotes_inputs=['*'], promotes_outputs=['*'])
@@ -336,13 +336,13 @@ class TranscriptionBase(object):
             name = options['name']
             tgt_val = options['tgt_val']
             loc = options['loc']
-            index = options['index']
+            index = [options['index']] if np.isscalar(options['index']) else options['index']
 
             # Get the indices to connect based on loc.
             if loc == 'final':
-                src_idxs = om.slicer[-1, index]
+                src_idxs = om.slicer[-1, *index]
             elif loc == 'initial':
-                src_idxs = om.slicer[0, index]
+                src_idxs = om.slicer[0, *index]
             else:
                 raise ValueError(f'{phase.msginfo}: Value of `loc` for boundary balance `{param}` '
                                  'must be one of `initial` or `final`, but got `{loc}` instead.')
@@ -376,31 +376,6 @@ class TranscriptionBase(object):
                 phase.connect(f'timeseries.{output_name}', f'boundary_balance_comp.{output_name}',
                             src_indices=src_idxs)
 
-    def setup_duration_balance(self, phase):
-        """
-        Setup the implicit computation of the phase duration.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-
-        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement'
-                                  f' method setup_duration_balance.')
-
-    def configure_duration_balance(self, phase):
-        """
-        Configure the implicit computation of the phase duration.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement'
-                                  f' method setup_duration_balance.')
-
     def setup_solvers(self, phase):
         """
         Setup the solvers for this transcription.
@@ -427,7 +402,7 @@ class TranscriptionBase(object):
         if not phase.options['auto_solvers']:
             return
 
-        req_solvers = {'implicit duration': self._implicit_duration}
+        req_solvers = {'implicit parameters': self._implicit_params}
 
         if requires_solvers is not None:
             req_solvers.update(requires_solvers)

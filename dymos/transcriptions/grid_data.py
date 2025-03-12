@@ -804,14 +804,10 @@ class BirkhoffGrid(GridData):
     grid_type : str
         The type of Gaussian grid used for the transcription. May be 'lgl' or 'cgl'.
     """
-    def __init__(self, num_segments=1, nodes_per_seg=None, segment_ends=None, compressed=False, num_nodes=None, grid_type='cgl'):
+    def __init__(self, num_nodes, grid_type='cgl'):
         self.grid_type = grid_type
-        _nodes_per_seg = nodes_per_seg if num_nodes is None else num_nodes
-        if _nodes_per_seg is None:
-            raise ValueError(f'BirkhoffGrid requires an integer value for nodes_per_seg or num_nodes. ({_nodes_per_seg})')
-        super().__init__(num_segments=num_segments, transcription=grid_type,
-                         transcription_order=np.asarray(_nodes_per_seg, dtype=int),
-                         segment_ends=segment_ends, compressed=compressed)
+        super().__init__(num_segments=1, transcription='birkhoff',
+                         transcription_order=num_nodes)
 
 
 class RadauGrid(GridData):

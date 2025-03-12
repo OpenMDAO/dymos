@@ -274,28 +274,6 @@ class Birkhoff(TranscriptionBase):
             if rate_source_type not in ('state', 'ode'):
                 phase.connect(rate_src_path, f'f_computed:{name}', src_indices=src_idxs)
 
-    def setup_duration_balance(self, phase):
-        """
-        Setup the implicit computation of the phase duration.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        pass
-
-    def configure_duration_balance(self, phase):
-        """
-        Configure the implicit computation of the phase duration.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        pass
-
     def setup_solvers(self, phase):
         """
         Setup the solvers.

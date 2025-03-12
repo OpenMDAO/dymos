@@ -11,7 +11,6 @@ from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.misc import om_version
 
 
-@unittest.skipIf(om_version()[0] <= (3, 37, 0), 'Requires OpenMDAO version later than 3.37.0')
 class GuidedBrachistochroneODE(om.JaxExplicitComponent):
     """
     The brachistochrone EOM assuming a linear rate of change in the wire angle wrt time.
@@ -55,7 +54,7 @@ class GuidedBrachistochroneODE(om.JaxExplicitComponent):
 
         return xdot, ydot, vdot, theta
 
-
+@unittest.skipIf(om_version()[0] <= (3, 37, 0), 'Requires OpenMDAO version later than 3.37.0')
 @use_tempdirs
 class TestBrachistochroneBoundaryBalance(unittest.TestCase):
 
@@ -135,7 +134,7 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         outputs = [op[1]['prom_name'] for op in p.model.list_outputs(out_stream=None, prom_name=True)]
         self.assertNotIn('traj0.phase0.timeseries.theta_rate', outputs)
 
-    def test_picard_cgl(self):
+    def test_picard(self):
         for grid_type in 'cgl', 'lgl':
             with self.subTest(f'{grid_type=}'):
                 tx = dm.PicardShooting(num_segments=1, nodes_per_seg=21, grid_type='cgl')
@@ -145,6 +144,39 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
 
                 self.run_asserts(p)
 
+    def test_birkhoff(self):
+        for grid_type in 'cgl', 'lgl':
+            with self.subTest(f'{grid_type=}'):
+                tx = dm.Birkhoff(num_nodes=21, grid_type=grid_type, solve_segments='forward')
+                p = self.make_problem(tx=tx)
+
+                p.run_model()
+
+                self.run_asserts(p)
+
+    def test_radau(self):
+        tx = dm.Radau(num_segments=10, order=3, solve_segments='forward')
+        p = self.make_problem(tx=tx)
+
+        p.run_model()
+
+        self.run_asserts(p)
+
+    def test_gausslobatto(self):
+        tx = dm.GaussLobatto(num_segments=10, order=3, solve_segments='forward')
+        p = self.make_problem(tx=tx)
+
+        p.run_model()
+
+        self.run_asserts(p)
+
+    def test_explicit_shooting(self):
+        tx = dm.ExplicitShooting(num_segments=10, order=3)
+        p = self.make_problem(tx=tx)
+
+        p.run_model()
+
+        self.run_asserts(p)
 
 if __name__ == '__main__':
     unittest.main()
