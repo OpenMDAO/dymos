@@ -2632,13 +2632,13 @@ class Phase(om.Group):
 
         # Set the integration times
         time_name = phs.time_options['name']
-        op = op_dict[f'timeseries.timeseries_comp.{time_name}']
+        op = op_dict[f'timeseries.{time_name}']
         prob.set_val(f'{self_path}t_initial', op['val'][0, ...])
         prob.set_val(f'{self_path}t_duration', op['val'][-1, ...] - op['val'][0, ...])
 
         # Assign initial state values
         for name in phs.state_options:
-            op = op_dict[f'timeseries.timeseries_comp.states:{name}']
+            op = op_dict[f'timeseries.states:{name}']
             prob[f'{self_path}initial_states:{name}'][...] = op['val'][0, ...]
 
         # Assign control values
@@ -3018,7 +3018,7 @@ class Phase(om.Group):
         integration_name = self.time_options['name']
 
         try:
-            prev_time_path = prev_vars_abs2prom[f'{self.pathname}.timeseries.timeseries_comp.{integration_name}']
+            prev_time_path = prev_vars_abs2prom[f'{self.pathname}.timeseries.{integration_name}']
         except KeyError:
             om.issue_warning(f'load_case for phase {self.name} failed - phase not found in case data.')
             return
