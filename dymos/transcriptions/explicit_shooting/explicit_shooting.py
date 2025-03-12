@@ -18,7 +18,6 @@ from ...utils.ode_utils import _make_ode_system
 from ..common import TimeComp, TimeseriesOutputComp, ControlInterpComp, ParameterComp
 
 
-
 class ExplicitShooting(TranscriptionBase):
     r"""
     The Transcription class for single explicit shooting.
@@ -315,10 +314,10 @@ class ExplicitShooting(TranscriptionBase):
         phase.add_subsystem('integrator', integ)
 
         ode = _make_ode_system(ode_class=phase.options['ode_class'],
-                       num_nodes=self._output_grid_data.num_nodes,
-                       calc_exprs=phase._calc_exprs,
-                       ode_init_kwargs=phase.options['ode_init_kwargs'],
-                       parameter_options=phase.parameter_options)
+                               num_nodes=self._output_grid_data.num_nodes,
+                               calc_exprs=phase._calc_exprs,
+                               ode_init_kwargs=phase.options['ode_init_kwargs'],
+                               parameter_options=phase.parameter_options)
 
         phase.add_subsystem('ode', ode)
 

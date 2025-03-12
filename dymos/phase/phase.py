@@ -1295,17 +1295,18 @@ class Phase(om.Group):
                              '"initial" or "final".')
 
         if '=' in name:
-            constraint_name = name.split('=')[0].strip()
+            _name = constraint_name = name.split('=')[0].strip()
             self.add_calc_expr(name)
         elif constraint_name is None:
+            _name = name
             constraint_name = name.rpartition('.')[-1]
 
         bc_list = self._initial_boundary_constraints if loc == 'initial' else self._final_boundary_constraints
 
-        existing_bc = [bc for bc in bc_list if bc['name'] == name and bc['indices'] is None and indices is None]
+        existing_bc = [bc for bc in bc_list if bc['name'] == _name and bc['indices'] is None and indices is None]
 
         if existing_bc:
-            raise ValueError(f'Cannot add new {loc} boundary constraint for variable `{name}` and indices {indices}. '
+            raise ValueError(f'Cannot add new {loc} boundary constraint for variable `{_name}` and indices {indices}. '
                              f'One already exists.')
 
         existing_bc_name = [bc for bc in bc_list if bc['name'] == constraint_name and
@@ -1319,7 +1320,7 @@ class Phase(om.Group):
         bc = ConstraintOptionsDictionary()
         bc_list.append(bc)
 
-        bc['name'] = name
+        bc['name'] = _name
         bc['constraint_name'] = constraint_name
         bc['lower'] = lower
         bc['upper'] = upper
@@ -1398,16 +1399,17 @@ class Phase(om.Group):
             Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.
         """
         if '=' in name:
-            constraint_name = name.split('=')[0].strip()
+            _name = constraint_name = name.split('=')[0].strip()
             self.add_calc_expr(name)
         elif constraint_name is None:
+            _name = name
             constraint_name = name.rpartition('.')[-1]
 
         existing_pc = [pc for pc in self._path_constraints
                        if pc['name'] == name and pc['indices'] == indices and pc['flat_indices'] == flat_indices]
 
         if existing_pc:
-            raise ValueError(f'Cannot add new path constraint for variable `{name}` and indices {indices}. '
+            raise ValueError(f'Cannot add new path constraint for variable `{_name}` and indices {indices}. '
                              f'One already exists.')
 
         existing_bc_name = [pc for pc in self._path_constraints
@@ -1421,7 +1423,7 @@ class Phase(om.Group):
         pc = ConstraintOptionsDictionary()
         self._path_constraints.append(pc)
 
-        pc['name'] = name
+        pc['name'] = _name
         pc['constraint_name'] = constraint_name
         pc['lower'] = lower
         pc['upper'] = upper
@@ -1506,7 +1508,7 @@ class Phase(om.Group):
                     self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
 
         else:
-            if '=' in name: 
+            if '=' in name:
                 output = name.split('=')[0].strip()
                 _kwargs = {k: v for k, v in kwargs.items()}
                 if units is not _unspecified:
@@ -1734,14 +1736,14 @@ class Phase(om.Group):
             The expression to be computed.
         add_timeseries : bool
             If True, add the output of the expression to the timeseries.
-        kwargs : dict
+        **kwargs : dict
             Any arguments to be forwarded to the ExecComp when the expression in added.
         """
         if expr in self._calc_exprs:
             self._calc_exprs[expr].update(kwargs)
         else:
             self._calc_exprs[expr] = kwargs
-        
+
         output_name = expr.split('=')[0].strip()
         if add_timeseries and output_name not in self._timeseries['timeseries']['outputs']:
             output = expr.split('=')[0].strip()
@@ -1752,7 +1754,6 @@ class Phase(om.Group):
             else:
                 units = None
             self.add_timeseries_output(output_name, units=units)
-
 
     def set_time_options(self, units=_unspecified, fix_initial=_unspecified,
                          fix_duration=_unspecified, input_initial=_unspecified,

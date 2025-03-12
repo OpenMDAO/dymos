@@ -210,10 +210,10 @@ class Analytic(TranscriptionBase):
         grid_data = self.grid_data
 
         rhs = _make_ode_system(ode_class=phase.options['ode_class'],
-                       num_nodes=grid_data.subset_num_nodes['all'],
-                       ode_init_kwargs=phase.options['ode_init_kwargs'],
-                       calc_exprs=phase._calc_exprs,
-                       parameter_options=phase.parameter_options)
+                               num_nodes=grid_data.subset_num_nodes['all'],
+                               ode_init_kwargs=phase.options['ode_init_kwargs'],
+                               calc_exprs=phase._calc_exprs,
+                               parameter_options=phase.parameter_options)
 
         phase.add_subsystem('rhs', rhs)
 

@@ -128,12 +128,12 @@ class BirkhoffBoundaryGroup(om.Group):
 
         self.add_subsystem('boundary_mux', subsys=BirkhoffBoundaryMuxComp(),
                            promotes_inputs=['*'], promotes_outputs=['*'])
-        
+
         ode = _make_ode_system(ode_class=ode_class,
-                       num_nodes=2,
-                       ode_init_kwargs=ode_init_kwargs,
-                       calc_exprs=self.options['calc_exprs'],
-                       parameter_options=self.options['parameter_options'])
+                               num_nodes=2,
+                               ode_init_kwargs=ode_init_kwargs,
+                               calc_exprs=self.options['calc_exprs'],
+                               parameter_options=self.options['parameter_options'])
 
         self.add_subsystem('boundary_ode', ode,
                            promotes_inputs=['*'], promotes_outputs=['*'])

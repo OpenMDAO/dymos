@@ -55,10 +55,10 @@ class BirkhoffIterGroup(om.Group):
         ode_init_kwargs = self.options['ode_init_kwargs']
 
         ode = _make_ode_system(ode_class=ode_class,
-                       num_nodes=nn,
-                       ode_init_kwargs=ode_init_kwargs,
-                       calc_exprs=self.options['calc_exprs'],
-                       parameter_options=self.options['parameter_options'])
+                               num_nodes=nn,
+                               ode_init_kwargs=ode_init_kwargs,
+                               calc_exprs=self.options['calc_exprs'],
+                               parameter_options=self.options['parameter_options'])
 
         self.add_subsystem('ode_all', subsys=ode)
 

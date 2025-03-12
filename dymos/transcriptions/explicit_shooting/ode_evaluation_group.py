@@ -52,8 +52,8 @@ class ODEEvaluationGroup(om.Group):
     """
 
     def __init__(self, ode_class, input_grid_data, time_options, state_options, parameter_options, control_options,
-                 ode_init_kwargs=None, compute_derivs=True, vec_size=1, calc_exprs=None,
-                 control_interp='vandermonde', **kwargs):
+                 ode_init_kwargs=None, compute_derivs=True, vec_size=1,
+                 control_interp='vandermonde', calc_exprs=None, **kwargs):
         super().__init__(**kwargs)
 
         # This component creates copies of the variable options from the phase.
@@ -134,12 +134,11 @@ class ODEEvaluationGroup(om.Group):
                                                                                      compute_derivs=self._compute_derivs),
                                                         promotes_inputs=['ptau', 'stau', 'dstau_dt', 't_duration'])
 
-
         ode = _make_ode_system(ode_class=self._ode_class,
-                       num_nodes=self._vec_size,
-                       ode_init_kwargs=self._ode_init_kwargs,
-                       calc_exprs=self._calc_exprs,
-                       parameter_options=self._parameter_options)
+                               num_nodes=self._vec_size,
+                               ode_init_kwargs=self._ode_init_kwargs,
+                               calc_exprs=self._calc_exprs,
+                               parameter_options=self._parameter_options)
 
         self.add_subsystem('ode', ode)
 

@@ -19,14 +19,15 @@ from dymos.utils.misc import _unspecified
 #                       1111111112222222333333334444444444444444
 var_rgx = re.compile(r'([_a-zA-Z][\w.:]*\b(?!\()(\[[\d:.,-]+\])*)')
 
+
 def _parse_index_string(index_str):
     """
     Convert a string representation of array indices to a tuple of slice objects,
     integer indices, or ellipsis that can be used for array access.
-    
+
     Args:
         index_str (str): String representation of indices, e.g. '[1, 3]', '[1:5, 2]', '[..., 0]'
-        
+
     Returns:
         tuple: A tuple containing slice objects, integers, or Ellipsis for indexing
     """
@@ -34,45 +35,45 @@ def _parse_index_string(index_str):
         return None
     # Remove the outer brackets and whitespace
     clean_str = index_str.strip().strip('[]')
-    
+
     if not clean_str:
         return tuple()
-    
+
     # Split by comma to get each dimension's index
     dimensions = clean_str.split(',')
-    
+
     result = []
     for dim in dimensions:
         dim = dim.strip()
-        
+
         # Handle ellipsis
         if dim == '...' or dim == 'Ellipsis':
             result.append(Ellipsis)
             continue
-            
+
         # Handle full slice ':'
         if dim == ':':
             result.append(slice(None))
             continue
-            
+
         # Check if it's a slice (contains ':')
         if ':' in dim:
             # Handle slice notation (start:stop:step)
             slice_parts = dim.split(':')
-            
+
             # Convert each part, handling empty strings
             start = int(slice_parts[0]) if slice_parts[0].strip() else None
-            
+
             if len(slice_parts) > 1:
                 stop = int(slice_parts[1]) if slice_parts[1].strip() else None
             else:
                 stop = None
-                
+
             if len(slice_parts) > 2:
                 step = int(slice_parts[2]) if slice_parts[2].strip() else None
             else:
                 step = None
-                
+
             result.append(slice(start, stop, step))
         else:
             # It's a simple index
@@ -81,7 +82,7 @@ def _parse_index_string(index_str):
             except ValueError:
                 # If it's not an integer, it might be a variable
                 result.append(dim)
-    
+
     return tuple(result)
 
 
@@ -95,7 +96,7 @@ class ExprParser():
     """
     def __init__(self):
         self._unique_int = 0
-    
+
     def parse(self, full_path, idx_str):
         """
         Extract the legal name and any indexer given by the full path representation.
@@ -105,6 +106,9 @@ class ExprParser():
         full_path : str
             The full path of the expression variable. This may include
             dots, colons, and an index specification on the end.
+        idx_str : str
+            The string which follows the path specification in the expression.
+            This begins and ends with brackets [].
 
         Returns
         -------
@@ -128,7 +132,22 @@ class ExprParser():
 
 
 class ODEGroup(om.Group):
+    """
+    Initialize an ODEGroup to wrap the user's ODE and an ExecComp.
 
+    Parameters
+    ----------
+    ode_class : class
+        The class of ODE used in this Group.
+    num_nodes : int
+        The number of nodes used in the ODE.
+    ode_init_kwargs : dict or None
+        Initialization arguments for the ODE system.
+    calc_exprs : dict
+        The _calc_exprs dictionary of the owning phase instance.
+    parameter_options : dict
+        The parameter_options dictionary of the owning phase instance.
+    """
     def __init__(self, ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None, parameter_options=None):
         super().__init__()
         self._ode_class = ode_class
@@ -136,8 +155,13 @@ class ODEGroup(om.Group):
         self._calc_exprs = calc_exprs or {}
         self._num_nodes = num_nodes
         self._parameter_options = parameter_options
-    
+
     def setup(self):
+        """
+        Set up the ODEGroup.
+
+        Adds the user's ODE class and an ExecComp.
+        """
         ode_class = self._ode_class
         ode_init_kwargs = self._ode_init_kwargs
         num_nodes = self._num_nodes
@@ -149,6 +173,9 @@ class ODEGroup(om.Group):
         self.add_subsystem('exec_comp', ec, promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure(self):
+        """
+        Setup up connections and promotions in the ODEGroup.
+        """
         num_nodes = self._num_nodes
 
         seen_kwargs = set()
@@ -176,7 +203,7 @@ class ODEGroup(om.Group):
             else:
                 # Assume given shape is at a per-node basis
                 _expr_kwargs[output_var]['shape'] = (num_nodes,) + _expr_kwargs[output_var]['shape']
-            
+
             if 'units' not in _expr_kwargs[output_var]:
                 if common_units is not _unspecified:
                     _expr_kwargs[output_var]['units'] = common_units
@@ -190,7 +217,7 @@ class ODEGroup(om.Group):
                 expr = expr.replace(rel_path, exec_var_name)
                 if '.' in rel_path:
                     self.connect(rel_path, exec_var_name, src_indices=src_idxs)
-                
+
                 # Only provide kwargs for things that we havent already done so.
                 if exec_var_name not in seen_kwargs:
                     # Use deepcopy so we don't accidentally permanently set the shape here when we assign it.
@@ -202,7 +229,7 @@ class ODEGroup(om.Group):
                             _expr_kwargs[exec_var_name]['shape'] = (num_nodes,)
                     else:
                         _expr_kwargs[exec_var_name]['shape'] = (num_nodes,) + _expr_kwargs[exec_var_name]['shape']
-                    
+
                     if exec_var_name in scalar_sources:
                         scalar_src_idxs.append(exec_var_name)
 

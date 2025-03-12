@@ -53,7 +53,7 @@ class TestCannonballConnectedInitialStates(unittest.TestCase):
         ascent.add_parameter('m', units='kg', static_targets=True)
 
         # Limit the muzzle energy
-        ascent.add_boundary_constraint('ke = 0.5 * m * v**2', loc='initial',
+        ascent.add_boundary_constraint('ke2 = 0.5 * m * v**2', loc='initial',
                                        upper=400000, lower=0, ref=100000)
 
         # Second Phase (descent)
