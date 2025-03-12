@@ -164,8 +164,8 @@ class TestAddBoundaryConstraint(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             phase.add_boundary_constraint(name='pos=v**2', loc='final', equals=np.array([10, 5]))
 
-        expected = 'Cannot add new final boundary constraint named `pos` and indices None.' \
-                   ' The name `pos` is already in use as a final boundary constraint'
+        expected = 'Cannot add new final boundary constraint for variable `pos` and indices None.' \
+                   ' One already exists.'
         self.assertEqual(expected, str(e.exception))
 
     def test_duplicate_constraint(self):

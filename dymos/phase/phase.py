@@ -1300,6 +1300,8 @@ class Phase(om.Group):
         elif constraint_name is None:
             _name = name
             constraint_name = name.rpartition('.')[-1]
+        else:
+            _name = name
 
         bc_list = self._initial_boundary_constraints if loc == 'initial' else self._final_boundary_constraints
 
@@ -1404,6 +1406,8 @@ class Phase(om.Group):
         elif constraint_name is None:
             _name = name
             constraint_name = name.rpartition('.')[-1]
+        else:
+            _name = name
 
         existing_pc = [pc for pc in self._path_constraints
                        if pc['name'] == name and pc['indices'] == indices and pc['flat_indices'] == flat_indices]
