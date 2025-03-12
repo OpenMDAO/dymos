@@ -1,5 +1,5 @@
 from .continuity_comp import RadauPSContinuityComp, GaussLobattoContinuityComp
-from .control_group import ControlGroup, ControlInterpComp
+from .control_comp import ControlInterpComp
 from .parameter_comp import ParameterComp
 from .time_comp import TimeComp
 from .timeseries_group import TimeseriesOutputGroup

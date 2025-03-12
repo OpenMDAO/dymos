@@ -8,7 +8,7 @@ from dymos.utils.testing_utils import assert_check_partials
 
 import dymos as dm
 from dymos.transcriptions.common import TimeComp
-from dymos.transcriptions.common.control_group import ControlInterpComp
+from dymos.transcriptions.common import ControlInterpComp
 from dymos.transcriptions.grid_data import GridData
 
 # Modify class so we can run it standalone.
@@ -92,8 +92,8 @@ class TestControlRateComp(unittest.TestCase):
 
                 p = om.Problem(model=om.Group())
 
-                controls = {'a': {'units': 'm', 'shape': (1,), 'dynamic': True},
-                            'b': {'units': 'm', 'shape': (1,), 'dynamic': True}}
+                controls = {'a': {'units': 'm', 'shape': (1,), 'dynamic': True, 'opt': False},
+                            'b': {'units': 'm', 'shape': (1,), 'dynamic': True, 'opt': False}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
@@ -183,7 +183,7 @@ class TestControlRateComp(unittest.TestCase):
 
                 p = om.Problem(model=om.Group())
 
-                controls = {'a': {'units': 'm', 'shape': (3,), 'dynamic': True}}
+                controls = {'a': {'units': 'm', 'shape': (3,), 'dynamic': True, 'opt': False}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
@@ -283,7 +283,7 @@ class TestControlRateComp(unittest.TestCase):
 
                 p = om.Problem(model=om.Group())
 
-                controls = {'a': {'units': 'm', 'shape': (3, 1), 'dynamic': True}}
+                controls = {'a': {'units': 'm', 'shape': (3, 1), 'dynamic': True, 'opt': False}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
@@ -382,7 +382,7 @@ class TestControlRateComp(unittest.TestCase):
 
                 p = om.Problem(model=om.Group())
 
-                controls = {'a': {'units': 'm', 'shape': (2, 2), 'dynamic': True}}
+                controls = {'a': {'units': 'm', 'shape': (2, 2), 'dynamic': True, 'opt': False}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])

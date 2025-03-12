@@ -14,7 +14,7 @@ from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.indexing import get_src_indices_by_row
 from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets, _get_targets_metadata
 from ...utils.constants import INF_BOUND
-from ..common import TimeComp, TimeseriesOutputGroup, ControlGroup, ParameterComp
+from ..common import TimeComp, TimeseriesOutputGroup, ControlInterpComp, ParameterComp
 
 
 class ExplicitShooting(TranscriptionBase):
@@ -350,13 +350,13 @@ class ExplicitShooting(TranscriptionBase):
         phase._check_control_options()
 
         if phase.control_options:
-            control_group = ControlGroup(control_options=phase.control_options,
-                                         time_units=phase.time_options['units'],
-                                         grid_data=self.options['grid'],
-                                         output_grid_data=self._output_grid_data)
+            control_comp = ControlInterpComp(control_options=phase.control_options,
+                                             time_units=phase.time_options['units'],
+                                             grid_data=self.options['grid'],
+                                             output_grid_data=self._output_grid_data)
 
-            phase.add_subsystem('control_group',
-                                subsys=control_group,
+            phase.add_subsystem('control_comp',
+                                subsys=control_comp,
                                 promotes=[('t_duration', 't_duration_val'), 'dt_dstau',
                                           '*controls:*', '*control_values:*', '*control_rates:*'])
 
@@ -392,8 +392,8 @@ class ExplicitShooting(TranscriptionBase):
 
         integrator_comp = phase._get_subsystem('integrator')
         integrator_comp._configure_controls()
-        control_group = phase._get_subsystem('control_group')
-        control_group.configure_io()
+        control_comp = phase._get_subsystem('control_comp')
+        control_comp.configure_io()
 
         ode = phase._get_subsystem('ode')
         ode_inputs = get_promoted_vars(ode, 'input')

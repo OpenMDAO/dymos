@@ -119,11 +119,11 @@ class PseudospectralBase(TranscriptionBase):
         super().configure_controls(phase)
 
         if phase.control_options:
-            phase.control_group.configure_io()
-            phase.promotes('control_group',
+            phase.control_comp.configure_io()
+            phase.promotes('control_comp',
                            any=['*controls:*', '*control_values:*', '*control_rates:*'])
 
-            phase.connect('dt_dstau', 'control_group.dt_dstau')
+            phase.connect('dt_dstau', 'control_comp.dt_dstau')
 
     def configure_states(self, phase):
         """
