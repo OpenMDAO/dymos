@@ -116,6 +116,8 @@ class BirkhoffBoundaryGroup(om.Group):
                              desc='Keyword arguments provided when initializing the ODE System')
         self.options.declare('calc_exprs', types=dict, default={},
                              desc='ODE Expressions from the Phase')
+        self.options.declare('parameter_options', types=dict, default={},
+                             desc='parameter options inherited from the phase')
 
     def setup(self):
         """
@@ -130,7 +132,8 @@ class BirkhoffBoundaryGroup(om.Group):
         ode = _make_ode_system(ode_class=ode_class,
                        num_nodes=2,
                        ode_init_kwargs=ode_init_kwargs,
-                       calc_exprs=self.options['calc_exprs'])
+                       calc_exprs=self.options['calc_exprs'],
+                       parameter_options=self.options['parameter_options'])
 
         self.add_subsystem('boundary_ode', ode,
                            promotes_inputs=['*'], promotes_outputs=['*'])

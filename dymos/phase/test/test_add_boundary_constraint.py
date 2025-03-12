@@ -99,7 +99,6 @@ class TestAddBoundaryConstraint(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='s')
 
-        # can't fix final position if you're solving the segments
         phase.add_state('pos',
                         rate_source='pos_dot', units='m',
                         fix_initial=True)
@@ -115,11 +114,11 @@ class TestAddBoundaryConstraint(unittest.TestCase):
         phase.add_parameter('g', units='m/s**2', val=9.80665, opt=False)
 
         # test add_boundary_constraint with arrays:
-        expected = 'The expression provided `pos**2` has invalid format. ' \
-                   'Expression may be a single variable or an equation ' \
-                   'of the form `constraint_name = func(vars)`'
+        phase.add_boundary_constraint(name='pos**2', loc='final', equals=np.array([10, 5]))
+
+        expected = "Unable to find the source 'pos**2' in the ODE."
         with self.assertRaises(ValueError) as e:
-            phase.add_boundary_constraint(name='pos**2', loc='final', equals=np.array([10, 5]))
+            p.setup()
 
         self.assertEqual(expected, str(e.exception))
 

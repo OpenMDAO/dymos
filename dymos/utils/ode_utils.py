@@ -4,6 +4,8 @@ Utilities for dealing with ODE systems.
 from copy import deepcopy
 import re
 
+import numpy as np
+
 import openmdao.api as om
 
 from dymos.utils.misc import _unspecified
@@ -127,12 +129,13 @@ class ExprParser():
 
 class ODEGroup(om.Group):
 
-    def __init__(self, ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None):
+    def __init__(self, ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None, parameter_options=None):
         super().__init__()
         self._ode_class = ode_class
         self._ode_init_kwargs = ode_init_kwargs or {}
         self._calc_exprs = calc_exprs or {}
         self._num_nodes = num_nodes
+        self._parameter_options = parameter_options
     
     def setup(self):
         ode_class = self._ode_class
@@ -141,19 +144,18 @@ class ODEGroup(om.Group):
 
         ode = ode_class(num_nodes=num_nodes, **ode_init_kwargs)
 
-        self.add_subsystem('user_ode', ode, promotes=['*'])
+        self.add_subsystem('user_ode', ode, promotes_inputs=['*'], promotes_outputs=['*'])
         ec = om.ExecComp()
-        self.add_subsystem('exec_comp', ec, promotes=['*'])
+        self.add_subsystem('exec_comp', ec, promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure(self):
         num_nodes = self._num_nodes
-        calc_exprs = self._calc_exprs
 
         seen_kwargs = set()
         parser = ExprParser()
         ec = self._get_subsystem('exec_comp')
 
-        for expr, expr_kwargs in calc_exprs.items():
+        for expr, expr_kwargs in self._calc_exprs.items():
             common_units = _unspecified
             common_shape = _unspecified
             if 'units' in expr_kwargs:
@@ -179,6 +181,10 @@ class ODEGroup(om.Group):
                 if common_units is not _unspecified:
                     _expr_kwargs[output_var]['units'] = common_units
 
+            scalar_src_idxs = []
+            param_options = self._parameter_options or {}
+            scalar_sources = list(param_options.keys()) + ['t_initial', 't_duration', 't_final']
+
             for rel_path, idx_str in re.findall(var_rgx, rhs):
                 exec_var_name, src_idxs = parser.parse(rel_path, idx_str)
                 expr = expr.replace(rel_path, exec_var_name)
@@ -196,12 +202,18 @@ class ODEGroup(om.Group):
                             _expr_kwargs[exec_var_name]['shape'] = (num_nodes,)
                     else:
                         _expr_kwargs[exec_var_name]['shape'] = (num_nodes,) + _expr_kwargs[exec_var_name]['shape']
+                    
+                    if exec_var_name in scalar_sources:
+                        scalar_src_idxs.append(exec_var_name)
 
             seen_kwargs |= _expr_kwargs.keys()
             ec.add_expr(expr, **_expr_kwargs)
+            if scalar_src_idxs:
+                self.promotes('exec_comp', inputs=scalar_src_idxs,
+                              src_indices=np.zeros(num_nodes, dtype=int))
 
 
-def _make_ode_system(ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None):
+def _make_ode_system(ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None, parameter_options=None):
     """
     Instantiate the ODE system, optionally including an ExecComp.
 
@@ -231,5 +243,6 @@ def _make_ode_system(ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None
         ode_group = ODEGroup(ode_class,
                              num_nodes=num_nodes,
                              ode_init_kwargs=ode_init_kwargs,
-                             calc_exprs=calc_exprs)
+                             calc_exprs=calc_exprs,
+                             parameter_options=parameter_options)
         return ode_group

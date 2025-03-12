@@ -317,7 +317,8 @@ class ExplicitShooting(TranscriptionBase):
         ode = _make_ode_system(ode_class=phase.options['ode_class'],
                        num_nodes=self._output_grid_data.num_nodes,
                        calc_exprs=phase._calc_exprs,
-                       ode_init_kwargs=phase.options['ode_init_kwargs'])
+                       ode_init_kwargs=phase.options['ode_init_kwargs'],
+                       parameter_options=phase.parameter_options)
 
         phase.add_subsystem('ode', ode)
 

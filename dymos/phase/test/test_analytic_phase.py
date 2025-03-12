@@ -351,8 +351,8 @@ class TestAnalyticPhaseInvalidOptions(unittest.TestCase):
 
         phase.set_time_options(units='s', targets=['t'], fix_initial=True, fix_duration=True)
         phase.add_state('y')
-        phase.add_parameter('y0', opt=False)
-        phase.add_timeseries_output('z = y0 + y**2')
+        phase.add_parameter('y0', units='unitless', opt=False)
+        phase.add_timeseries_output('z = y0 + y**2', y0={'units': 'unitless'})
 
         p.setup()
 

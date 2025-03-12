@@ -138,7 +138,8 @@ class ODEEvaluationGroup(om.Group):
         ode = _make_ode_system(ode_class=self._ode_class,
                        num_nodes=self._vec_size,
                        ode_init_kwargs=self._ode_init_kwargs,
-                       calc_exprs=self._calc_exprs)
+                       calc_exprs=self._calc_exprs,
+                       parameter_options=self._parameter_options)
 
         self.add_subsystem('ode', ode)
 

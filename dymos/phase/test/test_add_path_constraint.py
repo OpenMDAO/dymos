@@ -85,12 +85,12 @@ class TestAddPathConstraint(unittest.TestCase):
 
         phase.add_parameter('g', units='m/s**2', val=9.80665, opt=False)
 
+        phase.add_path_constraint(name='pos**2', lower=np.array([10, 5]))
+
         # test add_boundary_constraint with arrays:
-        expected = 'The expression provided `pos**2` has invalid format. ' \
-                   'Expression may be a single variable or an equation ' \
-                   'of the form `constraint_name = func(vars)`'
+        expected = "Unable to find the source 'pos**2' in the ODE."
         with self.assertRaises(ValueError) as e:
-            phase.add_path_constraint(name='pos**2', equals=np.array([10, 5]))
+            p.setup()
 
         self.assertEqual(expected, str(e.exception))
 
