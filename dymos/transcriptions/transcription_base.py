@@ -340,9 +340,9 @@ class TranscriptionBase(object):
 
             # Get the indices to connect based on loc.
             if loc == 'final':
-                src_idxs = om.slicer[-1, *index]
+                src_idxs = om.slicer[(-1, *index)]
             elif loc == 'initial':
-                src_idxs = om.slicer[0, *index]
+                src_idxs = om.slicer[(0, *index)]
             else:
                 raise ValueError(f'{phase.msginfo}: Value of `loc` for boundary balance `{param}` '
                                  'must be one of `initial` or `final`, but got `{loc}` instead.')
