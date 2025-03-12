@@ -6,8 +6,7 @@ import re
 
 import openmdao.api as om
 
-from openmdao.core.constants import _UNDEFINED
-from openmdao.api import is_undefined
+from dymos.utils.misc import _unspecified
 
 
 # This regex finds variables and any indices that follow them.
@@ -155,8 +154,8 @@ class ODEGroup(om.Group):
         ec = self._get_subsystem('exec_comp')
 
         for expr, expr_kwargs in calc_exprs.items():
-            common_units = _UNDEFINED
-            common_shape = _UNDEFINED
+            common_units = _unspecified
+            common_shape = _unspecified
             if 'units' in expr_kwargs:
                 # units are set throughout this expression
                 common_units = expr_kwargs['units']
@@ -168,7 +167,7 @@ class ODEGroup(om.Group):
             _expr_kwargs[output_var] = deepcopy(expr_kwargs.get(output_var, {}))
 
             if 'shape' not in _expr_kwargs[output_var]:
-                if not is_undefined(common_shape):
+                if common_shape is not _unspecified:
                     _expr_kwargs[output_var]['shape'] = (num_nodes,) + common_shape
                 else:
                     _expr_kwargs[output_var]['shape'] = (num_nodes,)
@@ -177,7 +176,7 @@ class ODEGroup(om.Group):
                 _expr_kwargs[output_var]['shape'] = (num_nodes,) + _expr_kwargs[output_var]['shape']
             
             if 'units' not in _expr_kwargs[output_var]:
-                if not is_undefined(common_units):
+                if common_units is not _unspecified:
                     _expr_kwargs[output_var]['units'] = common_units
 
             for rel_path, idx_str in re.findall(var_rgx, rhs):
@@ -191,7 +190,7 @@ class ODEGroup(om.Group):
                     # Use deepcopy so we don't accidentally permanently set the shape here when we assign it.
                     _expr_kwargs[exec_var_name] = deepcopy(expr_kwargs.get(rel_path, {}))
                     if 'shape' not in _expr_kwargs[exec_var_name]:
-                        if not is_undefined(common_shape):
+                        if common_shape is not _unspecified:
                             _expr_kwargs[exec_var_name]['shape'] = (num_nodes,) + common_shape
                         else:
                             _expr_kwargs[exec_var_name]['shape'] = (num_nodes,)
