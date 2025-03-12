@@ -8,11 +8,13 @@ import openmdao.api as om
 import dymos as dm
 
 from openmdao.utils.testing_utils import use_tempdirs
+from dymos.utils.misc import om_version
 
 
+@unittest.skipIf(om_version()[0] <= (3, 37, 0), 'Requires OpenMDAO version later than 3.37.0')
 class GuidedBrachistochroneODE(om.JaxExplicitComponent):
     """
-    The brachistochrone EOM assuming 
+    The brachistochrone EOM assuming a linear rate of change in the wire angle wrt time.
     """
 
     def initialize(self):
@@ -38,6 +40,7 @@ class GuidedBrachistochroneODE(om.JaxExplicitComponent):
 
         self.add_output('theta', desc='wire angle', shape=(nn,), val=2, units='rad')
 
+        # TODO: Temporary pending bug fix in JaxExplicitComp
         self.declare_coloring(method='jax')
 
     def compute_primal(self, v, g, time_phase, theta_rate):
@@ -76,13 +79,11 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         phase.add_timeseries_output('theta', units='deg')
 
         phase.add_boundary_balance(param='t_duration', name='x', tgt_val=10.0, loc='final', lower=0.1, upper=5.0)
-        phase.add_boundary_balance(param='parameters:theta_rate', name='y', tgt_val=5.0, loc='final', lower=0.1, upper=100.0, res_ref=1.0)
+        phase.add_boundary_balance(param='theta_rate', name='y', tgt_val=5.0, loc='final', lower=0.1, upper=100.0, res_ref=1.0)
         
         phase.nonlinear_solver = om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=0, atol=1.0E-6, rtol=1.0E-6)
         phase.nonlinear_solver.linesearch = om.BoundsEnforceLS()
         phase.linear_solver = om.DirectSolver()
-
-        p.set_solver_print(2)
 
         p.setup()
 
@@ -90,13 +91,12 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
 
         phase.set_state_val('x', [0, 10])
         phase.set_state_val('y', [10, 5])
-        phase.set_state_val('v', [1.0E-2, 9.9])
+        phase.set_state_val('v', [0, 9.9])
 
         phase.set_parameter_val('theta_rate',  20.0)
         phase.set_parameter_val('g', 9.80665)
 
         p.final_setup()
-        # om.n2(p)
 
         return p
 
@@ -136,59 +136,14 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         self.assertNotIn('traj0.phase0.timeseries.theta_rate', outputs)
 
     def test_picard_cgl(self):
-        tx = dm.PicardShooting(num_segments=1, nodes_per_seg=21, grid_type='cgl')
-        p = self.make_problem(tx=tx)
+        for grid_type in 'cgl', 'lgl':
+            with self.subTest(f'{grid_type=}'):
+                tx = dm.PicardShooting(num_segments=1, nodes_per_seg=21, grid_type='cgl')
+                p = self.make_problem(tx=tx)
 
-        # p.final_setup()
+                p.run_model()
 
-        p.run_model()
-
-        # p.check_totals(of=['traj0.phase0.t_duration', 'traj0.phase0.parameters:theta_rate'],
-        #                wrt=['traj0.phase0.states:x', 'traj0.phase0.states:y'])
-
-        # om.n2(p)
-
-        import matplotlib.pyplot as plt
-
-        plt.switch_backend('macosx')
-        fig, axes = plt.subplots(1, 2)
-        t = p.get_val('traj0.phase0.timeseries.time')
-        g = p.get_val('traj0.phase0.parameters:g')
-        theta_rate = p.get_val('traj0.phase0.parameters:theta_rate')
-        x = p.get_val('traj0.phase0.timeseries.x')
-        y = p.get_val('traj0.phase0.timeseries.y')
-        v = p.get_val('traj0.phase0.timeseries.v')
-        theta = p.get_val('traj0.phase0.timeseries.theta')
-
-        axes[0].plot(x, y, 'o')
-        axes[1].plot(t, theta, 'o')
-
-        plt.show()
-
-
-        # plt.switch_backend('macosx')
-        # fig, axes = plt.subplots(1, 2)
-
-        # for k in jnp.linspace(5, 15, 16):
-
-        #     p.set_val('traj0.phase0.parameters:k', k)
-
-        #     p.run_model()
-
-        #     t = p.get_val('traj0.phase0.timeseries.time')
-        #     g = p.get_val('traj0.phase0.parameters:g')
-        #     k = p.get_val('traj0.phase0.parameters:k')
-        #     x = p.get_val('traj0.phase0.timeseries.x')
-        #     y = p.get_val('traj0.phase0.timeseries.y')
-        #     v = p.get_val('traj0.phase0.timeseries.v')
-        #     theta = p.get_val('traj0.phase0.timeseries.theta')
-
-        #     axes[0].plot(x, y)
-        #     axes[1].plot(t, theta)
-        # plt.show()
-        
-        # self.run_asserts(p)
-        # self.tearDown()
+                self.run_asserts(p)
 
 
 if __name__ == '__main__':

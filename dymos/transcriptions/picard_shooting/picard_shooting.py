@@ -5,11 +5,9 @@ import openmdao.api as om
 from ..transcription_base import TranscriptionBase
 from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp, ControlInterpComp
 from .multiple_shooting_iter_group import MultipleShootingIterGroup
-# from ..pseudospectral.components.birkhoff_boundary_group import BirkhoffBoundaryGroup as BoundaryODEGroup
 
 from ..grid_data import GaussLobattoGrid, ChebyshevGaussLobattoGrid
-from dymos.utils.misc import get_rate_units, _unspecified
-from dymos.utils.introspection import get_promoted_vars, get_source_metadata, _configure_boundary_balance_introspection
+from dymos.utils.introspection import get_promoted_vars, get_source_metadata, get_rate_units
 from dymos.utils.indexing import get_constraint_flat_idxs, get_src_indices_by_row
 
 
@@ -321,79 +319,6 @@ class PicardShooting(TranscriptionBase):
 
             if rate_source_type not in ('state', 'ode'):
                 phase.connect(rate_src_path, f'f_computed:{name}', src_indices=src_idxs)
-
-    def setup_boundary_balance(self, phase):
-        """
-        Setup the implicit computation of the phase boundary balance.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        if phase.boundary_balance_options:
-            boundary_balance_comp = om.BalanceComp()
-            phase.add_subsystem('boundary_balance_comp', boundary_balance_comp, promotes_outputs=['*'])
-    
-    def configure_boundary_balance(self, phase):
-        """
-        Configure the implicit computation of the phase boundary balance.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        param_balance_comp = phase._get_subsystem('boundary_balance_comp')
-
-        _configure_boundary_balance_introspection(phase)
-
-        for param, options in phase.boundary_balance_options.items():
-            name = options['name']
-            tgt_val = options['tgt_val']
-            loc = options['loc']
-            index = options['index']
-
-            # Get the indices to connect based on loc.
-            if loc == 'final':
-                src_idxs = om.slicer[-1, index]
-            elif loc == 'initial':
-                src_idxs = om.slicer[0, index]
-            else:
-                raise ValueError(f'{phase.msginfo}: Value of `loc` for boundary balance `{param}` '
-                                 'must be one of `initial` or `final`, but got `{loc}` instead.')
-
-            # Create the arguments for the balance comp.
-            bal_kwargs = {key: options for key, options in options.items()}
-            try:
-                output_name = bal_kwargs.pop('output_name')
-            except KeyError:
-                output_name = name.split('.')[-1]
-            bal_kwargs.pop('param')
-            bal_kwargs.pop('name')
-            bal_kwargs.pop('tgt_val')
-            bal_kwargs.pop('loc')
-            bal_kwargs.pop('index')
-            bal_kwargs['rhs_val'] = tgt_val
-            bal_kwargs['lhs_name'] = output_name
-
-            # Now configure the balance.
-            param_balance_comp.add_balance(name=param, **bal_kwargs)
-
-            # Done via promotion
-            # phase.connect('boundary_balance_comp.t_duration', 't_duration')
-
-            var_type = phase.classify_var(name)
-            if var_type == 'ode':
-                if name not in self._timeseries['timeseries']['outputs']:
-                    self.add_timeseries_output(name, output_name=output_name, units=bal_kwargs.get('eq_units', _unspecified))
-  
-            if var_type == 'state' and name.startswith('initial_states:') or name.startswith('final_states:'):
-                phase.promotes('boundary_balance_comp', inputs=[output_name])
-            else:
-                phase.connect(f'timeseries.{output_name}', f'boundary_balance_comp.{output_name}',
-                            src_indices=src_idxs)
-
 
     def setup_duration_balance(self, phase):
         """

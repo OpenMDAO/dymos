@@ -8,7 +8,8 @@ from .common import ControlGroup, ParameterComp
 from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_states_introspection, get_promoted_vars, \
-    configure_states_discovery
+    configure_states_discovery, _configure_boundary_balance_introspection
+from ..utils.misc import _unspecified
 
 
 class TranscriptionBase(object):
@@ -304,6 +305,76 @@ class TranscriptionBase(object):
             The phase object to which this transcription instance applies.
         """
         raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_ode.')
+
+    def setup_boundary_balance(self, phase):
+        """
+        Setup the implicit computation of the phase boundary balance.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        if phase.boundary_balance_options:
+            boundary_balance_comp = om.BalanceComp()
+            phase.add_subsystem('boundary_balance_comp', boundary_balance_comp, promotes_outputs=['*'])
+    
+    def configure_boundary_balance(self, phase):
+        """
+        Configure the implicit computation of the phase boundary balance.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        param_balance_comp = phase._get_subsystem('boundary_balance_comp')
+
+        _configure_boundary_balance_introspection(phase)
+
+        for param, options in phase.boundary_balance_options.items():
+            name = options['name']
+            tgt_val = options['tgt_val']
+            loc = options['loc']
+            index = options['index']
+
+            # Get the indices to connect based on loc.
+            if loc == 'final':
+                src_idxs = om.slicer[-1, index]
+            elif loc == 'initial':
+                src_idxs = om.slicer[0, index]
+            else:
+                raise ValueError(f'{phase.msginfo}: Value of `loc` for boundary balance `{param}` '
+                                 'must be one of `initial` or `final`, but got `{loc}` instead.')
+
+            # Create the arguments for the balance comp.
+            bal_kwargs = {key: options for key, options in options.items()}
+            try:
+                output_name = bal_kwargs.pop('output_name')
+            except KeyError:
+                output_name = name.split('.')[-1]
+            bal_kwargs.pop('param')
+            bal_kwargs.pop('name')
+            bal_kwargs.pop('tgt_val')
+            bal_kwargs.pop('loc')
+            bal_kwargs.pop('index')
+            bal_kwargs['rhs_val'] = tgt_val
+            bal_kwargs['lhs_name'] = output_name
+
+            prom_param_name = f'parameters:{param}' if param in phase.parameter_options else param
+
+            # Now configure the balance.
+            param_balance_comp.add_balance(name=prom_param_name, **bal_kwargs)
+
+            var_type = phase.classify_var(name)
+            if var_type == 'ode':
+                if name not in self._timeseries['timeseries']['outputs']:
+                    self.add_timeseries_output(name, output_name=output_name, units=bal_kwargs.get('eq_units', _unspecified))
+            if var_type == 'state' and name.startswith('initial_states:') or name.startswith('final_states:'):
+                phase.promotes('boundary_balance_comp', inputs=[output_name])
+            else:
+                phase.connect(f'timeseries.{output_name}', f'boundary_balance_comp.{output_name}',
+                            src_indices=src_idxs)
 
     def setup_duration_balance(self, phase):
         """

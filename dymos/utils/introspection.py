@@ -1073,14 +1073,14 @@ def _configure_boundary_balance_introspection(phase):
 
         if param_name in ['t_initial', 't_duration']:
             param_units = time_units
-        elif (pname := param_name.split(':')[-1]) in phase.parameter_options:
-            param_units = phase.parameter_options[pname]['units']
+        elif param_name in phase.parameter_options:
+            param_units = phase.parameter_options[param_name]['units']
         elif param_name.startswith('initial_states:') or param_name.startswith('final_states'):
             state_name = ':'.join(param_name.split(':')[1:])
             param_units = phase.state_options[state_name]['units']
         else:
             raise ValueError(f'{phase.msginfo}: For boundary balance, param must be one of t_initial, t_duration, '
-                             'parameter:{{name}}, initial_states:{{name}}, or final_states:{{name}}')
+                             'a parameter in the phase, initial_states:{name}, or final_states:{name}')
 
         if options.get('units', _unspecified) is _unspecified:
             options['units'] = param_units
