@@ -122,6 +122,7 @@ class LorenzAttractorODE(om.JaxExplicitComponent):
         z_dot = x * y - b * z
         return x_dot, y_dot, z_dot
 
+
 @use_tempdirs
 class TestMultipleShootingIterGroup(unittest.TestCase):
 
@@ -143,7 +144,7 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
                                 state_options['x']['initial_bounds'] = (None, None)
                                 state_options['x']['final_bounds'] = (None, None)
                                 state_options['x']['solve_segments'] = direction
-                                state_options['x']['rate_source'] = 'ode_all.x_dot'
+                                state_options['x']['rate_source'] = 'x_dot'
 
                                 time_options = TimeOptionsDictionary()
                                 ode_class = SimpleODE
@@ -155,7 +156,7 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
                                     def setup(self):
                                         self.state_options = state_options
                                         self.time_options = time_options
-                                    
+
                                     def classify_var(self, var):
                                         return 'ode'
 
@@ -164,11 +165,11 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
                                         self._get_subsystem('time').configure_io()
 
                                 p.model = PhaseStub()
-                                    
+
                                 p.model.add_subsystem('time', TimeComp(num_nodes=grid_data.num_nodes,
-                                                                    node_ptau=grid_data.node_ptau,
-                                                                    node_dptau_dstau=grid_data.node_dptau_dstau,
-                                                                    units='s'))
+                                                                       node_ptau=grid_data.node_ptau,
+                                                                       node_dptau_dstau=grid_data.node_dptau_dstau,
+                                                                       units='s'))
 
                                 p.model.add_subsystem('ms', MultipleShootingIterGroup(state_options=state_options,
                                                                                       time_units=time_options['units'],
@@ -189,8 +190,11 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
                                 p.set_val('time.t_initial', 0.0)
                                 p.set_val('time.t_duration', 2.0)
 
-                                solution = lambda t: t**2 + 2 * t + 1 - 0.5 * np.exp(t)
-                                dsolution_dt = lambda t: 2 * t + 2 - 0.5 * np.exp(t)
+                                def solution(t):
+                                    return t**2 + 2 * t + 1 - 0.5 * np.exp(t)
+
+                                def dsolution_dt(t):
+                                    return 2 * t + 2 - 0.5 * np.exp(t)
 
                                 if direction == 'forward':
                                     p.set_val('ms.seg_initial_states:x', 0.5)

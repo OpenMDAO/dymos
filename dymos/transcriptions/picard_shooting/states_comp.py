@@ -8,14 +8,14 @@ from dymos._options import options as dymos_options
 
 class StatesComp(ExplicitComponent):
     """
+    This component provides inputs for states and outputs their values during Picard iteration.
+
     This component serves to accept variables 'states:{state_name}' and echo them out as
     'state_val:{state_name}'.  This is necessary when using NonlinearBlockGS to converge
     the states.
 
     Parameters
     ----------
-    time_options : TimeOptionsDictionary or None
-        If None, specify time options for the creation of t_initial and t_duration inputs and outputs.
     **kwargs : dict
         Arguments to be passed to the component initialization method.
 

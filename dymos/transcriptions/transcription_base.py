@@ -224,7 +224,7 @@ class TranscriptionBase(object):
                                          adder=options['adder'],
                                          ref0=options['ref0'],
                                          ref=options['ref'])
-    
+
                 for tgts, src_idxs in self.get_parameter_connections(name, phase):
                     phase.connect(f'parameter_vals:{name}', tgts, src_indices=src_idxs,
                                   flat_src_indices=True)
@@ -318,7 +318,7 @@ class TranscriptionBase(object):
         if phase.boundary_balance_options:
             boundary_balance_comp = om.BalanceComp()
             phase.add_subsystem('boundary_balance_comp', boundary_balance_comp, promotes_outputs=['*'])
-    
+
     def configure_boundary_balance(self, phase):
         """
         Configure the implicit computation of the phase boundary balance.
@@ -374,7 +374,7 @@ class TranscriptionBase(object):
                 phase.promotes('boundary_balance_comp', inputs=[output_name])
             else:
                 phase.connect(f'timeseries.{output_name}', f'boundary_balance_comp.{output_name}',
-                            src_indices=src_idxs)
+                              src_indices=src_idxs)
 
     def setup_solvers(self, phase):
         """

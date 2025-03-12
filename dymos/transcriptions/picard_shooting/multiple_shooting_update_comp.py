@@ -138,9 +138,9 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
                 if num_segs > 1:
                     rs, cs = self._M_fwd[state_name].nonzero()
                     self.declare_partials(of=var_names['x_0'],
-                                        wrt=var_names['x'],
-                                        rows=rs, cols=cs,
-                                        val=self._M_fwd[state_name].data.ravel())
+                                          wrt=var_names['x'],
+                                          rows=rs, cols=cs,
+                                          val=self._M_fwd[state_name].data.ravel())
 
             elif options['solve_segments'] == 'backward':
                 self._M_bkwd[state_name] = sp.kron(M_bkwd, sp.eye(size, dtype=int))
@@ -173,7 +173,6 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
                                           wrt=var_names['x'],
                                           rows=rs, cols=cs,
                                           val=self._M_bkwd[state_name].data.ravel())
-
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """

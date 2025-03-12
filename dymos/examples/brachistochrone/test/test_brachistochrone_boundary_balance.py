@@ -54,6 +54,7 @@ class GuidedBrachistochroneODE(om.JaxExplicitComponent):
 
         return xdot, ydot, vdot, theta
 
+
 @unittest.skipIf(om_version()[0] <= (3, 37, 0), 'Requires OpenMDAO version later than 3.37.0')
 @use_tempdirs
 class TestBrachistochroneBoundaryBalance(unittest.TestCase):
@@ -79,7 +80,7 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
 
         phase.add_boundary_balance(param='t_duration', name='x', tgt_val=10.0, loc='final', lower=0.1, upper=5.0)
         phase.add_boundary_balance(param='theta_rate', name='y', tgt_val=5.0, loc='final', lower=0.1, upper=100.0, res_ref=1.0)
-        
+
         phase.nonlinear_solver = om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=0, atol=1.0E-6, rtol=1.0E-6)
         phase.nonlinear_solver.linesearch = om.BoundsEnforceLS()
         phase.linear_solver = om.DirectSolver()
@@ -98,7 +99,6 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         p.final_setup()
 
         return p
-
 
     def run_asserts(self, p):
 
@@ -177,6 +177,7 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         p.run_model()
 
         self.run_asserts(p)
+
 
 if __name__ == '__main__':
     unittest.main()

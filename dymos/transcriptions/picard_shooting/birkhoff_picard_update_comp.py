@@ -134,8 +134,8 @@ class PicardUpdateComp(om.ExplicitComponent):
                                       wrt='dt_dstau',
                                       rows=rs, cols=cs)
                 self.declare_partials(of=var_names['x_hat'],
-                        wrt=var_names['f_computed'],
-                        rows=rs, cols=cs)
+                                      wrt=var_names['f_computed'],
+                                      rows=rs, cols=cs)
                 self.declare_partials(of=var_names['x_b'],
                                       wrt='dt_dstau')
                 self.declare_partials(of=var_names['x_b'],
@@ -151,22 +151,18 @@ class PicardUpdateComp(om.ExplicitComponent):
                 template = sp.kron(template.tocsr(), sp.eye(size, dtype=int))
                 rs, cs = template.nonzero()
                 self.declare_partials(of=var_names['x_b'],
-                        wrt=var_names['x_0'],
-                        rows=rs, cols=cs, val=1.0)
+                                      wrt=var_names['x_0'],
+                                      rows=rs, cols=cs, val=1.0)
 
             elif options['solve_segments'] == 'backward':
-                self.add_input(
-                    name=var_names['x_f'],
-                    shape=(num_segs,) + shape,
-                    desc=f'Final value of state {state_name} in each segment',
-                    units=units
-                )
-                self.add_output(
-                    name=var_names['x_a'],
-                    shape=(1,) + shape,
-                    desc=f'Initial value of state {state_name} in the phase',
-                    units=units
-                )
+                self.add_input(name=var_names['x_f'],
+                               shape=(num_segs,) + shape,
+                               desc=f'Final value of state {state_name} in each segment',
+                               units=units)
+                self.add_output(name=var_names['x_a'],
+                                shape=(1,) + shape,
+                                desc=f'Initial value of state {state_name} in the phase',
+                                units=units)
                 rs = np.repeat(np.arange(num_nodes - 1, dtype=int), num_nodes)
                 cs = np.tile(np.arange(num_nodes, dtype=int), num_nodes - 1)
                 self.declare_partials(of=var_names['x_hat'], wrt='dt_dstau',
@@ -228,6 +224,18 @@ class PicardUpdateComp(om.ExplicitComponent):
                 outputs[var_names['x_a']][...] = outputs[var_names['x_hat']][0, ...]
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
+        """
+        Compute component partials.
+
+        Parameters
+        ----------
+        inputs : Vector
+            Unscaled, dimensional input variables read via inputs[key].
+        partials : dict
+            Partial values to be returend in partials[of, wrt] format.
+        discrete_inputs : dict or None
+            If not None, dict containing discrete input values.
+        """
         gd = self.options['grid_data']
         num_nodes = gd.subset_num_nodes['all']
 

@@ -40,7 +40,7 @@ def classify_var(var, time_options, state_options, parameter_options, control_op
     -------
     str
         The classification of the given variable, which is one of
-        't', 't_phase', 'state', 
+        't', 't_phase', 'state',
         'input_control', 'indep_control', 'control_rate',
         'control_rate2', 'parameter', or 'ode'.
     """
@@ -1043,6 +1043,7 @@ def _configure_boundary_balance_introspection(phase):
             options['eq_units'] = meta['units']
         else:
             raise ValueError(f'{phase.msginfo}: Unable to find boundary balance name {resid_name}')
+
 
 def _configure_constraint_introspection(phase):
     """

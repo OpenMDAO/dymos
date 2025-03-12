@@ -563,7 +563,7 @@ class GridData(object):
                 np.all(self.num_steps_per_segment == other.num_steps_per_segment)
         else:
             return False
-        
+
     def __repr__(self):
         return f'{self.__class__.__name__}(num_seg={self.num_segments}, order={self.transcription_order}) at <{id(self)}>'
 
@@ -787,18 +787,6 @@ class BirkhoffGrid(GridData):
 
     Parameters
     ----------
-    num_segments : int
-        The number of segments in the phase.
-    nodes_per_seg : int or iterable
-        The number of nodes in each segment. As an integer, it applies to each segment. If a sequence, its length
-        must be equal to num_segments.
-    segment_ends : Iterable[num_segments + 1] or None
-        The segments nodes on some arbitrary interval.
-        This will be normalized to the interval [-1, 1].
-    compressed : bool
-        If the transcription is compressed, then states and controls at shared
-        nodes of adjacent segments are only specified once, and then broadcast
-        to the appropriate indices.
     num_nodes : int
         The number of nodes in the grid.
     grid_type : str

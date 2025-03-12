@@ -2073,11 +2073,11 @@ class Phase(om.Group):
     def add_boundary_balance(self, param, name, tgt_val=0.0, loc='final', index=0, **kwargs):
         """
         Turn param into an implicit output in the phase when using shooting methods.
-        
+
         This capability requires the variable specified by `name` to be dependent upon the given `param` name, and
         thus won't work with purely implicit transcriptions.
         The transcription must be one of ExplicitShooting, PicardShooting, Analytic, or Pseudospectral with `solve_segments=True`.
-         
+
         Param will be output by a BalanceComp at the end of the phase. with a residual defined by `name - val` at either
         the initial or final point in the phase (specified by 'loc').
 
@@ -2090,12 +2090,12 @@ class Phase(om.Group):
             The dymos phase variable whose value is being set to satisfy the residual.
         name : str
             The state or time-dependent phase output that provides the residual value for param.
-        tgt_val : float or array-like, optional.
-            The target value for `name`. Default is 0.0
-        loc : str, optional.
+        tgt_val : float or array-like, optional
+            The target value for `name`. Default is 0.0.
+        loc : str, optional
             Whether the value given by name is being evaluated at the 'initial' or 'final'
             point in the phase. Default is 'final'.
-        index : int or slice, optional.
+        index : int or slice, optional
             If the variable given by name is an array at each point in time, C-order index into
             that variable at the intiial or final time. Default is 0.
         **kwargs : dict
@@ -2109,7 +2109,7 @@ class Phase(om.Group):
             loc = bbos[param]['loc']
             raise ValueError(f'Phase variable {param} is already an implicit output for a boundary balance.\n'
                              f'R({param}) = {name}[{loc}] - {tgt_val} = 0')
-        
+
         bbos[param] = {'param': param, 'name': name, 'tgt_val': tgt_val, 'loc': loc, 'index': index}
         bbos[param].update(kwargs)
 
@@ -2544,10 +2544,8 @@ class Phase(om.Group):
         elif isinstance(self_tx, Radau):
             grid = RadauGrid(num_segments=num_seg, nodes_per_seg=seg_order + 1, segment_ends=seg_ends,
                              compressed=compressed)
-        elif isinstance(self_tx.grid_data, GaussLobattoGrid) or \
-                isinstance(self_tx.grid_data, RadauGrid) or \
-                    isinstance(self_tx.grid_data, BirkhoffGrid) or \
-                        isinstance(self_tx.grid_data, ChebyshevGaussLobattoGrid):
+        elif isinstance(self_tx.grid_data, (GaussLobattoGrid, RadauGrid,
+                                            BirkhoffGrid, ChebyshevGaussLobattoGrid)):
             grid = self_tx.grid_data
         else:
             raise RuntimeError(f'Unexpected grid class for {self_tx.grid_data}. Only phases with GaussLobatto '

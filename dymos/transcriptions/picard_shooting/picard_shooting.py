@@ -50,16 +50,15 @@ class PicardShooting(TranscriptionBase):
 
         self.options.declare('ode_nonlinear_solver', default=om.NonlinearBlockGS(maxiter=100, use_aitken=True, iprint=0),
                              desc='Nonlinear solver used to resolve Picard iteration on each segment.')
-        
+
         self.options.declare('ode_linear_solver', default=om.DirectSolver(),
                              desc='Linear solver used to linearize the Picard iteration subsystem on each segment.')
-        
+
         self.options.declare('ms_nonlinear_solver', default=om.NonlinearBlockGS(maxiter=100, use_aitken=True, iprint=0),
                              desc='Nonlinear solver used to resolve Picard iteration differences between segments.')
-        
+
         self.options.declare('ms_linear_solver', default=om.DirectSolver(),
                              desc='Linear solver used to linearize the Picard iteration subsystem between segments.')
-
 
     def init_grid(self):
         """
@@ -262,7 +261,7 @@ class PicardShooting(TranscriptionBase):
                                                              ode_nonlinear_solver=ode_nonlinear_solver,
                                                              ode_linear_solver=ode_linear_solver,
                                                              ms_nonlinear_solver=ms_nonlinear_solver,
-                                                             ms_linear_solver = ms_linear_solver),
+                                                             ms_linear_solver=ms_linear_solver),
                             promotes_inputs=['*'], promotes_outputs=['*'])
 
         # phase.add_subsystem('boundary_vals',
